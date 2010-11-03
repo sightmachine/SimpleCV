@@ -22,9 +22,20 @@ class Image:
   #initialize the frame
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
-  def __init__(self, sourcefile):
-    self.filename = sourcefile
-    bm = self.getBitmap()   
+  def __init__(self, source):
+
+    print type(source)
+    if (type(source) == cv.cvmat):
+      self._matrix = source 
+
+    if (type(source) == cv.iplimage):
+      self._bitmap = source
+
+    if (type(source) == type(str())):
+      self.filename = source
+      self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_UNCHANGED) 
+
+    bm = self.getBitmap()
     self.width = bm.width
     self.height = bm.height
     self.depth = bm.depth
@@ -33,9 +44,10 @@ class Image:
   def getBitmap(self):
     if (self._bitmap):
       return self._bitmap
-    else:
-      self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_UNCHANGED) 
-      return self._bitmap
+    elif (self._matrix):
+      self._bitmap = cv.GetImage(self._matrix)
+
+    return self._bitmap
 
   #get the matrix version of the image, if the matrix version doesn't exist
   #convert the bitmap
@@ -43,17 +55,25 @@ class Image:
     if (self._matrix):
       return self._matrix
     else:
-      self._matrix = cv.GetMat(self.getBitmap) #convert the bitmap to a matrix
+      self._matrix = cv.GetMat(self.getBitmap()) #convert the bitmap to a matrix
       return self._matrix;
 
   #save the image, if no filename then use the load filename and overwrite
   def save(self, filename=""):
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
+    elif (self.filename):
+      cv.SaveImage(self.filename, self.getBitmap())
     else:
-      cv.SaveImage(self.sourcefile, self.getBitmap())
+      return 0
 
     return 1
+
+  #scale this image, and return an Image object with the new dimensions 
+  def scale(self, width, height):
+    scaled_matrix = cv.CreateMat(width, height, self.getMatrix().type)
+    cv.Resize(self.getMatrix(), scaled_matrix)
+    return Image(scaled_matrix)
 
 
 def main(argv):

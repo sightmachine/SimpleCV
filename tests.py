@@ -1,15 +1,28 @@
 #!/usr/bin/python
 
+import os
 from SimpleCV import Image 
+from nose.tools import with_setup
 
 testimage = "sampleimages/9dots4lines.png"
 testoutput = "sampleimages/9d4l.jpg"
 
+def setup_context():
+  img = Image(testimage)
+  
+def destroy_context():
+  img = ""
 
+@with_setup(setup_context, destroy_context)
 def test_loadsave():
   img = Image(testimage)
   img.save(testoutput)  
-
+  if (os.path.isfile(testoutput)):
+    os.remove(testoutput)
+    return 1
+  else: 
+    return 0
+  
 def test_bitmap():
   img = Image(testimage)
   bmp = img.getBitmap();
@@ -17,6 +30,19 @@ def test_bitmap():
     return 1
   else:
     return 0
+
+def test_matrix():
+  img = Image(testimage)
+  m = img.getMatrix()
+  if (m.rows == img.getBitmap().width):
+    return 1
+  return 0 
+  
+def test_scale():
+  img = Image(testimage)
+  thumb = img.scale(30,30)
+  thumb.save(testoutput)
+
 
 """
 def test_Harris(img):
