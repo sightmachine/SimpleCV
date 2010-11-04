@@ -24,7 +24,6 @@ class Image:
   #todo: handle camera/capture from file cases (detect on file extension)
   def __init__(self, source):
 
-    print type(source)
     if (type(source) == cv.cvmat):
       self._matrix = source 
 
@@ -62,6 +61,7 @@ class Image:
   def save(self, filename=""):
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
+      self.filename = filename #set the filename for future save operations
     elif (self.filename):
       cv.SaveImage(self.filename, self.getBitmap())
     else:
@@ -75,6 +75,20 @@ class Image:
     cv.Resize(self.getMatrix(), scaled_matrix)
     return Image(scaled_matrix)
 
+  def __getitem__(self, coord):
+    ret = self.getMatrix()[coord]
+    if (type(ret) == cv.cvmat):
+      return Image(ret)
+    return ret
+
+  def __setitem__(self, coord, value):
+    if (type(self.getMatrix()[coord]) == tuple):
+      self.getMatrix()[coord] = value
+    else:
+      cv.Set(self.getMatrix()[coord], value)
+    self._bitmap = ""
+
+  
 
 def main(argv):
   print "hello world"   

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os
+import os, sys
 from SimpleCV import Image 
 from nose.tools import with_setup
 
@@ -43,7 +43,43 @@ def test_scale():
   thumb = img.scale(30,30)
   thumb.save(testoutput)
 
+def test_getitem():
+  img = Image(testimage)
+  colors = img[1,1]
+  if (colors[0] == 255 and colors[1] == 255 and colors[2] == 255):
+    return 1
+  else: 
+    return 0
 
+def test_getslice():
+  img = Image(testimage)
+  section = img[1:10,1:10]
+  section.save(testoutput)
+  return 1
+
+
+def test_setitem():
+  img = Image(testimage)
+  img[1,1] = (0, 0, 0)
+  newimg = Image(img.getBitmap())
+  colors = newimg[1,1]
+  if (colors[0] == 0 and colors[1] == 0 and colors[2] == 0):
+    return 1
+  else:
+    return 0
+
+def test_setslice():
+  img = Image(testimage)
+  img[1:10,1:10] = (0,0,0)
+  newimg = Image(img.getBitmap())
+  section = newimg[1:10,1:10]
+  for i in range(5):
+    colors = section[i,0]
+    if (colors[0] != 0 or colors[1] != 0 or colors[2] != 0):
+      return 0  
+  return 1
+
+  
 """
 def test_Harris(img):
   for (x,y) in cv.GoodFeaturesToTrack(img, eig_image, temp_image, 10, 0.04, 1.0, useHarris = True):
@@ -56,4 +92,11 @@ def test_Canny():
   temp_image = cv.CreateMat(img.rows, img.cols, cv.CV_32FC1)
   cv.Canny(img, temp_image, 10, 100, 11);
   cv.SaveImage("sampleimages/9d4lfeatures.png", temp_image);
+
+def main(argv):
+  test_getslice()
+
+if (__name__ == "__main__"):
+  main(sys.argv)
+
 """
