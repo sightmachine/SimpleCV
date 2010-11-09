@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
 import os, sys
-from SimpleCV import Image 
+from SimpleCV import * 
 from nose.tools import with_setup
 
 testimage = "sampleimages/9dots4lines.png"
+testimage2 = "sampleimages/aerospace.jpg"
 testoutput = "sampleimages/9d4l.jpg"
 
 def setup_context():
@@ -70,7 +71,7 @@ def test_setitem():
 
 def test_setslice():
   img = Image(testimage)
-  img[1:10,1:10] = (0,0,0)
+  img[1:10,1:10] = (0,0,0) #make a black box
   newimg = Image(img.getBitmap())
   section = newimg[1:10,1:10]
   for i in range(5):
@@ -79,6 +80,13 @@ def test_setslice():
       return 0  
   return 1
 
+def test_findCorners():
+  img = Image(testimage2)
+  corners = img.findCorners(25)
+  if (len(corners) == 0):
+    return 0 
+  corners.draw()
+  img.save(testoutput)
   
 """
 def test_Harris(img):

@@ -5,8 +5,6 @@ import sys
 
 #library includes
 import cv
-import numpy
-
 
 class Image:
   width = 0    #width and height in px
@@ -16,8 +14,8 @@ class Image:
 
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
-  _bitmap_frames = []   #working space for bitmaps
-  _matrix_frames = []   #working space for matricies 
+  _graybitmap = ""  #the matrix (cvmat) representation
+  _buffer_frames = [] #frame buffers for memory-intensive transforms
 
   #initialize the frame
   #parameters: source designation (filename)
@@ -55,7 +53,15 @@ class Image:
       return self._matrix
     else:
       self._matrix = cv.GetMat(self.getBitmap()) #convert the bitmap to a matrix
-      return self._matrix;
+      return self._matrix
+
+  def getGrayscaleBitmap(self):
+    if (self._graybitmap):
+      return self._graybitmap
+
+    self._graybitmap = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_8U, 1)
+    cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY) 
+    return self._graybitmap
 
   #save the image, if no filename then use the load filename and overwrite
   def save(self, filename=""):
@@ -75,6 +81,24 @@ class Image:
     cv.Resize(self.getMatrix(), scaled_matrix)
     return Image(scaled_matrix)
 
+  def findCorners(self, max = 50):
+
+    #initialize buffer frames
+    eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
+    temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
+
+    corner_coordinates = cv.GoodFeaturesToTrack(self.getGrayscaleBitmap(), eig_image, temp_image, max, 0.04, 1.0, None)
+
+    corner_features = []   
+    for (x,y) in corner_coordinates:
+      corner_features.append(Corner(self, x, y))
+
+    return FeatureSet(corner_features)
+      
+  def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
+    cv.Circle(self.getMatrix(), (at_x, at_y), rad, color, thickness)
+    self._clearbuffers()
+
   def __getitem__(self, coord):
     ret = self.getMatrix()[coord]
     if (type(ret) == cv.cvmat):
@@ -86,9 +110,81 @@ class Image:
       self.getMatrix()[coord] = value
     else:
       cv.Set(self.getMatrix()[coord], value)
-    self._bitmap = ""
+      self._clearbuffers()
 
+
+  def _clearbuffers(self):
+    self._bitmap = ""
+    self._graymatrix = ""
+    self._buffer_frames = []
+
+
+class FeatureSet:
+  features = ()
+
+  def __init__(self, f):
+    self.features = f
+
+  def draw(self, color = (255.0,0,0)):
+    for f in self.features:
+      f.draw(color) 
+
+  def __len__(self):
+    return len(self.features)
+
+class Feature(object):
+  x = 0.0
+  y = 0.0 
+  image = "" #parent image
+
+  def __init__(self, i, at_x, at_y):
+    self.x = at_x
+    self.y = at_y
+    self.image = i
+
+  def draw(self, color = (255.0,0.0,0.0)):
+
+    self.image[x,y] = color
+
+class Corner(Feature):
+  direction = 0.0   #direction of the  
+
+  def __init__(self, i, at_x, at_y):
+    super(Corner, self).__init__(i, at_x, at_y)
+    #can we look at the eigenbuffer and find direction?
+
+  def draw(self, color = (255.0, 0.0, 0.0)):
+    self.image.drawCircle(self.x, self.y, 4, color)
+ 
+
+
+#stubbing out blon interface
+class Blob(Feature):
+  cblob = ""
   
+  def __init__(i, cb): 
+    cblob = cb
+
+  def radius():
+    return 
+
+  def boundingBox():
+    return
+
+  def area():
+    return cblob.Area()  
+
+  def meanColor():
+    return cblob.getMeanColor()
+
+#class Edge(Feature):
+
+
+#class Ridge(Feature):
+
+
+
+
 
 def main(argv):
   print "hello world"   
