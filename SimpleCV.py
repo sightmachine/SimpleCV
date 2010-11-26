@@ -3,9 +3,67 @@
 #system includes
 import sys
 
+#necessary for Ubuntu 10.4 cross-compatability
+sys.path.append('/usr/share/pyshared/opencv')
+sys.path.append('/usr/lib/pyshared/python2.6/opencv')
+
 #library includes
 import cv
 
+
+#camera class, wrappers the cvCapture class and associated methods
+class Camera:
+  capture = ""   #cvCapture object
+
+  prop_map = {"width": cv.CAP_PROP_FRAME_WIDTH,
+    "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
+    "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
+    "contrast": cv.CV_CAP_PROP_CONTRAST,
+    "saturation": cv.CV_CAP_PROP_SATURATION,
+    "hue": cv.CV_CAP_PROP_HUE,
+    "gain": cv.CV_CAP_PROP_GAIN,
+    "exposure": cv.CV_CAP_PROP_EXPOSURE}
+  #human readable to CV constant property mapping
+
+  #constructor, camera_index indicates which camera to connect to
+  #props is a dictionary which can be used to set any camera attributes
+  def __init__(self, camera_index, prop_set = ()):
+    self.capture = cv.CaptureFromCam(camera_index)
+
+    if (not self.capture):
+      return false
+
+    #set any properties in the constructor
+    for p in prop_set.keys():
+      if p in self.prop_map:
+        cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
+
+    return self
+    
+  #todo -- make these dynamic attributes of the Camera class
+  def getProperty(self, prop):
+    if prop in self.prop_map:
+      return cv.GetCaptureProperty(self.capture, self.prop_map[prop]);
+    return false 
+
+  #dump all the available characteristics of this camera
+  def getAllProperties(self):
+    props = {} 
+    for p in self.prop_map:
+      props[p] = self.getProperty(p)
+
+    return props
+
+  #grab and retrieve an image, note that this should be retooled
+  #when we want to do multiple camera support
+  def getImage(self):
+    i = cv.GrabFrame(self.capture) 
+
+    return Image(cv.RetrieveFrame(self.capture))
+  
+
+#the Image class is the bulk of SimpleCV and wrappers the iplImage, cvMat,
+#and most of the associated image processing functions
 class Image:
   width = 0    #width and height in px
   height = 0
