@@ -56,9 +56,7 @@ class Camera:
   #grab and retrieve an image, note that this should be retooled
   #when we want to do multiple camera support
   def getImage(self):
-    i = cv.GrabFrame(self.capture) 
-
-    return Image(cv.RetrieveFrame(self.capture))
+    return Image(cv.QueryFrame(self.capture))
   
 
 #the Image class is the bulk of SimpleCV and wrappers the iplImage, cvMat,

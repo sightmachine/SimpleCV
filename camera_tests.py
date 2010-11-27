@@ -5,6 +5,9 @@ from SimpleCV import *
 from nose.tools import with_setup
 
 
+testoutput = "sampleimages/cam.jpg"
+
+
 def test_camera_constructor():
   mycam = Camera(0)
 
@@ -16,4 +19,9 @@ def test_camera_constructor():
   
   return 1
 
+def test_camera_image():
+  mycam = Camera(0)
+
+  img = mycam.getImage()
+  img.save(testoutput)
 
