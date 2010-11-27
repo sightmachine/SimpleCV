@@ -15,7 +15,7 @@ import cv
 class Camera:
   capture = ""   #cvCapture object
 
-  prop_map = {"width": cv.CAP_PROP_FRAME_WIDTH,
+  prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
     "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
     "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
     "contrast": cv.CV_CAP_PROP_CONTRAST,
@@ -27,8 +27,8 @@ class Camera:
 
   #constructor, camera_index indicates which camera to connect to
   #props is a dictionary which can be used to set any camera attributes
-  def __init__(self, camera_index, prop_set = ()):
-    self.capture = cv.CaptureFromCam(camera_index)
+  def __init__(self, camera_index, prop_set = {}):
+    self.capture = cv.CaptureFromCAM(camera_index)
 
     if (not self.capture):
       return false
@@ -38,7 +38,6 @@ class Camera:
       if p in self.prop_map:
         cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
 
-    return self
     
   #todo -- make these dynamic attributes of the Camera class
   def getProperty(self, prop):
