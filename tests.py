@@ -88,7 +88,6 @@ def test_findCorners():
   corners.draw()
   img.save(testoutput)
   
-
 def test_meancolor():
   img = Image(testimage2)
   roi = img[1:50,1:50]
@@ -97,6 +96,15 @@ def test_meancolor():
 
   if (r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255):
     return 1 
+
+def test_smooth():
+  img = Image(testimage2)
+  img.smooth()
+  img.smooth('bilateral', (3,3), 4, 1)
+  img.smooth('blur', (3, 3))
+  img.smooth('median', (3, 3))
+  img.smooth('gaussian', (5,5), 0) 
+
   
 #def test_lossy_store():
 #  img = Image(testimage2)

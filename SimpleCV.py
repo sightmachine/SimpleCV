@@ -3,10 +3,6 @@
 #system includes
 import sys
 
-#necessary for Ubuntu 10.4 cross-compatability
-sys.path.append('/usr/share/pyshared/opencv')
-sys.path.append('/usr/lib/pyshared/python2.6/opencv')
-
 #library includes
 import cv
 
@@ -129,12 +125,57 @@ class Image:
 
     return 1
 
-  #scale this image, and return an Image object with the new dimensions 
+
+  #scale this image, and return a new Image object with the new dimensions 
   def scale(self, width, height):
     scaled_matrix = cv.CreateMat(width, height, self.getMatrix().type)
     cv.Resize(self.getMatrix(), scaled_matrix)
     return Image(scaled_matrix)
 
+
+  #interface to cv.Smooth -- note that we're going to "fake" in-place
+  #smoothing for each image
+  def smooth(self, algorithm_name = '', aperature = '', sigma = 0, spatial_sigma = 0):
+    win_x = 3
+    win_y = 3  #set the default aperature window size (3x3)
+
+    if (type(aperature) == tuple):
+      win_x, win_y = aperature#get the coordinates from parameter
+      #TODO: make sure aperature is valid 
+      #   eg Positive, odd and square for bilateral and median
+
+    algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
+    inplace = 1  
+
+    #gauss and blur can work in-place, others need a buffer frame
+    #use a string to ID rather than the openCV constant
+    if algorithm_name == "blur":
+      algorithm = cv.CV_BLUR
+      inplace = 1
+    if algorithm_name == "bilateral":
+      algorithm = cv.CV_BILATERAL
+      inplace = 0 
+      win_y = win_x #aperature must be square
+    if algorithm_name == "median":
+      algorithm = cv.CV_MEDIAN
+      inplace = 0 
+      win_y = win_x #aperature must be square
+
+    newmatrix = self.getMatrix()
+    if (not inplace): 
+      #create a new matrix, this will hold the altered image
+      newmatrix = cv.CreateMat(self.getMatrix().rows, self.getMatrix().cols, self.getMatrix().type)
+
+    cv.Smooth(self.getMatrix(), newmatrix, algorithm, win_x, win_y, sigma, spatial_sigma)
+
+    if (not inplace):
+      #replace the unaltered image with the changed image
+      self._matrix = newmatrix 
+
+    #reclaim any buffers
+    self._clearBuffers()
+
+    return 1
 
   #get the mean color of an image
   def meanColor(self):
@@ -158,9 +199,8 @@ class Image:
 
       
   def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
-    print type(at_x).__name__ + "\n"
-    cv.Circle(self.getMatrix(), (at_x, at_y), rad, color, thickness)
-    self._clearbuffers()
+    cv.Circle(self.getMatrix(), (int(at_x), int(at_y)), rad, color, thickness)
+    self._clearBuffers()
 
   def __getitem__(self, coord):
     ret = self.getMatrix()[coord]
@@ -173,9 +213,9 @@ class Image:
       self.getMatrix()[coord] = value
     else:
       cv.Set(self.getMatrix()[coord], value)
-      self._clearbuffers() 
+      self._clearBuffers() 
 
-  def _clearbuffers(self):
+  def _clearBuffers(self):
     self._bitmap = ""
     self._graybitmap = ""
 
@@ -186,7 +226,7 @@ class FeatureSet:
   def __init__(self, f):
     self.features = f
 
-  def draw(self, color = (255.0,0,0)):
+  def draw(self, color = (255,0,0)):
     for f in self.features:
       f.draw(color) 
 
@@ -213,7 +253,7 @@ class Corner(Feature):
     super(Corner, self).__init__(i, at_x, at_y)
     #can we look at the eigenbuffer and find direction?
 
-  def draw(self, color = (255.0, 0.0, 0.0)):
+  def draw(self, color = (255, 0, 0)):
     self.image.drawCircle(self.x, self.y, 4, color)
  
 
