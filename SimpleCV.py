@@ -81,6 +81,11 @@ class Image:
     cv.Resize(self.getMatrix(), scaled_matrix)
     return Image(scaled_matrix)
 
+
+  #get the mean color of an image
+  
+
+
   def findCorners(self, max = 50):
 
     #initialize buffer frames
@@ -94,6 +99,10 @@ class Image:
       corner_features.append(Corner(self, x, y))
 
     return FeatureSet(corner_features)
+
+
+
+
       
   def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
     cv.Circle(self.getMatrix(), (at_x, at_y), rad, color, thickness)
