@@ -88,6 +88,27 @@ def test_findCorners():
   corners.draw()
   img.save(testoutput)
   
+
+def test_meancolor():
+  img = Image(testimage2)
+  roi = img[1:50,1:50]
+  
+  r, g, b = roi.meanColor()
+
+  if (r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255):
+    return 1 
+  
+#def test_lossy_store():
+#  img = Image(testimage2)
+#
+#  small_image = img.scale(img.width / 15, img.height / 15) 
+  
+  
+
+
+
+
+
 """
 def test_Harris(img):
   for (x,y) in cv.GoodFeaturesToTrack(img, eig_image, temp_image, 10, 0.04, 1.0, useHarris = True):

@@ -70,7 +70,6 @@ class Image:
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
   _graybitmap = ""  #the matrix (cvmat) representation
-  _buffer_frames = [] #frame buffers for memory-intensive transforms
 
   #initialize the frame
   #parameters: source designation (filename)
@@ -110,7 +109,7 @@ class Image:
       self._matrix = cv.GetMat(self.getBitmap()) #convert the bitmap to a matrix
       return self._matrix
 
-  def getGrayscaleBitmap(self):
+  def _getGrayscaleBitmap(self):
     if (self._graybitmap):
       return self._graybitmap
 
@@ -138,6 +137,8 @@ class Image:
 
 
   #get the mean color of an image
+  def meanColor(self):
+    return cv.Avg(self.getMatrix())[0:3]  
   
 
 
@@ -147,7 +148,7 @@ class Image:
     eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
     temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
 
-    corner_coordinates = cv.GoodFeaturesToTrack(self.getGrayscaleBitmap(), eig_image, temp_image, max, 0.04, 1.0, None)
+    corner_coordinates = cv.GoodFeaturesToTrack(self._getGrayscaleBitmap(), eig_image, temp_image, max, 0.04, 1.0, None)
 
     corner_features = []   
     for (x,y) in corner_coordinates:
@@ -155,11 +156,9 @@ class Image:
 
     return FeatureSet(corner_features)
 
-
-
-
       
   def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
+    print type(at_x).__name__ + "\n"
     cv.Circle(self.getMatrix(), (at_x, at_y), rad, color, thickness)
     self._clearbuffers()
 
@@ -174,13 +173,11 @@ class Image:
       self.getMatrix()[coord] = value
     else:
       cv.Set(self.getMatrix()[coord], value)
-      self._clearbuffers()
-
+      self._clearbuffers() 
 
   def _clearbuffers(self):
     self._bitmap = ""
-    self._graymatrix = ""
-    self._buffer_frames = []
+    self._graybitmap = ""
 
 
 class FeatureSet:
@@ -207,7 +204,6 @@ class Feature(object):
     self.image = i
 
   def draw(self, color = (255.0,0.0,0.0)):
-
     self.image[x,y] = color
 
 class Corner(Feature):
