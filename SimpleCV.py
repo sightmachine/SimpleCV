@@ -27,7 +27,7 @@ class Camera:
 
   #constructor, camera_index indicates which camera to connect to
   #props is a dictionary which can be used to set any camera attributes
-  def __init__(self, camera_index, prop_set = {}):
+  def __init__(self, camera_index = 0, prop_set = {}):
     self.capture = cv.CaptureFromCAM(camera_index)
 
     if (not self.capture):
