@@ -74,13 +74,13 @@ class Image:
 
     if (type(source) == cv.cvmat):
       self._matrix = source 
-
-    if (type(source) == cv.iplimage):
+    elif (type(source) == cv.iplimage):
       self._bitmap = source
-
-    if (type(source) == type(str())):
+    elif (type(source) == type(str()) and source != ''):
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_UNCHANGED) 
+    else:
+      return false
 
     bm = self.getBitmap()
     self.width = bm.width
@@ -201,6 +201,30 @@ class Image:
   def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
     cv.Circle(self.getMatrix(), (int(at_x), int(at_y)), rad, color, thickness)
     self._clearBuffers()
+
+  #return the width, height as a tuple
+  def size(self):
+    return cv.GetSize(self.getBitmap())
+
+  #split the channels of an image into RGB (not the default BGR)
+  #single parameter is whether to return the channels as grey images
+  #or to return them as tinted color image (default)
+  def channels(self, grayscale = False):
+    r = cv.CreateImage(self.size(), 8, 1)
+    g = cv.CreateImage(self.size(), 8, 1)
+    b = cv.CreateImage(self.size(), 8, 1)
+    cv.Split(self.getBitmap(), b, g, r, None)
+
+    if (grayscale):
+      return (Image(r), Image(g), Image(b)) 
+    else:
+      red = cv.CreateImage(self.size(), 8, 3)
+      green = cv.CreateImage(self.size(), 8, 3)
+      blue = cv.CreateImage(self.size(), 8, 3)
+      cv.Merge(None, None, r, None, red)
+      cv.Merge(None, g, None, None, green)
+      cv.Merge(b, None, None, None, blue)
+      return (Image(red), Image(green), Image(blue)) 
 
   def __getitem__(self, coord):
     ret = self.getMatrix()[coord]

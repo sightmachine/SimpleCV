@@ -6,6 +6,7 @@ from nose.tools import with_setup
 
 testimage = "sampleimages/9dots4lines.png"
 testimage2 = "sampleimages/aerospace.jpg"
+testimageclr = "sampleimages/statue_liberty.jpg"
 testoutput = "sampleimages/9d4l.jpg"
 
 def setup_context():
@@ -105,7 +106,19 @@ def test_smooth():
   img.smooth('median', (3, 3))
   img.smooth('gaussian', (5,5), 0) 
 
+def test_size():
+  img = Image(testimage2)
+  (width, height) = img.size()
+  if type(width) == "int" and type(height) == "int" and width > 0 and height > 0:
+    return 1
+  else:
+    return 0
   
+def test_channels():  
+  img = Image(testimageclr)
+  (r, g, b) = img.channels(True)
+  (red, green, blue) = img.channels()
+
 #def test_lossy_store():
 #  img = Image(testimage2)
 #
