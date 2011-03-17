@@ -5,6 +5,7 @@ import sys
 
 #library includes
 import cv
+import numpy as np
 
 
 #camera class, wrappers the cvCapture class and associated methods
@@ -226,6 +227,14 @@ class Image:
       cv.Merge(b, None, None, None, blue)
       return (Image(red), Image(green), Image(blue)) 
 
+  #return a histogram of intensity for the image, note that this desaturates
+  #the image to a grayscale image
+  def histogram(self, numbins = 50):
+    gray = cv.CreateImage(self.size(), 8, 1)  
+    cv.CvtColor(self.getBitmap(), gray, cv.CV_BGR2GRAY) #convert to a 8 bit grey image
+    (hist, bin_edges) = np.histogram(np.asarray(self.getMatrix()), bins=numbins)
+    return hist.tolist()
+
   def __getitem__(self, coord):
     ret = self.getMatrix()[coord]
     if (type(ret) == cv.cvmat):
@@ -282,7 +291,7 @@ class Corner(Feature):
  
 
 
-#stubbing out blon interface
+#stubbing out blob interface
 class Blob(Feature):
   cblob = ""
   

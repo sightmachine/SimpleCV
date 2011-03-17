@@ -119,6 +119,17 @@ def test_channels():
   (r, g, b) = img.channels(True)
   (red, green, blue) = img.channels()
 
+def test_histogram():
+  img = Image(testimage2)
+  h = img.histogram(25)
+
+  for i in h:
+    if type(i) != "int":
+      return 0
+
+  return 1
+
+
 #def test_lossy_store():
 #  img = Image(testimage2)
 #
