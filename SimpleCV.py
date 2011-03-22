@@ -28,7 +28,7 @@ class Camera:
     self.capture = cv.CaptureFromCAM(camera_index)
 
     if (not self.capture):
-      return false
+      return False
 
     #set any properties in the constructor
     for p in prop_set.keys():
@@ -40,7 +40,7 @@ class Camera:
   def getProperty(self, prop):
     if prop in self.prop_map:
       return cv.GetCaptureProperty(self.capture, self.prop_map[prop]);
-    return false 
+    return False 
 
   #dump all the available characteristics of this camera
   def getAllProperties(self):
@@ -81,7 +81,7 @@ class Image:
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_UNCHANGED) 
     else:
-      return false
+      return False
 
     bm = self.getBitmap()
     self.width = bm.width
@@ -232,7 +232,7 @@ class Image:
   def histogram(self, numbins = 50):
     gray = cv.CreateImage(self.size(), 8, 1)  
     cv.CvtColor(self.getBitmap(), gray, cv.CV_BGR2GRAY) #convert to a 8 bit grey image
-    (hist, bin_edges) = np.histogram(np.asarray(self.getMatrix()), bins=numbins)
+    (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
     return hist.tolist()
 
   def __getitem__(self, coord):
