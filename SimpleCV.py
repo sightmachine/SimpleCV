@@ -75,14 +75,21 @@ class Camera(FrameSource):
 class VirtualCamera(FrameSource):
   source = ""
   sourcetype = ""
+  capture = "" 
   
   def __init__(self, s, st):
     self.source = s
     self.sourcetype = st 
-
+    
+    if (self.sourcetype == 'video'):
+      self.capture = cv.CaptureFromFile(self.source) 
+    
   def getImage(self):
     if (self.sourcetype == 'image'):
       return Image(self.source)
+    
+    if (self.sourcetype == 'video'):
+      return Image(cv.QueryFrame(self.capture))
    
 #the Image class is the bulk of SimpleCV and wrappers the iplImage, cvMat,
 #and most of the associated image processing functions
