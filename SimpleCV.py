@@ -114,7 +114,7 @@ class Image:
       self._bitmap = source
     elif (type(source) == type(str()) and source != ''):
       self.filename = source
-      self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_UNCHANGED) 
+      self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR) 
     else:
       return None 
 
@@ -219,13 +219,13 @@ class Image:
   
 
 
-  def findCorners(self, max = 50):
+  def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
 
     #initialize buffer frames
     eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
     temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
 
-    corner_coordinates = cv.GoodFeaturesToTrack(self._getGrayscaleBitmap(), eig_image, temp_image, max, 0.04, 1.0, None)
+    corner_coordinates = cv.GoodFeaturesToTrack(self._getGrayscaleBitmap(), eig_image, temp_image, maxnum, minquality, mindistance, None)
 
     corner_features = []   
     for (x,y) in corner_coordinates:
@@ -265,8 +265,8 @@ class Image:
   #return a histogram of intensity for the image, note that this desaturates
   #the image to a grayscale image
   def histogram(self, numbins = 50):
-    gray = cv.CreateImage(self.size(), 8, 1)  
-    cv.CvtColor(self.getBitmap(), gray, cv.CV_BGR2GRAY) #convert to a 8 bit grey image
+    gray = self._getGrayscaleBitmap()
+
     (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
     return hist.tolist()
 
@@ -298,8 +298,18 @@ class FeatureSet:
     for f in self.features:
       f.draw(color) 
 
+  def coordinates(self):
+    ar = [] 
+    for f in self.features:
+      ar.append([f.x, f.y]) 
+
+    return np.array(ar)
+
   def __len__(self):
     return len(self.features)
+
+  def __getitem__(self, index):
+    return self.features[index]
 
 class Feature(object):
   x = 0.0
