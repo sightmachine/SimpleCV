@@ -8,8 +8,22 @@ import cv
 import numpy as np
 
 
+#an abstract Camera class, for handling multiple types of video input
+class FrameSource:
+  def __init__(self):
+    return
+
+  def getPropery(self, p):
+    return None
+
+  def getAllProperties(self):
+    return {}
+
+  def getImage(self):
+    return None
+
 #camera class, wrappers the cvCapture class and associated methods
-class Camera:
+class Camera(FrameSource):
   capture = ""   #cvCapture object
 
   prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
@@ -28,7 +42,7 @@ class Camera:
     self.capture = cv.CaptureFromCAM(camera_index)
 
     if (not self.capture):
-      return False
+      return None 
 
     #set any properties in the constructor
     for p in prop_set.keys():
@@ -56,6 +70,20 @@ class Camera:
     return Image(cv.QueryFrame(self.capture))
   
 
+#this is a virtual camera, initialized with some source which is not
+#a camera directly connected to this computer
+class VirtualCamera(FrameSource):
+  source = ""
+  sourcetype = ""
+  
+  def __init__(self, s, st):
+    self.source = s
+    self.sourcetype = st 
+
+  def getImage(self):
+    if (self.sourcetype == 'image'):
+      return Image(self.source)
+   
 #the Image class is the bulk of SimpleCV and wrappers the iplImage, cvMat,
 #and most of the associated image processing functions
 class Image:
@@ -81,7 +109,7 @@ class Image:
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_UNCHANGED) 
     else:
-      return False
+      return None 
 
     bm = self.getBitmap()
     self.width = bm.width

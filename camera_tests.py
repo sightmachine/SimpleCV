@@ -8,8 +8,8 @@ from nose.tools import with_setup
 testoutput = "sampleimages/cam.jpg"
 
 
-def test_camera_constructor():
-  mycam = Camera(0)
+def test_virtual_camera_constructor():
+  mycam = VirtualCamera(0)
 
   props = mycam.getAllProperties()
 
