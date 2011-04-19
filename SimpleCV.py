@@ -8,6 +8,14 @@ import cv
 import numpy as np
 
 
+#optional libraries
+BLOBS_ENABLED = True
+try:
+  import cvblob as cvb
+except ImportError:
+  BLOBS_ENABLED = False 
+
+
 #an abstract Camera class, for handling multiple types of video input
 class FrameSource:
   def __init__(self):
@@ -101,7 +109,8 @@ class Image:
 
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
-  _graybitmap = ""  #the matrix (cvmat) representation
+  _graybitmap = ""  #a reusable 8-bit grayscale bitmap
+  _blobLabel = ""  #the label image for blobbing
 
   #initialize the frame
   #parameters: source designation (filename)
@@ -233,7 +242,37 @@ class Image:
 
     return FeatureSet(corner_features)
 
-      
+
+  def findBlobs(self, threshval = 127, minsize=10, maxsize=0):
+    if not BLOBS_ENABLED:
+      return None
+
+    if (maxsize == 0):  
+      maxsize = self.width * self.height / 2
+    
+    #create a single channel image, thresholded to parameters
+    grey = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_8U, 1)
+    cv.Copy(grey, self._getGrayscaleBitmap())
+    cv.Threshold(grey, grey, threshval, 255, cv.CV_THRESH_BINARY)
+
+    #create the label image
+    self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
+
+    #initialize the cvblobs blobs data structure (dict with label -> blob)
+    blobs = cvb.Blobs()
+
+    result = cvb.Label(grey, self._blobLabel, blobs)
+    cvb.FilterByArea(blobs, minsize, maxsize) 
+
+    blobs_sizesorted = sorted(blobs.values(), key=lambda x: x.area, reverse=True) 
+
+    blobsFS = [] #create a new featureset for the blobs
+    for b in blobs_sizesorted:
+      print "hi"
+      blobsFS.append(Blob(self,b)) #wrapper the cvblob type in SimpleCV's blob type 
+
+    return FeatureSet(blobsFS) 
+
   def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
     cv.Circle(self.getMatrix(), (int(at_x), int(at_y)), rad, color, thickness)
     self._clearBuffers()
@@ -288,28 +327,18 @@ class Image:
     self._graybitmap = ""
 
 
-class FeatureSet:
-  features = ()
-
-  def __init__(self, f):
-    self.features = f
+class FeatureSet(list):
 
   def draw(self, color = (255,0,0)):
-    for f in self.features:
+    for f in self:
       f.draw(color) 
 
   def coordinates(self):
     ar = [] 
-    for f in self.features:
+    for f in self:
       ar.append([f.x, f.y]) 
 
     return np.array(ar)
-
-  def __len__(self):
-    return len(self.features)
-
-  def __getitem__(self, index):
-    return self.features[index]
 
 class Feature(object):
   x = 0.0
@@ -335,25 +364,27 @@ class Corner(Feature):
     self.image.drawCircle(self.x, self.y, 4, color)
  
 
-
 #stubbing out blob interface
 class Blob(Feature):
-  cblob = ""
+  cvblob = ""
   
-  def __init__(i, cb): 
-    cblob = cb
+  def __init__(self, i, cb): 
+    self.image = i
+    self.cvblob = cb
+    (self.x, self.y) = cvb.Centroid(cb)
 
-  def radius():
-    return 
+  def area(self):
+    return self.cvblob.area  
 
-  def boundingBox():
-    return
+  def meanColor(self):
+    return cvb.BlobMeanColor(self.cvblob, self.image._blobLabel, self.image.getBitmap())
 
-  def area():
-    return cblob.Area()  
+#  def elongation(self):
 
-  def meanColor():
-    return cblob.getMeanColor()
+#  def perimeter(self):
+  def draw(self, color = (0, 255, 0)):
+    cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
+
 
 #class Edge(Feature):
 

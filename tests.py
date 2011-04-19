@@ -129,6 +129,16 @@ def test_histogram():
 
   return 1
 
+def test_blobs():
+  if not BLOBS_ENABLED:
+    return None 
+  img = Image(testimage2)
+  blobs = img.findBlobs()
+
+  blobs[0].draw((0, 255, 0))
+  img.save(testoutput)
+
+  return 1
 
 #def test_lossy_store():
 #  img = Image(testimage2)

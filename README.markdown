@@ -107,16 +107,14 @@ The Image class has a builtin [Histogram](http://en.wikipedia.org/wiki/Image_his
     else:
       print "your room is dark"
 
+If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-python) library, you can also use SimpleCV to detect blobs
 
-##To do
+    #find the green ball
+    green_channel = Camera().getImage().channels[1]
 
-- wrapper remaining openCV calls 
--- feature detection
---- GoodFeaturesToTrack (break out into harris vs eig corners?)
-- handle buffer pages intelligently (and thread-safe)
-- Django or Turbogears backend
-- integrated (Mongo? Reddis?) data persistance
-- images automatically converted to full depth OR carry around depth as metadata
-- default parameters for most functions
-- named parameters available for most functions
-- extensions brought in
+    green_blobs = green_channel.findBlobs()
+    #blobs are returned in order of area, largest first
+
+    print "largest green blob at " + str(green_blobs[0].x) + ", " + str( green_blobs[0].y)
+
+
