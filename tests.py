@@ -7,6 +7,7 @@ from nose.tools import with_setup
 testimage = "sampleimages/9dots4lines.png"
 testimage2 = "sampleimages/aerospace.jpg"
 testimageclr = "sampleimages/statue_liberty.jpg"
+testbarcode = "sampleimages/barcode.png"
 testoutput = "sampleimages/9d4l.jpg"
 
 def setup_context():
@@ -113,6 +114,11 @@ def test_size():
     return 1
   else:
     return 0
+
+def test_drawing():
+  img = Image(testimageclr)
+  img.drawCircle((5, 5), 3)
+  img.drawLine((5, 5), (5, 8))
   
 def test_channels():  
   img = Image(testimageclr)
@@ -139,6 +145,18 @@ def test_blobs():
   img.save(testoutput)
 
   return 1
+
+def test_barcode():
+  if not ZXING_ENABLED:
+    return None
+
+  nocode = Image(testimage).findBarcode()
+  if nocode: #we should find no barcode in our test image 
+    return 0
+  code = Image(testbarcode).findBarcode() 
+  
+  if code.points:
+    return 1
 
 #def test_lossy_store():
 #  img = Image(testimage2)
@@ -171,3 +189,5 @@ if (__name__ == "__main__"):
   main(sys.argv)
 
 """
+
+test_drawing()

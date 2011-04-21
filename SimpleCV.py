@@ -2,6 +2,7 @@
 
 #system includes
 import sys
+from copy import copy
 
 #library includes
 import cv
@@ -14,6 +15,12 @@ try:
   import cvblob as cvb
 except ImportError:
   BLOBS_ENABLED = False 
+
+ZXING_ENABLED = True
+try:
+  import zxing
+except ImportError:
+  ZXING_ENABLED = False 
 
 
 #an abstract Camera class, for handling multiple types of video input
@@ -111,6 +118,7 @@ class Image:
   _matrix = ""  #the matrix (cvmat) representation
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
   _blobLabel = ""  #the label image for blobbing
+  _barcodeReader = "" #property for the ZXing barcode reader
 
   #initialize the frame
   #parameters: source designation (filename)
@@ -273,9 +281,14 @@ class Image:
 
     return FeatureSet(blobsFS) 
 
-  def drawCircle(self, at_x, at_y, rad, color, thickness = 1):
-    cv.Circle(self.getMatrix(), (int(at_x), int(at_y)), rad, color, thickness)
+  def drawCircle(self, ctr, rad, color = (0,0,0), thickness = 1):
+    cv.Circle(self.getMatrix(), (int(ctr[0]), int(ctr[1])), rad, color, thickness)
     self._clearBuffers()
+
+  def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
+    pt1 = (int(pt1[0]), int(pt1[1]))
+    pt2 = (int(pt2[0]), int(pt2[1]))
+    cv.Line(self.getBitmap(), pt1, pt2, color, thickness, cv.CV_AA) 
 
   #return the width, height as a tuple
   def size(self):
@@ -326,6 +339,24 @@ class Image:
     self._bitmap = ""
     self._graybitmap = ""
 
+  def findBarcode(self, zxing_path = ""):
+    if not ZXING_ENABLED:
+      return None
+
+    if (not self._barcodeReader):
+      if not zxing_path:
+        self._barcodeReader = zxing.BarCodeReader()
+      else:
+        self._barcodeReader = zxing.BarCodeReader(zxing_path)
+
+    tmp_filename = "/tmp/zxing.png"
+    self.save(tmp_filename)
+    barcode = self._barcodeReader.decode(tmp_filename)
+
+    if barcode:
+      return Barcode(self, barcode)
+    else:
+      return None
 
 class FeatureSet(list):
 
@@ -361,7 +392,7 @@ class Corner(Feature):
     #can we look at the eigenbuffer and find direction?
 
   def draw(self, color = (255, 0, 0)):
-    self.image.drawCircle(self.x, self.y, 4, color)
+    self.image.drawCircle((self.x, self.y), 4, color)
  
 
 #stubbing out blob interface
@@ -392,7 +423,32 @@ class Blob(Feature):
 #class Ridge(Feature):
 
 
+class Barcode(Feature):
+  data = ""
+  points = []
 
+  #given a ZXing bar
+  def __init__(self, i, zxbc):
+    self.image = i 
+    self.data = zxbc.data 
+    self.points = copy(zxbc.points)
+    numpoints = len(self.points)
+    self.x = 0
+    self.y = 0
+
+    for p in self.points:
+      self.x += p[0]
+      self.y += p[1]
+
+    if (numpoints):
+      self.x /= numpoints
+      self.y /= numpoints
+
+  def draw(): 
+    self.image.drawLine(self.points[0], self.points[1])
+    self.image.drawLine(self.points[1], self.points[2])
+    self.image.drawLine(self.points[2], self.points[3])
+    self.image.drawLine(self.points[3], self.points[0])
 
 
 def main(argv):
