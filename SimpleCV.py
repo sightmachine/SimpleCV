@@ -444,11 +444,11 @@ class Barcode(Feature):
       self.x /= numpoints
       self.y /= numpoints
 
-  def draw(): 
-    self.image.drawLine(self.points[0], self.points[1])
-    self.image.drawLine(self.points[1], self.points[2])
-    self.image.drawLine(self.points[2], self.points[3])
-    self.image.drawLine(self.points[3], self.points[0])
+  def draw(self, color = (255, 0, 0)): 
+    self.image.drawLine(self.points[0], self.points[1], color)
+    self.image.drawLine(self.points[1], self.points[2], color)
+    self.image.drawLine(self.points[2], self.points[3], color)
+    self.image.drawLine(self.points[3], self.points[0], color)
 
 
 def main(argv):
