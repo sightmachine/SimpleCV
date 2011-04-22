@@ -119,6 +119,8 @@ class Image:
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
   _blobLabel = ""  #the label image for blobbing
   _barcodeReader = "" #property for the ZXing barcode reader
+  _edgeMap = "" #holding reference for edge map
+  _cannyparam = (0,0) #parameters that created _edgeMap
 
   #initialize the frame
   #parameters: source designation (filename)
@@ -358,6 +360,32 @@ class Image:
     else:
       return None
 
+  #this function contains two functions -- the basic edge detection algorithm
+  #and then a function to break the lines down given a threshold parameter
+  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
+
+    em = self.getEdgeMap(cannyth1, cannyth2)
+    
+    lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+
+    linesFS = FeatureSet()
+    for l in lines:
+      linesFS.append(Line(self, l))  
+    
+    return linesFS
+
+  def getEdgeMap(self, t1=50, t2=100):
+    if (self._edgeMap and self._cannyparam[0] == t1 and self._cannyparam[1] == t2):
+      return self._edgeMap
+
+    self._edgeMap = cv.CreateImage(self.size(), 8, 1)
+    cv.Canny(self._getGrayscaleBitmap(), self._edgeMap, t1, t2)
+    self._cannyparam = (t1, t2)
+
+    return self._edgeMap
+
+
+
 class FeatureSet(list):
 
   def draw(self, color = (255,0,0)):
@@ -416,6 +444,20 @@ class Blob(Feature):
   def draw(self, color = (0, 255, 0)):
     cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
 
+
+class Line(Feature):
+  points = ()
+
+  def __init__(self, i, line):
+    self.image = i
+    #coordinate of the line object is the midpoint
+    self.x = (line[0][0] + line[1][0]) / 2
+    self.y = (line[0][1] + line[1][1]) / 2
+    self.points = copy(line)
+
+  def draw(self, color = (0,0,255)):
+    self.image.drawLine(self.points[0], self.points[1], color)
+     
 
 #class Edge(Feature):
 

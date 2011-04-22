@@ -135,6 +135,14 @@ def test_histogram():
 
   return 1
 
+def test_lines():
+  img = Image(testimage2)
+  lines = img.findLines()
+
+  lines.draw()
+  img.save(testoutput)
+
+
 def test_blobs():
   if not BLOBS_ENABLED:
     return None 
@@ -158,36 +166,4 @@ def test_barcode():
   if code.points:
     return 1
 
-#def test_lossy_store():
-#  img = Image(testimage2)
-#
-#  small_image = img.scale(img.width / 15, img.height / 15) 
   
-  
-
-
-
-
-
-"""
-def test_Harris(img):
-  for (x,y) in cv.GoodFeaturesToTrack(img, eig_image, temp_image, 10, 0.04, 1.0, useHarris = True):
-    cv.Circle(img, (x,y), 4, 0);
-    print "good feature at", x,y
-
-def test_Canny():
-  img = cv.LoadImageM("sampleimages/9dots4lines.png", cv.CV_LOAD_IMAGE_GRAYSCALE)
-  eig_image = cv.CreateMat(img.rows, img.cols, cv.CV_32FC1)
-  temp_image = cv.CreateMat(img.rows, img.cols, cv.CV_32FC1)
-  cv.Canny(img, temp_image, 10, 100, 11);
-  cv.SaveImage("sampleimages/9d4lfeatures.png", temp_image);
-
-def main(argv):
-  test_getslice()
-
-if (__name__ == "__main__"):
-  main(sys.argv)
-
-"""
-
-test_drawing()
