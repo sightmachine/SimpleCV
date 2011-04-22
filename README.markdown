@@ -117,4 +117,17 @@ If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-
 
     print "largest green blob at " + str(green_blobs[0].x) + ", " + str( green_blobs[0].y)
 
+If you load the [python-zxing](https://github.com/oostendo/python-zxing) library, you can use [Zebra Crossing](http://code.google.com/p/zxing) to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
+the location of the library either through the ZXING_LIBRARY %ENV variable, or
+as a parameter to findBarcode().
+
+  i = Camera().getImage()
+  barcode = i.findBarcode("/var/opt/zxing")
+  
+  barcode.draw((0, 255, 0)) #draw the outline of the barcode in green
+  
+  i.save("barcode_found.png")
+  print barcode.data
+
+
 
