@@ -8,7 +8,6 @@ from copy import copy
 import cv
 import numpy as np
 
-
 #optional libraries
 BLOBS_ENABLED = True
 try:
@@ -21,7 +20,6 @@ try:
   import zxing
 except ImportError:
   ZXING_ENABLED = False 
-
 
 #an abstract Camera class, for handling multiple types of video input
 class FrameSource:

@@ -107,6 +107,20 @@ The Image class has a builtin [Histogram](http://en.wikipedia.org/wiki/Image_his
     else:
       print "your room is dark"
 
+SimpleCV has advanced feature-detection functions, which can let you find
+different types of features.  These are returned in FeatureSets which can
+be addressed as a group.
+
+    img = Camera.getImage()
+
+    lines = img.findLines()
+
+    corners = img.findCorners()
+
+    lines.draw((255,0,0)) #outline the line segments in red
+    corners.draw((0,0,255)) #outline corners detected in blue
+
+
 If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-python) library, you can also use SimpleCV to detect blobs
 
     #find the green ball
