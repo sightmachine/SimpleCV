@@ -383,7 +383,6 @@ class Image:
 
     return self._edgeMap
 
-
 class FeatureSet(list):
 
   def draw(self, color = (255,0,0)):
@@ -391,11 +390,41 @@ class FeatureSet(list):
       f.draw(color) 
 
   def coordinates(self):
-    ar = [] 
-    for f in self:
-      ar.append([f.x, f.y]) 
+    return np.array([[f.x, f.y] for f in self]) 
 
-    return np.array(ar)
+  def area(self):
+    return np.array([f.area() for f in self]) 
+
+  def sortArea(self):
+    return FeatureSet(sorted(self, key=lambda f: f.area()))
+
+  def distanceFrom(self, point = (-1, -1)):
+    return np.array([f.distanceFrom(point) for f in self ])
+
+  def sortDistance(self, point = (-1, -1)):
+    return FeatureSet(sorted(self, key=lambda f: f.distanceFrom(point)))
+
+  def angle(self):
+    return np.array([f.angle() for f in self])
+
+  def sortAngle(self, theta = 0):
+    return FeatureSet(sorted(self, key=lambda f: abs(f.angle() - theta)))
+  
+  def length(self):
+    return np.array([f.length() for f in self])
+
+  def sortLength(self):
+    return FeatureSet(sorted(self, key=lambda f: f.length()))
+
+  def meanColor(self):
+    return np.array([f.meanColor() for f in self])
+
+  def colorDistance(self, color = (0,0,0)):
+    return np.array([f.colorDistance(color) for f in self])
+  
+  def sortColorDistance(self, color = (0,0,0)):
+    return FeatureSet(sorted(self, key=lambda f: f.colorDistance(color)))
+
 
 class Feature(object):
   x = 0.0
@@ -406,6 +435,9 @@ class Feature(object):
     self.x = at_x
     self.y = at_y
     self.image = i
+
+  def coordinates(self):
+    return [self.x, self.y]  
 
   #in this abstract case, we're just going to color the exact point 
   #the desired color
@@ -586,7 +618,7 @@ class Line(Feature):
     
     d_x = self.points[b][0] - self.points[a][0]
     d_y = self.points[b][1] - self.points[a][1]
-    return atan2(d_x, d_y) #zero is north
+    return atan2(d_y, d_x) #zero is west 
 
 class Barcode(Feature):
   data = ""

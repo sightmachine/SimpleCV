@@ -174,7 +174,14 @@ Also, there were 4 result points:
     c = f.meanColor()
     d = f.colorDistance()
     th = f.angle()
+    pts = f.coordinates()
     dist = f.distanceFrom() #distance from center of image 
+
+  fs1 = fs.sortDistance()
+  fs2 = fs.sortAngle()
+  fs3 = fs.sortLength()
+  fs4 = fs.sortColorDistance()
+  fs5 = fs.sortArea()
   
 
 def test_blobs():
