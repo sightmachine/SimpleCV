@@ -10,21 +10,6 @@ testimageclr = "sampleimages/statue_liberty.jpg"
 testbarcode = "sampleimages/barcode.png"
 testoutput = "sampleimages/9d4l.jpg"
 
-fake_barcode = ""
-if ZXING_ENABLED:
-    fake_barcode = Barcode(img, zxing.BarCode("""
-file:default.png (format: FAKE_DATA, type: TEXT):
-Raw result:
-foo-bar|the bar of foo
-Parsed result:
-foo-bar 
-the bar of foo
-Also, there were 4 result points:
-  Point 0: (24.0,18.0)
-  Point 1: (21.0,196.0)
-  Point 2: (201.0,198.0)
-  Point 3: (205.23952,21.0)
-"""))
 
 
 
@@ -171,6 +156,19 @@ def test_feature_measures():
     fs.append(img.findBlobs()[0])
 
   if ZXING_ENABLED:
+    fake_barcode = Barcode(img, zxing.BarCode("""
+file:default.png (format: FAKE_DATA, type: TEXT):
+Raw result:
+foo-bar|the bar of foo
+Parsed result:
+foo-bar 
+the bar of foo
+Also, there were 4 result points:
+  Point 0: (24.0,18.0)
+  Point 1: (21.0,196.0)
+  Point 2: (201.0,198.0)
+  Point 3: (205.23952,21.0)
+"""))
     fs.append(fake_barcode) 
 
   for f in fs:
@@ -184,7 +182,7 @@ def test_feature_measures():
 def test_blobs():
   if not BLOBS_ENABLED:
     return None 
-  img = Image(testimage2)
+  img = Image(testbarcode)
   blobs = img.findBlobs()
 
   blobs[0].draw((0, 255, 0))

@@ -460,11 +460,13 @@ class Blob(Feature):
   #this takes the longest dimension of the X/Y orientation -- seems like
   #the optimal solution should be taking the longest dimension of a rotated
   #bounding box.  Oh well
-  def length():
-    return max(self.cvblob.maxx-self.cvblob.minx, self.cblob.maxy-self.cblob.miny)
-#  def elongation(self):
+  def length(self):
+    return max(self.cvblob.maxx-self.cvblob.minx, self.cvblob.maxy-self.cvblob.miny)
 
+#  todo?
+#  def elongation(self):
 #  def perimeter(self):
+
   def draw(self, color = (0, 255, 0)):
     cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
 
@@ -485,7 +487,7 @@ class Line(Feature):
   def length(self):
     return spsd.euclidean(self.points[0], self.points[1])  
 
- def meanColor(self):
+  def meanColor(self):
     #we're going to walk the line, and take the mean color from all the px
     #points -- there's probably a much more optimal way to do this
     #also note, if you've already called "draw()" you've destroyed this info
@@ -506,7 +508,7 @@ class Line(Feature):
     if (d_y == 0.0):
       return self.image[minx:maxx,pt1[1]].meanColor()
     
-    err = 0.0
+    error = 0.0
     d_err = d_y / d_x  #this is how much our "error" will increase in every step
     px = [] 
     weights = []
