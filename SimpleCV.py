@@ -3,10 +3,12 @@
 #system includes
 import sys
 from copy import copy
+from math import sqrt
 
 #library includes
 import cv
 import numpy as np
+import scipy.spatial.distance as spsd
 
 #optional libraries
 BLOBS_ENABLED = True
@@ -276,7 +278,6 @@ class Image:
 
     blobsFS = [] #create a new featureset for the blobs
     for b in blobs_sizesorted:
-      print "hi"
       blobsFS.append(Blob(self,b)) #wrapper the cvblob type in SimpleCV's blob type 
 
     return FeatureSet(blobsFS) 
@@ -383,7 +384,6 @@ class Image:
     return self._edgeMap
 
 
-
 class FeatureSet(list):
 
   def draw(self, color = (255,0,0)):
@@ -407,11 +407,33 @@ class Feature(object):
     self.y = at_y
     self.image = i
 
+  #in this abstract case, we're just going to color the exact point 
+  #the desired color
   def draw(self, color = (255.0,0.0,0.0)):
-    self.image[x,y] = color
+    self.image[self.x,self.y] = color
+
+  #return euclidian distance from coordinates
+  def distanceFrom(self, point = (-1,-1)): 
+    if (point[0] == -1 or point[1] == -1):
+      point = np.array(self.image.size())/2
+    return spsd.euclidean(point, [self.x, self.y]) 
+
+#  def meanColor(self):
+#    return self.image[self.x, self.y]
+
+  #return distance from a given color, default black (brightness)
+  def colorDistance(self, color = (0,0,0)): 
+    return spsd.euclidean(color, self.meanColor()) 
+
+  #longest dimension of the feature -- default 1
+  def length(self):
+    return 1
+
+  #area of the feature -- default 1 
+  def area(self):
+    return 1 
 
 class Corner(Feature):
-  direction = 0.0   #direction of the  
 
   def __init__(self, i, at_x, at_y):
     super(Corner, self).__init__(i, at_x, at_y)
@@ -419,7 +441,6 @@ class Corner(Feature):
 
   def draw(self, color = (255, 0, 0)):
     self.image.drawCircle((self.x, self.y), 4, color)
- 
 
 #stubbing out blob interface
 class Blob(Feature):
@@ -436,6 +457,11 @@ class Blob(Feature):
   def meanColor(self):
     return cvb.BlobMeanColor(self.cvblob, self.image._blobLabel, self.image.getBitmap())
 
+  #this takes the longest dimension of the X/Y orientation -- seems like
+  #the optimal solution should be taking the longest dimension of a rotated
+  #bounding box.  Oh well
+  def length():
+    return max(self.cvblob.maxx-self.cvblob.minx, self.cblob.maxy-self.cblob.miny)
 #  def elongation(self):
 
 #  def perimeter(self):
@@ -456,11 +482,92 @@ class Line(Feature):
   def draw(self, color = (0,0,255)):
     self.image.drawLine(self.points[0], self.points[1], color)
      
+  def length(self):
+    return spsd.euclidean(self.points[0], self.points[1])  
 
-#class Edge(Feature):
+  def meanColor(self):
+    #we're going to walk the line, and take the mean color from all the px
+    #points -- there's probably a much more optimal way to do this
+    #also note, if you've already called "draw()" you've destroyed this info
+ 
+    (pt1, pt2) = self.points
+    maxy = max(pt1[1], pt2[1])
+    miny = min(pt1[1], pt2[1])
+    maxx = max(pt1[0], pt2[0])
+    minx = min(pt1[0], pt2[0])
+
+    d_x = maxx - minx
+    d_y = maxy - miny 
+    #orient the line so it is going in the positive direction
+
+    #if it's a straight one, we can just get mean color on the slice
+    if (d_x == 0.0):
+      return self.image[pt1[0],miny:maxy].meanColor()
+    if (d_y == 0.0):
+      return self.image[minx:maxx,pt1[1]].meanColor()
+    
+    err = 0.0
+    d_err = d_y / d_x  #this is how much our "error" will increase in every step
+    px = [] 
+    weights = []
+    if (d_err < 1):
+      y = miny
+      #iterate over X
+      for x in range(minx, maxx):
+        #this is the pixel we would draw on, check the color at that px 
+        #weight is reduced from 1.0 by the abs amount of error
+        px.append(self.image[x,y])
+        weights.append(1.0 - abs(error))
+        
+        #if we have error in either direction, we're going to use the px
+        #above or below
+        if (error > 0): #
+          px.append(self.image[x, y+1])
+          weights.append(error)
+  
+        if (error < 0):
+          px.append(self.image[x, y-1])
+          weights.append(abs(error))
+  
+        error = error + d_err
+        if (error >= 0.5):
+          y = y + 1
+          error = error - 1.0
+    else: 
+      #this is a "steep" line, so we iterate over X
+      #copy and paste.  Ugh, sorry.
+      x = minx
+      for y in range(miny, maxy):
+        #this is the pixel we would draw on, check the color at that px 
+        #weight is reduced from 1.0 by the abs amount of error
+        px.append(self.image[x,y])
+        weights.append(1.0 - abs(error))
+        
+        #if we have error in either direction, we're going to use the px
+        #above or below
+        if (error > 0): #
+          px.append(self.image[x+1, y])
+          weights.append(error)
+  
+        if (error < 0):
+          px.append(self.image[x-1, y])
+          weights.append(abs(error))
+  
+        error = error + (1.0 / d_err) #we use the reciprocal of error
+        if (error >= 0.5):
+          x = x + 1
+          error = error - 1.0
+
+    #once we have iterated over every pixel in the line, we avg the weights
+    clr_arr = np.array(px)
+    weight_arr = np.array(weights)
+      
+    weighted_clrs = np.transpose(np.transpose(clr_arr) * weight_arr) 
+    #multiply each color tuple by its weight
+
+    return sum(weighted_clrs) / sum(weight_arr)  #return the weighted avg
 
 
-#class Ridge(Feature):
 
 
 class Barcode(Feature):
@@ -490,6 +597,33 @@ class Barcode(Feature):
     self.image.drawLine(self.points[2], self.points[3], color)
     self.image.drawLine(self.points[3], self.points[0], color)
 
+  def length(self):
+    sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+    #get pairwise distances for all points
+    #note that the code is a quadrilateral
+    return max(sqform[0][1], sqform[1][2], sqform[2,3], sqform[3,0])
+
+  def area(self):
+    #i found the formula to do this on wikihow.  Yes, I am that lame.
+    #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
+    #calc the length of each side 
+    sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+    a = sqform[0][1] 
+    b = sqform[1][2] 
+    c = sqform[2][3] 
+    d = sqform[3][0] 
+
+    #diagonals
+    p = sqform[0][2] 
+    q = sqform[1][3] 
+    
+    #perimeter / 2
+    s = (a + b + c + d)/2.0 
+    return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
+
+#TODO?
+#class Edge(Feature):
+#class Ridge(Feature):
 
 def main(argv):
   print "hello world"   
