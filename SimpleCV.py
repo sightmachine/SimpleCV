@@ -114,6 +114,7 @@ class Image:
   depth = 0
   filename = "" #source filename
 
+  #these are buffer frames for various operations on the image
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
@@ -237,9 +238,7 @@ class Image:
     return cv.Avg(self.getMatrix())[0:3]  
   
 
-
   def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
-
     #initialize buffer frames
     eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
     temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
@@ -350,9 +349,10 @@ class Image:
       else:
         self._barcodeReader = zxing.BarCodeReader(zxing_path)
 
-    tmp_filename = "/tmp/zxing.png"
+    tmp_filename = os.tmpnam() + ".png"
     self.save(tmp_filename)
     barcode = self._barcodeReader.decode(tmp_filename)
+    os.unlink(tmp_filename)
 
     if barcode:
       return Barcode(self, barcode)
