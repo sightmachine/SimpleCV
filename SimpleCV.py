@@ -3,6 +3,7 @@
 #system includes
 import sys
 from copy import copy
+from math import sqrt
 
 #library includes
 import cv
@@ -407,11 +408,32 @@ class Feature(object):
     self.y = at_y
     self.image = i
 
+  #in this abstract case, we're just going to color the exact point 
+  #the desired color
   def draw(self, color = (255.0,0.0,0.0)):
-    self.image[x,y] = color
+    self.image[self.x,self.y] = color
+
+  #return euclidian distance from coordinates
+  def distanceFrom(self, point):
+    return sqrt((point[0] - self.x)**2 + (point[1] - self.y)**2
+
+  def meanColor(self):
+    return self.image[self.x, self.y]
+
+  #return distance from a given color, default black
+  def colorDistance(self, color = (0,0,0)): 
+    pxclr = self.meanColor() 
+    return sqrt((pxclr[0] - color[0])**2 + (pxclr[1] - color[1])**2 + (pxclr[2] - color[2])**2)
+
+  #longest dimension of the feature -- default 1
+  def length(self):
+    return 1
+
+  #area of the feature -- default 0 
+  def area(self):
+    return 0 
 
 class Corner(Feature):
-  direction = 0.0   #direction of the  
 
   def __init__(self, i, at_x, at_y):
     super(Corner, self).__init__(i, at_x, at_y)
@@ -419,7 +441,6 @@ class Corner(Feature):
 
   def draw(self, color = (255, 0, 0)):
     self.image.drawCircle((self.x, self.y), 4, color)
- 
 
 #stubbing out blob interface
 class Blob(Feature):
@@ -436,6 +457,11 @@ class Blob(Feature):
   def meanColor(self):
     return cvb.BlobMeanColor(self.cvblob, self.image._blobLabel, self.image.getBitmap())
 
+  #this takes the longest dimension of the X/Y orientation -- seems like
+  #the optimal solution should be taking the longest dimension of a rotated
+  #bounding box.  Oh well
+  def length():
+    return max(self.cvblob.maxx-self.cvblob.minx, self.cblob.maxy-self.cblob.miny)
 #  def elongation(self):
 
 #  def perimeter(self):
@@ -456,6 +482,20 @@ class Line(Feature):
   def draw(self, color = (0,0,255)):
     self.image.drawLine(self.points[0], self.points[1], color)
      
+  def length(self):
+    sqrt((self.points[0][0] - self.points[1][0])**2 + (self.points[0][1] - self.points[1][1]))
+
+  #def meanColor(self):
+    #this is a crude implementation of the traditional line draw algorithm
+    #except instead of drawing, we're taking the pixel values and averaging
+    #the color codes.  This should probably be moved to C/numpy if used 
+    #extensively 
+    
+
+
+    
+
+
 
 #class Edge(Feature):
 
