@@ -10,9 +10,6 @@ testimageclr = "sampleimages/statue_liberty.jpg"
 testbarcode = "sampleimages/barcode.png"
 testoutput = "sampleimages/9d4l.jpg"
 
-
-
-
 def setup_context():
   img = Image(testimage)
   
@@ -176,6 +173,7 @@ Also, there were 4 result points:
     l = f.length()
     c = f.meanColor()
     d = f.colorDistance()
+    th = f.angle()
     dist = f.distanceFrom() #distance from center of image 
   
 

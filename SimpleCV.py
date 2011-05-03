@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 #system includes
-import sys
+import os, sys
 from copy import copy
-from math import sqrt
+from math import sqrt, atan2
 
 #library includes
 import cv
@@ -425,6 +425,10 @@ class Feature(object):
   def colorDistance(self, color = (0,0,0)): 
     return spsd.euclidean(color, self.meanColor()) 
 
+  #angle (theta) of the feature -- default 0
+  def angle(self):
+    return 0
+
   #longest dimension of the feature -- default 1
   def length(self):
     return 1
@@ -466,6 +470,9 @@ class Blob(Feature):
 #  todo?
 #  def elongation(self):
 #  def perimeter(self):
+  #return angle in radians
+  def angle(self):
+    return cvb.Angle(self.cvblob)
 
   def draw(self, color = (0, 255, 0)):
     cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
@@ -569,8 +576,17 @@ class Line(Feature):
 
     return sum(weighted_clrs) / sum(weight_arr)  #return the weighted avg
 
-
-
+  def angle(self):
+    #first find the rightmost point 
+    a = 0
+    b = 1
+    if (self.points[a][0] > self.points[b][0]):
+      b = 0 
+      a = 1
+    
+    d_x = self.points[b][0] - self.points[a][0]
+    d_y = self.points[b][1] - self.points[a][1]
+    return atan2(d_x, d_y) #zero is north
 
 class Barcode(Feature):
   data = ""
