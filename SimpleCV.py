@@ -418,8 +418,8 @@ class Feature(object):
       point = np.array(self.image.size())/2
     return spsd.euclidean(point, [self.x, self.y]) 
 
-#  def meanColor(self):
-#    return self.image[self.x, self.y]
+  def meanColor(self):
+    return self.image[self.x, self.y]
 
   #return distance from a given color, default black (brightness)
   def colorDistance(self, color = (0,0,0)): 
@@ -484,6 +484,19 @@ class Line(Feature):
      
   def length(self):
     return spsd.euclidean(self.points[0], self.points[1])  
+
+  #def meanColor(self):
+    #this is a crude implementation of the traditional line draw algorithm
+    #except instead of drawing, we're taking the pixel values and averaging
+    #the color codes.  This should probably be moved to C/numpy if used 
+    #extensively 
+    
+
+
+    
+
+
+>>>>>>> 98123281bd498535d11737884f0746275ca1edfb
 
   def meanColor(self):
     #we're going to walk the line, and take the mean color from all the px
