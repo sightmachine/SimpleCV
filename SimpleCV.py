@@ -485,20 +485,7 @@ class Line(Feature):
   def length(self):
     return spsd.euclidean(self.points[0], self.points[1])  
 
-  #def meanColor(self):
-    #this is a crude implementation of the traditional line draw algorithm
-    #except instead of drawing, we're taking the pixel values and averaging
-    #the color codes.  This should probably be moved to C/numpy if used 
-    #extensively 
-    
-
-
-    
-
-
->>>>>>> 98123281bd498535d11737884f0746275ca1edfb
-
-  def meanColor(self):
+ def meanColor(self):
     #we're going to walk the line, and take the mean color from all the px
     #points -- there's probably a much more optimal way to do this
     #also note, if you've already called "draw()" you've destroyed this info
