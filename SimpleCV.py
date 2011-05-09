@@ -272,6 +272,12 @@ class Image:
 
     return 1
 
+  def invert(self):
+    cv.Not(self.getBitmap(), self.getBitmap())
+    return 1
+
+  
+
   #get the mean color of an image
   def meanColor(self):
     return cv.Avg(self.getMatrix())[0:3]  

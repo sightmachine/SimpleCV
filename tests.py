@@ -107,6 +107,16 @@ def test_smooth():
   img.smooth('median', (3, 3))
   img.smooth('gaussian', (5,5), 0) 
 
+def test_invert():
+  img = Image(testimage2)
+  clr = img[1,1]
+  img.invert()
+
+  if (clr[0] == 255 - img[1,1][0]):
+    return 1
+  return 0
+
+
 def test_size():
   img = Image(testimage2)
   (width, height) = img.size()
@@ -194,6 +204,9 @@ def test_blobs():
   img.save(testoutput)
 
   return 1
+
+
+
 
 def test_barcode():
   if not ZXING_ENABLED:
