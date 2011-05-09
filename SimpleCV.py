@@ -300,8 +300,7 @@ class Image:
     
     #create a single channel image, thresholded to parameters
     grey = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_8U, 1)
-    cv.Copy(grey, self._getGrayscaleBitmap())
-    cv.Threshold(grey, grey, threshval, 255, cv.CV_THRESH_BINARY)
+    cv.Threshold(self._getGrayscaleBitmap(), grey, threshval, 255, cv.CV_THRESH_BINARY)
 
     #create the label image
     self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
