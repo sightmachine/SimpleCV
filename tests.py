@@ -46,6 +46,15 @@ def test_scale():
   thumb = img.scale(30,30)
   thumb.save(testoutput)
 
+def test_copy():
+  img = Image(testimage2)
+  copy = img.copy()
+
+  if (img[1,1] != copy[1,1] or img.size() != copy.size()):
+    return 0 
+  return 1
+  
+
 def test_getitem():
   img = Image(testimage)
   colors = img[1,1]

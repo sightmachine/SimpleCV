@@ -220,7 +220,11 @@ class Image:
 
     return 1
 
-
+  def copy(self):
+    newimg = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, 3)
+    cv.Copy(self.getBitmap(), newimg)
+    return Image(newimg) 
+    
   #scale this image, and return a new Image object with the new dimensions 
   def scale(self, width, height):
     scaled_matrix = cv.CreateMat(width, height, self.getMatrix().type)
