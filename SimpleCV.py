@@ -4,6 +4,7 @@
 import os, sys
 from copy import copy
 from math import sqrt, atan2
+from pkg_resources import load_entry_point
 
 #library includes
 import cv
@@ -11,6 +12,15 @@ import numpy as np
 import scipy.spatial.distance as spsd
 
 #optional libraries
+PIL_ENABLED = True
+try:
+  import Image as pil
+except ImportError:
+  PIL_ENABLED = False 
+
+
+
+
 BLOBS_ENABLED = True
 try:
   import cvblob as cvb
@@ -114,19 +124,32 @@ class Image:
   depth = 0
   filename = "" #source filename
 
+  _barcodeReader = "" #property for the ZXing barcode reader
+
   #these are buffer frames for various operations on the image
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
   _blobLabel = ""  #the label image for blobbing
-  _barcodeReader = "" #property for the ZXing barcode reader
   _edgeMap = "" #holding reference for edge map
   _cannyparam = (0,0) #parameters that created _edgeMap
+  _pil = "" #holds a PIL object in buffer
 
+  #when we empty the buffers, populate with this:
+  _initialized_buffers = { 
+    "_bitmap": "", 
+    "_matrix": "", 
+    "_graybitmap": "", 
+    "_blobLabel": "",
+    "_edgeMap": "",
+    "_cannyparam": (0,0), 
+    "_pil": ""}  
+    
   #initialize the frame
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
   def __init__(self, source):
+    
 
     if (type(source) == cv.cvmat):
       self._matrix = source 
@@ -135,6 +158,13 @@ class Image:
     elif (type(source) == type(str()) and source != ''):
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR) 
+    elif (type(source) == instance): #it's a class instance, check class name
+      if (PIL_ENABLED and source.__class__.__name__ == "JpegImageFile"):
+        self._pil = source
+        #from the opencv cookbook 
+        #http://opencv.willowgarage.com/documentation/python/cookbook.html
+        self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+        cvSetData(self._bitmap, self._pil.tostring())
     else:
       return None 
 
@@ -160,6 +190,15 @@ class Image:
     else:
       self._matrix = cv.GetMat(self.getBitmap()) #convert the bitmap to a matrix
       return self._matrix
+
+  def getPIL(self):
+    if (not PIL_ENABLED):
+      return None
+    if (not self._pil):
+      self._pil = PIL.fromstring("RGB", self.size(), self.getBitmap().tostring())
+
+    return self._pil
+
 
   def _getGrayscaleBitmap(self):
     if (self._graybitmap):
@@ -191,7 +230,7 @@ class Image:
 
   #interface to cv.Smooth -- note that we're going to "fake" in-place
   #smoothing for each image
-  def smooth(self, algorithm_name = '', aperature = '', sigma = 0, spatial_sigma = 0):
+  def smooth(self, algorithm_name = 'bilateral', aperature = '', sigma = 0, spatial_sigma = 0):
     win_x = 3
     win_y = 3  #set the default aperature window size (3x3)
 
@@ -229,7 +268,7 @@ class Image:
       self._matrix = newmatrix 
 
     #reclaim any buffers
-    self._clearBuffers()
+    self._clearBuffers("_matrix")
 
     return 1
 
@@ -283,7 +322,7 @@ class Image:
 
   def drawCircle(self, ctr, rad, color = (0,0,0), thickness = 1):
     cv.Circle(self.getMatrix(), (int(ctr[0]), int(ctr[1])), rad, color, thickness)
-    self._clearBuffers()
+    self._clearBuffers("_matrix")
 
   def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
     pt1 = (int(pt1[0]), int(pt1[1]))
@@ -333,11 +372,13 @@ class Image:
       self.getMatrix()[coord] = value
     else:
       cv.Set(self.getMatrix()[coord], value)
-      self._clearBuffers() 
+      self._clearBuffers("_matrix") 
 
-  def _clearBuffers(self):
-    self._bitmap = ""
-    self._graybitmap = ""
+  def _clearBuffers(self, clearexcept = "_bitmap"):
+    for k, v in self._initialized_buffers.items():
+      if k == clearexcept:
+        continue
+      self.__dict__[k] = v
 
   def findBarcode(self, zxing_path = ""):
     if not ZXING_ENABLED:
@@ -654,10 +695,11 @@ class Barcode(Feature):
     return max(sqform[0][1], sqform[1][2], sqform[2,3], sqform[3,0])
 
   def area(self):
-    #i found the formula to do this on wikihow.  Yes, I am that lame.
-    #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
-    #calc the length of each side 
+    #calc the length of each side in a square distance matrix
     sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+
+    #squareform returns a N by N matrix 
+    #boundry line lengths
     a = sqform[0][1] 
     b = sqform[1][2] 
     c = sqform[2][3] 
@@ -669,14 +711,18 @@ class Barcode(Feature):
     
     #perimeter / 2
     s = (a + b + c + d)/2.0 
+
+    #i found the formula to do this on wikihow.  Yes, I am that lame.
+    #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
     return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
 
 #TODO?
 #class Edge(Feature):
 #class Ridge(Feature):
 
-def main(argv):
-  print "hello world"   
 
-if (__name__ == "__main__"):
-  main(sys.argv)
+if __name__ == '__main__':
+    sys.exit(
+        load_entry_point('ipython==0.10.2', 'console_scripts', 'ipython')()
+    )
+
