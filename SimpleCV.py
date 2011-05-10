@@ -18,9 +18,6 @@ try:
 except ImportError:
   PIL_ENABLED = False 
 
-
-
-
 BLOBS_ENABLED = True
 try:
   import cvblob as cvb
@@ -762,12 +759,14 @@ class HaarFeature(Feature):
   points = ()
   neighbors = 0
   classifier = "" 
+  width = ""
+  height = ""
   
   def __init__(self, i, haarobject, haarclassifier=None):
     self.image = i
-    ((x,y,w,h), self.neighbors) = haarobject
-    self.x = x + w/2
-    self.y = y + w/2 #set location of feature to middle of rectangle
+    ((x,y,self.width,self.height), self.neighbors) = haarobject
+    self.x = x + self.width/2
+    self.y = y + self.height/2 #set location of feature to middle of rectangle
     self.points = ((x, y), (x + w, y), (x + w, y + h), (x, y + h))
     #set bounding points of the rectangle
     self.classifier = haarclassifier
@@ -779,9 +778,22 @@ class HaarFeature(Feature):
     self.image.drawLine(self.points[2], self.points[3], color)
     self.image.drawLine(self.points[3], self.points[0], color)
     
+  #crop out the face and detect the color on that image
+  def meanColor(self):
+    crop = self.image[self.points[0][0]:self.points[1][0], self.points[0][1]:self.points[2][1]]
+    return crop.meanColor()
 
+  def length(self):
+    return max(self.width, self.height)
 
+  def area(self):
+    return self.width * self.height
 
+  def angle(self):
+    if (self.width > self.height):
+      return 0
+    else:
+      return np.pi / 2 
 
 
 #TODO?
