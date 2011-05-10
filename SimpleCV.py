@@ -767,7 +767,7 @@ class HaarFeature(Feature):
     ((x,y,self.width,self.height), self.neighbors) = haarobject
     self.x = x + self.width/2
     self.y = y + self.height/2 #set location of feature to middle of rectangle
-    self.points = ((x, y), (x + w, y), (x + w, y + h), (x, y + h))
+    self.points = ((x, y), (x + self.width, y), (x + self.width, y + self.height), (x, y + self.height))
     #set bounding points of the rectangle
     self.classifier = haarclassifier
   
