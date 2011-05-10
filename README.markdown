@@ -77,8 +77,8 @@ You can also initialize VirtualCameras from static data files:
     imgcam = VirtualCamera("apples.jpg", "image")
     vidcam = VirtualCamera("bananas.mpg", "video")
 
-    imgcam.getImage.save("copy_of_apples.jpg")
-    imgcam.getImage.save("frame_1_of_bananas.jpg")
+    imgcam.getImage().save("copy_of_apples.jpg")
+    imgcam.getImage().save("frame_1_of_bananas.jpg")
 
 
 You can also split channels, if you are interested in only processing a single color:
@@ -148,9 +148,12 @@ You can do Haar Cascade face detection with SimpleCV, but you will need to find 
     i = Camera().getImage()
     faces = i.findHaarFeatures("/path/to/haarcascade_frontalface_alt.xml")
     
+    #print locations 
     for f in faces:
       print "I found a face at " + str(f.coordinates())
-
-    faces.draw() #draw the bounding box
-    i.save("faces_detected.png")
+    
+    green = (0, 255, 0)
+    #outline who was drinking last night (or at least has the greenest pallor)
+    faces.sortColorDistance(green)[0].draw(green)
+    i.save("greenest_face_detected.png")
   
