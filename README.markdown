@@ -135,13 +135,22 @@ If you load the [python-zxing](https://github.com/oostendo/python-zxing) library
 the location of the library either through the ZXING_LIBRARY %ENV variable, or
 as a parameter to findBarcode().
 
-  i = Camera().getImage()
-  barcode = i.findBarcode("/var/opt/zxing")
+    i = Camera().getImage()
+    barcode = i.findBarcode("/var/opt/zxing")
   
-  barcode.draw((0, 255, 0)) #draw the outline of the barcode in green
+    barcode.draw((0, 255, 0)) #draw the outline of the barcode in green
   
-  i.save("barcode_found.png")
-  print barcode.data
+    i.save("barcode_found.png")
+    print barcode.data
 
+You can do Haar Cascade face detection with SimpleCV, but you will need to find your own [Haar Cascade File](http://www.google.com/search?q=haarcascade_frontalface_alt.xml)
 
+    i = Camera().getImage()
+    faces = i.findHaarFeatures("/path/to/haarcascade_frontalface_alt.xml")
+    
+    for f in faces:
+      print "I found a face at " + str(f.coordinates())
 
+    faces.draw() #draw the bounding box
+    i.save("faces_detected.png")
+  
