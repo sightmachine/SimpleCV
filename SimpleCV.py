@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #system includes
-import os, sys
+import os, sys, warnings
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
@@ -17,9 +17,6 @@ try:
   import Image as pil
 except ImportError:
   PIL_ENABLED = False 
-
-
-
 
 BLOBS_ENABLED = True
 try:
@@ -130,6 +127,7 @@ class Image:
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
+  _equalizedgraybitmap = "" #the above bitmap, normalized
   _blobLabel = ""  #the label image for blobbing
   _edgeMap = "" #holding reference for edge map
   _cannyparam = (0,0) #parameters that created _edgeMap
@@ -140,6 +138,7 @@ class Image:
     "_bitmap": "", 
     "_matrix": "", 
     "_graybitmap": "", 
+    "_equalizedgraybitmap": "",
     "_blobLabel": "",
     "_edgeMap": "",
     "_cannyparam": (0,0), 
@@ -207,6 +206,18 @@ class Image:
     self._graybitmap = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_8U, 1)
     cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY) 
     return self._graybitmap
+
+  def _getEqualizedGrayscaleBitmap(self):
+
+    if (self._equalizedgraybitmap):
+      return self._equalizedgraybitmap
+
+    self._equalizedgraybitmap = cv.CreateImage(self.size(), 8, 1)
+    cv.EqualizeHist(self._getGrayscaleBitmap(), self._equalizedgraybitmap)
+
+    return self._equalizedgraybitmap
+    
+
 
   #save the image, if no filename then use the load filename and overwrite
   def save(self, filename=""):
@@ -357,6 +368,24 @@ class Image:
       blobsFS.append(Blob(self,b)) #wrapper the cvblob type in SimpleCV's blob type 
 
     return FeatureSet(blobsFS) 
+
+  #this code is based on code that's based on code from
+  #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
+  #you need to provie your own cascade file
+  def findHaarFeatures(self, cascadefile, scale_factor=1.2, min_neighbors=2, flags=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(0,0)):
+
+    storage = cv.CreateMemStorage(0)
+
+    #lovely.  This segfaults if not present
+    if (not os.path.exists(cascadefile)):
+      warnings.warn("Could not find Haar Cascade file " + cascadefile)
+      return None
+    cascade = cv.Load(cascadefile) 
+    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, min_neighbors, flags)
+    if objects: 
+      return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
+    
+    return None
 
   def drawCircle(self, ctr, rad, color = (0,0,0), thickness = 1):
     cv.Circle(self.getMatrix(), (int(ctr[0]), int(ctr[1])), rad, color, thickness)
@@ -753,6 +782,48 @@ class Barcode(Feature):
     #i found the formula to do this on wikihow.  Yes, I am that lame.
     #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
     return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
+
+
+class HaarFeature(Feature):
+  points = ()
+  neighbors = 0
+  classifier = "" 
+  width = ""
+  height = ""
+  
+  def __init__(self, i, haarobject, haarclassifier=None):
+    self.image = i
+    ((x,y,self.width,self.height), self.neighbors) = haarobject
+    self.x = x + self.width/2
+    self.y = y + self.height/2 #set location of feature to middle of rectangle
+    self.points = ((x, y), (x + self.width, y), (x + self.width, y + self.height), (x, y + self.height))
+    #set bounding points of the rectangle
+    self.classifier = haarclassifier
+  
+  def draw(self, color=(0,255,0)):
+    #draw the bounding rectangle
+    self.image.drawLine(self.points[0], self.points[1], color)
+    self.image.drawLine(self.points[1], self.points[2], color)
+    self.image.drawLine(self.points[2], self.points[3], color)
+    self.image.drawLine(self.points[3], self.points[0], color)
+    
+  #crop out the face and detect the color on that image
+  def meanColor(self):
+    crop = self.image[self.points[0][0]:self.points[1][0], self.points[0][1]:self.points[2][1]]
+    return crop.meanColor()
+
+  def length(self):
+    return max(self.width, self.height)
+
+  def area(self):
+    return self.width * self.height
+
+  def angle(self):
+    if (self.width > self.height):
+      return 0
+    else:
+      return np.pi / 2 
+
 
 #TODO?
 #class Edge(Feature):
