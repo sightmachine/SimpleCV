@@ -533,6 +533,9 @@ class FeatureSet(list):
   def sortColorDistance(self, color = (0,0,0)):
     return FeatureSet(sorted(self, key=lambda f: f.colorDistance(color)))
 
+  def filter(self, filterarray):
+    return FeatureSet(list(np.array(self)[filterarray]))
+    
 
 class Feature(object):
   x = 0.0
