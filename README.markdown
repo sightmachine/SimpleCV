@@ -9,7 +9,7 @@ SimpleCV is developed against [Ubuntu 10.10](http://ubuntu.com), and uses the py
 
 ##Installation
 
-    sudo apt-get install python-numpy python-nose
+    sudo apt-get install python-dev python-numpy python-nose
     wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.2/OpenCV-2.2.0.tar.bz2
     bunzip2 OpenCV-2.2.0.tar.bz2
     tar xf OpenCV-2.2.0.tar
