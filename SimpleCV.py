@@ -280,6 +280,35 @@ class Image:
     cv.Not(self.getBitmap(), self.getBitmap())
     return 1
 
+  def threshold(thresh = 127):
+    if (type(thresh) == tuple):
+      r = cv.CreateImage(self.size(), 8, 1)
+      g = cv.CreateImage(self.size(), 8, 1)
+      b = cv.CreateImage(self.size(), 8, 1)
+      cv.Split(self.getBitmap(), b, g, r, None)
+
+      cvThreshold(r, r, thresh[0])
+      cvThreshold(g, g, thresh[1])
+      cvThreshold(b, b, thresh[2])
+
+      cv.Add(r, g, r)
+      cv.Add(r, b, r)
+      
+      newbitmap = cv.CreateImage(self.size(), 8, 3)
+      cv.Merge(r, r, r, newbitmap)
+      self._bitmap = newbitmap
+
+    else:
+      #desaturate the image, and apply the new threshold          
+      if (thresh < 0):
+        self.invert()
+
+      cvThreshold(self._getGrayscaleBitmap(), self._getGrayscaleBitmap(), thresh)
+
+
+    self.clearBuffers("_bitmap")
+      
+      
   
 
   #get the mean color of an image
