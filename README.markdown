@@ -16,7 +16,7 @@ SimpleCV is developed against [Ubuntu 10.10](http://ubuntu.com), and uses the py
     cd OpenCV-2.2.0
     mkdir build
     cd build
-    cmake -D CMAKE_BUILD_TYPE=RELEASE -D BUILD_PYTHON_SUPPORT=ON
+    cmake -D CMAKE_BUILD_TYPE=RELEASE -D BUILD_PYTHON_SUPPORT=ON ..
     make
     sudo make install
     git clone git://git.code.sf.net/p/simplecv/git.git simplecv 
