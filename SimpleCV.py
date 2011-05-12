@@ -497,6 +497,12 @@ class FeatureSet(list):
     for f in self:
       f.draw(color) 
 
+  def x(self):
+    return np.array([f.x for f in self])
+
+  def y(self):
+    return np.array([f.y for f in self])
+
   def coordinates(self):
     return np.array([[f.x, f.y] for f in self]) 
 
