@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
 #system includes
-import os, sys, warnings
+import os, sys, warnings, time, socket
+import SocketServer
+import threading
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
+from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 #library includes
 import cv
@@ -884,6 +887,68 @@ class HaarFeature(Feature):
 #class Edge(Feature):
 #class Ridge(Feature):
 
+#global class to pass data from the jpegstreamer to the jpegstreamhandler
+_jpegstreamers = {}
+
+class JpegStreamHandler(SimpleHTTPRequestHandler):
+
+    def do_GET(self):
+      count = 0
+      self.send_response(200)
+      self.send_header("Connection", "close")
+      self.send_header("Max-Age", "0")
+      self.send_header("Expires", "0")
+      self.send_header("Cache-Control", "no-cache, private")
+      self.send_header("Pragma", "no-cache")
+      self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
+      self.end_headers()
+      (host, port) = self.server.socket.getsockname()[:2]
+
+      while (1):
+        jpgfile = open(_jpegstreamers[port].filename)
+        jpgdata = jpgfile.read() 
+        jpgfile.close()
+        try:
+          self.wfile.write("--BOUNDARYSTRING\r\n")
+          self.send_header("Content-type","image/jpeg")
+          self.send_header("Content-Length", str(len(jpgdata)))
+          self.end_headers()
+          self.wfile.write(jpgdata + "\r\n")
+        except socket.error, e:
+          return
+        except IOError, e:
+          return
+        count = count + 1 
+        time.sleep(_jpegstreamers[port].sleeptime)
+
+
+class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+  allow_reuse_address = True
+
+#factory class for jpegtcpservers
+class JpegStreamer():
+  server = ""
+  host = ""
+  port = ""
+  filename = ""
+  sleeptime = ""
+
+  def __init__(self, hostandport = 8080, fn = "", st=0.1 ):
+    if (type(hostandport) == int):
+      self.port = hostandport
+    elif (type(hostandport) == tuple):
+      (self.host, self.port) = hostandport 
+
+    if not fn:
+      fn = os.tmpnam() + ".jpg"
+    self.filename = fn
+    self.sleeptime = st
+    
+    self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
+    self.server_thread = threading.Thread(target = self.server.serve_forever)
+    self.server_thread.setDaemon(True)
+    self.server_thread.start()
+    _jpegstreamers[self.port] = self 
 
 if __name__ == '__main__':
     sys.exit(
