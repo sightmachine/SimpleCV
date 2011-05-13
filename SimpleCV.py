@@ -288,8 +288,7 @@ class Image:
     return 1
 
   def invert(self):
-    cv.Not(self.getBitmap(), self.getBitmap())
-    return 1
+    return -self 
 
   def threshold(self, thresh = 127):
     if (type(thresh) == tuple):
@@ -311,9 +310,6 @@ class Image:
 
     else:
       #desaturate the image, and apply the new threshold          
-      if (thresh < 0):
-        self.invert()
-
       cv.Threshold(self._getGrayscaleBitmap(), self._getGrayscaleBitmap(), thresh)
 
 
@@ -443,6 +439,53 @@ class Image:
     else:
       cv.Set(self.getMatrix()[coord], value)
       self._clearBuffers("_matrix") 
+
+  def __sub__(self, other):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    if ((type(other) == int) or (type(other) == float)):
+      cv.SubS(self.getBitmap(), other, newbitmap)
+    else:
+      cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def __add__(self, other):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    if ((type(other) == int) or (type(other) == float)):
+      cv.AddS(self.getBitmap(), other, newbitmap)
+    else:
+      cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def __and__(self, other):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    if ((type(other) == int) or (type(other) == float)):
+      cv.AndS(self.getBitmap(), other, newbitmap)
+    else:
+      cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def __or__(self, other):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    if ((type(other) == int) or (type(other) == float)):
+      cv.OrS(self.getBitmap(), other, newbitmap)
+    else:
+      cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def __div__(self, other):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def __pow__(self, other):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    cv.Pow(self.getBitmap(), newbitmap, other)
+    return Image(newbitmap)
+
+  def __invert__(self):
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    cv.Not(self.getBitmap(), newbitmap)
+    return Image(newbitmap)
 
   def _clearBuffers(self, clearexcept = "_bitmap"):
     for k, v in self._initialized_buffers.items():
