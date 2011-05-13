@@ -6,47 +6,45 @@ sys.path.append("..")
 from SimpleCV import *
 import pyfirmata
 
-original_js = JpegStreamer() #defaults to 8080
-processed_js = JpegStreamer(8081)
-cam = Camera(1)
-arduino = pyfirmata.Arduino("/dev/ttyACM0")
+#settings for the project
+port_original = 8080  #port to view the camera viwe
+port_processed = 8081 #port to look at the processed view
+arduino_serial = "/dev/ttyUSB0"  #address of the arduino
+arduino_pin = 8  #which pin goes high when the alarm sounds
+blob_thresh = 50 #blob intensity thresh
+hu_threshold = 0.5 #how much distortion will throw the alarm
+
+#create JPEG streamers
+original_js = JpegStreamer(port_original)
+processed_js = JpegStreamer(port_processed)
+cam = Camera()
+arduino = pyfirmata.Arduino(arduino_serial)
 
 closed_hu = 0
-def alarm(onoroff):
-  arduino.digital[13].write(onoroff)
-  pass
-
-
+count = 0
 while (1):
   i = cam.getImage()
-  
   i.save(original_js.filename)
+
   r,g,b = i.channels(True)
+  i = g - b #subtract green from blue
 
-  cv.Sub(r.getBitmap(), g.getBitmap(), i.getBitmap()) 
-  #red cookie jar
-
-  red_blobs = ""
-  thresh = 50
-  i.save(processed_js.filename)
-  red_blobs = i.findBlobs(thresh)
-   
-  if not red_blobs:
-    #print str(thresh) + "no blobs"
+  blobs = i.findBlobs(blob_thresh)
+  if not blobs:
     continue
-  
-  count = 0
-  hu = red_blobs[0].cvblob.u11
+
+  blobs[0].draw()  #we only really care about the largest blob
+  i.save(processed_js.filename)
+
+  hu = blobs[0].cvblob.u02
   if not closed_hu: 
-    closed_hu = red_blobs[0].cvblob.u11      
+    closed_hu = blobs[0].cvblob.u02      
 
-  print str(count) + ":" + str(hu) + str(abs(closed_hu - hu) / hu)
-  if (abs((closed_hu - hu)/ hu) > 0.5): 
-    alarm(1)
+#  print str(closed_hu) + ":" + str(hu) + ":" + str(abs(closed_hu - hu) / hu)
+  if (abs((closed_hu - hu)/ hu) > hu_threshold): 
+    arduino.digital[arduino_pin].write(1)
   else:
-    alarm(0)
+    arduino.digital[arduino_pin].write(0)
 
-    count = count + 1
-    time.sleep(0)
-    
-
+  count = count + 1
+  time.sleep(0) #yield to the webserver
