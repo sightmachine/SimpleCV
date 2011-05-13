@@ -157,13 +157,13 @@ class Image:
     elif (type(source) == type(str()) and source != ''):
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR) 
-    elif (type(source) == instance): #it's a class instance, check class name
-      if (PIL_ENABLED and source.__class__.__name__ == "JpegImageFile"):
-        self._pil = source
-        #from the opencv cookbook 
-        #http://opencv.willowgarage.com/documentation/python/cookbook.html
-        self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-        cvSetData(self._bitmap, self._pil.tostring())
+    elif (PIL_ENABLED and source.__class__.__name__ == "JpegImageFile"):
+      self._pil = source
+      #from the opencv cookbook 
+      #http://opencv.willowgarage.com/documentation/python/cookbook.html
+      self._bitmap = cv.CreateImage(self._pil.size, cv.IPL_DEPTH_8U, 3)
+      cv.SetData(self._bitmap, self._pil.tostring())
+      self._bitmap = cv.iplimage(self._bitmap)
     else:
       return None 
 
@@ -194,7 +194,7 @@ class Image:
     if (not PIL_ENABLED):
       return None
     if (not self._pil):
-      self._pil = PIL.fromstring("RGB", self.size(), self.getBitmap().tostring())
+      self._pil = pil.fromstring("RGB", self.size(), self.getBitmap().tostring())
 
     return self._pil
 
@@ -291,22 +291,22 @@ class Image:
     cv.Not(self.getBitmap(), self.getBitmap())
     return 1
 
-  def threshold(thresh = 127):
+  def threshold(self, thresh = 127):
     if (type(thresh) == tuple):
       r = cv.CreateImage(self.size(), 8, 1)
       g = cv.CreateImage(self.size(), 8, 1)
       b = cv.CreateImage(self.size(), 8, 1)
       cv.Split(self.getBitmap(), b, g, r, None)
 
-      cvThreshold(r, r, thresh[0])
-      cvThreshold(g, g, thresh[1])
-      cvThreshold(b, b, thresh[2])
+      cv.Threshold(r, r, thresh[0], 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(g, g, thresh[1], 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(b, b, thresh[2], 255, cv.CV_THRESH_BINARY)
 
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
       newbitmap = cv.CreateImage(self.size(), 8, 3)
-      cv.Merge(r, r, r, newbitmap)
+      cv.Merge(r, r, r, None, newbitmap)
       self._bitmap = newbitmap
 
     else:
@@ -314,11 +314,10 @@ class Image:
       if (thresh < 0):
         self.invert()
 
-      cvThreshold(self._getGrayscaleBitmap(), self._getGrayscaleBitmap(), thresh)
+      cv.Threshold(self._getGrayscaleBitmap(), self._getGrayscaleBitmap(), thresh)
 
 
-    self.clearBuffers("_bitmap")
-      
+    self._clearBuffers("_bitmap")
       
   
 
@@ -409,16 +408,20 @@ class Image:
     b = cv.CreateImage(self.size(), 8, 1)
     cv.Split(self.getBitmap(), b, g, r, None)
 
+    red = cv.CreateImage(self.size(), 8, 3)
+    green = cv.CreateImage(self.size(), 8, 3)
+    blue = cv.CreateImage(self.size(), 8, 3)
+	
     if (grayscale):
-      return (Image(r), Image(g), Image(b)) 
+      cv.Merge(r, r, r, None, red)
+      cv.Merge(g, g, g, None, green)
+      cv.Merge(b, b, b, None, blue)
     else:
-      red = cv.CreateImage(self.size(), 8, 3)
-      green = cv.CreateImage(self.size(), 8, 3)
-      blue = cv.CreateImage(self.size(), 8, 3)
       cv.Merge(None, None, r, None, red)
       cv.Merge(None, g, None, None, green)
       cv.Merge(b, None, None, None, blue)
-      return (Image(red), Image(green), Image(blue)) 
+
+    return (Image(red), Image(green), Image(blue)) 
 
   #return a histogram of intensity for the image, note that this desaturates
   #the image to a grayscale image
