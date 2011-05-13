@@ -6,14 +6,14 @@ sys.path.append("..")
 from SimpleCV import *
 import pyfirmata
 
-original_js = JpegStreamer()
+original_js = JpegStreamer() #defaults to 8080
 processed_js = JpegStreamer(8081)
-cam = Camera()
-#arduino = pyfirmata.Arduino("/dev/ttyACM0")
+cam = Camera(1)
+arduino = pyfirmata.Arduino("/dev/ttyACM0")
 
 closed_hu = 0
 def alarm(onoroff):
-  #arduino.digital[13].write(onoroff)
+  arduino.digital[13].write(onoroff)
   pass
 
 
