@@ -34,11 +34,10 @@ except ImportError:
   ZXING_ENABLED = False 
 
 class FrameSource:
-   """
-An abstract Camera-type class, for handling multiple types of video input.
-Any sources of images inheirit from it
-   """
-  
+  """
+  An abstract Camera-type class, for handling multiple types of video input.
+  Any sources of images inheirit from it
+  """
   def __init__(self):
     return
 
@@ -52,7 +51,7 @@ Any sources of images inheirit from it
     return None
 
 class Camera(FrameSource):
-   """
+  """
 The Camera class is the class for managing input from a basic camera.  Note
 that once the camera is initialized, it will be locked from being used 
 by other processes.  You can check manually if you have compatable devices
@@ -61,7 +60,7 @@ on linux by looking for /dev/video* devices.
 This class wrappers OpenCV's cvCapture class and associated methods.  
 Read up on OpenCV's CaptureFromCAM method for more details if you need finer
 control than just basic frame retrieval
-   """
+  """
   capture = ""   #cvCapture object
   prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
     "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
@@ -113,7 +112,7 @@ control than just basic frame retrieval
   def getImage(self):
     """
     Retrieve an Image-object from the camera. 
-    ""
+    """
     return Image(cv.QueryFrame(self.capture))
   
 
@@ -150,16 +149,16 @@ class VirtualCamera(FrameSource):
       return Image(cv.QueryFrame(self.capture))
    
 class Image:
-   """
-   The Image class is the heart of SimpleCV and allows you to convert to and 
-   from a number of source types with ease.  It also has intelligent buffer
-   management, so that modified copies of the Image required for algorithms
-   such as edge detection, etc can be cached and reused when appropriate.
+  """
+  The Image class is the heart of SimpleCV and allows you to convert to and 
+  from a number of source types with ease.  It also has intelligent buffer
+  management, so that modified copies of the Image required for algorithms
+  such as edge detection, etc can be cached and reused when appropriate.
 
-   Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
-   automatically handle conversion from other representations into this
-   standard format. 
-   """
+  Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
+  automatically handle conversion from other representations into this
+  standard format. 
+  """
   width = 0    #width and height in px
   height = 0
   depth = 0
@@ -609,7 +608,7 @@ class Image:
     cv.Pow(self.getBitmap(), newbitmap, other)
     return Image(newbitmap)
 
-  def __invert__(self):
+  def __neg__(self):
     newbitmap = cv.CreateImage(self.size(), 8, 3)
     cv.Not(self.getBitmap(), newbitmap)
     return Image(newbitmap)
@@ -734,7 +733,7 @@ class FeatureSet(list):
   def sortArea(self):
     """
     Returns a new FeatureSet, with the largest area features first. 
-    ""
+    """
     return FeatureSet(sorted(self, key=lambda f: f.area()))
 
   def distanceFrom(self, point = (-1, -1)):
