@@ -33,8 +33,12 @@ try:
 except ImportError:
   ZXING_ENABLED = False 
 
-#an abstract Camera class, for handling multiple types of video input
 class FrameSource:
+   """
+An abstract Camera-type class, for handling multiple types of video input.
+Any sources of images inheirit from it
+   """
+  
   def __init__(self):
     return
 
@@ -47,10 +51,18 @@ class FrameSource:
   def getImage(self):
     return None
 
-#camera class, wrappers the cvCapture class and associated methods
 class Camera(FrameSource):
-  capture = ""   #cvCapture object
+   """
+The Camera class is the class for managing input from a basic camera.  Note
+that once the camera is initialized, it will be locked from being used 
+by other processes.  You can check manually if you have compatable devices
+on linux by looking for /dev/video* devices.
 
+This class wrappers OpenCV's cvCapture class and associated methods.  
+Read up on OpenCV's CaptureFromCAM method for more details if you need finer
+control than just basic frame retrieval
+   """
+  capture = ""   #cvCapture object
   prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
     "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
     "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
@@ -61,9 +73,13 @@ class Camera(FrameSource):
     "exposure": cv.CV_CAP_PROP_EXPOSURE}
   #human readable to CV constant property mapping
 
-  #constructor, camera_index indicates which camera to connect to
-  #props is a dictionary which can be used to set any camera attributes
   def __init__(self, camera_index = 0, prop_set = {}):
+    """
+    In the camera onstructor, camera_index indicates which camera to connect to
+    and props is a dictionary which can be used to set any camera attributes
+    Supported props are currently: height, width, brightness, contrast,
+    saturation, hue, gain, and exposure.
+    """
     self.capture = cv.CaptureFromCAM(camera_index)
 
     if (not self.capture):
@@ -77,32 +93,46 @@ class Camera(FrameSource):
     
   #todo -- make these dynamic attributes of the Camera class
   def getProperty(self, prop):
+    """
+    Retrieve the value of a given property, wrapper for cv.GetCaptureProperty
+    """
     if prop in self.prop_map:
       return cv.GetCaptureProperty(self.capture, self.prop_map[prop]);
     return False 
 
-  #dump all the available characteristics of this camera
   def getAllProperties(self):
+    """
+    Return all properties from the camera 
+    """
     props = {} 
     for p in self.prop_map:
       props[p] = self.getProperty(p)
 
     return props
 
-  #grab and retrieve an image, note that this should be retooled
-  #when we want to do multiple camera support
   def getImage(self):
+    """
+    Retrieve an Image-object from the camera. 
+    ""
     return Image(cv.QueryFrame(self.capture))
   
 
-#this is a virtual camera, initialized with some source which is not
-#a camera directly connected to this computer
 class VirtualCamera(FrameSource):
+  """
+  The virtual camera lets you test algorithms or functions by providing 
+  a Camera object which is not a physically connected device.
+  
+  Currently, VirtualCamera supports "image" and "video" source types.
+  """
   source = ""
   sourcetype = ""
   capture = "" 
   
   def __init__(self, s, st):
+    """
+    The constructor takes a source, and source type.  ie:
+    VirtualCamera("img.jpg", "image") or VirtualCamera("video.mpg", "video")
+    """
     self.source = s
     self.sourcetype = st 
     
@@ -110,15 +140,26 @@ class VirtualCamera(FrameSource):
       self.capture = cv.CaptureFromFile(self.source) 
     
   def getImage(self):
+    """
+    Retrieve the next frame of the video, or just a copy of the image
+    """
     if (self.sourcetype == 'image'):
       return Image(self.source)
     
     if (self.sourcetype == 'video'):
       return Image(cv.QueryFrame(self.capture))
    
-#the Image class is the bulk of SimpleCV and wrappers the iplImage, cvMat,
-#and most of the associated image processing functions
 class Image:
+   """
+   The Image class is the heart of SimpleCV and allows you to convert to and 
+   from a number of source types with ease.  It also has intelligent buffer
+   management, so that modified copies of the Image required for algorithms
+   such as edge detection, etc can be cached and reused when appropriate.
+
+   Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
+   automatically handle conversion from other representations into this
+   standard format. 
+   """
   width = 0    #width and height in px
   height = 0
   depth = 0
@@ -151,8 +192,14 @@ class Image:
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
   def __init__(self, source):
+    """ 
+    The constructor takes a single polymorphic parameter, which it tests
+    to see how it should convert into an RGB image.  Supported types include:
     
-
+    OpenCV: iplImage and cvMat types
+    Python Image Library: Image type
+    Filename: All opencv supported types (jpg, png, bmp, gif, etc)
+    """
     if (type(source) == cv.cvmat):
       self._matrix = source 
     elif (type(source) == cv.iplimage):
@@ -175,8 +222,11 @@ class Image:
     self.height = bm.height
     self.depth = bm.depth
 
-  #get the bitmap version (iplimage) of the image
   def getBitmap(self):
+    """
+    Retrieve the bitmap (iplImage) of the Image.  This is useful if you want
+    to use functions from OpenCV with SimpleCV's image class
+    """
     if (self._bitmap):
       return self._bitmap
     elif (self._matrix):
@@ -184,9 +234,10 @@ class Image:
 
     return self._bitmap
 
-  #get the matrix version of the image, if the matrix version doesn't exist
-  #convert the bitmap
   def getMatrix(self):
+    """
+    Get the matrix (cvMat) version of the image, required for some OpenCV algorithms 
+    """
     if (self._matrix):
       return self._matrix
     else:
@@ -194,13 +245,14 @@ class Image:
       return self._matrix
 
   def getPIL(self):
+    """ 
+    Get a PIL Image object for use with the Python Image Library
+    """ 
     if (not PIL_ENABLED):
       return None
     if (not self._pil):
       self._pil = pil.fromstring("RGB", self.size(), self.getBitmap().tostring())
-
     return self._pil
-
 
   def _getGrayscaleBitmap(self):
     if (self._graybitmap):
@@ -220,10 +272,12 @@ class Image:
 
     return self._equalizedgraybitmap
     
-
-
-  #save the image, if no filename then use the load filename and overwrite
   def save(self, filename=""):
+    """
+    Save the image to the specified filename.  If no filename is provided then
+    then it will use the filename the Image was loaded from or the last
+    place it was saved to. 
+    """
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
       self.filename = filename #set the filename for future save operations
@@ -235,20 +289,30 @@ class Image:
     return 1
 
   def copy(self):
+    """
+    Return a full copy of the Image's bitmap.  Note that this is different
+    from using python's implicit copy function in that only the bitmap itself
+    is copied.
+    """
     newimg = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, 3)
     cv.Copy(self.getBitmap(), newimg)
     return Image(newimg) 
     
   #scale this image, and return a new Image object with the new dimensions 
   def scale(self, width, height):
+    """
+    Scale the image to a new width and height.
+    """
     scaled_matrix = cv.CreateMat(width, height, self.getMatrix().type)
     cv.Resize(self.getMatrix(), scaled_matrix)
     return Image(scaled_matrix)
 
-
-  #interface to cv.Smooth -- note that we're going to "fake" in-place
-  #smoothing for each image
-  def smooth(self, algorithm_name = 'bilateral', aperature = '', sigma = 0, spatial_sigma = 0):
+  def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0):
+    """
+    Smooth the image, by default with the Gaussian blur.  If desired,
+    additional algorithms and aperatures can be specified.  Optional parameters
+    are passed directly to OpenCV's cv.Smooth() function. 
+    """
     win_x = 3
     win_y = 3  #set the default aperature window size (3x3)
 
@@ -291,9 +355,18 @@ class Image:
     return 1
 
   def invert(self):
+    """
+    Invert (negative) the image note that this can also be done with the
+    unary minus (-) operator. 
+    """
     return -self 
 
   def threshold(self, thresh = 127):
+    """
+    Do a binary threshold the image, changing all values above thresh to white
+    and all below to black.  If a color tuple is provided, each color channel
+    is thresholded separately.
+    """
     if (type(thresh) == tuple):
       r = cv.CreateImage(self.size(), 8, 1)
       g = cv.CreateImage(self.size(), 8, 1)
@@ -322,10 +395,19 @@ class Image:
 
   #get the mean color of an image
   def meanColor(self):
+    """
+    Return the average color of all the pixels in the image.
+    """
     return cv.Avg(self.getMatrix())[0:3]  
   
 
   def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
+    """
+    This will find corner Feature objects and return them as a FeatureSet
+    strongest corners first.  The parameters give the number of corners to look
+    for, the minimum quality of the corner feature, and the minimum distance
+    between corners. 
+    """
     #initialize buffer frames
     eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
     temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
@@ -338,9 +420,16 @@ class Image:
 
     return FeatureSet(corner_features)
 
-
   def findBlobs(self, threshval = 127, minsize=10, maxsize=0):
+    """
+    If you have the cvblob library installed, this will look for continuous
+    light regions and return them as Blob features in a FeatureSet.  Parameters
+    specify the threshold value, and minimum and maximum size for blobs.
+
+    You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
+    """
     if not BLOBS_ENABLED:
+      warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
       return None
 
     if (maxsize == 0):  
@@ -369,9 +458,20 @@ class Image:
 
   #this code is based on code that's based on code from
   #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-  #you need to provie your own cascade file
-  def findHaarFeatures(self, cascadefile, scale_factor=1.2, min_neighbors=2, flags=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(0,0)):
+  def findHaarFeatures(self, cascadefile, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    """
+    If you want to find Haar Features (useful for face detection among other
+    purposes) this will return Haar feature objects in a FeatureSet.  The
+    parameters are:
+    * the scaling factor for subsequent rounds of the haar cascade (default 1.2)
+    * the minimum number of rectangles that makes up an object (default 2)
+    * whether or not to use Canny pruning to reject areas with too many edges (default yes, set to 0 to disable) 
 
+    For more information, consult the cv.HaarDetectObjects documentation
+   
+    You will need to provide your own cascade file - these are usually found in
+    /usr/local/share/opencv/haarcascades and specify a number of body parts.
+    """
     storage = cv.CreateMemStorage(0)
 
     #lovely.  This segfaults if not present
@@ -379,29 +479,51 @@ class Image:
       warnings.warn("Could not find Haar Cascade file " + cascadefile)
       return None
     cascade = cv.Load(cascadefile) 
-    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, min_neighbors, flags)
+    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, min_neighbors, use_canny, (0,0))
     if objects: 
       return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
     
     return None
 
   def drawCircle(self, ctr, rad, color = (0,0,0), thickness = 1):
-    cv.Circle(self.getMatrix(), (int(ctr[0]), int(ctr[1])), rad, color, thickness)
-    self._clearBuffers("_matrix")
+    """
+    Draw a circle on the Image, parameters include:
+    * the center of the circle
+    * the radius in pixels
+    * a color tuple (default black)
+    * the thickness of the circle
+
+    Note that this modifies the image in-place and clears all buffers.
+    """
+    cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, color, thickness)
+    self._clearBuffers("_bitmap")
 
   def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
+    """
+    Draw a line on the Image, parameters include
+    *the first point for the line (tuple)
+    *the second point on the line (tuple)
+    *a color tuple (default black)
+    *thickness of the line 
+ 
+    Note that this modifies the image in-place and clears all buffers.
+    """
     pt1 = (int(pt1[0]), int(pt1[1]))
     pt2 = (int(pt2[0]), int(pt2[1]))
     cv.Line(self.getBitmap(), pt1, pt2, color, thickness, cv.CV_AA) 
 
-  #return the width, height as a tuple
   def size(self):
+    """
+    Return the width and height as a tuple
+    """
     return cv.GetSize(self.getBitmap())
 
-  #split the channels of an image into RGB (not the default BGR)
-  #single parameter is whether to return the channels as grey images
-  #or to return them as tinted color image (default)
   def channels(self, grayscale = False):
+    """
+    Split the channels of an image into RGB (not the default BGR)
+    single parameter is whether to return the channels as grey images
+    or to return them as tinted color image (default)
+    """
     r = cv.CreateImage(self.size(), 8, 1)
     g = cv.CreateImage(self.size(), 8, 1)
     b = cv.CreateImage(self.size(), 8, 1)
@@ -422,9 +544,11 @@ class Image:
 
     return (Image(red), Image(green), Image(blue)) 
 
-  #return a histogram of intensity for the image, note that this desaturates
-  #the image to a grayscale image
   def histogram(self, numbins = 50):
+    """
+    Return a numpy array of the 1D histogram of intensity for pixels in the image
+    Single parameter is how many "bins" to have.
+    """
     gray = self._getGrayscaleBitmap()
 
     (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
@@ -434,11 +558,11 @@ class Image:
     ret = self.getMatrix()[coord]
     if (type(ret) == cv.cvmat):
       return Image(ret)
-    return ret
+    return tuple(reversed(ret))
 
   def __setitem__(self, coord, value):
     if (type(self.getMatrix()[coord]) == tuple):
-      self.getMatrix()[coord] = value
+      self.getMatrix()[coord] = tuple(reversed(value))
     else:
       cv.Set(self.getMatrix()[coord], value)
       self._clearBuffers("_matrix") 
@@ -497,6 +621,14 @@ class Image:
       self.__dict__[k] = v
 
   def findBarcode(self, zxing_path = ""):
+    """
+    If you have the python-zxing library installed, you can find 2d and 1d
+    barcodes in your image.  These are returned as Barcode feature objects
+    in a FeatureSet.  The single parameter is the ZXing_path, if you 
+    don't have the ZXING_LIBRARY env parameter set.
+
+    You can clone python-zxing at http://github.com/oostendo/python-zxing
+    """
     if not ZXING_ENABLED:
       return None
 
@@ -519,7 +651,16 @@ class Image:
   #this function contains two functions -- the basic edge detection algorithm
   #and then a function to break the lines down given a threshold parameter
   def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
+    """
+    findLines will find line segments in your image and returns Line feature 
+    objects in a FeatureSet. The parameters are:
+    * threshold, which determies the minimum "strength" of the line
+    * min line length -- how many pixels long the line must be to be returned
+    * max line gap -- how much gap is allowed between line segments to consider them the same line 
+    * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to getEdgeMap() for details
 
+    For more information, consult the cv.HoughLines2 documentation
+    """
     em = self.getEdgeMap(cannyth1, cannyth2)
     
     lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
@@ -531,6 +672,15 @@ class Image:
     return linesFS
 
   def getEdgeMap(self, t1=50, t2=100):
+    """
+    Return the binary bitmap which shows where edges are in the image.  The two
+    parameters determine how much change in the image determines an edge, 
+    and how edges are linked together.  For more information refer to:
+
+    http://en.wikipedia.org/wiki/Canny_edge_detector
+    http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html?highlight=canny#Canny
+    """ 
+  
     if (self._edgeMap and self._cannyparam[0] == t1 and self._cannyparam[1] == t2):
       return self._edgeMap
 
@@ -541,58 +691,139 @@ class Image:
     return self._edgeMap
 
 class FeatureSet(list):
+  """
+  FeatureSet is a class extended from Python's list which has special
+  functions so that it is useful for handling feature metadata on an image.
+  
+  In general, functions dealing with attributes will return numpy arrays, and
+  functions dealing with sorting or filtering will return new FeatureSets.
+  """
 
   def draw(self, color = (255,0,0)):
+    """
+    Call draw() on each feature in the FeatureSet. 
+    """
     for f in self:
       f.draw(color) 
 
   def x(self):
+    """
+    Returns a numpy array of the x (horizontal) coordinate of each feature.
+    """
     return np.array([f.x for f in self])
 
   def y(self):
+    """
+    Returns a numpy array of the y (horizontal) coordinate of each feature.
+    """
     return np.array([f.y for f in self])
 
   def coordinates(self):
+    """
+    Returns a 2d numpy array of the x,y coordinates of each feature.  This 
+    is particularly useful if you want to use Scipy's Spatial Distance module 
+    """
     return np.array([[f.x, f.y] for f in self]) 
 
   def area(self):
+    """
+    Returns a numpy array of the area of each feature in pixels.
+    """
     return np.array([f.area() for f in self]) 
 
   def sortArea(self):
+    """
+    Returns a new FeatureSet, with the largest area features first. 
+    ""
     return FeatureSet(sorted(self, key=lambda f: f.area()))
 
   def distanceFrom(self, point = (-1, -1)):
+    """
+    Returns a numpy array of the distance each Feature is from a given coordinate.
+    Default is the center of the image. 
+    """
     return np.array([f.distanceFrom(point) for f in self ])
 
   def sortDistance(self, point = (-1, -1)):
+    """
+    Returns a sorted FeatureSet with the features closest to a given coordinate first.
+    Default is from the center of the image. 
+    """
     return FeatureSet(sorted(self, key=lambda f: f.distanceFrom(point)))
 
   def angle(self):
+    """
+    Return a numpy array of the angles (theta) of each feature.
+    Note that theta is given in radians, with 0 being horizontal.
+    """
     return np.array([f.angle() for f in self])
 
   def sortAngle(self, theta = 0):
+    """
+    Return a sorted FeatureSet with the features closest to a given angle first.
+    Note that theta is given in radians, with 0 being horizontal.
+    """
     return FeatureSet(sorted(self, key=lambda f: abs(f.angle() - theta)))
-  
+
   def length(self):
+    """
+    Return a numpy array of the length (longest dimension) of each feature.
+    """
+   
     return np.array([f.length() for f in self])
 
   def sortLength(self):
+    """
+    Return a sorted FeatureSet with the longest features first. 
+    """
     return FeatureSet(sorted(self, key=lambda f: f.length()))
 
   def meanColor(self):
+    """
+    Return a numpy array of the average color of the area covered by each Feature.
+    """
     return np.array([f.meanColor() for f in self])
 
   def colorDistance(self, color = (0,0,0)):
+    """
+    Return a numpy array of the distance each features average color is from
+    a given color tuple (default black, so colorDistance() returns intensity)
+    """
     return np.array([f.colorDistance(color) for f in self])
   
   def sortColorDistance(self, color = (0,0,0)):
+    """
+    Return a sorted FeatureSet with features closest to a given color first.
+    Default is black, so sortColorDistance() will return darkest to brightest
+    """
     return FeatureSet(sorted(self, key=lambda f: f.colorDistance(color)))
 
   def filter(self, filterarray):
+    """
+    Return a FeatureSet which is filtered on a numpy boolean array.  This
+    will let you use the attribute functions to easily screen Features out
+    of return FeatureSets.  
+
+    Some examples:
+    * my_lines.filter(my_lines.length() < 200) # returns all lines < 200px
+    * my_blobs.filter(my_blobs.area() > 0.9 * my_blobs.length**2) # returns blobs that are nearly square    
+    * my_lines.filter(abs(my_lines.angle()) < numpy.pi / 4) #any lines within 45 degrees of horizontal
+    * my_corners.filter(my_corners.x() - my_corners.y() > 0) #only return corners in the upper diagonal of the image
+    """
     return FeatureSet(list(np.array(self)[filterarray]))
     
 
 class Feature(object):
+  """
+  The Feature object is an abstract class which real features descend from.j
+  Each feature object has:
+  
+  * a draw() method, 
+  * an image property, referencing the originating Image object 
+  * x and y coordinates
+  * default functions for determining angle, area, meanColor, etc for FeatureSets
+  * in the Feature class, these functions assume the feature is 1px  
+  """
   x = 0.0
   y = 0.0 
   image = "" #parent image
@@ -603,14 +834,14 @@ class Feature(object):
     self.image = i
 
   def coordinates(self):
-    return [self.x, self.y]  
+    return np.array([self.x, self.y])  
 
-  #in this abstract case, we're just going to color the exact point 
-  #the desired color
   def draw(self, color = (255.0,0.0,0.0)):
+    """
+    In this abstract case, we're just going to color the exact point 
+    """
     self.image[self.x,self.y] = color
 
-  #return euclidian distance from coordinates
   def distanceFrom(self, point = (-1,-1)): 
     if (point[0] == -1 or point[1] == -1):
       point = np.array(self.image.size())/2
@@ -636,16 +867,23 @@ class Feature(object):
     return 1 
 
 class Corner(Feature):
-
+  """
+  The Corner feature is basically a point returned by the FindCorners function
+  """
   def __init__(self, i, at_x, at_y):
     super(Corner, self).__init__(i, at_x, at_y)
     #can we look at the eigenbuffer and find direction?
 
   def draw(self, color = (255, 0, 0)):
+    """
+    Draw a small circle around the corner.  Color tuple is single parameter 
+    """
     self.image.drawCircle((self.x, self.y), 4, color)
 
-#stubbing out blob interface
 class Blob(Feature):
+  """
+  The Blob Feature  
+  """
   cvblob = ""
   
   def __init__(self, i, cb): 
