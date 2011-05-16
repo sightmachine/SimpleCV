@@ -210,6 +210,10 @@ class Kinect(FrameSource):
     This is an experimental wrapper for the Freenect python libraries
     you can getImage() and getDepth() for separate channel images
   """
+  def __init__(self):
+    if not FREENECT_ENABLED:
+      warnings.warn("You don't seem to have the freenect library installed.  This will make it hard to use a Kinect.")
+
   #this code was borrowed from
   #https://github.com/amiller/libfreenect-goodies
   def getImage(self):
