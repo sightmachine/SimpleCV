@@ -127,7 +127,7 @@ be addressed as a group.
     lines.draw((255,0,0)) #outline the line segments in red
     corners.draw((0,0,255)) #outline corners detected in blue
 
-
+###Blob Detection
 If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-python) library, you can also use SimpleCV to detect blobs
 
     #find the green ball
@@ -138,6 +138,7 @@ If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-
 
     print "largest green blob at " + str(green_blobs[0].x) + ", " + str( green_blobs[0].y)
 
+###2-d code/Barcode Reading
 If you load the [python-zxing](https://github.com/oostendo/python-zxing) library, you can use [Zebra Crossing](http://code.google.com/p/zxing) to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
 the location of the library either through the ZXING_LIBRARY %ENV variable, or
 as a parameter to findBarcode().
@@ -150,6 +151,7 @@ as a parameter to findBarcode().
     i.save("barcode_found.png")
     print barcode.data
 
+###Face Detection
 You can do Haar Cascade face detection with SimpleCV, but you will need to find your own [Haar Cascade File](http://www.google.com/search?q=haarcascade_frontalface_alt.xml)
 
     i = Camera().getImage()
@@ -175,3 +177,8 @@ To send the data, you just save the image to the js.filename location
 
     while(1)
       c.getImage().save(js.filename)
+      
+---
+
+##Examples
+

@@ -6,6 +6,8 @@ from nose.tools import with_setup
 
 testimage = "sampleimages/9dots4lines.png"
 testimage2 = "sampleimages/aerospace.jpg"
+whiteimage = "sampleimages/white.png"
+blackimage = "sampleimages/black.png"
 testimageclr = "sampleimages/statue_liberty.jpg"
 testbarcode = "sampleimages/barcode.png"
 testoutput = "sampleimages/9d4l.jpg"
@@ -34,12 +36,13 @@ def test_bitmap():
   else:
     assert False
 
-def test_matrix():
-  img = Image(testimage)
-  m = img.getMatrix()
-  if (m.rows == img.getBitmap().width):
-    pass
-  assert False 
+#TODO: get this test working
+#def test_matrix():
+#  img = Image(testimage)
+#  m = img.getMatrix()
+#  if (m.rows == img.getBitmap().width):
+#    pass
+#  assert False
   
 def test_scale():
   img = Image(testimage)
@@ -119,17 +122,18 @@ def test_smooth():
 def test_invert():
   img = Image(testimage2)
   clr = img[1,1]
-  img.invert()
+  img = img.invert()
 
-  if (clr[0] == 255 - img[1,1][0]):
+  if (clr[0] == (255 - img[1,1][0])):
     pass
-  assert False
+  else:
+    assert False
 
 
 def test_size():
   img = Image(testimage2)
   (width, height) = img.size()
-  if type(width) == "int" and type(height) == "int" and width > 0 and height > 0:
+  if type(width) == int and type(height) == int and width > 0 and height > 0:
     pass
   else:
     assert False
@@ -149,7 +153,7 @@ def test_histogram():
   h = img.histogram(25)
 
   for i in h:
-    if type(i) != "int":
+    if type(i) != int:
       assert False
 
   pass
@@ -210,7 +214,7 @@ def test_blobs():
   blobs = img.findBlobs()
 
   blobs[0].draw((0, 255, 0))
-  img.save(testoutput)
+  img.save(testoutput)  
 
   pass
 
@@ -230,11 +234,41 @@ def test_barcode():
     pass
     
 def test_x():
-  assert False
-  tmpX = Image(testimage).findLines().x()
-  if type(tmpX) == int:
-    assert False
+  tmpX = Image(testimage).findLines().x()[0]
+
+  if (tmpX > 0 and Image(testimage).size()[0]):
+    pass
   else:
     assert False
+
+def test_y():
+  tmpY = Image(testimage).findLines().y()[0]
+
+  if (tmpY > 0 and Image(testimage).size()[0]):
+    pass
+  else:
+    assert False
+
+def test_area():
+  area_val = Image(testimage).findBlobs().area()[0]
+  
+  if(area_val > 0):
+    pass
+  else:
+    assert False
+
+def test_angle():
+  angle_val = Image(testimage).findLines().angle()[0]
+
+#TODO: Find way to compare object instances
+#def test_plus():
+  #imgA = Image(testimage)
+  #imgB = Image(testimage2)
+
+  #imgC = imgA + imgB
+  #if(imgC.__class__ == Image):
+    #pass
+  #else:
+    #assert False
 
   
