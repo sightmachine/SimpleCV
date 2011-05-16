@@ -7,6 +7,8 @@ SimpleCV's goal is to provide a convenient, readable wrapper for OpenCV which wi
 
 SimpleCV is developed against [Ubuntu 10.10](http://ubuntu.com), and uses the python infrastructure provided in this distribution: Python 2.6.6.  It uses the latest stable release of OpenCV, in this case 2.2.
 
+---
+
 ##Installation
 
     sudo apt-get install python-dev python-numpy python-nose python-scipy ipython
@@ -20,6 +22,8 @@ SimpleCV is developed against [Ubuntu 10.10](http://ubuntu.com), and uses the py
     make
     sudo make install
     git clone git://git.code.sf.net/p/simplecv/git.git simplecv 
+
+---
 
 ##Usage
 
@@ -64,6 +68,7 @@ Addressing your [OpenCV supported webcam](http://opencv.willowgarage.com/wiki/We
     mycam = Camera()
     img = Camera.getImage()
 
+###Multiple Cameras
 And you can even use multiple cameras, at different resolutions:
 
     mylaptopcam = Camera(0, {"width": 640, "height": 480})  #you can also control brightness, hue, gain, etc 
@@ -80,7 +85,7 @@ You can also initialize VirtualCameras from static data files:
     imgcam.getImage().save("copy_of_apples.jpg")
     imgcam.getImage().save("frame_1_of_bananas.jpg")
 
-
+###Color Options
 You can also split channels, if you are interested in only processing a single color:
 
     (red, green, blue) = Camera().getImage().channels()
@@ -107,6 +112,8 @@ The Image class has a builtin [Histogram](http://en.wikipedia.org/wiki/Image_his
     else:
       print "your room is dark"
 
+      
+###Features
 SimpleCV has advanced feature-detection functions, which can let you find
 different types of features.  These are returned in FeatureSets which can
 be addressed as a group.
@@ -156,7 +163,8 @@ You can do Haar Cascade face detection with SimpleCV, but you will need to find 
     #outline who was drinking last night (or at least has the greenest pallor)
     faces.sortColorDistance(green)[0].draw(green)
     i.save("greenest_face_detected.png")
-  
+
+###GUI
 Rather than use GUI-based display of processed images, SimpleCV has an
 integrated HTTP-based JPEG streamer.  It will use the old-school
 multipart/replace content type to continuously feed jpgs to your browser.  

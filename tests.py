@@ -228,5 +228,13 @@ def test_barcode():
   
   if code.points:
     return 1
+    
+def test_x():
+  return 0
+  tmpX = Image(testimage).findLines().x()
+  if type(tmpX) == int:
+    return 0
+  else:
+    return 0
 
   
