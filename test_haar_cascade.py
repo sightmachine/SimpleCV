@@ -12,6 +12,6 @@ def test_haarcascade():
   if (faces):
     faces.draw()
     img.save(testoutput)
-    return 1
+    pass
   else: 
-    return 0
+    assert False

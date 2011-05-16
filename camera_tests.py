@@ -17,11 +17,12 @@ def test_virtual_camera_constructor():
     print str(i) + ": " + str(props[i]) + "\n"
   
   
-  return 1
+  pass
 
 def test_camera_image():
   mycam = Camera(0)
 
   img = mycam.getImage()
   img.save(testoutput)
+  pass
 
