@@ -8,6 +8,14 @@ from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
 from SimpleHTTPServer import SimpleHTTPRequestHandler
+from types import IntType, LongType, FloatType
+
+#couple quick typecheck helper functions
+def is_number(n):
+  return n in (IntType, LongType, FloatType)
+
+def is_tuple(n):
+  return type(n) == tuple 
 
 #library includes
 import cv
@@ -50,6 +58,22 @@ class FrameSource:
   def getImage(self):
     return None
 
+_cameras = [] 
+_camera_polling_thread = "" 
+
+class FrameBufferThread(threading.Thread):
+  """
+  This is a helper thread which continually debuffers the camera frames.  If
+  you don't do this, cameras may constantly give you a frame behind, which
+  causes problems at low sample rates.  This makes sure the frames returned
+  by your camera are fresh.
+  """
+  def run(self):
+    while (1):
+      for cam in _cameras:
+        cv.GrabFrame(cam.capture)
+      time.sleep(0.04)    #max 25 fps, if you're lucky
+
 class Camera(FrameSource):
   """
 The Camera class is the class for managing input from a basic camera.  Note
@@ -62,6 +86,9 @@ Read up on OpenCV's CaptureFromCAM method for more details if you need finer
 control than just basic frame retrieval
   """
   capture = ""   #cvCapture object
+  thread = ""
+
+
   prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
     "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
     "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
@@ -72,14 +99,21 @@ control than just basic frame retrieval
     "exposure": cv.CV_CAP_PROP_EXPOSURE}
   #human readable to CV constant property mapping
 
-  def __init__(self, camera_index = 0, prop_set = {}):
+  def __init__(self, camera_index = 0, prop_set = {}, threaded = True):
+    global _cameras
+    global _camera_polling_thread
     """
     In the camera onstructor, camera_index indicates which camera to connect to
     and props is a dictionary which can be used to set any camera attributes
     Supported props are currently: height, width, brightness, contrast,
     saturation, hue, gain, and exposure.
+
+    You can also specify whether you want the FrameBufferThread to continuously
+    debuffer the camera.  If you specify True, the camera is essentially 'on' at
+    all times.  If you specify off, you will have to manage camera buffers.
     """
     self.capture = cv.CaptureFromCAM(camera_index)
+    self.threaded = False
 
     if (not self.capture):
       return None 
@@ -89,6 +123,13 @@ control than just basic frame retrieval
       if p in self.prop_map:
         cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
 
+    if (threaded):
+      self.threaded = True
+      _cameras.append(self)
+      if (not _camera_polling_thread):
+        _camera_polling_thread = FrameBufferThread()
+        _camera_polling_thread.start()
+      
     
   #todo -- make these dynamic attributes of the Camera class
   def getProperty(self, prop):
@@ -111,9 +152,19 @@ control than just basic frame retrieval
 
   def getImage(self):
     """
-    Retrieve an Image-object from the camera. 
+    Retrieve an Image-object from the camera.  If you experience problems
+    with stale frames from the camera's hardware buffer, increase the flushcache
+    number to dequeue multiple frames before retrieval
+
+    We're working on how to solve this problem.
     """
-    return Image(cv.QueryFrame(self.capture))
+    if (not self.threaded):
+      cv.GrabFrame(self.capture)
+
+    frame = cv.RetrieveFrame(self.capture)
+    newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
+    cv.Copy(frame, newimg)
+    return Image(newimg)
   
 
 class VirtualCamera(FrameSource):
@@ -315,7 +366,7 @@ class Image:
     win_x = 3
     win_y = 3  #set the default aperature window size (3x3)
 
-    if (type(aperature) == tuple):
+    if (is_tuple(aperature)):
       win_x, win_y = aperature#get the coordinates from parameter
       #TODO: make sure aperature is valid 
       #   eg Positive, odd and square for bilateral and median
@@ -366,7 +417,7 @@ class Image:
     and all below to black.  If a color tuple is provided, each color channel
     is thresholded separately.
     """
-    if (type(thresh) == tuple):
+    if (is_tuple(thresh)):
       r = cv.CreateImage(self.size(), 8, 1)
       g = cv.CreateImage(self.size(), 8, 1)
       b = cv.CreateImage(self.size(), 8, 1)
@@ -517,11 +568,13 @@ class Image:
     """
     return cv.GetSize(self.getBitmap())
 
-  def channels(self, grayscale = False):
+  def channels(self, grayscale = True):
     """
     Split the channels of an image into RGB (not the default BGR)
-    single parameter is whether to return the channels as grey images
-    or to return them as tinted color image (default)
+    single parameter is whether to return the channels as grey images (default)
+    or to return them as tinted color image 
+
+    returns: tuple of 3 image objects
     """
     r = cv.CreateImage(self.size(), 8, 1)
     g = cv.CreateImage(self.size(), 8, 1)
@@ -560,7 +613,7 @@ class Image:
     return tuple(reversed(ret))
 
   def __setitem__(self, coord, value):
-    if (type(self.getMatrix()[coord]) == tuple):
+    if (is_tuple(self.getMatrix()[coord])):
       self.getMatrix()[coord] = tuple(reversed(value))
     else:
       cv.Set(self.getMatrix()[coord], value)
@@ -568,7 +621,7 @@ class Image:
 
   def __sub__(self, other):
     newbitmap = cv.CreateImage(self.size(), 8, 3)
-    if ((type(other) == int) or (type(other) == float)):
+    if is_number(other):
       cv.SubS(self.getBitmap(), other, newbitmap)
     else:
       cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
@@ -576,7 +629,7 @@ class Image:
 
   def __add__(self, other):
     newbitmap = cv.CreateImage(self.size(), 8, 3)
-    if ((type(other) == int) or (type(other) == float)):
+    if is_number(other):
       cv.AddS(self.getBitmap(), other, newbitmap)
     else:
       cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
@@ -584,7 +637,7 @@ class Image:
 
   def __and__(self, other):
     newbitmap = cv.CreateImage(self.size(), 8, 3)
-    if ((type(other) == int) or (type(other) == float)):
+    if is_number(other):
       cv.AndS(self.getBitmap(), other, newbitmap)
     else:
       cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
@@ -592,7 +645,7 @@ class Image:
 
   def __or__(self, other):
     newbitmap = cv.CreateImage(self.size(), 8, 3)
-    if ((type(other) == int) or (type(other) == float)):
+    if is_number(other):
       cv.OrS(self.getBitmap(), other, newbitmap)
     else:
       cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
@@ -611,6 +664,30 @@ class Image:
   def __neg__(self):
     newbitmap = cv.CreateImage(self.size(), 8, 3)
     cv.Not(self.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def max(self, other):
+    """
+    Return the maximum value of my image, and the other image, in each channel
+    If other is a number, returns the maximum of that and the number
+    """ 
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    if is_number(other):
+      cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
+    else:
+      cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
+    return Image(newbitmap)
+
+  def min(self, other):
+    """
+    Return the minimum value of my image, and the other image, in each channel
+    If other is a number, returns the minimum of that and the number
+    """ 
+    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    if is_number(other):
+      cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
+    else:
+      cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
     return Image(newbitmap)
 
   def _clearBuffers(self, clearexcept = "_bitmap"):
@@ -713,7 +790,7 @@ class FeatureSet(list):
 
   def y(self):
     """
-    Returns a numpy array of the y (horizontal) coordinate of each feature.
+    Returns a numpy array of the y (vertical) coordinate of each feature.
     """
     return np.array([f.y for f in self])
 
@@ -1130,7 +1207,6 @@ _jpegstreamers = {}
 class JpegStreamHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
-      count = 0
       self.send_response(200)
       self.send_header("Connection", "close")
       self.send_header("Max-Age", "0")
@@ -1140,23 +1216,41 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
       self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
       self.end_headers()
       (host, port) = self.server.socket.getsockname()[:2]
-
+     
+      count = 0
+      timeout = 1 
+      lastmodtime = 0
+      lasttimeserved = 0
+      jpgfile = ""
       while (1):
-        jpgfile = open(_jpegstreamers[port].filename)
-        jpgdata = jpgfile.read() 
-        jpgfile.close()
-        try:
-          self.wfile.write("--BOUNDARYSTRING\r\n")
-          self.send_header("Content-type","image/jpeg")
-          self.send_header("Content-Length", str(len(jpgdata)))
-          self.end_headers()
-          self.wfile.write(jpgdata + "\r\n")
-        except socket.error, e:
-          return
-        except IOError, e:
-          return
-        count = count + 1 
-        time.sleep(_jpegstreamers[port].sleeptime)
+        interval = _jpegstreamers[port].sleeptime
+        fn = _jpegstreamers[port].filename
+
+        if (not os.path.exists(fn)):
+          sleep(interval)
+          continue
+
+        if (time.time() - timeout > lasttimeserved or lastmodtime != os.stat(fn).st_mtime):
+
+          if (lastmodtime != os.stat(fn).st_mtime):
+            jpgfile = open(fn)
+            jpgdata = jpgfile.read() 
+            jpgfile.close()
+            lastmodtime = os.stat(fn).st_mtime
+
+          try:
+            self.wfile.write("--BOUNDARYSTRING\r\n")
+            self.send_header("Content-type","image/jpeg")
+            self.send_header("Content-Length", str(len(jpgdata)))
+            self.end_headers()
+            self.wfile.write(jpgdata + "\r\n")
+          except socket.error, e:
+            return
+          except IOError, e:
+            return
+          lasttimeserved = time.time()
+          count = count + 1 
+        time.sleep(interval)
 
 
 class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
