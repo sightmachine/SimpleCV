@@ -22,24 +22,24 @@ def test_loadsave():
   img.save(testoutput)  
   if (os.path.isfile(testoutput)):
     os.remove(testoutput)
-    return 1
+    pass
   else: 
-    return 0
+    assert False
   
 def test_bitmap():
   img = Image(testimage)
   bmp = img.getBitmap();
   if bmp.width > 0:
-    return 1
+    pass
   else:
-    return 0
+    assert False
 
 def test_matrix():
   img = Image(testimage)
   m = img.getMatrix()
   if (m.rows == img.getBitmap().width):
-    return 1
-  return 0 
+    pass
+  assert False 
   
 def test_scale():
   img = Image(testimage)
@@ -51,23 +51,23 @@ def test_copy():
   copy = img.copy()
 
   if (img[1,1] != copy[1,1] or img.size() != copy.size()):
-    return 0 
-  return 1
+    assert False 
+  pass
   
 
 def test_getitem():
   img = Image(testimage)
   colors = img[1,1]
   if (colors[0] == 255 and colors[1] == 255 and colors[2] == 255):
-    return 1
+    pass
   else: 
-    return 0
+    assert False
 
 def test_getslice():
   img = Image(testimage)
   section = img[1:10,1:10]
   section.save(testoutput)
-  return 1
+  pass
 
 
 def test_setitem():
@@ -76,9 +76,9 @@ def test_setitem():
   newimg = Image(img.getBitmap())
   colors = newimg[1,1]
   if (colors[0] == 0 and colors[1] == 0 and colors[2] == 0):
-    return 1
+    pass
   else:
-    return 0
+    assert False
 
 def test_setslice():
   img = Image(testimage)
@@ -88,14 +88,14 @@ def test_setslice():
   for i in range(5):
     colors = section[i,0]
     if (colors[0] != 0 or colors[1] != 0 or colors[2] != 0):
-      return 0  
-  return 1
+      assert False  
+  pass
 
 def test_findCorners():
   img = Image(testimage2)
   corners = img.findCorners(25)
   if (len(corners) == 0):
-    return 0 
+    assert False 
   corners.draw()
   img.save(testoutput)
   
@@ -106,7 +106,7 @@ def test_meancolor():
   r, g, b = roi.meanColor()
 
   if (r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255):
-    return 1 
+    pass 
 
 def test_smooth():
   img = Image(testimage2)
@@ -122,17 +122,17 @@ def test_invert():
   img.invert()
 
   if (clr[0] == 255 - img[1,1][0]):
-    return 1
-  return 0
+    pass
+  assert False
 
 
 def test_size():
   img = Image(testimage2)
   (width, height) = img.size()
   if type(width) == "int" and type(height) == "int" and width > 0 and height > 0:
-    return 1
+    pass
   else:
-    return 0
+    assert False
 
 def test_drawing():
   img = Image(testimageclr)
@@ -150,9 +150,9 @@ def test_histogram():
 
   for i in h:
     if type(i) != "int":
-      return 0
+      assert False
 
-  return 1
+  pass
 
 def test_lines():
   img = Image(testimage2)
@@ -212,7 +212,7 @@ def test_blobs():
   blobs[0].draw((0, 255, 0))
   img.save(testoutput)
 
-  return 1
+  pass
 
 
 
@@ -223,18 +223,18 @@ def test_barcode():
 
   nocode = Image(testimage).findBarcode()
   if nocode: #we should find no barcode in our test image 
-    return 0
+    assert False
   code = Image(testbarcode).findBarcode() 
   
   if code.points:
-    return 1
+    pass
     
 def test_x():
-  return 0
+  assert False
   tmpX = Image(testimage).findLines().x()
   if type(tmpX) == int:
-    return 0
+    assert False
   else:
-    return 0
+    assert False
 
   
