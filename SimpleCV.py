@@ -41,6 +41,13 @@ try:
 except ImportError:
   ZXING_ENABLED = False 
 
+FREENECT_ENABLED = True
+try:
+  import freenect
+except ImportError:
+  FREENECT_ENABLED = False 
+
+
 class FrameSource:
   """
   An abstract Camera-type class, for handling multiple types of video input.
@@ -166,7 +173,6 @@ control than just basic frame retrieval
     cv.Copy(frame, newimg)
     return Image(newimg)
   
-
 class VirtualCamera(FrameSource):
   """
   The virtual camera lets you test algorithms or functions by providing 
@@ -199,6 +205,33 @@ class VirtualCamera(FrameSource):
     if (self.sourcetype == 'video'):
       return Image(cv.QueryFrame(self.capture))
    
+class Kinect(FrameSource):
+  """
+    This is an experimental wrapper for the Freenect python libraries
+    you can getImage() and getDepth() for separate channel images
+  """
+  #this code was borrowed from
+  #https://github.com/amiller/libfreenect-goodies
+  def getImage(self):
+    video = freenect.sync_get_video()[0]
+    video = video[:, :, ::-1]  # RGB -> BGR
+    image = cv.CreateImageHeader((video.shape[1], video.shape[0]), cv.IPL_DEPTH_8U, 3)
+    cv.SetData(image, video.tostring(),
+               video.dtype.itemsize * 3 * video.shape[1])
+    return Image(image)
+
+  def getDepth(self):
+    depth = freenect.sync_get_depth()[0]
+    np.clip(depth, 0, 2**10 - 1, depth)
+    depth >>= 2
+    depth = depth.astype(np.uint8)
+
+    image = cv.CreateImageHeader((depth.shape[1], depth.shape[0]),
+                                 cv.IPL_DEPTH_8U, 1)
+
+    cv.SetData(image, depth.tostring(), depth.dtype.itemsize * depth.shape[1])
+    return Image(image) 
+
 class Image:
   """
   The Image class is the heart of SimpleCV and allows you to convert to and 
@@ -253,7 +286,11 @@ class Image:
     if (type(source) == cv.cvmat):
       self._matrix = source 
     elif (type(source) == cv.iplimage):
-      self._bitmap = source
+      if (source.nChannels == 1):
+        self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3)
+        cv.Merge(source, source, source, None, self._bitmap)
+      else:
+        self._bitmap = source
     elif (type(source) == type(str()) and source != ''):
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR) 
