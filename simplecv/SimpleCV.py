@@ -654,16 +654,16 @@ class Image:
     return hist.tolist()
 
   def __getitem__(self, coord):
-    ret = self.getMatrix()[coord]
+    ret = self.getMatrix()[tuple(reversed(coord))]
     if (type(ret) == cv.cvmat):
       return Image(ret)
-    return tuple(reversed(ret))
+    return tuple(tuple(reversed(ret)))
 
   def __setitem__(self, coord, value):
-    if (is_tuple(self.getMatrix()[coord])):
+    if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
       self.getMatrix()[coord] = tuple(reversed(value))
     else:
-      cv.Set(self.getMatrix()[coord], value)
+      cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
       self._clearBuffers("_matrix") 
 
   def __sub__(self, other):
