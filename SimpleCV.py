@@ -452,6 +452,12 @@ class Image:
     """
     return -self 
 
+  def desaturate(self):
+    """
+    return a gray scale version of the image
+    """
+    return Image(self._getGrayscaleBitmap())
+
   def threshold(self, thresh = 127):
     """
     Do a binary threshold the image, changing all values above thresh to white
@@ -969,7 +975,7 @@ class Feature(object):
 
   #return distance from a given color, default black (brightness)
   def colorDistance(self, color = (0,0,0)): 
-    return spsd.euclidean(color, self.meanColor()) 
+    return spsd.euclidean(np.array(color), np.array(self.meanColor())) 
 
   #angle (theta) of the feature -- default 0
   def angle(self):
@@ -1064,9 +1070,9 @@ class Line(Feature):
 
     #if it's a straight one, we can just get mean color on the slice
     if (d_x == 0.0):
-      return self.image[pt1[0],miny:maxy].meanColor()
+      return self.image[pt1[0]:pt1[0]+1,miny:maxy].meanColor()
     if (d_y == 0.0):
-      return self.image[minx:maxx,pt1[1]].meanColor()
+      return self.image[minx:maxx,pt1[1]:pt1[1]+1].meanColor()
     
     error = 0.0
     d_err = d_y / d_x  #this is how much our "error" will increase in every step
