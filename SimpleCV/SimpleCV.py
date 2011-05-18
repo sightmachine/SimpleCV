@@ -595,7 +595,7 @@ class Image:
 
     Note that this modifies the image in-place and clears all buffers.
     """
-    cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, reversed_tuple(color), thickness)
+    cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, reverse_tuple(color), thickness)
     self._clearBuffers("_bitmap")
 
   def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
@@ -610,7 +610,7 @@ class Image:
     """
     pt1 = (int(pt1[0]), int(pt1[1]))
     pt2 = (int(pt2[0]), int(pt2[1]))
-    cv.Line(self.getBitmap(), pt1, pt2, reversed_tuple(color), thickness, cv.CV_AA) 
+    cv.Line(self.getBitmap(), pt1, pt2, reverse_tuple(color), thickness, cv.CV_AA) 
 
   def size(self):
     """
@@ -966,41 +966,58 @@ class Feature(object):
     self.image = i
 
   def coordinates(self):
+    """
+    Return a an array of x,y
+    """
     return np.array([self.x, self.y])  
 
   def draw(self, color = (255.0,0.0,0.0)):
     """
-    In this abstract case, we're just going to color the exact point 
+    With no dimension information, color the x,y point for the featuer 
     """
     self.image[self.x,self.y] = color
 
   def distanceFrom(self, point = (-1,-1)): 
+    """
+    Given a point (default to center of the image), return the euclidean distance of x,y from this point
+    """
     if (point[0] == -1 or point[1] == -1):
       point = np.array(self.image.size())/2
     return spsd.euclidean(point, [self.x, self.y]) 
 
   def meanColor(self):
+    """
+      Return the color tuple from x,y
+    """
     return self.image[self.x, self.y]
 
-  #return distance from a given color, default black (brightness)
   def colorDistance(self, color = (0,0,0)): 
+    """
+      Return the euclidean color distance of the color tuple at x,y from a given color (default black)
+    """
     return spsd.euclidean(np.array(color), np.array(self.meanColor())) 
 
-  #angle (theta) of the feature -- default 0
   def angle(self):
+    """
+      Return the angle (theta) of the feature -- default 0 (horizontal)
+    """
     return 0
 
-  #longest dimension of the feature -- default 1
   def length(self):
+    """
+      Longest dimension of the feature -- for a pixel, 1
+    """
     return 1
 
-  #area of the feature -- default 1 
   def area(self):
+    """
+      Area covered by the feature -- for a pixel, 1
+    """
     return 1 
 
 class Corner(Feature):
   """
-  The Corner feature is basically a point returned by the FindCorners function
+  The Corner feature is a point returned by the FindCorners function
   """
   def __init__(self, i, at_x, at_y):
     super(Corner, self).__init__(i, at_x, at_y)
@@ -1008,13 +1025,57 @@ class Corner(Feature):
 
   def draw(self, color = (255, 0, 0)):
     """
-    Draw a small circle around the corner.  Color tuple is single parameter 
+    Draw a small circle around the corner.  Color tuple is single parameter, default Red 
     """
     self.image.drawCircle((self.x, self.y), 4, color)
 
 class Blob(Feature):
   """
-  The Blob Feature  
+  The Blob Feature is a wrapper for the cvblob-python library.  
+
+  The findBlobs function returns contiguous regions of light-colored area, given an intensity threshold.  The Blob class helps you map the position, volume, and shape of these areas.  The coordinates of the Blob are its centroid, and its area is defined by its total pixel count.
+
+  Blob implements all of the Feature properties, and its core data structure, cvblob has the following properties (from cvblob.h):
+
+    CvLabel label; ///< Label assigned to the blob.
+    
+    union
+    {
+      unsigned int area; ///< Area (moment 00).
+      unsigned int m00; ///< Moment 00 (area).
+    };
+    
+    unsigned int minx; ///< X min.
+    unsigned int maxx; ///< X max.
+    unsigned int miny; ///< Y min.
+    unsigned int maxy; ///< y max.
+    
+    CvPoint2D64f centroid; ///< Centroid.
+    
+    double m10; ///< Moment 10.
+    double m01; ///< Moment 01.
+    double m11; ///< Moment 11.
+    double m20; ///< Moment 20.
+    double m02; ///< Moment 02.
+    
+    double u11; ///< Central moment 11.
+    double u20; ///< Central moment 20.
+    double u02; ///< Central moment 02.
+
+    double n11; ///< Normalized central moment 11.
+    double n20; ///< Normalized central moment 20.
+    double n02; ///< Normalized central moment 02.
+
+    double p1; ///< Hu moment 1.
+    double p2; ///< Hu moment 2.
+
+    CvContourChainCode contour;           ///< Contour.
+    CvContoursChainCode internalContours; ///< Internal contours. 
+
+  For more information:
+    http://github.com/oostendo/cvblob-python
+    http://code.google.com/p/cvblob
+    http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
   """
   cvblob = ""
   
@@ -1027,12 +1088,15 @@ class Blob(Feature):
     return self.cvblob.area  
 
   def meanColor(self):
+    """
+      Returns the color tuple of the entire area of the blob
+    """
     return cvb.BlobMeanColor(self.cvblob, self.image._blobLabel, self.image.getBitmap())
 
-  #this takes the longest dimension of the X/Y orientation -- seems like
-  #the optimal solution should be taking the longest dimension of a rotated
-  #bounding box.  Oh well
   def length(self):
+    """
+    Length returns the longest dimension of the X/Y bounding box 
+    """
     return max(self.cvblob.maxx-self.cvblob.minx, self.cvblob.maxy-self.cvblob.miny)
 
 #  todo?
@@ -1040,13 +1104,28 @@ class Blob(Feature):
 #  def perimeter(self):
   #return angle in radians
   def angle(self):
+    """
+    This Angle function is defined as: 
+    .5*atan2(2.* blob.cvblob.u11,(blob.cvblob.u20-blob.cvblob.u02))
+    """
     return cvb.Angle(self.cvblob)
 
   def draw(self, color = (0, 255, 0)):
+    """
+    Fill in the blob with the given color (default green), and flush buffers
+    """
     cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
-
+    self.image._clearBuffers("_bitmap")
 
 class Line(Feature):
+  """
+  The Line class is returned by the findLines function, but can also be initialized with any two points:
+
+  l = Line(Image, point1, point2) 
+  Where point1 and point2 are coordinate tuples
+
+  l.points will be a tuple of the two points
+  """
   points = ()
 
   def __init__(self, i, line):
@@ -1057,16 +1136,25 @@ class Line(Feature):
     self.points = copy(line)
 
   def draw(self, color = (0,0,255)):
+    """
+    Draw the line, default color is blue
+    """
     self.image.drawLine(self.points[0], self.points[1], color)
      
   def length(self):
+    """
+    Compute the length of the line
+    """
     return spsd.euclidean(self.points[0], self.points[1])  
 
   def meanColor(self):
+    """
+    Returns the mean color of pixels under the line.  Note that when the line falls "between" pixels, each pixels color contributes to the weighted average.
+    """
+ 
     #we're going to walk the line, and take the mean color from all the px
     #points -- there's probably a much more optimal way to do this
     #also note, if you've already called "draw()" you've destroyed this info
- 
     (pt1, pt2) = self.points
     maxy = max(pt1[1], pt2[1])
     miny = min(pt1[1], pt2[1])
@@ -1145,7 +1233,11 @@ class Line(Feature):
     return sum(weighted_clrs) / sum(weight_arr)  #return the weighted avg
 
   def angle(self):
-    #first find the rightmost point 
+    """
+    This is the angle of the line, from the leftmost point to the rightmost point
+    Returns angle (theta) in radians, with 0 = horizontal, -pi/2 = vertical positive slope, pi/2 = vertical negative slope
+    """
+    #first find the leftmost point 
     a = 0
     b = 1
     if (self.points[a][0] > self.points[b][0]):
@@ -1157,6 +1249,13 @@ class Line(Feature):
     return atan2(d_y, d_x) #zero is west 
 
 class Barcode(Feature):
+  """
+  The Barcode Feature wrappers the object returned by findBarcode(), a python-zxing object.
+
+  - The x,y coordinate is the center of the code
+  - points represents the four boundary points of the feature.  Note: for QR codes, these points are the reference rectangles, and are quadrangular, rather than rectangular with other datamatrix types. 
+  - data is the parsed data of the code
+  """
   data = ""
   points = []
 
@@ -1178,18 +1277,29 @@ class Barcode(Feature):
       self.y /= numpoints
 
   def draw(self, color = (255, 0, 0)): 
+    """
+    Draws the bounding area of the barcode, given by points.  Note that for
+    QR codes, these points are the reference boxes, and so may "stray" into 
+    the actual code.
+    """
     self.image.drawLine(self.points[0], self.points[1], color)
     self.image.drawLine(self.points[1], self.points[2], color)
     self.image.drawLine(self.points[2], self.points[3], color)
     self.image.drawLine(self.points[3], self.points[0], color)
 
   def length(self):
+    """
+    Returns the longest side of the quandrangle formed by the boundary points 
+    """
     sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
     #get pairwise distances for all points
     #note that the code is a quadrilateral
-    return max(sqform[0][1], sqform[1][2], sqform[2,3], sqform[3,0])
+    return max(sqform[0][1], sqform[1][2], sqform[2][3], sqform[3][0])
 
   def area(self):
+    """
+    Returns the area defined by the quandrangle formed by the boundary points 
+    """
     #calc the length of each side in a square distance matrix
     sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
 
@@ -1211,10 +1321,15 @@ class Barcode(Feature):
     #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
     return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
 
-
 class HaarFeature(Feature):
+  """
+  The HaarFeature is a rectangle returned by the FindHaarFeature() function.
+
+  - The x,y coordinates are defined by the center of the bounding rectangle
+  - the classifier property refers to the cascade file used for detection 
+  - points are the clockwise points of the bounding rectangle, starting in upper left
+  """
   points = ()
-  neighbors = 0
   classifier = "" 
   width = ""
   height = ""
@@ -1229,24 +1344,37 @@ class HaarFeature(Feature):
     self.classifier = haarclassifier
   
   def draw(self, color=(0,255,0)):
-    #draw the bounding rectangle
+    """
+    Draw the bounding rectangle, default color green
+    """
     self.image.drawLine(self.points[0], self.points[1], color)
     self.image.drawLine(self.points[1], self.points[2], color)
     self.image.drawLine(self.points[2], self.points[3], color)
     self.image.drawLine(self.points[3], self.points[0], color)
     
-  #crop out the face and detect the color on that image
   def meanColor(self):
+    """
+    Find the mean color of the boundary rectangle 
+    """
     crop = self.image[self.points[0][0]:self.points[1][0], self.points[0][1]:self.points[2][1]]
     return crop.meanColor()
 
   def length(self):
+    """
+    Returns the longest dimension of the HaarFeature, either width or height
+    """
     return max(self.width, self.height)
 
   def area(self):
+    """
+    Returns the area contained within the HaarFeature's bounding rectangle 
+    """
     return self.width * self.height
 
   def angle(self):
+    """
+    Returns the angle of the rectangle -- horizontal if wide, vertical if tall
+    """
     if (self.width > self.height):
       return 0
     else:
@@ -1261,52 +1389,57 @@ class HaarFeature(Feature):
 _jpegstreamers = {}
 
 class JpegStreamHandler(SimpleHTTPRequestHandler):
+  """
+  The JpegStreamHandler handles requests to the threaded HTTP server.
+  Once initialized, any request to this port will receive a multipart/replace
+  jpeg.   
+  """
 
-    def do_GET(self):
-      self.send_response(200)
-      self.send_header("Connection", "close")
-      self.send_header("Max-Age", "0")
-      self.send_header("Expires", "0")
-      self.send_header("Cache-Control", "no-cache, private")
-      self.send_header("Pragma", "no-cache")
-      self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
-      self.end_headers()
-      (host, port) = self.server.socket.getsockname()[:2]
-     
-      count = 0
-      timeout = 1 
-      lastmodtime = 0
-      lasttimeserved = 0
-      jpgfile = ""
-      while (1):
-        interval = _jpegstreamers[port].sleeptime
-        fn = _jpegstreamers[port].filename
+  def do_GET(self):
+    self.send_response(200)
+    self.send_header("Connection", "close")
+    self.send_header("Max-Age", "0")
+    self.send_header("Expires", "0")
+    self.send_header("Cache-Control", "no-cache, private")
+    self.send_header("Pragma", "no-cache")
+    self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
+    self.end_headers()
+    (host, port) = self.server.socket.getsockname()[:2]
+   
+    count = 0
+    timeout = 1 
+    lastmodtime = 0
+    lasttimeserved = 0
+    jpgfile = ""
+    while (1):
+      interval = _jpegstreamers[port].sleeptime
+      fn = _jpegstreamers[port].filename
 
-        if (not os.path.exists(fn)):
-          sleep(interval)
-          continue
+      if (not os.path.exists(fn)):
+        sleep(interval)
+        continue
 
-        if (time.time() - timeout > lasttimeserved or lastmodtime != os.stat(fn).st_mtime):
+      if (time.time() - timeout > lasttimeserved or lastmodtime != os.stat(fn).st_mtime):
 
-          if (lastmodtime != os.stat(fn).st_mtime):
-            jpgfile = open(fn)
-            jpgdata = jpgfile.read() 
-            jpgfile.close()
-            lastmodtime = os.stat(fn).st_mtime
+        if (lastmodtime != os.stat(fn).st_mtime):
+          jpgfile = open(fn)
+          jpgdata = jpgfile.read() 
+          jpgfile.close()
+          lastmodtime = os.stat(fn).st_mtime
 
-          try:
-            self.wfile.write("--BOUNDARYSTRING\r\n")
-            self.send_header("Content-type","image/jpeg")
-            self.send_header("Content-Length", str(len(jpgdata)))
-            self.end_headers()
-            self.wfile.write(jpgdata + "\r\n")
-          except socket.error, e:
-            return
-          except IOError, e:
-            return
-          lasttimeserved = time.time()
-          count = count + 1 
-        time.sleep(interval)
+        try:
+          self.wfile.write("--BOUNDARYSTRING\r\n")
+          self.send_header("Content-type","image/jpeg")
+          self.send_header("Content-Length", str(len(jpgdata)))
+          self.end_headers()
+          self.wfile.write(jpgdata + "\r\n")
+        except socket.error, e:
+          return
+        except IOError, e:
+          return
+        lasttimeserved = time.time()
+        count = count + 1 
+      time.sleep(interval)
 
 
 class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -1314,6 +1447,24 @@ class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 #factory class for jpegtcpservers
 class JpegStreamer():
+  """
+  The JpegStreamer class allows the user to stream the contents of a .jpg file
+  to a HTTP port.  Any updates to the jpg file will automatically be pushed
+  to the browser via multipart/replace content type.
+
+  To initialize:
+  js = JpegStreamer()
+
+  to update:
+  img.save(js.filename)
+
+  Note 3 optional parameters on the constructor:
+  - port (default 8080) which sets the TCP port you need to connect to
+  - filename (default os.tmpname()) which sets where the file is saved.  It is strongly recommended you use a filesystem that is in RAM
+  - sleep time (default 0.1) how often to update.  Above 1 second seems to cause dropped connections in Google chrome
+
+  Once initialized, filename and sleeptime can be modified and will function properly -- port will not.
+  """
   server = ""
   host = ""
   port = ""
@@ -1337,6 +1488,10 @@ class JpegStreamer():
     self.server_thread.start()
     _jpegstreamers[self.port] = self 
 
+
+"""
+If you run SimpleCV directly, it will launch an ipython shell
+"""
 if __name__ == '__main__':
     sys.exit(
         load_entry_point('ipython==0.10.2', 'console_scripts', 'ipython')()
