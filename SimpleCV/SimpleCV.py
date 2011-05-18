@@ -17,6 +17,9 @@ def is_number(n):
 def is_tuple(n):
   return type(n) == tuple 
 
+def reverse_tuple(n):
+  return tuple(reversed(tuple))
+
 #library includes
 import cv
 import numpy as np
@@ -592,14 +595,14 @@ class Image:
 
     Note that this modifies the image in-place and clears all buffers.
     """
-    cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, color, thickness)
+    cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, reversed_tuple(color), thickness)
     self._clearBuffers("_bitmap")
 
   def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
     """
     Draw a line on the Image, parameters include
-    *the first point for the line (tuple)
-    *the second point on the line (tuple)
+    *pt1 - the first point for the line (tuple)
+    *pt1 - the second point on the line (tuple)
     *a color tuple (default black)
     *thickness of the line 
  
@@ -607,7 +610,7 @@ class Image:
     """
     pt1 = (int(pt1[0]), int(pt1[1]))
     pt2 = (int(pt2[0]), int(pt2[1]))
-    cv.Line(self.getBitmap(), pt1, pt2, color, thickness, cv.CV_AA) 
+    cv.Line(self.getBitmap(), pt1, pt2, reversed_tuple(color), thickness, cv.CV_AA) 
 
   def size(self):
     """
@@ -656,12 +659,18 @@ class Image:
   def __getitem__(self, coord):
     ret = self.getMatrix()[tuple(reversed(coord))]
     if (type(ret) == cv.cvmat):
-      return Image(ret)
-    return tuple(tuple(reversed(ret)))
+      (width, height) = cv.GetSize(ret)
+      newmat = cv.CreateMat(height, width, ret.type)
+      cv.Copy(ret, newmat) #this seems to be a bug in opencv
+      #if you don't copy the matrix slice, when you convert to bmp you get
+      #a slice-sized hunk starting at 0,0
+      return Image(newmat)
+    return tuple(reversed(ret))
 
   def __setitem__(self, coord, value):
+    value = tuple(reversed(value))  #RGB -> BGR
     if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
-      self.getMatrix()[coord] = tuple(reversed(value))
+      self.getMatrix()[coord] = value 
     else:
       cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
       self._clearBuffers("_matrix") 
