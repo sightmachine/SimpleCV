@@ -494,6 +494,8 @@ class Image:
   def meanColor(self):
     """
     Return the average color of all the pixels in the image.
+
+    Returns: Tuple
     """
     return cv.Avg(self.getMatrix())[0:3]  
   
@@ -844,7 +846,7 @@ class FeatureSet(list):
   def coordinates(self):
     """
     Returns a 2d numpy array of the x,y coordinates of each feature.  This 
-    is particularly useful if you want to use Scipy's Spatial Distance module 
+    is particularly useful if you want to use Scipy's Spatial Distance module
     """
     return np.array([[f.x, f.y] for f in self]) 
 

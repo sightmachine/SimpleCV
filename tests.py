@@ -218,9 +218,6 @@ def test_blobs():
 
   pass
 
-
-
-
 def test_barcode():
   if not ZXING_ENABLED:
     return None
@@ -232,7 +229,14 @@ def test_barcode():
   
   if code.points:
     pass
-    
+
+def test_coordinates():
+  val = Image(testimage).findLines().coordinates()
+  if val != None and isinstance(val, np.ndarray):
+    pass
+  else:
+    assert False
+
 def test_x():
   tmpX = Image(testimage).findLines().x()[0]
 
@@ -260,15 +264,59 @@ def test_area():
 def test_angle():
   angle_val = Image(testimage).findLines().angle()[0]
 
-#TODO: Find way to compare object instances
-#def test_plus():
-  #imgA = Image(testimage)
-  #imgB = Image(testimage2)
+def test_image():
+  img = Image(testimage)
+  if(isinstance(img, Image)):
+    pass
+  else:
+    assert False
 
-  #imgC = imgA + imgB
-  #if(imgC.__class__ == Image):
-    #pass
-  #else:
-    #assert False
+def test_colordistance():
+  img = Image(testimage)
+  val = img.findBlobs().colorDistance()
 
+  if val != None and isinstance(val, np.ndarray):
+    pass
+  else:
+    assert False
   
+def test_length():
+  img = Image(testimage)
+  val = img.findLines().length()
+
+  if val != None and isinstance(val, np.ndarray) and len(val > 0):
+    pass
+  else:
+    assert False
+
+def test_distanceFrom():
+  img = Image(testimage)
+  val = img.findLines().length()
+  #todo: finish this test after looking at scipy, numpy, etc.
+  
+def test_sortangle():
+  img = Image(testimage)
+  val = img.findLines().sortAngle()
+
+  if(val[0].x < val[1].x):
+    pass
+  else:
+    assert False
+    
+def test_sortarea():
+  img = Image(testimage)
+  val = img.findBlobs().sortArea()
+  #todo: ask about handling various return types and maybe implementing normalize datatype wrapper for returns of mixed types
+
+#def test_sortColorDistance():
+#def test_sortDistance():
+#def test_sortLength():
+#def test_image_add():
+#def test_image_subtract():
+#def test_image_negative():
+#def test_image_multiple():
+#def test_image_divide():
+#def test_image_and():
+#def test_image_or():
+#def test_image_edgemap():
+#def test_image_filter():
