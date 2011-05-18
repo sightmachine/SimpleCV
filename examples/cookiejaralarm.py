@@ -1,4 +1,13 @@
-#!/usr/bin/python 
+#!/usr/bin/python
+
+#-----------------------------------------------------------------------
+#
+# This is an example program demostrating a cookie jar alarm
+# the program monitors using Hu moments and talks to the
+# arduino to light pin 13.
+#
+# Requirements: Arduino with firmata loaded
+#-----------------------------------------------------------------------
 
 import sys, time, socket
 sys.path.append("..")
