@@ -283,18 +283,38 @@ def test_image():
 def test_colordistance():
   img = Image(blackimage)
   (r,g,b) = img.channels()
-  #todo: finish
+  avg = img.meanColor()
+  
+  c1 = Corner(img, 1, 1)
+  c2 = Corner(img, 1, 2)
+  if (c1.colorDistance(c2.meanColor()) != 0):
+    assert False
+  
+  if (c1.colorDistance((0,0,0)) != 0):
+    assert False
+
+  if (c1.colorDistance((0,0,255)) != 255):
+    assert False
+
+  if (c1.colorDistance((255,255,255)) != sqrt(255**2 * 3)):
+    assert False
+    
+  pass
   
 def test_length():
   img = Image(testimage)
   val = img.findLines().length()
 
-  if val != None and isinstance(val, np.ndarray) and len(val > 0):
-    pass
-  else:
+  if (val == None):
+    assert False
+  if (not isinstance(val, np.ndarray)):
+    assert False
+  if (len(val) < 0):
     assert False
 
-#def test_distanceFrom():
+  pass
+
+
   
   
 def test_sortangle():
@@ -311,6 +331,8 @@ def test_sortarea():
   val = img.findBlobs().sortArea()
   #todo: ask about handling various return types and maybe implementing normalize datatype wrapper for returns of mixed types
 
+
+#def test_distanceFrom():
 #def test_sortColorDistance():
 #def test_sortDistance():
 #def test_sortLength():

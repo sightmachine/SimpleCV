@@ -938,7 +938,7 @@ class FeatureSet(list):
 
 class Feature(object):
   """
-  The Feature object is an abstract class which real features descend from.j
+  The Feature object is an abstract class which real features descend from.
   Each feature object has:
   
   * a draw() method, 
