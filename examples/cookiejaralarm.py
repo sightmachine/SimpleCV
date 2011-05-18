@@ -7,7 +7,7 @@ from SimpleCV import *
 import pyfirmata
 
 #settings for the project
-port_original = 8080  #port to view the camera viwe
+port_original = 8080  #port to view the camera view
 port_processed = 8081 #port to look at the processed view
 arduino_serial = "/dev/ttyUSB0"  #address of the arduino
 arduino_pin = 8  #which pin goes high when the alarm sounds
