@@ -1,16 +1,29 @@
 #!/usr/bin/python
+# *To run this test you need python nose tools installed
+# Run test just use:
+#   nosetest tests.py
 
 import os, sys
 from SimpleCV import * 
 from nose.tools import with_setup
 
-testimage = "sampleimages/9dots4lines.png"
-testimage2 = "sampleimages/aerospace.jpg"
-whiteimage = "sampleimages/white.png"
-blackimage = "sampleimages/black.png"
-testimageclr = "sampleimages/statue_liberty.jpg"
-testbarcode = "sampleimages/barcode.png"
-testoutput = "sampleimages/9d4l.jpg"
+#colors
+black = (0,0,0)
+white = (255,255,255)
+red = (255,0,0)
+green = (0,255,0)
+blue = (0,0,255)
+
+
+#images
+testimage = "../sampleimages/9dots4lines.png"
+testimage2 = "../sampleimages/aerospace.jpg"
+whiteimage = "../sampleimages/white.png"
+blackimage = "../sampleimages/black.png"
+testimageclr = "../sampleimages/statue_liberty.jpg"
+testbarcode = "../sampleimages/barcode.png"
+testoutput = "../sampleimages/9d4l.jpg"
+
 
 def setup_context():
   img = Image(testimage)
@@ -260,15 +273,53 @@ def test_area():
 def test_angle():
   angle_val = Image(testimage).findLines().angle()[0]
 
-#TODO: Find way to compare object instances
-#def test_plus():
-  #imgA = Image(testimage)
-  #imgB = Image(testimage2)
+def test_image():
+  img = Image(testimage)
+  if(isinstance(img, Image)):
+    pass
+  else:
+    assert False
 
-  #imgC = imgA + imgB
-  #if(imgC.__class__ == Image):
-    #pass
-  #else:
-    #assert False
-
+def test_colordistance():
+  img = Image(blackimage)
+  (r,g,b) = img.channels()
+  #todo: finish
   
+def test_length():
+  img = Image(testimage)
+  val = img.findLines().length()
+
+  if val != None and isinstance(val, np.ndarray) and len(val > 0):
+    pass
+  else:
+    assert False
+
+#def test_distanceFrom():
+  
+  
+def test_sortangle():
+  img = Image(testimage)
+  val = img.findLines().sortAngle()
+
+  if(val[0].x < val[1].x):
+    pass
+  else:
+    assert False
+    
+def test_sortarea():
+  img = Image(testimage)
+  val = img.findBlobs().sortArea()
+  #todo: ask about handling various return types and maybe implementing normalize datatype wrapper for returns of mixed types
+
+#def test_sortColorDistance():
+#def test_sortDistance():
+#def test_sortLength():
+#def test_image_add():
+#def test_image_subtract():
+#def test_image_negative():
+#def test_image_multiple():
+#def test_image_divide():
+#def test_image_and():
+#def test_image_or():
+#def test_image_edgemap():
+#def test_image_filter():
