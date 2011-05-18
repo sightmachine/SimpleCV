@@ -18,7 +18,7 @@ def is_tuple(n):
   return type(n) == tuple 
 
 def reverse_tuple(n):
-  return tuple(reversed(tuple))
+  return tuple(reversed(n))
 
 #library includes
 import cv
