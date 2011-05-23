@@ -1,0 +1,8 @@
+to build docs, install SimpleCV and run::
+    make html
+
+or simply run::
+    PYTHONPATH=$PYTHONPATH:.. make html
+
+in this directory
+
