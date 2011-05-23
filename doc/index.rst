@@ -6,9 +6,36 @@
 SimpleCV: a kinder, gentler machine vision library 
 ======================================================
 
-SimpleCV's goal is to provide a convenient, readable wrapper for OpenCV which will allow programmers who are linear-algebra illiterate to access the power of its functionality.  Whereas OpenCV's goals are power and performance, SimpleCV seeks to provide an easy to use programming interface for casual machine vision users.  
+a kinder, gentler machine vision python library
 
-Contents:
+SimpleCV is an interface for Open Source machine vision libraries in Python.   
+It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our vision is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
+
+Required Libraries
+----------------------
+
+* OpenCV 2.2 with Python bindings http://opencv.willowgarage.com/wiki/
+* SciPY http://www.scipy.org/
+
+Optional Libraries
+----------------------
+
+* Python Image Library http://www.pythonware.com/products/pil/
+* OpenKinect/freenect http://openkinect.org/wiki/Main_Page
+
+Blob detection:
+
+* CvBlob http://code.google.com/p/cvblob/
+* cvblob-python https://github.com/oostendo/cvblob-python
+
+Barcode reading:
+
+* Zxing http://code.google.com/p/zxing/
+* python-zxing https://github.com/oostendo/python-zxing
+
+    
+Contents
+-----------------
 
 .. toctree::
    :maxdepth: 2
