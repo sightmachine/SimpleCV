@@ -329,14 +329,28 @@ def test_sortangle():
 def test_sortarea():
   img = Image(testimage)
   val = img.findBlobs().sortArea()
-  #todo: ask about handling various return types and maybe implementing normalize datatype wrapper for returns of mixed types
+  #FIXME: Find blobs may appear to be broken. Returning type none
 
-
+def test_sortLength():
+  img = Image(testimage)
+  val = img.findLines().sortLength()
+  #FIXME: Length is being returned as euclidean type, believe we need a universal type, either Int or scvINT or something.
+ 
 #def test_distanceFrom():
 #def test_sortColorDistance():
 #def test_sortDistance():
-#def test_sortLength():
-#def test_image_add():
+
+def test_image_add():
+  imgA = Image(testimage)
+  imgB = Image(testimage2)
+
+  imgC = imgA + imgB
+
+
+  
+  
+
+  
 #def test_image_subtract():
 #def test_image_negative():
 #def test_image_multiple():
