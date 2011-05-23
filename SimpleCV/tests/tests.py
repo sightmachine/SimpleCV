@@ -143,10 +143,11 @@ def test_drawing():
   img.drawCircle((5, 5), 3)
   img.drawLine((5, 5), (5, 8))
   
-def test_channels():  
+def test_splitchannels():  
   img = Image(testimageclr)
-  (r, g, b) = img.channels(True)
-  (red, green, blue) = img.channels()
+  (r, g, b) = img.splitChannels(True)
+  (red, green, blue) = img.splitChannels()
+  pass
 
 def test_histogram():
   img = Image(testimage2)

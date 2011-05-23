@@ -618,7 +618,7 @@ class Image:
     """
     return cv.GetSize(self.getBitmap())
 
-  def channels(self, grayscale = True):
+  def splitChannels(self, grayscale = True):
     """
     Split the channels of an image into RGB (not the default BGR)
     single parameter is whether to return the channels as grey images (default)

@@ -26,7 +26,7 @@ while (1):
   i = cam.getImage()
   i.save(original_js.filename)
 
-  r,g,b = i.channels(True)
+  r,g,b = i.splitChannels(True)
   i = g - b #subtract green from blue
 
   blobs = i.findBlobs(blob_thresh)
