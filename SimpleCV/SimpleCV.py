@@ -460,7 +460,24 @@ class Image:
     return a gray scale version of the image
     """
     return Image(self._getGrayscaleBitmap())
-
+    
+  def stretch(self, thresh_low = 0, thresh_high = 255):
+    """
+    Returns greyscale image
+    
+    The stretch filter works on a greyscale image, if the image
+    is color, it returns a greyscale image.  The filter works by
+    taking in a lower and upper threshold.  Anything below the lower
+    threshold is pushed to black (0) and anything above the upper
+    threshold is pushed to white (255)
+    """
+    try:
+      newimg = cv.CreateImage(self.size(), 8, 1)
+      cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
+      return Image(newimg)
+    except e:
+      return None
+      
   def threshold(self, thresh = 127):
     """
     Do a binary threshold the image, changing all values above thresh to white
