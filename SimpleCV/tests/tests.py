@@ -1,16 +1,29 @@
 #!/usr/bin/python
+# *To run this test you need python nose tools installed
+# Run test just use:
+#   nosetest tests.py
 
 import os, sys
 from SimpleCV import * 
 from nose.tools import with_setup
 
-testimage = "sampleimages/9dots4lines.png"
-testimage2 = "sampleimages/aerospace.jpg"
-whiteimage = "sampleimages/white.png"
-blackimage = "sampleimages/black.png"
-testimageclr = "sampleimages/statue_liberty.jpg"
-testbarcode = "sampleimages/barcode.png"
-testoutput = "sampleimages/9d4l.jpg"
+#colors
+black = (0,0,0)
+white = (255,255,255)
+red = (255,0,0)
+green = (0,255,0)
+blue = (0,0,255)
+
+
+#images
+testimage = "../sampleimages/9dots4lines.png"
+testimage2 = "../sampleimages/aerospace.jpg"
+whiteimage = "../sampleimages/white.png"
+blackimage = "../sampleimages/black.png"
+testimageclr = "../sampleimages/statue_liberty.jpg"
+testbarcode = "../sampleimages/barcode.png"
+testoutput = "../sampleimages/9d4l.jpg"
+
 
 def setup_context():
   img = Image(testimage)
@@ -261,15 +274,89 @@ def test_area():
 def test_angle():
   angle_val = Image(testimage).findLines().angle()[0]
 
-#TODO: Find way to compare object instances
-#def test_plus():
-  #imgA = Image(testimage)
-  #imgB = Image(testimage2)
+def test_image():
+  img = Image(testimage)
+  if(isinstance(img, Image)):
+    pass
+  else:
+    assert False
 
-  #imgC = imgA + imgB
-  #if(imgC.__class__ == Image):
-    #pass
-  #else:
-    #assert False
+def test_colordistance():
+  img = Image(blackimage)
+  (r,g,b) = img.channels()
+  avg = img.meanColor()
+  
+  c1 = Corner(img, 1, 1)
+  c2 = Corner(img, 1, 2)
+  if (c1.colorDistance(c2.meanColor()) != 0):
+    assert False
+  
+  if (c1.colorDistance((0,0,0)) != 0):
+    assert False
+
+  if (c1.colorDistance((0,0,255)) != 255):
+    assert False
+
+  if (c1.colorDistance((255,255,255)) != sqrt(255**2 * 3)):
+    assert False
+    
+  pass
+  
+def test_length():
+  img = Image(testimage)
+  val = img.findLines().length()
+
+  if (val == None):
+    assert False
+  if (not isinstance(val, np.ndarray)):
+    assert False
+  if (len(val) < 0):
+    assert False
+
+  pass
+
 
   
+  
+def test_sortangle():
+  img = Image(testimage)
+  val = img.findLines().sortAngle()
+
+  if(val[0].x < val[1].x):
+    pass
+  else:
+    assert False
+    
+def test_sortarea():
+  img = Image(testimage)
+  val = img.findBlobs().sortArea()
+  #FIXME: Find blobs may appear to be broken. Returning type none
+
+def test_sortLength():
+  img = Image(testimage)
+  val = img.findLines().sortLength()
+  #FIXME: Length is being returned as euclidean type, believe we need a universal type, either Int or scvINT or something.
+ 
+#def test_distanceFrom():
+#def test_sortColorDistance():
+#def test_sortDistance():
+
+def test_image_add():
+  imgA = Image(testimage)
+  imgB = Image(testimage2)
+
+  imgC = imgA + imgB
+
+
+  
+  
+
+  
+#def test_image_subtract():
+#def test_image_negative():
+#def test_image_multiple():
+#def test_image_divide():
+#def test_image_and():
+#def test_image_or():
+#def test_image_edgemap():
+#def test_image_filter():

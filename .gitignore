@@ -1,1 +1,5 @@
 *.pyc
+SimpleCV.egg-info/
+build/
+dist/
+

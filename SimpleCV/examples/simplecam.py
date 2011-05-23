@@ -1,0 +1,25 @@
+#!/usr/bin/python 
+
+import sys, time, socket
+sys.path.append("..")
+
+from SimpleCV import *
+
+
+#settings for the project
+port_original = 8080  #port to view the camera viwe
+port_processed = 8081 #port to look at the processed view
+output_filename = "/home/xamox/test.jpg"
+
+
+#create JPEG streamers
+original_js = JpegStreamer(9000)
+processed_js = JpegStreamer(port_processed)
+cam = Camera()
+
+
+while (1):
+  i = cam.getImage()
+  i.save(original_js.filename)
+  i.save(processed_js.filename)
+  time.sleep(0) #yield to the webserver
