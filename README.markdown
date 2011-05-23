@@ -1,184 +1,45 @@
 SimpleCV
-================================================================================
+=============
 
 _a kinder, gentler machine vision python library_
 
-SimpleCV's goal is to provide a convenient, readable wrapper for OpenCV which will allow programmers who are linear-algebra illiterate to access the power of its functionality.  Whereas OpenCV's goals are power and performance, SimpleCV seeks to provide an easy to use programming interface for casual machine vision users.  Note that this is not a new(er) CTypes-style interface to OpenCV's native C/C++ libraries, but a pure-python wrapper on OpenCV's native SWIG python interfaces -- it is not designed to replace OpenCV's python libraries, just make them easy to use.
+SimpleCV is an interface for multiple machine vision libraries in Python
 
-SimpleCV is developed against [Ubuntu 10.10](http://ubuntu.com), and uses the python infrastructure provided in this distribution: Python 2.6.6.  It uses the latest stable release of OpenCV, in this case 2.2.
+Required Libraries
+----------------------
 
----
+OpenCV 2.2 with Python bindings http://opencv.willowgarage.com/wiki/
+SciPY http://www.scipy.org/
 
-##Installation
+Optional Libraries
+----------------------
 
-    sudo apt-get install python-dev python-numpy python-nose python-scipy ipython
-    wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.2/OpenCV-2.2.0.tar.bz2
-    bunzip2 OpenCV-2.2.0.tar.bz2
-    tar xf OpenCV-2.2.0.tar
-    cd OpenCV-2.2.0
-    mkdir build
-    cd build
-    cmake -D CMAKE_BUILD_TYPE=RELEASE -D BUILD_PYTHON_SUPPORT=ON ..
-    make
-    sudo make install
-    git clone git://git.code.sf.net/p/simplecv/git.git simplecv 
+* Python Image Library http://www.pythonware.com/products/pil/
+* OpenKinect/freenect http://openkinect.org/wiki/Main_Page
 
----
+Blob detection:
 
-##Usage
+* CvBlob http://code.google.com/p/cvblob/
+* cvblob-python https://github.com/oostendo/cvblob-python
 
-The central class in SimpleCV is the Image() class, which wrappers OpenCV's iplImage (bitmap) and cvMat (matrix) classes and provides basic manipulation functions.
+Barcode reading:
 
-To load an image, specify the file path in the constructor:
+* Zxing http://code.google.com/p/zxing/
+* python-zxing https://github.com/oostendo/python-zxing
 
-    my_image = Image("path/to/image.jpg")
+Installation
+---------------------------
 
-To save the image, use the save method.  It will automatically use the file you loaded the image from:
+If you have all the required libraries installed::
 
-    my_image.save()
+    sudo python setup.py install
 
-You can also specify a new file to save to, similar to a "Save As...", and future calls to save() will save to this new file:
+If you need more help, look at docs/installation.rst
 
-     my_image.save("path/to/new_image.jpg")
-     #...do some stuff...
-     my_image.save() #saves to path/to/new_image.jpg
+Examples
+---------------------------
 
-You can scale images using the "scale" function, so for instance to create a thumbnail.  Note that this will distort perspective if you change the width and height ratios:
-
-    thumbnail = my_image.scale(90, 90)
-
-You can also look at individual pixels:
-
-    r, g, b = my_image[25, 45]  #get the color trio for pixel at x = 25, y = 45
-
-If you use python slices, you can extract a portion of the image.  This section is returned as an Image object:
-
-    my_section = myimage[25:50, 45:70]    #grab a 25x25 rectangle starting at x = 25, y = 45
-    my_section.save("path/to/new_cropped_image.jpg")
-
-You can also assign using direct pixel addressing, and draw on the image using this method:
-
-    black = 0.0, 0.0, 0.0    #create a black color tuple
-    my_image[25,45] = black  #set the pixel at x = 25, y = 45 to black
-    my_image[25:50, 45] = black #draw 1px wide line
-    my_image[25:50, 45:70] = black #create a 25x25 black rectange starting at x = 25, y = 45 
-
-Addressing your [OpenCV supported webcam](http://opencv.willowgarage.com/wiki/Welcome/OS) is extremely easy:
-
-    mycam = Camera()
-    img = Camera.getImage()
-
-###Multiple Cameras
-And you can even use multiple cameras, at different resolutions:
-
-    mylaptopcam = Camera(0, {"width": 640, "height": 480})  #you can also control brightness, hue, gain, etc 
-    myusbcam = Camera(1, {"width": 1280, "height": 720})
-
-    mylaptopcam.getImage().save("okaypicture.jpg")
-    myusbcam.getImage().save("nicepicture.jpg")
-
-You can also initialize VirtualCameras from static data files:
-
-    imgcam = VirtualCamera("apples.jpg", "image")
-    vidcam = VirtualCamera("bananas.mpg", "video")
-
-    imgcam.getImage().save("copy_of_apples.jpg")
-    imgcam.getImage().save("frame_1_of_bananas.jpg")
-
-###Color Options
-You can also split channels, if you are interested in only processing a single color:
-
-    (red, green, blue) = Camera().getImage().channels()
-    red.save("redcam.jpg")
-    green.save("greencam.jpg")
-    blue.save("bluecam.jpg")
-
-The Image class has a builtin [Histogram](http://en.wikipedia.org/wiki/Image_histogram) function, thanks to [Numpy](http://numpy.scipy.org/).  Histograms can show you the distribution of brightness or color in an image:
-
-    hist = Camera().getImage().histogram(20)
-    brightpixels = 0
-    darkpixels = 0
-    i = 0
-
-    while i < length(hist):
-      if (i < 10):
-        darkpixels = darkpixels + hist[i]
-      else:
-        brightpixels = brightpixels + hist[i]
-      i = i + 1
-
-    if (brightpixels > darkpixels):
-      print "your room is bright"
-    else:
-      print "your room is dark"
-
-      
-###Features
-SimpleCV has advanced feature-detection functions, which can let you find
-different types of features.  These are returned in FeatureSets which can
-be addressed as a group.
-
-    img = Camera.getImage()
-
-    lines = img.findLines()
-
-    corners = img.findCorners()
-
-    lines.draw((255,0,0)) #outline the line segments in red
-    corners.draw((0,0,255)) #outline corners detected in blue
-
-###Blob Detection
-If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-python) library, you can also use SimpleCV to detect blobs
-
-    #find the green ball
-    green_channel = Camera().getImage().channels[1]
-
-    green_blobs = green_channel.findBlobs()
-    #blobs are returned in order of area, largest first
-
-    print "largest green blob at " + str(green_blobs[0].x) + ", " + str( green_blobs[0].y)
-
-###2-d code/Barcode Reading
-If you load the [python-zxing](https://github.com/oostendo/python-zxing) library, you can use [Zebra Crossing](http://code.google.com/p/zxing) to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
-the location of the library either through the ZXING_LIBRARY %ENV variable, or
-as a parameter to findBarcode().
-
-    i = Camera().getImage()
-    barcode = i.findBarcode("/var/opt/zxing")
-  
-    barcode.draw((0, 255, 0)) #draw the outline of the barcode in green
-  
-    i.save("barcode_found.png")
-    print barcode.data
-
-###Face Detection
-You can do Haar Cascade face detection with SimpleCV, but you will need to find your own [Haar Cascade File](http://www.google.com/search?q=haarcascade_frontalface_alt.xml)
-
-    i = Camera().getImage()
-    faces = i.findHaarFeatures("/path/to/haarcascade_frontalface_alt.xml")
+Examples are in the SimpleCV/examples directory, you can also look at 
+docs/cookbook.rst for reusable code snippets.
     
-    #print locations 
-    for f in faces:
-      print "I found a face at " + str(f.coordinates())
-    
-    green = (0, 255, 0)
-    #outline who was drinking last night (or at least has the greenest pallor)
-    faces.sortColorDistance(green)[0].draw(green)
-    i.save("greenest_face_detected.png")
-
-###GUI
-Rather than use GUI-based display of processed images, SimpleCV has an
-integrated HTTP-based JPEG streamer.  It will use the old-school
-multipart/replace content type to continuously feed jpgs to your browser.  
-To send the data, you just save the image to the js.filename location
-
-    c = Camera()
-    js = JpegStreamer()  #starts up an http server (defaults to port 8080)
-
-    while(1)
-      c.getImage().save(js.filename)
-      
----
-
-##Examples
 
