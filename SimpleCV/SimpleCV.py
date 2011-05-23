@@ -601,10 +601,10 @@ class Image:
   def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
     """
     Draw a line on the Image, parameters include
-    *pt1 - the first point for the line (tuple)
-    *pt1 - the second point on the line (tuple)
-    *a color tuple (default black)
-    *thickness of the line 
+    * pt1 - the first point for the line (tuple)
+    * pt1 - the second point on the line (tuple)
+    * a color tuple (default black)
+    * thickness of the line 
  
     Note that this modifies the image in-place and clears all buffers.
     """
@@ -1031,11 +1031,11 @@ class Corner(Feature):
 
 class Blob(Feature):
   """
-  The Blob Feature is a wrapper for the cvblob-python library.  
+The Blob Feature is a wrapper for the cvblob-python library.  
 
-  The findBlobs function returns contiguous regions of light-colored area, given an intensity threshold.  The Blob class helps you map the position, volume, and shape of these areas.  The coordinates of the Blob are its centroid, and its area is defined by its total pixel count.
+The findBlobs() function returns contiguous regions of light-colored area, given an intensity threshold.  The Blob class helps you map the position, volume, and shape of these areas.  The coordinates of the Blob are its centroid, and its area is defined by its total pixel count.
 
-  Blob implements all of the Feature properties, and its core data structure, cvblob has the following properties (from cvblob.h):
+Blob implements all of the Feature properties, and its core data structure, cvblob has the following properties (from cvblob.h)::
 
     CvLabel label; ///< Label assigned to the blob.
     
@@ -1072,10 +1072,12 @@ class Blob(Feature):
     CvContourChainCode contour;           ///< Contour.
     CvContoursChainCode internalContours; ///< Internal contours. 
 
-  For more information:
-    http://github.com/oostendo/cvblob-python
-    http://code.google.com/p/cvblob
-    http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
+
+For more information:
+
+* http://github.com/oostendo/cvblob-python
+* http://code.google.com/p/cvblob
+* http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
   """
   cvblob = ""
   
