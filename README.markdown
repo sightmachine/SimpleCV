@@ -4,7 +4,7 @@ SimpleCV
 _a kinder, gentler machine vision python library_
 
 SimpleCV is an interface for Open Source machine vision libraries in Python.   
-It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our vision is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
+It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
 
 Required Libraries
 ----------------------
