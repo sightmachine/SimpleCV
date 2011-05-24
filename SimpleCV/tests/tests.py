@@ -23,6 +23,8 @@ blackimage = "../sampleimages/black.png"
 testimageclr = "../sampleimages/statue_liberty.jpg"
 testbarcode = "../sampleimages/barcode.png"
 testoutput = "../sampleimages/9d4l.jpg"
+tmpimg = "../sampleimages/tmpimg.jpg"
+greyscaleimage = "../sampleimages/greyscale.jpg"
 
 
 def setup_context():
@@ -56,6 +58,12 @@ def test_bitmap():
 #  if (m.rows == img.getBitmap().width):
 #    pass
 #  assert False
+
+def test_stretch():
+  img = Image(greyscaleimage)
+  stretched = img.stretch(100,200)
+  img.save(tmpimg)
+
   
 def test_scale():
   img = Image(testimage)
