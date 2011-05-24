@@ -350,8 +350,8 @@ def test_sortLength():
 #def test_sortDistance():
 
 def test_image_add():
-  imgA = Image(testimage)
-  imgB = Image(testimage2)
+  imgA = Image(blackimage)
+  imgB = Image(whiteimage)
 
   imgC = imgA + imgB
 
