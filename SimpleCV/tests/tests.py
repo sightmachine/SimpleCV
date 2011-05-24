@@ -291,7 +291,7 @@ def test_image():
 
 def test_colordistance():
   img = Image(blackimage)
-  (r,g,b) = img.channels()
+  (r,g,b) = img.splitChannels()
   avg = img.meanColor()
   
   c1 = Corner(img, 1, 1)
