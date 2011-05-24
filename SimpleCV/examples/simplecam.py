@@ -10,8 +10,6 @@ from SimpleCV import *
 port_original = 8080  #port to view the camera viwe
 port_processed = 8081 #port to look at the processed view
 
-
-
 #create JPEG streamers
 original_js = JpegStreamer(port_original)
 processed_js = JpegStreamer(port_processed)
