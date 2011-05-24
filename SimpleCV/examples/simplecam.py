@@ -22,4 +22,4 @@ while (1):
   i = cam.getImage()
   i.save(original_js.filename)
   i.save(processed_js.filename)
-  time.sleep(0) #yield to the webserver
+  time.sleep(0.2) #yield to the webserver

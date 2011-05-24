@@ -4,6 +4,7 @@
 import os, sys, warnings, time, socket
 import SocketServer
 import threading
+import StringIO
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
@@ -372,6 +373,7 @@ class Image:
     then it will use the filename the Image was loaded from or the last
     place it was saved to. 
     """
+    
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
       self.filename = filename #set the filename for future save operations
@@ -1415,19 +1417,12 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
     jpgfile = ""
     while (1):
       interval = _jpegstreamers[port].sleeptime
-      fn = _jpegstreamers[port].filename
+      buffer = _jpegstreamers[port].stringbuffer
 
-      if (not os.path.exists(fn)):
-        sleep(interval)
-        continue
+      if (time.time() - timeout > lasttimeserved):
 
-      if (time.time() - timeout > lasttimeserved or lastmodtime != os.stat(fn).st_mtime):
-
-        if (lastmodtime != os.stat(fn).st_mtime):
-          jpgfile = open(fn)
-          jpgdata = jpgfile.read() 
-          jpgfile.close()
-          lastmodtime = os.stat(fn).st_mtime
+        if (buffer != _jpegstreamers[port].stringbuffer.getvalue()):
+          jpgdata = _jpegstreamers[port].stringbuffer.getvalue()
 
         try:
           self.wfile.write("--BOUNDARYSTRING\r\n")
@@ -1472,6 +1467,7 @@ class JpegStreamer():
   port = ""
   filename = ""
   sleeptime = ""
+  stringbuffer = StringIO.StringIO()
 
   def __init__(self, hostandport = 8080, fn = "", st=0.1 ):
     if (type(hostandport) == int):
