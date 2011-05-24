@@ -880,11 +880,11 @@ class Image:
     * threshold, which determies the minimum "strength" of the line
     * min line length -- how many pixels long the line must be to be returned
     * max line gap -- how much gap is allowed between line segments to consider them the same line 
-    * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to getEdgeMap() for details
+    * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to _getEdgeMap() for details
 
     For more information, consult the cv.HoughLines2 documentation
     """
-    em = self.getEdgeMap(cannyth1, cannyth2)
+    em = self._getEdgeMap(cannyth1, cannyth2)
     
     lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
 
@@ -894,7 +894,10 @@ class Image:
     
     return linesFS
 
-  def getEdgeMap(self, t1=50, t2=100):
+  def edges(self, t1=50, t2=100):
+    return Image(self._getEdgeMap(t1, t2))
+
+  def _getEdgeMap(self, t1=50, t2=100):
     """
     Return the binary bitmap which shows where edges are in the image.  The two
     parameters determine how much change in the image determines an edge, 
