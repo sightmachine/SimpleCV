@@ -9,7 +9,7 @@ from SimpleCV import *
 #settings for the project
 port_original = 8080  #port to view the camera viwe
 port_processed = 8081 #port to look at the processed view
-output_filename = "/home/xamox/test.jpg"
+output_filename = "/Users/katherinescott/temp/test.jpg"
 
 
 #create JPEG streamers
