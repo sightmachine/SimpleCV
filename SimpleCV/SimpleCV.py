@@ -782,7 +782,7 @@ class Image:
 
   #this function contains two functions -- the basic edge detection algorithm
   #and then a function to break the lines down given a threshold parameter
-  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
+  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyh1=50, cannyth2=100):
     """
     findLines will find line segments in your image and returns Line feature 
     objects in a FeatureSet. The parameters are:

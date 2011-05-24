@@ -13,7 +13,7 @@ output_filename = "/Users/katherinescott/temp/test.jpg"
 
 
 #create JPEG streamers
-original_js = JpegStreamer(9000)
+original_js = JpegStreamer(port_original, output_filename)
 processed_js = JpegStreamer(port_processed)
 cam = Camera()
 
@@ -23,3 +23,4 @@ while (1):
   i.save(original_js.filename)
   i.save(processed_js.filename)
   time.sleep(0) #yield to the webserver
+
