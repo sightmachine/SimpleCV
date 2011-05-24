@@ -9,11 +9,11 @@ from SimpleCV import *
 #settings for the project
 port_original = 8080  #port to view the camera viwe
 port_processed = 8081 #port to look at the processed view
-output_filename = "/home/xamox/test.jpg"
+
 
 
 #create JPEG streamers
-original_js = JpegStreamer(9000)
+original_js = JpegStreamer(port_original)
 processed_js = JpegStreamer(port_processed)
 cam = Camera()
 
