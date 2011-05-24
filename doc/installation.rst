@@ -43,6 +43,7 @@ Commands::
     wget http://idisk.mac.com/fonnesbeck-Public/superpack_10.6_2011.03.25.sh
     sh superpack_10.6_2011.03.25.sh
     brew install opencv
+    ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     brew install git
     git clone git://git.code.sf.net/p/simplecv/git.git simplecv
     cd simplecv
