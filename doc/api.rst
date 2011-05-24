@@ -74,6 +74,12 @@ Cameras
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: JpegStreamCamera 
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   :undoc-members:
+
 
 Streams
 ---------
