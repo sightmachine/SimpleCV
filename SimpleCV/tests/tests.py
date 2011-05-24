@@ -131,6 +131,18 @@ def test_smooth():
   img.smooth('blur', (3, 3))
   img.smooth('median', (3, 3))
   img.smooth('gaussian', (5,5), 0) 
+  pass
+
+def test_binarize():
+  img =  Image(testimage2)
+  binary = img.binarize()
+  binary2 = img.binarize((60, 100, 200))
+  hist = binary.histogram(20)
+  hist2 = binary2.histogram(20)
+  if (hist[0] + hist[-1] == np.sum(hist) and hist2[0] + hist2[-1] == np.sum(hist2)):
+    pass
+  else:
+    assert False
 
 def test_invert():
   img = Image(testimage2)
@@ -283,7 +295,7 @@ def test_image():
 
 def test_colordistance():
   img = Image(blackimage)
-  (r,g,b) = img.channels()
+  (r,g,b) = img.splitChannels()
   avg = img.meanColor()
   
   c1 = Corner(img, 1, 1)

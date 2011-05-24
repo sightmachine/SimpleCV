@@ -465,7 +465,7 @@ class Image:
     except e:
       return None
       
-  def threshold(self, thresh = 127):
+  def binarize(self, thresh = 127):
     """
     Do a binary threshold the image, changing all values above thresh to white
     and all below to black.  If a color tuple is provided, each color channel
@@ -484,17 +484,13 @@ class Image:
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
-      newbitmap = cv.CreateImage(self.size(), 8, 3)
-      cv.Merge(r, r, r, None, newbitmap)
-      self._bitmap = newbitmap
+      return Image(r)
 
     else:
+      newbitmap = cv.CreateImage(self.size(), 8, 1)
       #desaturate the image, and apply the new threshold          
-      cv.Threshold(self._getGrayscaleBitmap(), self._getGrayscaleBitmap(), thresh)
-
-
-    self._clearBuffers("_bitmap")
-      
+      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, 255, cv.CV_THRESH_BINARY)
+      return Image(newbitmap)
   
 
   #get the mean color of an image
