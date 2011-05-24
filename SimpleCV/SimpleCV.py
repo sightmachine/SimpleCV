@@ -405,7 +405,9 @@ class Image:
     """
     Smooth the image, by default with the Gaussian blur.  If desired,
     additional algorithms and aperatures can be specified.  Optional parameters
-    are passed directly to OpenCV's cv.Smooth() function. 
+    are passed directly to OpenCV's cv.Smooth() function.
+
+    Returns: greyscale image.
     """
     win_x = 3
     win_y = 3  #set the default aperature window size (3x3)
@@ -416,37 +418,22 @@ class Image:
       #   eg Positive, odd and square for bilateral and median
 
     algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
-    inplace = 1  
 
     #gauss and blur can work in-place, others need a buffer frame
     #use a string to ID rather than the openCV constant
     if algorithm_name == "blur":
       algorithm = cv.CV_BLUR
-      inplace = 1
     if algorithm_name == "bilateral":
       algorithm = cv.CV_BILATERAL
-      inplace = 0 
       win_y = win_x #aperature must be square
     if algorithm_name == "median":
       algorithm = cv.CV_MEDIAN
-      inplace = 0 
       win_y = win_x #aperature must be square
 
-    newmatrix = self.getMatrix()
-    if (not inplace): 
-      #create a new matrix, this will hold the altered image
-      newmatrix = cv.CreateMat(self.getMatrix().rows, self.getMatrix().cols, self.getMatrix().type)
+    newimg = cv.CreateImage(self.size(), 8, 1) #create empty greyscale image
+    cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
 
-    cv.Smooth(self.getMatrix(), newmatrix, algorithm, win_x, win_y, sigma, spatial_sigma)
-
-    if (not inplace):
-      #replace the unaltered image with the changed image
-      self._matrix = newmatrix 
-
-    #reclaim any buffers
-    self._clearBuffers("_matrix")
-
-    return 1
+    return Image(newimg)
 
   def invert(self):
     """
