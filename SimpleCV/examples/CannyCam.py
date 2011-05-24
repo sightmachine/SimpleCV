@@ -16,7 +16,7 @@ for j in range(num_caps):
   img = cam.getImage() #get image
   fileName = path + fname + str(j) + ext #make file name
   print fileName #print filename
-  img2 = Image(img.getEdgeMap()) #make edge image TODO: make this return an image object
+  img2 = img.edges() #make edge image TODO: make this return an image object
   img2.save(fileName) # save the output
 
 exit
