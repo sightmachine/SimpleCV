@@ -35,6 +35,7 @@ Steps:
 #. Install homebrew https://github.com/mxcl/homebrew/wiki/installation
 #. Use homebrew to install opencv and git
 #. Install scipy superpack http://stronginference.com/scipy-superpack/
+#. Install python imaging library (10.6 needs ARCHFLAGS tweak)
 #. clone simplecv and python setup.py install
 
 Commands::
@@ -45,6 +46,10 @@ Commands::
     brew install opencv
     ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     brew install git
+    wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz
+    tar xzf Imaging-1.1.7.tar.gz
+    cd Imaging-1.1.7
+    sudo ARCHFLAGS="-arch i386 -arch x86_64" python setup.py install
     git clone git://git.code.sf.net/p/simplecv/git.git simplecv
     cd simplecv
     python setup.py install

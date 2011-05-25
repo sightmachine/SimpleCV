@@ -182,13 +182,20 @@ Output Streams
 Rather than use GUI-based display of processed images, SimpleCV has an
 integrated HTTP-based JPEG streamer.  It will use the old-school
 multipart/replace content type to continuously feed jpgs to your browser.  
-To send the data, you just save the image to the js.filename location::
+To send the data, you just save the image to the js.framebuffer location::
 
     import time
     c = Camera()
     js = JpegStreamer()  #starts up an http server (defaults to port 8080)
 
     while(1)
-      c.getImage().save(js.filename)
+      c.getImage().save(js.framebuffer)
       time.sleep(0.1)
       
+
+You can also use a JpegStreamCamera to grab frames from an external source (such as an IP Cam, the "IP Webcam" android application, or another SimpleCV JpegStream.   
+
+    jc = JpegStreamCamera("http://localhost:8080/")
+    jc.getImage().save("seeyou.jpg")
+
+

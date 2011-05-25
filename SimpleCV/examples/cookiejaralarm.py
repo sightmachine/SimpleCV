@@ -24,7 +24,7 @@ closed_hu = 0
 count = 0
 while (1):
   i = cam.getImage()
-  i.save(original_js.filename)
+  i.save(original_js.framebuffer)
 
   r,g,b = i.splitChannels(True)
   i = g - b #subtract green from blue
@@ -34,7 +34,7 @@ while (1):
     continue
 
   blobs[0].draw()  #we only really care about the largest blob
-  i.save(processed_js.filename)
+  i.save(processed_js.framebuffer)
 
   hu = blobs[0].cvblob.u02
   if not closed_hu: 
