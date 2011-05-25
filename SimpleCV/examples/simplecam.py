@@ -18,6 +18,6 @@ cam = Camera()
 
 while (1):
   i = cam.getImage()
-  i.save(original_js.filename)
-  i.save(processed_js.filename)
+  i.save(original_js.framebuffer)
+  i.save(processed_js.framebuffer)
   time.sleep(0.2) #yield to the webserver

@@ -4,7 +4,6 @@
 import os, sys, warnings, time, socket, re, urllib2
 import SocketServer
 import threading
-import StringIO
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
@@ -346,6 +345,7 @@ class Image:
   height = 0
   depth = 0
   filename = "" #source filename
+  filehandle = "" #filehandle if used
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -458,16 +458,39 @@ class Image:
 
     return self._equalizedgraybitmap
     
-  def save(self, filename=""):
+  def save(self, filehandle_or_filename="", mode=""):
     """
     Save the image to the specified filename.  If no filename is provided then
     then it will use the filename the Image was loaded from or the last
     place it was saved to. 
     """
-    
+    if (not filehandle_or_filename):
+      if (self.filename):
+        filehandle_or_filename = self.filename
+      else:
+        filehandle_or_filename = self.filehandle
+  
+
+    if (type(filehandle_or_filename) != str):
+      if (not mode):
+        mode = "jpeg"
+
+      try:
+        filehandle = filehandle_or_filename
+        self.getPIL().save(filehandle, mode)
+        self.filehandle = filehandle #set the filename for future save operations
+        self.filename = ""
+        
+      except:
+        return 0
+
+      return 1
+
+    filename = filehandle_or_filename 
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
       self.filename = filename #set the filename for future save operations
+      self.filehandle = ""
     elif (self.filename):
       cv.SaveImage(self.filename, self.getBitmap())
     else:
@@ -1483,9 +1506,8 @@ class HaarFeature(Feature):
 #class Edge(Feature):
 #class Ridge(Feature):
 
-#global class to pass data from the jpegstreamer to the jpegstreamhandler
-_jpegstreamers = {}
 
+_jpegstreamers = {}
 class JpegStreamHandler(SimpleHTTPRequestHandler):
   """
   The JpegStreamHandler handles requests to the threaded HTTP server.
@@ -1494,6 +1516,8 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
   """
 
   def do_GET(self):
+    global _jpegstreamers
+
     self.send_response(200)
     self.send_header("Connection", "close")
     self.send_header("Max-Age", "0")
@@ -1508,15 +1532,14 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
     timeout = 1 
     lastmodtime = 0
     lasttimeserved = 0
-    jpgfile = ""
+    jpgdata = ""
     while (1):
       interval = _jpegstreamers[port].sleeptime
-      buffer = _jpegstreamers[port].stringbuffer
 
-      if (time.time() - timeout > lasttimeserved):
+      if (time.time() - timeout > lasttimeserved or jpgdata != _jpegstreamers[port].framebuffer.getvalue()):
 
-        if (buffer != _jpegstreamers[port].stringbuffer.getvalue()):
-          jpgdata = _jpegstreamers[port].stringbuffer.getvalue()
+        jpgdata = _jpegstreamers[port].framebuffer.getvalue()
+        _jpegstreamers[port].framebuffer = StringIO()
 
         try:
           self.wfile.write("--BOUNDARYSTRING\r\n")
@@ -1539,7 +1562,7 @@ class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 #factory class for jpegtcpservers
 class JpegStreamer():
   """
-  The JpegStreamer class allows the user to stream the contents of a .jpg file
+  The JpegStreamer class allows the user to stream a jpeg encoded file
   to a HTTP port.  Any updates to the jpg file will automatically be pushed
   to the browser via multipart/replace content type.
 
@@ -1547,38 +1570,33 @@ class JpegStreamer():
   js = JpegStreamer()
 
   to update:
-  img.save(js.filename)
+  img.save(js.buffer)
 
   Note 3 optional parameters on the constructor:
   - port (default 8080) which sets the TCP port you need to connect to
-  - filename (default os.tmpname()) which sets where the file is saved.  It is strongly recommended you use a filesystem that is in RAM
   - sleep time (default 0.1) how often to update.  Above 1 second seems to cause dropped connections in Google chrome
 
-  Once initialized, filename and sleeptime can be modified and will function properly -- port will not.
+  Once initialized, the buffer and sleeptime can be modified and will function properly -- port will not.
   """
   server = ""
   host = ""
   port = ""
-  filename = ""
   sleeptime = ""
-  stringbuffer = StringIO.StringIO()
+  framebuffer = StringIO()
 
-  def __init__(self, hostandport = 8080, fn = "", st=0.1 ):
+  def __init__(self, hostandport = 8080, st=0.1 ):
+    global _jpegstreamers
     if (type(hostandport) == int):
       self.port = hostandport
     elif (type(hostandport) == tuple):
       (self.host, self.port) = hostandport 
 
-    if not fn:
-      fn = os.tmpnam() + ".jpg"
-    self.filename = fn
     self.sleeptime = st
     
     self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
     self.server_thread = threading.Thread(target = self.server.serve_forever)
-    self.server_thread.setDaemon(True)
+    _jpegstreamers[self.port] = self
     self.server_thread.start()
-    _jpegstreamers[self.port] = self 
 
 
 """
