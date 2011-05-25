@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #system includes
-import os, sys, warnings, time, socket
+import os, sys, warnings, time, socket, re, urllib2
 import SocketServer
 import threading
 from copy import copy
@@ -9,6 +9,7 @@ from math import sqrt, atan2
 from pkg_resources import load_entry_point
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from types import IntType, LongType, FloatType
+from cStringIO import StringIO
 
 #couple quick typecheck helper functions
 def is_number(n):
@@ -239,6 +240,96 @@ class Kinect(FrameSource):
     cv.SetData(image, depth.tostring(), depth.dtype.itemsize * depth.shape[1])
     return Image(image) 
 
+
+class JpegStreamReader(threading.Thread):
+  #threaded class for pulling down JPEG streams and breaking up the images
+  url = ""
+  currentframe = ""
+
+  def run(self):
+    f = urllib2.urlopen(self.url)
+    headers = f.info()
+    if (headers.has_key("content-type")):
+      headers['Content-type'] = headers['content-type'] #force ucase first char
+
+    if not headers.has_key("Content-type"):
+      warnings.warn("Tried to load a JpegStream from " + self.url + ", but didn't find a content-type header!")
+      return
+
+    (multipart, boundary) = headers['Content-type'].split("boundary=")
+    if not re.search("multipart", multipart, re.I):
+      warnings.warn("Tried to load a JpegStream from " + self.url + ", but the content type header was " + multipart + " not multipart/replace!")
+      return 
+
+    buff = ''
+    data = f.readline().strip()
+    length = 0 
+    contenttype = "jpeg"
+
+    #the first frame contains a boundarystring and some header info
+    while (1):
+      if (data.strip() == boundary and len(buff)):
+        #we have a full jpeg in buffer.  Convert to an image  
+        self.currentframe = buff 
+        buff = ''
+
+      if (re.match("Content-Type", data, re.I)):
+        #set the content type, if provided (default to jpeg)
+        (header, typestring) = data.split(":")
+        (junk, contenttype) = typestring.strip().split("/")
+
+      if (re.match("Content-Length", data, re.I)):
+        #once we have the content length, we know how far to go jfif
+        (header, length) = data.split(":")
+        length = int(length.strip())
+         
+      if (re.search("JFIF", data, re.I)):
+        # we have reached the start of the image  
+        buff = '' 
+        if length:
+          buff += data + f.read(length - len(buff)) #read the remainder of the image
+        else:
+          while (not re.search(boundary, data)):
+            buff += data 
+            data = f.readline()
+
+          endimg, junk = data.split(boundary) 
+          buff += endimg
+          data = boundary
+          continue
+        
+          
+
+      data = f.readline() #load the next (header) line
+      time.sleep(0) #let the other threads go
+
+class JpegStreamCamera(FrameSource):
+  """
+The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage() 
+
+Requires the [Python Imaging Library](http://www.pythonware.com/library/pil/handbook/index.htm)
+  """
+  url = ""
+  camthread = ""
+  
+  def __init__(self, url):
+    if not PIL_ENABLED:
+      warnings.warn("You need the Python Image Library (PIL) to use the JpegStreamCamera")
+      return
+
+    self.url = url
+    self.camthread = JpegStreamReader()
+    self.camthread.url = self.url
+    self.camthread.start()
+
+  def getImage(self):
+    """
+Return the current frame of the JpegStream being monitored
+    """
+    return Image(pil.open(StringIO(self.camthread.currentframe)))
+
+
+
 class Image:
   """
   The Image class is the heart of SimpleCV and allows you to convert to and 
@@ -305,9 +396,9 @@ class Image:
       self._pil = source
       #from the opencv cookbook 
       #http://opencv.willowgarage.com/documentation/python/cookbook.html
-      self._bitmap = cv.CreateImage(self._pil.size, cv.IPL_DEPTH_8U, 3)
+      self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
       cv.SetData(self._bitmap, self._pil.tostring())
-      self._bitmap = cv.iplimage(self._bitmap)
+      #self._bitmap = cv.iplimage(self._bitmap)
     else:
       return None 
 
@@ -789,11 +880,11 @@ class Image:
     * threshold, which determies the minimum "strength" of the line
     * min line length -- how many pixels long the line must be to be returned
     * max line gap -- how much gap is allowed between line segments to consider them the same line 
-    * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to getEdgeMap() for details
+    * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to _getEdgeMap() for details
 
     For more information, consult the cv.HoughLines2 documentation
     """
-    em = self.getEdgeMap(cannyth1, cannyth2)
+    em = self._getEdgeMap(cannyth1, cannyth2)
     
     lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
 
@@ -803,7 +894,10 @@ class Image:
     
     return linesFS
 
-  def getEdgeMap(self, t1=50, t2=100):
+  def edges(self, t1=50, t2=100):
+    return Image(self._getEdgeMap(t1, t2))
+
+  def _getEdgeMap(self, t1=50, t2=100):
     """
     Return the binary bitmap which shows where edges are in the image.  The two
     parameters determine how much change in the image determines an edge, 
