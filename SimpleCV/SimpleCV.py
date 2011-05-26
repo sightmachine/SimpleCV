@@ -21,10 +21,19 @@ def is_tuple(n):
 def reverse_tuple(n):
   return tuple(reversed(n))
 
+
 #library includes
 import cv
 import numpy as np
 import scipy.spatial.distance as spsd
+from numpy import linspace 
+from scipy.interpolate import UnivariateSpline
+
+#putting this here, not sure it is the best
+#convert a scipy UnivariateSpline to a set of color correction bins
+def spline2ColorCurve( color_spline ):
+  xv = linspace(0,255,256)
+  return color_spline(xv)
 
 #optional libraries
 PIL_ENABLED = True
