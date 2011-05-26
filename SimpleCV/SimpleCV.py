@@ -352,6 +352,7 @@ class Image:
   #these are buffer frames for various operations on the image
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
+  _grayMatrix = "" #the gray scale (cvmat) representation -KAS
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
   _equalizedgraybitmap = "" #the above bitmap, normalized
   _blobLabel = ""  #the label image for blobbing
@@ -363,6 +364,7 @@ class Image:
   _initialized_buffers = { 
     "_bitmap": "", 
     "_matrix": "", 
+    "_grayMatrix": "",
     "_graybitmap": "", 
     "_equalizedgraybitmap": "",
     "_blobLabel": "",
@@ -448,6 +450,16 @@ class Image:
     cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY) 
     return self._graybitmap
 
+  def getGrayscaleMatrix(self):
+   """
+   Returns the intensity grayscale matrix
+   """
+   if (self._grayMatrix):
+     return self._grayMatrix
+   else:
+     self._grayMatrix = cv.GetMat(self._getGrayscaleBitmap()) #convert the bitmap to a matrix
+     return self._grayMatrix
+    
   def _getEqualizedGrayscaleBitmap(self):
 
     if (self._equalizedgraybitmap):
@@ -679,7 +691,7 @@ class Image:
     If you want to find Haar Features (useful for face detection among other
     purposes) this will return Haar feature objects in a FeatureSet.  The
     parameters are:
-    * the scaling factor for subsequent rounds of the haar cascade (default 1.2)
+    * the scaling factor for subsequent rounds of the haar cascade (default 1.2)7
     * the minimum number of rectangles that makes up an object (default 2)
     * whether or not to use Canny pruning to reject areas with too many edges (default yes, set to 0 to disable) 
 
@@ -695,7 +707,7 @@ class Image:
       warnings.warn("Could not find Haar Cascade file " + cascadefile)
       return None
     cascade = cv.Load(cascadefile) 
-    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, min_neighbors, use_canny, (0,0))
+    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factors, use_canny, (0,0))
     if objects: 
       return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
     
@@ -762,6 +774,70 @@ class Image:
 
     return (Image(red), Image(green), Image(blue)) 
 
+  def brightnessCurve(self, curve):
+    """
+    Apply a correction curve where each bin in curve gives a brightness value coefficient.
+    If the image is grayscale the operation is applied directly  the image is converted to 
+    HSI space and the transform is applied to the I component.  
+    
+    TODO CHECK ROI
+    TODO CHECK CURVE SIZE
+    TODO CHECK COLORSPACE
+    """
+    if(self._bitmap.nChannels == 1 ):
+      temp  = cv.CreateImage(self.size(), 8, 1)
+      for idx in range(self.width):
+        for idy in range(self.height):
+          temp.getGrayMatrix()[idx,idy] = self.getGrayMatrix()[idx,idy]*curve[self.getGrayMatrix()[idx,idy]]
+    elif( self._bitmap.nChannels > 1):  
+      temp  = cv.CreateImage(self.size(), 8, 3)
+      cv.Copy(self._bitmap,temp);
+    #Move to HLS space
+      cv.CvtColor(temp,temp,cv.CV_RGB2HLS)
+    #Work on the L channel
+      for idx in range(self.width):
+        for idy in range(self.height):
+      #get the bit value multiplied by the curve
+          c = cv.Get2D(temp,idy,idx)
+          idc = int(c[1])
+          newColor = [c[0],curve[idc]*c[1],c[2]]
+          cv.Set2D(temp,idy,idx,newColor)
+          #CV set and get are slow... need direct buffer access
+
+      #go back to RGB space
+      cv.CvtColor(temp,temp,cv.CV_HLS2RGB)  
+      return Image(temp)
+  def applyHLSCurve(self, hCurve, lCurve, sCurve):
+    """
+    Apply a curve correction in HSL space
+    Do BGR->HLS conversion
+    Apply correction, curve values of 1 get no change
+    Convert back to RGB space
+    Return new image, original is unchanged
+    The curve should be a floating point array of length 256
+    TODO CHECK ROI
+    TODO CHECK CURVE SIZE
+    TODO CHECK COLORSPACE
+    """
+    temp  = cv.CreateImage(self.size(), 8, 3)
+    cv.Copy(self._bitmap,temp);
+    #Move to HLS space
+    cv.CvtColor(temp,temp,cv.CV_RGB2HLS)
+    #Work on the L channel
+    for idx in range(self.width):
+      for idy in range(self.height):
+      #get the bit value multiplied by the curve
+        c = cv.Get2D(temp,idy,idx)
+        newColor = [c[0]*hCurve[int(c[0])],
+                    c[1]*lCurve[int(c[1])],
+                    c[2]*sCurve[int(c[2])]]
+        cv.Set2D(temp,idy,idx,newColor)
+        #CV set and get are slow... need direct buffer access
+  
+    #go back to RGB space
+    cv.CvtColor(temp,temp,cv.CV_HLS2RGB)  
+    return Image(temp)
+      
   def histogram(self, numbins = 50):
     """
     Return a numpy array of the 1D histogram of intensity for pixels in the image
