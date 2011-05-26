@@ -469,6 +469,9 @@ class Image:
         filehandle_or_filename = self.filename
       else:
         filehandle_or_filename = self.filehandle
+	if (not PIL_ENABLED):
+	  warnings.warn("You need the python image library to save by filehandle")
+          return 0
   
 
     if (type(filehandle_or_filename) != str):

@@ -1,8 +1,14 @@
 #!/usr/bin/python 
 from SimpleCV import *
 
-import sys, curses
+"""
+This is a simple demo which uses the up/down and left/right keyboard arrows
+to show the thresholds of the edges() function.  
+"""
 
+
+
+import sys, curses
 #start values for the edges function
 
 def main(stdscr):
@@ -36,8 +42,6 @@ def main(stdscr):
 
     cam.getImage().edges(t1, t2).save(js.framebuffer)
 		 
-
-
 
 if __name__ == '__main__':
   curses.wrapper(main)
