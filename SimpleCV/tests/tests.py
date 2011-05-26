@@ -373,9 +373,10 @@ def test_color_curve_HSL():
   s = UnivariateSpline(x,y,s=1)
   curve = spline2ColorCurve(s)
   img = Image(testimage)
-  img2 = img.ApplyHLSCurve(curve,curve,curve)
+  img2 = img.applyHLSCurve(curve,curve,curve)
   img3 = img-img2
-  if( img3.meanColor() > 1 ): #there may be a bit of roundoff error 
+  c = img3.meanColor()
+  if( c[0] > 1.0 or c[1] > 1.0 or c[2] > 1.0 ): #there may be a bit of roundoff error 
     assert False
 
 def test_color_curve_RGB():
@@ -384,19 +385,25 @@ def test_color_curve_RGB():
   s = UnivariateSpline(x,y,s=1)
   curve = spline2ColorCurve(s)
   img = Image(testimage)
-  img2 = img.ApplyRGBCurve(curve,curve,curve)
+  img2 = img.applyRGBCurve(curve,curve,curve)
   img3 = img-img2
-  if( img3.meanColor() > 1 ): #there may be a bit of roundoff error 
+  c = img3.meanColor()
+  if( c[0] > 1.0 or c[1] > 1.0 or c[2] > 1.0 ): #there may be a bit of roundoff error 
     assert False
+
 def test_color_curve_GRAY():
   x = [0,64,192, 255] #These are the bins from 0 to 255
   y = [0,64,192, 255]  #These are the weights 
   s = UnivariateSpline(x,y,s=1)
   curve = spline2ColorCurve(s)
   img = Image(testimage)
-  img2 = img.ApplyIntensityCurve(curve)
-  img3 = img-img2
-  if( img3.meanColor() > 1 ): #there may be a bit of roundoff error 
+  gray = img.desaturate()
+  img2 = img.applyIntensityCurve(curve)
+  print(gray.meanColor())
+  print(img2.meanColor())
+  g=gray.meanColor()
+  i2=img2.meanColor()
+  if( g[0]-i2[0] > 1 ): #there may be a bit of roundoff error 
     assert False
 
   
