@@ -40,7 +40,7 @@ def main(stdscr):
         stdscr.refresh()
 	stdscr.move(0, 0)
 
-    cam.getImage().flipHorizontal().edges(t1, t2).invert().save(js.framebuffer)
+    cam.getImage().flipHorizontal().edges(t1, t2).invert().smooth().save(js.framebuffer)
 		 
 
 if __name__ == '__main__':

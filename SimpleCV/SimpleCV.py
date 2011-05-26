@@ -1545,42 +1545,60 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
   def do_GET(self):
     global _jpegstreamers
 
-    self.send_response(200)
-    self.send_header("Connection", "close")
-    self.send_header("Max-Age", "0")
-    self.send_header("Expires", "0")
-    self.send_header("Cache-Control", "no-cache, private")
-    self.send_header("Pragma", "no-cache")
-    self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
-    self.end_headers()
-    (host, port) = self.server.socket.getsockname()[:2]
-   
-    count = 0
-    timeout = 1 
-    lastmodtime = 0
-    lasttimeserved = 0
-    jpgdata = ""
-    while (1):
-      interval = _jpegstreamers[port].sleeptime
+    if (self.path == "/" or not self.path):
 
-      if (time.time() - timeout > lasttimeserved or jpgdata != _jpegstreamers[port].framebuffer.getvalue()):
-
-        jpgdata = _jpegstreamers[port].framebuffer.getvalue()
-        _jpegstreamers[port].framebuffer = StringIO()
-
-        try:
-          self.wfile.write("--BOUNDARYSTRING\r\n")
-          self.send_header("Content-type","image/jpeg")
-          self.send_header("Content-Length", str(len(jpgdata)))
-          self.end_headers()
-          self.wfile.write(jpgdata + "\r\n")
-        except socket.error, e:
-          return
-        except IOError, e:
-          return
-        lasttimeserved = time.time()
-        count = count + 1 
-      time.sleep(interval)
+      self.send_response(200)
+      self.send_header('Content-type','text/html')
+      self.end_headers()
+      self.wfile.write("""
+<html>
+<head>
+<style type=text/css>
+  body { background-image: url(/stream); background-repeat:no-repeat; background-position:center top; background-attachment:fixed; background-size: 100% , auto; }
+</style>
+</head>
+<body>
+&nbsp;
+</body>
+</html>
+      """)
+    else:
+      self.send_response(200)
+      self.send_header("Connection", "close")
+      self.send_header("Max-Age", "0")
+      self.send_header("Expires", "0")
+      self.send_header("Cache-Control", "no-cache, private")
+      self.send_header("Pragma", "no-cache")
+      self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
+      self.end_headers()
+      (host, port) = self.server.socket.getsockname()[:2]
+     
+      count = 0
+      timeout = 1 
+      lastmodtime = 0
+      lasttimeserved = 0
+      jpgdata = ""
+      while (1):
+        interval = _jpegstreamers[port].sleeptime
+  
+        if (time.time() - timeout > lasttimeserved or jpgdata != _jpegstreamers[port].framebuffer.getvalue()):
+  
+          jpgdata = _jpegstreamers[port].framebuffer.getvalue()
+          _jpegstreamers[port].framebuffer = StringIO()
+  
+          try:
+            self.wfile.write("--BOUNDARYSTRING\r\n")
+            self.send_header("Content-type","image/jpeg")
+            self.send_header("Content-Length", str(len(jpgdata)))
+            self.end_headers()
+            self.wfile.write(jpgdata + "\r\n")
+          except socket.error, e:
+            return
+          except IOError, e:
+            return
+          lasttimeserved = time.time()
+          count = count + 1 
+        time.sleep(interval)
 
 
 class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
