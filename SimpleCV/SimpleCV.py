@@ -774,39 +774,6 @@ class Image:
 
     return (Image(red), Image(green), Image(blue)) 
 
-  def brightnessCurve(self, curve):
-    """
-    Apply a correction curve where each bin in curve gives a brightness value coefficient.
-    If the image is grayscale the operation is applied directly  the image is converted to 
-    HSI space and the transform is applied to the I component.  
-    
-    TODO CHECK ROI
-    TODO CHECK CURVE SIZE
-    TODO CHECK COLORSPACE
-    """
-    if(self._bitmap.nChannels == 1 ):
-      temp  = cv.CreateImage(self.size(), 8, 1)
-      for idx in range(self.width):
-        for idy in range(self.height):
-          temp.getGrayMatrix()[idx,idy] = self.getGrayMatrix()[idx,idy]*curve[self.getGrayMatrix()[idx,idy]]
-    elif( self._bitmap.nChannels > 1):  
-      temp  = cv.CreateImage(self.size(), 8, 3)
-      cv.Copy(self._bitmap,temp);
-    #Move to HLS space
-      cv.CvtColor(temp,temp,cv.CV_RGB2HLS)
-    #Work on the L channel
-      for idx in range(self.width):
-        for idy in range(self.height):
-      #get the bit value multiplied by the curve
-          c = cv.Get2D(temp,idy,idx)
-          idc = int(c[1])
-          newColor = [c[0],curve[idc]*c[1],c[2]]
-          cv.Set2D(temp,idy,idx,newColor)
-          #CV set and get are slow... need direct buffer access
-
-      #go back to RGB space
-      cv.CvtColor(temp,temp,cv.CV_HLS2RGB)  
-      return Image(temp)
   def applyHLSCurve(self, hCurve, lCurve, sCurve):
     """
     Apply a curve correction in HSL space
@@ -815,6 +782,7 @@ class Image:
     Convert back to RGB space
     Return new image, original is unchanged
     The curve should be a floating point array of length 256
+  
     TODO CHECK ROI
     TODO CHECK CURVE SIZE
     TODO CHECK COLORSPACE
@@ -836,6 +804,42 @@ class Image:
   
     #go back to RGB space
     cv.CvtColor(temp,temp,cv.CV_HLS2RGB)  
+    return Image(temp)
+
+  def applyRGBCurve(self, rCurve, gCurve, bCurve):
+    """
+    Apply correction, curve values of 1 get no change
+    Return new image, original is unchanged
+    The curve should be a floating point array of length 256
+    """
+    temp  = cv.CreateImage(self.size(), 8, 3)
+    cv.Copy(self._bitmap,temp);
+    for idx in range(self.width):
+      for idy in range(self.height):
+      #get the bit value multiplied by the curve
+        c = cv.Get2D(temp,idy,idx)
+        newColor = [c[0]*bCurve[int(c[0])],
+                    c[1]*gCurve[int(c[1])],
+                    c[2]*rCurve[int(c[2])]]
+        cv.Set2D(temp,idy,idx,newColor)
+        #CV set and get are slow... need direct buffer access
+    return Image(temp)
+
+
+  def applyIntensityCurve(self, curve):
+    """
+    Apply correction, curve values of 1 get no change
+    Return new grayscale image, original is unchanged
+    The curve should be a floating point array of length 256
+    """
+    temp  = self._getGrayscaleBitmap()
+    for idx in range(self.width):
+      for idy in range(self.height):
+      #get the bit value multiplied by the curve
+        c = cv.Get2D(temp,idy,idx)
+        newColor = [c[0]*curve[int(c[0])],0,0,0]
+        cv.Set2D(temp,idy,idx,newColor)
+        #CV set and get are slow... need direct buffer access
     return Image(temp)
       
   def histogram(self, numbins = 50):
