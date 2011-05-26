@@ -805,9 +805,9 @@ class Image:
       for idy in range(self.height):
       #get the bit value multiplied by the curve
         c = cv.Get2D(temp,idy,idx)
-        newColor = [c[0]*hCurve[int(c[0])],
-                    c[1]*lCurve[int(c[1])],
-                    c[2]*sCurve[int(c[2])]]
+        newColor = [hCurve[int(c[0])],
+                    lCurve[int(c[1])],
+                    sCurve[int(c[2])]]
         cv.Set2D(temp,idy,idx,newColor)
         #CV set and get are slow... need direct buffer access
   
@@ -846,7 +846,7 @@ class Image:
       for idy in range(self.height):
       #get the bit value multiplied by the curve
         c = cv.Get2D(temp,idy,idx)
-        newColor = [c[0]*curve[int(c[0])],0,0,0]
+        newColor = [curve[int(c[0])],0,0,0]
         cv.Set2D(temp,idy,idx,newColor)
         #CV set and get are slow... need direct buffer access
     return Image(temp)
