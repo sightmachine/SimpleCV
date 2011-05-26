@@ -386,7 +386,7 @@ class Image:
       self._matrix = source 
     elif (type(source) == cv.iplimage):
       if (source.nChannels == 1):
-        self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3)
+        self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
         cv.Merge(source, source, source, None, self._bitmap)
       else:
         self._bitmap = source
@@ -407,6 +407,12 @@ class Image:
     self.width = bm.width
     self.height = bm.height
     self.depth = bm.depth
+ 
+  def getEmpty(self, channels = 3):
+    """
+Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
+    """
+    return cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
 
   def getBitmap(self):
     """
@@ -444,7 +450,7 @@ class Image:
     if (self._graybitmap):
       return self._graybitmap
 
-    self._graybitmap = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_8U, 1)
+    self._graybitmap = self.getEmpty(1) 
     cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY) 
     return self._graybitmap
 
@@ -453,7 +459,7 @@ class Image:
     if (self._equalizedgraybitmap):
       return self._equalizedgraybitmap
 
-    self._equalizedgraybitmap = cv.CreateImage(self.size(), 8, 1)
+    self._equalizedgraybitmap = self.getEmpty(1) 
     cv.EqualizeHist(self._getGrayscaleBitmap(), self._equalizedgraybitmap)
 
     return self._equalizedgraybitmap
@@ -507,7 +513,7 @@ class Image:
     from using python's implicit copy function in that only the bitmap itself
     is copied.
     """
-    newimg = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, 3)
+    newimg = self.getEmpty() 
     cv.Copy(self.getBitmap(), newimg)
     return Image(newimg) 
     
@@ -549,7 +555,7 @@ class Image:
       algorithm = cv.CV_MEDIAN
       win_y = win_x #aperature must be square
 
-    newimg = cv.CreateImage(self.size(), 8, 1) #create empty greyscale image
+    newimg = self.getEmpty(1) 
     cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
 
     return Image(newimg)
@@ -561,11 +567,29 @@ class Image:
     """
     return -self 
 
-  def desaturate(self):
+  def grayscale(self):
     """
     return a gray scale version of the image
     """
     return Image(self._getGrayscaleBitmap())
+
+  def flipHorizontal(self):
+    """
+    return a horizontally mirrored image
+    """
+    newimg = self.getEmpty()
+    cv.Flip(self.getBitmap(), newimg, 1)
+    return Image(newimg) 
+
+  def flipVertical(self):
+    """
+    return a vertically mirrored image
+    """
+    newimg = self.getEmpty()
+    cv.Flip(self.getBitmap(), newimg, 0)
+    return Image(newimg) 
+    
+    
     
   def stretch(self, thresh_low = 0, thresh_high = 255):
     """
@@ -578,7 +602,7 @@ class Image:
     threshold is pushed to white (255)
     """
     try:
-      newimg = cv.CreateImage(self.size(), 8, 1)
+      newimg = self.getEmpty() 
       cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
       return Image(newimg)
     except e:
@@ -591,9 +615,9 @@ class Image:
     is thresholded separately.
     """
     if (is_tuple(thresh)):
-      r = cv.CreateImage(self.size(), 8, 1)
-      g = cv.CreateImage(self.size(), 8, 1)
-      b = cv.CreateImage(self.size(), 8, 1)
+      r = self.getEmpty(1) 
+      g = self.getEmpty(1)
+      b = self.getEmpty(1)
       cv.Split(self.getBitmap(), b, g, r, None)
 
       cv.Threshold(r, r, thresh[0], 255, cv.CV_THRESH_BINARY)
@@ -606,7 +630,7 @@ class Image:
       return Image(r)
 
     else:
-      newbitmap = cv.CreateImage(self.size(), 8, 1)
+      newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
       cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, 255, cv.CV_THRESH_BINARY)
       return Image(newbitmap)
@@ -655,7 +679,7 @@ class Image:
       maxsize = self.width * self.height / 2
     
     #create a single channel image, thresholded to parameters
-    grey = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_8U, 1)
+    grey = getEmpty(1) 
     cv.Threshold(self._getGrayscaleBitmap(), grey, threshval, 255, cv.CV_THRESH_BINARY)
 
     #create the label image
@@ -745,14 +769,14 @@ class Image:
 
     returns: tuple of 3 image objects
     """
-    r = cv.CreateImage(self.size(), 8, 1)
-    g = cv.CreateImage(self.size(), 8, 1)
-    b = cv.CreateImage(self.size(), 8, 1)
+    r = self.getEmpty(1) 
+    g = self.getEmpty(1) 
+    b = self.getEmpty(1) 
     cv.Split(self.getBitmap(), b, g, r, None)
 
-    red = cv.CreateImage(self.size(), 8, 3)
-    green = cv.CreateImage(self.size(), 8, 3)
-    blue = cv.CreateImage(self.size(), 8, 3)
+    red = self.getEmpty() 
+    green = self.getEmpty() 
+    blue = self.getEmpty() 
 	
     if (grayscale):
       cv.Merge(r, r, r, None, red)
@@ -795,7 +819,7 @@ class Image:
       self._clearBuffers("_matrix") 
 
   def __sub__(self, other):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     if is_number(other):
       cv.SubS(self.getBitmap(), other, newbitmap)
     else:
@@ -803,7 +827,7 @@ class Image:
     return Image(newbitmap)
 
   def __add__(self, other):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     if is_number(other):
       cv.AddS(self.getBitmap(), other, newbitmap)
     else:
@@ -811,7 +835,7 @@ class Image:
     return Image(newbitmap)
 
   def __and__(self, other):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     if is_number(other):
       cv.AndS(self.getBitmap(), other, newbitmap)
     else:
@@ -819,7 +843,7 @@ class Image:
     return Image(newbitmap)
 
   def __or__(self, other):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     if is_number(other):
       cv.OrS(self.getBitmap(), other, newbitmap)
     else:
@@ -827,17 +851,17 @@ class Image:
     return Image(newbitmap)
 
   def __div__(self, other):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
     return Image(newbitmap)
 
   def __pow__(self, other):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     cv.Pow(self.getBitmap(), newbitmap, other)
     return Image(newbitmap)
 
   def __neg__(self):
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     cv.Not(self.getBitmap(), newbitmap)
     return Image(newbitmap)
 
@@ -846,7 +870,7 @@ class Image:
     Return the maximum value of my image, and the other image, in each channel
     If other is a number, returns the maximum of that and the number
     """ 
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     if is_number(other):
       cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
     else:
@@ -858,7 +882,7 @@ class Image:
     Return the minimum value of my image, and the other image, in each channel
     If other is a number, returns the minimum of that and the number
     """ 
-    newbitmap = cv.CreateImage(self.size(), 8, 3)
+    newbitmap = self.getEmpty() 
     if is_number(other):
       cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
     else:
@@ -938,7 +962,7 @@ class Image:
     if (self._edgeMap and self._cannyparam[0] == t1 and self._cannyparam[1] == t2):
       return self._edgeMap
 
-    self._edgeMap = cv.CreateImage(self.size(), 8, 1)
+    self._edgeMap = self.getEmpty(1) 
     cv.Canny(self._getGrayscaleBitmap(), self._edgeMap, t1, t2)
     self._cannyparam = (t1, t2)
 
