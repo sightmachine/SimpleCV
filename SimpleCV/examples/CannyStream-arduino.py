@@ -12,7 +12,7 @@ from pyfirmata import Arduino, util
 
 
 def main():
-  board = Arduino('/dev/tty.usbserial-FTF7U6GH')
+  board = Arduino('/dev/ttyUSB0')
 
   #starting values
 
@@ -43,7 +43,8 @@ def main():
       t2 *= multiplier
 
     print "t1 " + str(t1) + ", t2 " + str(t2)
-    cam.getImage().edges(int(t1), int(t2)).save(js.framebuffer)
+    cam.getImage().flipHorizontal().edges(int(t1), int(t2)).invert().smooth().save(js.framebuffer)
+
     time.sleep(0.01)
 		 
 
