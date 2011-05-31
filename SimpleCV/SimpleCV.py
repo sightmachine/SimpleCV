@@ -679,7 +679,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       maxsize = self.width * self.height / 2
     
     #create a single channel image, thresholded to parameters
-    grey = getEmpty(1) 
+    grey = self.getEmpty(1) 
     cv.Threshold(self._getGrayscaleBitmap(), grey, threshval, 255, cv.CV_THRESH_BINARY)
 
     #create the label image
