@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 #system includes
-import os, sys, warnings, time, socket, re, urllib2
+import os, sys, warnings, time, socket, re, urllib2, types
 import SocketServer
 import threading
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from types import IntType, LongType, FloatType
+from types import IntType, LongType, FloatType, InstanceType
 from cStringIO import StringIO
 
 #couple quick typecheck helper functions
@@ -443,7 +443,9 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     if (not PIL_ENABLED):
       return None
     if (not self._pil):
-      self._pil = pil.fromstring("RGB", self.size(), self.getBitmap().tostring())
+      rgbbitmap = self.getEmpty()
+      cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
+      self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
     return self._pil
 
   def _getGrayscaleBitmap(self):
@@ -475,19 +477,24 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
         filehandle_or_filename = self.filename
       else:
         filehandle_or_filename = self.filehandle
-	if (not PIL_ENABLED):
-	  warnings.warn("You need the python image library to save by filehandle")
-          return 0
-  
+
 
     if (type(filehandle_or_filename) != str):
+      fh = filehandle_or_filename
+
+      if (not PIL_ENABLED):
+        warnings.warn("You need the python image library to save by filehandle")
+        return 0
+
+      if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
+        fh = fh.framebuffer
+      
       if (not mode):
         mode = "jpeg"
 
       try:
-        filehandle = filehandle_or_filename
-        self.getPIL().save(filehandle, mode)
-        self.filehandle = filehandle #set the filename for future save operations
+        self.getPIL().save(fh, mode)
+        self.filehandle = fh #set the filename for future save operations
         self.filename = ""
         
       except:
@@ -1615,7 +1622,7 @@ class JpegStreamer():
   js = JpegStreamer()
 
   to update:
-  img.save(js.buffer)
+  img.save(js)
 
   Note 3 optional parameters on the constructor:
   - port (default 8080) which sets the TCP port you need to connect to
@@ -1649,6 +1656,6 @@ If you run SimpleCV directly, it will launch an ipython shell
 """
 if __name__ == '__main__':
     sys.exit(
-        load_entry_point('ipython==0.10.2', 'console_scripts', 'ipython')()
+        #load_entry_point('ipython==0.10.2', 'console_scripts', 'ipython')()
     )
 
