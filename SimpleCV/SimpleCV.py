@@ -29,26 +29,20 @@ import scipy.spatial.distance as spsd
 from numpy import linspace 
 from scipy.interpolate import UnivariateSpline
 
-#putting this here, not sure it is the best
-#convert a scipy UnivariateSpline to a set of color correction bins
-def spline2ColorCurve( color_spline ):
-  xv = linspace(0,255,256)
-  return color_spline(xv)
-
 """
 A color spline class for performing color correction. This class basically wraps 
 the scipy.interpolate.UnivariateSpline. We use the spline for external modifications
 while the internal repsentation is a linear array with 256 elements from 0 to 256
 """
 class ColorCurve:
+  mCurve =""
   def __init__(self, curve_vals ):
     inBins = linspace(0,255,256)
-    if( type(curve_vals) == np.array ):
-      aSpline = UnivariateSpline( curve_vals[0,:],curve_vals[1,:],s=1)   
-      self = aSpline(inBins).copy()
+    if( type(curve_vals) == np.ndarray ):
+      aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
+      self.mCurve = aSpline(inBins)
     elif( type(curve_vals) == UnivariateSpline ):
-      self = curvVals(inBins).copy()
-
+      self.mCurve = curvVals(inBins)
   
 #optional libraries
 PIL_ENABLED = True
@@ -838,23 +832,19 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     TODO CHECK COLORSPACE
     """
     temp  = cv.CreateImage(self.size(), 8, 3)
-    cv.Copy(self._bitmap,temp);
     #Move to HLS space
-    cv.CvtColor(temp,temp,cv.CV_RGB2HLS)
-    #Work on the L channel
-    for idx in range(self.width):
-      for idy in range(self.height):
-      #get the bit value multiplied by the curve
-        c = cv.Get2D(temp,idy,idx)
-        newColor = [hCurve[int(c[0])],
-                    lCurve[int(c[1])],
-                    sCurve[int(c[2])]]
-        cv.Set2D(temp,idy,idx,newColor)
-        #CV set and get are slow... need direct buffer access
-  
-    #go back to RGB space
-    cv.CvtColor(temp,temp,cv.CV_HLS2RGB)  
-    return Image(temp)
+    cv.CvtColor(self._bitmap,temp,cv.CV_RGB2HLS)
+    tempMat = cv.GetMat(temp) #convert the bitmap to a matrix
+    #now apply the color curve correction
+    tempMat = np.array(self.getMatrix()).copy()
+    tempMat[:,:,0] = np.take(hCurve.mCurve,tempMat[:,:,0])
+    tempMat[:,:,1] = np.take(sCurve.mCurve,tempMat[:,:,1])
+    tempMat[:,:,2] = np.take(lCurve.mCurve,tempMat[:,:,2])
+    #Now we jimmy the np array into a cvMat
+    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
+    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
+    cv.CvtColor(image,image,cv.CV_HLS2RGB)  
+    return Image(image)
 
   def applyRGBCurve(self, rCurve, gCurve, bCurve):
     """
@@ -862,12 +852,14 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     Return new image, original is unchanged
     The curve should be a floating point array of length 256
     """
-    print(bCurve)
-    tempMat = np.array(self.getMatrix())
-    tempMat[:,:,0] = np.take(bCurve,tempMat[:,:,0])
-    tempMat[:,:,1] = np.take(gCurve,tempMat[:,:,1])
-    tempMat[:,:,2] = np.take(rCurve,tempMat[:,:,2])
-    return Image(tempMat)
+    tempMat = np.array(self.getMatrix()).copy()
+    tempMat[:,:,0] = np.take(bCurve.mCurve,tempMat[:,:,0])
+    tempMat[:,:,1] = np.take(gCurve.mCurve,tempMat[:,:,1])
+    tempMat[:,:,2] = np.take(rCurve.mCurve,tempMat[:,:,2])
+    #Now we jimmy the np array into a cvMat
+    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
+    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
+    return Image(image)
 
   def applyIntensityCurve(self, curve):
     """
@@ -875,15 +867,12 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     Return new grayscale image, original is unchanged
     The curve should be a floating point array of length 256
     """
-    temp  = self._getGrayscaleBitmap()
-    for idx in range(sf.width):
-      for idy in range(self.height):
-      #get the bit value multiplied by the curve
-        c = cv.Get2D(temp,idy,idx)
-        newColor = [curve[int(c[0])],0,0,0]
-        cv.Set2D(temp,idy,idx,newColor)
-        #CV set and get are slow... need direct buffer access
-    return Image(temp)
+    tempMat = np.array(self.getGrayscaleMatrix()).copy()
+    tempMat[:,:] = np.take(curve.mCurve,tempMat[:,:])
+    #Now we jimmy the np array into a cvMat
+    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 1)
+    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 1 * tempMat.shape[1])
+    return Image(image);
       
   def histogram(self, numbins = 50):
     """

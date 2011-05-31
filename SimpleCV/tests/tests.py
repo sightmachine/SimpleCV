@@ -368,22 +368,19 @@ def test_image_add():
   imgC = imgA + imgB
 
 def test_color_curve_HSL():
-  x = [0,64,192, 255] #These are the bins from 0 to 255
-  y = [0,64,192, 255]  #These are the weights 
-  s = UnivariateSpline(x,y,s=1)
-  curve = spline2ColorCurve(s)
+  y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
+  curve = ColorCurve(y)
   img = Image(testimage)
   img2 = img.applyHLSCurve(curve,curve,curve)
   img3 = img-img2
   c = img3.meanColor()
-  if( c[0] > 1.0 or c[1] > 1.0 or c[2] > 1.0 ): #there may be a bit of roundoff error 
+  print(c)
+  if( c[0] > 2.0 or c[1] > 2.0 or c[2] > 2.0 ): #there may be a bit of roundoff error 
     assert False
 
 def test_color_curve_RGB():
-  x = [0,64,192, 255] #These are the bins from 0 to 255
-  y = [0,64,192, 255]  #These are the weights 
-  s = UnivariateSpline(x,y,s=1)
-  curve = spline2ColorCurve(s)
+  y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
+  curve = ColorCurve(y)
   img = Image(testimage)
   img2 = img.applyRGBCurve(curve,curve,curve)
   img3 = img-img2
@@ -392,10 +389,8 @@ def test_color_curve_RGB():
     assert False
 
 def test_color_curve_GRAY():
-  x = [0,64,192, 255] #These are the bins from 0 to 255
-  y = [0,64,192, 255]  #These are the weights 
-  s = UnivariateSpline(x,y,s=1)
-  curve = spline2ColorCurve(s)
+  y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
+  curve = ColorCurve(y)
   img = Image(testimage)
   gray = img.desaturate()
   img2 = img.applyIntensityCurve(curve)
