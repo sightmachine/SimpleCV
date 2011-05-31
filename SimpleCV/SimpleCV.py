@@ -35,6 +35,21 @@ def spline2ColorCurve( color_spline ):
   xv = linspace(0,255,256)
   return color_spline(xv)
 
+"""
+A color spline class for performing color correction. This class basically wraps 
+the scipy.interpolate.UnivariateSpline. We use the spline for external modifications
+while the internal repsentation is a linear array with 256 elements from 0 to 256
+"""
+class ColorCurve:
+  def __init__(self, curve_vals ):
+    inBins = linspace(0,255,256)
+    if( type(curve_vals) == np.array ):
+      aSpline = UnivariateSpline( curve_vals[0,:],curve_vals[1,:],s=1)   
+      self = aSpline(inBins).copy()
+    elif( type(curve_vals) == UnivariateSpline ):
+      self = curvVals(inBins).copy()
+
+  
 #optional libraries
 PIL_ENABLED = True
 try:
@@ -195,7 +210,6 @@ class VirtualCamera(FrameSource):
   """
   source = ""
   sourcetype = ""
-  capture = "" 
   
   def __init__(self, s, st):
     """
@@ -848,19 +862,12 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     Return new image, original is unchanged
     The curve should be a floating point array of length 256
     """
-    temp  = cv.CreateImage(self.size(), 8, 3)
-    cv.Copy(self._bitmap,temp);
-    for idx in range(self.width):
-      for idy in range(self.height):
-      #get the bit value multiplied by the curve
-        c = cv.Get2D(temp,idy,idx)
-        newColor = [bCurve[int(c[0])],
-                    gCurve[int(c[1])],
-                    rCurve[int(c[2])]]
-        cv.Set2D(temp,idy,idx,newColor)
-        #CV set and get are slow... need direct buffer access
-    return Image(temp)
-
+    print(bCurve)
+    tempMat = np.array(self.getMatrix())
+    tempMat[:,:,0] = np.take(bCurve,tempMat[:,:,0])
+    tempMat[:,:,1] = np.take(gCurve,tempMat[:,:,1])
+    tempMat[:,:,2] = np.take(rCurve,tempMat[:,:,2])
+    return Image(tempMat)
 
   def applyIntensityCurve(self, curve):
     """
@@ -869,7 +876,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     The curve should be a floating point array of length 256
     """
     temp  = self._getGrayscaleBitmap()
-    for idx in range(self.width):
+    for idx in range(sf.width):
       for idy in range(self.height):
       #get the bit value multiplied by the curve
         c = cv.Get2D(temp,idy,idx)
