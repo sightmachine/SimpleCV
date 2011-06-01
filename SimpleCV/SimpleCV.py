@@ -641,7 +641,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       newimg = self.getEmpty() 
       cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
       return Image(newimg)
-    except e:
+    except:
       return None
       
   def binarize(self, thresh = 127):
@@ -827,17 +827,16 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyHLSCurve(self, hCurve, lCurve, sCurve):
     """
-    Apply a curve correction in HSL space
-    Do BGR->HLS conversion
-    Apply correction, curve values of 1 get no change
-    Convert back to RGB space
-    Return new image, original is unchanged
-    The curve should be a floating point array of length 256
-  
-    TODO CHECK ROI
-    TODO CHECK CURVE SIZE
-    TODO CHECK COLORSPACE
+Returns an image with 3 ColorCurve corrections applied in HSL space
+Parameters are: 
+ * Hue ColorCurve 
+ * Lightness (brightness/value) ColorCurve
+ * Saturation ColorCurve
     """
+  
+    #TODO CHECK ROI
+    #TODO CHECK CURVE SIZE
+    #TODO CHECK COLORSPACE
     temp  = cv.CreateImage(self.size(), 8, 3)
     #Move to HLS space
     cv.CvtColor(self._bitmap,temp,cv.CV_RGB2HLS)
@@ -855,9 +854,11 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyRGBCurve(self, rCurve, gCurve, bCurve):
     """
-    Apply correction, curve values of 1 get no change
-    Return new image, original is unchanged
-    The curve should be a floating point array of length 256
+Returns an image with 3 ColorCurve corrections applied in rgb channels 
+Parameters are: 
+ * Red ColorCurve 
+ * Green ColorCurve
+ * Blue ColorCurve
     """
     tempMat = np.array(self.getMatrix()).copy()
     tempMat[:,:,0] = np.take(bCurve.mCurve,tempMat[:,:,0])
@@ -870,16 +871,9 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyIntensityCurve(self, curve):
     """
-    Apply correction, curve values of 1 get no change
-    Return new grayscale image, original is unchanged
-    The curve should be a floating point array of length 256
+Return an image with ColorCurve curve applied to all three color channels
     """
-    tempMat = np.array(self.getGrayscaleMatrix()).copy()
-    tempMat[:,:] = np.take(curve.mCurve,tempMat[:,:])
-    #Now we jimmy the np array into a cvMat
-    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 1)
-    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 1 * tempMat.shape[1])
-    return Image(image);
+    return self.applyRGBCurve(curve, curve, curve)
       
   def histogram(self, numbins = 50):
     """
@@ -1017,7 +1011,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   #this function contains two functions -- the basic edge detection algorithm
   #and then a function to break the lines down given a threshold parameter
-  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyh1=50, cannyth2=100):
+  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
     """
     findLines will find line segments in your image and returns Line feature 
     objects in a FeatureSet. The parameters are:

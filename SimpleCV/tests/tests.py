@@ -392,7 +392,7 @@ def test_color_curve_GRAY():
   y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
   curve = ColorCurve(y)
   img = Image(testimage)
-  gray = img.desaturate()
+  gray = img.grayscale()
   img2 = img.applyIntensityCurve(curve)
   print(gray.meanColor())
   print(img2.meanColor())
