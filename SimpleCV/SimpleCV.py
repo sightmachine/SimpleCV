@@ -893,7 +893,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     Example Code: ./examples/MorphologyExample.py
     """
     retVal = self.getEmpty() 
-    kern = cv.CreateStructuringElementEx(3,3,0,0,cv.CV_SHAPE_RECT)
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.Erode(self.getBitmap(),retVal,kern,iterations)
     return( Image(retVal) )
 
@@ -913,7 +913,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     Example Code: ./examples/MorphologyExample.py
     """
     retVal = self.getEmpty() 
-    kern = cv.CreateStructuringElementEx(3,3,0,0,cv.CV_SHAPE_RECT)
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.Dilate(self.getBitmap(),retVal,kern,iterations)
     return( Image(retVal) )
 
