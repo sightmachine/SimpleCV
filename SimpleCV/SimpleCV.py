@@ -333,7 +333,11 @@ Return the current frame of the JpegStream being monitored
 
 class ColorCurve:
   """
-  ColorCurve is a color spline class for performing color correction.  It can takeas parameters a SciPy Univariate spline, or an array with at least 4 point pairs.  Either of these must map in a 255x255 space.  The curve can then be used in the applyRGBCurve, applyHSVCurve, and applyInstensityCurve functions::
+  ColorCurve is a color spline class for performing color correction.  
+  It can takeas parameters a SciPy Univariate spline, or an array with at 
+  least 4 point pairs.  Either of these must map in a 255x255 space.  The curve 
+  can then be used in the applyRGBCurve, applyHSVCurve, and 
+  applyInstensityCurve functions::
 
     clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
     image.applyIntensityCurve(clr)
