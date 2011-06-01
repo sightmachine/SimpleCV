@@ -37,7 +37,6 @@ ColorCurve is a color spline class for performing color correction.  It can take
     image.applyIntensityCurve(clr)
 
 the only property, mCurve is a linear array with 256 elements from 0 to 255
-
   """
   mCurve =""
   def __init__(self, curve_vals ):
