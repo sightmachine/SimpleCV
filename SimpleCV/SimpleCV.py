@@ -930,7 +930,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     """
     retVal = self.getEmpty() 
     temp = self.getEmpty()
-    kern = cv.CreateStructuringElementEx(3,3,0,0,cv.CV_SHAPE_RECT)
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_OPEN,1)
     return( Image(retVal) )
 
@@ -948,7 +948,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     """
     retVal = self.getEmpty() 
     temp = self.getEmpty()
-    kern = cv.CreateStructuringElementEx(3,3,0,0,cv.CV_SHAPE_RECT)
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_CLOSE,1)
     return( Image(retVal) )
 
@@ -966,7 +966,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     retVal = self.getEmpty() 
     retVal = self.getEmpty() 
     temp = self.getEmpty()
-    kern = cv.CreateStructuringElementEx(3,3,0,0,cv.CV_SHAPE_RECT)
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
     return( Image(retVal) )
 

@@ -16,6 +16,7 @@ blue = (0,0,255)
 
 
 #images
+barcode = "../sampleimages/barcode.png"
 testimage = "../sampleimages/9dots4lines.png"
 testimage2 = "../sampleimages/aerospace.jpg"
 whiteimage = "../sampleimages/white.png"
@@ -401,7 +402,55 @@ def test_color_curve_GRAY():
   if( g[0]-i2[0] > 1 ): #there may be a bit of roundoff error 
     assert False
 
+def test_dilate():
+  img=Image(barcode)
+  img2 = img.dilate(20)
+  c=img2.meanColor()
+  print(c)
+  if( c[0] < 254 or c[1] < 254 or c[2] < 254 ):
+    assert False;
+
+def test_erode():
+  img=Image(barcode)
+  img2 = img.erode(100)
+  c=img2.meanColor()
+  print(c)
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False;
   
+def test_morph_open():
+  img = Image(barcode);
+  erode= img.erode()
+  dilate = erode.dilate()
+  result = img.morphOpen()
+  test = result-dilate
+  c=test.meanColor()
+  print(c)
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False;
+
+def test_morph_close():
+  img = Image(barcode)
+  dilate = img.dilate()
+  erode = dilate.erode()
+  result = img.morphClose()
+  test = result-erode
+  c=test.meanColor()
+  print(c)
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False;
+
+def test_morph_grad():
+  img = Image(barcode)
+  dilate = img.dilate()
+  erode = img.erode()
+  dif = dilate-erode
+  result = img.morphGradient()
+  test = result-dif
+  c=test.meanColor()
+  print(c)
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False;
   
 
   
