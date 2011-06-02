@@ -846,6 +846,7 @@ Parameters are:
     #TODO CHECK ROI
     #TODO CHECK CURVE SIZE
     #TODO CHECK COLORSPACE
+    #TODO CHECK CURVE SIZE
     temp  = cv.CreateImage(self.size(), 8, 3)
     #Move to HLS space
     cv.CvtColor(self._bitmap,temp,cv.CV_RGB2HLS)
@@ -884,6 +885,97 @@ Return an image with ColorCurve curve applied to all three color channels
     """
     return self.applyRGBCurve(curve, curve, curve)
       
+  def erode(self, iterations=1):
+    """
+    Apply a morphological erosion. An erosion has the effect of removing small bits of noise
+    and smothing blobs. 
+    This implementation uses the default openCV 3X3 square kernel 
+    Erosion is effectively a local minima detector, the kernel moves over the image and
+    takes the minimum value inside the kernel. 
+    iterations - this parameters is the number of times to apply/reapply the operation
+    See: http://en.wikipedia.org/wiki/Erosion_(morphology).
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode 
+    Example Use: A threshold/blob image has 'salt and pepper' noise. 
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.Erode(self.getBitmap(),retVal,kern,iterations)
+    return( Image(retVal) )
+
+  def dilate(self, iterations=1):
+    """
+    Apply a morphological dilation. An dilation has the effect of smoothing blobs while
+    intensifying the amount of noise blobs. 
+    This implementation uses the default openCV 3X3 square kernel 
+    Erosion is effectively a local maxima detector, the kernel moves over the image and
+    takes the maxima value inside the kernel. 
+
+    iterations - this parameters is the number of times to apply/reapply the operation
+
+    See: http://en.wikipedia.org/wiki/Dilation_(morphology)
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate
+    Example Use: A part's blob needs to be smoother 
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.Dilate(self.getBitmap(),retVal,kern,iterations)
+    return( Image(retVal) )
+
+  def morphOpen(self):
+    """
+    morphologyOpen applies a morphological open operation which is effectively
+    an erosion operation followed by a morphological dilation. This operation
+    helps to 'break apart' or 'open' binary regions which are close together. 
+
+    See: http://en.wikipedia.org/wiki/Opening_(morphology)
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+    Example Use: two part blobs are 'sticking' together.
+    Example Code: ./examples/MorphologyExample.py 
+    """
+    retVal = self.getEmpty() 
+    temp = self.getEmpty()
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_OPEN,1)
+    return( Image(retVal) )
+
+
+  def morphClose(self):
+    """
+    morphologyClose applies a morphological close operation which is effectively
+    a dilation operation followed by a morphological erosion. This operation
+    helps to 'bring together' or 'close' binary regions which are close together. 
+
+    See: http://en.wikipedia.org/wiki/Closing_(morphology)
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+    Example Use: Use when a part, which should be one blob is really two blobs.   
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    temp = self.getEmpty()
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_CLOSE,1)
+    return( Image(retVal) )
+
+  def morphGradient(self):
+    """
+    The morphological gradient is the difference betwen the morphological
+    dilation and the morphological gradient. This operation extracts the 
+    edges of a blobs in the image. 
+
+    See: http://en.wikipedia.org/wiki/Morphological_Gradient
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+    Example Use: Use when you have blobs but you really just want to know the blob edges.
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    retVal = self.getEmpty() 
+    temp = self.getEmpty()
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
+    return( Image(retVal) )
+
   def histogram(self, numbins = 50):
     """
     Return a numpy array of the 1D histogram of intensity for pixels in the image
