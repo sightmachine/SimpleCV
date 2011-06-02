@@ -1024,33 +1024,53 @@ Return an image with ColorCurve curve applied to all three color channels
       point[0] = (self.width-1)/2
       point[1] = (self.height-1)/2
     rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+    # first we create what we thing the rotation matrix should be
     cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
     A = np.array([0,0,1])
     B = np.array([self.width,0,1])
     C = np.array([self.width,self.height,1])
     D = np.array([0,self.height,1])
-    #So we have defined our image ABCD as homogenous coordinates
-    #now we apply the rotation
+    #So we have defined our image ABC in homogenous coordinates
+    #and apply the rotation so we can figure out the image size
     a = np.dot(rotMat,A)
     b = np.dot(rotMat,B)
     c = np.dot(rotMat,C)
     d = np.dot(rotMat,D)
     #I am not sure about this but I think the a/b/c/d are transposed
+    #now we calculate the extents of the rotated components. 
     minX = min(a[1],b[1],c[1],d[1])
     minY = min(a[0],b[0],c[0],d[0])
     maxX = max(a[1],b[1],c[1],d[1])
     maxY = max(a[0],b[0],c[0],d[0])
+    #from the extents we calculate the new size
     newWidth = np.ceil(maxX-minX)
     newHeight = np.ceil(maxY-minY)
-    # KAT NOTE TO SELF 
-    # GET THE NEW W/H 
-    # calculate the translation of the corners to center the image
-    # use these new corner positions as the input to cvGetAffineTransform
+    #now we calculate a new translation
+    tX = 0
+    tY = 0
+    #calculate the translation that will get us centered in the new image
+    if( minX < 0 ):
+      tX = -1.0*minX
+    elif(maxX > newWidth-1 ):
+      tX = -1.0*(maxX-newWidth)
+
+    if( minY < 0 ):
+      tY = -1.0*minY
+    elif(maxY > newHeight-1 ):
+      tY = -1.0*(maxY-newHeight)
+
+    #now we construct an affine map that will the rotation and scaling we want with the 
+    #the corners all lined up nicely with the output image. 
+    src = ((A[0],A[1]),(B[0],B[1]),(C[0],C[1]))
+    dst = ((a[0]+tY,a[1]+tX),(b[0]+tY,b[1]+tX),(c[0]+tY,c[1]+tX))
+    cv.GetAffineTransform(src,dst,rotMat)
+
+    #calculate the translation of the corners to center the image
+    #use these new corner positions as the input to cvGetAffineTransform
     retVal = cv.CreateImage((int(newWidth),int(newHeight)), 8, int(3))
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
     return( Image(retVal) ) 
 
-  
   def transform_affine(self, rotMatrix):
     """
     This operation performs an affine rotation using the supplied matrix. 
