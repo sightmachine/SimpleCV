@@ -55,4 +55,14 @@ Commands::
     python setup.py install
 
 
+Windows 7/Vista
+------------------------------------
 
+Steps:
+
+#. (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/ 
+#. Install Python 2.7 http://www.python.org/getit/releases/2.7.1/
+#. Install Python Setup Tools for Windows http://pypi.python.org/packages/2.7/s/setuptools/ (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows) 
+#. Install the SciPy superpack: http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download 
+#. Install OpenCV: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.2/ (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
+#. easy_install.exe simplecv (See: http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html)
