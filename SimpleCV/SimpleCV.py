@@ -55,14 +55,28 @@ try:
 except ImportError:
   FREENECT_ENABLED = False 
 
-class MatrixConversionUtil:
-  """
-  This class is a utility for converting between the native cvMat type
-  and numpy matrix type. 
-  """
-  def __init__(self, inputMat):
-    if( type(inputMat) == np.ndarray ):
-    elif( type(inputMat)==
+
+"""
+This function is a utility for converting numpy arrays to the cv.cvMat format.  
+"""
+def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
+  if( type(inputMat) == np.ndarray ):
+    sz = len(inputMat.shape)
+    test = cv.cvMat
+    if( sz == 1 ): #this needs to be changed so we can do row/col vectors
+      retVal = cv.CreateMat(inputMat.shape[0],1,dataType)
+      cv.SetData(retVal, inputMat.tostring(),inputMat.dtype.itemsize * inputMat.shape[0])
+    elif( sz == 2 ):
+      retVal = cv.CreateMat(inputMat.shape[0],inputMat.shape[1],dataType)
+      cv.SetData(retVal, inputMat.tostring(),inputMat.dtype.itemsize * inputMat.shape[1])
+    elif( sz > 2 ):
+      retVal = cv.CreateMat(inputMat.shape,dataType)
+      #I am going to hold off on this..... no good approach may not be needed    
+    return retVal
+  else:
+    warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
+
+
 class FrameSource:
   """
   An abstract Camera-type class, for handling multiple types of video input.
@@ -967,7 +981,7 @@ Return an image with ColorCurve curve applied to all three color channels
     return( Image(retVal) )
 
   def morphGradient(self):
-    """ç
+    """
     The morphological gradient is the difference betwen the morphological
     dilation and the morphological gradient. This operation extracts the 
     edges of a blobs in the image. 
@@ -978,12 +992,62 @@ Return an image with ColorCurve curve applied to all three color channels
     Example Code: ./examples/MorphologyExample.py
     """
     retVal = self.getEmpty() 
-    retVal = self.getEmpty() 
     temp = self.getEmpty()
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
     return( Image(retVal) )
 
+  def rotate_fixed(self, angle, point=[-1,-1], scale = 1.0):
+    """
+    Performs an inplace rotation about the angle specified at the point specified
+    if the point is not specified we perform the rotation about the center of the 
+    image. This operation can also perform an optional scaling.
+    The resutling image is the same size as the orignial. 
+    """
+    retVal = self.getEmpty()
+    if( point[0] == -1 or point[1] == -1 ):
+      point[0] = (self.width-1)/2
+      point[1] = (self.height-1)/2
+    rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+    cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+    cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+    return( Image(retVal) ) 
+
+  def rotate_full(self, angle, point=[-1,-1], scale = 1.0):
+    """
+    Performs an inplace rotation about the angle specified at the point specified
+    if the point is not specified we perform the rotation about the center of the 
+    image. This operation can also perform an optional scaling.
+    The resutling image is the same size as the orignial. 
+    """
+    if( point[0] == -1 or point[1] == -1 ):
+      point[0] = (self.width-1)/2
+      point[1] = (self.height-1)/2
+    rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+    cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+    A = np.array([0,0,1])
+    B = np.array([self.width,0,1])
+    C = np.array([self.width,self.height,1])
+    D = np.array([0,self.height,1])
+    #So we have defined our image ABCD as homogenous coordinates
+    #now we apply the rotation
+    a = np.dot(rotMat,A)
+    b = np.dot(rotMat,B)
+    c = np.dot(rotMat,C)
+    d = np.dot(rotMat,D)
+    #I am not sure about this but I think the a/b/c/d are transposed
+    minX = min(a[1],b[1],c[1],d[1])
+    minY = min(a[0],b[0],c[0],d[0])
+    maxX = max(a[1],b[1],c[1],d[1])
+    maxY = max(a[0],b[0],c[0],d[0])
+    newWidth = np.ceil(maxX-minX)
+    newHeight = np.ceil(maxY-minY)
+    retVal = cv.CreateImage((int(newWidth),int(newHeight)), 8, int(3))
+    cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+    return( Image(retVal) ) 
+
+
+  
   def histogram(self, numbins = 50):
     """
     Return a numpy array of the 1D histogram of intensity for pixels in the image
