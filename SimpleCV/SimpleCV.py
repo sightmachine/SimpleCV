@@ -1042,10 +1042,38 @@ Return an image with ColorCurve curve applied to all three color channels
     maxY = max(a[0],b[0],c[0],d[0])
     newWidth = np.ceil(maxX-minX)
     newHeight = np.ceil(maxY-minY)
+    # KAT NOTE TO SELF 
+    # GET THE NEW W/H 
+    # calculate the translation of the corners to center the image
+    # use these new corner positions as the input to cvGetAffineTransform
     retVal = cv.CreateImage((int(newWidth),int(newHeight)), 8, int(3))
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
     return( Image(retVal) ) 
 
+  
+  def transform_affine(self, rotMatrix):
+    """
+    This operation performs an affine rotation using the supplied matrix. 
+    The matrix can be a either an openCV mat or an np.ndarray type. 
+    The matrix should be a 2x3
+    """
+    retVal = self.getEmpty()
+    if(type(rotMatrix) == np.ndarray ):
+      rotMatrix = npArray2cvMat(rotMatrix)
+    cv.WarpAffine(self.getBitmap(),retVal,rotMatrix)
+    return( Image(retVal) ) 
+
+  def transform_perspective(self, rotMatrix):
+    """
+    This operation performs an affine rotation using the supplied matrix. 
+    The matrix can be a either an openCV mat or an np.ndarray type. 
+    The matrix should be a 3x3
+    """
+    retVal = self.getEmpty()
+    if(type(rotMatrix) == np.ndarray ):
+      rotMatrix = npArray2cvMat(rotMatrix)
+    cv.WarpPerspective(self.getBitmap(),retVal,rotMatrix)
+    return( Image(retVal) ) 
 
   
   def histogram(self, numbins = 50):
