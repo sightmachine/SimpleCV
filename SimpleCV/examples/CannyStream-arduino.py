@@ -18,11 +18,12 @@ def main():
 
   multiplier = 400.0
 
-  cam = Camera(1)
+  cam = Camera()
   js = JpegStreamer()
 
-  analog_4 = board.get_pin('a:4:i')
-  analog_5 = board.get_pin('a:5:i')
+  analog_4 = board.get_pin('a:1:i')
+  analog_5 = board.get_pin('a:2:i')
+  button_13 = board.get_pin('d:13:i')
 
   it = util.Iterator(board) 
   it.start()
@@ -31,6 +32,7 @@ def main():
     #print str(analog_5.read()) + "\t\t" + str(analog_4.read())
     t1 = analog_5.read()
     t2 = analog_4.read()
+    b13 = button_13.read()
 
     if not t1: 
       t1 = 50 
@@ -42,7 +44,7 @@ def main():
     else:
       t2 *= multiplier
 
-    print "t1 " + str(t1) + ", t2 " + str(t2)
+    print "t1 " + str(t1) + ", t2 " + str(t2) + ", b13 " + str(b13)
     cam.getImage().flipHorizontal().edges(int(t1), int(t2)).invert().smooth().save(js.framebuffer)
 
     time.sleep(0.01)
