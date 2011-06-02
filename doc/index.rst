@@ -11,8 +11,6 @@ a kinder, gentler machine vision python library
 SimpleCV is an interface for Open Source machine vision libraries in Python.   
 It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
 
-
-
 We like SimpleCV because:
 
  * Even beginning programmers can write simple machine vision tests
@@ -30,6 +28,26 @@ Here is the simplecv "hello world"::
     c.getImage().save("picture.jpg")
 
 For more code snippets, look at the cookbook, or the example scripts.
+
+
+Installation
+---------------------------
+
+You will absolutely need:
+
+ * OpenCV installed for your platform http://opencv.willowgarage.com/wiki/InstallGuide
+ * SciPY/Numpy installed for your platform http://www.scipy.org/Download
+
+Once you have all the required libraries installed::
+
+    easy_install simplecv
+
+If you need more help, look at the [installation docs](http://simplecv.sf.net/installation.html)
+
+
+
+
+
 
 Required Libraries
 ----------------------
