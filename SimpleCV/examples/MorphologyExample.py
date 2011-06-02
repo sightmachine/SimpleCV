@@ -5,7 +5,7 @@ from scipy.interpolate import UnivariateSpline
 import sys, time, socket
 
 #settings for the project
-srcImg  = "../sampleimages/barcode.png"     #Path for output files
+srcImg  = "../sampleimages/orson_welles.jpg"     #Path for output files
 input = Image(srcImg)
 input.save("MorphSource.png")
 

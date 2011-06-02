@@ -29,21 +29,7 @@ import scipy.spatial.distance as spsd
 from numpy import linspace 
 from scipy.interpolate import UnivariateSpline
 
-"""
-A color spline class for performing color correction. This class basically wraps 
-the scipy.interpolate.UnivariateSpline. We use the spline for external modifications
-while the internal repsentation is a linear array with 256 elements from 0 to 256
-"""
-class ColorCurve:
-  mCurve =""
-  def __init__(self, curve_vals ):
-    inBins = linspace(0,255,256)
-    if( type(curve_vals) == np.ndarray ):
-      aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
-      self.mCurve = aSpline(inBins)
-    elif( type(curve_vals) == UnivariateSpline ):
-      self.mCurve = curvVals(inBins)
-  
+ 
 #optional libraries
 PIL_ENABLED = True
 try:
@@ -352,7 +338,30 @@ Return the current frame of the JpegStream being monitored
     """
     return Image(pil.open(StringIO(self.camthread.currentframe)))
 
+class ColorCurve:
+  """
+  ColorCurve is a color spline class for performing color correction.  
+  It can takeas parameters a SciPy Univariate spline, or an array with at 
+  least 4 point pairs.  Either of these must map in a 255x255 space.  The curve 
+  can then be used in the applyRGBCurve, applyHSVCurve, and 
+  applyInstensityCurve functions::
 
+    clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+    image.applyIntensityCurve(clr)
+
+  the only property, mCurve is a linear array with 256 elements from 0 to 255
+  """
+  mCurve =""
+
+  def __init__(self, curve_vals ):
+    inBins = linspace(0,255,256)
+    if( type(curve_vals) == UnivariateSpline ):
+      self.mCurve = curvVals(inBins)
+    else: 
+      curve_vals = np.array(curve_vals)
+      aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
+      self.mCurve = aSpline(inBins)
+ 
 
 class Image:
   """
@@ -649,7 +658,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       newimg = self.getEmpty() 
       cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
       return Image(newimg)
-    except e:
+    except:
       return None
       
   def binarize(self, thresh = 127):
@@ -835,13 +844,16 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyHLSCurve(self, hCurve, lCurve, sCurve):
     """
-    Apply a curve correction in HSL space
-    Do BGR->HLS conversion
-    Apply correction, curve values of 1 get no change
-    Convert back to RGB space
-    Return new image, original is unchanged
-    The curve should be a floating point array of length 256
+Returns an image with 3 ColorCurve corrections applied in HSL space
+Parameters are: 
+ * Hue ColorCurve 
+ * Lightness (brightness/value) ColorCurve
+ * Saturation ColorCurve
     """
+  
+    #TODO CHECK ROI
+    #TODO CHECK CURVE SIZE
+    #TODO CHECK COLORSPACE
     #TODO CHECK CURVE SIZE
     temp  = cv.CreateImage(self.size(), 8, 3)
     #Move to HLS space
@@ -860,9 +872,11 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyRGBCurve(self, rCurve, gCurve, bCurve):
     """
-    Apply correction, curve values of 1 get no change
-    Return new image, original is unchanged
-    The curve should be a floating point array of length 256
+Returns an image with 3 ColorCurve corrections applied in rgb channels 
+Parameters are: 
+ * Red ColorCurve 
+ * Green ColorCurve
+ * Blue ColorCurve
     """
     tempMat = np.array(self.getMatrix()).copy()
     tempMat[:,:,0] = np.take(bCurve.mCurve,tempMat[:,:,0])
@@ -875,18 +889,10 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyIntensityCurve(self, curve):
     """
-    Apply correction, curve values of 1 get no change
-    Return new grayscale image, original is unchanged
-    The curve should be a floating point array of length 256
+Return an image with ColorCurve curve applied to all three color channels
     """
-    tempMat = np.array(self.getGrayscaleMatrix()).copy()
-    tempMat[:,:] = np.take(curve.mCurve,tempMat[:,:])
-    #Now we jimmy the np array into a cvMat
-    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 1)
-    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 1 * tempMat.shape[1])
-    return Image(image);
-  
- 
+    return self.applyRGBCurve(curve, curve, curve)
+      
   def erode(self, iterations=1):
     """
     Apply a morphological erosion. An erosion has the effect of removing small bits of noise
@@ -977,9 +983,6 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
     return( Image(retVal) )
-
-
-
 
   def histogram(self, numbins = 50):
     """
@@ -1117,7 +1120,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   #this function contains two functions -- the basic edge detection algorithm
   #and then a function to break the lines down given a threshold parameter
-  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyh1=50, cannyth2=100):
+  def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
     """
     findLines will find line segments in your image and returns Line feature 
     objects in a FeatureSet. The parameters are:
