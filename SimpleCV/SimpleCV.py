@@ -69,7 +69,14 @@ try:
 except ImportError:
   FREENECT_ENABLED = False 
 
-
+class MatrixConversionUtil:
+  """
+  This class is a utility for converting between the native cvMat type
+  and numpy matrix type. 
+  """
+  def __init__(self, inputMat):
+    if( type(inputMat) == np.ndarray ):
+    elif( type(inputMat)==
 class FrameSource:
   """
   An abstract Camera-type class, for handling multiple types of video input.
@@ -426,6 +433,7 @@ class Image:
     self.width = bm.width
     self.height = bm.height
     self.depth = bm.depth
+
  
   def getEmpty(self, channels = 3):
     """
@@ -953,7 +961,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     return( Image(retVal) )
 
   def morphGradient(self):
-    """
+    """ç
     The morphological gradient is the difference betwen the morphological
     dilation and the morphological gradient. This operation extracts the 
     edges of a blobs in the image. 
