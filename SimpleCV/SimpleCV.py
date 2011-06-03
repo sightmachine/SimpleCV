@@ -62,7 +62,6 @@ This function is a utility for converting numpy arrays to the cv.cvMat format.
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
   if( type(inputMat) == np.ndarray ):
     sz = len(inputMat.shape)
-    test = cv.cvMat
     if( sz == 1 ): #this needs to be changed so we can do row/col vectors
       retVal = cv.CreateMat(inputMat.shape[0],1,dataType)
       cv.SetData(retVal, inputMat.tostring(),inputMat.dtype.itemsize * inputMat.shape[0])
@@ -71,7 +70,7 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
       cv.SetData(retVal, inputMat.tostring(),inputMat.dtype.itemsize * inputMat.shape[1])
     elif( sz > 2 ):
       retVal = cv.CreateMat(inputMat.shape,dataType)
-      #I am going to hold off on this..... no good approach may not be needed    
+      #I am going to hold off on this..... no good approach... may not be needed    
     return retVal
   else:
     warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
@@ -1038,10 +1037,10 @@ Return an image with ColorCurve curve applied to all three color channels
     d = np.dot(rotMat,D)
     #I am not sure about this but I think the a/b/c/d are transposed
     #now we calculate the extents of the rotated components. 
-    minX = min(a[1],b[1],c[1],d[1])
-    minY = min(a[0],b[0],c[0],d[0])
-    maxX = max(a[1],b[1],c[1],d[1])
-    maxY = max(a[0],b[0],c[0],d[0])
+    minY = min(a[1],b[1],c[1],d[1])
+    minX = min(a[0],b[0],c[0],d[0])
+    maxY = max(a[1],b[1],c[1],d[1])
+    maxX = max(a[0],b[0],c[0],d[0])
     #from the extents we calculate the new size
     newWidth = np.ceil(maxX-minX)
     newHeight = np.ceil(maxY-minY)
@@ -1062,7 +1061,8 @@ Return an image with ColorCurve curve applied to all three color channels
     #now we construct an affine map that will the rotation and scaling we want with the 
     #the corners all lined up nicely with the output image. 
     src = ((A[0],A[1]),(B[0],B[1]),(C[0],C[1]))
-    dst = ((a[0]+tY,a[1]+tX),(b[0]+tY,b[1]+tX),(c[0]+tY,c[1]+tX))
+    dst = ((a[0]+tX,a[1]+tY),(b[0]+tX,b[1]+tY),(c[0]+tX,c[1]+tY))
+
     cv.GetAffineTransform(src,dst,rotMat)
 
     #calculate the translation of the corners to center the image
