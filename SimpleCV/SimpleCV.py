@@ -81,6 +81,8 @@ class FrameSource:
   An abstract Camera-type class, for handling multiple types of video input.
   Any sources of images inheirit from it
   """
+  mCalibMat = "" #Intrinsic calibration matrix 
+
   def __init__(self):
     return
 
@@ -92,6 +94,76 @@ class FrameSource:
 
   def getImage(self):
     return None
+
+  def Calibrate(self, imageList):
+    """
+    Camera calibration is agnostic of the imagery source 
+    """
+    return None
+  
+
+  def GetCameraMatrix(self):
+    """
+    This function returns a cvMat of the camera's intrinsic matrix. 
+    If there is no matrix defined the function returns None. 
+    """
+    return mCalibMat
+
+  def MarkCalibrationGrid(self, inImg, dimensions=(7,7)):
+    """
+    This function will return an image with calibration grid draw on the
+    image. This is helpful for doing calibration as it allows you to visually
+    verify that the system is recognizing the calibration grid. The default 
+    calibration grid can be found in:
+    \SimpleCV\tools\CalibGrid.png
+    """
+    # we're treating the Image class as a "friend" class in this setting
+    # corners = np.array()
+    result = ""
+    corners = ""
+    found = False
+    
+    retVal = inImg.getEmpty()
+    cv.Copy(inImg.getBitmap(),retVal)
+    #Get the corners 
+    corners = cv.FindChessboardCorners(inImg.getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+    #If the corners exist they will match the size here
+    if(len(corners[1]) == dimensions[0]*dimensions[1]):
+      #Now we locate the corners using sub-pixel accuracy so they are dead on
+      spCorners = cv.FindCornerSubPix(inImg.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      #Now draw them and return the results. 
+      cv.DrawChessboardCorners(retVal,dimensions,spCorners,1)
+    return Image(retVal) 
+
+  def Undistort(self, inImg):
+    """
+    Given an image, apply the undistortion given my the camera's matrix and return the result
+    """
+    return None
+
+  def GetImageUndistort(self):
+    """
+    Using the overridden getImage method we retrieve the image and apply the undistortion
+    operation. 
+    """
+    return None
+  
+  
+  def SaveCalibration(self,filename):
+    """
+    Save the calibration matrix to file. The file name should be without the extension.
+    The default extension is .xml
+    Returns true if the file was successful loaded, false otherwise. 
+    """
+    return None
+
+  def LoadCalibration(self,filename):
+    """
+    Load a calibration matrix from file.
+    Returns true if the file was successful loaded, false otherwise. 
+    """
+    return None
+
 
 _cameras = [] 
 _camera_polling_thread = "" 
