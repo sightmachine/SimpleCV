@@ -3,8 +3,8 @@
 # SimpleCV Image Object
 
 #load required libraries
-from scvLibSys import *
-from scvLibInc import *
+from __init__ import *
+from Detection import *
 
 class Image:
   """

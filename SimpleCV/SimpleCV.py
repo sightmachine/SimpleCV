@@ -18,22 +18,19 @@
 
 
 #load system libraries
-from scvLibSys import *
-#library includes
-from scvLibInc import *
-#Load simpleCV optional libraries
-from scvLibOptional import *
+from __init__ import *
 from subprocess import call
 
 #Load simpleCV libraries
-from scvImage import *
-from scvCamera import *
-from scvHelperFunctions import *
-from scvDetection import *
-from scvColor import *
-from scvTutorial import *
+from Image import *
+from Camera import *
+from Util import *
+from Detection import *
+from Color import *
+from Tutorial import *
 
-
+#libraries for the shell
+from IPython.Shell import IPShellEmbed
 
 #Globals
 _cameras = [] 
@@ -47,9 +44,10 @@ def clear():
 If you run SimpleCV directly, it will launch an ipython shell
 """
 if __name__ == '__main__':
-  
-    banner = '\n'
-    banner += '+----------------------------------------------------+\n'
+
+    clear()
+
+    banner = '+----------------------------------------------------+\n'
     banner += ' SimpleCV [interactive shell]\n'
     banner += '+----------------------------------------------------+\n'
     banner += '\n\n'
@@ -64,9 +62,14 @@ if __name__ == '__main__':
     banner += '\tjust by touching TAB after typing Image().\n'
     banner += '\n'
     banner += 'Help:\n'
-    banner += '\ttyping ? function name will give the API documentation\n'
-    banner += '\tfor example: ?Image.save\n'
-    banner += '\twill give help on the image save function and what is expected\n'
+    banner += '\ttyping "help function_name" will give in depth documentation of API\n'
+    banner += '\t\texample:'
+    banner += 'help Image\n'
+    banner += '\t\twill give the in-depth information about that class\n'
+    banner += '\ttyping "?function_name" will give the quick API documentation\n'
+    banner += '\t\texample:'
+    banner += '?Image.save\n'
+    banner += '\t\twill give help on the image save function'
     
 
     

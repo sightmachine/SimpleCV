@@ -6,9 +6,7 @@
 
 
 #load system libraries
-from scvLibSys import *
-#library includes
-from scvLibInc import *
+from __init__ import *
 
 
 

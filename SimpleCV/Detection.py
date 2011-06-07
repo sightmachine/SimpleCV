@@ -5,9 +5,8 @@
 # This library includes classes for finding things in images
 
 #load required libraries
-from scvLibSys import *
-from scvLibInc import *
-from scvFeatures import *
+from __init__ import *
+from Features import *
 
 
 class Corner(Feature):

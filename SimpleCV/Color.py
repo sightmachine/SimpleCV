@@ -5,8 +5,7 @@
 # This library is used to modify different color properties of images
 
 #load required libraries
-from scvLibSys import *
-from scvLibInc import *
+from __init__ import *
 
 class ColorCurve:
   """
