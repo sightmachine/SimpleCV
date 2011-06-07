@@ -17,6 +17,7 @@ def main(stdscr):
   ext = ".png"
   count = 0
   quit = False
+  imgList = list()
   while (quit == False):
     img = cam.getImage()
     grid = cam.MarkCalibrationGrid(img)
@@ -26,7 +27,11 @@ def main(stdscr):
     elif( c == 32 ):
       fname = baseName+str(count)+ext
       img.save(fname)
+      imgList.append(img)
       count = count + 1
+    elif( c == 22 ):
+      m = camera.Calibrate(imgList)
+      print(m)
 
     stdscr.addstr(str(c))
     stdscr.refresh()
