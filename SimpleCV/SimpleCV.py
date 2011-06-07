@@ -107,38 +107,53 @@ class FrameSource:
     dimensions - is the the count of the *interior* corners in the calibration grid.
     So for a grid where there are 4x4 black grid squares has seven interior corners. 
     """
-    img_pts = list() #list of points in an image
-    obj_pts = list() #list of points in the 3D world
-    obj_fixed = list() #fixed list of 3D world points
-    pt_count = list() #point count
+    imageList[0].save("foobar.jpg")
+    img_pts = []#list of points in an image
+    obj_pts = []#list of points in the 3D world
+    obj_fixed = [] #fixed list of 3D world points
+    pt_count = [] #point count
     #this probably can be faster 
-    for i in range(0,dimensions[0]-1):
-      for j in range(0,dimensions[1]-1):
-        obj_fixed.append((i*grid_sz,j*grid_sz,0.00))
+    for i in range(0,dimensions[0]):
+      for j in range(0,dimensions[1]):
+        obj_fixed.append([i*grid_sz,j*grid_sz,0.00])
 
-
-    for img in imageList:
-      corners = cv.FindChessboardCorners(img.getGrayscaleMatrix(),dimensions, 
-                                         cv.CALIB_CB_ADAPTIVE_THRESH + 
-                                         cv.CALIB_CB_NORMALIZE_IMAGE + 
-                                         cv.CALIB_CB_FAST_CHECK )
-      #If the corners exist they will match the size here
+    good_imgs = 0
+    for i in range(0,len(imageList)):
+      corners = cv.FindChessboardCorners(imageList[i].getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH)
+       #If the corners exist they will match the size here
       if(len(corners[1]) == dimensions[0]*dimensions[1]):
-      #Now we locate the corners using sub-pixel accuracy so they are dead on
-        spCorners = cv.FindCornerSubPix(img.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), 
-                                        (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
-        pt_count.append(len(spCorners))
-        img_pts.extend(spcorners)
+        spCorners = cv.FindCornerSubPix(imageList[i].getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+        img_pts.extend(spCorners)
         obj_pts.extend(obj_fixed)
+        pt_count.append(len(spCorners))
+        good_imgs = good_imgs+1
 
-    calib_mat = np.array()
-    dist_coeff = np.array()
-    rvecs = np.array()
-    tvecs = np.array()
-    cv.CalibrateCamera2(obj_pts,img_pts,(imageList[0].width,imageList[1].hieght),
-                        calib_mat,dist_coeff,rvecs,tvecs,0)
+    # convert to np.array
+    img_pts = np.array(img_pts)
+    obj_pts = np.array(obj_pts)
+    pt_count = np.array(pt_count)
+    calib_mat = cv.CreateMat(3,3,cv.CV_32FC1)
+    dist_coeff = cv.CreateMat(8,1,cv.CV_32FC1)
+    rvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
+    tvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
+
+    cvmObjPts = cv.CreateMat(obj_pts.shape[0],obj_pts.shape[1],cv.CV_32FC1)
+    cv.SetData(cvmObjPts,obj_pts.tostring(),obj_pts.dtype.itemsize*obj_pts.shape[1])
+
+    cvmImgPts = cv.CreateMat(img_pts.shape[0],img_pts.shape[1],cv.CV_32FC1)
+    cv.SetData(cvmImgPts,img_pts.tostring(),img_pts.dtype.itemsize*img_pts.shape[1])
+ 
+    cvmPtCount = cv.CreateMat(good_imgs,1,cv.CV_32SC1)
+    cv.SetData(cvmPtCount,pt_count.tostring(),pt_count.dtype.itemsize)
+
+    cv.Set2D(calib_mat,0,0,1.00)
+    cv.Set2D(calib_mat,1,1,1.00)
+    cv.Set2D(calib_mat,2,2,1.00)
+    cv.CalibrateCamera2(cvmObjPts,cvmImgPts,cvmPtCount,
+                        (imageList[0].width,imageList[1].height),calib_mat,dist_coeff,
+                        rvecs,tvecs, cv.CV_CALIB_USE_INTRINSIC_GUESS)
     return calib_mat
-  
+#    return None
 
   def GetCameraMatrix(self):
     """

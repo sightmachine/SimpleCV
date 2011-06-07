@@ -29,8 +29,10 @@ def main(stdscr):
       img.save(fname)
       imgList.append(img)
       count = count + 1
-    elif( c == 22 ):
-      m = camera.Calibrate(imgList)
+      print("Saved "+fname+"\n")
+    elif( c == 99 ):
+      print("Calibrate!\n")      
+      m = cam.Calibrate(imgList)
       print(m)
 
     stdscr.addstr(str(c))
