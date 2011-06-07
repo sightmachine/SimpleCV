@@ -56,7 +56,7 @@ ptrans = img.transform_perspective(pWarp)
 ptrans.save("ptrans.png")
 
 #do the same with an np array, 3x3
-pWarp2 = np.array(pwarp2)
+pWarp2 = np.array(pWarp)
 #now do it again using a np.array (this is the same transform)
 ptrans2 = img.transform_perspective(pWarp2)
 ptrans2.save("ptrans2.png")
