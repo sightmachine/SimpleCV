@@ -143,6 +143,7 @@ control than just basic frame retrieval
       _cameras.append(self)
       if (not _camera_polling_thread):
         _camera_polling_thread = FrameBufferThread()
+        _camera_polling_thread.daemon = True
         _camera_polling_thread.start()
       
     
@@ -323,6 +324,7 @@ Requires the [Python Imaging Library](http://www.pythonware.com/library/pil/hand
     self.url = url
     self.camthread = JpegStreamReader()
     self.camthread.url = self.url
+    self.camthread.daemon = True
     self.camthread.start()
 
   def getImage(self):
@@ -1828,6 +1830,7 @@ class JpegStreamer():
     self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
     self.server_thread = threading.Thread(target = self.server.serve_forever)
     _jpegstreamers[self.port] = self
+    self.server_thread.daemon = True
     self.server_thread.start()
 
 
