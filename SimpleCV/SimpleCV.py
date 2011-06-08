@@ -107,7 +107,6 @@ class FrameSource:
     dimensions - is the the count of the *interior* corners in the calibration grid.
     So for a grid where there are 4x4 black grid squares has seven interior corners. 
     """
-    imageList[0].save("foobar.jpg")
     img_pts = []#list of points in an image
     obj_pts = []#list of points in the 3D world
     obj_fixed = [] #fixed list of 3D world points
@@ -125,7 +124,6 @@ class FrameSource:
       (found,corners) = cv.FindChessboardCorners(imageList[i].getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH | cv.CV_CALIB_CB_FILTER_QUADS)
        #If the corners exist they will match the size here
       if(len(corners)==dimensions[0]*dimensions[1] and found == 1):
-        print("Got Good Image\n")
         #find the corners down to a gnats posterior 
         spCorners = cv.FindCornerSubPix(imageList[i].getGrayscaleMatrix(),corners,(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
         #add these values values back to our list
@@ -133,8 +131,6 @@ class FrameSource:
         obj_pts.extend(obj_fixed)
         pt_count.append(len(spCorners))
         good_imgs = good_imgs+1
-      else:
-        print("No corners found\n")
 
     if( good_imgs == 0 ):
           warnings.warn("FrameSource.saveCalibrate: no calibration grids seen.")
@@ -144,14 +140,14 @@ class FrameSource:
     obj_pts = np.array(obj_pts)
     pt_count = np.array(pt_count)
     calib_mat = cv.CreateMat(3,3,cv.CV_64FC1)
-    dist_coeff = cv.CreateMat(8,1,cv.CV_64FC1)
+    dist_coeff = cv.CreateMat(5,1,cv.CV_64FC1)
     rvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
     tvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
 
     #alas now convert the np array to cvMat
     cvmObjPts = cv.CreateMat(obj_pts.shape[0],obj_pts.shape[1],cv.CV_64FC1)
     cv.SetData(cvmObjPts,obj_pts.tostring(),obj_pts.dtype.itemsize*obj_pts.shape[1])
-
+    # The CV_64FC1 May cause issues
     cvmImgPts = cv.CreateMat(img_pts.shape[0],img_pts.shape[1],cv.CV_64FC1)
     cv.SetData(cvmImgPts,img_pts.tostring(),img_pts.dtype.itemsize*img_pts.shape[1])
  
@@ -162,8 +158,8 @@ class FrameSource:
     cv.Save("Points.xml",cvmPtCount)
     #Have to set the values of the output Mat as these are our initial conditions
     cv.SetZero(calib_mat)
-    cv.Set2D(calib_mat,0,0,1.10)
-    cv.Set2D(calib_mat,1,1,1.10)
+    cv.Set2D(calib_mat,0,0,1.0)
+    cv.Set2D(calib_mat,1,1,1.0)
     cv.Set2D(calib_mat,2,2,1.00)
     cv.Set2D(calib_mat,0,2,imageList[0].width/2)
     cv.Set2D(calib_mat,1,2,imageList[0].height/2)
@@ -176,7 +172,7 @@ class FrameSource:
     self._calibMat = calib_mat
     self._distCoeff = dist_coeff
     return calib_mat
-#    return None
+
 
   def getCameraMatrix(self):
     """
@@ -213,14 +209,19 @@ class FrameSource:
     """
     Given an image, apply the undistortion given my the camera's matrix and return the result
     """
-    return None
+    if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
+       warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
+       return None
+    retVal = inImg.getEmpty()
+    cv.Undistort2(inImg.getBitmap(),retVal,self._calibMat,self._distCoeff)
+    return Image(retVal)
 
   def getImageUndistort(self):
     """
     Using the overridden getImage method we retrieve the image and apply the undistortion
     operation. 
     """
-    return None
+    return self.undistort(self.getImage())
   
   
   def saveCalibration(self,filename):

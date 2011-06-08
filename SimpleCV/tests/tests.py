@@ -488,13 +488,14 @@ def test_affine():
     assert False
 
 def test_perspective():
+  img = Image(testimage2)
   src = ((0,0),(img.width-1,0),(img.width-1,img.height-1),(0,img.height-1))
   dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
   pWarp = cv.CreateMat(3,3,cv.CV_32FC1)
   cv.GetPerspectiveTransform(src,dst,pWarp)
   ptrans = img.transform_perspective(pWarp)
 
-  pWarp2 = np.array(pwarp2)
+  pWarp2 = np.array(pWarp)
   ptrans2 = img.transform_perspective(pWarp2)
   
   test = ptrans-ptrans2
@@ -503,8 +504,34 @@ def test_perspective():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
+def test_calibration():
+  fakeCamera = FrameSource()
+  path = "../sampleimages/CalibImage"
+  ext = ".png"
+  imgs = []
+  for i in range(0,10):
+    fname = path+str(i)+ext
+    img = Image(fname)
+    imgs.append(img)
 
-  
+  fakeCamera.calibrate(imgs)
+  #we're just going to check that the function doesn't puke
+  mat = fakeCamera.getCameraMatrix()
+  if( type(mat) != cv.cvmat ):
+    assert False
+  #we're also going to test load in save in the same pass 
+  matname = "TestCalibration"
+  if( False == fakeCamera.saveCalibration(matname)):
+    assert False
+  if( False == fakeCamera.loadCalibration(matname)):
+    assert False
+
+def test_undistort():
+  fakeCamera = FrameSource()
+  fakeCamera.loadCalibration("Default")
+  img = Image("../sampleimages/CalibImage0.png") 
+  img2 = fakeCamera.undistort(img)
+  img2.save("derp.png")
 #def test_image_subtract():
 #def test_image_negative():
 #def test_image_multiple():
