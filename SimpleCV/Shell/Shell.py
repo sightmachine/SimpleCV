@@ -18,15 +18,10 @@
 
 
 #load system libraries
-from SimpleCV import *
+from ..__init__ import *
 from subprocess import call
 
 #Load simpleCV libraries
-from .Image import *
-from .Camera import *
-from .Util import *
-from .Detection import *
-from .Color import *
 from .Tutorial import *
 
 #libraries for the shell
@@ -38,8 +33,7 @@ def clear():
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
-if __name__ == '__main__':
-
+def main():
     clear()
 
     banner = '+----------------------------------------------------+\n'
