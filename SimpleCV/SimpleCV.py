@@ -81,8 +81,8 @@ class FrameSource:
   An abstract Camera-type class, for handling multiple types of video input.
   Any sources of images inheirit from it
   """
-  mCalibMat = "" #Intrinsic calibration matrix 
-
+  _calibMat = "" #Intrinsic calibration matrix 
+  _distCoeff = "" #Distortion matrix
   def __init__(self):
     return
 
@@ -95,7 +95,7 @@ class FrameSource:
   def getImage(self):
     return None
 
-  def Calibrate(self, imageList, grid_sz=0.03,dimensions=(7,7)):
+  def calibrate(self, imageList, grid_sz=0.03,dimensions=(5,8)):
     """
     Camera calibration is agnostic of the imagery source 
 
@@ -112,57 +112,80 @@ class FrameSource:
     obj_pts = []#list of points in the 3D world
     obj_fixed = [] #fixed list of 3D world points
     pt_count = [] #point count
-    #this probably can be faster 
+
+    #this probably can be faster, but create the actual grid position in 3D 
     for i in range(0,dimensions[0]):
       for j in range(0,dimensions[1]):
         obj_fixed.append([i*grid_sz,j*grid_sz,0.00])
 
     good_imgs = 0
+    #go through the images
     for i in range(0,len(imageList)):
-      corners = cv.FindChessboardCorners(imageList[i].getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH)
+      #Find the corners
+      (found,corners) = cv.FindChessboardCorners(imageList[i].getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH | cv.CV_CALIB_CB_FILTER_QUADS)
        #If the corners exist they will match the size here
-      if(len(corners[1]) == dimensions[0]*dimensions[1]):
-        spCorners = cv.FindCornerSubPix(imageList[i].getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      if(len(corners)==dimensions[0]*dimensions[1] and found == 1):
+        print("Got Good Image\n")
+        #find the corners down to a gnats posterior 
+        spCorners = cv.FindCornerSubPix(imageList[i].getGrayscaleMatrix(),corners,(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+        #add these values values back to our list
         img_pts.extend(spCorners)
         obj_pts.extend(obj_fixed)
         pt_count.append(len(spCorners))
         good_imgs = good_imgs+1
+      else:
+        print("No corners found\n")
+
+    if( good_imgs == 0 ):
+          warnings.warn("FrameSource.saveCalibrate: no calibration grids seen.")
 
     # convert to np.array
     img_pts = np.array(img_pts)
     obj_pts = np.array(obj_pts)
     pt_count = np.array(pt_count)
-    calib_mat = cv.CreateMat(3,3,cv.CV_32FC1)
-    dist_coeff = cv.CreateMat(8,1,cv.CV_32FC1)
+    calib_mat = cv.CreateMat(3,3,cv.CV_64FC1)
+    dist_coeff = cv.CreateMat(8,1,cv.CV_64FC1)
     rvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
     tvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
 
-    cvmObjPts = cv.CreateMat(obj_pts.shape[0],obj_pts.shape[1],cv.CV_32FC1)
+    #alas now convert the np array to cvMat
+    cvmObjPts = cv.CreateMat(obj_pts.shape[0],obj_pts.shape[1],cv.CV_64FC1)
     cv.SetData(cvmObjPts,obj_pts.tostring(),obj_pts.dtype.itemsize*obj_pts.shape[1])
 
-    cvmImgPts = cv.CreateMat(img_pts.shape[0],img_pts.shape[1],cv.CV_32FC1)
+    cvmImgPts = cv.CreateMat(img_pts.shape[0],img_pts.shape[1],cv.CV_64FC1)
     cv.SetData(cvmImgPts,img_pts.tostring(),img_pts.dtype.itemsize*img_pts.shape[1])
  
     cvmPtCount = cv.CreateMat(good_imgs,1,cv.CV_32SC1)
     cv.SetData(cvmPtCount,pt_count.tostring(),pt_count.dtype.itemsize)
-
-    cv.Set2D(calib_mat,0,0,1.00)
-    cv.Set2D(calib_mat,1,1,1.00)
+    cv.Save("Objects.xml",cvmObjPts)
+    cv.Save("Image.xml",cvmImgPts)
+    cv.Save("Points.xml",cvmPtCount)
+    #Have to set the values of the output Mat as these are our initial conditions
+    cv.SetZero(calib_mat)
+    cv.Set2D(calib_mat,0,0,1.10)
+    cv.Set2D(calib_mat,1,1,1.10)
     cv.Set2D(calib_mat,2,2,1.00)
+    cv.Set2D(calib_mat,0,2,imageList[0].width/2)
+    cv.Set2D(calib_mat,1,2,imageList[0].height/2)
+
+    
+    #And finally, do the calibration 
     cv.CalibrateCamera2(cvmObjPts,cvmImgPts,cvmPtCount,
                         (imageList[0].width,imageList[1].height),calib_mat,dist_coeff,
-                        rvecs,tvecs, cv.CV_CALIB_USE_INTRINSIC_GUESS)
+                        rvecs,tvecs,cv.CV_CALIB_USE_INTRINSIC_GUESS)
+    self._calibMat = calib_mat
+    self._distCoeff = dist_coeff
     return calib_mat
 #    return None
 
-  def GetCameraMatrix(self):
+  def getCameraMatrix(self):
     """
     This function returns a cvMat of the camera's intrinsic matrix. 
     If there is no matrix defined the function returns None. 
     """
-    return mCalibMat
+    return self._calibMat
 
-  def MarkCalibrationGrid(self, inImg, dimensions=(7,7)):
+  def markCalibrationGrid(self, inImg, dimensions=(5,8)):
     """
     This function will return an image with calibration grid draw on the
     image. This is helpful for doing calibration as it allows you to visually
@@ -170,8 +193,6 @@ class FrameSource:
     calibration grid can be found in:
     \SimpleCV\tools\CalibGrid.png
     """
-    # we're treating the Image class as a "friend" class in this setting
-    # corners = np.array()
     result = ""
     corners = ""
     found = False
@@ -188,13 +209,13 @@ class FrameSource:
       cv.DrawChessboardCorners(retVal,dimensions,spCorners,1)
     return Image(retVal) 
 
-  def Undistort(self, inImg):
+  def undistort(self, inImg):
     """
     Given an image, apply the undistortion given my the camera's matrix and return the result
     """
     return None
 
-  def GetImageUndistort(self):
+  def getImageUndistort(self):
     """
     Using the overridden getImage method we retrieve the image and apply the undistortion
     operation. 
@@ -202,20 +223,46 @@ class FrameSource:
     return None
   
   
-  def SaveCalibration(self,filename):
+  def saveCalibration(self,filename):
     """
-    Save the calibration matrix to file. The file name should be without the extension.
+    Save the calibration matrices to file. The file name should be without the extension.
     The default extension is .xml
     Returns true if the file was successful loaded, false otherwise. 
     """
+    if( type(self._calibMat) != cv.cvmat ):
+            warnings.warn("FrameSource.saveCalibration: No calibration matrix present, can't save.")
+    else:
+      intrFName = filename + "Intrinsic.xml"
+      cv.Save(intrFName,self._calibMat)
+
+    if( type(self._distCoeff) != cv.cvmat ):
+          warnings.warn("FrameSource.saveCalibration: No calibration distortion present, can't save.")
+    else:      
+        distFName = filename + "Distortion.xml"
+        cv.Save(distFName,self._distCoeff)
+    
     return None
 
-  def LoadCalibration(self,filename):
+  def loadCalibration(self,filename):
     """
     Load a calibration matrix from file.
+    The filename should be the stem of the calibration files names.
+    e.g. If the calibration files are MyWebcamIntrinsic.xml and MyWebcamDistortion.xml
+    then load the calibration file "MyWebcam"
+
+
     Returns true if the file was successful loaded, false otherwise. 
     """
-    return None
+    retVal = False
+    intrFName = filename + "Intrinsic.xml"
+    self._calibMat = cv.Load(intrFName)
+    distFName = filename + "Distortion.xml"
+    self._distCoeff = cv.Load(distFName)
+    if( type(self._distCoeff) == cv.cvmat
+        and type(self._calibMat) == cv.cvmat):
+      retVal = True
+
+    return retVal
 
 
 _cameras = [] 

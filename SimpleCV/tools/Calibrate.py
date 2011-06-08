@@ -17,10 +17,10 @@ def main(stdscr):
   ext = ".png"
   count = 0
   quit = False
-  imgList = list()
+  imgList = []
   while (quit == False):
     img = cam.getImage()
-    grid = cam.MarkCalibrationGrid(img)
+    grid = cam.markCalibrationGrid(img,dimensions=(5,8))
     c = int(stdscr.getch())
     if( c == 113 ):
       quit = True
@@ -31,8 +31,9 @@ def main(stdscr):
       count = count + 1
       print("Saved "+fname+"\n")
     elif( c == 99 ):
-      print("Calibrate!\n")      
-      m = cam.Calibrate(imgList)
+      #print("Calibrate!\n")      
+      m = cam.calibrate(imgList,dimensions=(5,8))
+      cam.saveCalibration("Default")
       print(m)
 
     stdscr.addstr(str(c))
