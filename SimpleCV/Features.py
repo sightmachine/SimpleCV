@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # SimpleCV Feature library
 #
 # Tools return basic features in feature sets

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # SimpleCV Image Object
 
 #load required libraries

@@ -1,6 +1,4 @@
-#!/usr/python
-
-# SimpleCV Camera & Devices
+# SimpleCV Cameras & Devices
 
 #load system libraries
 from .base import *

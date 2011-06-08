@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # SimpleCV Color Library
 #
 # This library is used to modify different color properties of images
