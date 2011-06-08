@@ -804,3 +804,127 @@ Return an image with ColorCurve curve applied to all three color channels
     self._cannyparam = (t1, t2)
 
     return self._edgeMap
+def rotate(self, angle, mode="fixed", point=[-1,-1], scale = 1.0):
+    """
+    This rotates an image around a specific point by the given angle 
+    By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
+    contents retain the original size, and the Image object will scale
+    by default, the point is the center of the image. 
+    you can also specify a scaling parameter 
+    """
+    if( point[0] == -1 or point[1] == -1 ):
+      point[0] = (self.width-1)/2
+      point[1] = (self.height-1)/2
+
+    if (mode == "fixed"):
+      retVal = self.getEmpty()
+      rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+      cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+      cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+      return( Image(retVal) ) 
+
+
+    #otherwise, we're expanding the matrix to fit the image at original size
+    rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+    # first we create what we thing the rotation matrix should be
+    cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+    A = np.array([0,0,1])
+    B = np.array([self.width,0,1])
+    C = np.array([self.width,self.height,1])
+    D = np.array([0,self.height,1])
+    #So we have defined our image ABC in homogenous coordinates
+    #and apply the rotation so we can figure out the image size
+    a = np.dot(rotMat,A)
+    b = np.dot(rotMat,B)
+    c = np.dot(rotMat,C)
+    d = np.dot(rotMat,D)
+    #I am not sure about this but I think the a/b/c/d are transposed
+    #now we calculate the extents of the rotated components. 
+    minY = min(a[1],b[1],c[1],d[1])
+    minX = min(a[0],b[0],c[0],d[0])
+    maxY = max(a[1],b[1],c[1],d[1])
+    maxX = max(a[0],b[0],c[0],d[0])
+    #from the extents we calculate the new size
+    newWidth = np.ceil(maxX-minX)
+    newHeight = np.ceil(maxY-minY)
+    #now we calculate a new translation
+    tX = 0
+    tY = 0
+    #calculate the translation that will get us centered in the new image
+    if( minX < 0 ):
+      tX = -1.0*minX
+    elif(maxX > newWidth-1 ):
+      tX = -1.0*(maxX-newWidth)
+
+    if( minY < 0 ):
+      tY = -1.0*minY
+    elif(maxY > newHeight-1 ):
+      tY = -1.0*(maxY-newHeight)
+
+    #now we construct an affine map that will the rotation and scaling we want with the 
+    #the corners all lined up nicely with the output image. 
+    src = ((A[0],A[1]),(B[0],B[1]),(C[0],C[1]))
+    dst = ((a[0]+tX,a[1]+tY),(b[0]+tX,b[1]+tY),(c[0]+tX,c[1]+tY))
+
+    cv.GetAffineTransform(src,dst,rotMat)
+
+    #calculate the translation of the corners to center the image
+    #use these new corner positions as the input to cvGetAffineTransform
+    retVal = cv.CreateImage((int(newWidth),int(newHeight)), 8, int(3))
+    cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+    return( Image(retVal) ) 
+
+
+  def shear(self, cornerpoints):
+    """
+    Given a set of new corner points in clockwise order, return a shear-ed Image
+    that transforms the Image contents.  The returned image is the same
+    dimensions.
+
+    cornerpoints is a 2x4 array of point tuples
+    """
+    src =  ((0,0),(self.width-1,0),(self.width-1,self.height-1))
+    #set the original points
+    aWarp = cv.CreateMat(2, 3, cv.CV_32FC1)
+    #create the empty warp matrix
+    cv.GetAffineTransform(src, cornerpoints, aWarp)
+    return self.transformAffine(aWarp)
+
+  def transformAffine(self, rotMatrix):
+    """
+    This helper function for shear performs an affine rotation using the supplied matrix. 
+    The matrix can be a either an openCV mat or an np.ndarray type. 
+    The matrix should be a 2x3
+    """
+    retVal = self.getEmpty()
+    if(type(rotMatrix) == np.ndarray ):
+      rotMatrix = npArray2cvMat(rotMatrix)
+    cv.WarpAffine(self.getBitmap(),retVal,rotMatrix)
+    return( Image(retVal) ) 
+
+  def warp(self, cornerpoints):
+    """
+    Given a new set of corner points in clockwise order, return an Image with 
+    the images contents warped to the new coordinates.  The returned image
+    will be the same size as the original image
+    """
+    #original coordinates
+    src = ((0,0),(self.width-1,0),(self.width-1,self.height-1),(0,self.height-1))
+    
+    pWarp = cv.CreateMat(3,3,cv.CV_32FC1) #create an empty 3x3 matrix
+    cv.GetPerspectiveTransform(src,cornerpoints,pWarp) #figure out the warp matrix
+
+    return self.transformPerspective(pWarp)
+
+  def transformPerspective(self, rotMatrix):
+
+    """
+    This helper function for warp performs an affine rotation using the supplied matrix. 
+    The matrix can be a either an openCV mat or an np.ndarray type. 
+    The matrix should be a 3x3
+    """
+    retVal = self.getEmpty()
+    if(type(rotMatrix) == np.ndarray ):
+      rotMatrix = npArray2cvMat(rotMatrix)
+    cv.WarpPerspective(self.getBitmap(),retVal,rotMatrix)
+    return( Image(retVal) ) 
