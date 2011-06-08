@@ -453,7 +453,7 @@ def test_morph_grad():
 
 def test_rotate_fixed():
   img = Image(testimage2)
-  img2=img.rotate_fixed(180, scale = 1)
+  img2=img.rotate(180, scale = 1)
   img3=img.flipVertical()
   img4=img3.flipHorizontal()
   test = img4-img2
@@ -465,7 +465,7 @@ def test_rotate_fixed():
 
 def test_rotate_full():
   img = Image(testimage2)
-  img2=img.rotate_full(180,scale = 1)
+  img2=img.rotate(180,"full",scale = 1)
   c1=img.meanColor()
   c2=img2.meanColor()
   if( abs(c1[0]-c2[0]) > 5 or abs(c1[1]-c2[1]) > 5 or abs(c1[2]-c2[2]) > 5 ):
@@ -478,24 +478,25 @@ def test_affine():
   dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
   aWarp = cv.CreateMat(2,3,cv.CV_32FC1)
   cv.GetAffineTransform(src,dst,aWarp)
-  atrans = img.transform_affine(aWarp)
+  atrans = img.transformAffine(aWarp)
 
   aWarp2 = np.array(aWarp)
-  atrans2 = img.transform_affine(aWarp2)
+  atrans2 = img.transformAffine(aWarp2)
   test = atrans-atrans2
   c=test.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
 def test_perspective():
+  img = Image(testimage2)
   src = ((0,0),(img.width-1,0),(img.width-1,img.height-1),(0,img.height-1))
   dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
   pWarp = cv.CreateMat(3,3,cv.CV_32FC1)
   cv.GetPerspectiveTransform(src,dst,pWarp)
-  ptrans = img.transform_perspective(pWarp)
+  ptrans = img.transformPerspective(pWarp)
 
-  pWarp2 = np.array(pwarp2)
-  ptrans2 = img.transform_perspective(pWarp2)
+  pWarp2 = np.array(pWarp)
+  ptrans2 = img.transformPerspective(pWarp2)
   
   test = ptrans-ptrans2
   c=test.meanColor()

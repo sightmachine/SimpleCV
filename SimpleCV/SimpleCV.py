@@ -998,32 +998,27 @@ Return an image with ColorCurve curve applied to all three color channels
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
     return( Image(retVal) )
 
-  def rotate_fixed(self, angle, point=[-1,-1], scale = 1.0):
+  def rotate(self, angle, mode="fixed", point=[-1,-1], scale = 1.0):
     """
-    Performs an inplace rotation about the angle specified at the point specified
-    if the point is not specified we perform the rotation about the center of the 
-    image. This operation can also perform an optional scaling.
-    The resutling image is the same size as the orignial. 
+    This rotates an image around a specific point by the given angle 
+    By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
+    contents retain the original size, and the Image object will scale
+    by default, the point is the center of the image. 
+    you can also specify a scaling parameter 
     """
-    retVal = self.getEmpty()
     if( point[0] == -1 or point[1] == -1 ):
       point[0] = (self.width-1)/2
       point[1] = (self.height-1)/2
-    rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
-    cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
-    cv.WarpAffine(self.getBitmap(),retVal,rotMat)
-    return( Image(retVal) ) 
 
-  def rotate_full(self, angle, point=[-1,-1], scale = 1.0):
-    """
-    Performs an inplace rotation about the angle specified at the point specified
-    if the point is not specified we perform the rotation about the center of the 
-    image. This operation can also perform an optional scaling.
-    The resutling image is the same size as the orignial. 
-    """
-    if( point[0] == -1 or point[1] == -1 ):
-      point[0] = (self.width-1)/2
-      point[1] = (self.height-1)/2
+    if (mode == "fixed"):
+      retVal = self.getEmpty()
+      rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+      cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+      cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+      return( Image(retVal) ) 
+
+
+    #otherwise, we're expanding the matrix to fit the image at original size
     rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
     # first we create what we thing the rotation matrix should be
     cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
@@ -1073,7 +1068,7 @@ Return an image with ColorCurve curve applied to all three color channels
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
     return( Image(retVal) ) 
 
-  def transform_affine(self, rotMatrix):
+  def transformAffine(self, rotMatrix):
     """
     This operation performs an affine rotation using the supplied matrix. 
     The matrix can be a either an openCV mat or an np.ndarray type. 
@@ -1085,7 +1080,7 @@ Return an image with ColorCurve curve applied to all three color channels
     cv.WarpAffine(self.getBitmap(),retVal,rotMatrix)
     return( Image(retVal) ) 
 
-  def transform_perspective(self, rotMatrix):
+  def transformPerspective(self, rotMatrix):
     """
     This operation performs an affine rotation using the supplied matrix. 
     The matrix can be a either an openCV mat or an np.ndarray type. 
