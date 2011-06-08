@@ -12,6 +12,13 @@ Image
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: ColorCurve 
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   :undoc-members:
+
+
 
 Features
 --------

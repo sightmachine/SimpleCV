@@ -19,4 +19,4 @@ for j in range(num_caps):
   img2 = img.edges() #make edge image TODO: make this return an image object
   img2.save(fileName) # save the output
 
-exit
+exit(0)

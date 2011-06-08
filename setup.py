@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys, os
 
 setup(name="SimpleCV",
-  version="0.5",
+  version="0.6",
   description="A kinder, gentler Python Vision Library",
   long_description="""Super-library for machine vision wrappers in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
   classifiers=[

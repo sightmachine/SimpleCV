@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 #system includes
-import os, sys, warnings, time, socket, re, urllib2
+import os, sys, warnings, time, socket, re, urllib2, types
 import SocketServer
 import threading
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from types import IntType, LongType, FloatType
+from types import IntType, LongType, FloatType, InstanceType
 from cStringIO import StringIO
 
 #couple quick typecheck helper functions
@@ -21,11 +21,15 @@ def is_tuple(n):
 def reverse_tuple(n):
   return tuple(reversed(n))
 
+
 #library includes
 import cv
 import numpy as np
 import scipy.spatial.distance as spsd
+from numpy import linspace 
+from scipy.interpolate import UnivariateSpline
 
+ 
 #optional libraries
 PIL_ENABLED = True
 try:
@@ -50,6 +54,26 @@ try:
   import freenect
 except ImportError:
   FREENECT_ENABLED = False 
+
+
+"""
+This function is a utility for converting numpy arrays to the cv.cvMat format.  
+"""
+def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
+  if( type(inputMat) == np.ndarray ):
+    sz = len(inputMat.shape)
+    if( sz == 1 ): #this needs to be changed so we can do row/col vectors
+      retVal = cv.CreateMat(inputMat.shape[0],1,dataType)
+      cv.SetData(retVal, inputMat.tostring(),inputMat.dtype.itemsize * inputMat.shape[0])
+    elif( sz == 2 ):
+      retVal = cv.CreateMat(inputMat.shape[0],inputMat.shape[1],dataType)
+      cv.SetData(retVal, inputMat.tostring(),inputMat.dtype.itemsize * inputMat.shape[1])
+    elif( sz > 2 ):
+      retVal = cv.CreateMat(inputMat.shape,dataType)
+      #I am going to hold off on this..... no good approach... may not be needed    
+    return retVal
+  else:
+    warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
 
 
 class FrameSource:
@@ -139,6 +163,7 @@ control than just basic frame retrieval
       _cameras.append(self)
       if (not _camera_polling_thread):
         _camera_polling_thread = FrameBufferThread()
+        _camera_polling_thread.daemon = True
         _camera_polling_thread.start()
       
     
@@ -186,7 +211,6 @@ class VirtualCamera(FrameSource):
   """
   source = ""
   sourcetype = ""
-  capture = "" 
   
   def __init__(self, s, st):
     """
@@ -320,6 +344,7 @@ Requires the [Python Imaging Library](http://www.pythonware.com/library/pil/hand
     self.url = url
     self.camthread = JpegStreamReader()
     self.camthread.url = self.url
+    self.camthread.daemon = True
     self.camthread.start()
 
   def getImage(self):
@@ -328,7 +353,30 @@ Return the current frame of the JpegStream being monitored
     """
     return Image(pil.open(StringIO(self.camthread.currentframe)))
 
+class ColorCurve:
+  """
+  ColorCurve is a color spline class for performing color correction.  
+  It can takeas parameters a SciPy Univariate spline, or an array with at 
+  least 4 point pairs.  Either of these must map in a 255x255 space.  The curve 
+  can then be used in the applyRGBCurve, applyHSVCurve, and 
+  applyInstensityCurve functions::
 
+    clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+    image.applyIntensityCurve(clr)
+
+  the only property, mCurve is a linear array with 256 elements from 0 to 255
+  """
+  mCurve =""
+
+  def __init__(self, curve_vals ):
+    inBins = linspace(0,255,256)
+    if( type(curve_vals) == UnivariateSpline ):
+      self.mCurve = curvVals(inBins)
+    else: 
+      curve_vals = np.array(curve_vals)
+      aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
+      self.mCurve = aSpline(inBins)
+ 
 
 class Image:
   """
@@ -352,6 +400,7 @@ class Image:
   #these are buffer frames for various operations on the image
   _bitmap = ""  #the bitmap (iplimage)  representation of the image
   _matrix = ""  #the matrix (cvmat) representation
+  _grayMatrix = "" #the gray scale (cvmat) representation -KAS
   _graybitmap = ""  #a reusable 8-bit grayscale bitmap
   _equalizedgraybitmap = "" #the above bitmap, normalized
   _blobLabel = ""  #the label image for blobbing
@@ -363,6 +412,7 @@ class Image:
   _initialized_buffers = { 
     "_bitmap": "", 
     "_matrix": "", 
+    "_grayMatrix": "",
     "_graybitmap": "", 
     "_equalizedgraybitmap": "",
     "_blobLabel": "",
@@ -407,6 +457,7 @@ class Image:
     self.width = bm.width
     self.height = bm.height
     self.depth = bm.depth
+
  
   def getEmpty(self, channels = 3):
     """
@@ -443,7 +494,9 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     if (not PIL_ENABLED):
       return None
     if (not self._pil):
-      self._pil = pil.fromstring("RGB", self.size(), self.getBitmap().tostring())
+      rgbbitmap = self.getEmpty()
+      cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
+      self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
     return self._pil
 
   def _getGrayscaleBitmap(self):
@@ -454,6 +507,16 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY) 
     return self._graybitmap
 
+  def getGrayscaleMatrix(self):
+   """
+   Returns the intensity grayscale matrix
+   """
+   if (self._grayMatrix):
+     return self._grayMatrix
+   else:
+     self._grayMatrix = cv.GetMat(self._getGrayscaleBitmap()) #convert the bitmap to a matrix
+     return self._grayMatrix
+    
   def _getEqualizedGrayscaleBitmap(self):
 
     if (self._equalizedgraybitmap):
@@ -475,19 +538,24 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
         filehandle_or_filename = self.filename
       else:
         filehandle_or_filename = self.filehandle
-	if (not PIL_ENABLED):
-	  warnings.warn("You need the python image library to save by filehandle")
-          return 0
-  
+
 
     if (type(filehandle_or_filename) != str):
+      fh = filehandle_or_filename
+
+      if (not PIL_ENABLED):
+        warnings.warn("You need the python image library to save by filehandle")
+        return 0
+
+      if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
+        fh = fh.framebuffer
+      
       if (not mode):
         mode = "jpeg"
 
       try:
-        filehandle = filehandle_or_filename
-        self.getPIL().save(filehandle, mode)
-        self.filehandle = filehandle #set the filename for future save operations
+        self.getPIL().save(fh, mode)
+        self.filehandle = fh #set the filename for future save operations
         self.filename = ""
         
       except:
@@ -605,7 +673,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       newimg = self.getEmpty() 
       cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
       return Image(newimg)
-    except e:
+    except:
       return None
       
   def binarize(self, thresh = 127):
@@ -706,7 +774,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     If you want to find Haar Features (useful for face detection among other
     purposes) this will return Haar feature objects in a FeatureSet.  The
     parameters are:
-    * the scaling factor for subsequent rounds of the haar cascade (default 1.2)
+    * the scaling factor for subsequent rounds of the haar cascade (default 1.2)7
     * the minimum number of rectangles that makes up an object (default 2)
     * whether or not to use Canny pruning to reject areas with too many edges (default yes, set to 0 to disable) 
 
@@ -722,7 +790,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       warnings.warn("Could not find Haar Cascade file " + cascadefile)
       return None
     cascade = cv.Load(cascadefile) 
-    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, min_neighbors, use_canny, (0,0))
+    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factors, use_canny, (0,0))
     if objects: 
       return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
     
@@ -789,6 +857,242 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
     return (Image(red), Image(green), Image(blue)) 
 
+  def applyHLSCurve(self, hCurve, lCurve, sCurve):
+    """
+Returns an image with 3 ColorCurve corrections applied in HSL space
+Parameters are: 
+ * Hue ColorCurve 
+ * Lightness (brightness/value) ColorCurve
+ * Saturation ColorCurve
+    """
+  
+    #TODO CHECK ROI
+    #TODO CHECK CURVE SIZE
+    #TODO CHECK COLORSPACE
+    #TODO CHECK CURVE SIZE
+    temp  = cv.CreateImage(self.size(), 8, 3)
+    #Move to HLS space
+    cv.CvtColor(self._bitmap,temp,cv.CV_RGB2HLS)
+    tempMat = cv.GetMat(temp) #convert the bitmap to a matrix
+    #now apply the color curve correction
+    tempMat = np.array(self.getMatrix()).copy()
+    tempMat[:,:,0] = np.take(hCurve.mCurve,tempMat[:,:,0])
+    tempMat[:,:,1] = np.take(sCurve.mCurve,tempMat[:,:,1])
+    tempMat[:,:,2] = np.take(lCurve.mCurve,tempMat[:,:,2])
+    #Now we jimmy the np array into a cvMat
+    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
+    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
+    cv.CvtColor(image,image,cv.CV_HLS2RGB)  
+    return Image(image)
+
+  def applyRGBCurve(self, rCurve, gCurve, bCurve):
+    """
+Returns an image with 3 ColorCurve corrections applied in rgb channels 
+Parameters are: 
+ * Red ColorCurve 
+ * Green ColorCurve
+ * Blue ColorCurve
+    """
+    tempMat = np.array(self.getMatrix()).copy()
+    tempMat[:,:,0] = np.take(bCurve.mCurve,tempMat[:,:,0])
+    tempMat[:,:,1] = np.take(gCurve.mCurve,tempMat[:,:,1])
+    tempMat[:,:,2] = np.take(rCurve.mCurve,tempMat[:,:,2])
+    #Now we jimmy the np array into a cvMat
+    image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
+    cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
+    return Image(image)
+
+  def applyIntensityCurve(self, curve):
+    """
+Return an image with ColorCurve curve applied to all three color channels
+    """
+    return self.applyRGBCurve(curve, curve, curve)
+      
+  def erode(self, iterations=1):
+    """
+    Apply a morphological erosion. An erosion has the effect of removing small bits of noise
+    and smothing blobs. 
+    This implementation uses the default openCV 3X3 square kernel 
+    Erosion is effectively a local minima detector, the kernel moves over the image and
+    takes the minimum value inside the kernel. 
+    iterations - this parameters is the number of times to apply/reapply the operation
+    See: http://en.wikipedia.org/wiki/Erosion_(morphology).
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode 
+    Example Use: A threshold/blob image has 'salt and pepper' noise. 
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.Erode(self.getBitmap(),retVal,kern,iterations)
+    return( Image(retVal) )
+
+  def dilate(self, iterations=1):
+    """
+    Apply a morphological dilation. An dilation has the effect of smoothing blobs while
+    intensifying the amount of noise blobs. 
+    This implementation uses the default openCV 3X3 square kernel 
+    Erosion is effectively a local maxima detector, the kernel moves over the image and
+    takes the maxima value inside the kernel. 
+
+    iterations - this parameters is the number of times to apply/reapply the operation
+
+    See: http://en.wikipedia.org/wiki/Dilation_(morphology)
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate
+    Example Use: A part's blob needs to be smoother 
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.Dilate(self.getBitmap(),retVal,kern,iterations)
+    return( Image(retVal) )
+
+  def morphOpen(self):
+    """
+    morphologyOpen applies a morphological open operation which is effectively
+    an erosion operation followed by a morphological dilation. This operation
+    helps to 'break apart' or 'open' binary regions which are close together. 
+
+    See: http://en.wikipedia.org/wiki/Opening_(morphology)
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+    Example Use: two part blobs are 'sticking' together.
+    Example Code: ./examples/MorphologyExample.py 
+    """
+    retVal = self.getEmpty() 
+    temp = self.getEmpty()
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_OPEN,1)
+    return( Image(retVal) )
+
+
+  def morphClose(self):
+    """
+    morphologyClose applies a morphological close operation which is effectively
+    a dilation operation followed by a morphological erosion. This operation
+    helps to 'bring together' or 'close' binary regions which are close together. 
+
+    See: http://en.wikipedia.org/wiki/Closing_(morphology)
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+    Example Use: Use when a part, which should be one blob is really two blobs.   
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    temp = self.getEmpty()
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_CLOSE,1)
+    return( Image(retVal) )
+
+  def morphGradient(self):
+    """
+    The morphological gradient is the difference betwen the morphological
+    dilation and the morphological gradient. This operation extracts the 
+    edges of a blobs in the image. 
+
+    See: http://en.wikipedia.org/wiki/Morphological_Gradient
+    See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+    Example Use: Use when you have blobs but you really just want to know the blob edges.
+    Example Code: ./examples/MorphologyExample.py
+    """
+    retVal = self.getEmpty() 
+    temp = self.getEmpty()
+    kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
+    cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
+    return( Image(retVal) )
+
+  def rotate(self, angle, mode="fixed", point=[-1,-1], scale = 1.0):
+    """
+    This rotates an image around a specific point by the given angle 
+    By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
+    contents retain the original size, and the Image object will scale
+    by default, the point is the center of the image. 
+    you can also specify a scaling parameter 
+    """
+    if( point[0] == -1 or point[1] == -1 ):
+      point[0] = (self.width-1)/2
+      point[1] = (self.height-1)/2
+
+    if (mode == "fixed"):
+      retVal = self.getEmpty()
+      rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+      cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+      cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+      return( Image(retVal) ) 
+
+
+    #otherwise, we're expanding the matrix to fit the image at original size
+    rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
+    # first we create what we thing the rotation matrix should be
+    cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
+    A = np.array([0,0,1])
+    B = np.array([self.width,0,1])
+    C = np.array([self.width,self.height,1])
+    D = np.array([0,self.height,1])
+    #So we have defined our image ABC in homogenous coordinates
+    #and apply the rotation so we can figure out the image size
+    a = np.dot(rotMat,A)
+    b = np.dot(rotMat,B)
+    c = np.dot(rotMat,C)
+    d = np.dot(rotMat,D)
+    #I am not sure about this but I think the a/b/c/d are transposed
+    #now we calculate the extents of the rotated components. 
+    minY = min(a[1],b[1],c[1],d[1])
+    minX = min(a[0],b[0],c[0],d[0])
+    maxY = max(a[1],b[1],c[1],d[1])
+    maxX = max(a[0],b[0],c[0],d[0])
+    #from the extents we calculate the new size
+    newWidth = np.ceil(maxX-minX)
+    newHeight = np.ceil(maxY-minY)
+    #now we calculate a new translation
+    tX = 0
+    tY = 0
+    #calculate the translation that will get us centered in the new image
+    if( minX < 0 ):
+      tX = -1.0*minX
+    elif(maxX > newWidth-1 ):
+      tX = -1.0*(maxX-newWidth)
+
+    if( minY < 0 ):
+      tY = -1.0*minY
+    elif(maxY > newHeight-1 ):
+      tY = -1.0*(maxY-newHeight)
+
+    #now we construct an affine map that will the rotation and scaling we want with the 
+    #the corners all lined up nicely with the output image. 
+    src = ((A[0],A[1]),(B[0],B[1]),(C[0],C[1]))
+    dst = ((a[0]+tX,a[1]+tY),(b[0]+tX,b[1]+tY),(c[0]+tX,c[1]+tY))
+
+    cv.GetAffineTransform(src,dst,rotMat)
+
+    #calculate the translation of the corners to center the image
+    #use these new corner positions as the input to cvGetAffineTransform
+    retVal = cv.CreateImage((int(newWidth),int(newHeight)), 8, int(3))
+    cv.WarpAffine(self.getBitmap(),retVal,rotMat)
+    return( Image(retVal) ) 
+
+  def transformAffine(self, rotMatrix):
+    """
+    This operation performs an affine rotation using the supplied matrix. 
+    The matrix can be a either an openCV mat or an np.ndarray type. 
+    The matrix should be a 2x3
+    """
+    retVal = self.getEmpty()
+    if(type(rotMatrix) == np.ndarray ):
+      rotMatrix = npArray2cvMat(rotMatrix)
+    cv.WarpAffine(self.getBitmap(),retVal,rotMatrix)
+    return( Image(retVal) ) 
+
+  def transformPerspective(self, rotMatrix):
+    """
+    This operation performs an affine rotation using the supplied matrix. 
+    The matrix can be a either an openCV mat or an np.ndarray type. 
+    The matrix should be a 3x3
+    """
+    retVal = self.getEmpty()
+    if(type(rotMatrix) == np.ndarray ):
+      rotMatrix = npArray2cvMat(rotMatrix)
+    cv.WarpPerspective(self.getBitmap(),retVal,rotMatrix)
+    return( Image(retVal) ) 
+
+  
   def histogram(self, numbins = 50):
     """
     Return a numpy array of the 1D histogram of intensity for pixels in the image
@@ -1615,7 +1919,7 @@ class JpegStreamer():
   js = JpegStreamer()
 
   to update:
-  img.save(js.buffer)
+  img.save(js)
 
   Note 3 optional parameters on the constructor:
   - port (default 8080) which sets the TCP port you need to connect to
@@ -1641,6 +1945,7 @@ class JpegStreamer():
     self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
     self.server_thread = threading.Thread(target = self.server.serve_forever)
     _jpegstreamers[self.port] = self
+    self.server_thread.daemon = True
     self.server_thread.start()
 
 
@@ -1649,6 +1954,6 @@ If you run SimpleCV directly, it will launch an ipython shell
 """
 if __name__ == '__main__':
     sys.exit(
-        load_entry_point('ipython==0.10.2', 'console_scripts', 'ipython')()
+        #load_entry_point('ipython==0.10.2', 'console_scripts', 'ipython')()
     )
 

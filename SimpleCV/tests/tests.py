@@ -16,6 +16,7 @@ blue = (0,0,255)
 
 
 #images
+barcode = "../sampleimages/barcode.png"
 testimage = "../sampleimages/9dots4lines.png"
 testimage2 = "../sampleimages/aerospace.jpg"
 whiteimage = "../sampleimages/white.png"
@@ -367,9 +368,142 @@ def test_image_add():
 
   imgC = imgA + imgB
 
+def test_color_curve_HSL():
+  y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
+  curve = ColorCurve(y)
+  img = Image(testimage)
+  img2 = img.applyHLSCurve(curve,curve,curve)
+  img3 = img-img2
+  c = img3.meanColor()
+  print(c)
+  if( c[0] > 2.0 or c[1] > 2.0 or c[2] > 2.0 ): #there may be a bit of roundoff error 
+    assert False
 
+def test_color_curve_RGB():
+  y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
+  curve = ColorCurve(y)
+  img = Image(testimage)
+  img2 = img.applyRGBCurve(curve,curve,curve)
+  img3 = img-img2
+  c = img3.meanColor()
+  if( c[0] > 1.0 or c[1] > 1.0 or c[2] > 1.0 ): #there may be a bit of roundoff error 
+    assert False
+
+def test_color_curve_GRAY():
+  y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
+  curve = ColorCurve(y)
+  img = Image(testimage)
+  gray = img.grayscale()
+  img2 = img.applyIntensityCurve(curve)
+  print(gray.meanColor())
+  print(img2.meanColor())
+  g=gray.meanColor()
+  i2=img2.meanColor()
+  if( g[0]-i2[0] > 1 ): #there may be a bit of roundoff error 
+    assert False
+
+def test_dilate():
+  img=Image(barcode)
+  img2 = img.dilate(20)
+  c=img2.meanColor()
+  print(c)
+  if( c[0] < 254 or c[1] < 254 or c[2] < 254 ):
+    assert False;
+
+def test_erode():
+  img=Image(barcode)
+  img2 = img.erode(100)
+  c=img2.meanColor()
+  print(c)
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False;
   
+def test_morph_open():
+  img = Image(barcode);
+  erode= img.erode()
+  dilate = erode.dilate()
+  result = img.morphOpen()
+  test = result-dilate
+  c=test.meanColor()
+  print(c)
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False;
+
+def test_morph_close():
+  img = Image(barcode)
+  dilate = img.dilate()
+  erode = dilate.erode()
+  result = img.morphClose()
+  test = result-erode
+  c=test.meanColor()
+  print(c)
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False;
+
+def test_morph_grad():
+  img = Image(barcode)
+  dilate = img.dilate()
+  erode = img.erode()
+  dif = dilate-erode
+  result = img.morphGradient()
+  test = result-dif
+  c=test.meanColor()
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False
+
+def test_rotate_fixed():
+  img = Image(testimage2)
+  img2=img.rotate(180, scale = 1)
+  img3=img.flipVertical()
+  img4=img3.flipHorizontal()
+  test = img4-img2
+  c=test.meanColor()
+  print(c)
+  if( c[0] > 5 or c[1] > 5 or c[2] > 5 ):
+    assert False
+
+
+def test_rotate_full():
+  img = Image(testimage2)
+  img2=img.rotate(180,"full",scale = 1)
+  c1=img.meanColor()
+  c2=img2.meanColor()
+  if( abs(c1[0]-c2[0]) > 5 or abs(c1[1]-c2[1]) > 5 or abs(c1[2]-c2[2]) > 5 ):
+    assert False
+
+
+def test_affine():
+  img = Image(testimage2)
+  src =  ((0,0),(img.width-1,0),(img.width-1,img.height-1))
+  dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
+  aWarp = cv.CreateMat(2,3,cv.CV_32FC1)
+  cv.GetAffineTransform(src,dst,aWarp)
+  atrans = img.transformAffine(aWarp)
+
+  aWarp2 = np.array(aWarp)
+  atrans2 = img.transformAffine(aWarp2)
+  test = atrans-atrans2
+  c=test.meanColor()
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False
+
+def test_perspective():
+  img = Image(testimage2)
+  src = ((0,0),(img.width-1,0),(img.width-1,img.height-1),(0,img.height-1))
+  dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
+  pWarp = cv.CreateMat(3,3,cv.CV_32FC1)
+  cv.GetPerspectiveTransform(src,dst,pWarp)
+  ptrans = img.transformPerspective(pWarp)
+
+  pWarp2 = np.array(pWarp)
+  ptrans2 = img.transformPerspective(pWarp2)
   
+  test = ptrans-ptrans2
+  c=test.meanColor()
+
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False
+
 
   
 #def test_image_subtract():
