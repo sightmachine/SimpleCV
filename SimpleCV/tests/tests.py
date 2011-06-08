@@ -471,6 +471,21 @@ def test_rotate_full():
   if( abs(c1[0]-c2[0]) > 5 or abs(c1[1]-c2[1]) > 5 or abs(c1[2]-c2[2]) > 5 ):
     assert False
 
+def test_shear_warp():
+  img = Image(testimage2)
+  dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
+  s = img.shear(dst)
+  color = s[0,0] 
+  if (color != (0,0,0)):
+    assert False
+
+  dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
+  w = img.warp(dst)
+  color = s[0,0] 
+  if (color != (0,0,0)):
+    assert False
+
+  pass
 
 def test_affine():
   img = Image(testimage2)

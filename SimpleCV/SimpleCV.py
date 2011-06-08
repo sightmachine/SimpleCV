@@ -1068,9 +1068,25 @@ Return an image with ColorCurve curve applied to all three color channels
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
     return( Image(retVal) ) 
 
+
+  def shear(self, cornerpoints):
+    """
+    Given a set of new corner points in clockwise order, return a shear-ed Image
+    that transforms the Image contents.  The returned image is the same
+    dimensions.
+
+    cornerpoints is a 2x4 array of point tuples
+    """
+    src =  ((0,0),(self.width-1,0),(self.width-1,self.height-1))
+    #set the original points
+    aWarp = cv.CreateMat(2, 3, cv.CV_32FC1)
+    #create the empty warp matrix
+    cv.GetAffineTransform(src, cornerpoints, aWarp)
+    return self.transformAffine(aWarp)
+
   def transformAffine(self, rotMatrix):
     """
-    This operation performs an affine rotation using the supplied matrix. 
+    This helper function for shear performs an affine rotation using the supplied matrix. 
     The matrix can be a either an openCV mat or an np.ndarray type. 
     The matrix should be a 2x3
     """
@@ -1080,9 +1096,24 @@ Return an image with ColorCurve curve applied to all three color channels
     cv.WarpAffine(self.getBitmap(),retVal,rotMatrix)
     return( Image(retVal) ) 
 
-  def transformPerspective(self, rotMatrix):
+  def warp(self, cornerpoints):
     """
-    This operation performs an affine rotation using the supplied matrix. 
+    Given a new set of corner points in clockwise order, return an Image with 
+    the images contents warped to the new coordinates.  The returned image
+    will be the same size as the original image
+    """
+    #original coordinates
+    src = ((0,0),(self.width-1,0),(self.width-1,self.height-1),(0,self.height-1))
+    
+    pWarp = cv.CreateMat(3,3,cv.CV_32FC1) #create an empty 3x3 matrix
+    cv.GetPerspectiveTransform(src,cornerpoints,pWarp) #figure out the warp matrix
+
+    return self.transformPerspective(pWarp)
+
+  def transformPerspective(self, rotMatrix):
+
+    """
+    This helper function for warp performs an affine rotation using the supplied matrix. 
     The matrix can be a either an openCV mat or an np.ndarray type. 
     The matrix should be a 3x3
     """
