@@ -22,7 +22,8 @@ from cStringIO import StringIO
 import cv
 import numpy as np
 import scipy.spatial.distance as spsd
-from numpy import linspace 
+from numpy import linspace
+import scipy
 from scipy.interpolate import UnivariateSpline
 
 
