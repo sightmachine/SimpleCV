@@ -3,9 +3,12 @@
 # SimpleCV Camera & Devices
 
 #load system libraries
-from __init__ import *
+from .base import *
 
-  
+#Globals
+_cameras = [] 
+_camera_polling_thread = ""
+ 
 class FrameSource:
   """
   An abstract Camera-type class, for handling multiple types of video input.
@@ -177,84 +180,6 @@ class Kinect(FrameSource):
 
     cv.SetData(image, depth.tostring(), depth.dtype.itemsize * depth.shape[1])
     return Image(image) 
-class JpegStreamHandler(SimpleHTTPRequestHandler):
-  """
-  The JpegStreamHandler handles requests to the threaded HTTP server.
-  Once initialized, any request to this port will receive a multipart/replace
-  jpeg.   
-  """
-
-  def do_GET(self):
-    global _jpegstreamers
-
-    if (self.path == "/" or not self.path):
-
-      self.send_response(200)
-      self.send_header('Content-type','text/html')
-      self.end_headers()
-      self.wfile.write("""
-<html>
-<head>
-<style type=text/css>
-  body { background-image: url(/stream); background-repeat:no-repeat; background-position:center top; background-attachment:fixed; background-size: 100% , auto; }
-</style>
-</head>
-<body>
-&nbsp;
-</body>
-</html>
-      """)
-    else:
-      self.send_response(200)
-      self.send_header("Connection", "close")
-      self.send_header("Max-Age", "0")
-      self.send_header("Expires", "0")
-      self.send_header("Cache-Control", "no-cache, private")
-      self.send_header("Pragma", "no-cache")
-      self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
-      self.end_headers()
-      (host, port) = self.server.socket.getsockname()[:2]
-     
-      count = 0
-      timeout = 1 
-      lastmodtime = 0
-      lasttimeserved = 0
-      jpgdata = ""
-      while (1):
-        interval = _jpegstreamers[port].sleeptime
-  
-        if (time.time() - timeout > lasttimeserved or jpgdata != _jpegstreamers[port].framebuffer.getvalue()):
-  
-          jpgdata = _jpegstreamers[port].framebuffer.getvalue()
-          _jpegstreamers[port].framebuffer = StringIO()
-  
-          try:
-            self.wfile.write("--BOUNDARYSTRING\r\n")
-            self.send_header("Content-type","image/jpeg")
-            self.send_header("Content-Length", str(len(jpgdata)))
-            self.end_headers()
-            self.wfile.write(jpgdata + "\r\n")
-          except socket.error, e:
-            return
-          except IOError, e:
-            return
-          lasttimeserved = time.time()
-          count = count + 1 
-        time.sleep(interval)
-
-class FrameBufferThread(threading.Thread):
-  """
-  This is a helper thread which continually debuffers the camera frames.  If
-  you don't do this, cameras may constantly give you a frame behind, which
-  causes problems at low sample rates.  This makes sure the frames returned
-  by your camera are fresh.
-  """
-  def run(self):
-    while (1):
-      for cam in _cameras:
-        cv.GrabFrame(cam.capture)
-      time.sleep(0.04)    #max 25 fps, if you're lucky
-
 
 
 

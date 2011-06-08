@@ -3,8 +3,8 @@
 # SimpleCV Image Object
 
 #load required libraries
-from __init__ import *
-from Detection import *
+from .base import *
+from .Detection import *
 
 class Image:
   """
@@ -804,7 +804,8 @@ Return an image with ColorCurve curve applied to all three color channels
     self._cannyparam = (t1, t2)
 
     return self._edgeMap
-def rotate(self, angle, mode="fixed", point=[-1,-1], scale = 1.0):
+
+  def rotate(self, angle, mode="fixed", point=[-1,-1], scale = 1.0):
     """
     This rotates an image around a specific point by the given angle 
     By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
@@ -888,6 +889,7 @@ def rotate(self, angle, mode="fixed", point=[-1,-1], scale = 1.0):
     aWarp = cv.CreateMat(2, 3, cv.CV_32FC1)
     #create the empty warp matrix
     cv.GetAffineTransform(src, cornerpoints, aWarp)
+
     return self.transformAffine(aWarp)
 
   def transformAffine(self, rotMatrix):

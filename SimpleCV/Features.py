@@ -6,10 +6,7 @@
 
 
 #load system libraries
-from __init__ import *
-
-
-
+from .base import *
 
 
 class FeatureSet(list):

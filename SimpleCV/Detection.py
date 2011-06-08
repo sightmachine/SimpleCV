@@ -1,12 +1,10 @@
-#!/usr/bin/python
-
 # SimpleCV Detection Library
 #
 # This library includes classes for finding things in images
 
 #load required libraries
-from __init__ import *
-from Features import *
+from .base import *
+from .Features import *
 
 
 class Corner(Feature):
