@@ -4,9 +4,7 @@
 
 #load required libraries
 from .base import *
-from .Features import Feature
-from .Features import FeatureSet
-
+from .Features import Feature, FeatureSet
 
 class Corner(Feature):
   """

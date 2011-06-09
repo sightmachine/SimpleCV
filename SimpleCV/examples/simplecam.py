@@ -1,19 +1,16 @@
 #!/usr/bin/python 
 
-import sys, time, socket
-sys.path.append("..")
-
+import time, webbrowser
 from SimpleCV import *
 
-#settings for the project
-port_original = 8080  #port to view the camera viwe
-
 #create JPEG streamers
-original_js = JpegStreamer(port_original)
+js = JpegStreamer(8080)
 cam = Camera()
 
+cam.getImage().save(js)
+webbrowser.open("http://localhost:8080", 2)
 
 while (1):
   i = cam.getImage()
-  i.save(original_js.framebuffer)
+  i.save(js)
   time.sleep(0.01) #yield to the webserver

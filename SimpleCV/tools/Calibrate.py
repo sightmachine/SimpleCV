@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 from SimpleCV import *
-
+import Image
 """
 This class can be used to quickly calibrate a camera 
 """
@@ -31,7 +31,7 @@ def main(stdscr):
       quit = True
     elif( c == 32 ):
       fname = baseName+str(count)+ext
-      img.save(fname)
+      #img.save(fname)
       imgList.append(img)
       count = count + 1
       #print("Saved "+fname+"\n")

@@ -41,10 +41,6 @@ atrans.save("atrans.png")
 ptrans = img.warp([(img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9)])
 ptrans.save("ptrans.png")
 
-#do the same with an np array, 3x3
-pWarp2 = np.array(pWarp)
-#now do it again using a np.array (this is the same transform)
-ptrans2 = img.transform_perspective(pWarp2)
-ptrans2.save("ptrans2.png")
+
 
 
