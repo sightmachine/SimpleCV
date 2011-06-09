@@ -29,7 +29,7 @@ from scipy.interpolate import UnivariateSpline
 #optional libraries
 PIL_ENABLED = True
 try:
-  import PIL.Image as pil
+  import Image as pil
 except ImportError:
   PIL_ENABLED = False 
 
