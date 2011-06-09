@@ -66,7 +66,7 @@ def main():
     
 
     #setup terminal to show SCV prompt
-    argsv = ['-pi1','SCV:>','-pi2','   .\\D.:','-po','SCV:>','-nosep']
+    argsv = ['-pi1','SimpleCV:\\#>','-pi2','   .\\D.:','-po','SimpleCV:\\#>','-nosep']
 
     tutorial = Tutorial()
     scvShell = IPShellEmbed(argsv)
