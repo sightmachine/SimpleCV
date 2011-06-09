@@ -2,11 +2,9 @@
 
 #load required libraries
 from .base import *
-from .Detection import Barcode
-from .Detection import Blob
-from .Detection import HaarFeature
-from .Detection import Corner
-from .Detection import Line
+from .Detection import Barcode, Blob, Corner, HaarFeature, Line
+from .Features import FeatureSet
+from .Stream import JpegStreamer
 
 class Image:
   """
