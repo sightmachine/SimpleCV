@@ -3,7 +3,7 @@ from Camera import *
 from Color import *
 from Detection import *   
 from Features import *
-from Image import *
+from ImageClass import *
 from Stream import *
 
 if (__name__ == '__main__'):

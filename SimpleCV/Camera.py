@@ -2,7 +2,7 @@
 
 #load system libraries
 from .base import *
-from .Image import Image 
+from .ImageClass import Image 
 
 #Globals
 _cameras = [] 
