@@ -37,7 +37,7 @@ def main(stdscr):
       #print("Saved "+fname+"\n")
     elif( c == 99 ):
       #print("Calibrate!\n")      
-      m = cam.calibrate(imgList,dimensions=(5,8))
+      m = cam.calibrate(imgList)
       cam.saveCalibration("Default")
       print(m)
 
