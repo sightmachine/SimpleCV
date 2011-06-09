@@ -4,7 +4,8 @@
 
 #load required libraries
 from .base import *
-from .Features import *
+from .Features import Feature
+from .Features import FeatureSet
 
 
 class Corner(Feature):
