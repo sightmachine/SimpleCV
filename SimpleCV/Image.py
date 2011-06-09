@@ -2,11 +2,7 @@
 
 #load required libraries
 from .base import *
-from .Detection import Barcode
-from .Detection import Blob
-from .Detection import HaarFeature
-from .Detection import Corner
-from .Detection import Line
+from .Detection import FeatureSet, Feature, Barcode, Blob, Corner, HaarFeature, Line
 
 class Image:
   """
