@@ -95,7 +95,7 @@ class FrameSource:
   def getImage(self):
     return None
 
-  def calibrate(self, imageList, grid_sz=0.03,dimensions=(5,8)):
+  def calibrate(self, imageList, grid_sz=0.03,dimensions=(8,5)):
     """
     Camera calibration is agnostic of the imagery source 
 
@@ -107,72 +107,88 @@ class FrameSource:
     dimensions - is the the count of the *interior* corners in the calibration grid.
     So for a grid where there are 4x4 black grid squares has seven interior corners. 
     """
-    img_pts = []#list of points in an image
-    obj_pts = []#list of points in the 3D world
-    obj_fixed = [] #fixed list of 3D world points
-    pt_count = [] #point count
+    # This routine was adapted from code originally written by:
+    # Abid. K  -- abidrahman2@gmail.com
+    # See: https://github.com/abidrahmank/OpenCV-Python/blob/master/Other_Examples/camera_calibration.py
 
-    #this probably can be faster, but create the actual grid position in 3D 
-    for i in range(0,dimensions[0]):
-      for j in range(0,dimensions[1]):
-        obj_fixed.append([i*grid_sz,j*grid_sz,0.00])
+    warn_thresh = 1
+    n_boards=0	#no of boards
+    board_w=int(dimensions[0])	# number of horizontal corners
+    board_h=int(dimensions[1])	# number of vertical corners
+    n_boards=int(len(imageList))
+    board_n=board_w*board_h		# no of total corners
+    board_sz=(board_w,board_h)	#size of board
+    if( n_boards < warn_thresh ):
+      warnings.warn("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" ) 
 
-    good_imgs = 0
-    #go through the images
-    for i in range(0,len(imageList)):
-      #Find the corners
-      (found,corners) = cv.FindChessboardCorners(imageList[i].getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH | cv.CV_CALIB_CB_FILTER_QUADS)
-       #If the corners exist they will match the size here
-      if(len(corners)==dimensions[0]*dimensions[1] and found == 1):
-        #find the corners down to a gnats posterior 
-        spCorners = cv.FindCornerSubPix(imageList[i].getGrayscaleMatrix(),corners,(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
-        #add these values values back to our list
-        img_pts.extend(spCorners)
-        obj_pts.extend(obj_fixed)
-        pt_count.append(len(spCorners))
-        good_imgs = good_imgs+1
+    #  creation of memory storages
+    image_points=cv.CreateMat(n_boards*board_n,2,cv.CV_32FC1)
+    object_points=cv.CreateMat(n_boards*board_n,3,cv.CV_32FC1)
+    point_counts=cv.CreateMat(n_boards,1,cv.CV_32SC1)
+    intrinsic_matrix=cv.CreateMat(3,3,cv.CV_32FC1)
+    distortion_coefficient=cv.CreateMat(5,1,cv.CV_32FC1)
 
-    if( good_imgs == 0 ):
-          warnings.warn("FrameSource.saveCalibrate: no calibration grids seen.")
+    #	capture frames of specified properties and modification of matrix values
+    i=0
+    z=0		# to print number of frames
+    successes=0
+    imgIdx = 0
+    #	capturing required number of views
+    while(successes<n_boards):
+      found=0
+      img = imageList[imgIdx]
+      (found,corners)=cv.FindChessboardCorners(img.getGrayscaleMatrix(),board_sz,
+                                               cv.CV_CALIB_CB_ADAPTIVE_THRESH | 
+                                               cv.CV_CALIB_CB_FILTER_QUADS)
+      corners=cv.FindCornerSubPix(img.getGrayscaleMatrix(),corners,(11,11),(-1,-1),
+                                  (cv.CV_TERMCRIT_EPS+cv.CV_TERMCRIT_ITER,30,0.1)) 	
+      # if got a good image,draw chess board
+      if found==1:
+        corner_count=len(corners)
+        z=z+1
 
-    # convert to np.array
-    img_pts = np.array(img_pts)
-    obj_pts = np.array(obj_pts)
-    pt_count = np.array(pt_count)
-    calib_mat = cv.CreateMat(3,3,cv.CV_64FC1)
-    dist_coeff = cv.CreateMat(5,1,cv.CV_64FC1)
-    rvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
-    tvecs = cv.CreateMat(good_imgs,3,cv.CV_64FC1)
+      # if got a good image, add to matrix
+      if len(corners)==board_n:
+        step=successes*board_n
+        k=step
+        for j in range(board_n):
+          cv.Set2D(image_points,k,0,corners[j][0])
+          cv.Set2D(image_points,k,1,corners[j][1])
+          cv.Set2D(object_points,k,0,grid_sz*(float(j)/float(board_w)))
+          cv.Set2D(object_points,k,1,grid_sz*(float(j)%float(board_w)))
+          cv.Set2D(object_points,k,2,0.0)
+          k=k+1
+        cv.Set2D(point_counts,successes,0,board_n)
+        successes=successes+1
 
-    #alas now convert the np array to cvMat
-    cvmObjPts = cv.CreateMat(obj_pts.shape[0],obj_pts.shape[1],cv.CV_64FC1)
-    cv.SetData(cvmObjPts,obj_pts.tostring(),obj_pts.dtype.itemsize*obj_pts.shape[1])
-    # The CV_64FC1 May cause issues
-    cvmImgPts = cv.CreateMat(img_pts.shape[0],img_pts.shape[1],cv.CV_64FC1)
-    cv.SetData(cvmImgPts,img_pts.tostring(),img_pts.dtype.itemsize*img_pts.shape[1])
- 
-    cvmPtCount = cv.CreateMat(good_imgs,1,cv.CV_32SC1)
-    cv.SetData(cvmPtCount,pt_count.tostring(),pt_count.dtype.itemsize)
-    cv.Save("Objects.xml",cvmObjPts)
-    cv.Save("Image.xml",cvmImgPts)
-    cv.Save("Points.xml",cvmPtCount)
-    #Have to set the values of the output Mat as these are our initial conditions
-    cv.SetZero(calib_mat)
-    cv.Set2D(calib_mat,0,0,1.0)
-    cv.Set2D(calib_mat,1,1,1.0)
-    cv.Set2D(calib_mat,2,2,1.00)
-    cv.Set2D(calib_mat,0,2,imageList[0].width/2)
-    cv.Set2D(calib_mat,1,2,imageList[0].height/2)
+    # now assigning new matrices according to view_count
+    if( successes < warn_thresh ):
+      warnings.warn("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes,warn_thresh)) 
 
-    
-    #And finally, do the calibration 
-    cv.CalibrateCamera2(cvmObjPts,cvmImgPts,cvmPtCount,
-                        (imageList[0].width,imageList[1].height),calib_mat,dist_coeff,
-                        rvecs,tvecs,cv.CV_CALIB_USE_INTRINSIC_GUESS)
-    self._calibMat = calib_mat
-    self._distCoeff = dist_coeff
-    return calib_mat
+    object_points2=cv.CreateMat(successes*board_n,3,cv.CV_32FC1)
+    image_points2=cv.CreateMat(successes*board_n,2,cv.CV_32FC1)
+    point_counts2=cv.CreateMat(successes,1,cv.CV_32SC1)
 
+    for i in range(successes*board_n):
+      cv.Set2D(image_points2,i,0,cv.Get2D(image_points,i,0))
+      cv.Set2D(image_points2,i,1,cv.Get2D(image_points,i,1))
+      cv.Set2D(object_points2,i,0,cv.Get2D(object_points,i,0))
+      cv.Set2D(object_points2,i,1,cv.Get2D(object_points,i,1))
+      cv.Set2D(object_points2,i,2,cv.Get2D(object_points,i,2))
+    for i in range(successes):
+      cv.Set2D(point_counts2,i,0,cv.Get2D(point_counts,i,0))
+
+    cv.Set2D(intrinsic_matrix,0,0,1.0)
+    cv.Set2D(intrinsic_matrix,1,1,1.0)
+    rcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
+    tcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
+    # camera calibration
+    cv.CalibrateCamera2(object_points2,image_points2,point_counts2,
+                        (img.width,img.height),intrinsic_matrix,distortion_coefficient,
+                        rcv,tcv,0)
+    self._calibMat = intrinsic_matrix
+    self._distCoeff = distortion_coefficient
+    return intrinsic_matrix
 
   def getCameraMatrix(self):
     """

@@ -531,7 +531,9 @@ def test_undistort():
   fakeCamera.loadCalibration("Default")
   img = Image("../sampleimages/CalibImage0.png") 
   img2 = fakeCamera.undistort(img)
-  img2.save("derp.png")
+  if( not img2 ): #right now just wait for this to return 
+    assert False
+
 #def test_image_subtract():
 #def test_image_negative():
 #def test_image_multiple():

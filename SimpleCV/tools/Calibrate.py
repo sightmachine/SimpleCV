@@ -19,8 +19,13 @@ def main(stdscr):
   quit = False
   imgList = []
   while (quit == False):
+    stdscr.addstr(0,0,"Calibration App - to see image, in your browser go to localhost:8080") 
+    stdscr.addstr(1,0,"SPACE - grab frame")
+    stdscr.addstr(2,0,"  c   - calibrate ")
+    stdscr.addstr(3,0,"  q   - quit " )
+
     img = cam.getImage()
-    grid = cam.markCalibrationGrid(img,dimensions=(5,8))
+    grid = cam.markCalibrationGrid(img)
     c = int(stdscr.getch())
     if( c == 113 ):
       quit = True
@@ -29,14 +34,14 @@ def main(stdscr):
       img.save(fname)
       imgList.append(img)
       count = count + 1
-      print("Saved "+fname+"\n")
+      #print("Saved "+fname+"\n")
     elif( c == 99 ):
       #print("Calibrate!\n")      
       m = cam.calibrate(imgList,dimensions=(5,8))
       cam.saveCalibration("Default")
       print(m)
 
-    stdscr.addstr(str(c))
+    #stdscr.addstr(str(c))
     stdscr.refresh()
     stdscr.move(0, 0)
 

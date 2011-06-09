@@ -3,8 +3,8 @@
 <DefaultIntrinsic type_id="opencv-matrix">
   <rows>3</rows>
   <cols>3</cols>
-  <dt>d</dt>
+  <dt>f</dt>
   <data>
-    1.1000000000078307e+00 0. 3.1644737425405702e+02 0.
-    1.1000000000022525e+00 2.6899876981065944e+02 0. 0. 1.</data></DefaultIntrinsic>
+    5.12631653e+02 0. 2.66570740e+02 0. 6.23095764e+02 1.93291000e+02 0.
+    0. 1.</data></DefaultIntrinsic>
 </opencv_storage>
