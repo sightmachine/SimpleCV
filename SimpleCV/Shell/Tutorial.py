@@ -34,6 +34,7 @@ class Tutorial():
     print "You will first learn how to load an image"
     raw_input("Press enter to continue")
     self.image()
+    
     return
     
   def image(self):
@@ -53,6 +54,12 @@ class Tutorial():
     print "Now try it yourself at the terminal"
     print "img = Image('/tmp/simplecv.jpg')"
     print lb
+    in_text = raw_input("SimpleCV:>")
+    print in_text
     return
+
+  def image_save(self):
+    clear()
+    
     
     
