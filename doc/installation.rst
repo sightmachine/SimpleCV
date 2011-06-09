@@ -34,15 +34,15 @@ Steps:
 #. Install Xcode http://developer.apple.com/technologies/xcode.html
 #. Install homebrew https://github.com/mxcl/homebrew/wiki/installation
 #. Use homebrew to install opencv and git
-#. Install scipy superpack http://stronginference.com/scipy-superpack/
+#. Install scipy superpack, but with ipython 0.10.2 http://stronginference.com/scipy-superpack/ (download from http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh)
 #. Install python imaging library (10.6 needs ARCHFLAGS tweak)
 #. clone simplecv and python setup.py install
 
 Commands::
 
     ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
-    wget http://idisk.mac.com/fonnesbeck-Public/superpack_10.6_2011.03.25.sh
-    sh superpack_10.6_2011.03.25.sh
+    wget http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh 
+    sh superpack_10.6_2011.05.28-ipython10.sh
     brew install opencv
     ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     brew install git
