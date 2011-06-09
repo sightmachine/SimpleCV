@@ -35,6 +35,7 @@ class Tutorial():
     raw_input("[Press enter to continue]")
     self.image()
     self.image_save()
+    self.image_copy()
     
     return
     
@@ -81,6 +82,62 @@ class Tutorial():
     print lb
     raw_input("[Press enter to continue]")
     clear()
-    
-    
+    print "Saving an image is very simple, pardon the pun."
+    print "but once it's loaded into memory, it's literally just:"
+    print "image.save()"
+    print lb
+    print "This will save the image back to the location it was loaded from"
+    print "so if you did img = Image('/tmp/test.jpg'), then it will save"
+    print "it back there, otherwise you can do:"
+    print "Image.save('/any/path/you/want')"
+    print lb
+    print "So try it now and save an image somewhere on your system"
+    print "img.save('/tmp/new.jpg')"
+    print lb
+    in_text = ""
+    shouldbe = "img.save('/tmp/new.jpg')"
+    while (in_text != shouldbe):
+      in_text = raw_input("SimpleCV:>")
+      if(in_text != shouldbe):
+        print "sorry, that is incorrect"
+        print "please type:"
+        print shouldbe
+
+    clear()
+    print "Correct, you just saved a new copy of the image to /tmp/new.jpg"
+    print "as you can see in SimpleCV most of the functions are intuitive"
+    print lb
+    raw_input("[Press enter to continue]")
+    return
+
+  def image_copy(self):
+    clear()
+    print "If you need a copy of an image, this is also very simple"
+    print "img = Image('./SimpleCV/sampleimages/color.jpg')"
+    print "clonedimage = img.copy()"
+    print lb
+    print lb
+    in_text = ""
+    shouldbe = "clone = img.copy()"
+    print "Please type this now:"
+    print shouldbe
+    while (in_text != shouldbe):
+      in_text = raw_input("SimpleCV:>")
+      if(in_text != shouldbe):
+        print "sorry, that is incorrect"
+        print "please type:"
+        print shouldbe
+    clear()
+    print "Correct, you just cloned an image into memory"
+    print "you need to be careful when using this method though"
+    print "as using a reference vs. a copy.  For instance if you just"
+    print "typed: clone = img"
+    print "then clone is actually pointing at the same thing in memory"
+    print "and if you did clone.binarize() it is the same as img.binarize()"
+    print "so if you want a copy of an image you have to return a copy of"
+    print "not just point a reference to it"
+    print lb
+    raw_input("[Press enter to continue]")
+    return
+
     
