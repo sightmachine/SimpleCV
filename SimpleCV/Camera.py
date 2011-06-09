@@ -2,11 +2,28 @@
 
 #load system libraries
 from .base import *
+from .Image import Image 
 
 #Globals
 _cameras = [] 
 _camera_polling_thread = ""
  
+
+class FrameBufferThread(threading.Thread):
+  """
+  This is a helper thread which continually debuffers the camera frames.  If
+  you don't do this, cameras may constantly give you a frame behind, which
+  causes problems at low sample rates.  This makes sure the frames returned
+  by your camera are fresh.
+  """
+  def run(self):
+    while (1):
+      for cam in _cameras:
+        cv.GrabFrame(cam.capture)
+      time.sleep(0.04)    #max 25 fps, if you're lucky
+
+
+
 class FrameSource:
   """
   An abstract Camera-type class, for handling multiple types of video input.
