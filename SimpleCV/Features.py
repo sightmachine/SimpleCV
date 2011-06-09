@@ -121,11 +121,13 @@ class FeatureSet(list):
     will let you use the attribute functions to easily screen Features out
     of return FeatureSets.  
 
-    Some examples:
-    * my_lines.filter(my_lines.length() < 200) # returns all lines < 200px
-    * my_blobs.filter(my_blobs.area() > 0.9 * my_blobs.length**2) # returns blobs that are nearly square    
-    * my_lines.filter(abs(my_lines.angle()) < numpy.pi / 4) #any lines within 45 degrees of horizontal
-    * my_corners.filter(my_corners.x() - my_corners.y() > 0) #only return corners in the upper diagonal of the image
+    Some examples::
+
+    my_lines.filter(my_lines.length() < 200) # returns all lines < 200px
+    my_blobs.filter(my_blobs.area() > 0.9 * my_blobs.length**2) # returns blobs that are nearly square    
+    my_lines.filter(abs(my_lines.angle()) < numpy.pi / 4) #any lines within 45 degrees of horizontal
+    my_corners.filter(my_corners.x() - my_corners.y() > 0) #only return corners in the upper diagonal of the image
+
     """
     return FeatureSet(list(np.array(self)[filterarray]))
     
