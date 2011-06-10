@@ -28,7 +28,9 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
 </body>
 </html>
       """)
-    else:
+      return 
+
+    elif (self.path == "/stream"):
       self.send_response(200)
       self.send_header("Connection", "close")
       self.send_header("Max-Age", "0")
