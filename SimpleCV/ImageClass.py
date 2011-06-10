@@ -170,20 +170,25 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     if (type(filehandle_or_filename) != str):
       fh = filehandle_or_filename
 
+
       if (not PIL_ENABLED):
         warnings.warn("You need the python image library to save by filehandle")
         return 0
 
       if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
-        fh = fh.framebuffer
+        iobuff = StringIO() 
+        self.getPIL().save(iobuff, "jpeg") #save via PIL to a StringIO handle 
+        fh.jpgdata = iobuff.getvalue() #save to the jpgstreamers buffer
+        self.filename = "" 
+        self.filehandle = fh
+         
+      else:      
+        if (not mode):
+          mode = "jpeg"
       
-      if (not mode):
-        mode = "jpeg"
-
-      
-      self.getPIL().save(fh, mode)
-      self.filehandle = fh #set the filename for future save operations
-      self.filename = ""
+        self.getPIL().save(fh, mode)
+        self.filehandle = fh #set the filename for future save operations
+        self.filename = ""
         
       return 1
 

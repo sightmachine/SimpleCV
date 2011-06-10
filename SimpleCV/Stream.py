@@ -40,30 +40,26 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
       (host, port) = self.server.socket.getsockname()[:2]
      
       count = 0
-      timeout = 1 
-      lastmodtime = 0
-      lasttimeserved = 0
-      jpgdata = ""
+      timeout = 0.75 
+      lasttimeserved = 0 
       while (1):
         interval = _jpegstreamers[port].sleeptime
   
-        if (time.time() - timeout > lasttimeserved or jpgdata != _jpegstreamers[port].framebuffer.getvalue()):
-  
-          jpgdata = _jpegstreamers[port].framebuffer.getvalue()
-          _jpegstreamers[port].framebuffer = StringIO()
-  
+        if (_jpegstreamers[port].refreshtime > lasttimeserved or time.time() - timeout > lasttimeserved):
           try:
+            lasttimeserved = time.time()
             self.wfile.write("--BOUNDARYSTRING\r\n")
             self.send_header("Content-type","image/jpeg")
-            self.send_header("Content-Length", str(len(jpgdata)))
+            self.send_header("Content-Length", str(len(_jpegstreamers[port].jpgdata)))
             self.end_headers()
-            self.wfile.write(jpgdata + "\r\n")
+            self.wfile.write(_jpegstreamers[port].jpgdata + "\r\n")
           except socket.error, e:
             return
           except IOError, e:
             return
-          lasttimeserved = time.time()
           count = count + 1 
+          refreshed = False
+
         time.sleep(interval)
 
 
@@ -93,7 +89,10 @@ class JpegStreamer():
   host = ""
   port = ""
   sleeptime = ""
-  framebuffer = StringIO()
+  framebuffer = "" 
+  counter = 0
+  refreshtime = 0
+  jpgdata = "" #buffer for jpgdata
 
   def __init__(self, hostandport = 8080, st=0.1 ):
     global _jpegstreamers
@@ -103,12 +102,12 @@ class JpegStreamer():
       (self.host, self.port) = hostandport 
 
     self.sleeptime = st
-    
     self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
     self.server_thread = threading.Thread(target = self.server.serve_forever)
     _jpegstreamers[self.port] = self
     self.server_thread.daemon = True
     self.server_thread.start()
+    self.framebuffer = self #self referential, ugh.  but gives some bkcompat
 
 
 
