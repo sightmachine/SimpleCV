@@ -43,24 +43,22 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
       timeout = 0.75 
       lasttimeserved = 0 
       while (1):
-        interval = _jpegstreamers[port].sleeptime
-  
         if (_jpegstreamers[port].refreshtime > lasttimeserved or time.time() - timeout > lasttimeserved):
           try:
-            lasttimeserved = time.time()
             self.wfile.write("--BOUNDARYSTRING\r\n")
             self.send_header("Content-type","image/jpeg")
-            self.send_header("Content-Length", str(len(_jpegstreamers[port].jpgdata)))
+            self.send_header("Content-Length", str(len(_jpegstreamers[port].jpgdata.getvalue())))
             self.end_headers()
-            self.wfile.write(_jpegstreamers[port].jpgdata + "\r\n")
+            self.wfile.write(_jpegstreamers[port].jpgdata.getvalue() + "\r\n")
+            lasttimeserved = time.time()
+            print "posted frame " + str(count)
           except socket.error, e:
             return
           except IOError, e:
             return
           count = count + 1 
-          refreshed = False
 
-        time.sleep(interval)
+        time.sleep(_jpegstreamers[port].sleeptime)
 
 
 class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -92,7 +90,6 @@ class JpegStreamer():
   framebuffer = "" 
   counter = 0
   refreshtime = 0
-  jpgdata = "" #buffer for jpgdata
 
   def __init__(self, hostandport = 8080, st=0.1 ):
     global _jpegstreamers

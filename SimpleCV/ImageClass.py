@@ -176,11 +176,12 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
         return 0
 
       if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
-        iobuff = StringIO() 
-        self.getPIL().save(iobuff, "jpeg") #save via PIL to a StringIO handle 
-        fh.jpgdata = iobuff.getvalue() #save to the jpgstreamers buffer
+        fh.jpgdata = StringIO() 
+        self.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
+        fh.refreshtime = time.time()
         self.filename = "" 
         self.filehandle = fh
+
          
       else:      
         if (not mode):
