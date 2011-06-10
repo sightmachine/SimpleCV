@@ -29,9 +29,12 @@ from scipy.interpolate import UnivariateSpline
 #optional libraries
 PIL_ENABLED = True
 try:
-  import Image as pil
+  import PIL.Image as pil
 except ImportError:
-  PIL_ENABLED = False 
+  try:
+    import Image as pil  #needed on homebrew on mac
+  except ImportError:
+    PIL_ENABLED = False 
 
 BLOBS_ENABLED = True
 try:
