@@ -180,14 +180,11 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       if (not mode):
         mode = "jpeg"
 
-      try:
-        self.getPIL().save(fh, mode)
-        self.filehandle = fh #set the filename for future save operations
-        self.filename = ""
+      
+      self.getPIL().save(fh, mode)
+      self.filehandle = fh #set the filename for future save operations
+      self.filename = ""
         
-      except:
-        return 0
-
       return 1
 
     filename = filehandle_or_filename 
