@@ -1,0 +1,24 @@
+These test files are setup as a way to unit test your code in case you
+decide to make changes to the library.
+
+Please keep in mind that not all functionality is tested, but it's good
+practice to run these test to ensure the minimum amount of errors.
+
+running the test are very simple but require you to have python nosetools installed.
+To install nosetools you can either use:
+  sudo easy_install nose
+          -or-
+  sudo apt-get install python-nose
+
+
+once these are installed, just run the command
+  nosetest tests.py
+
+to run basic functionality test working.  You should get all OK checks
+if everything is fine and dandy. But you will get errors if something
+is broken.
+
+------------------------------------------------------------------------
+
+TODO:
+Need to add pychecker to test.
