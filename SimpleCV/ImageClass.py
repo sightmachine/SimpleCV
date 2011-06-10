@@ -51,7 +51,7 @@ class Image:
   #initialize the frame
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
-  def __init__(self, source):
+  def __init__(self, source = None):
     """ 
     The constructor takes a single polymorphic parameter, which it tests
     to see how it should convert into an RGB image.  Supported types include:
