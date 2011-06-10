@@ -9,7 +9,7 @@ testoutput = "sampleimages/cam.jpg"
 
 
 def test_virtual_camera_constructor():
-  mycam = VirtualCamera(0)
+  mycam = VirtualCamera(testoutput, 'image')
 
   props = mycam.getAllProperties()
 
