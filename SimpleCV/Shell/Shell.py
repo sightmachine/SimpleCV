@@ -30,6 +30,7 @@ from IPython.Shell import IPShellEmbed
 def clear():
   call("clear")
 
+
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
@@ -41,7 +42,7 @@ def main():
     banner += '+----------------------------------------------------+\n'
     banner += '\n\n'
     banner += 'Commands: \n'
-    banner += '\t"exit()" or press "Ctrl+ D" to exit the shell\n'
+    banner += '\t"Exit" or press "Ctrl+ D" to exit the shell\n'
     banner += '\t"clear()" to clear the shell screen\n'
     banner += '\t"tutorial.start()" to begin the SimpleCV interactive tutorial\n'
     banner += '\n'
@@ -72,6 +73,7 @@ def main():
     scvShell = IPShellEmbed(argsv)
     scvShell.set_banner(banner)
     scvShell.set_exit_msg(exit_msg)
+    
 
     #Note that all loaded libraries are inherited in the embedded ipython shell
     sys.exit(scvShell())
