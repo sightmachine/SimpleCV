@@ -38,6 +38,7 @@ class Tutorial():
     self.image()
     self.image_save()
     self.image_copy()
+    self.features()
     self.slicing()
     self.findCorners()
     
@@ -116,7 +117,6 @@ class Tutorial():
 
   def image_copy(self):
     clear()
-    print "Image Copy"
     print "If you need a copy of an image, this is also very simple"
     print "img = Image('./SimpleCV/sampleimages/color.jpg')"
     print "clonedimage = img.copy()"
@@ -145,10 +145,47 @@ class Tutorial():
     print lb
     raw_input("[Press enter to continue]")
     return
+    
+  def features(self):
+    clear()
+    print "Features are a main part of SimpleCV.  They are a simple, abstract"
+    print "way to perform operations on an image, like say finding edges,"
+    print "and get a commonly structure set of data back."
+    print "Typically functions return things in a FeatureSet.  This is basically"
+    print "just a list of Feature objects."
+    print lb
+    print "Features are accessed just like an array, so to get the first"
+    print "object, then all you have to do is give it the 0 position"
+    print "to do this use:"
+    print "featureset = image.findCorners()"
+    print "feature_one = featureset[0]"
+    print "feature_two = featureset[1]"
+    print lb
+    print "or you can use chaining as well:"
+    print "feature_one = image.findCorners()[0]"
+    print lb
+    raw_input("[Press enter to continue]")
+    clear()
+    in_text = ""
+    shouldbe = "featureset = image.findLines()"
+    print "Please type this now:"
+    print shouldbe
+    print lb
+    while (in_text != shouldbe):
+      in_text = raw_input("SimpleCV:>")
+      if(in_text != shouldbe):
+        print "sorry, that is incorrect"
+        print "please type:"
+        print shouldbe
+    clear()
+    print "Correct, you just returned a featureset (list of features)"
+    print "Each feature contains properties associated with the found lines"
+    print lb
+    return
+    
 
   def slicing(self):
     clear()
-    print "Slicing:"
     print "Slicing is sort of a new paradigm to access parts of an image"
     print "Typically in vision a region of interest (ROI) is given.  "
     print "In this case slicing is a very powerful way to access parts"
