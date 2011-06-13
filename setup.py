@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys, os
 
 setup(name="SimpleCV",
-  version="0.6",
+  version="0.9",
   description="A kinder, gentler Python Vision Library",
   long_description="""Super-library for machine vision wrappers in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
   classifiers=[
@@ -20,7 +20,7 @@ setup(name="SimpleCV",
   keywords='opencv, cv, machine vision, computer vision, image recognition, kinect, freenect',
   author='Ingenuitas Inc',
   author_email='support@ingenuitas.com',
-  url='http://sf.net/p/simplecv',
+  url='http://simplecv.sf.net/',
   license='BSD',
   packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'sampleimages']),
   zip_safe = True,
