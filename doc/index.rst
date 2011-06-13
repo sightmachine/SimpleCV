@@ -33,6 +33,8 @@ For more code snippets, look at the cookbook, or the example scripts.
 Installation
 ---------------------------
 
+You can <a href="http://sourceforge.net/projects/simplecv/files/">download</a> the latest stable version from SourceForge.
+
 You will absolutely need:
 
  * OpenCV installed for your platform http://opencv.willowgarage.com/wiki/InstallGuide
