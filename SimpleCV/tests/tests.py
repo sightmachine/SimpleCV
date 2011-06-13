@@ -27,7 +27,7 @@ testoutput = "../sampleimages/9d4l.jpg"
 tmpimg = "../sampleimages/tmpimg.jpg"
 greyscaleimage = "../sampleimages/greyscale.jpg"
 logo = "../sampleimages/logo.png"
-logo_inverted = "../smapleimages/logo_inverted.png"
+logo_inverted = "../sampleimages/logo_inverted.png"
 
 
 def setup_context():
@@ -529,10 +529,30 @@ def test_subtract():
 
   imgC = imgA - imgB
 
-#def test_image_negative():
-#def test_image_multiple():
-#def test_image_divide():
-#def test_image_and():
-#def test_image_or():
-#def test_image_edgemap():
-#def test_image_filter():
+def test_image_negative():
+  imgA = Image(logo)
+
+  imgB = -imgA
+ 
+def test_image_divide():
+  imgA = Image(logo)
+  imgB = Image(logo_inverted)
+
+  imgC = imgA / imgB
+  
+def test_image_and():
+  imgA = Image(logo)
+  imgB = Image(logo_inverted)
+
+  imgC = imgA and imgB
+  
+  
+def test_image_or():
+  imgA = Image(logo)
+  imgB = Image(logo_inverted)
+
+  imgC = imgA or imgB
+
+def test_image_edgemap():
+  imgA = Image(logo)
+  imgB = imgA._getEdgeMap()
