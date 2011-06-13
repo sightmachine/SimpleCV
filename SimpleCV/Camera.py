@@ -17,6 +17,7 @@ class FrameBufferThread(threading.Thread):
   by your camera are fresh.
   """
   def run(self):
+    global _cameras
     while (1):
       for cam in _cameras:
         cv.GrabFrame(cam.capture)

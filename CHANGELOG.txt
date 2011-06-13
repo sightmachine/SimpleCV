@@ -1,0 +1,9 @@
+Changes in 0.9
+-----------------------
+
+Much improved performance in JpegStreamer
+Fixed favicon bug
+Internal module structure split by class/function
+new Image manipulation functions: rotate(), warp(), shear()
+new shell mode based on iPython
+fix threads not exiting cleanly bug

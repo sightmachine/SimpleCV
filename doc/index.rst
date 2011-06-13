@@ -29,7 +29,6 @@ Here is the simplecv "hello world"::
 
 For more code snippets, look at the cookbook, or the example scripts.
 
-
 Installation
 ---------------------------
 
@@ -43,10 +42,6 @@ Once you have all the required libraries installed::
     easy_install simplecv
 
 If you need more help, look at the [installation docs](http://simplecv.sf.net/installation.html)
-
-
-
-
 
 
 Required Libraries

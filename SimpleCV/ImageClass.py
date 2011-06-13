@@ -420,7 +420,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
       warnings.warn("Could not find Haar Cascade file " + cascadefile)
       return None
     cascade = cv.Load(cascadefile) 
-    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factors, use_canny, (0,0))
+    objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, use_canny)
     if objects: 
       return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
     
