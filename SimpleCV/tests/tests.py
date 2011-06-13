@@ -26,6 +26,8 @@ testbarcode = "../sampleimages/barcode.png"
 testoutput = "../sampleimages/9d4l.jpg"
 tmpimg = "../sampleimages/tmpimg.jpg"
 greyscaleimage = "../sampleimages/greyscale.jpg"
+logo = "../sampleimages/logo.png"
+logo_inverted = "../smapleimages/logo_inverted.png"
 
 
 def setup_context():
@@ -521,7 +523,12 @@ def test_perspective():
 
 
   
-#def test_image_subtract():
+def test_subtract():
+  imgA = Image(logo)
+  imgB = Image(logo_inverted)
+
+  imgC = imgA - imgB
+
 #def test_image_negative():
 #def test_image_multiple():
 #def test_image_divide():
