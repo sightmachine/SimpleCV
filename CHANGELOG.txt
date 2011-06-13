@@ -5,5 +5,6 @@ Much improved performance in JpegStreamer
 Fixed favicon bug
 Internal module structure split by class/function
 new Image manipulation functions: rotate(), warp(), shear()
-new shell mode based on iPython
+added morph operators dialate(), erode()
+new shell mode based on iPython invoke with python -m SimpleCV.__init__
 fix threads not exiting cleanly bug
