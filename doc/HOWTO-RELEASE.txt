@@ -1,0 +1,10 @@
+make sure tests run clean
+do a git clone (or clean)
+update changelog
+change version in setup.py
+change version in doc/conf.py
+python setup.py bdist --format=zip 
+python setup.py bdist --format=gztar
+log in and go to: https://sourceforge.net/projects/simplecv/files/
+upload files
+tweet new version
