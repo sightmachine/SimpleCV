@@ -46,6 +46,22 @@ def test_loadsave():
   else: 
     assert False
   
+def test_numpy_constructor():
+  img = Image(testimage)
+  grayimg = img.grayscale()
+
+  chan3_array = np.array(img.getMatrix())
+  chan1_array = np.array(img.getGrayscaleMatrix())
+
+  img2 = Image(chan3_array)
+  grayimg2 = Image(chan1_array)
+
+  if (img2[0,0] == img[0,0] and grayimg2[0,0] == grayimg[0,0]):
+    pass
+  else:
+    assert False 
+
+
 def test_bitmap():
   img = Image(testimage)
   bmp = img.getBitmap();
