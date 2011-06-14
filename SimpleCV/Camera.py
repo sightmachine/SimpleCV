@@ -1,8 +1,8 @@
 # SimpleCV Cameras & Devices
 
 #load system libraries
-from .base import *
-from .ImageClass import Image 
+from SimpleCV.base import *
+from SimpleCV.ImageClass import Image 
 
 #Globals
 _cameras = [] 

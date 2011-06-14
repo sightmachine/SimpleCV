@@ -18,11 +18,11 @@
 
 
 #load system libraries
-from ..__init__ import *
+from SimpleCV.__init__ import *
 from subprocess import call
 
 #Load simpleCV libraries
-from .Tutorial import *
+from SimpleCV.Shell.Tutorial import *
 
 #libraries for the shell
 from IPython.Shell import IPShellEmbed

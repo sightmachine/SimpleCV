@@ -3,7 +3,7 @@
 # This library is used to modify different color properties of images
 
 #load required libraries
-from .base import *
+from SimpleCV.base import *
 
 class ColorCurve:
   """

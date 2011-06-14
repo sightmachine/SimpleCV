@@ -3,8 +3,8 @@
 # This library includes classes for finding things in images
 
 #load required libraries
-from .base import *
-from .Features import Feature, FeatureSet
+from SimpleCV.base import *
+from SimpleCV.Features import Feature, FeatureSet
 
 class Corner(Feature):
   """

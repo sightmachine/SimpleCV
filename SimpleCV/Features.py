@@ -4,7 +4,7 @@
 
 
 #load system libraries
-from .base import *
+from SimpleCV.base import *
 
 
 class FeatureSet(list):

@@ -1,10 +1,10 @@
 # SimpleCV Image Object
 
 #load required libraries
-from .base import *
-from .Detection import Barcode, Blob, Corner, HaarFeature, Line
-from .Features import FeatureSet
-from .Stream import JpegStreamer
+from SimpleCV.base import *
+from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line
+from SimpleCV.Features import FeatureSet
+from SimpleCV.Stream import JpegStreamer
 
 class Image:
   """

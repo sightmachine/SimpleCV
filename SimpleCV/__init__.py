@@ -1,10 +1,10 @@
-from .base import *
-from Camera import *
-from Color import *
-from Detection import *   
-from Features import *
-from ImageClass import *
-from Stream import *
+from SimpleCV.base import *
+from SimpleCV.Camera import *
+from SimpleCV.Color import *
+from SimpleCV.Detection import *   
+from SimpleCV.Features import *
+from SimpleCV.ImageClass import *
+from SimpleCV.Stream import *
 
 if (__name__ == '__main__'):
   from Shell import *

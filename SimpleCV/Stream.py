@@ -1,4 +1,4 @@
-from .base import *
+from SimpleCV.base import *
 
 _jpegstreamers = {}
 class JpegStreamHandler(SimpleHTTPRequestHandler):
