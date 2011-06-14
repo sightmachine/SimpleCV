@@ -56,7 +56,7 @@ except ImportError:
 
 #couple quick typecheck helper functions
 def is_number(n):
-  return n in (IntType, LongType, FloatType)
+  return type(n) in (IntType, LongType, FloatType)
 
 def is_tuple(n):
   return type(n) == tuple 
