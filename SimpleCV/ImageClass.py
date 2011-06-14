@@ -62,6 +62,12 @@ class Image:
     """
     if (type(source) == cv.cvmat):
       self._matrix = source 
+
+    elif (type(source) == np.ndarray):
+      self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
+      cv.SetData(self._bitmap, source.tostring(), 
+        source.dtype.itemsize * 3 * source.shape[1])
+
     elif (type(source) == cv.iplimage):
       if (source.nChannels == 1):
         self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
@@ -78,6 +84,7 @@ class Image:
       self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
       cv.SetData(self._bitmap, self._pil.tostring())
       #self._bitmap = cv.iplimage(self._bitmap)
+
     else:
       return None 
 
@@ -694,6 +701,14 @@ Return an image with ColorCurve curve applied to all three color channels
     newbitmap = self.getEmpty() 
     cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
     return Image(newbitmap)
+
+#  def __mul__(self, other):
+#    if (not is_number(other)):
+#      newbitmap = self.getEmpty() 
+#      cv.Mul(self.getBitmap(), other.getBitmap(), newbitmap)
+#      return Image(newbitmap)
+#    else:
+#      return Image(np.array(self.getMatrix()) * other)
 
   def __pow__(self, other):
     newbitmap = self.getEmpty() 
