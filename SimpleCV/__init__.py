@@ -7,5 +7,5 @@ from SimpleCV.ImageClass import *
 from SimpleCV.Stream import *
 
 if (__name__ == '__main__'):
-  from Shell import *
+  from SimpleCV.Shell import *
   main()
