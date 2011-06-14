@@ -818,6 +818,14 @@ Return an image with ColorCurve curve applied to all three color channels
     return linesFS
 
   def edges(self, t1=50, t2=100):
+    """
+    Returns an edge map Image using the Canny edge detection method.  Edges will be brighter than the surrounding area.
+
+    The t1 parameter is roughly the "strength" of the edge required, and the value between t1 and t2 is used for edge linking.  For more information:
+
+    <http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html>
+    <http://en.wikipedia.org/wiki/Canny_edge_detector>
+    """
     return Image(self._getEdgeMap(t1, t2))
 
   def _getEdgeMap(self, t1=50, t2=100):
