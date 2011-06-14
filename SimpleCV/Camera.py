@@ -30,6 +30,8 @@ class FrameSource:
   An abstract Camera-type class, for handling multiple types of video input.
   Any sources of images inheirit from it
   """
+  _calibMat = "" #Intrinsic calibration matrix 
+  _distCoeff = "" #Distortion matrix
   def __init__(self):
     return
 
@@ -42,6 +44,192 @@ class FrameSource:
   def getImage(self):
     return None
 
+  def calibrate(self, imageList, grid_sz=0.03,dimensions=(8,5)):
+    """
+    Camera calibration is agnostic of the imagery source 
+
+    imageList is a list of images of color calibration images. 
+
+    grid_sz - is the actual grid size of the calibration grid, the unit used will be 
+    the calibration unit value (i.e. if in doubt use meters, or go forbid U.S. standard)
+
+    dimensions - is the the count of the *interior* corners in the calibration grid.
+    So for a grid where there are 4x4 black grid squares has seven interior corners. 
+    """
+    # This routine was adapted from code originally written by:
+    # Abid. K  -- abidrahman2@gmail.com
+    # See: https://github.com/abidrahmank/OpenCV-Python/blob/master/Other_Examples/camera_calibration.py
+
+    warn_thresh = 1
+    n_boards=0	#no of boards
+    board_w=int(dimensions[0])	# number of horizontal corners
+    board_h=int(dimensions[1])	# number of vertical corners
+    n_boards=int(len(imageList))
+    board_n=board_w*board_h		# no of total corners
+    board_sz=(board_w,board_h)	#size of board
+    if( n_boards < warn_thresh ):
+      warnings.warn("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" ) 
+
+    #  creation of memory storages
+    image_points=cv.CreateMat(n_boards*board_n,2,cv.CV_32FC1)
+    object_points=cv.CreateMat(n_boards*board_n,3,cv.CV_32FC1)
+    point_counts=cv.CreateMat(n_boards,1,cv.CV_32SC1)
+    intrinsic_matrix=cv.CreateMat(3,3,cv.CV_32FC1)
+    distortion_coefficient=cv.CreateMat(5,1,cv.CV_32FC1)
+
+    #	capture frames of specified properties and modification of matrix values
+    i=0
+    z=0		# to print number of frames
+    successes=0
+    imgIdx = 0
+    #	capturing required number of views
+    while(successes<n_boards):
+      found=0
+      img = imageList[imgIdx]
+      (found,corners)=cv.FindChessboardCorners(img.getGrayscaleMatrix(),board_sz,
+                                               cv.CV_CALIB_CB_ADAPTIVE_THRESH | 
+                                               cv.CV_CALIB_CB_FILTER_QUADS)
+      corners=cv.FindCornerSubPix(img.getGrayscaleMatrix(),corners,(11,11),(-1,-1),
+                                  (cv.CV_TERMCRIT_EPS+cv.CV_TERMCRIT_ITER,30,0.1)) 	
+      # if got a good image,draw chess board
+      if found==1:
+        corner_count=len(corners)
+        z=z+1
+
+      # if got a good image, add to matrix
+      if len(corners)==board_n:
+        step=successes*board_n
+        k=step
+        for j in range(board_n):
+          cv.Set2D(image_points,k,0,corners[j][0])
+          cv.Set2D(image_points,k,1,corners[j][1])
+          cv.Set2D(object_points,k,0,grid_sz*(float(j)/float(board_w)))
+          cv.Set2D(object_points,k,1,grid_sz*(float(j)%float(board_w)))
+          cv.Set2D(object_points,k,2,0.0)
+          k=k+1
+        cv.Set2D(point_counts,successes,0,board_n)
+        successes=successes+1
+
+    # now assigning new matrices according to view_count
+    if( successes < warn_thresh ):
+      warnings.warn("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes,warn_thresh)) 
+
+    object_points2=cv.CreateMat(successes*board_n,3,cv.CV_32FC1)
+    image_points2=cv.CreateMat(successes*board_n,2,cv.CV_32FC1)
+    point_counts2=cv.CreateMat(successes,1,cv.CV_32SC1)
+
+    for i in range(successes*board_n):
+      cv.Set2D(image_points2,i,0,cv.Get2D(image_points,i,0))
+      cv.Set2D(image_points2,i,1,cv.Get2D(image_points,i,1))
+      cv.Set2D(object_points2,i,0,cv.Get2D(object_points,i,0))
+      cv.Set2D(object_points2,i,1,cv.Get2D(object_points,i,1))
+      cv.Set2D(object_points2,i,2,cv.Get2D(object_points,i,2))
+    for i in range(successes):
+      cv.Set2D(point_counts2,i,0,cv.Get2D(point_counts,i,0))
+
+    cv.Set2D(intrinsic_matrix,0,0,1.0)
+    cv.Set2D(intrinsic_matrix,1,1,1.0)
+    rcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
+    tcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
+    # camera calibration
+    cv.CalibrateCamera2(object_points2,image_points2,point_counts2,
+                        (img.width,img.height),intrinsic_matrix,distortion_coefficient,
+                        rcv,tcv,0)
+    self._calibMat = intrinsic_matrix
+    self._distCoeff = distortion_coefficient
+    return intrinsic_matrix
+
+  def getCameraMatrix(self):
+    """
+    This function returns a cvMat of the camera's intrinsic matrix. 
+    If there is no matrix defined the function returns None. 
+    """
+    return self._calibMat
+
+  def markCalibrationGrid(self, inImg, dimensions=(5,8)):
+    """
+    This function will return an image with calibration grid draw on the
+    image. This is helpful for doing calibration as it allows you to visually
+    verify that the system is recognizing the calibration grid. The default 
+    calibration grid can be found in:
+    \SimpleCV\tools\CalibGrid.png
+    """
+    result = ""
+    corners = ""
+    found = False
+    
+    retVal = inImg.getEmpty()
+    cv.Copy(inImg.getBitmap(),retVal)
+    #Get the corners 
+    corners = cv.FindChessboardCorners(inImg.getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+    #If the corners exist they will match the size here
+    if(len(corners[1]) == dimensions[0]*dimensions[1]):
+      #Now we locate the corners using sub-pixel accuracy so they are dead on
+      spCorners = cv.FindCornerSubPix(inImg.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      #Now draw them and return the results. 
+      cv.DrawChessboardCorners(retVal,dimensions,spCorners,1)
+    return Image(retVal) 
+
+  def undistort(self, inImg):
+    """
+    Given an image, apply the undistortion given my the camera's matrix and return the result
+    """
+    if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
+       warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
+       return None
+    retVal = inImg.getEmpty()
+    cv.Undistort2(inImg.getBitmap(),retVal,self._calibMat,self._distCoeff)
+    return Image(retVal)
+
+  def getImageUndistort(self):
+    """
+    Using the overridden getImage method we retrieve the image and apply the undistortion
+    operation. 
+    """
+    return self.undistort(self.getImage())
+  
+  
+  def saveCalibration(self,filename):
+    """
+    Save the calibration matrices to file. The file name should be without the extension.
+    The default extension is .xml
+    Returns true if the file was successful loaded, false otherwise. 
+    """
+    if( type(self._calibMat) != cv.cvmat ):
+            warnings.warn("FrameSource.saveCalibration: No calibration matrix present, can't save.")
+    else:
+      intrFName = filename + "Intrinsic.xml"
+      cv.Save(intrFName,self._calibMat)
+
+    if( type(self._distCoeff) != cv.cvmat ):
+          warnings.warn("FrameSource.saveCalibration: No calibration distortion present, can't save.")
+    else:      
+        distFName = filename + "Distortion.xml"
+        cv.Save(distFName,self._distCoeff)
+    
+    return None
+
+  def loadCalibration(self,filename):
+    """
+    Load a calibration matrix from file.
+    The filename should be the stem of the calibration files names.
+    e.g. If the calibration files are MyWebcamIntrinsic.xml and MyWebcamDistortion.xml
+    then load the calibration file "MyWebcam"
+
+
+    Returns true if the file was successful loaded, false otherwise. 
+    """
+    retVal = False
+    intrFName = filename + "Intrinsic.xml"
+    self._calibMat = cv.Load(intrFName)
+    distFName = filename + "Distortion.xml"
+    self._distCoeff = cv.Load(distFName)
+    if( type(self._distCoeff) == cv.cvmat
+        and type(self._calibMat) == cv.cvmat):
+      retVal = True
+
+    return retVal
+ 
 class Camera(FrameSource):
   """
 The Camera class is the class for managing input from a basic camera.  Note
