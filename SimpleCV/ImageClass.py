@@ -66,6 +66,7 @@ class Image:
     elif (type(source) == np.ndarray):  #handle a numpy array conversion
       if (type(source[0,0]) == np.ndarray): #we have a 3 channel array
         #convert to an iplimage bitmap
+        source = source.astype(np.uint8)
         self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, source.tostring(), 
           source.dtype.itemsize * 3 * source.shape[1])
