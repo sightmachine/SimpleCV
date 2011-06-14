@@ -180,22 +180,21 @@ class Kinect(FrameSource):
   def getImage(self):
     video = freenect.sync_get_video()[0]
     video = video[:, :, ::-1]  # RGB -> BGR
-    image = cv.CreateImageHeader((video.shape[1], video.shape[0]), cv.IPL_DEPTH_8U, 3)
-    cv.SetData(image, video.tostring(),
-               video.dtype.itemsize * 3 * video.shape[1])
-    return Image(image)
+    return Image(video)
 
+  #low bits in this depth are stripped so it fits in an 8-bit image channel
   def getDepth(self):
     depth = freenect.sync_get_depth()[0]
     np.clip(depth, 0, 2**10 - 1, depth)
     depth >>= 2
     depth = depth.astype(np.uint8)
 
-    image = cv.CreateImageHeader((depth.shape[1], depth.shape[0]),
-                                 cv.IPL_DEPTH_8U, 1)
+    return Image(depth) 
 
-    cv.SetData(image, depth.tostring(), depth.dtype.itemsize * depth.shape[1])
-    return Image(image) 
+  #we're going to also support a higher-resolution (11-bit) depth matrix
+  #if you want to actually do computations with the depth
+  def getDepthMatrix(self):
+    return freenect.sync_get_depth()[0]
 
 
 
