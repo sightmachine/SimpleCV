@@ -8,22 +8,41 @@ use File::Copy;
 
 #script to take a functional build of simplecv and turn it
 #into a file structure appropriate for the mac packagemaker
+$python_version = 2.6;
+$python_install_dir = "/Library/Python/$python_version/site-packages/";
 
 #first, let's ID all the stuff we homebrew'd
 my @homebrew_libs = qw(boost jpeg jasper libfreenect libtiff libusb-freenect little-cms opencv pil tbb);
 
-my @python_libs = qw(cvblob ipython numpy scipy pil matplotlib simplecv);
+#where the most recent/appropriate version of easy install is
+my $easyinstall_location = "http://pypi.python.org/packages/$python_version/s/setuptools/setuptools-0.6c11-py$python_version.egg";
 
-#check here for compiled cvblob
-my $cvblob_location = "/usr/local/lib/libcvblob.dylib";
+#what packages we need to postinstall
+my @pkgs = qw(
+  http://r.research.att.com/gfortran-42-5664.pkg
+  http://github.com/downloads/oostendo/cvblob-python/cvblob-0.3.pkg
+);
+
+#the python libs we're going to bundle and easyinstall
+my @python_libs = qw(
+  http://sourceforge.net/projects/numpy/files/NumPy/1.6.1rc1/numpy-1.6.1rc1.tar.gz
+  http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1_r0-py2.6-macosx-10.3-fat.egg
+  http://sourceforge.net/projects/scipy/files/scipy/0.9.0/scipy-0.9.0.tar.gz
+  http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2-py2.6.egg
+);
+
+my @python_lib_manual = qw(
+  http://github.com/downloads/oostendo/cvblob-python/cvblob-python-macosx10.6-python2.6.tar.gz
+)
+    
+my $python_install_directory = "/Library/Python/$python_version/site-packages/";
 
 #look in the current directory, die if it's empty
-#a little sad, but i didn't know you could use the diamond operator <> with 
-#a path
+#a little sad, but i didn't know until just now that
+#you could use the diamond operator <> with a path
 die "please start in an empty directory!" if (<./*>);
 
 my $buildpath = getcwd();
-
 
 foreach my $lib (@homebrew_libs) {
   my $libpath = "/usr/local/Cellar/" . $lib;
@@ -58,30 +77,44 @@ if (-e $cvblob_location) {
   copy($cvblob_location, $buildpath . $cvblob_location);
 }
 
-#now to get the python libs
-my $build_script = abs_path($0);
-my ($findmods_path) = $build_script =~ /^(.+)\/[^\/]+$/;
-my $findmods_script = $findmods_path . "/findmods.py";
-my @pylibs_found = `python $findmods_script`;
+#now to get the remaining external packages 
+my $extpkgpath = "/var/tmp/simplecv";
+my $buildpkgpath = $buildpath . $extpkgpath;
+mkpath($buildpkgpath);
 
-foreach my $pylib (@pylibs_found) {
-  chomp($pylib);
-  my @path_parts = split("/", $pylib);
-  my $egg_name = pop(@path_parts);
-  foreach my $wantedlib (@python_libs) {
-    if ($egg_name =~ /^$wantedlib/i) {
-      find( sub {
-        next if -d;      
-        my $fullpath = $File::Find::name;
-        my ($reldir) = $fullpath =~ /^(.+)\/[^\/]+$/;
-        my $newdir = $buildpath . $reldir;
-        my $newpath = $buildpath . $fullpath;
+my $postinstall_script = "#!/bin/sh\ncd $extpkgpath\n";
 
-        if (not -d $newdir) { mkpath($newdir); }
-        print "copying $fullpath -> $newpath\n";
-        copy($fullpath, $newpath);
-        }, $pylib);
-    }
-  }
+sub fetchPackage {
+  chdir($buildpkgpath);
+  my ($pkg_url) = @_;
+  my ($fname) = $pkg_url =~ /^(.+)\/[^\/]+$/;    
+  `curl -O $fname $pkg_url`;
+  chdir($buildpath);
+  return $fname;
 }
+
+my $easyinstall_fname = fetchPackage($easyinstall_location);
+$postinstall_script .= "\n#install easy_install\n";
+$postinstall_script .= "./$easyinstall_fname\n";
+
+$postinstall_script .= "\n#install external pkgs\n";
+foreach my $pkg (@pkgs) {
+  my $pkg_fname = fetchPackage($pkg);
+  $postinstall_script .= "installer -pkg '$pkg_fname' -target '/'\n";
+}
+
+$postinstall_script .= "\n#install python deps\n";
+foreach my $pylib (@python_libs) {
+  my $pkg_fname = fetchPackage($pylib);
+  $postinstall_script .= "easy_install $pkg_fname\n";
+}
+
+$postinstall_script .= "\n#install manual python deps\n";
+foreach my $manuallib (@python_lib_manual) {
+  my $pkg_fname = fetchPackage($pylib);
+  $postinstall_script .= "tar xzf $pkg_fname -C $python_install_dir\n";
+}
+
+$postinstall_script .= "\n#and finally, symlink opencv\n";
+$postinstall_script .= "ln -s /usr/local/lib/python$python_version/cv.so $python_directory/cv.so\n";
 
