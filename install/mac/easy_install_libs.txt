@@ -1,0 +1,7 @@
+curl -o gfortran-42-5664.pkg http://r.research.att.com/gfortran-42-5664.pkg
+
+
+curl -o ez_setup.py http://peak.telecommunity.com/dist/ez_setup.py
+
+
+http://dl.dropbox.com/u/233041/PyMC/
