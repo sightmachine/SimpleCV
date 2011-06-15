@@ -711,20 +711,20 @@ Return an image with ColorCurve curve applied to all three color channels
     return Image(newbitmap)
 
   def __div__(self, other):
+    newbitmap = self.getEmpty() 
     if (not is_number(other)):
-      newbitmap = self.getEmpty() 
       cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
-      return Image(newbitmap)
     else:
-      return Image(np.array(self.getMatrix()) / other)
+      cv.ConvertScale(self.getBitmap(), newbitmap, 1.0/float(other))
+    return Image(newbitmap)
 
   def __mul__(self, other):
+    newbitmap = self.getEmpty() 
     if (not is_number(other)):
-      newbitmap = self.getEmpty() 
       cv.Mul(self.getBitmap(), other.getBitmap(), newbitmap)
-      return Image(newbitmap)
     else:
-      return Image(np.array(self.getMatrix()) * other)
+      cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
+    return Image(newbitmap)
 
   def __pow__(self, other):
     newbitmap = self.getEmpty() 
