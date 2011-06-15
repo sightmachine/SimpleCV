@@ -8,8 +8,8 @@ use File::Copy;
 
 #script to take a functional build of simplecv and turn it
 #into a file structure appropriate for the mac packagemaker
-$python_version = 2.6;
-$python_install_dir = "/Library/Python/$python_version/site-packages/";
+my $python_version = 2.6;
+my $python_install_dir = "/Library/Python/$python_version/site-packages/";
 
 #first, let's ID all the stuff we homebrew'd
 my @homebrew_libs = qw(boost jpeg jasper libfreenect libtiff libusb-freenect little-cms opencv pil tbb);
@@ -33,7 +33,7 @@ my @python_libs = qw(
 
 my @python_lib_manual = qw(
   http://github.com/downloads/oostendo/cvblob-python/cvblob-python-macosx10.6-python2.6.tar.gz
-)
+);
     
 my $python_install_directory = "/Library/Python/$python_version/site-packages/";
 
@@ -72,11 +72,6 @@ foreach my $lib (@homebrew_libs) {
     }, $version_path);
 }
 
-#copy in cvblob, if we have it
-if (-e $cvblob_location) {
-  copy($cvblob_location, $buildpath . $cvblob_location);
-}
-
 #now to get the remaining external packages 
 my $extpkgpath = "/var/tmp/simplecv";
 my $buildpkgpath = $buildpath . $extpkgpath;
@@ -87,7 +82,7 @@ my $postinstall_script = "#!/bin/sh\ncd $extpkgpath\n";
 sub fetchPackage {
   chdir($buildpkgpath);
   my ($pkg_url) = @_;
-  my ($fname) = $pkg_url =~ /^(.+)\/[^\/]+$/;    
+  my ($fname) = $pkg_url =~ /^.+\/([^\/]+)$/;    
   `curl -O $fname $pkg_url`;
   chdir($buildpath);
   return $fname;
@@ -111,10 +106,16 @@ foreach my $pylib (@python_libs) {
 
 $postinstall_script .= "\n#install manual python deps\n";
 foreach my $manuallib (@python_lib_manual) {
-  my $pkg_fname = fetchPackage($pylib);
+  my $pkg_fname = fetchPackage($manuallib);
   $postinstall_script .= "tar xzf $pkg_fname -C $python_install_dir\n";
 }
 
 $postinstall_script .= "\n#and finally, symlink opencv\n";
-$postinstall_script .= "ln -s /usr/local/lib/python$python_version/cv.so $python_directory/cv.so\n";
+$postinstall_script .= "ln -s /usr/local/lib/python$python_version/cv.so $python_install_dir/cv.so\n";
 
+$postinstall_script .= "\n#clean up\n";
+$postinstall_script .= "rm -r " . $extpkgpath . "\n";
+
+open(PISCRIPT, ">".$buildpath."/post_install.sh");
+print PISCRIPT $postinstall_script;
+close(PISCRIPT);
