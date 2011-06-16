@@ -1,5 +1,5 @@
 tar cvf usrlocal.tar /usr/local
-mv /usr/local /usr/local.bak
+sudo mv /usr/local /usr/local.bak
 sudo mkdir /usr/local
 sudo chown root:staff /usr/local
 sudo chmod g+w /usr/local/
