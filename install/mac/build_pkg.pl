@@ -117,3 +117,18 @@ $postinstall_script .= "rm -r " . $extpkgpath . "\n";
 open(PISCRIPT, ">".$buildpath."/post_install.sh");
 print PISCRIPT $postinstall_script;
 close(PISCRIPT);
+
+my $cmd = <<SIMPLECV_COMMAND;
+#!/usr/bin/python
+from SimpleCV import *
+from SimpleCV.Shell import *
+main()
+SIMPLECV_COMMAND
+
+my $appdir = $buildpath . "/Applications";
+mkpath($appdir);
+my $cmdfile = $appdir . "/SimpleCV.command";
+open CMDFILE, ">$cmdfile";
+print CMDFILE $cmd;
+close CMDFILE;
+chmod(0755, $cmdfile);
