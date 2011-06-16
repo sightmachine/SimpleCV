@@ -89,7 +89,7 @@ sub fetchPackage {
 
 my $easyinstall_fname = fetchPackage($easyinstall_location);
 $postinstall_script .= "\n#install easy_install\n";
-$postinstall_script .= "sudo ./$easyinstall_fname\n";
+$postinstall_script .= "./$easyinstall_fname\n";
 
 $postinstall_script .= "\n#install external pkgs\n";
 foreach my $pkg (@pkgs) {
@@ -110,7 +110,7 @@ foreach my $manuallib (@python_lib_manual) {
 }
 
 $postinstall_script .= "\n#and finally, symlink opencv\n";
-$postinstall_script .= "ln -s /usr/local/lib/python$python_version/cv.so $python_install_dir/cv.so\n";
+$postinstall_script .= "ln -s /usr/local/lib/python$python_version/site-packages/cv.so $python_install_dir/cv.so\n";
 
 $postinstall_script .= "\n#clean up\n";
 $postinstall_script .= "sudo rm -r " . $extpkgpath . "\n";
