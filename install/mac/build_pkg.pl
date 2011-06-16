@@ -111,6 +111,7 @@ foreach my $manuallib (@python_lib_manual) {
 
 $postinstall_script .= "\n#and finally, symlink opencv\n";
 $postinstall_script .= "ln -s /usr/local/lib/python$python_version/site-packages/cv.so $python_install_dir/cv.so\n";
+$postinstall_script .= "ln -s /usr/local/lib/python$python_version/site-packages/PIL $python_install_dir/PIL\n";
 
 $postinstall_script .= "\n#clean up\n";
 $postinstall_script .= "sudo rm -r " . $extpkgpath . "\n";
