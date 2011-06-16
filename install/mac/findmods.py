@@ -4,6 +4,9 @@ from SimpleCV import *
 import re
 from types import NoneType
 
+#this is a utility just to make sure that the modules/versions you're
+#using on the current system match what is in the install scrip
+
 easy_installed_pkgs = dict() 
 easy_installed_path = "/Library/Python/2.6/site-packages";
 

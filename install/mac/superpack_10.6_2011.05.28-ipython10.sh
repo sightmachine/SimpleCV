@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#this is a modified copy from http://stronginference.com/scipy-superpack/
+
 PYTHON=/usr/bin/python
 SERVER=http://dl.dropbox.com/u/233041/PyMC
 
