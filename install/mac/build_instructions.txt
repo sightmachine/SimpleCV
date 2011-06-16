@@ -21,7 +21,7 @@ Name is "Ingenuitas Inc"
 
 Click on the package, tab to components:
  - Package name should be "SimpleCV Superpack Version #"
- - click on actions, add "open file" and set target to /var/tmp/simplecv/post_install.command
+ - click on actions, click on edit in Post Install actions, add "open file" and select "absolute path", set target to /var/tmp/simplecv/post_install.command
 
 Drag in to the contents panel IN THIS ORDER, note that you will need to drag the folders RIGHT ON TOP of the command file to keep them in the same pkg component:  
   - /Applications/SimpleCV.command and set target to /Applications/
