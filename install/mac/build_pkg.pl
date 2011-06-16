@@ -5,6 +5,7 @@ use Cwd qw(getcwd abs_path);
 use File::Find qw(find);
 use File::Path;
 use File::Copy;
+use File::Fetch;
 
 #script to take a functional build of simplecv and turn it
 #into a file structure appropriate for the mac packagemaker
@@ -26,7 +27,6 @@ my @pkgs = qw(
 #the python libs we're going to bundle and easyinstall
 my @python_libs = qw(
   http://sourceforge.net/projects/numpy/files/NumPy/1.6.1rc1/numpy-1.6.1rc1.tar.gz
-  http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1_r0-py2.6-macosx-10.3-fat.egg
   http://sourceforge.net/projects/scipy/files/scipy/0.9.0/scipy-0.9.0.tar.gz
   http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2-py2.6.egg
 );
@@ -80,12 +80,10 @@ mkpath($buildpkgpath);
 my $postinstall_script = "#!/bin/sh\ncd $extpkgpath\n";
 
 sub fetchPackage {
-  chdir($buildpkgpath);
   my ($pkg_url) = @_;
-  my ($fname) = $pkg_url =~ /^.+\/([^\/]+)$/;    
-  `curl -O $fname $pkg_url`;
-  chdir($buildpath);
-  return $fname;
+  my $ff = File::Fetch->new(uri => $pkg_url);
+  my $where = $ff->fetch( to => $buildpkgpath );
+  return $ff->output_file;
 }
 
 my $easyinstall_fname = fetchPackage($easyinstall_location);
