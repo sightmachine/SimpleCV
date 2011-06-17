@@ -56,7 +56,7 @@ begin
  itd_addfile('http://downloads.sourceforge.net/project/numpy/NumPy/1.6.1rc1/numpy-1.6.1rc1-win32-superpack-python2.7.exe',expandconstant('{tmp}\numpy.exe'))
 
  itd_addfile('http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe',expandconstant('{tmp}\ezinstall.exe'))
-  
+ itd_addfile('http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2.win32-setup.exe',expandconstant('{tmp}\ipython.exe')) 
  //Start the download after the "Ready to install" screen is shown
  itd_downloadafter(wpReady);
 end;
@@ -72,11 +72,13 @@ begin
   pythonCmd := '/i /quiet '
   pythonSrc := ExpandConstant('{tmp}\python27.msi')
   Insert(pythonSrc,pythonCmd,3);
-  Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+  Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);  
+  Exec(ExpandConstant('{tmp}\ezinstall.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\openCV.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\numpy.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\sci-py.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  Exec(ExpandConstant('{tmp}\ezinstall.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{tmp}\ipython.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+
   
   end;
  if CurStep=ssPostInstall then begin
