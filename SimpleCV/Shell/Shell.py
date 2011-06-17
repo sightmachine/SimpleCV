@@ -23,42 +23,49 @@ from subprocess import call
 
 #Load simpleCV libraries
 from SimpleCV.Shell.Tutorial import *
+from SimpleCV.Shell.Help import *
+from SimpleCV.Shell.Cheatsheet import *
 
 #libraries for the shell
 from IPython.Shell import IPShellEmbed
 
+
+#Command to clear the shell screen
 def clear():
   call("clear")
 
+def magic_clear(self, arg):
+  clear()
 
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
 def main():
     clear()
-
     banner = '+----------------------------------------------------+\n'
     banner += ' SimpleCV [interactive shell]\n'
     banner += '+----------------------------------------------------+\n'
-    banner += '\n\n'
+    banner += '\n'
     banner += 'Commands: \n'
-    banner += '\t"Exit" or press "Ctrl+ D" to exit the shell\n'
-    banner += '\t"clear()" to clear the shell screen\n'
-    banner += '\t"tutorial.start()" to begin the SimpleCV interactive tutorial\n'
+    banner += '\t"exit()" or press "Ctrl+ D" to exit the shell\n'
+    banner += '\t"clear" to clear the shell screen\n'
+    banner += '\t"tutorial" to begin the SimpleCV interactive tutorial\n'
+    banner += '\t"cheatsheet" gives a cheatsheet of all the various functions\n' 
+    banner += '\t"simplehelp" gives list of commands or help on a certain command\n'
     banner += '\n'
     banner += 'Usage:\n'
     banner += '\tdot complete works to show library\n'
     banner += '\tfor example: Image().save("/tmp/test.jpg") will dot complete\n'
     banner += '\tjust by touching TAB after typing Image().\n'
     banner += '\n'
-    banner += 'Help:\n'
-    banner += '\ttyping "help function_name" will give in depth documentation of API\n'
+    banner += 'API Documentation:\n'
+    banner += '\t"help function_name" will give in depth documentation of API\n'
     banner += '\t\texample:'
     banner += 'help Image\n'
     banner += '\t\twill give the in-depth information about that class\n'
-    banner += '\ttyping "?function_name" will give the quick API documentation\n'
+    banner += '\t"?function_name" will give the quick API documentation\n'
     banner += '\t\texample:'
-    banner += '?Image.save\n'
+    banner += 'Image.save\n'
     banner += '\t\twill give help on the image save function'
     
 
@@ -69,10 +76,13 @@ def main():
     #setup terminal to show SCV prompt
     argsv = ['-pi1','SimpleCV:\\#>','-pi2','   .\\D.:','-po','SimpleCV:\\#>','-nosep']
 
-    tutorial = Tutorial()
     scvShell = IPShellEmbed(argsv)
     scvShell.set_banner(banner)
     scvShell.set_exit_msg(exit_msg)
+    scvShell.IP.api.expose_magic("tutorial",magic_tutorial)
+    scvShell.IP.api.expose_magic("clear", magic_clear)
+    scvShell.IP.api.expose_magic("simplehelp", magic_help)
+    scvShell.IP.api.expose_magic("cheatsheet", magic_cheatsheet)
     
 
     #Note that all loaded libraries are inherited in the embedded ipython shell
