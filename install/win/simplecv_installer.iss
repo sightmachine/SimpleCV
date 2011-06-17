@@ -47,17 +47,18 @@ Source: "C:\SimpleCV\InstallSource\*"; DestDir: "{app}"; Flags: ignoreversion re
 procedure InitializeWizard();
 begin
  itd_init;
+
  //Let's download two zipfiles from my website..
- //itd_addfile('http://effbot.org/media/downloads/PIL-1.1.7.win32-py2.7.exe',expandconstant('{tmp}\pil.exe'));
+ itd_addfile('https://downloads.sourceforge.net/project/scipy/scipy/0.9.0/scipy-0.9.0-win32-superpack-python2.7.exe',expandconstant('{tmp}\sci-py.exe'))
  itd_addfile('http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi',expandconstant('{tmp}\python27.msi'));
+
  itd_addfile('http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.2/OpenCV-2.2.0-win32-vs2010.exe',expandconstant('{tmp}\opencv.exe'));
- //itd_addfile('http://downloads.sourceforge.net/project/numpy/NumPy/1.5.1/numpy-1.5.1-win32-superpack-python2.7.exe',expandconstant('{tmp}\numpy.exe'));
- //itd_addfile('http://downloads.sourceforge.net/project/scipy/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe',expandconstant('{tmp}\scipy.exe'));
- itd_addfile('http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe#md5=57e1e64f6b7c7f1d2eddfc9746bbaf20',expandconstant('{tmp}\ezinstall.exe'))
- 
- //itd_addfile('http://somethingaboutorange.com/mrl/projects/nose/1.0.0/',expandconstant('{tmp}\nose.exe'));
+ itd_addfile('http://downloads.sourceforge.net/project/numpy/NumPy/1.6.1rc1/numpy-1.6.1rc1-win32-superpack-python2.7.exe',expandconstant('{tmp}\numpy.exe'))
+
+ itd_addfile('http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe',expandconstant('{tmp}\ezinstall.exe'))
+  
  //Start the download after the "Ready to install" screen is shown
- //itd_downloadafter(wpReady);
+ itd_downloadafter(wpReady);
 end;
 var
   ResultCode: Integer;
@@ -73,42 +74,16 @@ begin
   Insert(pythonSrc,pythonCmd,3);
   Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\openCV.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{tmp}\numpy.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{tmp}\sci-py.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\ezinstall.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+  
   end;
  if CurStep=ssPostInstall then begin
   Exec(ExpandConstant('{app}\setup.bat'),'','',SW_SHOW,ewWaitUntilTerminated, ResultCode);
  end
 
 end;
-//var
- // ResultCode: Integer;
- // pythonCmd: String;
- // pythonSrc: String;
-
-//procedure CurStepChanged(CurStep: TSetupStep);
-//begin
- //if CurStep=TSetupStep then begin 
-  //pythonCmd := '/i  '
-  //pythonSrc := ExpandConstant('{tmp}\python27.msi')
-  //Insert(pythonSrc,pythonCmd,3);
-
-  //Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  //Exec(ExpandConstant('{tmp}\openCV.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  //Exec(ExpandConstant('{tmp}\ezinstall.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-
-  //Exec(ExpandConstant('{tmp}\numpy.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  //Exec(ExpandConstant('{tmp}\scipy.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  //Exec(ExpandConstant('{tmp}\pil.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  //Exec(ExpandConstant('{tmp}\nose.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
-  //end;
-//end;
-
-//procedure CurStepChanged(CurStep: ssPostInstall);
-//begin
-// if CurStep=ssPostInstall then begin 
-//   Exec(ExpandConstant('{app}\setup.bat'),'','',SW_SHOW,ewWaitUntilTerminated, ResultCode);
-// end;
-//end;
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -120,6 +95,9 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, "&", "&&")}}"; Flags: shellexec postinstall skipifsilent
 
-;[Registry]
-;Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};C:\Python27\";Check: NeedsAddPath('C:\Python27\')
-;Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};C:\Python27\Scripts";Check: NeedsAddPath('C:\Python27\Scripts')
+[Setup]
+AlwaysRestart = yes 
+
+[Registry]
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;"
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "PythonPath"; ValueData: "{olddata};C:/OpenCV2.2/Python2.7/Lib/site-packages;"
