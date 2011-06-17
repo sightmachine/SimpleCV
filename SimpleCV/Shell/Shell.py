@@ -20,6 +20,7 @@
 #load system libraries
 from SimpleCV.__init__ import *
 from subprocess import call
+import platform
 
 #Load simpleCV libraries
 from SimpleCV.Shell.Tutorial import *
@@ -28,6 +29,8 @@ from SimpleCV.Shell.Tutorial import *
 from IPython.Shell import IPShellEmbed
 
 def clear():
+  if platform.system() == "Windows":
+    return
   call("clear")
 
 
