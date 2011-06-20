@@ -25,6 +25,7 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=C:\SimpleCV\installer
+<<<<<<< HEAD
 SetupIconFile=C:\SimpleCV\installer\simplecv.ico
 OutputBaseFilename=SimpleCV-Superpack-1.0
 Compression=lzma
@@ -33,6 +34,7 @@ SolidCompression=yes
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 #include <C:\SimpleCV\installer\it_download.iss>;
+
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}";
@@ -91,7 +93,6 @@ Name: "{group}\Examples"; Filename: "C:\Program Files\SimpleCV Superpack\simplec
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
 Name: "{group}\{cm:ProgramOnTheWeb,{#Ingenuitas}}"; Filename: "{#IngenuitasURL}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-
 
 
 [Run]
