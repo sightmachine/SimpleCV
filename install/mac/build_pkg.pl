@@ -32,6 +32,10 @@ my @python_libs = qw(
   http://sourceforge.net/projects/simplecv/files/0.9/SimpleCV-0.9.tar.gz
 );
 
+my $examples_url = "http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV_examples-1.0.zip";
+
+
+
 my @python_lib_manual = qw(
   http://github.com/downloads/oostendo/cvblob-python/cvblob-python-macosx10.6-python2.6.tar.gz
 );
@@ -129,13 +133,22 @@ from SimpleCV.Shell import *
 main()
 SIMPLECV_COMMAND
 
-my $appdir = $buildpath . "/Applications";
+my $appdir = $buildpath . "/Applications/SimpleCV";
 mkpath($appdir);
 my $cmdfile = $appdir . "/SimpleCV.command";
 open CMDFILE, ">$cmdfile";
 print CMDFILE $cmd;
 close CMDFILE;
 chmod(0755, $cmdfile);
+
+
+my $ff = File::Fetch->new(uri => $examples_url);
+my $where = $ff->fetch( to => $appdir );
+chdir($appdir);
+`unzip $where`;
+`mv SimpleCV_Examples/* .`;
+`rm $where`;
+`rm -r SimpleCV_Examples`;
 
 chdir($buildpath);
 `chown -R root:staff usr`;
