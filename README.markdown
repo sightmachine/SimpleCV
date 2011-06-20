@@ -70,5 +70,18 @@ Examples
 
 Examples are in the SimpleCV/examples directory, you can also look at 
 docs/cookbook.rst for reusable code snippets.
+
+
+Running SimpleCV
+---------------------------
+
+To run SimpleCV, from the installation directory type:
+python -m SimpleCV.__init__
+
+This should launch the SimpleCV shell, if you are having problems
+see http://www.simplecv.org for more help.
+
+
+
     
 
