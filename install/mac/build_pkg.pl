@@ -29,7 +29,7 @@ my @python_libs = qw(
   http://dl.dropbox.com/u/233041/PyMC/numpy-2.0.0.dev_3071eab_20110527-py2.6-macosx-10.6-universal.egg
   http://dl.dropbox.com/u/233041/PyMC/scipy-0.10.0.dev_20110527-py2.6-macosx-10.6-universal.egg
   http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2-py2.6.egg
-  http://sourceforge.net/projects/simplecv/files/0.9/SimpleCV-0.9.tar.gz
+  http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV-1.0.tar.gz
 );
 
 my $examples_url = "http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV_examples-1.0.zip";
