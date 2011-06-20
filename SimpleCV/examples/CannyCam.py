@@ -9,7 +9,7 @@ fname = "CanCan" #File base name
 ext = ".jpg"     #File extension
 
 #Create the camera
-cam = Camera()
+cam = Camera(threaded=False)
 
 
 for j in range(num_caps):

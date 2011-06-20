@@ -18,7 +18,7 @@ def main():
 
   multiplier = 400.0
 
-  cam = Camera()
+  cam = Camera(threaded=false)
   js = JpegStreamer()
 
   analog_4 = board.get_pin('a:1:i')
