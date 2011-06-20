@@ -96,6 +96,10 @@ class JpegStreamer():
     global _jpegstreamers
     if (type(hostandport) == int):
       self.port = hostandport
+      self.host = "localhost"
+    elif (type(hostandport) == str and re.search(":", hostandport)):
+      (self.host, self.port) = hostandport.split(":")
+      self.port = int(self.port)
     elif (type(hostandport) == tuple):
       (self.host, self.port) = hostandport 
 
@@ -107,5 +111,15 @@ class JpegStreamer():
     self.server_thread.start()
     self.framebuffer = self #self referential, ugh.  but gives some bkcompat
 
+  def url(self):
+    """
+  Returns the JpegStreams Webbrowser-appropriate URL, if not provided in the constructor, it defaults to "http://localhost:8080"
+    """
+    return "http://" + self.host + ":" + str(self.port) + "/"
 
+  def streamUrl(self):
+    """
+  Returns the URL of the MJPEG stream. If host and port are not set in the constructor, defaults to "http://localhost:8080/stream/"
+    """
+    return self.url() + "stream/"
 
