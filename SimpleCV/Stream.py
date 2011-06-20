@@ -127,3 +127,92 @@ class JpegStreamer():
     """
     return self.url() + "stream/"
 
+
+class VideoStream():
+  """
+The VideoStream lets you save video files in a number of different formats.
+
+You can initialize it by specifying the file you want to output::
+
+    vs = VideoStream("hello.mpg")
+  
+You can also specify a framerate, and if you want to "fill" in missed frames. 
+So if you want to record a realtime video you may want to do this::
+
+    vs = VideoStream("myvideo.mpg", 25, True) #note these are default values
+
+Where if you want to do a stop-motion animation, you would want to turn fill off::
+
+    vs_animation = VideoStream("cartoon.mpg", 15, False) 
+    
+If you select a fill, the VideoStream will do its best to stay close to "real time" by duplicating frames or dropping frames when the clock doesn't sync up
+with the file writes.
+
+You can save a frame to the video by using the Image.save() function, or by using the writeFrame function::
+
+    my_camera.getImage().save(vs)
+    vs.writeFrame(my_camera.getImage())
+
+  """
+
+  fps = 25 
+  filename = ""
+  writer = ""
+  fourcc = ""
+  framefill = True
+  videotime = 0.0
+  starttime = 0.0
+  framecount = 0
+  
+  def __init__(self, filename, fps = 25, framefill = True):
+    (revextension, revname) = str(reverse(filename)).split(".")
+    extension = str(reverse(revextension))
+    self.filename = filename
+    self.fps = fps
+    self.framefill = framefill 
+    if extension == "mpg":
+      self.fourcc = cv.CV_FOURCC('P', 'I', 'M', '1') 
+    else:
+      warning.warn(extension + " is not supported for video writing on this platform, sorry");
+      return False
+
+  def initializeWriter(self, size):
+    self.writer = cv.CreateVideoWriter(self.filename, self.fourcc, self.fps, size, 1)
+    self.videotime = 0.0
+    self.starttime = time.time()
+
+  def writeFrame(self, img):
+    if not self.writer:
+      self.initializeWriter(img.size())
+      self.lastframe = img
+
+    frametime = 1.0 / float(self.fps)
+    targettime = self.starttime + self.frametime * self.framecount 
+    realtime = time.time()
+    if self.framefill: 
+      #see if we need to do anything to adjust to real time
+      if (targettime > realtime + frametime):
+        #if we're more than one frame ahead 
+        self.lastframe = img
+        #save the lastframe, but don't write to videoout
+        return
+      if (targettime < realtime - frametime):
+        #we're at least one frame behind
+        framesbehind = int((realtime - targettime) * self.fps)
+        #figure out how many frames behind we are
+
+        lastframes = framesbehind / 2
+        for i in range(0..lastframes):
+          self.framecount += 1
+          cv.WriteFrame(writer, self.lastframe.getBitmap())
+
+        theseframes = framesbehind - lastframes
+        for i in range(0..theseframes)
+          self.framecount += 1
+          cv.WriteFrame(writer, img.getBitmap())
+        #split missing frames evenly between the prior and current frame
+    else:
+      cv.WriteFrame(writer, img.getBitmap())
+      self.framecount += 1
+    
+    self.lastframe = img
