@@ -6,12 +6,17 @@
 from SimpleCV import *
 
 from subprocess import call
+import platform
 
 lb = "\n" #linebreak
 tb = "\t" #tab
 
+#Command to clear the shell screen
 def clear():
+  if platform.system() == "Windows":
+    return
   call("clear")
+
 
 def tutorial_image():
   clear()
@@ -209,10 +214,10 @@ def magic_tutorial(self,arg):
     print lb
     raw_input("[Press enter to continue]")
     tutorial_image()
-    tutorial_image_save()
-    tutorial_image_copy()
+    tutorial_save()
+    tutorial_copy()
     tutorial_slicing()
-    tutorial_findCorners()
+    tutorial_corners()
     
     return
     

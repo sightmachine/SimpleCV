@@ -1,13 +1,15 @@
 #Define cheatsheet
 #
 from subprocess import call
+import platform
 
 lb = "\n" #linebreak
 tb = "\t" #tab
 
 def clear():
+  if platform.system() == "Windows":
+    return
   call("clear")
-
 
 def magic_cheatsheet(self,arg):
   if(arg == ""):
@@ -50,11 +52,10 @@ def magic_cheatsheet(self,arg):
     print "Command History"
     print "-------------------------------------------------------------"
     print "[15]  is the number in the iPython history caching"
-    print "Ctrl-P, Ctrl-N, tab completion, etc"
     print "_i - shows last command"
     print "_ii - shows two commands back"
-    print "_i1 - shows fist"
-    print " In[3] - global variable that shows third command"
+    print "_i1 - shows first command"
+    print "In[3] - global variable that shows third command"
     print "hist - shows last 20 or so history"
     print "hist 1 10 - shows range of last 10 commands"
     print "hist 10 - last 10 commands"

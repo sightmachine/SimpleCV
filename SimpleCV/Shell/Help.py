@@ -2,13 +2,15 @@
 
 from SimpleCV import *
 from subprocess import call
+import platform
 
 lb = "\n" #linebreak
 tb = "\t" #tab
 
 def clear():
+  if platform.system() == "Windows":
+    return
   call("clear")
-
 
 #Command to define the help system
 def magic_help(self,arg):

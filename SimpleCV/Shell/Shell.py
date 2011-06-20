@@ -53,7 +53,7 @@ def main():
     banner += '\t"exit()" or press "Ctrl+ D" to exit the shell\n'
     banner += '\t"clear" to clear the shell screen\n'
     banner += '\t"tutorial" to begin the SimpleCV interactive tutorial\n'
-    banner += '\t"cheatsheet" gives a cheatsheet of all the various functions\n' 
+    banner += '\t"cheatsheet" gives a cheatsheet of all the shell functions\n' 
     banner += '\t"simplehelp" gives list of commands or help on a certain command\n'
     banner += '\n'
     banner += 'Usage:\n'
@@ -64,12 +64,13 @@ def main():
     banner += 'API Documentation:\n'
     banner += '\t"help function_name" will give in depth documentation of API\n'
     banner += '\t\texample:'
-    banner += 'help Image\n'
+    banner += 'help Image or ?Image\n'
     banner += '\t\twill give the in-depth information about that class\n'
     banner += '\t"?function_name" will give the quick API documentation\n'
     banner += '\t\texample:'
-    banner += 'Image.save\n'
+    banner += '?Image.save\n'
     banner += '\t\twill give help on the image save function'
+
     
 
     
