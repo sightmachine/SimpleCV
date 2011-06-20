@@ -108,7 +108,7 @@ class Image:
  
   def getEmpty(self, channels = 3):
     """
-Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
+    Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
     """
     return cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
 
@@ -230,6 +230,8 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     Return a full copy of the Image's bitmap.  Note that this is different
     from using python's implicit copy function in that only the bitmap itself
     is copied.
+
+    Returns: IMAGE
     """
     newimg = self.getEmpty() 
     cv.Copy(self.getBitmap(), newimg)
@@ -239,6 +241,8 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
   def scale(self, width, height):
     """
     Scale the image to a new width and height.
+
+    Returns: IMAGE
     """
     scaled_matrix = cv.CreateMat(width, height, self.getMatrix().type)
     cv.Resize(self.getMatrix(), scaled_matrix)
@@ -250,7 +254,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     additional algorithms and aperatures can be specified.  Optional parameters
     are passed directly to OpenCV's cv.Smooth() function.
 
-    Returns: greyscale image.
+    Returns: IMAGE
     """
     win_x = 3
     win_y = 3  #set the default aperature window size (3x3)
@@ -281,19 +285,25 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
   def invert(self):
     """
     Invert (negative) the image note that this can also be done with the
-    unary minus (-) operator. 
+    unary minus (-) operator.
+
+    Returns: IMAGE
     """
     return -self 
 
   def grayscale(self):
     """
     return a gray scale version of the image
+
+    Returns: IMAGE
     """
     return Image(self._getGrayscaleBitmap())
 
   def flipHorizontal(self):
     """
-    return a horizontally mirrored image
+    Horizontally mirror an image
+
+    Returns: IMAGE
     """
     newimg = self.getEmpty()
     cv.Flip(self.getBitmap(), newimg, 1)
@@ -301,7 +311,9 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def flipVertical(self):
     """
-    return a vertically mirrored image
+    Vertically mirror an image
+
+    Returns: IMAGE
     """
     newimg = self.getEmpty()
     cv.Flip(self.getBitmap(), newimg, 0)
@@ -311,13 +323,13 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     
   def stretch(self, thresh_low = 0, thresh_high = 255):
     """
-    Returns greyscale image
-    
     The stretch filter works on a greyscale image, if the image
     is color, it returns a greyscale image.  The filter works by
     taking in a lower and upper threshold.  Anything below the lower
     threshold is pushed to black (0) and anything above the upper
     threshold is pushed to white (255)
+
+    Returns: IMAGE
     """
     try:
       newimg = self.getEmpty() 
@@ -357,7 +369,9 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
   #get the mean color of an image
   def meanColor(self):
     """
-    Return the average color of all the pixels in the image.
+    Finds average color of all the pixels in the image.
+
+    Returns: IMAGE
     """
     return cv.Avg(self.getMatrix())[0:3]  
   
@@ -367,7 +381,9 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     This will find corner Feature objects and return them as a FeatureSet
     strongest corners first.  The parameters give the number of corners to look
     for, the minimum quality of the corner feature, and the minimum distance
-    between corners. 
+    between corners.
+
+    Returns: FEATURESET 
     """
     #initialize buffer frames
     eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
@@ -388,6 +404,8 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     specify the threshold value, and minimum and maximum size for blobs.
 
     You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
+
+    Returns: FEATURESET
     """
     if not BLOBS_ENABLED:
       warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
@@ -432,6 +450,8 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
    
     You will need to provide your own cascade file - these are usually found in
     /usr/local/share/opencv/haarcascades and specify a number of body parts.
+
+    Returns: FEATURESET
     """
     storage = cv.CreateMemStorage(0)
 
@@ -455,6 +475,8 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     * the thickness of the circle
 
     Note that this modifies the image in-place and clears all buffers.
+
+    Returns: NONE - Inline Operation
     """
     cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, reverse_tuple(color), thickness)
     self._clearBuffers("_bitmap")
@@ -468,14 +490,20 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     * thickness of the line 
  
     Note that this modifies the image in-place and clears all buffers.
+
+    Returns: NONE - Inline Operation
     """
     pt1 = (int(pt1[0]), int(pt1[1]))
     pt2 = (int(pt2[0]), int(pt2[1]))
-    cv.Line(self.getBitmap(), pt1, pt2, reverse_tuple(color), thickness, cv.CV_AA) 
+    cv.Line(self.getBitmap(), pt1, pt2, reverse_tuple(color), thickness, cv.CV_AA)
+
+    
 
   def size(self):
     """
-    Return the width and height as a tuple
+    Gets width and height
+
+    Returns: TUPLE
     """
     return cv.GetSize(self.getBitmap())
 
@@ -485,7 +513,7 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
     single parameter is whether to return the channels as grey images (default)
     or to return them as tinted color image 
 
-    returns: tuple of 3 image objects
+    Returns: TUPLE - of 3 image objects
     """
     r = self.getEmpty(1) 
     g = self.getEmpty(1) 
@@ -509,11 +537,13 @@ Create a new, empty OpenCV bitmap with the specified number of channels (default
 
   def applyHLSCurve(self, hCurve, lCurve, sCurve):
     """
-Returns an image with 3 ColorCurve corrections applied in HSL space
-Parameters are: 
- * Hue ColorCurve 
- * Lightness (brightness/value) ColorCurve
- * Saturation ColorCurve
+    Apply 3 ColorCurve corrections applied in HSL space
+    Parameters are: 
+    * Hue ColorCurve 
+    * Lightness (brightness/value) ColorCurve
+    * Saturation ColorCurve
+
+    Returns: IMAGE
     """
   
     #TODO CHECK ROI
@@ -537,11 +567,13 @@ Parameters are:
 
   def applyRGBCurve(self, rCurve, gCurve, bCurve):
     """
-Returns an image with 3 ColorCurve corrections applied in rgb channels 
-Parameters are: 
- * Red ColorCurve 
- * Green ColorCurve
- * Blue ColorCurve
+    Apply 3 ColorCurve corrections applied in rgb channels 
+    Parameters are: 
+    * Red ColorCurve 
+    * Green ColorCurve
+    * Blue ColorCurve
+
+    Returns: IMAGE
     """
     tempMat = np.array(self.getMatrix()).copy()
     tempMat[:,:,0] = np.take(bCurve.mCurve,tempMat[:,:,0])
@@ -554,7 +586,9 @@ Parameters are:
 
   def applyIntensityCurve(self, curve):
     """
-Return an image with ColorCurve curve applied to all three color channels
+    Intensity applied to all three color channels
+
+    Returns: Image
     """
     return self.applyRGBCurve(curve, curve, curve)
       
@@ -570,6 +604,8 @@ Return an image with ColorCurve curve applied to all three color channels
     See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode 
     Example Use: A threshold/blob image has 'salt and pepper' noise. 
     Example Code: ./examples/MorphologyExample.py
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty() 
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
@@ -590,6 +626,8 @@ Return an image with ColorCurve curve applied to all three color channels
     See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate
     Example Use: A part's blob needs to be smoother 
     Example Code: ./examples/MorphologyExample.py
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty() 
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
@@ -605,7 +643,9 @@ Return an image with ColorCurve curve applied to all three color channels
     See: http://en.wikipedia.org/wiki/Opening_(morphology)
     See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
     Example Use: two part blobs are 'sticking' together.
-    Example Code: ./examples/MorphologyExample.py 
+    Example Code: ./examples/MorphologyExample.py
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty() 
     temp = self.getEmpty()
@@ -624,6 +664,8 @@ Return an image with ColorCurve curve applied to all three color channels
     See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
     Example Use: Use when a part, which should be one blob is really two blobs.   
     Example Code: ./examples/MorphologyExample.py
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty() 
     temp = self.getEmpty()
@@ -641,6 +683,8 @@ Return an image with ColorCurve curve applied to all three color channels
     See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
     Example Use: Use when you have blobs but you really just want to know the blob edges.
     Example Code: ./examples/MorphologyExample.py
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty() 
     retVal = self.getEmpty() 
@@ -653,6 +697,8 @@ Return an image with ColorCurve curve applied to all three color channels
     """
     Return a numpy array of the 1D histogram of intensity for pixels in the image
     Single parameter is how many "bins" to have.
+
+    Returns: LIST
     """
     gray = self._getGrayscaleBitmap()
 
@@ -738,8 +784,10 @@ Return an image with ColorCurve curve applied to all three color channels
 
   def max(self, other):
     """
-    Return the maximum value of my image, and the other image, in each channel
+    The maximum value of my image, and the other image, in each channel
     If other is a number, returns the maximum of that and the number
+
+    Returns: IMAGE
     """ 
     newbitmap = self.getEmpty() 
     if is_number(other):
@@ -750,8 +798,10 @@ Return an image with ColorCurve curve applied to all three color channels
 
   def min(self, other):
     """
-    Return the minimum value of my image, and the other image, in each channel
+    The minimum value of my image, and the other image, in each channel
     If other is a number, returns the minimum of that and the number
+
+    Returns: IMAGE
     """ 
     newbitmap = self.getEmpty() 
     if is_number(other):
@@ -774,6 +824,8 @@ Return an image with ColorCurve curve applied to all three color channels
     don't have the ZXING_LIBRARY env parameter set.
 
     You can clone python-zxing at http://github.com/oostendo/python-zxing
+
+    Returns: BARCODE
     """
     if not ZXING_ENABLED:
       return None
@@ -806,6 +858,8 @@ Return an image with ColorCurve curve applied to all three color channels
     * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to _getEdgeMap() for details
 
     For more information, consult the cv.HoughLines2 documentation
+
+    Returns: FEATURESET
     """
     em = self._getEdgeMap(cannyth1, cannyth2)
     
@@ -819,12 +873,14 @@ Return an image with ColorCurve curve applied to all three color channels
 
   def edges(self, t1=50, t2=100):
     """
-    Returns an edge map Image using the Canny edge detection method.  Edges will be brighter than the surrounding area.
+    Finds an edge map Image using the Canny edge detection method.  Edges will be brighter than the surrounding area.
 
     The t1 parameter is roughly the "strength" of the edge required, and the value between t1 and t2 is used for edge linking.  For more information:
 
     <http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html>
     <http://en.wikipedia.org/wiki/Canny_edge_detector>
+
+    Returns: IMAGE
     """
     return Image(self._getEdgeMap(t1, t2))
 
@@ -853,7 +909,9 @@ Return an image with ColorCurve curve applied to all three color channels
     By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
     contents retain the original size, and the Image object will scale
     by default, the point is the center of the image. 
-    you can also specify a scaling parameter 
+    you can also specify a scaling parameter
+
+    Returns: IMAGE
     """
     if( point[0] == -1 or point[1] == -1 ):
       point[0] = (self.width-1)/2
@@ -925,6 +983,9 @@ Return an image with ColorCurve curve applied to all three color channels
     dimensions.
 
     cornerpoints is a 2x4 array of point tuples
+
+
+    Returns: IMAGE
     """
     src =  ((0,0),(self.width-1,0),(self.width-1,self.height-1))
     #set the original points
@@ -939,6 +1000,8 @@ Return an image with ColorCurve curve applied to all three color channels
     This helper function for shear performs an affine rotation using the supplied matrix. 
     The matrix can be a either an openCV mat or an np.ndarray type. 
     The matrix should be a 2x3
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty()
     if(type(rotMatrix) == np.ndarray ):
@@ -951,6 +1014,9 @@ Return an image with ColorCurve curve applied to all three color channels
     Given a new set of corner points in clockwise order, return an Image with 
     the images contents warped to the new coordinates.  The returned image
     will be the same size as the original image
+
+
+    Returns: IMAGE
     """
     #original coordinates
     src = ((0,0),(self.width-1,0),(self.width-1,self.height-1),(0,self.height-1))
@@ -966,6 +1032,8 @@ Return an image with ColorCurve curve applied to all three color channels
     This helper function for warp performs an affine rotation using the supplied matrix. 
     The matrix can be a either an openCV mat or an np.ndarray type. 
     The matrix should be a 3x3
+
+    Returns: IMAGE
     """
     retVal = self.getEmpty()
     if(type(rotMatrix) == np.ndarray ):
