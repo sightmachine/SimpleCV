@@ -3,7 +3,7 @@ import sys, os
 
 setup(name="SimpleCV",
   version="1.0",
-  download_url='http://sourceforge.net/projects/simplecv/files/0.9/SimpleCV-0.9.tar.gz',
+  download_url='http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV-1.0.tar.gz',
   description="A kinder, gentler Python Vision Library",
   long_description="""Super-library for machine vision wrappers in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
   classifiers=[
