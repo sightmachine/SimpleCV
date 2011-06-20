@@ -120,7 +120,7 @@ $postinstall_script .= "ln -s /usr/local/lib/python$python_version/site-packages
 $postinstall_script .= "\n#clean up\n";
 $postinstall_script .= "sudo rm -r " . $extpkgpath . "\n";
 
-my $piscript = $buildpkgpath . "post_install.command";
+my $piscript = $buildpkgpath . "/post_install.command";
 open(PISCRIPT, ">$piscript");
 print PISCRIPT $postinstall_script;
 close(PISCRIPT);
