@@ -1,5 +1,8 @@
 to build a package on mac, first you have to have a working install using 10.6, following the installation instructions on installation doc.
 
+first, there are some URLs in build_pkg.pl you need to double check -- mostly 
+the simplecv ones
+
 in the simplecv/install/mac directory, create a new directory called "build", and run the package builder:
 
 cd build
@@ -9,7 +12,7 @@ what this will do:
  - take the designated packages out of Homebrew's Cellar and compile them into a /usr/local directory tree
  - download from SourceForge/github the prereq pkg files and python pre-requisites and put them in /var/tmp
  - generate a post_install.sh script which will be run from the installer
- - generate a SimpleCV.command file for the Applications folder
+ - generate a SimpleCV.command file for the Applications folder and extract examples
  - re-assign everything to the "root:staff" user 
  
 once you've done that, doublecheck and make sure everything you expect is there.
