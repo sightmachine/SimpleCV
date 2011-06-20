@@ -12,19 +12,17 @@ Steps:
 
 Commands::
 
-    sudo apt-get install git python-dev python-numpy python-nose python-scipy ipython
+    sudo apt-get install -y --force-yes build-essential swig gfortran cmake gcc pkg-config libjpeg62-dev libtiff4-dev libpng12-dev libopenexr-dev libavformat-dev libswscale-dev liblapack-dev python-dev python-setuptools boost-build libboost-all-dev
     wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.2/OpenCV-2.2.0.tar.bz2
-    bunzip2 OpenCV-2.2.0.tar.bz2
-    tar xf OpenCV-2.2.0.tar
-    cd OpenCV-2.2.0
-    mkdir build
-    cd build
-    cmake -D CMAKE_BUILD_TYPE=RELEASE -D BUILD_PYTHON_SUPPORT=ON ..
+    bunzip2 ~/Code/OpenCV-2.2.0.tar.bz2
+    tar xf ~/Code/OpenCV-2.2.0.tar
+    cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_PYTHON_SUPPORT=ON ..
     make
     sudo make install
-    git clone git://git.code.sf.net/p/simplecv/git.git simplecv 
-    cd simplecv
-    sudo setup.py install
+    sudo cp /usr/local/lib/python2.6/site-packages/cv.so /usr/local/lib/python2.6/dist-packages/cv.so
+    sudo apt-get install -y --force-yes git git python-dev python-numpy python-nose python-scipy ipython
+    git clone git://git.code.sf.net/p/simplecv/git.git simplecv
+    sudo python setup.py install
 
 Mac OS X (10.5.8 and above)
 -----------------------------
