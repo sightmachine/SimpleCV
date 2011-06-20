@@ -78,6 +78,10 @@ class JpegStreamer():
   to update:
   img.save(js)
 
+  to open a browser and display:
+  import webbrowser
+  webbrowser.open(js.url)
+
   Note 3 optional parameters on the constructor:
   - port (default 8080) which sets the TCP port you need to connect to
   - sleep time (default 0.1) how often to update.  Above 1 second seems to cause dropped connections in Google chrome
