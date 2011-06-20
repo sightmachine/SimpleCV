@@ -14,8 +14,10 @@ Commands::
 
     sudo apt-get install -y --force-yes build-essential swig gfortran cmake gcc pkg-config libjpeg62-dev libtiff4-dev libpng12-dev libopenexr-dev libavformat-dev libswscale-dev liblapack-dev python-dev python-setuptools boost-build libboost-all-dev
     wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.2/OpenCV-2.2.0.tar.bz2
-    bunzip2 ~/Code/OpenCV-2.2.0.tar.bz2
-    tar xf ~/Code/OpenCV-2.2.0.tar
+    bunzip2 OpenCV-2.2.0.tar.bz2
+    tar xf OpenCV-2.2.0.tar
+    mkdir build
+    cd build
     cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_PYTHON_SUPPORT=ON ..
     make
     sudo make install
