@@ -3,6 +3,7 @@
 #load system libraries
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image 
+import platform
 
 #Globals
 _cameras = [] 
@@ -82,7 +83,9 @@ control than just basic frame retrieval
     """
     self.capture = cv.CaptureFromCAM(camera_index)
     self.threaded = False
-
+    if (platform.system() == "Windows"):
+      threaded = False
+    
     if (not self.capture):
       return None 
 
