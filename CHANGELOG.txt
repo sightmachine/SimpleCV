@@ -1,3 +1,11 @@
+Changes in 1.0
+------------------------------
+Superpack installers for Mac and Windows
+Debian package available for Ubuntu
+Jpegstreamer url now accessable via function
+Tutorial/Shell fleshed out substantially
+Fixed windows-specific bugs in Camera class
+
 Changes in 0.9
 -----------------------
 
