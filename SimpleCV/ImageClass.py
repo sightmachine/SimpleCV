@@ -110,7 +110,9 @@ class Image:
     """
     Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
     """
-    return cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    newbitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    cv.Zero(newbitmap)
+    return newbitmap
 
   def getBitmap(self):
     """
