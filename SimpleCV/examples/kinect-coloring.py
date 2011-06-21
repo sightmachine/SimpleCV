@@ -4,15 +4,15 @@ import time, webbrowser
 from operator import add
 from SimpleCV import *
 
-#vs = VideoStream("foo.avi")
-vs = JpegStreamer()
+vs = VideoStream("foo.avi")
+js = JpegStreamer()
 #create JPEG streamers
 
 cam = Kinect()
 #initialize the camera
 
-cam.getDepth().save(vs)
-webbrowser.open(vs.url())
+cam.getDepth().save(js)
+webbrowser.open(js.url())
 
 compositeframe = Image(cam.getImage().getEmpty())
 cv.Rectangle(compositeframe.getBitmap(), (0,0), (compositeframe.width-1, compositeframe.height-1), (0,0,0))
@@ -36,5 +36,7 @@ while (1):
 
       
   
-  ((cam.getImage() - compositeframe) + compositeframe.splitChannels(False)[0]).save(vs)
+  frame = ((cam.getImage() - compositeframe) + compositeframe.splitChannels(False)[0]).flipHorizontal()
+  frame.save(js)
+  frame.save(vs)
   time.sleep(0.01) #yield to the webserver
