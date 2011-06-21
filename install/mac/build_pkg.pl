@@ -72,7 +72,7 @@ foreach my $lib (@homebrew_libs) {
     #create the directory if we need to
 
     my $newpath = $buildpath . "/usr/local/".$relpath;
-    copy($fullpath, $newpath);
+    `cp $fullpath $newpath`;
     print "copying $fullpath -> $newpath \n";
     }, $version_path);
 }
@@ -152,5 +152,5 @@ chdir($appdir);
 
 chdir($buildpath);
 `chown -R root:staff usr`;
-`chmod -R g+w usr`;
+`chmod -R ug+w usr`;
 `chmod -R a+rwx var/tmp`; 
