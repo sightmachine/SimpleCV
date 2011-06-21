@@ -171,7 +171,8 @@ You can save a frame to the video by using the Image.save() function, or by usin
     self.fps = fps
     self.framefill = framefill 
     if extension == "mpg":
-      self.fourcc = cv.CV_FOURCC('M', 'J', 'P', 'G') 
+      #self.fourcc = cv.CV_FOURCC('P', 'I', 'M', '1')
+      self.fourcc = -1
     else:
       warning.warn(extension + " is not supported for video writing on this platform, sorry");
       return False
