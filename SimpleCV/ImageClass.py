@@ -202,7 +202,11 @@ class Image:
         self.filename = "" 
         self.filehandle = fh
 
-         
+      elif (type(fh) == InstanceType and fh.__class__.__name__ == "VideoStream"):
+        self.filename = "" 
+        self.filehandle = fh
+        fh.writeFrame(self)
+
       else:      
         if (not mode):
           mode = "jpeg"
