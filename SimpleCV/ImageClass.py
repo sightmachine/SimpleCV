@@ -248,9 +248,9 @@ class Image:
 
     Returns: IMAGE
     """
-    scaled_matrix = cv.CreateMat(width, height, self.getMatrix().type)
-    cv.Resize(self.getMatrix(), scaled_matrix)
-    return Image(scaled_matrix)
+    scaled_bitmap = cv.CreateImage((width, height), 8, 3)
+    cv.Resize(self.getBitmap(), scaled_bitmap)
+    return Image(scaled_bitmap)
 
   def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0):
     """
