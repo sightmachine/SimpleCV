@@ -1,9 +1,9 @@
 SimpleCV
 =============
 
-_a kinder, gentler machine vision python library_
+_a kinder, gentler machine vision framework_
 
-SimpleCV is an interface for Open Source machine vision libraries in Python.   
+SimpleCV is an interface for Open Source Machine Vision, using OpenCV and the Python programming language.    
 It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
 
 We like SimpleCV because:
@@ -16,15 +16,16 @@ We like SimpleCV because:
 
 Here is the simplecv "hello world":
 
-    import SimpleCV
+    from SimpleCV import Camera
+    SimpleCV.Camera().getImage().save("picture.jpg")
 
-    c = SimpleCV.Camera()
-    c.getImage().save("picture.jpg")
-
-For more code snippets, we recommend the cookbook or looking at our example scripts
+For more code snippets, we recommend the [cookbook](http://simplecv.org/doc/cookbook.html) or looking at our example scripts in SimpleCV/examples
 
 Installation
 -------------------
+
+If you haven't worked with OpenCV or Scipy before, your best bet is to get
+one of our all-in-one Superpacks from SourceForge: http://sf.net/projects/simplecv/files/
 
 You will absolutely need:
 
@@ -37,7 +38,7 @@ Once you have all the required libraries installed::
 
     easy_install simplecv
 
-If you need more help, look at the installation docs
+If you need more help, look at the installation docs: http://simplecv.org/doc/installation.html
 
 
 Optional Libraries
@@ -56,32 +57,15 @@ Barcode reading:
 * Zxing http://code.google.com/p/zxing/
 * python-zxing https://github.com/oostendo/python-zxing
 
-Installation
+SimpleCV Interactive Shell
 ---------------------------
 
-If you have all the required libraries installed::
+Once you have SimpleCV installed, you can use it in a specialized iPython
+shell.  This pre-loads all the symbols and gives you some extra functions
+and macros for using SimpleCV.
 
-    sudo python setup.py install
-
-If you need more help, look at docs/installation.rst
-
-Examples
----------------------------
-
-Examples are in the SimpleCV/examples directory, you can also look at 
-docs/cookbook.rst for reusable code snippets.
-
-
-Running SimpleCV
----------------------------
-
-To run SimpleCV, from the installation directory type:
+To run the SimpleCV shell, from the installation directory type:
 python -m SimpleCV.__init__
-
-This should launch the SimpleCV shell, if you are having problems
-see http://www.simplecv.org for more help.
-
-
 
     
 
