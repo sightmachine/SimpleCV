@@ -65,6 +65,7 @@ shell.  This pre-loads all the symbols and gives you some extra functions
 and macros for using SimpleCV.
 
 To run the SimpleCV shell, from the installation directory type:
+
     python -m SimpleCV.__init__
 
     
