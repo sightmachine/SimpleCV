@@ -4,6 +4,11 @@ Installation
 Ubuntu (10.4 or above)
 -------------------------------------
 
+You can now download a .deb file from SourceForge -- look at http://sourceforge.net/projects/simplecv/files for an easier install.  
+
+.. raw:: html
+    <iframe width="560" height="349" src="http://www.youtube.com/embed/yiOkyVYbS8w" frameborder="0" allowfullscreen></iframe>
+
 Steps:
 
 #. apt-get install dependencies
@@ -26,8 +31,12 @@ Commands::
     git clone git://git.code.sf.net/p/simplecv/git.git simplecv
     sudo python setup.py install
 
-Mac OS X (10.5.8 and above)
+Mac OS X (10.6 and above)
 -----------------------------
+
+Note: While not required, it is strongly recommended that you install XCode from Apple: http://itunes.apple.com/us/app/xcode/
+
+If you want to keep control of your usr/local or are adept at building for Unix, you may want to use the directions below.  Otherwise, we recommend using our Superpack, which contains everything you need in a single package:  http://sourceforge.net/projects/simplecv/files/ 
 
 Steps:
 
@@ -54,6 +63,12 @@ Commands::
 
 Windows 7/Vista
 ------------------------------------
+
+If you want a streamlined install which gives you all the dependencies, we
+recommend using the Windows Superpack, available at http://sourceforge.net/projects/simplecv/files/
+
+If you already have Python, OpenCV or SciPy installed and want to keep things the way you like them, follow the directions below
+
 
 Steps:
 
