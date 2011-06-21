@@ -47,7 +47,7 @@ Once you have all the required libraries installed::
 
     easy_install simplecv
 
-If you need more help, look at the [installation docs](http://simplecv.sf.net/installation.html)
+If you need more help, look at the `installation docs`<installation.html>
 
 
 Required Libraries
