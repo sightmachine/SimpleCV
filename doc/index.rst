@@ -89,6 +89,7 @@ Videos
 ==================
 
 `Nate demonstrating the Cookie Jar Alarm Example <http://www.youtube.com/watch?v=i5j3ORmaLTo>`_
+`Anthony showing installation on Ubuntu Linux <http://www.youtube.com/watch?v=yiOkyVYbS8w>`_
 
 Indices and tables
 ==================
