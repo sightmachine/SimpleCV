@@ -165,19 +165,19 @@ You can save a frame to the video by using the Image.save() function, or by usin
   framecount = 0
   
   def __init__(self, filename, fps = 25, framefill = True):
-    (revextension, revname) = str(reverse(filename)).split(".")
-    extension = str(reverse(revextension))
+    (revextension, revname) = filename[::-1].split(".")
+    extension = revextension[::-1]
     self.filename = filename
     self.fps = fps
     self.framefill = framefill 
     if extension == "mpg":
-      self.fourcc = cv.CV_FOURCC('P', 'I', 'M', '1') 
+      self.fourcc = cv.CV_FOURCC('M', 'J', 'P', 'G') 
     else:
       warning.warn(extension + " is not supported for video writing on this platform, sorry");
       return False
 
   def initializeWriter(self, size):
-    self.writer = cv.CreateVideoWriter(self.filename, self.fourcc, self.fps, size, 1)
+    self.writer = cv.CreateVideoWriter(self.filename, self.fourcc, self.fps, size, True)
     self.videotime = 0.0
     self.starttime = time.time()
 
@@ -187,32 +187,36 @@ You can save a frame to the video by using the Image.save() function, or by usin
       self.lastframe = img
 
     frametime = 1.0 / float(self.fps)
-    targettime = self.starttime + self.frametime * self.framecount 
+    targettime = self.starttime + frametime * self.framecount 
     realtime = time.time()
     if self.framefill: 
       #see if we need to do anything to adjust to real time
       if (targettime > realtime + frametime):
         #if we're more than one frame ahead 
-        self.lastframe = img
         #save the lastframe, but don't write to videoout
+        self.lastframe = img
         return
-      if (targettime < realtime - frametime):
+
+      elif (targettime < realtime - frametime):
         #we're at least one frame behind
-        framesbehind = int((realtime - targettime) * self.fps)
+        framesbehind = int((realtime - targettime) * self.fps) + 1
         #figure out how many frames behind we are
 
         lastframes = framesbehind / 2
-        for i in range(0..lastframes):
+        for i in range(0, lastframes):
           self.framecount += 1
-          cv.WriteFrame(writer, self.lastframe.getBitmap())
+          cv.WriteFrame(self.writer, self.lastframe.getBitmap())
 
         theseframes = framesbehind - lastframes
-        for i in range(0..theseframes)
+        for i in range(0, theseframes):
           self.framecount += 1
-          cv.WriteFrame(writer, img.getBitmap())
+          cv.WriteFrame(self.writer, img.getBitmap())
         #split missing frames evenly between the prior and current frame
+      else: #we are on track
+        self.framecount += 1
+        cv.WriteFrame(self.writer, img.getBitmap())
     else:
-      cv.WriteFrame(writer, img.getBitmap())
+      cv.WriteFrame(self.writer, img.getBitmap())
       self.framecount += 1
     
     self.lastframe = img
