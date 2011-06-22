@@ -15,7 +15,7 @@ def main(stdscr):
   stdscr.nodelay(1)
   t1 = 50 
   t2 = 100 
-  cam = Camera()
+  cam = Camera(threaded=False)
   js = JpegStreamer()
 
   while (1):

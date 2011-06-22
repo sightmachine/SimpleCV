@@ -530,13 +530,14 @@ def test_perspective():
 
   pWarp2 = np.array(pWarp)
   ptrans2 = img.transformPerspective(pWarp2)
+
   
   test = ptrans-ptrans2
   c=test.meanColor()
 
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
-
+    
 def test_horz_scanline():
   img = Image(logo)
   sl = img.getHorzScanline(10)
@@ -573,7 +574,36 @@ def test_get_gray_pixel():
     if(px != 0):
       assert False
       
+def test_calibration():
+  fakeCamera = FrameSource()
+  path = "../sampleimages/CalibImage"
+  ext = ".png"
+  imgs = []
+  for i in range(0,10):
+    fname = path+str(i)+ext
+    img = Image(fname)
+    imgs.append(img)
 
+  fakeCamera.calibrate(imgs)
+  #we're just going to check that the function doesn't puke
+  mat = fakeCamera.getCameraMatrix()
+  if( type(mat) != cv.cvmat ):
+    assert False
+  #we're also going to test load in save in the same pass 
+  matname = "TestCalibration"
+  if( False == fakeCamera.saveCalibration(matname)):
+    assert False
+  if( False == fakeCamera.loadCalibration(matname)):
+    assert False
+
+def test_undistort():
+  fakeCamera = FrameSource()
+  fakeCamera.loadCalibration("Default")
+  img = Image("../sampleimages/CalibImage0.png") 
+  img2 = fakeCamera.undistort(img)
+  if( not img2 ): #right now just wait for this to return 
+    assert False
+    
 def test_subtract():
   imgA = Image(logo)
   imgB = Image(logo_inverted)
