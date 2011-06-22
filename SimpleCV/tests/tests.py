@@ -604,6 +604,31 @@ def test_undistort():
   if( not img2 ): #right now just wait for this to return 
     assert False
     
+def test_crop():
+  img = Image(logo)
+  x = 5
+  y = 6
+  w = 10
+  h = 20
+  crop = img.crop(x,y,w,h)
+  crop2 = img[x:(x+w),y:(y+h)]
+  diff = crop-crop2;
+  c=diff.meanColor()
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False
+
+def test_region_select():
+  img = Image(logo)
+  x1 = 0
+  y1 = 0
+  x2 = img.width
+  y2 = img.height
+  crop = img.regionSelect(x1,y1,x2,y2)
+  diff = crop-img;
+  c=diff.meanColor()
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False
+
 def test_subtract():
   imgA = Image(logo)
   imgB = Image(logo_inverted)

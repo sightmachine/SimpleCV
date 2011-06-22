@@ -1123,3 +1123,48 @@ class Image:
       retVal = np.array(retVal)
       retVal = retVal.transpose()
     return retVal
+  
+  def crop(self,x , y, w, h, centered=False):
+    """
+    Crop attempts to use the x and y position variables and the w and h width
+    and height variables to crop the image. When centered is false, x and y
+    define the top and left of the cropped rectangle. When centered is true
+    the function uses x and y as the centroid of the cropped region.
+    
+    The function returns a new image. 
+    """
+    retVal = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
+    if( centered ):
+      rectangle = (x-(w/2),y-(h/2),w,h)
+    else:
+      rectangle = (x,y,w,h)
+    
+    cv.SetImageROI(self.getBitmap(),rectangle)
+    cv.Copy(self.getBitmap(),retVal)
+    cv.ResetImageROI(self.getBitmap())
+    return Image(retVal)
+    
+  def regionSelect(self, x1, y1, x2, y2 ):
+    """
+    Region select is similar to crop, but instead of taking a position and width
+    and height values it simply takes to points on the image and returns the selected
+    region. This is very helpful for creating interactive scripts that require
+    the user to select a region. 
+    """
+    w = abs(x1-x2)
+    h = abs(y1-y2)
+
+    retVal = None;
+    if( w <= 0 or h <= 0 or w > self.width or h > self.height ):
+      warnings.warn("regionSelect: the given values will not fit in the image or are too small.")
+    else:
+      xf = x2 
+      if( x1 < x2 ):
+        xf = x1
+      yf = y2
+      if( y1 < y2 ):
+        yf = y1
+      retVal = self.crop(xf,yf,w,h)
+      
+    return retVal
+   
