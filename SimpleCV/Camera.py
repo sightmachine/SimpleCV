@@ -33,7 +33,7 @@ class FrameSource:
   """
   def __init__(self):
     return
-
+  
   def getPropery(self, p):
     return None
 

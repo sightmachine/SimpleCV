@@ -537,8 +537,43 @@ def test_perspective():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
+def test_horz_scanline():
+  img = Image(logo)
+  sl = img.getHorzScanline(10)
+  if( sl.shape[0]!=img.width or sl.shape[1]!=3 ):
+    assert False
 
-  
+def test_vert_scanline():
+  img = Image(logo)
+  sl = img.getVertScanline(10)
+  if( sl.shape[0]!=img.height or sl.shape[1]!=3 ):
+    assert False
+    
+def test_horz_scanline_gray():
+  img = Image(logo)
+  sl = img.getHorzScanlineGray(10)
+  if( sl.shape[0]!=img.width or sl.shape[1]!=1 ):
+    assert False
+
+def test_vert_scanline_gray():
+  img = Image(logo)
+  sl = img.getVertScanlineGray(10)
+  if( sl.shape[0]!=img.height or sl.shape[1]!=1 ):
+    assert False
+
+def test_get_pixel():
+    img = Image(logo)
+    px = img.getPixel(0,0)
+    if(px[0] != 0 or px[1] != 0 or px[2] != 0 ):
+      assert False
+      
+def test_get_gray_pixel():
+    img = Image(logo)
+    px = img.getGrayPixel(0,0)
+    if(px != 0):
+      assert False
+      
+
 def test_subtract():
   imgA = Image(logo)
   imgB = Image(logo_inverted)

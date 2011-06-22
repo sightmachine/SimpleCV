@@ -1044,3 +1044,82 @@ class Image:
       rotMatrix = npArray2cvMat(rotMatrix)
     cv.WarpPerspective(self.getBitmap(),retVal,rotMatrix)
     return( Image(retVal) ) 
+  
+  def getPixel(self, x, y):
+    """
+    This function returns the RGB value for a particular image pixel given a specific row and column.
+    """
+    retVal = None
+    if( x < 0 or x >= self.width ):
+      warnings.warn("getRGBPixel: X value is not valid.")
+    elif( y < 0 or y >= self.height ):
+      warnings.warn("getRGBPixel: Y value is not valid.")
+    else:
+      retVal = cv.Get2D(self.getBitmap(),x,y);
+    return retVal
+  
+  def getGrayPixel(self, x, y):
+    """
+    This function returns the Gray value for a particular image pixel given a specific row and column.
+    """
+    retVal = None;
+    if( x < 0 or x >= self.width ):
+      warnings.warn("getGrayPixel: X value is not valid.") 
+    elif( y < 0 or y >= self.height ):
+      warnings.warn("getGrayPixel: Y value is not valid.")
+    else:
+      retVal = cv.Get2D(self._getGrayscaleBitmap(),x,y);
+      retVal = retVal[0]
+    return retVal
+      
+  def getVertScanline(self, column):
+    """
+    This function returns a single column of RGB values from the image. 
+    """
+    retVal = None
+    if( column < 0 or column >= self.width ):
+      warnings.warn("getVertRGBScanline: column value is not valid.")
+    else:
+      retVal = cv.GetCol(self.getBitmap(),column)
+      retVal = np.array(retVal)
+      retVal = retVal[:,0,:] 
+    return retVal
+  
+  def getHorzScanline(self, row):
+    """
+    This function returns a single row of RGB values from the image. 
+    """
+    retVal = None
+    if( row < 0 or row >= self.height ):
+      warnings.warn("getHorzRGBScanline: row value is not valid.")
+    else:
+      retVal = cv.GetRow(self.getBitmap(), row)
+      retVal = np.array(retVal)
+      retVal = retVal[0,:,:]
+    return retVal
+  
+  def getVertScanlineGray(self, column):
+    """
+    This function returns a single column of gray values from the image. 
+    """
+    retVal = None
+    if( column < 0 or column >= self.width ):
+      warnings.warn("getHorzRGBScanline: row value is not valid.")
+    else:
+      retVal = cv.GetCol(self._getGrayscaleBitmap(), column )
+      retVal = np.array(retVal)
+      #retVal = retVal.transpose()
+    return retVal
+  
+  def getHorzScanlineGray(self, row):
+    """
+    This function returns a single row of RGB values from the image. 
+    """
+    retVal = None
+    if( row < 0 or row >= self.height ):
+      warnings.warn("getHorzRGBScanline: row value is not valid.")
+    else:
+      retVal = cv.GetRow(self._getGrayscaleBitmap(), row )
+      retVal = np.array(retVal)
+      retVal = retVal.transpose()
+    return retVal
