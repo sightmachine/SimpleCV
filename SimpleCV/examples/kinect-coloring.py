@@ -2,7 +2,8 @@
 
 import time, webbrowser
 from operator import add
-from SimpleCV import *
+from SimpleCV import VideoStream, JpegStreamer, Kinect, Image
+import numpy as np
 
 vs = VideoStream("foo.avi")
 js = JpegStreamer()
@@ -26,7 +27,7 @@ while (1):
   depth = cam.getDepth().invert().binarize(100)
   #perform a binary threshold of the inverted depth map
   
-  if np.average(depth.getMatrix()) > 1:
+  if np.average(depth.getMatrix()) > 1:  #if there is action
     paintstate = True
     laststroke = time.time()
     compositeframe = compositeframe + depth
