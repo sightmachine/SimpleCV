@@ -10,7 +10,7 @@ js = JpegStreamer(8080)
 <<<<<<< HEAD
 cam = Camera(1)
 =======
-cam = Camera(threaded=False)
+cam = Camera()
 >>>>>>> 4f25347e048ccf5df5c70421a00e488d9d7ef506
 #initialize the camera
 

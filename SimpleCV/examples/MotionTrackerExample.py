@@ -4,7 +4,7 @@ from SimpleCV import *
 
 
 #Create the camera
-cam = Camera(threaded=False)
+cam = Camera()
 
 #settings for the project
 Warning = "Warning! Warning! Warning Dr. Smith!" #Lost in space reference
