@@ -382,7 +382,10 @@ class Image:
     """
     retVal = self.getEmpty(1) 
     #desaturate the image, and apply the new threshold          
-    #cv.Threshold(self._getGrayscaleBitmap(), retVal, max, cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY,block,p)
+    cv.AdaptiveThreshold(self._getGrayscaleBitmap(), retVal, max,
+                         cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY,
+                         block, p)
+    
     return Image(retVal)
   
   def meanColor(self):
