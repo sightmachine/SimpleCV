@@ -2,7 +2,7 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line
+from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line, Chessboard
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 
@@ -874,6 +874,22 @@ class Image:
       linesFS.append(Line(self, l))  
     
     return linesFS
+    
+  def findChessboard(self, dimensions = (5,8)):
+    """
+    Given an image, finds a chessboard within that image.  Returns the Chessboard featureset.
+    The Chessboard is typically used for calibration because of its evenly spaced corners.
+    
+    The single parameter is the dimensions of the chessboard, typical one can be found in \SimpleCV\tools\CalibGrid.png
+   
+    returns a FeatureSet with the Chessboard feature, or none
+    """
+    corners = cv.FindChessboardCorners(self.getGrayscaleMatrix(), dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+    if(len(corners[1]) == dimensions[0]*dimensions[1]):
+      spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      return FeatureSet([ Chessboard(self, dimensions, spCorners) ])
+    else:
+      return None
 
   def edges(self, t1=50, t2=100):
     """
@@ -1123,6 +1139,7 @@ class Image:
       retVal = np.array(retVal)
       retVal = retVal.transpose()
     return retVal
+<<<<<<< HEAD
   
   def crop(self,x , y, w, h, centered=False):
     """
@@ -1168,3 +1185,5 @@ class Image:
       
     return retVal
    
+=======
+>>>>>>> d2b1af8251b1c42aab15cfe9280a43529db2b5e7

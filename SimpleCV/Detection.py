@@ -382,8 +382,52 @@ class HaarFeature(Feature):
     else:
       return 90.00 
 
-
-
+class Chessboard(Feature):
+  points = ()
+  spCorners = []
+  dimensions = ()
+  
+  def __init__(self, i, dim, subpixelCorners):
+    self.dimensions = dim
+    self.spCorners = subpixelCorners
+    self.image = i
+    self.x = np.average(np.array(self.spCorners)[:,0])
+    self.y = np.average(np.array(self.spCorners)[:,1])
+    
+    posdiagsorted = sorted(self.spCorners, key = lambda corner: corner[0] + corner[1])
+    #sort corners along the x + y axis
+    negdiagsorted = sorted(self.spCorners, key = lambda corner: corner[0] - corner[1])
+    #sort corners along the x - y axis
+    
+    self.points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1], negdiagsorted[0])
+    #return the exterior points in clockwise order
+    
+  def draw(self, no_needed_color=None):
+    """
+    Draws the chessboard corners.  We take a color param, but ignore it
+    """
+    cv.DrawChessboardCorners(self.image.getBitmap(),self.dimensions,self.spCorners,1)
+    
+  def area(self):
+    """
+    Returns the mean of the distance between corner points in the chessboard
+    This can be used as a proxy for distance from the camera
+    """
+    #note, copying this from barcode means we probably need a subclass of
+    #feature called "quandrangle"
+    sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+    a = sqform[0][1] 
+    b = sqform[1][2] 
+    c = sqform[2][3] 
+    d = sqform[3][0] 
+    p = sqform[0][2] 
+    q = sqform[1][3] 
+    s = (a + b + c + d)/2.0 
+    return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
+    
+    
+    
+    
 #TODO?
 #class Edge(Feature):
 #class Ridge(Feature):
