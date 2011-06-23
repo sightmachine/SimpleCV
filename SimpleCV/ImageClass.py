@@ -371,6 +371,20 @@ class Image:
   
 
   #get the mean color of an image
+  def binarizeAdaptive(self, p=5,max=255,block=3):
+    """
+    This method is similar to binarize but uses an adaptive thresholding algorithm.
+    This algorithm looks over a region of block*block pixels and calculates an
+    average. Parameter is threshold to subtract off of the mean. This is
+    to say we make a pixel white if pixel_value = local_mean -p
+    
+    This function works on the grayscale image and returns a new Image object
+    """
+    retVal = self.getEmpty(1) 
+    #desaturate the image, and apply the new threshold          
+    #cv.Threshold(self._getGrayscaleBitmap(), retVal, max, cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY,block,p)
+    return Image(retVal)
+  
   def meanColor(self):
     """
     Finds average color of all the pixels in the image.
@@ -401,6 +415,52 @@ class Image:
 
     return FeatureSet(corner_features)
 
+  def findBlobsAdaptive(self,minsize=10, maxsize=0,max=255,block=3,p=5):
+    """
+    Performs an adaptive threshold, similar to findBlobs but using a different
+    blob extraction technique that looks at the local region's brightness to find
+    the correct threshold to use locally.
+    
+    Use when: a straight threshold is not getting a complete blob due to lighting issues
+    
+    If you have the cvblob library installed, this will look for continuous
+    light regions and return them as Blob features in a FeatureSet.  Parameters
+    specify the threshold value, and minimum and maximum size for blobs.
+
+    You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
+
+    Returns: FEATURESET   
+    """
+    if not BLOBS_ENABLED:
+      warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
+      return None
+    
+    if (maxsize == 0):  
+      maxsize = self.width * self.height / 2
+    
+    #create a single channel image, thresholded to parameters
+    grey = self.getEmpty(1) 
+    cv.AdaptiveThreshold(self._getGrayscaleBitmap(), grey, max,
+                         cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY,
+                         block, p)
+    
+    #create the label image
+    self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
+    
+    #initialize the cvblobs blobs data structure (dict with label -> blob)
+    blobs = cvb.Blobs()
+    
+    result = cvb.Label(grey, self._blobLabel, blobs)
+    cvb.FilterByArea(blobs, minsize, maxsize) 
+    
+    blobs_sizesorted = sorted(blobs.values(), key=lambda x: x.area, reverse=True) 
+    
+    blobsFS = [] #create a new featureset for the blobs
+    for b in blobs_sizesorted:
+      blobsFS.append(Blob(self,b)) #wrapper the cvblob type in SimpleCV's blob type 
+    
+    return FeatureSet(blobsFS) 
+    
   def findBlobs(self, threshval = 127, minsize=10, maxsize=0):
     """
     If you have the cvblob library installed, this will look for continuous
@@ -1139,8 +1199,7 @@ class Image:
       retVal = np.array(retVal)
       retVal = retVal.transpose()
     return retVal
-<<<<<<< HEAD
-  
+
   def crop(self,x , y, w, h, centered=False):
     """
     Crop attempts to use the x and y position variables and the w and h width
@@ -1184,6 +1243,4 @@ class Image:
       retVal = self.crop(xf,yf,w,h)
       
     return retVal
-   
-=======
->>>>>>> d2b1af8251b1c42aab15cfe9280a43529db2b5e7
+  

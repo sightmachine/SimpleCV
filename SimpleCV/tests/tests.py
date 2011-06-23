@@ -171,6 +171,15 @@ def test_binarize():
   else:
     assert False
 
+def test_binarize_adaptive():
+  img =  Image(testimage2)
+  binary = img.binarizeAdaptive()
+  hist = binary.histogram(20)  
+  if (hist[0] + hist[-1] == np.sum(hist)):
+    pass
+  else:
+    assert False
+
 def test_invert():
   img = Image(testimage2)
   clr = img[1,1]
@@ -271,7 +280,14 @@ def test_blobs():
 
   pass
 
-
+def test_blobs_adaptive():
+  if not BLOBS_ENABLED:
+    return None 
+  img = Image(testbarcode)
+  blobs = img.findBlobsAdaptive()
+  blobs[0].draw((0, 255, 0))
+  img.save(testoutput)  
+  pass
 
 
 def test_barcode():

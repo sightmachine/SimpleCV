@@ -7,11 +7,8 @@ from SimpleCV import *
 js = JpegStreamer(8080)
 #create JPEG streamers
 
-<<<<<<< HEAD
 cam = Camera(1)
-=======
-cam = Camera()
->>>>>>> 4f25347e048ccf5df5c70421a00e488d9d7ef506
+
 #initialize the camera
 
 #the number of frames
