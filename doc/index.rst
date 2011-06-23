@@ -88,8 +88,37 @@ Contents
 Videos
 ==================
 
+Our `installation docs`<installation.html> contain videos for installing on each platform.
+
+`Anthony shows off the SimpleCV interactive shell <http://youtu.be/oKyPHtcujyE>`
+
+.. raw:: html
+
+  <iframe width="425" height="349" src="http://www.youtube.com/embed/oKyPHtcujyE" frameborder="0" allowfullscreen></iframe>
+
+`Nate demonstrating the Kinect Coloring Example <http://youtu.be/cLD4Hk1oNlw>`_
+
+.. raw:: html
+
+  <iframe width="425" height="349" src="http://www.youtube.com/embed/cLD4Hk1oNlw" frameborder="0" allowfullscreen></iframe>
+
+`Anthony shows off the simplecam example`
+
+.. raw:: html
+
+  <iframe width="425" height="349" src="http://www.youtube.com/embed/Drz99oldq-0" frameborder="0" allowfullscreen></iframe>
+
+
+
 `Nate demonstrating the Cookie Jar Alarm Example <http://www.youtube.com/watch?v=i5j3ORmaLTo>`_
-`Anthony showing installation on Ubuntu Linux <http://www.youtube.com/watch?v=yiOkyVYbS8w>`_
+
+.. raw:: html
+
+  <iframe width="560" height="349" src="http://www.youtube.com/embed/i5j3ORmaLTo" frameborder="0" allowfullscreen></iframe>
+
+
+
+
 
 Indices and tables
 ==================
