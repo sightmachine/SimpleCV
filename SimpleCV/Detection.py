@@ -1,7 +1,13 @@
 # SimpleCV Detection Library
 #
 # This library includes classes for finding things in images
-
+#
+# FYI - 
+# All angles shalt be described in degrees with zero pointing east in the
+# plane of the image with all positive rotations going counter-clockwise.
+# Therefore a rotation from the x-axis to to the y-axis is positive and follows
+# the right hand rule. 
+#
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.Features import Feature, FeatureSet
@@ -101,7 +107,7 @@ For more information:
     This Angle function is defined as: 
     .5*atan2(2.* blob.cvblob.u11,(blob.cvblob.u20-blob.cvblob.u02))
     """
-    return cvb.Angle(self.cvblob)
+    return 360.00*(cvb.Angle(self.cvblob)/(2*np.pi))
 
   def draw(self, color = (0, 255, 0)):
     """
@@ -239,7 +245,8 @@ class Line(Feature):
     
     d_x = self.points[b][0] - self.points[a][0]
     d_y = self.points[b][1] - self.points[a][1]
-    return atan2(d_y, d_x) #zero is west 
+    #our internal standard is degrees
+    return (360.00*(atan2(d_y, d_x)/(2*np.pi))) #formerly 0 was west
 
 class Barcode(Feature):
   """
@@ -368,10 +375,12 @@ class HaarFeature(Feature):
     """
     Returns the angle of the rectangle -- horizontal if wide, vertical if tall
     """
+    #Note this is misleading
+    # I am not sure I like this 
     if (self.width > self.height):
-      return 0
+      return 0.00
     else:
-      return np.pi / 2 
+      return 90.00 
 
 
 
