@@ -110,7 +110,9 @@ class Image:
     """
     Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
     """
-    return cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    cv.SetZero(bitmap)
+    return bitmap
 
   def getBitmap(self):
     """
@@ -356,11 +358,15 @@ class Image:
     except:
       return None
       
-  def binarize(self, thresh = 127):
+  def binarize(self, thresh = -1, maxv = 255, blocksize = 3, p = 5):
     """
-    Do a binary threshold the image, changing all values above thresh to white
+    Do a binary threshold the image, changing all values above thresh to maxv
     and all below to black.  If a color tuple is provided, each color channel
     is thresholded separately.
+    
+    If threshold is -1, an adaptive sampling method is used - similar to a moving
+    average.  Over each region of block*block pixels a threshold is applied
+    where threshold = local_mean - p.
     """
     if (is_tuple(thresh)):
       r = self.getEmpty(1) 
@@ -368,40 +374,26 @@ class Image:
       b = self.getEmpty(1)
       cv.Split(self.getBitmap(), b, g, r, None)
 
-      cv.Threshold(r, r, thresh[0], 255, cv.CV_THRESH_BINARY)
-      cv.Threshold(g, g, thresh[1], 255, cv.CV_THRESH_BINARY)
-      cv.Threshold(b, b, thresh[2], 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
+      cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
+      cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
 
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
       return Image(r)
 
+    elif thresh == -1:
+      newbitmap = self.getEmpty(1)
+      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, float(maxv),
+        cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY, blocksize, float(p))
+      return Image(newbitmap)
     else:
       newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
-      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY)
       return Image(newbitmap)
   
-
-  
-  #get the mean color of an image
-  def binarizeAdaptive(self, p=5,max=255,block=3):
-    """
-    This method is similar to binarize but uses an adaptive thresholding algorithm.
-    This algorithm looks over a region of block*block pixels and calculates an
-    average. Parameter is threshold to subtract off of the mean. This is
-    to say we make a pixel white if pixel_value = local_mean -p
-    
-    This function works on the grayscale image and returns a new Image object
-    """
-    retVal = self.getEmpty(1) 
-    #desaturate the image, and apply the new threshold          
-    cv.AdaptiveThreshold(self._getGrayscaleBitmap(), retVal, max,
-                         cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY,
-                         block, p)
-    
-    return Image(retVal)
   
   def meanColor(self):
     """
@@ -433,57 +425,15 @@ class Image:
 
     return FeatureSet(corner_features)
 
-  def findBlobsAdaptive(self,minsize=10, maxsize=0,max=255,block=3,p=5):
-    """
-    Performs an adaptive threshold, similar to findBlobs but using a different
-    blob extraction technique that looks at the local region's brightness to find
-    the correct threshold to use locally.
     
-    Use when: a straight threshold is not getting a complete blob due to lighting issues
-    
-    If you have the cvblob library installed, this will look for continuous
-    light regions and return them as Blob features in a FeatureSet.  Parameters
-    specify the threshold value, and minimum and maximum size for blobs.
-
-    You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
-
-    Returns: FEATURESET   
-    """
-    if not BLOBS_ENABLED:
-      warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
-      return None
-    
-    if (maxsize == 0):  
-      maxsize = self.width * self.height / 2
-    
-    #create a single channel image, thresholded to parameters
-    grey = self.getEmpty(1) 
-    cv.AdaptiveThreshold(self._getGrayscaleBitmap(), grey, max,
-                         cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY,
-                         block, p)
-    
-    #create the label image
-    self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
-    
-    #initialize the cvblobs blobs data structure (dict with label -> blob)
-    blobs = cvb.Blobs()
-    
-    result = cvb.Label(grey, self._blobLabel, blobs)
-    cvb.FilterByArea(blobs, minsize, maxsize) 
-    
-    blobs_sizesorted = sorted(blobs.values(), key=lambda x: x.area, reverse=True) 
-    
-    blobsFS = [] #create a new featureset for the blobs
-    for b in blobs_sizesorted:
-      blobsFS.append(Blob(self,b)) #wrapper the cvblob type in SimpleCV's blob type 
-    
-    return FeatureSet(blobsFS) 
-    
-  def findBlobs(self, threshval = 127, minsize=10, maxsize=0):
+  def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
     """
     If you have the cvblob library installed, this will look for continuous
     light regions and return them as Blob features in a FeatureSet.  Parameters
-    specify the threshold value, and minimum and maximum size for blobs.
+    specify the binarize filter threshold value, and minimum and maximum size for blobs.  If a
+    threshold value is -1, it will use an adaptive threshold.  See binarize() for
+    more information about adaptive thresholding.  The threshblocksize and threshconstant
+    parameters are only used for adaptive threshold.
 
     You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
 
@@ -497,8 +447,7 @@ class Image:
       maxsize = self.width * self.height / 2
     
     #create a single channel image, thresholded to parameters
-    grey = self.getEmpty(1) 
-    cv.Threshold(self._getGrayscaleBitmap(), grey, threshval, 255, cv.CV_THRESH_BINARY)
+    grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
 
     #create the label image
     self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
