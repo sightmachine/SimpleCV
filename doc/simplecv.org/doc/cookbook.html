@@ -1,0 +1,305 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SimpleCV Cookbook &mdash; SimpleCV v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SimpleCV v1.0.0 documentation" href="index.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simplecv-cookbook">
+<h1>SimpleCV Cookbook<a class="headerlink" href="#simplecv-cookbook" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="loading-and-saving-images">
+<h2>Loading and Saving Images<a class="headerlink" href="#loading-and-saving-images" title="Permalink to this headline">¶</a></h2>
+<p>The central class in SimpleCV is the Image() class, which wrappers OpenCV&#8217;s iplImage (bitmap) and cvMat (matrix) classes and provides basic manipulation functions.</p>
+<p>To load an image, specify the file path in the constructor:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="s">&quot;path/to/image.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To save the image, use the save method.  It will automatically use the file you loaded the image from:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_image</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can also specify a new file to save to, similar to a &#8220;Save As...&#8221;, and future calls to save() will save to this new file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;path/to/new_image.jpg&quot;</span><span class="p">)</span>
+<span class="c">#...do some stuff...</span>
+<span class="n">my_image</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c">#saves to path/to/new_image.jpg</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="image-manipulation">
+<h2>Image Manipulation<a class="headerlink" href="#image-manipulation" title="Permalink to this headline">¶</a></h2>
+<p>You can scale images using the &#8220;scale&#8221; function, so for instance to create a thumbnail.  Note that this will distort perspective if you change the width and height ratios:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">my_image</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also look at individual pixels:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">my_image</span><span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">45</span><span class="p">]</span>  <span class="c">#get the color trio for pixel at x = 25, y = 45</span>
+</pre></div>
+</div>
+<p>If you use python slices, you can extract a portion of the image.  This section is returned as an Image object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_section</span> <span class="o">=</span> <span class="n">myimage</span><span class="p">[</span><span class="mi">25</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="mi">45</span><span class="p">:</span><span class="mi">70</span><span class="p">]</span>    <span class="c">#grab a 25x25 rectangle starting at x = 25, y = 45</span>
+<span class="n">my_section</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;path/to/new_cropped_image.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also assign using direct pixel addressing, and draw on the image using this method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">black</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>    <span class="c">#create a black color tuple</span>
+<span class="n">my_image</span><span class="p">[</span><span class="mi">25</span><span class="p">,</span><span class="mi">45</span><span class="p">]</span> <span class="o">=</span> <span class="n">black</span>  <span class="c">#set the pixel at x = 25, y = 45 to black</span>
+<span class="n">my_image</span><span class="p">[</span><span class="mi">25</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="mi">45</span><span class="p">]</span> <span class="o">=</span> <span class="n">black</span> <span class="c">#draw 1px wide line</span>
+<span class="n">my_image</span><span class="p">[</span><span class="mi">25</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="mi">45</span><span class="p">:</span><span class="mi">70</span><span class="p">]</span> <span class="o">=</span> <span class="n">black</span> <span class="c">#create a 25x25 black rectange starting at x = 25, y = 45</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-a-camera-kinect-or-virtualcamera">
+<h2>Using a Camera, Kinect, or VirtualCamera<a class="headerlink" href="#using-a-camera-kinect-or-virtualcamera" title="Permalink to this headline">¶</a></h2>
+<p>Addressing your [OpenCV supported webcam](<a class="reference external" href="http://opencv.willowgarage.com/wiki/Welcome/OS">http://opencv.willowgarage.com/wiki/Welcome/OS</a>) is extremely easy:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mycam</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">mycam</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you install the [OpenKinect](<a class="reference external" href="http://openkinect.org/wiki/Getting_Started">http://openkinect.org/wiki/Getting_Started</a>) library and python wrapper, you can use your Xbox Kinect to get a depth map:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">k</span> <span class="o">=</span> <span class="n">Kinect</span><span class="p">()</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span> <span class="c">#normal, full color webcam</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">getDepth</span><span class="p">()</span> <span class="c">#greyscale depth map</span>
+</pre></div>
+</div>
+<p>###Multiple Cameras
+And you can even use multiple cameras, at different resolutions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mylaptopcam</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;width&quot;</span><span class="p">:</span> <span class="mi">640</span><span class="p">,</span> <span class="s">&quot;height&quot;</span><span class="p">:</span> <span class="mi">480</span><span class="p">})</span>  <span class="c">#you can also control brightness, hue, gain, etc</span>
+<span class="n">myusbcam</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;width&quot;</span><span class="p">:</span> <span class="mi">1280</span><span class="p">,</span> <span class="s">&quot;height&quot;</span><span class="p">:</span> <span class="mi">720</span><span class="p">})</span>
+
+<span class="n">mylaptopcam</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;okaypicture.jpg&quot;</span><span class="p">)</span>
+<span class="n">myusbcam</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;nicepicture.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also initialize VirtualCameras from static data files:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">imgcam</span> <span class="o">=</span> <span class="n">VirtualCamera</span><span class="p">(</span><span class="s">&quot;apples.jpg&quot;</span><span class="p">,</span> <span class="s">&quot;image&quot;</span><span class="p">)</span>
+<span class="n">vidcam</span> <span class="o">=</span> <span class="n">VirtualCamera</span><span class="p">(</span><span class="s">&quot;bananas.mpg&quot;</span><span class="p">,</span> <span class="s">&quot;video&quot;</span><span class="p">)</span>
+
+<span class="n">imgcam</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;copy_of_apples.jpg&quot;</span><span class="p">)</span>
+<span class="n">imgcam</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;frame_1_of_bananas.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="colors-and-levels">
+<h2>Colors and Levels<a class="headerlink" href="#colors-and-levels" title="Permalink to this headline">¶</a></h2>
+<p>You can also split channels, if you are interested in only processing a single color:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">red</span><span class="p">,</span> <span class="n">green</span><span class="p">,</span> <span class="n">blue</span><span class="p">)</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">channels</span><span class="p">()</span>
+<span class="n">red</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;redcam.jpg&quot;</span><span class="p">)</span>
+<span class="n">green</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;greencam.jpg&quot;</span><span class="p">)</span>
+<span class="n">blue</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;bluecam.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The Image class has a builtin [Histogram](<a class="reference external" href="http://en.wikipedia.org/wiki/Image_histogram">http://en.wikipedia.org/wiki/Image_histogram</a>) function, thanks to [Numpy](<a class="reference external" href="http://numpy.scipy.org/">http://numpy.scipy.org/</a>).  Histograms can show you the distribution of brightness or color in an image:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hist</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">brightpixels</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">darkpixels</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">(</span><span class="n">hist</span><span class="p">):</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="n">darkpixels</span> <span class="o">=</span> <span class="n">darkpixels</span> <span class="o">+</span> <span class="n">hist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">brightpixels</span> <span class="o">=</span> <span class="n">brightpixels</span> <span class="o">+</span> <span class="n">hist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">brightpixels</span> <span class="o">&gt;</span> <span class="n">darkpixels</span><span class="p">):</span>
+  <span class="k">print</span> <span class="s">&quot;your room is bright&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+  <span class="k">print</span> <span class="s">&quot;your room is dark&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="features-and-featuresets">
+<h2>Features and FeatureSets<a class="headerlink" href="#features-and-featuresets" title="Permalink to this headline">¶</a></h2>
+<p>SimpleCV has advanced feature-detection functions, which can let you find
+different types of features.  These are returned in FeatureSets which can
+be addressed as a group, or filtered:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">img</span> <span class="o">=</span> <span class="n">Camera</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span>
+
+<span class="n">lines</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">findLines</span><span class="p">()</span>
+
+<span class="n">corners</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">findCorners</span><span class="p">()</span>
+
+<span class="n">lines</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span> <span class="c">#outline the line segments in red</span>
+<span class="n">corners</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">))</span> <span class="c">#outline corners detected in blue</span>
+
+<span class="n">left_side_corners</span> <span class="o">=</span> <span class="n">corners</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">corners</span><span class="o">.</span><span class="n">x</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">img</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+<span class="c">#only look at corners on the left half of the image</span>
+
+<span class="n">longest_line</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">sortLength</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c">#get the longest line returned</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="blob-detection">
+<h2>Blob Detection<a class="headerlink" href="#blob-detection" title="Permalink to this headline">¶</a></h2>
+<p>If you load the experimental [cvblob-python](<a class="reference external" href="https://github.com/oostendo/cvblob-python">https://github.com/oostendo/cvblob-python</a>) library, you can also use SimpleCV to detect blobs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#find the green ball</span>
+<span class="n">green_channel</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">splitChannels</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">green_blobs</span> <span class="o">=</span> <span class="n">green_channel</span><span class="o">.</span><span class="n">findBlobs</span><span class="p">()</span>
+<span class="c">#blobs are returned in order of area, largest first</span>
+
+<span class="k">print</span> <span class="s">&quot;largest green blob at &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">green_blobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span> <span class="n">green_blobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="barcode-reading">
+<h2>Barcode Reading<a class="headerlink" href="#barcode-reading" title="Permalink to this headline">¶</a></h2>
+<p>If you load the [python-zxing](<a class="reference external" href="https://github.com/oostendo/python-zxing">https://github.com/oostendo/python-zxing</a>) library, you can use [Zebra Crossing](<a class="reference external" href="http://code.google.com/p/zxing">http://code.google.com/p/zxing</a>) to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
+the location of the library either through the ZXING_LIBRARY %ENV variable, or
+as a parameter to findBarcode():</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">i</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span>
+<span class="n">barcode</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">findBarcode</span><span class="p">(</span><span class="s">&quot;/var/opt/zxing&quot;</span><span class="p">)</span>
+
+<span class="n">barcode</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="c">#draw the outline of the barcode in green</span>
+
+<span class="n">i</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;barcode_found.png&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">barcode</span><span class="o">.</span><span class="n">data</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="haar-face-detection">
+<h2>Haar Face Detection<a class="headerlink" href="#haar-face-detection" title="Permalink to this headline">¶</a></h2>
+<p>You can do Haar Cascade face detection with SimpleCV, but you will need to find your own [Haar Cascade File](<a class="reference external" href="http://www.google.com/search?q=haarcascade_frontalface_alt.xml">http://www.google.com/search?q=haarcascade_frontalface_alt.xml</a>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">i</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">()</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span>
+<span class="n">faces</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">findHaarFeatures</span><span class="p">(</span><span class="s">&quot;/path/to/haarcascade_frontalface_alt.xml&quot;</span><span class="p">)</span>
+
+<span class="c">#print locations</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">faces</span><span class="p">:</span>
+  <span class="k">print</span> <span class="s">&quot;I found a face at &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">coordinates</span><span class="p">())</span>
+
+<span class="n">green</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="c">#outline who was drinking last night (or at least has the greenest pallor)</span>
+<span class="n">faces</span><span class="o">.</span><span class="n">sortColorDistance</span><span class="p">(</span><span class="n">green</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">green</span><span class="p">)</span>
+<span class="n">i</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;greenest_face_detected.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="output-streams">
+<h2>Output Streams<a class="headerlink" href="#output-streams" title="Permalink to this headline">¶</a></h2>
+<p>Rather than use GUI-based display of processed images, SimpleCV has an
+integrated HTTP-based JPEG streamer.  It will use the old-school
+multipart/replace content type to continuously feed jpgs to your browser.
+To send the data, you just save the image to the js.framebuffer location:</p>
+<div class="highlight-python"><pre>import time
+c = Camera()
+js = JpegStreamer()  #starts up an http server (defaults to port 8080)
+
+while(1)
+  c.getImage().save(js.framebuffer)
+  time.sleep(0.1)</pre>
+</div>
+<p>You can also use a JpegStreamCamera to grab frames from an external source (such as an IP Cam, the &#8220;IP Webcam&#8221; android application, or another SimpleCV JpegStream.</p>
+<blockquote>
+jc = JpegStreamCamera(&#8220;<a class="reference external" href="http://localhost:8080/">http://localhost:8080/</a>&#8220;)
+jc.getImage().save(&#8220;seeyou.jpg&#8221;)</blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">SimpleCV Cookbook</a><ul>
+<li><a class="reference external" href="#loading-and-saving-images">Loading and Saving Images</a></li>
+<li><a class="reference external" href="#image-manipulation">Image Manipulation</a></li>
+<li><a class="reference external" href="#using-a-camera-kinect-or-virtualcamera">Using a Camera, Kinect, or VirtualCamera</a></li>
+<li><a class="reference external" href="#colors-and-levels">Colors and Levels</a></li>
+<li><a class="reference external" href="#features-and-featuresets">Features and FeatureSets</a></li>
+<li><a class="reference external" href="#blob-detection">Blob Detection</a></li>
+<li><a class="reference external" href="#barcode-reading">Barcode Reading</a></li>
+<li><a class="reference external" href="#haar-face-detection">Haar Face Detection</a></li>
+<li><a class="reference external" href="#output-streams">Output Streams</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="installation.html"
+                                  title="previous chapter">Installation</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/cookbook.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Ingenuitas Inc.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
