@@ -42,6 +42,7 @@ def ExtractFeatures( fname, outbase ):
     #now we get the "blobs"
     chunks = mult.findBlobs()
     # we take the center blob
+
     x = (chunks[0].cvblob.maxx - chunks[0].cvblob.minx)/2
     y = (chunks[0].cvblob.maxy - chunks[0].cvblob.miny)/2
     # and the blobs rotation, the 90- is to get the battery so it is vertical
@@ -50,6 +51,10 @@ def ExtractFeatures( fname, outbase ):
     mult = mult.rotate(-1*angle,point=(x,y))
     # now we reapply the blobbing on the straightened image
     chunks = mult.findBlobs()
+    if( len(chunks) == 0 ):
+        mult.save("SuckyImage.png")
+        warnings.warn("BAD IMAGE: "+fname)
+        return None 
     # now we crop the image to emlinate a lot of the noise and other junk
     # we crow the blob by 1/5th its original width and 1/10th its height
     w = (chunks[0].cvblob.maxx - chunks[0].cvblob.minx)
@@ -62,19 +67,51 @@ def ExtractFeatures( fname, outbase ):
     #finally we save the image
     mult.save(outfile)
     #and build the edge histogram
-    return BuildWidthHistogram( mult, 10 )
-    
+    hist = BuildWidthHistogram( mult, 10 )
+    data = hist[0]
+    chunks = mult.findBlobs()
+    data = np.append(data,chunks[0].cvblob.m00)
+    data = np.append(data,chunks[0].cvblob.m10)
+    data = np.append(data,chunks[0].cvblob.m01)
+    data = np.append(data,chunks[0].cvblob.m11)
+    data = np.append(data,chunks[0].cvblob.m02)
+    data = np.append(data,chunks[0].cvblob.m20)
+    return data
+
+dataset = np.array([])
 path = '../sampleimages/battery/good/'
 i = 0
-#for every file on our directory
+#for every file on our good directory
 for infile in glob.glob( os.path.join(path, '*.jpg') ):
     print "Opening File: " + infile
     #output string
-    outfile = 'Result' + str(i) + ".png"
-    #we built the histogram
-    hist = ExtractFeatures(infile, outfile)
-    #and save it to file
-    outfile = 'Result' + str(i) + ".txt"
-    savetxt(outfile,hist[0])
+    outfile = 'GoodResult' + str(i) + ".png"
+    #we built the histogram / feature vector
+    data = ExtractFeatures(infile, outfile)
+    if( data != None ):
+        #We append the class label zero for good, one for bad
+        data = np.append(data,0)
+        #now we append the data onto our final dataset
+        if( i == 0 ):
+            dataset = data
+        else:
+            dataset = np.row_stack((dataset,data))
     i = i+1
 
+#now do the same for the bad data   
+path = '../sampleimages/battery/bad/'
+for infile in glob.glob( os.path.join(path, '*.jpg') ):
+    print "Opening File: " + infile
+    #output string
+    outfile = 'BadResult' + str(i) + ".png"
+    #we built the histogram
+    data = ExtractFeatures(infile, outfile)
+    if( data != None ):
+        data = np.append(data,1) #bad data is given label one
+        if( i == 0 ):
+            dataset = data
+        else:
+            dataset = np.row_stack((dataset,data))
+    i = i+1
+
+savetxt("data.txt",dataset)
