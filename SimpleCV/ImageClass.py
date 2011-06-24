@@ -286,6 +286,20 @@ class Image:
 
     return Image(newimg)
 
+  def medianFilter(self,window=''):
+    """
+    Perform a median filtering operation to denoise/despeckle the image.
+    The optional parameter is the window size.
+    """
+    return self.smooth(algorithm_name='median',aperature=window)
+    
+  def bilateralFilter(self,window = ''):
+    """
+    Perform a bilateral filtering operation to denoise/despeckle the image.
+    The optional parameter is the window size.
+    """
+    return self.smooth(algorithm_name='bilateral',aperature=window)
+    
   def invert(self):
     """
     Invert (negative) the image note that this can also be done with the
@@ -370,6 +384,7 @@ class Image:
       return Image(newbitmap)
   
 
+  
   #get the mean color of an image
   def binarizeAdaptive(self, p=5,max=255,block=3):
     """
