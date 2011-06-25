@@ -110,7 +110,9 @@ class Image:
     """
     Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
     """
-    return cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    cv.SetZero(bitmap)
+    return bitmap
 
   def getBitmap(self):
     """
@@ -286,6 +288,20 @@ class Image:
 
     return Image(newimg)
 
+  def medianFilter(self,window=''):
+    """
+    Perform a median filtering operation to denoise/despeckle the image.
+    The optional parameter is the window size.
+    """
+    return self.smooth(algorithm_name='median',aperature=window)
+    
+  def bilateralFilter(self,window = ''):
+    """
+    Perform a bilateral filtering operation to denoise/despeckle the image.
+    The optional parameter is the window size.
+    """
+    return self.smooth(algorithm_name='bilateral',aperature=window)
+    
   def invert(self):
     """
     Invert (negative) the image note that this can also be done with the
@@ -342,11 +358,15 @@ class Image:
     except:
       return None
       
-  def binarize(self, thresh = 127):
+  def binarize(self, thresh = -1, maxv = 255, blocksize = 3, p = 5):
     """
-    Do a binary threshold the image, changing all values above thresh to white
+    Do a binary threshold the image, changing all values above thresh to maxv
     and all below to black.  If a color tuple is provided, each color channel
     is thresholded separately.
+    
+    If threshold is -1, an adaptive sampling method is used - similar to a moving
+    average.  Over each region of block*block pixels a threshold is applied
+    where threshold = local_mean - p.
     """
     if (is_tuple(thresh)):
       r = self.getEmpty(1) 
@@ -354,23 +374,27 @@ class Image:
       b = self.getEmpty(1)
       cv.Split(self.getBitmap(), b, g, r, None)
 
-      cv.Threshold(r, r, thresh[0], 255, cv.CV_THRESH_BINARY)
-      cv.Threshold(g, g, thresh[1], 255, cv.CV_THRESH_BINARY)
-      cv.Threshold(b, b, thresh[2], 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
+      cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
+      cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
 
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
       return Image(r)
 
+    elif thresh == -1:
+      newbitmap = self.getEmpty(1)
+      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, float(maxv),
+        cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY, blocksize, float(p))
+      return Image(newbitmap)
     else:
       newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
-      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY)
       return Image(newbitmap)
   
-
-  #get the mean color of an image
+  
   def meanColor(self):
     """
     Finds average color of all the pixels in the image.
@@ -401,11 +425,15 @@ class Image:
 
     return FeatureSet(corner_features)
 
-  def findBlobs(self, threshval = 127, minsize=10, maxsize=0):
+    
+  def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
     """
     If you have the cvblob library installed, this will look for continuous
     light regions and return them as Blob features in a FeatureSet.  Parameters
-    specify the threshold value, and minimum and maximum size for blobs.
+    specify the binarize filter threshold value, and minimum and maximum size for blobs.  If a
+    threshold value is -1, it will use an adaptive threshold.  See binarize() for
+    more information about adaptive thresholding.  The threshblocksize and threshconstant
+    parameters are only used for adaptive threshold.
 
     You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
 
@@ -419,8 +447,7 @@ class Image:
       maxsize = self.width * self.height / 2
     
     #create a single channel image, thresholded to parameters
-    grey = self.getEmpty(1) 
-    cv.Threshold(self._getGrayscaleBitmap(), grey, threshval, 255, cv.CV_THRESH_BINARY)
+    grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
 
     #create the label image
     self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
@@ -1139,3 +1166,48 @@ class Image:
       retVal = np.array(retVal)
       retVal = retVal.transpose()
     return retVal
+
+  def crop(self,x , y, w, h, centered=False):
+    """
+    Crop attempts to use the x and y position variables and the w and h width
+    and height variables to crop the image. When centered is false, x and y
+    define the top and left of the cropped rectangle. When centered is true
+    the function uses x and y as the centroid of the cropped region.
+    
+    The function returns a new image. 
+    """
+    retVal = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
+    if( centered ):
+      rectangle = (x-(w/2),y-(h/2),w,h)
+    else:
+      rectangle = (x,y,w,h)
+    
+    cv.SetImageROI(self.getBitmap(),rectangle)
+    cv.Copy(self.getBitmap(),retVal)
+    cv.ResetImageROI(self.getBitmap())
+    return Image(retVal)
+    
+  def regionSelect(self, x1, y1, x2, y2 ):
+    """
+    Region select is similar to crop, but instead of taking a position and width
+    and height values it simply takes to points on the image and returns the selected
+    region. This is very helpful for creating interactive scripts that require
+    the user to select a region. 
+    """
+    w = abs(x1-x2)
+    h = abs(y1-y2)
+
+    retVal = None;
+    if( w <= 0 or h <= 0 or w > self.width or h > self.height ):
+      warnings.warn("regionSelect: the given values will not fit in the image or are too small.")
+    else:
+      xf = x2 
+      if( x1 < x2 ):
+        xf = x1
+      yf = y2
+      if( y1 < y2 ):
+        yf = y1
+      retVal = self.crop(xf,yf,w,h)
+      
+    return retVal
+  
