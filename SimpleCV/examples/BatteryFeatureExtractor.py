@@ -97,6 +97,7 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
     outfile = 'GoodResult' + str(i) #+ ".png"
     #we built the histogram / feature vector
     data = ExtractFeatures(infile, outfile)
+    print(data)
     if( data != None ):
         #We append the class label zero for good, one for bad
         data = np.append(data,0)
@@ -107,6 +108,7 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
             dataset = np.row_stack((dataset,data))
     i = i+1
 
+print(dataset)
 #now do the same for the bad data   
 path = '../sampleimages/battery/bad/'
 for infile in glob.glob( os.path.join(path, '*.jpg') ):
@@ -123,4 +125,15 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
             dataset = np.row_stack((dataset,data))
     i = i+1
 
-savetxt("data.txt",dataset,delimiter=',')
+myFile = 'data.csv'
+tempFile = 'temp.csv'
+#use save text to write our file out
+savetxt(tempFile,dataset,delimiter=',')
+#now open a new file, add the header, pipe in the data file, and then delete it. 
+f = open(myFile,'w')
+d = open('temp.csv')
+f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, area, m10, m01, m11, m02, m20, label\n")
+f.writelines(d.readlines())
+f.close()
+d.close()
+os.remove(tempFile)
