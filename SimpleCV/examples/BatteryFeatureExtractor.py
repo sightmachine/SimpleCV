@@ -26,23 +26,31 @@ def ExtractFeatures( fname, outbase ):
     #try to smooth everything to get rid of noise
     img = img.medianFilter()
     #do an adaptive binary operation
+    #blurr = img.smooth(aperature=3)
+    #blurr = blurr.binarizeAdaptive()
+    #t = outbase + "blur.png"
+    #blurr.save(t) 
     blobs = img.binarizeAdaptive()
+    blobs = blobs.erode()
     #default behavior is black on white, invert that 
     blobs = blobs.invert()
     #grow the blob images a little bit
-    blobs = blobs.dilate(1)
+    #blobs = blobs.dilate(1)
+    #t = outbase + "blob.png"
+    #blobs.save(t)
     #also perform a canny edge detection
     edges = img.edges()
     #also grow that a little bit to fill in gaps
     edges = edges.dilate()
+    #t = outbase + "edge.png"
+    #edges.save(t)
     #now reinforce the image, we only want edges that are in both, so we multiply
     mult = edges*blobs
     #now we grow the result 
-    mult = mult.dilate()
+    #mult = mult.dilate()
     #now we get the "blobs"
     chunks = mult.findBlobs()
     # we take the center blob
-
     x = (chunks[0].cvblob.maxx - chunks[0].cvblob.minx)/2
     y = (chunks[0].cvblob.maxy - chunks[0].cvblob.miny)/2
     # and the blobs rotation, the 90- is to get the battery so it is vertical
@@ -63,9 +71,10 @@ def ExtractFeatures( fname, outbase ):
     cy = chunks[0].cvblob.miny+(h/2)
     mult = mult.crop(cx,cy,int(w+(w/5)),int(h+(h/10)),centered=True)
     #now we do an erode since we did so much dilation
-    mult = mult.erode()
+    #mult = mult.erode()
     #finally we save the image
-    mult.save(outfile)
+    t = outbase + ".png"
+    mult.save(t)
     #and build the edge histogram
     hist = BuildWidthHistogram( mult, 10 )
     data = hist[0]
@@ -85,7 +94,7 @@ i = 0
 for infile in glob.glob( os.path.join(path, '*.jpg') ):
     print "Opening File: " + infile
     #output string
-    outfile = 'GoodResult' + str(i) + ".png"
+    outfile = 'GoodResult' + str(i) #+ ".png"
     #we built the histogram / feature vector
     data = ExtractFeatures(infile, outfile)
     if( data != None ):
@@ -103,7 +112,7 @@ path = '../sampleimages/battery/bad/'
 for infile in glob.glob( os.path.join(path, '*.jpg') ):
     print "Opening File: " + infile
     #output string
-    outfile = 'BadResult' + str(i) + ".png"
+    outfile = 'BadResult' + str(i) #+ ".png"
     #we built the histogram
     data = ExtractFeatures(infile, outfile)
     if( data != None ):
@@ -114,4 +123,4 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
             dataset = np.row_stack((dataset,data))
     i = i+1
 
-savetxt("data.txt",dataset)
+savetxt("data.txt",dataset,delimiter=',')
