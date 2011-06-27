@@ -20,6 +20,23 @@ def BuildWidthHistogram( img, bins ):
             raw_vals.append(w)
     # and return a normalized histgram of the results        
     return np.histogram(raw_vals,bins, normed = True)
+    
+def BuildHeightHistogram( img, bins ):
+    raw_vals = []
+    #for each line going down the image
+    for i in range(0,img.width):
+        #we get the scanline, i.e. the pixels
+        scanline = img.getVertScanlineGray(i)
+        #we find the location of all the white pixels
+        points = np.where(scanline==255)
+        #and if there are two of them
+        if( points[0].shape[0] > 2 ):
+            #we save the distance between the two
+            w = points[0][-1]-points[0][0]
+            # and add that to our array
+            raw_vals.append(w)
+    # and return a normalized histgram of the results        
+    return np.histogram(raw_vals,bins, normed = True)    
         
 def ExtractFeatures( fname, outbase ):
     img = Image(fname)
@@ -76,8 +93,10 @@ def ExtractFeatures( fname, outbase ):
     t = outbase + ".png"
     mult.save(t)
     #and build the edge histogram
-    hist = BuildWidthHistogram( mult, 10 )
-    data = hist[0]
+    hhist = BuildWidthHistogram( mult, 10 )
+    data = hhist[0]
+    vhist = BuildHeightHistogram(mult,10)
+    data = np.append(data,vhist[0])
     chunks = mult.findBlobs()
     data = np.append(data,chunks[0].cvblob.m00)
     data = np.append(data,chunks[0].cvblob.m10)
@@ -97,7 +116,6 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
     outfile = 'GoodResult' + str(i) #+ ".png"
     #we built the histogram / feature vector
     data = ExtractFeatures(infile, outfile)
-    print(data)
     if( data != None ):
         #We append the class label zero for good, one for bad
         data = np.append(data,0)
@@ -108,7 +126,6 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
             dataset = np.row_stack((dataset,data))
     i = i+1
 
-print(dataset)
 #now do the same for the bad data   
 path = '../sampleimages/battery/bad/'
 for infile in glob.glob( os.path.join(path, '*.jpg') ):
@@ -132,7 +149,7 @@ savetxt(tempFile,dataset,delimiter=',')
 #now open a new file, add the header, pipe in the data file, and then delete it. 
 f = open(myFile,'w')
 d = open('temp.csv')
-f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, area, m10, m01, m11, m02, m20, label\n")
+f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, vb0, hv1, vb2, vb3, vb4, vb5, vb6, vb7, vb8, vb9, area, m10, m01, m11, m02, m20, label\n")
 f.writelines(d.readlines())
 f.close()
 d.close()
