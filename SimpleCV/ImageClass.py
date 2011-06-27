@@ -358,7 +358,7 @@ class Image:
     except:
       return None
       
-  def binarize(self, thresh = -1, maxv = 255, blocksize = 3, p = 5):
+  def binarize(self, thresh = 127, maxv = 255, blocksize = 3, p = 5):
     """
     Do a binary threshold the image, changing all values above thresh to maxv
     and all below to black.  If a color tuple is provided, each color channel
@@ -426,7 +426,7 @@ class Image:
     return FeatureSet(corner_features)
 
     
-  def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
+  def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
     """
     If you have the cvblob library installed, this will look for continuous
     light regions and return them as Blob features in a FeatureSet.  Parameters
