@@ -8,6 +8,7 @@ js = JpegStreamer(8080)
 #create JPEG streamers
 
 cam = Camera(1)
+
 #initialize the camera
 
 #the number of frames

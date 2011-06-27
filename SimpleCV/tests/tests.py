@@ -171,6 +171,15 @@ def test_binarize():
   else:
     assert False
 
+def test_binarize_adaptive():
+  img =  Image(testimage2)
+  binary = img.binarizeAdaptive()
+  hist = binary.histogram(20)  
+  if (hist[0] + hist[-1] == np.sum(hist)):
+    pass
+  else:
+    assert False
+
 def test_invert():
   img = Image(testimage2)
   clr = img[1,1]
@@ -271,7 +280,14 @@ def test_blobs():
 
   pass
 
-
+def test_blobs_adaptive():
+  if not BLOBS_ENABLED:
+    return None 
+  img = Image(testbarcode)
+  blobs = img.findBlobsAdaptive()
+  blobs[0].draw((0, 255, 0))
+  img.save(testoutput)  
+  pass
 
 
 def test_barcode():
@@ -530,15 +546,105 @@ def test_perspective():
 
   pWarp2 = np.array(pWarp)
   ptrans2 = img.transformPerspective(pWarp2)
+
   
   test = ptrans-ptrans2
   c=test.meanColor()
 
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
+    
+def test_horz_scanline():
+  img = Image(logo)
+  sl = img.getHorzScanline(10)
+  if( sl.shape[0]!=img.width or sl.shape[1]!=3 ):
+    assert False
 
+def test_vert_scanline():
+  img = Image(logo)
+  sl = img.getVertScanline(10)
+  if( sl.shape[0]!=img.height or sl.shape[1]!=3 ):
+    assert False
+    
+def test_horz_scanline_gray():
+  img = Image(logo)
+  sl = img.getHorzScanlineGray(10)
+  if( sl.shape[0]!=img.width or sl.shape[1]!=1 ):
+    assert False
 
-  
+def test_vert_scanline_gray():
+  img = Image(logo)
+  sl = img.getVertScanlineGray(10)
+  if( sl.shape[0]!=img.height or sl.shape[1]!=1 ):
+    assert False
+
+def test_get_pixel():
+    img = Image(logo)
+    px = img.getPixel(0,0)
+    if(px[0] != 0 or px[1] != 0 or px[2] != 0 ):
+      assert False
+      
+def test_get_gray_pixel():
+    img = Image(logo)
+    px = img.getGrayPixel(0,0)
+    if(px != 0):
+      assert False
+      
+def test_calibration():
+  fakeCamera = FrameSource()
+  path = "../sampleimages/CalibImage"
+  ext = ".png"
+  imgs = []
+  for i in range(0,10):
+    fname = path+str(i)+ext
+    img = Image(fname)
+    imgs.append(img)
+
+  fakeCamera.calibrate(imgs)
+  #we're just going to check that the function doesn't puke
+  mat = fakeCamera.getCameraMatrix()
+  if( type(mat) != cv.cvmat ):
+    assert False
+  #we're also going to test load in save in the same pass 
+  matname = "TestCalibration"
+  if( False == fakeCamera.saveCalibration(matname)):
+    assert False
+  if( False == fakeCamera.loadCalibration(matname)):
+    assert False
+
+def test_undistort():
+  fakeCamera = FrameSource()
+  fakeCamera.loadCalibration("Default")
+  img = Image("../sampleimages/CalibImage0.png") 
+  img2 = fakeCamera.undistort(img)
+  if( not img2 ): #right now just wait for this to return 
+    assert False
+    
+def test_crop():
+  img = Image(logo)
+  x = 5
+  y = 6
+  w = 10
+  h = 20
+  crop = img.crop(x,y,w,h)
+  crop2 = img[x:(x+w),y:(y+h)]
+  diff = crop-crop2;
+  c=diff.meanColor()
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False
+
+def test_region_select():
+  img = Image(logo)
+  x1 = 0
+  y1 = 0
+  x2 = img.width
+  y2 = img.height
+  crop = img.regionSelect(x1,y1,x2,y2)
+  diff = crop-img;
+  c=diff.meanColor()
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False
+
 def test_subtract():
   imgA = Image(logo)
   imgB = Image(logo_inverted)

@@ -1,7 +1,13 @@
 # SimpleCV Detection Library
 #
 # This library includes classes for finding things in images
-
+#
+# FYI - 
+# All angles shalt be described in degrees with zero pointing east in the
+# plane of the image with all positive rotations going counter-clockwise.
+# Therefore a rotation from the x-axis to to the y-axis is positive and follows
+# the right hand rule. 
+#
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.Features import Feature, FeatureSet
@@ -101,7 +107,7 @@ For more information:
     This Angle function is defined as: 
     .5*atan2(2.* blob.cvblob.u11,(blob.cvblob.u20-blob.cvblob.u02))
     """
-    return cvb.Angle(self.cvblob)
+    return 360.00*(cvb.Angle(self.cvblob)/(2*np.pi))
 
   def draw(self, color = (0, 255, 0)):
     """
@@ -239,7 +245,8 @@ class Line(Feature):
     
     d_x = self.points[b][0] - self.points[a][0]
     d_y = self.points[b][1] - self.points[a][1]
-    return atan2(d_y, d_x) #zero is west 
+    #our internal standard is degrees
+    return (360.00*(atan2(d_y, d_x)/(2*np.pi))) #formerly 0 was west
 
 class Barcode(Feature):
   """
@@ -368,13 +375,59 @@ class HaarFeature(Feature):
     """
     Returns the angle of the rectangle -- horizontal if wide, vertical if tall
     """
+    #Note this is misleading
+    # I am not sure I like this 
     if (self.width > self.height):
-      return 0
+      return 0.00
     else:
-      return np.pi / 2 
+      return 90.00 
 
-
-
+class Chessboard(Feature):
+  points = ()
+  spCorners = []
+  dimensions = ()
+  
+  def __init__(self, i, dim, subpixelCorners):
+    self.dimensions = dim
+    self.spCorners = subpixelCorners
+    self.image = i
+    self.x = np.average(np.array(self.spCorners)[:,0])
+    self.y = np.average(np.array(self.spCorners)[:,1])
+    
+    posdiagsorted = sorted(self.spCorners, key = lambda corner: corner[0] + corner[1])
+    #sort corners along the x + y axis
+    negdiagsorted = sorted(self.spCorners, key = lambda corner: corner[0] - corner[1])
+    #sort corners along the x - y axis
+    
+    self.points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1], negdiagsorted[0])
+    #return the exterior points in clockwise order
+    
+  def draw(self, no_needed_color=None):
+    """
+    Draws the chessboard corners.  We take a color param, but ignore it
+    """
+    cv.DrawChessboardCorners(self.image.getBitmap(),self.dimensions,self.spCorners,1)
+    
+  def area(self):
+    """
+    Returns the mean of the distance between corner points in the chessboard
+    This can be used as a proxy for distance from the camera
+    """
+    #note, copying this from barcode means we probably need a subclass of
+    #feature called "quandrangle"
+    sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+    a = sqform[0][1] 
+    b = sqform[1][2] 
+    c = sqform[2][3] 
+    d = sqform[3][0] 
+    p = sqform[0][2] 
+    q = sqform[1][3] 
+    s = (a + b + c + d)/2.0 
+    return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
+    
+    
+    
+    
 #TODO?
 #class Edge(Feature):
 #class Ridge(Feature):
