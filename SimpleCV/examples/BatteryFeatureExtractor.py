@@ -41,28 +41,33 @@ def BuildHeightHistogram( img, bins ):
 def ExtractFeatures( fname, outbase ):
     img = Image(fname)
     #try to smooth everything to get rid of noise
-    img = img.medianFilter()
+    #img = img.medianFilter()
     #do an adaptive binary operation
-    #blurr = img.smooth(aperature=3)
+    blurr = img.smooth(aperature=9)
     #blurr = blurr.binarizeAdaptive()
     #t = outbase + "blur.png"
     #blurr.save(t) 
-    blobs = img.binarizeAdaptive()
-    blobs = blobs.erode()
+    blobs = img.binarize(thresh = -1, blocksize=21,p=3)
+    #blobs = blobs.dilate(0)
     #default behavior is black on white, invert that 
-    blobs = blobs.invert()
+    #blobs = blobs.invert()
+    blobs = blobs.dilate();
     #grow the blob images a little bit
     #blobs = blobs.dilate(1)
-    #t = outbase + "blob.png"
-    #blobs.save(t)
+    t = outbase + "blob.png"
+    blobs.save(t)
     #also perform a canny edge detection
     edges = img.edges()
     #also grow that a little bit to fill in gaps
-    edges = edges.dilate()
-    #t = outbase + "edge.png"
-    #edges.save(t)
+    edges = edges.dilate(2)
+    t = outbase + "edge.png"
+    edges.save(t)
     #now reinforce the image, we only want edges that are in both, so we multiply
-    mult = edges*blobs
+    mult = edges+blobs
+    mult = mult.dilate(2)
+    mult = mult.erode(2)
+    t = outbase + "mult.png"
+    mult.save(t)
     #now we grow the result 
     #mult = mult.dilate()
     #now we get the "blobs"
@@ -71,9 +76,9 @@ def ExtractFeatures( fname, outbase ):
     x = (chunks[0].cvblob.maxx - chunks[0].cvblob.minx)/2
     y = (chunks[0].cvblob.maxy - chunks[0].cvblob.miny)/2
     # and the blobs rotation, the 90- is to get the battery so it is vertical
-    angle = 90-chunks[0].angle()
+    angle = chunks[0].angle()
     # now we rotate the blob so that the major axis is parallel to the sides of our image
-    mult = mult.rotate(-1*angle,point=(x,y))
+    mult = mult.rotate(angle,point=(x,y))
     # now we reapply the blobbing on the straightened image
     chunks = mult.findBlobs()
     if( len(chunks) == 0 ):
@@ -107,10 +112,11 @@ def ExtractFeatures( fname, outbase ):
     return data
 
 dataset = np.array([])
-path = '../sampleimages/battery/good/'
+#path = './../sampleimages/battery/good/'#
+path = './battery-pics-high-res-version2/notbuldged/'
 i = 0
 #for every file on our good directory
-for infile in glob.glob( os.path.join(path, '*.jpg') ):
+for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
     #output string
     outfile = 'GoodResult' + str(i) #+ ".png"
@@ -127,8 +133,8 @@ for infile in glob.glob( os.path.join(path, '*.jpg') ):
     i = i+1
 
 #now do the same for the bad data   
-path = '../sampleimages/battery/bad/'
-for infile in glob.glob( os.path.join(path, '*.jpg') ):
+path = './battery-pics-high-res-version2/buldged/'
+for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
     #output string
     outfile = 'BadResult' + str(i) #+ ".png"

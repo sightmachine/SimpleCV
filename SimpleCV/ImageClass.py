@@ -373,25 +373,25 @@ class Image:
       g = self.getEmpty(1)
       b = self.getEmpty(1)
       cv.Split(self.getBitmap(), b, g, r, None)
-
+    
       cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
       cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
       cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
-
+    
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
       return Image(r)
-
+    
     elif thresh == -1:
       newbitmap = self.getEmpty(1)
-      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, float(maxv),
-        cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY, blocksize, float(p))
+      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
+        cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize,p)
       return Image(newbitmap)
     else:
       newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
-      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY)
+      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV)
       return Image(newbitmap)
   
   

@@ -85,3 +85,4 @@ class ColorCurve:
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
  
+  
