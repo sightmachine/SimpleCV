@@ -754,7 +754,7 @@ class Image:
   def __setitem__(self, coord, value):
     value = tuple(reversed(value))  #RGB -> BGR
     if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
-      self.getMatrix()[coord] = value 
+      self.getMatrix()[tuple(reversed(coord))] = value 
     else:
       cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
       self._clearBuffers("_matrix") 
@@ -1118,7 +1118,7 @@ class Image:
     elif( y < 0 or y >= self.height ):
       warnings.warn("getGrayPixel: Y value is not valid.")
     else:
-      retVal = cv.Get2D(self._getGrayscaleBitmap(),x,y);
+      retVal = cv.Get2D(self._getGrayscaleBitmap(),y,x);
       retVal = retVal[0]
     return retVal
       
