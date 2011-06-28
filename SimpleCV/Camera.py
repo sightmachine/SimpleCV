@@ -45,7 +45,7 @@ class FrameSource:
   def getImage(self):
     return None
 
-  def calibrate(self, imageList, grid_sz=0.03,dimensions=(8,5)):
+  def calibrate(self, imageList, grid_sz=0.029,dimensions=(8,5)):
     """
     Camera calibration is agnostic of the imagery source 
 
@@ -147,16 +147,39 @@ class FrameSource:
     """
     return self._calibMat
 
-  def undistort(self, inImg):
+  def undistort(self, image_or_2darray):
     """
-    Given an image, apply the undistortion given my the camera's matrix and return the result
+    If given an image, apply the undistortion given my the camera's matrix and return the result
+    
+    If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
+    measurement and return them in the original coordinate system.
     """
     if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
        warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
        return None
-    retVal = inImg.getEmpty()
-    cv.Undistort2(inImg.getBitmap(),retVal,self._calibMat,self._distCoeff)
-    return Image(retVal)
+       
+    if (type(image_or_2darray) == InstanceType and image_or_2darray.__class__ == Image):
+      inImg = image_or_2darray # we have an image
+      retVal = inImg.getEmpty()
+      cv.Undistort2(inImg.getBitmap(),retVal,self._calibMat,self._distCoeff)
+      return Image(retVal)
+    else:
+      mat = ''
+      if (type(image_or_2darray) == cv.cvmat):
+        mat = image_or_2darray
+      else:
+        arr = cv.fromarray(np.array(image_or_2darray))
+        mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv.CV_64FC2)
+        cv.Merge(arr[:,0], arr[:,1], None, None, mat)
+       
+      upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv.CV_64FC2)
+      cv.UndistortPoints(mat, upoints, self._calibMat,self._distCoeff)
+      
+      #undistorted.x = (x* focalX + principalX);  
+      #undistorted.y = (y* focalY + principalY);  
+      return (np.array(upoints[:,0]) *\
+        [self.getCameraMatrix()[0,0], self.getCameraMatrix()[1,1]] +\
+        [self.getCameraMatrix()[0,2], self.getCameraMatrix()[1,2]])[:,0]
 
   def getImageUndistort(self):
     """
@@ -265,6 +288,7 @@ control than just basic frame retrieval
         _camera_polling_thread = FrameBufferThread()
         _camera_polling_thread.daemon = True
         _camera_polling_thread.start()
+        time.sleep(0) #yield to thread
     
     if calibrationfile:
       self.loadCalibration(calibrationfile)
