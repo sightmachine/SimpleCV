@@ -22,6 +22,7 @@ class Image:
   depth = 0
   filename = "" #source filename
   filehandle = "" #filehandle if used
+  camera = ""
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -51,7 +52,7 @@ class Image:
   #initialize the frame
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
-  def __init__(self, source = None):
+  def __init__(self, source = None, camera = None):
     """ 
     The constructor takes a single polymorphic parameter, which it tests
     to see how it should convert into an RGB image.  Supported types include:
@@ -60,6 +61,8 @@ class Image:
     Python Image Library: Image type
     Filename: All opencv supported types (jpg, png, bmp, gif, etc)
     """
+    self.camera = camera
+    
     if (type(source) == cv.cvmat):
       self._matrix = source 
 
@@ -900,10 +903,10 @@ class Image:
     linesFS = FeatureSet()
     for l in lines:
       linesFS.append(Line(self, l))  
-    
     return linesFS
     
-  def findChessboard(self, dimensions = (5,8)):
+    
+  def findChessboard(self, dimensions = (5,8), subpixel = True):
     """
     Given an image, finds a chessboard within that image.  Returns the Chessboard featureset.
     The Chessboard is typically used for calibration because of its evenly spaced corners.
@@ -912,9 +915,12 @@ class Image:
    
     returns a FeatureSet with the Chessboard feature, or none
     """
-    corners = cv.FindChessboardCorners(self.getGrayscaleMatrix(), dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+    corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
     if(len(corners[1]) == dimensions[0]*dimensions[1]):
-      spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      if (subpixel):
+        spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      else:
+        spCorners = corners[1]
       return FeatureSet([ Chessboard(self, dimensions, spCorners) ])
     else:
       return None

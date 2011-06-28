@@ -423,7 +423,7 @@ class Chessboard(Feature):
     p = sqform[0][2] 
     q = sqform[1][3] 
     s = (a + b + c + d)/2.0 
-    return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
+    return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
     
     
     
