@@ -138,12 +138,16 @@ class ColorModel:
       a = 0
       b = 255
     mask = img.getEmpty(1)
+    l = self.mData.tolist()
     for x in range(img.width):
       for y in range(img.height):
-        vals = np.intersect1d(self.mData, img[x,y] ) #(np.where(spsd.cdist(self.mData,[img[x,y]])<=threshold))
-        t = str(x)+" "+str(y)
-        print(t)
-        if(vals.shape[0] > 0):
+        vals  = -1
+        try:
+          vals = l.index(img.getPixel(x,y))
+        except ValueError:
+          pass
+        #vals = np.intersect1d(self.mData, img.getPixel(x,y) ) #(np.where(spsd.cdist(self.mData,[img[x,y]])<=threshold))
+        if(vals >= 0):
           mask[y,x] = a
         else:
           mask[y,x] = b

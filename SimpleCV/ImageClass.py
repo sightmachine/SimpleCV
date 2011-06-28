@@ -1098,7 +1098,7 @@ class Image:
     elif( y < 0 or y >= self.height ):
       warnings.warn("getRGBPixel: Y value is not valid.")
     else:
-      retVal = cv.Get2D(self.getBitmap(),x,y);
+      retVal = cv.Get2D(self.getBitmap(),y,x);
     return retVal
   
   def getGrayPixel(self, x, y):
@@ -1111,7 +1111,7 @@ class Image:
     elif( y < 0 or y >= self.height ):
       warnings.warn("getGrayPixel: Y value is not valid.")
     else:
-      retVal = cv.Get2D(self._getGrayscaleBitmap(),x,y);
+      retVal = cv.Get2D(self._getGrayscaleBitmap(),y,x);
       retVal = retVal[0]
     return retVal
       
