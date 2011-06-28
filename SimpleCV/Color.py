@@ -4,6 +4,7 @@
 
 #load required libraries
 from SimpleCV.base import *
+from SimpleCV.ImageClass import Image 
 
 class Color:
   """
@@ -84,5 +85,89 @@ class ColorCurve:
       curve_vals = np.array(curve_vals)
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
- 
+      
+class ColorModel:
+  """
+  """
+  mIsColor = True
+  mIsBackground = True
+  mData = []
+  
+  def __init__(self,isColor=True,isBackground=True):
+    mIsColor = isColor
+    mIsBackground = isBackground
+
+  def _makeCanonical(self,data):
+    if(data.__class__.__name__=='Image'):
+      rs = np.array(data.getMatrix()).reshape(-1, 3)
+      retVal = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1,rs.shape[1])
+    elif(data.__class__.__name__=='cvmat'):
+      rs = np.array(data).reshape(-1, 3)
+      retVal = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1,rs.shape[1])    
+    elif(data.__class__.__name__=='Color'):
+      retVal = np.array([data])
+    elif(data.__class__.__name__=='ndarray'):
+      #assume the shape is correct
+      retVal = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+    elif(data.__class__.__name__=='list'  ):
+      retVal = np.array(data)
+    else:
+      warnings.warn("ColorModel: color is not in an accepted format!")
+      retVal = None
+      
+    return retVal
+  
+  def addToModel(self,data):
+    data =self._makeCanonical(data)
+    if( type(data) != None ):
+      if( len(self.mData) == 0 ): #no data yet
+        self.mData = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+      else:
+        self.mData = np.concatenate((self.mData,data))
+        self.mData = np.unique(self.mData.view([('',self.mData.dtype)]*self.mData.shape[1])).view(self.mData.dtype).reshape(-1,self.mData.shape[1])
+    
+    
+  def removeFromModel(self,data):
+    data =self._makeCanonical(data)
+    self.mData = np.remove(self.mData.view([('',self.mData.dtype)]*self.mData.shape[1]),data.view([('',data.dtype)]*data.shape[1])).view(self.mData.dtype).reshape(-1,self.mData.shape[1])
+  
+  def thresholdImage(self,img):
+    a = 255
+    b = 0
+    if( self.mIsBackground == False ):
+      a = 0
+      b = 255
+    mask = img.getEmpty(1)
+    for x in range(img.width):
+      for y in range(img.height):
+        vals = np.intersect1d(self.mData, img[x,y] ) #(np.where(spsd.cdist(self.mData,[img[x,y]])<=threshold))
+        t = str(x)+" "+str(y)
+        print(t)
+        if(vals.shape[0] > 0):
+          mask[y,x] = a
+        else:
+          mask[y,x] = b
+    return Image(mask)
+  
+  def containsColor(self,c):
+    retVal = False
+    val = np.where(spsd.cdist(self.mData,[c])==0.00)
+    if( val[0].shape[0] > 0 ):
+      retVal = True;
+    return retVal
+  
+  def setIsForeground(self):
+    mIsBackground = False
+    
+  def setIsBackground(self):
+    mIsBackground = True
+    
+  def loadFromFile(self,filename):
+    self.mData = np.loadtxext(filename)
+  
+  def saveToFile(self,filename):
+    np.savetxt(filename,self.mData)
+  
+  
+
   
