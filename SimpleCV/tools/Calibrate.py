@@ -72,6 +72,7 @@ def findLargeFlat(cb, i, calibration_set, dims):
     return
     
   if (relativeSize(cb, i) > 0.7):
+    print "Chessboard is " + str(int(relativeSize(cb,i) * 100)) + "% of view area, perfect!"
     saveCalibrationImage(j, calibration_set, dims)
   else:
     print "Chessboard is " + str(int(relativeSize(cb,i) * 100)) + "% of view area, bring it closer"
@@ -115,7 +116,6 @@ def findSmallFlat(cb, i, calibration_set, dims):
   if not cb:
     return
     
-  
   if (relativeSize(cb, i) < 0.125):
     print "Chessboard is too small, bring it closer"
   elif (relativeSize(cb, i) > 0.25):
