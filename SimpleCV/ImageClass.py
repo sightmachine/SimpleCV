@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line, Chessboard
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
+from SimpleCV.Color import *
 
 class Image:
   """
@@ -217,7 +218,7 @@ class Image:
         
       return 1
 
-    filename = filehandle_or_filename 
+    filename = filehandle_or_filename
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
       self.filename = filename #set the filename for future save operations
@@ -1139,3 +1140,30 @@ class Image:
       retVal = np.array(retVal)
       retVal = retVal.transpose()
     return retVal
+
+  def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
+    """
+    This function draws the string that is passed on the screen at the specified coordinates
+
+    The Default Color is blue but you can pass it various colors
+    The text will default to the center of the screen if you don't pass it a value
+    The default font size is 16pt, but you can pass it other sizes as well
+
+    returns Image
+    
+    """
+    
+
+    font = pilImageFont.truetype("SimpleCV/fonts/ubuntu.ttf",fontsize)
+    if(x == None):
+      x = (self.width / 2)
+    if(y == None):
+      y = (self.height / 2)
+    
+    img = self.getPIL()
+    draw = pilImageDraw.Draw(img)
+    draw.text((x, y),text,color,font=font)
+    draw = pilImageDraw.Draw(img)
+
+    
+    return img
