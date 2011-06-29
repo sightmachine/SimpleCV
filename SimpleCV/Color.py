@@ -4,7 +4,8 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image 
+from SimpleCV.ImageClass import Image
+from pickle import *
 
 class Color:
   """
@@ -91,13 +92,15 @@ class ColorModel:
   """
   #Grrrrr this is seriously pissing me off. I am going to duct tape code this for
   #now, we'll come back and make it "squishy" later. I concede my non-1337ness
+  #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
+  #TODO: Work in HSV space
   mIsColor = True
   mIsBackground = True
   mData = {}
   
   def __init__(self,isColor=True,isBackground=True):
-    mIsColor = isColor
-    mIsBackground = isBackground
+    self.mIsColor = isColor
+    self.mIsBackground = isBackground
 
   def _makeCanonical(self,data):
     if(data.__class__.__name__=='Image'):
@@ -130,48 +133,37 @@ class ColorModel:
         uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
         for i in uniques.tolist():
           if tuple(i) not in self.mData:
-            self.mData[tuple(i)] = 1 
-        #self.mData = np.concatenate((self.mData,data))
-        #self.mData = np.unique(self.mData.view([('',self.mData.dtype)]*self.mData.shape[1])).view(self.mData.dtype).reshape(-1,self.mData.shape[1])
-    
+            self.mData[tuple(i)] = 1
+      
     
   def removeFromModel(self,data):
     data =self._makeCanonical(data)
-    self.mData = np.remove(self.mData.view([('',self.mData.dtype)]*self.mData.shape[1]),data.view([('',data.dtype)]*data.shape[1])).view(self.mData.dtype).reshape(-1,self.mData.shape[1])
-  
+    uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+    for i in uniques.tolist():
+      if tuple(i) in self.mData:
+        del self.mData[tuple(i)]
+
   def thresholdImage(self,img):
-    a = 255
-    b = 0
+    a = 0
+    b = 255
     if( self.mIsBackground == False ):
-      a = 0
-      b = 255
+      a = 255
+      b = 0
     mask = img.getEmpty(1)
-#    l = self.mData.tolist()
     for x in range(img.width):
       for y in range(img.height):
-        t = str(x)+" "+str(y)
-        print(t)
-        if tuple(img[y,x]) in self.mData:
+        if tuple(img[x,y]) in self.mData:
+          print( "in background")
           mask[y,x] = a
         else:
+          print("NOT IN BACKGROUND")
           mask[y,x] = b    
-#        vals  = -1
-#        try:
-#          vals = l.index(img.getPixel(x,y)) # this looks bad but it is the fastest I have found 
-#        except ValueError:
-#          pass
-#        #vals = np.intersect1d(self.mData, img.getPixel(x,y) ) #(np.where(spsd.cdist(self.mData,[img[x,y]])<=threshold))
-#       if(vals >= 0):
-#         mask[y,x] = a
-#       else:
-#          mask[y,x] = b
     return Image(mask)
   
   def containsColor(self,c):
     retVal = False
-    val = np.where(spsd.cdist(self.mData,[c])==0.00)
-    if( val[0].shape[0] > 0 ):
-      retVal = True;
+    if tuple(c) in self.mData:
+      retVal = True
     return retVal
   
   def setIsForeground(self):
@@ -181,10 +173,11 @@ class ColorModel:
     mIsBackground = True
     
   def loadFromFile(self,filename):
-    self.mData = np.loadtxext(filename)
+    self.mData =  load(open(filename))
   
   def saveToFile(self,filename):
-    np.savetxt(filename,self.mData)
+    dump(self.mData,open(filename, "wb"))
+    
   
   
 

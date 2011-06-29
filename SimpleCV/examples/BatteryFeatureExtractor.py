@@ -117,8 +117,18 @@ dataset = np.array([])
 path = './battery-pics-high-res-version2/notbuldged/'
 i = 0
 colorModel = ColorModel()
-colorModel.addToModel(Image('train1.jpg'))
-colorModel.addToModel(Image('train2.jpg'))
+colorModel.addToModel(Image('train0.jpg'))
+print(len(colorModel.mData))
+colorModel.addToModel(Image('derp.jpg'))
+print(len(colorModel.mData))
+#colorModel.addToModel(Image('train1.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train2.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train3.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train4.jpg'))
+#print(len(colorModel.mData))
 #for every file on our good directory
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
