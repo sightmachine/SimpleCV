@@ -45,14 +45,14 @@ class FrameSource:
   def getImage(self):
     return None
 
-  def calibrate(self, imageList, grid_sz=0.03,dimensions=(8,5)):
+  def calibrate(self, imageList, grid_sz=0.029,dimensions=(8,5)):
     """
     Camera calibration is agnostic of the imagery source 
 
     imageList is a list of images of color calibration images. 
 
     grid_sz - is the actual grid size of the calibration grid, the unit used will be 
-    the calibration unit value (i.e. if in doubt use meters, or go forbid U.S. standard)
+    the calibration unit value (i.e. if in doubt use meters, or U.S. standard)
 
     dimensions - is the the count of the *interior* corners in the calibration grid.
     So for a grid where there are 4x4 black grid squares has seven interior corners. 
@@ -147,40 +147,39 @@ class FrameSource:
     """
     return self._calibMat
 
-  def markCalibrationGrid(self, inImg, dimensions=(5,8)):
+  def undistort(self, image_or_2darray):
     """
-    This function will return an image with calibration grid draw on the
-    image. This is helpful for doing calibration as it allows you to visually
-    verify that the system is recognizing the calibration grid. The default 
-    calibration grid can be found in:
-    \SimpleCV\tools\CalibGrid.png
-    """
-    result = ""
-    corners = ""
-    found = False
+    If given an image, apply the undistortion given my the camera's matrix and return the result
     
-    retVal = inImg.getEmpty()
-    cv.Copy(inImg.getBitmap(),retVal)
-    #Get the corners 
-    corners = cv.FindChessboardCorners(inImg.getGrayscaleMatrix(),dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
-    #If the corners exist they will match the size here
-    if(len(corners[1]) == dimensions[0]*dimensions[1]):
-      #Now we locate the corners using sub-pixel accuracy so they are dead on
-      spCorners = cv.FindCornerSubPix(inImg.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
-      #Now draw them and return the results. 
-      cv.DrawChessboardCorners(retVal,dimensions,spCorners,1)
-    return Image(retVal) 
-
-  def undistort(self, inImg):
-    """
-    Given an image, apply the undistortion given my the camera's matrix and return the result
+    If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
+    measurement and return them in the original coordinate system.
     """
     if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
        warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
        return None
-    retVal = inImg.getEmpty()
-    cv.Undistort2(inImg.getBitmap(),retVal,self._calibMat,self._distCoeff)
-    return Image(retVal)
+       
+    if (type(image_or_2darray) == InstanceType and image_or_2darray.__class__ == Image):
+      inImg = image_or_2darray # we have an image
+      retVal = inImg.getEmpty()
+      cv.Undistort2(inImg.getBitmap(),retVal,self._calibMat,self._distCoeff)
+      return Image(retVal)
+    else:
+      mat = ''
+      if (type(image_or_2darray) == cv.cvmat):
+        mat = image_or_2darray
+      else:
+        arr = cv.fromarray(np.array(image_or_2darray))
+        mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv.CV_64FC2)
+        cv.Merge(arr[:,0], arr[:,1], None, None, mat)
+       
+      upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv.CV_64FC2)
+      cv.UndistortPoints(mat, upoints, self._calibMat,self._distCoeff)
+      
+      #undistorted.x = (x* focalX + principalX);  
+      #undistorted.y = (y* focalY + principalY);  
+      return (np.array(upoints[:,0]) *\
+        [self.getCameraMatrix()[0,0], self.getCameraMatrix()[1,1]] +\
+        [self.getCameraMatrix()[0,2], self.getCameraMatrix()[1,2]])[:,0]
 
   def getImageUndistort(self):
     """
@@ -256,7 +255,7 @@ control than just basic frame retrieval
     "exposure": cv.CV_CAP_PROP_EXPOSURE}
   #human readable to CV constant property mapping
 
-  def __init__(self, camera_index = 0, prop_set = {}, threaded = True):
+  def __init__(self, camera_index = 0, prop_set = {}, threaded = True, calibrationfile = ''):
     global _cameras
     global _camera_polling_thread
     """
@@ -289,6 +288,10 @@ control than just basic frame retrieval
         _camera_polling_thread = FrameBufferThread()
         _camera_polling_thread.daemon = True
         _camera_polling_thread.start()
+        time.sleep(0) #yield to thread
+    
+    if calibrationfile:
+      self.loadCalibration(calibrationfile)
       
     
   #todo -- make these dynamic attributes of the Camera class
@@ -324,7 +327,7 @@ control than just basic frame retrieval
     frame = cv.RetrieveFrame(self.capture)
     newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
     cv.Copy(frame, newimg)
-    return Image(newimg)
+    return Image(newimg, self)
 
 class VirtualCamera(FrameSource):
   """
@@ -352,10 +355,10 @@ class VirtualCamera(FrameSource):
     Retrieve the next frame of the video, or just a copy of the image
     """
     if (self.sourcetype == 'image'):
-      return Image(self.source)
+      return Image(self.source, self)
     
     if (self.sourcetype == 'video'):
-      return Image(cv.QueryFrame(self.capture))
+      return Image(cv.QueryFrame(self.capture), self)
  
 class Kinect(FrameSource):
   """
@@ -371,7 +374,7 @@ class Kinect(FrameSource):
   def getImage(self):
     video = freenect.sync_get_video()[0]
     video = video[:, :, ::-1]  # RGB -> BGR
-    return Image(video)
+    return Image(video, self)
 
   #low bits in this depth are stripped so it fits in an 8-bit image channel
   def getDepth(self):
@@ -380,7 +383,7 @@ class Kinect(FrameSource):
     depth >>= 2
     depth = depth.astype(np.uint8)
 
-    return Image(depth) 
+    return Image(depth, self) 
 
   #we're going to also support a higher-resolution (11-bit) depth matrix
   #if you want to actually do computations with the depth
@@ -475,7 +478,7 @@ Requires the [Python Imaging Library](http://www.pythonware.com/library/pil/hand
     """
 Return the current frame of the JpegStream being monitored
     """
-    return Image(pil.open(StringIO(self.camthread.currentframe)))
+    return Image(pil.open(StringIO(self.camthread.currentframe)), self)
 
 
 
