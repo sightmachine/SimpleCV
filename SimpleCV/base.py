@@ -66,6 +66,12 @@ def is_tuple(n):
 def reverse_tuple(n):
   return tuple(reversed(n))
 
+def find(f, seq):
+  """Return true if found in list"""
+  for item in seq:
+    if (f == item):
+      return True
+  return False
 
 """
 This function is a utility for converting numpy arrays to the cv.cvMat format.  
