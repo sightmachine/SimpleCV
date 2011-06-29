@@ -89,9 +89,11 @@ class ColorCurve:
 class ColorModel:
   """
   """
+  #Grrrrr this is seriously pissing me off. I am going to duct tape code this for
+  #now, we'll come back and make it "squishy" later. I concede my non-1337ness
   mIsColor = True
   mIsBackground = True
-  mData = []
+  mData = {}
   
   def __init__(self,isColor=True,isBackground=True):
     mIsColor = isColor
@@ -121,10 +123,16 @@ class ColorModel:
     data =self._makeCanonical(data)
     if( type(data) != None ):
       if( len(self.mData) == 0 ): #no data yet
-        self.mData = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+        uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+        for i in uniques.tolist():
+          self.mData[tuple(i)] = 1
       else:
-        self.mData = np.concatenate((self.mData,data))
-        self.mData = np.unique(self.mData.view([('',self.mData.dtype)]*self.mData.shape[1])).view(self.mData.dtype).reshape(-1,self.mData.shape[1])
+        uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+        for i in uniques.tolist():
+          if tuple(i) not in self.mData:
+            self.mData[tuple(i)] = 1 
+        #self.mData = np.concatenate((self.mData,data))
+        #self.mData = np.unique(self.mData.view([('',self.mData.dtype)]*self.mData.shape[1])).view(self.mData.dtype).reshape(-1,self.mData.shape[1])
     
     
   def removeFromModel(self,data):
@@ -138,19 +146,25 @@ class ColorModel:
       a = 0
       b = 255
     mask = img.getEmpty(1)
-    l = self.mData.tolist()
+#    l = self.mData.tolist()
     for x in range(img.width):
       for y in range(img.height):
-        vals  = -1
-        try:
-          vals = l.index(img.getPixel(x,y))
-        except ValueError:
-          pass
-        #vals = np.intersect1d(self.mData, img.getPixel(x,y) ) #(np.where(spsd.cdist(self.mData,[img[x,y]])<=threshold))
-        if(vals >= 0):
+        t = str(x)+" "+str(y)
+        print(t)
+        if tuple(img[y,x]) in self.mData:
           mask[y,x] = a
         else:
-          mask[y,x] = b
+          mask[y,x] = b    
+#        vals  = -1
+#        try:
+#          vals = l.index(img.getPixel(x,y)) # this looks bad but it is the fastest I have found 
+#        except ValueError:
+#          pass
+#        #vals = np.intersect1d(self.mData, img.getPixel(x,y) ) #(np.where(spsd.cdist(self.mData,[img[x,y]])<=threshold))
+#       if(vals >= 0):
+#         mask[y,x] = a
+#       else:
+#          mask[y,x] = b
     return Image(mask)
   
   def containsColor(self,c):

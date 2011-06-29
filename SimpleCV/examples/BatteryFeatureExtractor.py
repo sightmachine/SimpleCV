@@ -38,7 +38,7 @@ def BuildHeightHistogram( img, bins ):
     # and return a normalized histgram of the results        
     return np.histogram(raw_vals,bins, normed = True)    
         
-def ExtractFeatures( fname, outbase ):
+def ExtractFeatures( fname, outbase, colormodel ):
     img = Image(fname)
     #try to smooth everything to get rid of noise
     #img = img.medianFilter()
@@ -48,6 +48,7 @@ def ExtractFeatures( fname, outbase ):
     #t = outbase + "blur.png"
     #blurr.save(t) 
     blobs = img.binarize(thresh = -1, blocksize=21,p=3)
+    blobs = colormodel.thresholdImage(img)
     #blobs = blobs.dilate(0)
     #default behavior is black on white, invert that 
     #blobs = blobs.invert()
@@ -115,13 +116,16 @@ dataset = np.array([])
 #path = './../sampleimages/battery/good/'#
 path = './battery-pics-high-res-version2/notbuldged/'
 i = 0
+colorModel = ColorModel()
+colorModel.addToModel(Image('train1.jpg'))
+colorModel.addToModel(Image('train2.jpg'))
 #for every file on our good directory
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
     #output string
     outfile = 'GoodResult' + str(i) #+ ".png"
     #we built the histogram / feature vector
-    data = ExtractFeatures(infile, outfile)
+    data = ExtractFeatures(infile, outfile,colorModel)
     if( data != None ):
         #We append the class label zero for good, one for bad
         data = np.append(data,0)
@@ -139,7 +143,7 @@ for infile in glob.glob( os.path.join(path, '*.JPG') ):
     #output string
     outfile = 'BadResult' + str(i) #+ ".png"
     #we built the histogram
-    data = ExtractFeatures(infile, outfile)
+    data = ExtractFeatures(infile, outfile,colorModel)
     if( data != None ):
         data = np.append(data,1) #bad data is given label one
         if( i == 0 ):
