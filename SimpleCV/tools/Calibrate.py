@@ -252,8 +252,8 @@ def main(argv):
     
     if mode == 0:  #10 pictures, chessboard filling 80% of the view space
       findLargeFlat(cb, i, calibration_set, dims)
-      if (len(calibration_set) == 40):
-        mode = 5
+      if (len(calibration_set) == 10):
+        mode = 2
         printSmallFlatMessage()
     elif mode == 1:  #10 pictures, chessboard filling 12% - 25% of view space
       findSmallFlat(cb, i, calibration_set, dims)

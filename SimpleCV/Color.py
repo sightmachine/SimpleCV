@@ -85,3 +85,30 @@ class ColorCurve:
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
  
+class ColorMap:
+  """
+  A color map takes a start and end point in color space and lets you map a range
+  of values to it.  This is useful for color coding elements by an attribute::
+  
+    cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
+      startmap = 0, endmap = 255)
+  
+  or::
+  
+    cm = ColorMap([0,0,0],[255,0,0], 0.0, 1.0)
+    
+  to use::
+  
+    cm.map(value) returns a color Tuple
+  """
+  startcolor = ()
+  endcolor = ()
+  startmap = 0
+  endmap = 0
+  
+  
+  def __init__(self.startcolor, endcolor, startmap, endmap):
+    
+    
+
+
