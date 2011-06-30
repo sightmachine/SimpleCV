@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 
-import webbrowser, sys, time
+import webbrowser, sys, time, random
 from SimpleCV import Camera, Image, JpegStreamer, Color
 from scipy.spatial.distance import euclidean as distance
 """
@@ -13,11 +13,11 @@ def saveCalibrationImage(i, imgset, dims):
   Save our image in the calibration set
   
   """
-  if (len(imgset)):
-    lastcb = imgset[-1].findChessboard(dims, subpixel = False)
-    thiscb = i.findChessboard(dims, subpixel = False)
-    if distance(lastcb.coordinates()[0], thiscb.coordinates()[0]) < 10:
-      return 
+  #if (len(imgset)):
+  #  lastcb = imgset[-1].findChessboard(dims, subpixel = False)
+  # thiscb = i.findChessboard(dims, subpixel = False)
+  #  if distance(lastcb.coordinates()[0], thiscb.coordinates()[0]) < 10:
+  #    return 
   
   imgset.append(i)
   global save_location
@@ -220,9 +220,9 @@ def main(argv):
   
   camindex = 1
   mode = 0
-  dims = (5, 8)  #change this if you are using something besides our 
-  gridsize = 29  #default calibration to mm
-  calibrationFile = "Default"
+  dims = (8, 5)  #change this if you are using something besides our 
+  gridsize = 0.029  #default calibration to mm
+  calibrationFile = "oneplane2"
   
   cam = Camera(camindex)
   js = JpegStreamer()
@@ -231,6 +231,7 @@ def main(argv):
   save_location = "" #change this if you want to save your calibration images
   
   calibration_set = [] #calibration images
+  fc_set = []
   
   cam.getImage().flipHorizontal().save(js)
   webbrowser.open(js.url())
@@ -240,17 +241,19 @@ def main(argv):
   
   
   while True:
-    time.sleep(0.01)
+    time.sleep(0.2)
     i = cam.getImage()
     cb = i.findChessboard(dims, subpixel = False)
     
+    
     if cb:
       cb = cb[0]
+      saveCalibrationImage(i, fc_set, dims) 
     
     if mode == 0:  #10 pictures, chessboard filling 80% of the view space
       findLargeFlat(cb, i, calibration_set, dims)
       if (len(calibration_set) == 10):
-        mode = 1
+        mode = 2
         printSmallFlatMessage()
     elif mode == 1:  #10 pictures, chessboard filling 12% - 25% of view space
       findSmallFlat(cb, i, calibration_set, dims)
@@ -277,11 +280,15 @@ def main(argv):
       cam.calibrate(calibration_set, gridsize, dims)
       cam.saveCalibration(calibrationFile)
       
+      cam.calibrate(random.sample(fc_set, 100), gridsize, dims)
+      cam.saveCalibration(calibrationFile + "full")
+      
       print "Saved calibration to " + calibrationFile
       print "you will need to load it with:"
       print "    Camera.loadCalibration(\""+calibrationFile+"\")"
       print "or "
       print "    Camera(" + str(camindex) + ", calibrationfile = \"" + calibrationFile + "\")"
+      break
       
     
     if cb:

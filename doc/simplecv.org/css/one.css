@@ -1,0 +1,148 @@
+html {
+height: 100%;
+}
+
+body {
+margin: 0;
+font-family: Cabin, serif;
+line-height: 1.5;
+background: rgb(20,20,30);
+height: 100%;
+}
+.bg {
+position: absolute;
+top: 0;
+left: 0;
+text-align: center;
+background-color: rgb(20,20,30);
+background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#363645', EndColorStr='#171721'); /* IE6–IE9 */
+background-image: -moz-radial-gradient(50% 0%,circle cover,rgb(110,110,120), rgb(20,20,30) 30%);
+background-image: -webkit-gradient(radial, center top, 0, center top, 1000, from(rgb(110,110,120)), to(rgb(20,20,30)), color-stop(0.5, rgb(20,20,30)));
+background-position: 50% 50%;  
+background-repeat: no-repeat;
+height: 100%;
+width: 100%;
+}
+.glow {
+box-shadow: rgb(60,60,70) 0 5px 20px, rgb(160,160,170) 0 -1px 0, rgb(0,0,0) 0 1px 0;
+border-radius: 10px;
+margin-top: -4em;
+z-index: 1;
+position: relative;
+}
+.btn, nav a {
+padding: .5em 1em;
+font-family: 'Play', arial, serif;
+border-radius: 4px;
+box-shadow: rgba(0,0,0,1) 0 -1px 0, rgba(255,255,255,.5) 0 1px 0;
+text-decoration: none;
+color: rgb(255,255,255);text-shadow: rgb(20,20,30) 0 -1px 0;
+font-size: .9em;
+display: block;
+margin: 1em .5em;
+background-color: rgb(60,60,70);
+background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#363645', EndColorStr='#171721'); /* IE6–IE9 */
+display: inline;
+}
+.btn:hover, nav a:hover {
+	background-color: rgb(20,20,30);
+	background-image: -moz-linear-gradient(top, rgb(20,20,30), rgb(60,60,70)); /* FF3.6 */
+	background-image: -ms-linear-gradient(top, rgb(20,20,30), rgb(60,60,70)); /* IE10 */
+	background-image: -o-linear-gradient(top, rgb(20,20,30), rgb(60,60,70)); /* Opera 11.10+ */
+	background-image: -webkit-linear-gradient(top,  rgb(20,20,30), rgb(60,60,70)); /* Chrome 10+, Saf5.1+ */
+	background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(20,20,30)), to(rgb(60,60,70))); /* iPad/iphone */  
+	background-image: linear-gradient(top, rgb(20,20,30), rgb(60,60,70));
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#171721', EndColorStr='#363645'); /* IE6–IE9 */
+}
+section {width: 50em; margin: 0 auto; display: block;color:rgb(160,160,165);font-family: 'Play', arial, serif; }
+nav {margin: 1em auto 0; text-align: center; display: block;                z-index: 1;
+position: relative;}
+iframe {border: none; display: block; position: absolute; top: 4em; right: 2em;}
+h1 {margin: 1em 0 2em;color: rgb(20,20,30);text-shadow: rgb(130,130,140) 0 1px 0;
+z-index: 1;
+position: relative;}
+h2 {color: rgb(70,70,80);text-shadow: #fff 0 1px 0;
+z-index: 1;
+position: relative;
+}
+footer {
+clear: both;
+margin: 1em auto;
+padding: 1em;
+width: 100%;
+color: rgb(60,60,65);
+box-shadow: rgb(30,30,40) 0 -1px 0, rgb(10,10,10) 0 -5px 0;
+z-index: 1;
+position: relative;
+text-align: center;
+display: block;
+font-size: .7em;
+}
+
+footer a {
+	color: #ACE;
+}
+.pad {
+position: relative;
+padding: 2em;
+border-radius: 4px;
+box-shadow: rgb(255,255,255) 0 -1px 0, rgb(0,0,0) 0 4px 4px;
+text-decoration: none;
+color: #ccc;
+width: 48em;
+display: block;
+margin: 2em auto 1em;
+background-color: #1E415D;
+background-image: -moz-linear-gradient(top, #eee, #ccc); /* FF3.6 */
+background-image: -ms-linear-gradient(top, #eee, #ccc); /* IE10 */
+background-image: -o-linear-gradient(top, #eee, #ccc); /* Opera 11.10+ */
+background-image: -webkit-linear-gradient(top, #eee, #ccc); /* Chrome 10+, Saf5.1+ */
+background-image: -webkit-gradient(linear,left top, left bottom, from(#eee), to(#ccc)); /* iPad/iphone */  
+background-image: linear-gradient(top, #eee, #ccc);
+filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#eeeeee', EndColorStr='#cccccc'); /* IE6–IE9 */
+}
+/* Theme */
+div.skin {background: url('../img/hive_sm.png'); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}
+div.skin2 {background: url('../img/stitch.png'); opacity: .5; filter: alpha(opacity=50); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}
+div.skin3 {background: url('../img/hive.png'); opacity: .3; filter: alpha(opacity=30); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}  
+
+section .col3 {width: 30%; margin: 0 0 0 1em; float: left; text-align: left; font-size: .8em;}
+section .col3:last-child { width: 15em; margin-left: 3em;}  
+li {margin-bottom: 1em}  
+.clean, .clean li {list-style: none; margin-left: 0; padding-left: 0;}
+section a {color: #ace;}
+.clearfix:before, .clearfix:after { content: "\0020"; display: block; height: 0; overflow: hidden; }
+.clearfix:after { clear: both; }
+.clearfix { zoom: 1; }
+
+/* handhelds ----------- */
+@media only screen and (min-width: 320px) and (max-width: 480px) {
+	.pad, section .col3, section, footer {width: 320px !important; float: none; margin: 0 auto !important; padding: 10px;}
+	.pad{padding: 20px; float: none;}
+	nav a {width: 280px !important; display: block;}
+	iframe {position: relative !important; margin: 0 auto; top: 0; left: 0;}
+	
+}
+
+output {
+white-space: pre;
+display: block;
+/*font-family: monospace;*/
+width: 90%;
+padding: 5%;
+background-color: rgba(255, 255, 255, 0.1);
+border-radius: 0.6em;
+-moz-border-radius: 0.6em;
+vertical-align: top;
+font-size: 11pt;
+color: #8ecd14;
+}
