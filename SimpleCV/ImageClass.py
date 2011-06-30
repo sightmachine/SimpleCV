@@ -36,6 +36,7 @@ class Image:
   _edgeMap = "" #holding reference for edge map
   _cannyparam = (0,0) #parameters that created _edgeMap
   _pil = "" #holds a PIL object in buffer
+  _numpy = "" #numpy form buffer
 
   #when we empty the buffers, populate with this:
   _initialized_buffers = { 
@@ -47,7 +48,8 @@ class Image:
     "_blobLabel": "",
     "_edgeMap": "",
     "_cannyparam": (0,0), 
-    "_pil": ""}  
+    "_pil": "",
+    "_numpy": ""}  
     
   #initialize the frame
   #parameters: source designation (filename)
@@ -73,6 +75,7 @@ class Image:
         self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, source.tostring(), 
           source.dtype.itemsize * 3 * source.shape[1])
+        self._numpy = source
       else:
         #we have a single channel array, convert to an RGB iplimage
 
@@ -151,6 +154,16 @@ class Image:
       cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
       self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
     return self._pil
+  
+  def getNumpy(self):
+    """
+    Get a Numpy array of the image in width x height x RGB dimensions
+    """
+    if self._numpy:
+      return self._numpy
+    
+    self._numpy = np.array(self.getMatrix())[:,:,::-1].transpose([1,0,2])
+    return self._numpy
 
   def _getGrayscaleBitmap(self):
     if (self._graybitmap):
