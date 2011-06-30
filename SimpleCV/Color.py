@@ -96,11 +96,12 @@ class ColorModel:
   #TODO: Work in HSV space
   mIsColor = True
   mIsBackground = True
-  mData = {}
+  mData = None
   
   def __init__(self,isColor=True,isBackground=True):
     self.mIsColor = isColor
     self.mIsBackground = isBackground
+    self.mData = {}
 
   def _makeCanonical(self,data):
     if(data.__class__.__name__=='Image'):
