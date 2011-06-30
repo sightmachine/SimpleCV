@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; SimpleCV v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SimpleCV v1.0.0 documentation" href="index.html" />
+    <link rel="next" title="SimpleCV Cookbook" href="cookbook.html" />
+    <link rel="prev" title="SimpleCV module" href="api.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cookbook.html" title="SimpleCV Cookbook"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="SimpleCV module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ubuntu-10-4-or-above">
+<h2>Ubuntu (10.4 or above)<a class="headerlink" href="#ubuntu-10-4-or-above" title="Permalink to this headline">¶</a></h2>
+<p>You can now download a .deb file from SourceForge &#8211; look at <a class="reference external" href="http://sourceforge.net/projects/simplecv/files">http://sourceforge.net/projects/simplecv/files</a> for an easier install.</p>
+<p>Steps:</p>
+<ol class="arabic simple">
+<li>apt-get install dependencies</li>
+<li>download, build and install the latest version of OpenCV</li>
+<li>clone and install SimpleCV</li>
+</ol>
+<p>Commands:</p>
+<div class="highlight-python"><pre>sudo apt-get install -y --force-yes build-essential swig gfortran cmake gcc pkg-config libjpeg62-dev libtiff4-dev libpng12-dev libopenexr-dev libavformat-dev libswscale-dev liblapack-dev python-dev python-setuptools boost-build libboost-all-dev
+wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.2/OpenCV-2.2.0.tar.bz2
+bunzip2 OpenCV-2.2.0.tar.bz2
+tar xf OpenCV-2.2.0.tar
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_PYTHON_SUPPORT=ON ..
+make
+sudo make install
+sudo cp /usr/local/lib/python2.6/site-packages/cv.so /usr/local/lib/python2.6/dist-packages/cv.so
+sudo apt-get install -y --force-yes git git python-dev python-numpy python-nose python-scipy ipython
+git clone git://git.code.sf.net/p/simplecv/git.git simplecv
+sudo python setup.py install</pre>
+</div>
+</div>
+<div class="section" id="mac-os-x-10-6-and-above">
+<h2>Mac OS X (10.6 and above)<a class="headerlink" href="#mac-os-x-10-6-and-above" title="Permalink to this headline">¶</a></h2>
+<p>Note: While not required, it is strongly recommended that you install XCode from Apple: <a class="reference external" href="http://itunes.apple.com/us/app/xcode/">http://itunes.apple.com/us/app/xcode/</a></p>
+<p>If you want to keep control of your usr/local or are adept at building for Unix, you may want to use the directions below.  Otherwise, we recommend using our Superpack, which contains everything you need in a single package:  <a class="reference external" href="http://sourceforge.net/projects/simplecv/files/">http://sourceforge.net/projects/simplecv/files/</a></p>
+<p>Steps:</p>
+<ol class="arabic simple">
+<li>Install Xcode <a class="reference external" href="http://developer.apple.com/technologies/xcode.html">http://developer.apple.com/technologies/xcode.html</a></li>
+<li>Install homebrew <a class="reference external" href="https://github.com/mxcl/homebrew/wiki/installation">https://github.com/mxcl/homebrew/wiki/installation</a></li>
+<li>Use homebrew to install opencv and git</li>
+<li>Install scipy superpack, but with ipython 0.10.2 <a class="reference external" href="http://stronginference.com/scipy-superpack/">http://stronginference.com/scipy-superpack/</a> (download from <a class="reference external" href="http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh">http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh</a>)</li>
+<li>Install python imaging library (10.6 needs ARCHFLAGS tweak)</li>
+<li>clone simplecv and python setup.py install</li>
+</ol>
+<p>Commands:</p>
+<div class="highlight-python"><pre>ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
+wget http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh
+sh superpack_10.6_2011.05.28-ipython10.sh
+brew install opencv
+ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
+brew install git
+ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
+git clone git://git.code.sf.net/p/simplecv/git.git simplecv
+cd simplecv
+python setup.py install</pre>
+</div>
+</div>
+<div class="section" id="windows-7-vista">
+<h2>Windows 7/Vista<a class="headerlink" href="#windows-7-vista" title="Permalink to this headline">¶</a></h2>
+<p>If you want a streamlined install which gives you all the dependencies, we
+recommend using the Windows Superpack, available at <a class="reference external" href="http://sourceforge.net/projects/simplecv/files/">http://sourceforge.net/projects/simplecv/files/</a></p>
+<p>If you already have Python, OpenCV or SciPy installed and want to keep things the way you like them, follow the directions below</p>
+<p>Steps:</p>
+<ol class="arabic simple">
+<li>(OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  <a class="reference external" href="http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/">http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/</a></li>
+<li>Install Python 2.7 <a class="reference external" href="http://www.python.org/getit/releases/2.7.1/">http://www.python.org/getit/releases/2.7.1/</a></li>
+<li>Install Python Setup Tools for Windows <a class="reference external" href="http://pypi.python.org/packages/2.7/s/setuptools/">http://pypi.python.org/packages/2.7/s/setuptools/</a> (See: <a class="reference external" href="http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows">http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows</a>)</li>
+<li>Install the SciPy superpack: <a class="reference external" href="http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download">http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download</a></li>
+<li>Install OpenCV: <a class="reference external" href="http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.2/">http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.2/</a> (See: <a class="reference external" href="http://luugiathuy.com/2011/02/setup-opencv-for-python/">http://luugiathuy.com/2011/02/setup-opencv-for-python/</a>)</li>
+<li>easy_install.exe simplecv (See: <a class="reference external" href="http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html">http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html</a>)</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Installation</a><ul>
+<li><a class="reference external" href="#ubuntu-10-4-or-above">Ubuntu (10.4 or above)</a></li>
+<li><a class="reference external" href="#mac-os-x-10-6-and-above">Mac OS X (10.6 and above)</a></li>
+<li><a class="reference external" href="#windows-7-vista">Windows 7/Vista</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="api.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">SimpleCV</span></tt> module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="cookbook.html"
+                                  title="next chapter">SimpleCV Cookbook</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/installation.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cookbook.html" title="SimpleCV Cookbook"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="SimpleCV module"
+             >previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Ingenuitas Inc.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
