@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line, Chessboard
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
+from SimpleCV.Color import *
 
 class Image:
   """
@@ -36,6 +37,7 @@ class Image:
   _edgeMap = "" #holding reference for edge map
   _cannyparam = (0,0) #parameters that created _edgeMap
   _pil = "" #holds a PIL object in buffer
+  _numpy = "" #numpy form buffer
 
   #when we empty the buffers, populate with this:
   _initialized_buffers = { 
@@ -47,7 +49,8 @@ class Image:
     "_blobLabel": "",
     "_edgeMap": "",
     "_cannyparam": (0,0), 
-    "_pil": ""}  
+    "_pil": "",
+    "_numpy": ""}  
     
   #initialize the frame
   #parameters: source designation (filename)
@@ -73,6 +76,7 @@ class Image:
         self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, source.tostring(), 
           source.dtype.itemsize * 3 * source.shape[1])
+        self._numpy = source
       else:
         #we have a single channel array, convert to an RGB iplimage
 
@@ -151,6 +155,16 @@ class Image:
       cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
       self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
     return self._pil
+  
+  def getNumpy(self):
+    """
+    Get a Numpy array of the image in width x height x RGB dimensions
+    """
+    if self._numpy:
+      return self._numpy
+    
+    self._numpy = np.array(self.getMatrix())[:,:,::-1].transpose([1,0,2])
+    return self._numpy
 
   def _getGrayscaleBitmap(self):
     if (self._graybitmap):
@@ -223,7 +237,7 @@ class Image:
         
       return 1
 
-    filename = filehandle_or_filename 
+    filename = filehandle_or_filename
     if (filename):
       cv.SaveImage(filename, self.getBitmap())  
       self.filename = filename #set the filename for future save operations
@@ -627,6 +641,23 @@ class Image:
     """
     return self.applyRGBCurve(curve, curve, curve)
       
+  def colorDistance(self, color = [0,0,0]):
+    """
+    Returns an image representing the distance of each pixel from a given color
+    tuple, scaled between 0 (the given color) and 255.  Pixels distant from the 
+    given tuple will appear as brighter and pixels closest to the target color 
+    will be darker.
+    
+    By default this will give image intensity (distance from pure black)
+    """ 
+    bgr_color = tuple(reversed(color)) #our matrix is in BGR
+    pixels = np.array(self.getMatrix()).reshape(-1,3)   #reshape our matrix to 1xN
+    distances = spsd.cdist(pixels, [bgr_color]) #calculate the distance each pixel is
+    distances *= (255.0/distances.max()) #normalize to 0 - 255
+    return Image(distances.reshape(self.height, self.width)) #return an Image
+    
+      
+      
   def erode(self, iterations=1):
     """
     Apply a morphological erosion. An erosion has the effect of removing small bits of noise
@@ -906,7 +937,7 @@ class Image:
     return linesFS
     
     
-  def findChessboard(self, dimensions = (5,8), subpixel = True):
+  def findChessboard(self, dimensions = (8,5), subpixel = True):
     """
     Given an image, finds a chessboard within that image.  Returns the Chessboard featureset.
     The Chessboard is typically used for calibration because of its evenly spaced corners.
@@ -1218,3 +1249,28 @@ class Image:
       
     return retVal
   
+  def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
+    """
+    This function draws the string that is passed on the screen at the specified coordinates
+
+    The Default Color is blue but you can pass it various colors
+    The text will default to the center of the screen if you don't pass it a value
+    The default font size is 16pt, but you can pass it other sizes as well
+
+    returns Image
+    
+    """
+
+    font = pilImageFont.truetype("SimpleCV/fonts/ubuntu.ttf",fontsize)
+    if(x == None):
+      x = (self.width / 2)
+    if(y == None):
+      y = (self.height / 2)
+    
+    img = self.getPIL()
+    draw = pilImageDraw.Draw(img)
+    draw.text((x, y),text,color,font=font)
+    draw = pilImageDraw.Draw(img)
+
+    
+    return img
