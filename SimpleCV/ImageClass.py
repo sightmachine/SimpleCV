@@ -463,6 +463,8 @@ class Image:
 
     if (maxsize == 0):  
       maxsize = self.width * self.height / 2
+      
+    derp = self.binarize(threshval, 255, threshblocksize, threshconstant)
     
     #create a single channel image, thresholded to parameters
     grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
@@ -1248,6 +1250,16 @@ class Image:
       retVal = self.crop(xf,yf,w,h)
       
     return retVal
+  
+  def clear(self):
+    cv.SetZero(self._bitmap)
+    _matrix = ""  #the matrix (cvmat) representation
+    _grayMatrix = "" #the gray scale (cvmat) representation -KAS
+    _graybitmap = ""  #a reusable 8-bit grayscale bitmap  
+    _equalizedgraybitmap = "" #the above bitmap, normalized 
+    _blobLabel = ""  #the label image for blobbing
+    _edgeMap = "" #holding reference for edge map
+    
   
   def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
     """

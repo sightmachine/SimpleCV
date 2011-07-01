@@ -4,9 +4,9 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image
+#from SimpleCV.ImageClass import Image 
 from pickle import *
-
+  
 class Color:
   """
   Color is a class that stores commonly used colors in a simple
@@ -86,7 +86,7 @@ class ColorCurve:
       curve_vals = np.array(curve_vals)
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
-<<<<<<< HEAD
+#<<<<<<< HEAD
       
 class ColorModel:
   """
@@ -102,19 +102,15 @@ class ColorModel:
   def __init__(self,isColor=True,isBackground=True):
     self.mIsColor = isColor
     self.mIsBackground = isBackground
+    self.mData = {}
 
   def _makeCanonical(self,data):
     if(data.__class__.__name__=='Image'):
-      rs = np.array(data.getMatrix()).reshape(-1, 3)
-      retVal = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1,rs.shape[1])
+      retVal = np.array(data.getMatrix()).reshape(-1,3).tolist()
     elif(data.__class__.__name__=='cvmat'):
-      rs = np.array(data).reshape(-1, 3)
-      retVal = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1,rs.shape[1])    
+      retVal = np.array(data).reshape(-1,3).tolist()
     elif(data.__class__.__name__=='Color'):
-      retVal = np.array([data])
-    elif(data.__class__.__name__=='ndarray'):
-      #assume the shape is correct
-      retVal = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
+      retVal = np.array([data]).tolist()
     elif(data.__class__.__name__=='list'  ):
       retVal = np.array(data)
     else:
@@ -126,21 +122,15 @@ class ColorModel:
   def addToModel(self,data):
     data =self._makeCanonical(data)
     if( type(data) != None ):
-      if( len(self.mData) == 0 ): #no data yet
-        uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
-        for i in uniques.tolist():
-          self.mData[tuple(i)] = 1
-      else:
-        uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
-        for i in uniques.tolist():
-          if tuple(i) not in self.mData:
-            self.mData[tuple(i)] = 1
-      
+      for i in data:
+        r = i #THIS ONLY WORKS FOR INPUT IMAGES, FIX IT 
+        r.reverse()
+        self.mData[tuple(r)] = 1
     
   def removeFromModel(self,data):
     data =self._makeCanonical(data)
-    uniques = np.unique(data.view([('',data.dtype)]*data.shape[1])).view(data.dtype).reshape(-1,data.shape[1])
     for i in uniques.tolist():
+    
       if tuple(i) in self.mData:
         del self.mData[tuple(i)]
 
@@ -154,12 +144,10 @@ class ColorModel:
     for x in range(img.width):
       for y in range(img.height):
         if tuple(img[x,y]) in self.mData:
-          print( "in background")
           mask[y,x] = a
         else:
-          print("NOT IN BACKGROUND")
           mask[y,x] = b    
-    return Image(mask)
+    return mask
   
   def containsColor(self,c):
     retVal = False
@@ -180,43 +168,43 @@ class ColorModel:
     dump(self.mData,open(filename, "wb"))
     
   
-  
-
-  
-=======
- 
-class ColorMap:
-  """
-  A color map takes a start and end point in 3D space and lets you map a range
-  of values to it.  Using the colormap like an array gives you the mapped color.
-  
-  This is useful for color coding elements by an attribute::
-  
-    blobs = image.findBlobs()
-    cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
-      startmap = min(blobs.area()) , endmap = max(blobs.area())
-      
-    for b in blobs:
-      b.draw(cm[b.area()])
-  """
-  startcolor = ()
-  endcolor = ()
-  startmap = 0
-  endmap = 0
-  colordistance = 0
-  valuerange = 0
-  ratios = []
-  
-  
-  def __init__(self, startcolor, endcolor, startmap, endmap):
-    self.startcolor = np.array(startcolor)
-    self.endcolor = np.array(endcolor)
-    self.startmap = float(startmap)
-    self.endmap = float(endmap)
-    self.valuerange = float(endmap - startmap)
-    self.ratios = (self.endcolor - self.startcolor) / self.valuerange
-    
-  def __getitem__(self, value):
-    return tuple(self.startcolor + (self.ratios * (value - self.startmap)))
-    
->>>>>>> 28ec8a6c3518f5fb73d9700758913277ae7d2b9d
+#  
+#
+#  
+#=======
+# 
+#class ColorMap:
+#  """
+#  A color map takes a start and end point in 3D space and lets you map a range
+#  of values to it.  Using the colormap like an array gives you the mapped color.
+#  
+#  This is useful for color coding elements by an attribute::
+#  
+#    blobs = image.findBlobs()
+#    cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
+#      startmap = min(blobs.area()) , endmap = max(blobs.area())
+#      
+#    for b in blobs:
+#      b.draw(cm[b.area()])
+#  """
+#  startcolor = ()
+#  endcolor = ()
+#  startmap = 0
+#  endmap = 0
+#  colordistance = 0
+#  valuerange = 0
+#  ratios = []
+#  
+#  
+#  def __init__(self, startcolor, endcolor, startmap, endmap):
+#    self.startcolor = np.array(startcolor)
+#    self.endcolor = np.array(endcolor)
+#    self.startmap = float(startmap)
+#    self.endmap = float(endmap)
+#    self.valuerange = float(endmap - startmap)
+#    self.ratios = (self.endcolor - self.startcolor) / self.valuerange
+#    
+#  def __getitem__(self, value):
+#    return tuple(self.startcolor + (self.ratios * (value - self.startmap)))
+#    
+#>>>>>>> 28ec8a6c3518f5fb73d9700758913277ae7d2b9d

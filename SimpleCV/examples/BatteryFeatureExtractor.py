@@ -11,7 +11,8 @@ def BuildWidthHistogram( img, bins ):
         #we get the scanline, i.e. the pixels
         scanline = img.getHorzScanlineGray(i)
         #we find the location of all the white pixels
-        points = np.where(scanline==255)
+        
+        points = np.where(scanline>0)
         #and if there are two of them
         if( points[0].shape[0] > 2 ):
             #we save the distance between the two
@@ -28,14 +29,14 @@ def BuildHeightHistogram( img, bins ):
         #we get the scanline, i.e. the pixels
         scanline = img.getVertScanlineGray(i)
         #we find the location of all the white pixels
-        points = np.where(scanline==255)
+        points = np.where(scanline>0)
         #and if there are two of them
         if( points[0].shape[0] > 2 ):
             #we save the distance between the two
             w = points[0][-1]-points[0][0]
             # and add that to our array
             raw_vals.append(w)
-    # and return a normalized histgram of the results        
+    # and return a normalized histgram of the results
     return np.histogram(raw_vals,bins, normed = True)    
         
 def ExtractFeatures( fname, outbase, colormodel ):
@@ -47,8 +48,8 @@ def ExtractFeatures( fname, outbase, colormodel ):
     #blurr = blurr.binarizeAdaptive()
     #t = outbase + "blur.png"
     #blurr.save(t) 
-    blobs = img.binarize(thresh = -1, blocksize=21,p=3)
-    blobs = colormodel.thresholdImage(img)
+    #blobs = img.binarize(thresh = -1, blocksize=21,p=3)
+    blobs = Image(colormodel.thresholdImage(img))
     #blobs = blobs.dilate(0)
     #default behavior is black on white, invert that 
     #blobs = blobs.invert()
@@ -65,14 +66,25 @@ def ExtractFeatures( fname, outbase, colormodel ):
     edges.save(t)
     #now reinforce the image, we only want edges that are in both, so we multiply
     mult = edges+blobs
-    mult = mult.dilate(2)
-    mult = mult.erode(2)
-    t = outbase + "mult.png"
+    #mult = mult.dilate(2)
+    mult = mult.erode(5)
+    t = outbase + "foo.png"
     mult.save(t)
     #now we grow the result 
     #mult = mult.dilate()
     #now we get the "blobs"
-    chunks = mult.findBlobs()
+    #mult = Image(t)
+    #mult.save(t)
+    mult = mult.invert()
+    chunks = mult.findBlobs(threshval=-1)
+    mult.clear()
+    chunks[0].draw(color=(255,255,255))
+    t = outbase + "mult.png"
+    mult.save(t)
+    if( len(chunks) == 0 ):
+        mult.save("SuckyImage.png")
+        warnings.warn("BAD IMAGE: "+fname)
+        return None 
     # we take the center blob
     x = (chunks[0].cvblob.maxx - chunks[0].cvblob.minx)/2
     y = (chunks[0].cvblob.maxy - chunks[0].cvblob.miny)/2
@@ -81,7 +93,7 @@ def ExtractFeatures( fname, outbase, colormodel ):
     # now we rotate the blob so that the major axis is parallel to the sides of our image
     mult = mult.rotate(angle,point=(x,y))
     # now we reapply the blobbing on the straightened image
-    chunks = mult.findBlobs()
+    chunks = mult.findBlobs(threshval=-1)
     if( len(chunks) == 0 ):
         mult.save("SuckyImage.png")
         warnings.warn("BAD IMAGE: "+fname)
@@ -92,7 +104,7 @@ def ExtractFeatures( fname, outbase, colormodel ):
     h = (chunks[0].cvblob.maxy - chunks[0].cvblob.miny)
     cx = chunks[0].cvblob.minx+(w/2)
     cy = chunks[0].cvblob.miny+(h/2)
-    mult = mult.crop(cx,cy,int(w+(w/5)),int(h+(h/10)),centered=True)
+    mult = mult.crop(cx,cy,w,h,centered=True)
     #now we do an erode since we did so much dilation
     #mult = mult.erode()
     #finally we save the image
@@ -103,7 +115,7 @@ def ExtractFeatures( fname, outbase, colormodel ):
     data = hhist[0]
     vhist = BuildHeightHistogram(mult,10)
     data = np.append(data,vhist[0])
-    chunks = mult.findBlobs()
+    chunks = mult.findBlobs(threshval=-1)
     data = np.append(data,chunks[0].cvblob.m00)
     data = np.append(data,chunks[0].cvblob.m10)
     data = np.append(data,chunks[0].cvblob.m01)
@@ -119,17 +131,16 @@ i = 0
 colorModel = ColorModel()
 colorModel.addToModel(Image('train0.jpg'))
 print(len(colorModel.mData))
-colorModel.addToModel(Image('derp.jpg'))
+colorModel.addToModel(Image('train1.jpg'))
 print(len(colorModel.mData))
-#colorModel.addToModel(Image('train1.jpg'))
-#print(len(colorModel.mData))
-#colorModel.addToModel(Image('train2.jpg'))
-#print(len(colorModel.mData))
-#colorModel.addToModel(Image('train3.jpg'))
-#print(len(colorModel.mData))
-#colorModel.addToModel(Image('train4.jpg'))
-#print(len(colorModel.mData))
-#for every file on our good directory
+colorModel.addToModel(Image('train2.jpg'))
+print(len(colorModel.mData))
+colorModel.addToModel(Image('train3.jpg'))
+print(len(colorModel.mData))
+colorModel.addToModel(Image('train4.jpg'))
+print(len(colorModel.mData))
+
+    #for every file on our good directory
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
     #output string
@@ -145,8 +156,29 @@ for infile in glob.glob( os.path.join(path, '*.JPG') ):
         else:
             dataset = np.row_stack((dataset,data))
     i = i+1
+    print(dataset)
+    myFile = 'gooddata.csv'
+    tempFile = 'goodtemp.csv'
+    #use save text to write our file out
+    savetxt(tempFile,dataset,delimiter=',')
+    #now open a new file, add the header, pipe in the data file, and then delete it. 
+#    f = open(myFile,'w')
+#    d = open('temp.csv')
+ #   f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, vb0, hv1, vb2, vb3, vb4, vb5, vb6, vb7, vb8, vb9, area, m10, m01, m11, m02, m20, label\n")
+ #   f.writelines(d.readlines())
+ #   f.close()
+ #   d.close()
+#os.remove(tempFile)
 
-#now do the same for the bad data   
+#now do the same for the bad data
+#colorModel.addToModel(Image('train5.jpg'))
+#print(len(colorModel.mData))
+colorModel = ColorModel()
+colorModel.addToModel(Image('train6.jpg'))
+print(len(colorModel.mData))
+colorModel.addToModel(Image('train7.jpg'))
+print(len(colorModel.mData))
+
 path = './battery-pics-high-res-version2/buldged/'
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
@@ -167,10 +199,10 @@ tempFile = 'temp.csv'
 #use save text to write our file out
 savetxt(tempFile,dataset,delimiter=',')
 #now open a new file, add the header, pipe in the data file, and then delete it. 
-f = open(myFile,'w')
-d = open('temp.csv')
-f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, vb0, hv1, vb2, vb3, vb4, vb5, vb6, vb7, vb8, vb9, area, m10, m01, m11, m02, m20, label\n")
-f.writelines(d.readlines())
-f.close()
-d.close()
-os.remove(tempFile)
+#f = open(myFile,'w')
+#d = open('temp.csv')
+#f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, vb0, hv1, vb2, vb3, vb4, vb5, vb6, vb7, vb8, vb9, area, m10, m01, m11, m02, m20, label\n")
+#f.writelines(d.readlines())
+#f.close()
+#d.close()
+#os.remove(tempFile)
