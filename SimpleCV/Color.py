@@ -86,6 +86,3 @@ class ColorCurve:
       curve_vals = np.array(curve_vals)
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
-
-      
-
