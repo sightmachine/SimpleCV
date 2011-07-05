@@ -4,7 +4,7 @@
 
 #load required libraries
 from SimpleCV.base import *
-#from SimpleCV.ImageClass import Image 
+from SimpleCV.ImageClass import * 
 from pickle import *
   
 class Color:
@@ -86,125 +86,6 @@ class ColorCurve:
       curve_vals = np.array(curve_vals)
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
-#<<<<<<< HEAD
-      
-class ColorModel:
-  """
-  """
-  #Grrrrr this is seriously pissing me off. I am going to duct tape code this for
-  #now, we'll come back and make it "squishy" later. I concede my non-1337ness
-  #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
-  #TODO: Work in HSV space
-  mIsColor = True
-  mIsBackground = True
-  mData = {}
-  
-  def __init__(self,isColor=True,isBackground=True):
-    self.mIsColor = isColor
-    self.mIsBackground = isBackground
-    self.mData = {}
 
-  def _makeCanonical(self,data):
-    if(data.__class__.__name__=='Image'):
-      retVal = np.array(data.getMatrix()).reshape(-1,3).tolist()
-    elif(data.__class__.__name__=='cvmat'):
-      retVal = np.array(data).reshape(-1,3).tolist()
-    elif(data.__class__.__name__=='Color'):
-      retVal = np.array([data]).tolist()
-    elif(data.__class__.__name__=='list'  ):
-      retVal = np.array(data)
-    else:
-      warnings.warn("ColorModel: color is not in an accepted format!")
-      retVal = None
       
-    return retVal
-  
-  def addToModel(self,data):
-    data =self._makeCanonical(data)
-    if( type(data) != None ):
-      for i in data:
-        r = i #THIS ONLY WORKS FOR INPUT IMAGES, FIX IT 
-        r.reverse()
-        self.mData[tuple(r)] = 1
-    
-  def removeFromModel(self,data):
-    data =self._makeCanonical(data)
-    for i in uniques.tolist():
-    
-      if tuple(i) in self.mData:
-        del self.mData[tuple(i)]
 
-  def thresholdImage(self,img):
-    a = 0
-    b = 255
-    if( self.mIsBackground == False ):
-      a = 255
-      b = 0
-    mask = img.getEmpty(1)
-    for x in range(img.width):
-      for y in range(img.height):
-        if tuple(img[x,y]) in self.mData:
-          mask[y,x] = a
-        else:
-          mask[y,x] = b    
-    return mask
-  
-  def containsColor(self,c):
-    retVal = False
-    if tuple(c) in self.mData:
-      retVal = True
-    return retVal
-  
-  def setIsForeground(self):
-    mIsBackground = False
-    
-  def setIsBackground(self):
-    mIsBackground = True
-    
-  def loadFromFile(self,filename):
-    self.mData =  load(open(filename))
-  
-  def saveToFile(self,filename):
-    dump(self.mData,open(filename, "wb"))
-    
-  
-#  
-#
-#  
-#=======
-# 
-#class ColorMap:
-#  """
-#  A color map takes a start and end point in 3D space and lets you map a range
-#  of values to it.  Using the colormap like an array gives you the mapped color.
-#  
-#  This is useful for color coding elements by an attribute::
-#  
-#    blobs = image.findBlobs()
-#    cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
-#      startmap = min(blobs.area()) , endmap = max(blobs.area())
-#      
-#    for b in blobs:
-#      b.draw(cm[b.area()])
-#  """
-#  startcolor = ()
-#  endcolor = ()
-#  startmap = 0
-#  endmap = 0
-#  colordistance = 0
-#  valuerange = 0
-#  ratios = []
-#  
-#  
-#  def __init__(self, startcolor, endcolor, startmap, endmap):
-#    self.startcolor = np.array(startcolor)
-#    self.endcolor = np.array(endcolor)
-#    self.startmap = float(startmap)
-#    self.endmap = float(endmap)
-#    self.valuerange = float(endmap - startmap)
-#    self.ratios = (self.endcolor - self.startcolor) / self.valuerange
-#    
-#  def __getitem__(self, value):
-#    return tuple(self.startcolor + (self.ratios * (value - self.startmap)))
-#    
-#>>>>>>> 28ec8a6c3518f5fb73d9700758913277ae7d2b9d

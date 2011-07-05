@@ -1252,6 +1252,11 @@ class Image:
     return retVal
   
   def clear(self):
+    """
+    This is a slightly unsafe method that clears out the entire image state
+    it is usually used in conjunction with the drawing blobs to fill in draw
+    only a single large blob in the image. 
+    """
     cv.SetZero(self._bitmap)
     _matrix = ""  #the matrix (cvmat) representation
     _grayMatrix = "" #the gray scale (cvmat) representation -KAS

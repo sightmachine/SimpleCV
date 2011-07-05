@@ -45,44 +45,34 @@ def ExtractFeatures( fname, outbase, colormodel ):
     #img = img.medianFilter()
     #do an adaptive binary operation
     blurr = img.smooth(aperature=9)
-    #blurr = blurr.binarizeAdaptive()
-    #t = outbase + "blur.png"
-    #blurr.save(t) 
     #blobs = img.binarize(thresh = -1, blocksize=21,p=3)
-    blobs = Image(colormodel.thresholdImage(img))
+    blobs = colormodel.thresholdImage(img)
     #blobs = blobs.dilate(0)
     #default behavior is black on white, invert that 
     #blobs = blobs.invert()
     blobs = blobs.dilate();
     #grow the blob images a little bit
-    #blobs = blobs.dilate(1)
-    t = outbase + "blob.png"
-    blobs.save(t)
+    #t = outbase + "blob.png"
+    #blobs.save(t)
     #also perform a canny edge detection
     edges = img.edges()
     #also grow that a little bit to fill in gaps
     edges = edges.dilate(2)
-    t = outbase + "edge.png"
-    edges.save(t)
+    #t = outbase + "edge.png"
+    #edges.save(t)
     #now reinforce the image, we only want edges that are in both, so we multiply
     mult = edges+blobs
-    #mult = mult.dilate(2)
-    mult = mult.erode(5)
-    t = outbase + "foo.png"
-    mult.save(t)
-    #now we grow the result 
-    #mult = mult.dilate()
-    #now we get the "blobs"
-    #mult = Image(t)
+    mult = mult.erode(4)
     #mult.save(t)
+    #now we grow the result 
     mult = mult.invert()
     chunks = mult.findBlobs(threshval=-1)
     mult.clear()
     chunks[0].draw(color=(255,255,255))
-    t = outbase + "mult.png"
-    mult.save(t)
+    #t = outbase + "mult.png"
+    #mult.save(t)
     if( len(chunks) == 0 ):
-        mult.save("SuckyImage.png")
+        mult.save("BadImage.png")
         warnings.warn("BAD IMAGE: "+fname)
         return None 
     # we take the center blob
@@ -95,7 +85,7 @@ def ExtractFeatures( fname, outbase, colormodel ):
     # now we reapply the blobbing on the straightened image
     chunks = mult.findBlobs(threshval=-1)
     if( len(chunks) == 0 ):
-        mult.save("SuckyImage.png")
+        mult.save("BadImage.png")
         warnings.warn("BAD IMAGE: "+fname)
         return None 
     # now we crop the image to emlinate a lot of the noise and other junk
@@ -125,22 +115,22 @@ def ExtractFeatures( fname, outbase, colormodel ):
     return data
 
 dataset = np.array([])
-#path = './../sampleimages/battery/good/'#
+tempFile = 'goodtemp.csv'
 path = './battery-pics-high-res-version2/notbuldged/'
 i = 0
 colorModel = ColorModel()
 colorModel.addToModel(Image('train0.jpg'))
 print(len(colorModel.mData))
-colorModel.addToModel(Image('train1.jpg'))
-print(len(colorModel.mData))
-colorModel.addToModel(Image('train2.jpg'))
-print(len(colorModel.mData))
-colorModel.addToModel(Image('train3.jpg'))
-print(len(colorModel.mData))
-colorModel.addToModel(Image('train4.jpg'))
-print(len(colorModel.mData))
+#colorModel.addToModel(Image('train1.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train2.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train3.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train4.jpg'))
+#print(len(colorModel.mData))
 
-    #for every file on our good directory
+#for every file on our good directory
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
     #output string
@@ -156,28 +146,23 @@ for infile in glob.glob( os.path.join(path, '*.JPG') ):
         else:
             dataset = np.row_stack((dataset,data))
     i = i+1
-    print(dataset)
-    myFile = 'gooddata.csv'
-    tempFile = 'goodtemp.csv'
     #use save text to write our file out
     savetxt(tempFile,dataset,delimiter=',')
-    #now open a new file, add the header, pipe in the data file, and then delete it. 
-#    f = open(myFile,'w')
-#    d = open('temp.csv')
- #   f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, vb0, hv1, vb2, vb3, vb4, vb5, vb6, vb7, vb8, vb9, area, m10, m01, m11, m02, m20, label\n")
- #   f.writelines(d.readlines())
- #   f.close()
- #   d.close()
-#os.remove(tempFile)
 
 #now do the same for the bad data
-#colorModel.addToModel(Image('train5.jpg'))
-#print(len(colorModel.mData))
+
+
 colorModel = ColorModel()
-colorModel.addToModel(Image('train6.jpg'))
+colorModel.addToModel(Image('train5.jpg'))
 print(len(colorModel.mData))
-colorModel.addToModel(Image('train7.jpg'))
-print(len(colorModel.mData))
+#colorModel.addToModel(Image('train6.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train7.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train8.jpg'))
+#print(len(colorModel.mData))
+#colorModel.addToModel(Image('train9.jpg'))
+#print(len(colorModel.mData))
 
 path = './battery-pics-high-res-version2/buldged/'
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
@@ -193,16 +178,4 @@ for infile in glob.glob( os.path.join(path, '*.JPG') ):
         else:
             dataset = np.row_stack((dataset,data))
     i = i+1
-
-myFile = 'data.csv'
-tempFile = 'temp.csv'
-#use save text to write our file out
-savetxt(tempFile,dataset,delimiter=',')
-#now open a new file, add the header, pipe in the data file, and then delete it. 
-#f = open(myFile,'w')
-#d = open('temp.csv')
-#f.writelines("hb0, hb1, hb2, hb3, hb4, hb5, hb6, hb7, hb8, hb9, vb0, hv1, vb2, vb3, vb4, vb5, vb6, vb7, vb8, vb9, area, m10, m01, m11, m02, m20, label\n")
-#f.writelines(d.readlines())
-#f.close()
-#d.close()
-#os.remove(tempFile)
+    savetxt(tempFile,dataset,delimiter=',')
