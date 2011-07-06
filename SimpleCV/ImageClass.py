@@ -142,7 +142,28 @@ class Image:
     self.width = bm.width
     self.height = bm.height
     self.depth = bm.depth
- 
+    
+  def getColorSpace(self):
+    return self._colorSpace;
+  
+  def isRGB(self):
+    return(self._colorSpace==ColorSpace.RGB)
+
+  def isBGR(self):
+    return(self._colorSpace==ColorSpace.BGR)
+    
+  def isHSV(self):
+    return(self._colorSpace==ColorSpace.HSV)
+    
+  def isHLS(self):
+    return(self._colorSpace==ColorSpace.HLS)  
+  
+  def isXYZ(self):
+    return(self._colorSpace==ColorSpace.XYZ)
+    
+  def isGray(self):
+    return(self._colorSpace==ColorSpace.GRAY)    
+  
   def toRGB(self):
     retVal = self.getEmpty()
     if( self._colorSpace == ColorSpace.BGR or

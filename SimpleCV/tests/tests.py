@@ -718,12 +718,29 @@ def test_color_conversion_func_BGR():
   
 def test_color_conversion_func_RGB():
   img = Image(testimage)
+  if( not img.isBGR() ):
+    assert False
   rgb = img.toRGB()
+  
   foo = rgb.toBGR()
+  if( not foo.isBGR() ):
+    assert False   
+  
   foo = rgb.toRGB()
+  if( not foo.isRGB() ):
+    assert False   
+  
   foo = rgb.toHLS()
+  if( not foo.isHLS() ):
+    assert False     
+  
   foo = rgb.toHSV()
+  if( not foo.isHSV() ):
+    assert False 
+  
   foo = rgb.toXYZ()
+  if( not foo.isXYZ() ):
+    assert False 
 
 def test_color_conversion_func_HSV():
   img = Image(testimage)
