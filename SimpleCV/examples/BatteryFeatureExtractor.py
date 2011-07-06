@@ -116,13 +116,13 @@ def ExtractFeatures( fname, outbase, colormodel ):
 
 dataset = np.array([])
 tempFile = 'goodtemp.csv'
-path = './battery-pics-high-res-version2/notbuldged/'
+path = '../sampleimages/batteries/notbuldged/'
 i = 0
 colorModel = ColorModel()
-colorModel.addToModel(Image('train0.jpg'))
+colorModel.addToModel(Image('../sampleimages/batteries/train/train0.jpg'))
 print(len(colorModel.mData))
-#colorModel.addToModel(Image('train1.jpg'))
-#print(len(colorModel.mData))
+colorModel.addToModel(Image('../sampleimages/batteries/train/train1.jpg'))
+print(len(colorModel.mData))
 #colorModel.addToModel(Image('train2.jpg'))
 #print(len(colorModel.mData))
 #colorModel.addToModel(Image('train3.jpg'))
@@ -153,10 +153,10 @@ for infile in glob.glob( os.path.join(path, '*.JPG') ):
 
 
 colorModel = ColorModel()
-colorModel.addToModel(Image('train5.jpg'))
+colorModel.addToModel(Image('../sampleimages/batteries/train/train5.jpg'))
 print(len(colorModel.mData))
-#colorModel.addToModel(Image('train6.jpg'))
-#print(len(colorModel.mData))
+colorModel.addToModel(Image('../sampleimages/batteries/train/train6.jpg'))
+print(len(colorModel.mData))
 #colorModel.addToModel(Image('train7.jpg'))
 #print(len(colorModel.mData))
 #colorModel.addToModel(Image('train8.jpg'))
@@ -164,11 +164,11 @@ print(len(colorModel.mData))
 #colorModel.addToModel(Image('train9.jpg'))
 #print(len(colorModel.mData))
 
-path = './battery-pics-high-res-version2/buldged/'
+path = '../sampleimages/batteries/buldged/'
 for infile in glob.glob( os.path.join(path, '*.JPG') ):
     print "Opening File: " + infile
     #output string
-    outfile = 'BadResult' + str(i) #+ ".png"
+    outfile = 'BulgedResult' + str(i) #+ ".png"
     #we built the histogram
     data = ExtractFeatures(infile, outfile,colorModel)
     if( data != None ):
