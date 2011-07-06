@@ -6,7 +6,20 @@ from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line, Chessbo
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Color import *
-
+class ColorSpace:
+  """
+  This class is used to encapsulates the color space of a given image.
+  This class acts like C/C++ style enumerated type.
+  See: http://stackoverflow.com/questions/2122706/detect-color-space-with-opencv
+  """
+  UNKNOWN = 0
+  BGR = 1 
+  GRAY = 2
+  RGB = 3
+  HLS = 4
+  HSV = 5
+  XYZ  = 6
+  
 class Image:
   """
   The Image class is the heart of SimpleCV and allows you to convert to and 
@@ -24,6 +37,7 @@ class Image:
   filename = "" #source filename
   filehandle = "" #filehandle if used
   camera = ""
+  
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -38,7 +52,7 @@ class Image:
   _cannyparam = (0,0) #parameters that created _edgeMap
   _pil = "" #holds a PIL object in buffer
   _numpy = "" #numpy form buffer
-
+  _colorSpace= ColorSpace.UNKNOWN #Colorspace Object
   #when we empty the buffers, populate with this:
   _initialized_buffers = { 
     "_bitmap": "", 
@@ -55,7 +69,7 @@ class Image:
   #initialize the frame
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
-  def __init__(self, source = None, camera = None):
+  def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN):
     """ 
     The constructor takes a single polymorphic parameter, which it tests
     to see how it should convert into an RGB image.  Supported types include:
@@ -65,9 +79,15 @@ class Image:
     Filename: All opencv supported types (jpg, png, bmp, gif, etc)
     """
     self.camera = camera
-    
+    self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
     if (type(source) == cv.cvmat):
-      self._matrix = source 
+      self._matrix = source
+      if((source.step/source.cols)==3): #this is just a guess
+        self._colorSpace = ColorSpace.BGR
+      elif((souce.step/source.cols)==1):
+        self._colorSpace = ColorSpace.GRAY
+      else:
+        self._colorSpace = ColorSpace.UNKNOWN
 
     elif (type(source) == np.ndarray):  #handle a numpy array conversion
       if (type(source[0,0]) == np.ndarray): #we have a 3 channel array
@@ -77,6 +97,7 @@ class Image:
         cv.SetData(self._bitmap, source.tostring(), 
           source.dtype.itemsize * 3 * source.shape[1])
         self._numpy = source
+        self._colorSpace = ColorSpace.BGR #this is an educated guess
       else:
         #we have a single channel array, convert to an RGB iplimage
 
@@ -87,32 +108,157 @@ class Image:
         cv.SetData(channel, source.tostring(), 
           source.dtype.itemsize * source.shape[1])
         cv.Merge(source, source, source, None, self._bitmap)
+        self._colorSpace = ColorSpace.GRAY
 
     elif (type(source) == cv.iplimage):
       if (source.nChannels == 1):
         self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
         cv.Merge(source, source, source, None, self._bitmap)
+        self._colorSpace = ColorSpace.GRAY
       else:
         self._bitmap = source
+        self._colorSpace = ColorSpace.BGR
     elif (type(source) == type(str()) and source != ''):
       self.filename = source
-      self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR) 
+      self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+      self._colorSpace = ColorSpace.BGR
     elif (PIL_ENABLED and source.__class__.__name__ == "JpegImageFile"):
       self._pil = source
       #from the opencv cookbook 
       #http://opencv.willowgarage.com/documentation/python/cookbook.html
       self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
       cv.SetData(self._bitmap, self._pil.tostring())
+      self._colorSpace = ColorSpace.BGR
       #self._bitmap = cv.iplimage(self._bitmap)
 
     else:
       return None 
-
+    #if the caller passes in a colorspace we overide it 
+    if(colorSpace != ColorSpace.UNKNOWN):
+      self._colorSpace = colorSpace
+      
     bm = self.getBitmap()
     self.width = bm.width
     self.height = bm.height
     self.depth = bm.depth
  
+  def toRGB(self):
+    retVal = self.getEmpty()
+    if( self._colorSpace == ColorSpace.BGR or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2RGB)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)    
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
+    elif( self._colorSpace == ColorSpace.RGB ):
+      retVal = self.getBitmap()
+    else:
+      warnings.warn("Image.toRGB: There is no supported conversion to RGB colorspace")
+      return None;
+    return Image(retVal,colorSpace=ColorSpace.RGB )
+
+  def toBGR(self):
+    retVal = self.getEmpty()
+    if( self._colorSpace == ColorSpace.RGB or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2BGR)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2BGR)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2BGR)    
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2BGR)
+    elif( self._colorSpace == ColorSpace.BGR ):
+      retVal = self.getBitmap()    
+    else:
+      warnings.warn("Image.toBGR: There is no supported conversion to BGR colorspace")
+      return None;
+    return Image(retVal,colorSpace=ColorSpace.BGR )
+  
+  def toHLS(self):
+    retVal = self.getEmpty()
+    if( self._colorSpace == ColorSpace.BGR or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2HLS)
+    elif( self._colorSpace == ColorSpace.RGB):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2HLS)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2HLS)
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2HLS)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      retVal = self.getBitmap()      
+    else:
+      warnings.warn("Image.toHSL: There is no supported conversion to HSL colorspace")
+      return None;
+    return Image(retVal,colorSpace=ColorSpace.HLS )
+    
+  def toHSV(self):
+    retVal = self.getEmpty()
+    if( self._colorSpace == ColorSpace.BGR or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2HSV)
+    elif( self._colorSpace == ColorSpace.RGB):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2HSV)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2HSV)
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2HSV)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      retVal = self.getBitmap()      
+    else:
+      warnings.warn("Image.toHSV: There is no supported conversion to HSV colorspace")
+      return None;
+    return Image(retVal,colorSpace=ColorSpace.HSV )
+    
+  def toXYZ(self):
+    retVal = self.getEmpty()
+    if( self._colorSpace == ColorSpace.BGR or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2XYZ)
+    elif( self._colorSpace == ColorSpace.RGB):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2XYZ)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2XYZ)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2XYZ)
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      retVal = self.getBitmap()      
+    else:
+      warnings.warn("Image.toXYZ: There is no supported conversion to XYZ colorspace")
+      return None;
+    return Image(retVal,colorSpace=ColorSpace.XYZ )
+    
+  def toGray(self):
+    retVal = self.getEmpty(1)
+    if( self._colorSpace == ColorSpace.BGR or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2GRAY)
+    elif( self._colorSpace == ColorSpace.RGB):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2GRAY)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2GRAY)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2GRAY)
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
+      cv.CvtColor(retVal,retVal,cv.CV_RGB2GRAY)  
+    else:
+      warnings.warn("Image.toGray: There is no supported conversion to gray colorspace")
+      return None;
+    return Image(retVal,colorSpace=ColorSpace.Gray )    
+    
   def getEmpty(self, channels = 3):
     """
     Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
@@ -170,8 +316,25 @@ class Image:
     if (self._graybitmap):
       return self._graybitmap
 
-    self._graybitmap = self.getEmpty(1) 
-    cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY) 
+    self._graybitmap = self.getEmpty(1)
+    temp = self.getEmpty(3)
+    if( self._colorSpace == ColorSpace.BGR or
+        self._colorSpace == ColorSpace.UNKNOWN ):
+      cv.CvtColor(self.getBitmap(),self._graybitmap,cv.CV_BGR2GRAY)
+    elif( self._colorSpace == ColorSpace.RGB):
+      cv.CvtColor(self.getBitmap(),self._graybitmap,cv.CV_RGB2GRAY)
+    elif( self._colorSpace == ColorSpace.HLS ):
+      cv.CvtColor(self.getBitmap(),temp,cv.CV_HLS2RGB)
+      cv.CvtColor(temp,self._graybitmap,cv.CV_RGB2GRAY)
+    elif( self._colorSpace == ColorSpace.HSV ):
+      cv.CvtColor(self.getBitmap(),temp,cv.CV_HSV2RGB)
+      cv.CvtColor(temp,self._graybitmap,cv.CV_RGB2GRAY)
+    elif( self._colorSpace == ColorSpace.XYZ ):
+      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
+      cv.CvtColor(temp,self._graybitmap,cv.CV_RGB2GRAY)  
+    else:
+      warnings.warn("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
+      return None;    
     return self._graybitmap
 
   def getGrayscaleMatrix(self):
@@ -259,7 +422,7 @@ class Image:
     """
     newimg = self.getEmpty() 
     cv.Copy(self.getBitmap(), newimg)
-    return Image(newimg) 
+    return Image(newimg,colorSpace=self._colorSpace) 
     
   #scale this image, and return a new Image object with the new dimensions 
   def scale(self, width, height):
@@ -270,7 +433,7 @@ class Image:
     """
     scaled_bitmap = cv.CreateImage((width, height), 8, 3)
     cv.Resize(self.getBitmap(), scaled_bitmap)
-    return Image(scaled_bitmap)
+    return Image(scaled_bitmap,colorspace=self._colorSpace)
 
   def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0):
     """
@@ -304,7 +467,7 @@ class Image:
     newimg = self.getEmpty(1) 
     cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
 
-    return Image(newimg)
+    return Image(newimg,colorSpace=self._colorSpace)
 
   def medianFilter(self,window=''):
     """
@@ -345,7 +508,7 @@ class Image:
     """
     newimg = self.getEmpty()
     cv.Flip(self.getBitmap(), newimg, 1)
-    return Image(newimg) 
+    return Image(newimg,colorSpace=self._colorSpace) 
 
   def flipVertical(self):
     """
@@ -355,7 +518,7 @@ class Image:
     """
     newimg = self.getEmpty()
     cv.Flip(self.getBitmap(), newimg, 0)
-    return Image(newimg) 
+    return Image(newimg,colorSpace=self._colorSpace) 
     
     
     
@@ -372,7 +535,7 @@ class Image:
     try:
       newimg = self.getEmpty() 
       cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
-      return Image(newimg)
+      return Image(newimg,colorSpace=self._colorSpace)
     except:
       return None
       
@@ -399,18 +562,18 @@ class Image:
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
-      return Image(r)
+      return Image(r,colorSpace=self._colorSpace)
     
     elif thresh == -1:
       newbitmap = self.getEmpty(1)
       cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
         cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize,p)
-      return Image(newbitmap)
+      return Image(newbitmap,colorSpace=self._colorSpace)
     else:
       newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
       cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV)
-      return Image(newbitmap)
+      return Image(newbitmap,colorSpace=self._colorSpace)
   
   
   def meanColor(self):
@@ -614,7 +777,7 @@ class Image:
     image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
     cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
     cv.CvtColor(image,image,cv.CV_HLS2RGB)  
-    return Image(image)
+    return Image(image,colorSpace=self._colorSpace)
 
   def applyRGBCurve(self, rCurve, gCurve, bCurve):
     """
@@ -633,7 +796,7 @@ class Image:
     #Now we jimmy the np array into a cvMat
     image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
     cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
-    return Image(image)
+    return Image(image,colorSpace=self._colorSpace)
 
   def applyIntensityCurve(self, curve):
     """
@@ -656,7 +819,7 @@ class Image:
     pixels = np.array(self.getMatrix()).reshape(-1,3)   #reshape our matrix to 1xN
     distances = spsd.cdist(pixels, [bgr_color]) #calculate the distance each pixel is
     distances *= (255.0/distances.max()) #normalize to 0 - 255
-    return Image(distances.reshape(self.height, self.width)) #return an Image
+    return Image(distances.reshape(self.height, self.width),colorSpace=self._colorSpace) #return an Image
     
       
       
@@ -678,7 +841,7 @@ class Image:
     retVal = self.getEmpty() 
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.Erode(self.getBitmap(),retVal,kern,iterations)
-    return( Image(retVal) )
+    return Image(retVal,colorSpace=self._colorSpace)
 
   def dilate(self, iterations=1):
     """
@@ -700,7 +863,7 @@ class Image:
     retVal = self.getEmpty() 
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.Dilate(self.getBitmap(),retVal,kern,iterations)
-    return( Image(retVal) )
+    return Image(retVal,colorSpace=self._colorSpace) 
 
   def morphOpen(self):
     """
@@ -739,7 +902,7 @@ class Image:
     temp = self.getEmpty()
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_CLOSE,1)
-    return( Image(retVal) )
+    return Image(retVal,colorSpace=self._colorSpace)
 
   def morphGradient(self):
     """
@@ -759,7 +922,7 @@ class Image:
     temp = self.getEmpty()
     kern = cv.CreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
     cv.MorphologyEx(self.getBitmap(),retVal,temp,kern,cv.MORPH_GRADIENT,1)
-    return( Image(retVal) )
+    return Image(retVal,colorSpace=self._colorSpace )
 
   def histogram(self, numbins = 50):
     """
@@ -798,7 +961,7 @@ class Image:
       cv.SubS(self.getBitmap(), other, newbitmap)
     else:
       cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __add__(self, other):
     newbitmap = self.getEmpty() 
@@ -806,7 +969,7 @@ class Image:
       cv.AddS(self.getBitmap(), other, newbitmap)
     else:
       cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __and__(self, other):
     newbitmap = self.getEmpty() 
@@ -814,7 +977,7 @@ class Image:
       cv.AndS(self.getBitmap(), other, newbitmap)
     else:
       cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __or__(self, other):
     newbitmap = self.getEmpty() 
@@ -822,7 +985,7 @@ class Image:
       cv.OrS(self.getBitmap(), other, newbitmap)
     else:
       cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __div__(self, other):
     newbitmap = self.getEmpty() 
@@ -830,7 +993,7 @@ class Image:
       cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
     else:
       cv.ConvertScale(self.getBitmap(), newbitmap, 1.0/float(other))
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __mul__(self, other):
     newbitmap = self.getEmpty() 
@@ -838,17 +1001,17 @@ class Image:
       cv.Mul(self.getBitmap(), other.getBitmap(), newbitmap)
     else:
       cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __pow__(self, other):
     newbitmap = self.getEmpty() 
     cv.Pow(self.getBitmap(), newbitmap, other)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def __neg__(self):
     newbitmap = self.getEmpty() 
     cv.Not(self.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def max(self, other):
     """
@@ -862,7 +1025,7 @@ class Image:
       cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
     else:
       cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def min(self, other):
     """
@@ -876,7 +1039,7 @@ class Image:
       cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
     else:
       cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
-    return Image(newbitmap)
+    return Image(newbitmap,colorSpace=self._colorSpace)
 
   def _clearBuffers(self, clearexcept = "_bitmap"):
     for k, v in self._initialized_buffers.items():
@@ -969,7 +1132,7 @@ class Image:
 
     Returns: IMAGE
     """
-    return Image(self._getEdgeMap(t1, t2))
+    return Image(self._getEdgeMap(t1, t2),colorSpace=self._colorSpace)
 
   def _getEdgeMap(self, t1=50, t2=100):
     """
@@ -1009,7 +1172,7 @@ class Image:
       rotMat = cv.CreateMat(2,3,cv.CV_32FC1);
       cv.GetRotationMatrix2D((float(point[0]),float(point[1])),float(angle),float(scale),rotMat)
       cv.WarpAffine(self.getBitmap(),retVal,rotMat)
-      return( Image(retVal) ) 
+      return Image(retVal,colorSpace=self._colorSpace)
 
 
     #otherwise, we're expanding the matrix to fit the image at original size
@@ -1060,7 +1223,7 @@ class Image:
     #use these new corner positions as the input to cvGetAffineTransform
     retVal = cv.CreateImage((int(newWidth),int(newHeight)), 8, int(3))
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
-    return( Image(retVal) ) 
+    return Image(retVal,colorSpace=self._colorSpace) 
 
 
   def shear(self, cornerpoints):
@@ -1094,7 +1257,7 @@ class Image:
     if(type(rotMatrix) == np.ndarray ):
       rotMatrix = npArray2cvMat(rotMatrix)
     cv.WarpAffine(self.getBitmap(),retVal,rotMatrix)
-    return( Image(retVal) ) 
+    return Image(retVal,colorSpace=self._colorSpace) 
 
   def warp(self, cornerpoints):
     """
@@ -1126,7 +1289,7 @@ class Image:
     if(type(rotMatrix) == np.ndarray ):
       rotMatrix = npArray2cvMat(rotMatrix)
     cv.WarpPerspective(self.getBitmap(),retVal,rotMatrix)
-    return( Image(retVal) ) 
+    return Image(retVal,colorSpace=self._colorSpace) 
   
   def getPixel(self, x, y):
     """
@@ -1225,7 +1388,7 @@ class Image:
     cv.SetImageROI(self.getBitmap(),rectangle)
     cv.Copy(self.getBitmap(),retVal)
     cv.ResetImageROI(self.getBitmap())
-    return Image(retVal)
+    return Image(retVal,colorSpace=self._colorSpace)
     
   def regionSelect(self, x1, y1, x2, y2 ):
     """

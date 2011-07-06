@@ -699,3 +699,55 @@ def test_colormap_build():
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
+    
+def test_color_conversion_func_BGR():
+  #we'll just go through the space to make sure nothing blows up
+  img = Image(testimage)
+  bgr = img.toBGR()
+  rgb = img.toRGB()
+  hls = img.toHLS()
+  hsv = img.toHSV()
+  xyz = img.toXYZ()
+  
+  foo = bgr.toBGR()
+  foo = bgr.toRGB()
+  foo = bgr.toHLS()
+  foo = bgr.toHSV()
+  foo = bgr.toXYZ()
+  
+  
+def test_color_conversion_func_RGB():
+  img = Image(testimage)
+  rgb = img.toRGB()
+  foo = rgb.toBGR()
+  foo = rgb.toRGB()
+  foo = rgb.toHLS()
+  foo = rgb.toHSV()
+  foo = rgb.toXYZ()
+
+def test_color_conversion_func_HSV():
+  img = Image(testimage)
+  hsv = img.toHSV()
+  foo = hsv.toBGR()
+  foo = hsv.toRGB()
+  foo = hsv.toHLS()
+  foo = hsv.toHSV()
+  foo = hsv.toXYZ()
+  
+def test_color_conversion_func_HLS():
+  img = Image(testimage)
+  hls = img.toHLS()
+  foo = hls.toBGR()
+  foo = hls.toRGB()
+  foo = hls.toHLS()
+  foo = hls.toHSV()
+  foo = hls.toXYZ()   
+
+def test_color_conversion_func_XYZ():
+  img = Image(testimage)
+  xyz = img.toXYZ()  
+  foo = xyz.toBGR()
+  foo = xyz.toRGB()
+  foo = xyz.toHLS()
+  foo = xyz.toHSV()
+  foo = xyz.toXYZ()  
