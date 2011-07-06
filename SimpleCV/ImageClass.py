@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line, Chessboard
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
+from SimpleCV.Font import *
 from SimpleCV.Color import *
 class ColorSpace:
   """
@@ -1435,13 +1436,10 @@ class Image:
 
     The Default Color is blue but you can pass it various colors
     The text will default to the center of the screen if you don't pass it a value
-    The default font size is 16pt, but you can pass it other sizes as well
 
     returns Image
     
     """
-
-    font = pilImageFont.truetype("SimpleCV/fonts/ubuntu.ttf",fontsize)
     if(x == None):
       x = (self.width / 2)
     if(y == None):
@@ -1449,8 +1447,27 @@ class Image:
     
     img = self.getPIL()
     draw = pilImageDraw.Draw(img)
-    draw.text((x, y),text,color,font=font)
+    draw.text((x, y),text,color,font=font.getFont())
     draw = pilImageDraw.Draw(img)
 
     
     return img
+
+  def show(self, type = 'browser'):
+    """
+    This function automatically pops up a window and shows the current image
+
+    It defaults to the systems web browser.
+    """
+
+    if(type == 'browser'):
+      try:
+        import time, webbrowser
+      except ImportError:
+        print "Time or Webbrowser python library missing"
+      js = JpegStreamer(8080)
+      self.save(js)
+      webbrowser.open("http://localhost:8080", 2)
+    else:
+      print "Unknown type to show"
+    
