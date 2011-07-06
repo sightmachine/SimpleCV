@@ -1272,3 +1272,22 @@ class Image:
 
     
     return img
+
+  def show(self, type = 'browser'):
+    """
+    This function automatically pops up a window and shows the current image
+
+    It defaults to the systems web browser.
+    """
+
+    if(type == 'browser'):
+      try:
+        import time, webbrowser
+      except ImportError:
+        print "Time or Webbrowser python library missing"
+      js = JpegStreamer(8080)
+      self.save(js)
+      webbrowser.open("http://localhost:8080", 2)
+    else:
+      print "Unknown type to show"
+    

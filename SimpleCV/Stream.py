@@ -20,7 +20,7 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
 <html>
 <head>
 <style type=text/css>
-  body { background-image: url(/stream); background-repeat:no-repeat; background-position:center top; background-attachment:fixed; background-size: 100% , auto; }
+  body { background-image: url(/stream); background-repeat:no-repeat; background-position:center top; background-attachment:fixed; height:100% }
 </style>
 </head>
 <body>
