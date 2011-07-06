@@ -678,3 +678,24 @@ def test_image_or():
 def test_image_edgemap():
   imgA = Image(logo)
   imgB = imgA._getEdgeMap()
+
+
+def test_colormap_build():
+  cm = ColorModel()
+  cm.addToModel(Image(testimage))
+  cm.addToModel((127,127,127))
+  if(cm.containsColor((127,127,127))):
+    cm.removeFromModel((127,127,127))
+  else:
+    assert False
+  img = cm.thresholdImage(Image(testimage))
+  c=img.meanColor()
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False
+  cm.saveToFile("temp.txt")
+  cm2 = ColorModel()
+  cm2.loadFromFile("temp.txt")
+  img = cm2.thresholdImage(Image(testimage))
+  c=img.meanColor()
+  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+    assert False
