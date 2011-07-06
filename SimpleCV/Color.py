@@ -85,3 +85,37 @@ class ColorCurve:
       aSpline = UnivariateSpline( curve_vals[:,0],curve_vals[:,1],s=1)   
       self.mCurve = aSpline(inBins)
  
+class ColorMap:
+  """
+  A color map takes a start and end point in 3D space and lets you map a range
+  of values to it.  Using the colormap like an array gives you the mapped color.
+  
+  This is useful for color coding elements by an attribute::
+  
+    blobs = image.findBlobs()
+    cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
+      startmap = min(blobs.area()) , endmap = max(blobs.area())
+      
+    for b in blobs:
+      b.draw(cm[b.area()])
+  """
+  startcolor = ()
+  endcolor = ()
+  startmap = 0
+  endmap = 0
+  colordistance = 0
+  valuerange = 0
+  ratios = []
+  
+  
+  def __init__(self, startcolor, endcolor, startmap, endmap):
+    self.startcolor = np.array(startcolor)
+    self.endcolor = np.array(endcolor)
+    self.startmap = float(startmap)
+    self.endmap = float(endmap)
+    self.valuerange = float(endmap - startmap)
+    self.ratios = (self.endcolor - self.startcolor) / self.valuerange
+    
+  def __getitem__(self, value):
+    return tuple(self.startcolor + (self.ratios * (value - self.startmap)))
+    

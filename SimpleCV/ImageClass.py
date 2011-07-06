@@ -24,6 +24,7 @@ class Image:
   depth = 0
   filename = "" #source filename
   filehandle = "" #filehandle if used
+  camera = ""
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -37,6 +38,7 @@ class Image:
   _edgeMap = "" #holding reference for edge map
   _cannyparam = (0,0) #parameters that created _edgeMap
   _pil = "" #holds a PIL object in buffer
+  _numpy = "" #numpy form buffer
 
   #when we empty the buffers, populate with this:
   _initialized_buffers = { 
@@ -48,12 +50,13 @@ class Image:
     "_blobLabel": "",
     "_edgeMap": "",
     "_cannyparam": (0,0), 
-    "_pil": ""}  
+    "_pil": "",
+    "_numpy": ""}  
     
   #initialize the frame
   #parameters: source designation (filename)
   #todo: handle camera/capture from file cases (detect on file extension)
-  def __init__(self, source = None):
+  def __init__(self, source = None, camera = None):
     """ 
     The constructor takes a single polymorphic parameter, which it tests
     to see how it should convert into an RGB image.  Supported types include:
@@ -62,6 +65,8 @@ class Image:
     Python Image Library: Image type
     Filename: All opencv supported types (jpg, png, bmp, gif, etc)
     """
+    self.camera = camera
+    
     if (type(source) == cv.cvmat):
       self._matrix = source 
 
@@ -72,6 +77,7 @@ class Image:
         self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, source.tostring(), 
           source.dtype.itemsize * 3 * source.shape[1])
+        self._numpy = source
       else:
         #we have a single channel array, convert to an RGB iplimage
 
@@ -112,7 +118,10 @@ class Image:
     """
     Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
     """
-    return cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+
+    bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
+    cv.SetZero(bitmap)
+    return bitmap
 
   def getBitmap(self):
     """
@@ -147,6 +156,16 @@ class Image:
       cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
       self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
     return self._pil
+  
+  def getNumpy(self):
+    """
+    Get a Numpy array of the image in width x height x RGB dimensions
+    """
+    if self._numpy:
+      return self._numpy
+    
+    self._numpy = np.array(self.getMatrix())[:,:,::-1].transpose([1,0,2])
+    return self._numpy
 
   def _getGrayscaleBitmap(self):
     if (self._graybitmap):
@@ -288,6 +307,20 @@ class Image:
 
     return Image(newimg)
 
+  def medianFilter(self,window=''):
+    """
+    Perform a median filtering operation to denoise/despeckle the image.
+    The optional parameter is the window size.
+    """
+    return self.smooth(algorithm_name='median',aperature=window)
+    
+  def bilateralFilter(self,window = ''):
+    """
+    Perform a bilateral filtering operation to denoise/despeckle the image.
+    The optional parameter is the window size.
+    """
+    return self.smooth(algorithm_name='bilateral',aperature=window)
+    
   def invert(self):
     """
     Invert (negative) the image note that this can also be done with the
@@ -344,11 +377,15 @@ class Image:
     except:
       return None
       
-  def binarize(self, thresh = 127):
+  def binarize(self, thresh = 127, maxv = 255, blocksize = 3, p = 5):
     """
-    Do a binary threshold the image, changing all values above thresh to white
+    Do a binary threshold the image, changing all values above thresh to maxv
     and all below to black.  If a color tuple is provided, each color channel
     is thresholded separately.
+    
+    If threshold is -1, an adaptive sampling method is used - similar to a moving
+    average.  Over each region of block*block pixels a threshold is applied
+    where threshold = local_mean - p.
     """
     if (is_tuple(thresh)):
       r = self.getEmpty(1) 
@@ -356,23 +393,27 @@ class Image:
       b = self.getEmpty(1)
       cv.Split(self.getBitmap(), b, g, r, None)
 
-      cv.Threshold(r, r, thresh[0], 255, cv.CV_THRESH_BINARY)
-      cv.Threshold(g, g, thresh[1], 255, cv.CV_THRESH_BINARY)
-      cv.Threshold(b, b, thresh[2], 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
+      cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
+      cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
 
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
       return Image(r)
 
+    elif thresh == -1:
+      newbitmap = self.getEmpty(1)
+      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, float(maxv),
+        cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY, blocksize, float(p))
+      return Image(newbitmap)
     else:
       newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
-      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, 255, cv.CV_THRESH_BINARY)
+      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY)
       return Image(newbitmap)
   
-
-  #get the mean color of an image
+  
   def meanColor(self):
     """
     Finds average color of all the pixels in the image.
@@ -403,11 +444,15 @@ class Image:
 
     return FeatureSet(corner_features)
 
-  def findBlobs(self, threshval = 127, minsize=10, maxsize=0):
+    
+  def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
     """
     If you have the cvblob library installed, this will look for continuous
     light regions and return them as Blob features in a FeatureSet.  Parameters
-    specify the threshold value, and minimum and maximum size for blobs.
+    specify the binarize filter threshold value, and minimum and maximum size for blobs.  If a
+    threshold value is -1, it will use an adaptive threshold.  See binarize() for
+    more information about adaptive thresholding.  The threshblocksize and threshconstant
+    parameters are only used for adaptive threshold.
 
     You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
 
@@ -421,8 +466,7 @@ class Image:
       maxsize = self.width * self.height / 2
     
     #create a single channel image, thresholded to parameters
-    grey = self.getEmpty(1) 
-    cv.Threshold(self._getGrayscaleBitmap(), grey, threshval, 255, cv.CV_THRESH_BINARY)
+    grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
 
     #create the label image
     self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
@@ -598,6 +642,23 @@ class Image:
     """
     return self.applyRGBCurve(curve, curve, curve)
       
+  def colorDistance(self, color = [0,0,0]):
+    """
+    Returns an image representing the distance of each pixel from a given color
+    tuple, scaled between 0 (the given color) and 255.  Pixels distant from the 
+    given tuple will appear as brighter and pixels closest to the target color 
+    will be darker.
+    
+    By default this will give image intensity (distance from pure black)
+    """ 
+    bgr_color = tuple(reversed(color)) #our matrix is in BGR
+    pixels = np.array(self.getMatrix()).reshape(-1,3)   #reshape our matrix to 1xN
+    distances = spsd.cdist(pixels, [bgr_color]) #calculate the distance each pixel is
+    distances *= (255.0/distances.max()) #normalize to 0 - 255
+    return Image(distances.reshape(self.height, self.width)) #return an Image
+    
+      
+      
   def erode(self, iterations=1):
     """
     Apply a morphological erosion. An erosion has the effect of removing small bits of noise
@@ -725,7 +786,7 @@ class Image:
   def __setitem__(self, coord, value):
     value = tuple(reversed(value))  #RGB -> BGR
     if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
-      self.getMatrix()[coord] = value 
+      self.getMatrix()[tuple(reversed(coord))] = value 
     else:
       cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
       self._clearBuffers("_matrix") 
@@ -874,10 +935,10 @@ class Image:
     linesFS = FeatureSet()
     for l in lines:
       linesFS.append(Line(self, l))  
-    
     return linesFS
     
-  def findChessboard(self, dimensions = (5,8)):
+    
+  def findChessboard(self, dimensions = (8,5), subpixel = True):
     """
     Given an image, finds a chessboard within that image.  Returns the Chessboard featureset.
     The Chessboard is typically used for calibration because of its evenly spaced corners.
@@ -886,9 +947,12 @@ class Image:
    
     returns a FeatureSet with the Chessboard feature, or none
     """
-    corners = cv.FindChessboardCorners(self.getGrayscaleMatrix(), dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+    corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
     if(len(corners[1]) == dimensions[0]*dimensions[1]):
-      spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      if (subpixel):
+        spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(),corners[1],(11,11),(-1,-1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+      else:
+        spCorners = corners[1]
       return FeatureSet([ Chessboard(self, dimensions, spCorners) ])
     else:
       return None
@@ -1086,7 +1150,7 @@ class Image:
     elif( y < 0 or y >= self.height ):
       warnings.warn("getGrayPixel: Y value is not valid.")
     else:
-      retVal = cv.Get2D(self._getGrayscaleBitmap(),x,y);
+      retVal = cv.Get2D(self._getGrayscaleBitmap(),y,x);
       retVal = retVal[0]
     return retVal
       
@@ -1142,7 +1206,51 @@ class Image:
       retVal = retVal.transpose()
     return retVal
 
-  def drawText(self, text = "", x = None, y = None, color = Color.BLUE, font = Font()):
+  def crop(self,x , y, w, h, centered=False):
+    """
+    Crop attempts to use the x and y position variables and the w and h width
+    and height variables to crop the image. When centered is false, x and y
+    define the top and left of the cropped rectangle. When centered is true
+    the function uses x and y as the centroid of the cropped region.
+    
+    The function returns a new image. 
+    """
+    retVal = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
+    if( centered ):
+      rectangle = (x-(w/2),y-(h/2),w,h)
+    else:
+      rectangle = (x,y,w,h)
+    
+    cv.SetImageROI(self.getBitmap(),rectangle)
+    cv.Copy(self.getBitmap(),retVal)
+    cv.ResetImageROI(self.getBitmap())
+    return Image(retVal)
+    
+  def regionSelect(self, x1, y1, x2, y2 ):
+    """
+    Region select is similar to crop, but instead of taking a position and width
+    and height values it simply takes to points on the image and returns the selected
+    region. This is very helpful for creating interactive scripts that require
+    the user to select a region. 
+    """
+    w = abs(x1-x2)
+    h = abs(y1-y2)
+
+    retVal = None;
+    if( w <= 0 or h <= 0 or w > self.width or h > self.height ):
+      warnings.warn("regionSelect: the given values will not fit in the image or are too small.")
+    else:
+      xf = x2 
+      if( x1 < x2 ):
+        xf = x1
+      yf = y2
+      if( y1 < y2 ):
+        yf = y1
+      retVal = self.crop(xf,yf,w,h)
+      
+    return retVal
+  
+  def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
     """
     This function draws the string that is passed on the screen at the specified coordinates
 
