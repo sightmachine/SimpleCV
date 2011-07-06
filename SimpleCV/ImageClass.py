@@ -392,25 +392,25 @@ class Image:
       g = self.getEmpty(1)
       b = self.getEmpty(1)
       cv.Split(self.getBitmap(), b, g, r, None)
-
+    
       cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
       cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
       cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
-
+    
       cv.Add(r, g, r)
       cv.Add(r, b, r)
       
       return Image(r)
-
+    
     elif thresh == -1:
       newbitmap = self.getEmpty(1)
-      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, float(maxv),
-        cv.CV_ADAPTIVE_THRESH_MEAN_C, cv.CV_THRESH_BINARY, blocksize, float(p))
+      cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
+        cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize,p)
       return Image(newbitmap)
     else:
       newbitmap = self.getEmpty(1) 
       #desaturate the image, and apply the new threshold          
-      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY)
+      cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV)
       return Image(newbitmap)
   
   
@@ -464,6 +464,8 @@ class Image:
 
     if (maxsize == 0):  
       maxsize = self.width * self.height / 2
+      
+    derp = self.binarize(threshval, 255, threshblocksize, threshconstant)
     
     #create a single channel image, thresholded to parameters
     grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
@@ -1137,7 +1139,7 @@ class Image:
     elif( y < 0 or y >= self.height ):
       warnings.warn("getRGBPixel: Y value is not valid.")
     else:
-      retVal = cv.Get2D(self.getBitmap(),x,y);
+      retVal = cv.Get2D(self.getBitmap(),y,x);
     return retVal
   
   def getGrayPixel(self, x, y):
@@ -1249,6 +1251,21 @@ class Image:
       retVal = self.crop(xf,yf,w,h)
       
     return retVal
+  
+  def clear(self):
+    """
+    This is a slightly unsafe method that clears out the entire image state
+    it is usually used in conjunction with the drawing blobs to fill in draw
+    only a single large blob in the image. 
+    """
+    cv.SetZero(self._bitmap)
+    _matrix = ""  #the matrix (cvmat) representation
+    _grayMatrix = "" #the gray scale (cvmat) representation -KAS
+    _graybitmap = ""  #a reusable 8-bit grayscale bitmap  
+    _equalizedgraybitmap = "" #the above bitmap, normalized 
+    _blobLabel = ""  #the label image for blobbing
+    _edgeMap = "" #holding reference for edge map
+    
   
   def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
     """

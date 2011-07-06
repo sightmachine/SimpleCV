@@ -6,6 +6,7 @@ from SimpleCV.Features import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Stream import *
 from SimpleCV.Font import *
+from SimpleCV.ColorModel import *
 
 if (__name__ == '__main__'):
   from SimpleCV.Shell import *
