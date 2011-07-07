@@ -6,6 +6,10 @@ from pickle import *
 
 class ColorModel:
   """
+  The color model is used to model the color of foreground and background objects
+  by using an example. The color model is trained by passing either color tuples
+  or images to learn from. The color model uses whatever color space the input imagery
+  is in. 
   """
   #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
   #TODO: Work in HSV space
@@ -16,7 +20,11 @@ class ColorModel:
     self.mIsBackground = isBackground
     self.mData = {}
 
+
   def _makeCanonical(self,data):
+    """
+    Turn input types in a common form used by the rest of the class.
+    """  
     retVal = None
     if(data.__class__.__name__=='Image'):
       retVal = np.array(data.getMatrix()).reshape(-1,3).tolist()
@@ -48,19 +56,33 @@ class ColorModel:
       retVal = None
     return retVal
   
+
   def addToModel(self,data):
+    """
+    Add an image, array, or tuple to the color model.
+    Note that this operation can be slow on large images. 
+    """
     data =self._makeCanonical(data)
     if( type(data) != None ):
       for i in data:
         self.mData[tuple(i)] = 1
-    
+
   def removeFromModel(self,data):
+    """
+    Remove an image, array, or tuple from the model.
+    """    
     data =self._makeCanonical(data)
     for i in data:
       if tuple(i) in self.mData:
         del self.mData[tuple(i)]
 
   def thresholdImage(self,img):
+    """
+    Perform a threshold operation on the given image. This involves iterating
+    over the image and comparing each pixel to the model. If the pixel is in the
+    model it is set to be either the foreground (white) or background (black) based
+    on the setting of mIsBackground.
+    """
     a = 0
     b = 255
     if( self.mIsBackground == False ):
@@ -79,6 +101,9 @@ class ColorModel:
     return Image(mask)
   
   def containsColor(self,c):
+    """
+    Return true if a particular color is in our color model. 
+    """
     retVal = False
     test = (int(c[0])>>4,int(c[1])>>4,int(c[2])>>4)
     if test in self.mData:
@@ -86,14 +111,26 @@ class ColorModel:
     return retVal
   
   def setIsForeground(self):
+    """
+    Set our model as being foreground imagery.
+    """    
     mIsBackground = False
     
   def setIsBackground(self):
+    """
+    Set our model as being background imager. 
+    """
     mIsBackground = True
     
   def loadFromFile(self,filename):
+    """
+    Dump the color model to the specified file.
+    """
     self.mData =  load(open(filename))
   
   def saveToFile(self,filename):
+    """
+    Read a dumped color model file. 
+    """
     dump(self.mData,open(filename, "wb"))
     
