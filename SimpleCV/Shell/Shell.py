@@ -26,6 +26,7 @@ import platform
 from SimpleCV.Shell.Tutorial import *
 from SimpleCV.Shell.Help import *
 from SimpleCV.Shell.Cheatsheet import *
+from SimpleCV.Shell.Example import *
 
 #libraries for the shell
 from IPython.Shell import IPShellEmbed
@@ -55,6 +56,7 @@ def main():
     banner += '\t"tutorial" to begin the SimpleCV interactive tutorial\n'
     banner += '\t"cheatsheet" gives a cheatsheet of all the shell functions\n' 
     banner += '\t"simplehelp" gives list of commands or help on a certain command\n'
+    banner += '\t"example" gives a list of examples you can run'
     banner += '\n'
     banner += 'Usage:\n'
     banner += '\tdot complete works to show library\n'
@@ -87,6 +89,7 @@ def main():
     scvShell.IP.api.expose_magic("clear", magic_clear)
     scvShell.IP.api.expose_magic("simplehelp", magic_help)
     scvShell.IP.api.expose_magic("cheatsheet", magic_cheatsheet)
+    scvShell.IP.api.expose_magic("example", magic_examples)
     
 
     #Note that all loaded libraries are inherited in the embedded ipython shell
