@@ -15,65 +15,93 @@ class RenderEngine:
     """
     _mSurface = []
     _mImage = []
-    
+    _mDefaultColor = Colors.BLACK
+    _mBold = False
+    _mUnderline = False
+    _mItalic = False
+    _m
     def __init__(self, img):
         self._mSurface = Surface(img.width,img.height)
         self._mImage = img
     
-    def DrawLine(start,stop, color=Colors.Black, width=1, antialias=True ):
+    def DrawLine(self,start,stop, color=Colors.DEFAULT, width=1, antialias=True ):
         return None
     
-    def DrawPoints(points,color=Colors.Black,width=1,antialias=True ):
+    def DrawPoints(self,points,color=Colors.DEFAULT,width=1,antialias=True ):
         return None
     
-    def DrawRectangle(rectangle,color=Colors.Black,width=1, filled=False ):
+    def DrawRectangle(self,rectangle,color=Colors.DEFAULT,width=1, filled=False ):
         return None
     
-    def DrawPolygon(points,color=Colors.Black,width=1,filled=False,antialias=True):
+    def DrawPolygon(self,points,color=Colors.DEFAULT,width=1,filled=False,antialias=True):
         return None
     
-    def DrawCircle(center,radius,color=Colors.Black,width=1,filled=False):
+    def DrawCircle(self,center,radius,color=Colors.DEFAULT,width=1,filled=False):
         return None
     
-    def DrawElipse(bound_box,color=Colors.Black,width=1,filled=False):
+    def SetFontBold(self,doBold):
+        return None
+
+    #def DrawElipse(bound_box,color=Colors.DEFAULT,width=1,filled=False):
+    #def InitFont(fontName, size=1,underline=False,bold=False,italic=False,color=Colors.DEFAULT):
+
+    def SetFontItalic(self,doItalic):
+        return None
+    def SetFontUnderline(self,doUnderline):
+        return None
     
-    def InitFont(fontName, size=1,underline=False,bold=False,italic=False,color=Colors.BLACK):
-
-    def SetFontBold(doBold):
-
-    def SetFontItalic(doItalic):
-
-    def SetFontUnderline(doUnderline):
-
-    def SetFontColor(color): # We need a default color
-
-    def SetFontSize(sz):
+    def SetFontColor(self,color): # We need a default color
+        return None
     
-    def WriteText(text,location,color=Colors.BLACK, antialias=True):
+    def SetFontSize(self,sz):
+        return None
+    
+    def WriteText(self,text,location,color=Colors.DEFAULT, antialias=True):
+        return None
     
     #render text in a box so it is easy to read
-    def WriteEZReadText(text,location,fgcolor=Colors.WHITE,bgcolor=Colors.BLACK, antialias=True)
+    def WriteEZReadText(self,text,location,fgcolor=Colors.WHITE,bgcolor=Colors.DEFAULT, antialias=True)
+        return None
     
     #set an alpha for the whole surface, give it a cool effect
-    def SetRenderAlpha(alpha):
-   
+    def SetRenderAlpha(self,alpha):
+        return None
     #give the entire surface a color     
-    def SetSurfaceBaseColor(color):
+    def SetSurfaceBaseColor(self,color):
+        return None
     
-    def DrawSprite(img,pos=(0,0),scale=1.0,rot=0.0,alpha=1.0):
-    
+    def DrawSprite(self,img,pos=(0,0),scale=1.0,rot=0.0,alpha=1.0):
+        return None
     #sprite overload
-    def DrawWatermark():
+    def DrawWatermark(self):
+        return None
         
     #capture time, color depth, path, etc
-    def PrintStats():
+    def PrintStats(self):
+        return None
     
-    def GetSourceImage():
+    def GetSourceImage(self):
+        return None
     
     #plot 2D data on the image
-    def Plot(rect,data,color=Colors.BLACK,show_axis=TRUE):
+    def Plot(self,rect,data,color=Colors.DEFAULT,show_axis=TRUE):
+        return None
     
     #plot a histogram
-    def DrawHistogram(rect,data,color=Colors.BLACK,show_axis=TRUE):
+    def DrawHistogram(self,rect,data,color=Colors.DEFAULT,show_axis=TRUE):
+        return None
     
-    def RenderImage(): 
+    #Replace the image in place - the layer is replaced if the image is not the same size    
+    def ReplaceImage(self,img):
+        return None
+    
+    def ReplaceOverlay(self, overlay):
+        return None
+    
+    #get rid of all drawing
+    def Clear(self):
+        return None
+    
+    #render the image. 
+    def RenderImage(self,alpha):
+        return None
