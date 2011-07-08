@@ -1247,7 +1247,14 @@ class Image:
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
     return Image(retVal,colorSpace=self._colorSpace) 
 
-
+  def rotate90(self):
+    """
+    Does a fast 90 degree rotation.
+    """
+    retVal = cv.CreateImage((self.height,self.width), cv.IPL_DEPTH_8U, 3)
+    cv.Transpose(self.getBitmap(),retVal)
+    return(Image(retVal,colorSpace=self._colorSpace))
+    
   def shear(self, cornerpoints):
     """
     Given a set of new corner points in clockwise order, return a shear-ed Image
