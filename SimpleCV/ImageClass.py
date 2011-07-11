@@ -7,6 +7,11 @@ from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
+from SimpleCV.DrawingLayer import * 
+from numpy import int32
+from numpy import uint8
+import pygame as pg
+    
 class ColorSpace:
   """
   This class is used to encapsulates the color space of a given image.
@@ -1499,6 +1504,15 @@ class Image:
       webbrowser.open("http://localhost:8080", 2)
     else:
       print "Unknown type to show"
+
+  def _surface2Image(self,surface):
+    imgarray = pg.surfarray.array3d(surface)
+    retVal = Image(imgarray)
+    return retVal.toBGR().rotate90()
+    
+  def _image2Surface(self,img):
+    return pg.surfarray.make_surface(img.toRGB().getNumpy())
+
     
   def addDrawingLayer(self,layer):
     self._mLayers.append(layer)
@@ -1513,18 +1527,31 @@ class Image:
     
   def getDrawingLayer(self,index):
     return self._mLayers[index]
-    
+
+    #render the image. 
+  def _renderImage(self, layer):
+    imgSurf = self._image2Surface(self)
+    imgSurf.blit(layer._mSurface,(0,0))
+    return self._surface2Image(imgSurf)
+        
   def drawLayers(self,indicies=-1):
-    #final = DrawingLayer((self.width,self.height))
+    final = DrawingLayer((self.width,self.height))
     if(indicies==-1 and len(self._mLayers) > 0 ):
       retVal = self
+      self._mLayers.reverse()
       for layers in self._mLayers: #compose all the layers
-        retVal = layers.renderImage(retVal)
-      #layers.renderToOtherLayer(final)
+        layers.renderToOtherLayer(final)
+      self._mLayers.reverse()  
       #then draw them
-      return retVal#final.renderImage(self)
+      imgSurf = self._image2Surface(self)
+      imgSurf.blit(final._mSurface,(0,0))
+      return self._surface2Image(imgSurf)
     else:
       retVal = self
+      indicies.reverse()
       for idx in indicies:
-        retVal = self._mLayers[idx].renderImage(retVal)
-      return retVal #final.renderImage(self)
+        retVal = self._mLayers[idx].renderToOtherLayer(final)
+      imgSurf = self._image2Surface(self)
+      imgSurf.blit(final._mSurface,(0,0))
+      indicies.reverse()
+      return self._surface2Image(imgSurf)

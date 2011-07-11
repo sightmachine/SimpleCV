@@ -2,10 +2,9 @@
 
 import sys
 import os
-from SimpleCV.base import *
-from SimpleCV.ImageClass import * 
+#from SimpleCV.base import *
 from SimpleCV.Color import *
-from SimpleCV import *
+#from SimpleCV import *
 from numpy import int32
 from numpy import uint8
 try:
@@ -38,7 +37,6 @@ class DrawingLayer:
             pg.font.init()
         self._mSurface = pg.Surface((width,height),flags=pg.SRCALPHA)
         self._mDefaultAlpha = 255
-        #self._mSurface.set_alpha(128)
         self._mClearColor = pg.Color(0,0,0,0)
         
         self._mSurface.fill(self._mClearColor)
@@ -68,14 +66,7 @@ class DrawingLayer:
         del pixels_alpha        
         return None
     
-    def _surface2Image(self,surface):
-        imgarray = pg.surfarray.array3d(surface)
-        #imgarray = np.transpose(imgarray)
-        retVal = Image(imgarray)
-        return retVal.toBGR().rotate90()
-    
-    def _image2Surface(self,img):
-        return pg.surfarray.make_surface(img.toRGB().getNumpy())
+
     
     def _getSurface(self):
         return(self._mSurface)
@@ -93,7 +84,6 @@ class DrawingLayer:
         if(color==Color.DEFAULT):
             color=self._mDefaultColor
         retVal = pg.Color(color[2],color[1],color[0],alpha)
-        print(retVal)
         return retVal
         
     def line(self,start,stop, color=Color.DEFAULT, width=1, antialias=False,alpha=-1 ):
@@ -263,15 +253,9 @@ class DrawingLayer:
         self._mSurface = pg.Surface((int(self._mImage.width),int(self._mImage.height)))
         return None
     
-    #render the image. 
-    def renderImage(self, img):
-        imgSurf = self._image2Surface(img)
-        imgSurf.blit(self._mSurface,(0,0))
-        return self._surface2Image(imgSurf)
-    
     def renderToSurface(self, surf):
         surf.blit(self._mSurface,(0,0))
         return(surf)
         
-    def renderToOtherLayer(self, otherlayer):
+    def renderToOtherLayer(self, otherLayer):
         otherLayer._mSurface.blit(self._mSurface,(0,0))
