@@ -7,7 +7,6 @@ from scipy.spatial.distance import euclidean as distance
 This script can be used to quickly calibrate a camera 
 """
 
-
 def saveCalibrationImage(i, imgset, dims):
   """
   Save our image in the calibration set
