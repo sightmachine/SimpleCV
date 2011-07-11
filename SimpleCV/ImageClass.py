@@ -38,7 +38,7 @@ class Image:
   filename = "" #source filename
   filehandle = "" #filehandle if used
   camera = ""
-  
+  _mLayers = []  
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -79,6 +79,7 @@ class Image:
     Python Image Library: Image type
     Filename: All opencv supported types (jpg, png, bmp, gif, etc)
     """
+    self._mLayers = []
     self.camera = camera
     self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
     if (type(source) == cv.cvmat):
@@ -1499,3 +1500,31 @@ class Image:
     else:
       print "Unknown type to show"
     
+  def addDrawingLayer(self,layer):
+    self._mLayers.append(layer)
+    return len(self._mLayers)-1
+    
+  def insertDrawingLayer(self,layer,index):
+    self._mLayers.insert(index,layer)
+    return None    
+  
+  def removeDrawingLayer(self,index):
+    return self._mLayers.pop(index)
+    
+  def getDrawingLayer(self,index):
+    return self._mLayers[index]
+    
+  def drawLayers(self,indicies=-1):
+    #final = DrawingLayer((self.width,self.height))
+    if(indicies==-1 and len(self._mLayers) > 0 ):
+      retVal = self
+      for layers in self._mLayers: #compose all the layers
+        retVal = layers.renderImage(retVal)
+      #layers.renderToOtherLayer(final)
+      #then draw them
+      return retVal#final.renderImage(self)
+    else:
+      retVal = self
+      for idx in indicies:
+        retVal = self._mLayers[idx].renderImage(retVal)
+      return retVal #final.renderImage(self)

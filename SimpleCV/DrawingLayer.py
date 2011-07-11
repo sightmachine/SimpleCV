@@ -58,6 +58,14 @@ class DrawingLayer:
 
     def setLayerAlpha(self,alpha):
         self._mSurface.set_alpha(alpha)
+        # Get access to the alpha band of the image.
+        pixels_alpha = pg.surfarray.pixels_alpha(self._mSurface)
+        # Do a floating point multiply, by alpha 100, on each alpha value.
+        # Then truncate the values (convert to integer) and copy back into the surface.
+        pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
+        # Unlock the surface.
+        
+        del pixels_alpha        
         return None
     
     def _surface2Image(self,surface):
@@ -69,6 +77,9 @@ class DrawingLayer:
     def _image2Surface(self,img):
         return pg.surfarray.make_surface(img.toRGB().getNumpy())
     
+    def _getSurface(self):
+        return(self._mSurface)
+        
     #coordiante conversion
     def _scvXYToPg2d(self,x,y):
         return (y,x)
@@ -85,7 +96,7 @@ class DrawingLayer:
         print(retVal)
         return retVal
         
-    def line(self,start,stop, color=Color.DEFAULT, width=1, antialias=True,alpha=-1 ):
+    def line(self,start,stop, color=Color.DEFAULT, width=1, antialias=False,alpha=-1 ):
         start = self._scv2dToPg2d(start)
         stop = self._scv2dToPg2d(stop)
         if(antialias):           
@@ -94,7 +105,7 @@ class DrawingLayer:
             pg.draw.line(self._mSurface,self._csvRGB2pgColor(color,alpha),start,stop,width)        
         return None
     
-    def lines(self,points,color=Color.DEFAULT,width=1,antialias=True,alpha=-1 ):
+    def lines(self,points,color=Color.DEFAULT,width=1,antialias=False,alpha=-1 ):
         pts = map(self._scv2dToPg2d,points)
         if(antialias):
             pg.draw.aalines(self._mSurface,self._csvRGB2pgColor(color,alpha),0,pts)
@@ -124,7 +135,7 @@ class DrawingLayer:
         return None    
     
     
-    def polygon(self,points,color=Color.DEFAULT,filled=False,antialias=True,alpha=-1):
+    def polygon(self,points,color=Color.DEFAULT,filled=False,antialias=False,alpha=-1):
         if(filled):
             w = 0
         pts = map(self._scv2dToPg2d,points)
@@ -137,7 +148,7 @@ class DrawingLayer:
             pg.draw.polygon(self._mSurface,self._csvRGB2pgColor(color,alpha),pts)
         return None
     
-    def circle(self,center,radius,color=Color.DEFAULT,width=1,filled=False,antialias=True,alpha=-1):
+    def circle(self,center,radius,color=Color.DEFAULT,width=1,filled=False,antialias=False,alpha=-1):
         if(filled):
             width = 0
         temp = self._scv2dToPg2d(center)
@@ -147,7 +158,7 @@ class DrawingLayer:
             pg.draw.circle(self._mSurface,self._csvRGB2pgColor(color,alpha),center,radius,width)
         return None
     
-    def ellipse(self,center,deltas,color=Color.DEFAULT,width=1, filled=False, antialias=True,alpha=-1):
+    def ellipse(self,center,deltas,color=Color.DEFAULT,width=1, filled=False, antialias=False,alpha=-1):
         if(filled):
             width = 0
         ctemp = self._scv2dToPg2(center)
@@ -191,8 +202,8 @@ class DrawingLayer:
         self._mFont = pg.font.Font(self._mFontName,self._mFontSize)
         return None
     
-    def text(self,text,location,color=Color.DEFAULT, antialias=True,alpha=-1):
-        tsurface = self._mFont.render(text,antialias,self._csvRGB2pgColor(color,alpha))
+    def text(self,text,location,color=Color.DEFAULT,alpha=-1):
+        tsurface = self._mFont.render(text,True,self._csvRGB2pgColor(color,alpha))
         if(alpha==-1):
             alpha = self._mDefaultAlpha
         #this is going to be slow, dumb no native support.
@@ -257,3 +268,10 @@ class DrawingLayer:
         imgSurf = self._image2Surface(img)
         imgSurf.blit(self._mSurface,(0,0))
         return self._surface2Image(imgSurf)
+    
+    def renderToSurface(self, surf):
+        surf.blit(self._mSurface,(0,0))
+        return(surf)
+        
+    def renderToOtherLayer(self, otherlayer):
+        otherLayer._mSurface.blit(self._mSurface,(0,0))
