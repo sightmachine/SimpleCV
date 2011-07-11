@@ -173,7 +173,7 @@ def test_binarize():
 
 def test_binarize_adaptive():
   img =  Image(testimage2)
-  binary = img.binarizeAdaptive()
+  binary = img.binarize(-1)
   hist = binary.histogram(20)  
   if (hist[0] + hist[-1] == np.sum(hist)):
     pass
@@ -284,7 +284,7 @@ def test_blobs_adaptive():
   if not BLOBS_ENABLED:
     return None 
   img = Image(testbarcode)
-  blobs = img.findBlobsAdaptive()
+  blobs = img.findBlobs(-1)
   blobs[0].draw((0, 255, 0))
   img.save(testoutput)  
   pass
@@ -699,6 +699,38 @@ def test_colormap_build():
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
+
+
+def test_feature_height():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  heights = lines.height()
+
+  if(len(heights) <= 0 ):
+    assert False
+  else:
+    pass
+
+def test_feature_width():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  widths = lines.width()
+
+  if(len(widths) <= 0):
+    assert False
+  else:
+    pass
+
+def test_feature_crop():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  croppedImages = lines.crop()
+
+  if(len(croppedImages) <= 0):
+    assert False
+  else:
+    pass
+
     
 def test_color_conversion_func_BGR():
   #we'll just go through the space to make sure nothing blows up
