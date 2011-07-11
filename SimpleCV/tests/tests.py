@@ -173,7 +173,7 @@ def test_binarize():
 
 def test_binarize_adaptive():
   img =  Image(testimage2)
-  binary = img.binarizeAdaptive()
+  binary = img.binarize(-1)
   hist = binary.histogram(20)  
   if (hist[0] + hist[-1] == np.sum(hist)):
     pass
@@ -284,7 +284,7 @@ def test_blobs_adaptive():
   if not BLOBS_ENABLED:
     return None 
   img = Image(testbarcode)
-  blobs = img.findBlobsAdaptive()
+  blobs = img.findBlobs(-1)
   blobs[0].draw((0, 255, 0))
   img.save(testoutput)  
   pass
