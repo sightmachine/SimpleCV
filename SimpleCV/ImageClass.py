@@ -38,6 +38,7 @@ class Image:
   filename = "" #source filename
   filehandle = "" #filehandle if used
   camera = ""
+  
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -454,7 +455,7 @@ class Image:
     """
     scaled_bitmap = cv.CreateImage((width, height), 8, 3)
     cv.Resize(self.getBitmap(), scaled_bitmap)
-    return Image(scaled_bitmap,colorspace=self._colorSpace)
+    return Image(scaled_bitmap,colorSpace=self._colorSpace)
 
   def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0):
     """

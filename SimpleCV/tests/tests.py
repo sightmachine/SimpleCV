@@ -700,6 +700,7 @@ def test_colormap_build():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
+
 def test_feature_height():
   imgA = Image(logo)
   lines = imgA.findLines(1)
