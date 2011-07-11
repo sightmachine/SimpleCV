@@ -699,3 +699,33 @@ def test_colormap_build():
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
+
+def test_feature_height():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  heights = lines.height()
+
+  if(len(heights) <= 0 ):
+    assert False
+  else:
+    pass
+
+def test_feature_width():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  widths = lines.width()
+
+  if(len(widths) <= 0):
+    assert False
+  else:
+    pass
+
+def test_feature_crop():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  croppedImages = lines.crop()
+
+  if(len(croppedImages) <= 0):
+    assert False
+  else:
+    pass

@@ -130,6 +130,24 @@ class FeatureSet(list):
 
     """
     return FeatureSet(list(np.array(self)[filterarray]))
+
+  def width(self):
+    """
+    Returns a nparray which is the width of all the objects in the FeatureSet
+    """
+    return np.array([f.width() for f in self])
+
+  def height(self):
+    """
+    Returns a nparray which is the height of all the objects in the FeatureSet
+    """
+    return np.array([f.height() for f in self])
+
+  def crop(self):
+    """
+    Returns a nparray which is the height of all the objects in the FeatureSet
+    """
+    return np.array([f.crop() for f in self])  
     
 class Feature(object):
   """
@@ -145,6 +163,7 @@ class Feature(object):
   x = 0.0
   y = 0.0 
   image = "" #parent image
+  points = ()
 
   def __init__(self, i, at_x, at_y):
     self.x = at_x
@@ -197,7 +216,50 @@ class Feature(object):
 
   def area(self):
     """
-      Area covered by the feature -- for a pixel, 1
+    Area covered by the feature -- for a pixel, 1
     """
-    return 1 
+    return 1
 
+  def width(self):
+    """
+    Width of the feature -- defaults to 1
+    """
+    maxX = float("-infinity")
+    minX = float("infinity")
+    if(len(self.points) <= 0):
+      return 1
+    
+    for p in self.points:
+      if(p[0] > maxX):
+        maxX = p[0]
+      if(p[0] < minX):
+        minX = p[0]
+      
+    return maxX - minX
+
+  def height(self):
+    """
+    Height of the feature -- defaults to 1
+    """
+    maxY = float("-infinity")
+    minY = float("infinity")
+    if(len(self.points) <= 0):
+      return 1
+    
+    for p in self.points:
+      if(p[1] > maxY):
+        maxY = p[1]
+      if(p[1] < minY):
+        minY = p[1]
+      
+    return maxY - minY
+
+  
+  def crop(self):
+    """
+    This function returns the largest bounding box for an image.
+
+    Returns Image
+    """
+
+    return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
