@@ -22,7 +22,9 @@ ballrect = ball.get_rect()
 
 while 1:
   for event in pygame.event.get():
-    if event.type == pygame.QUIT: sys.exit()
+    if event.type == pygame.QUIT:
+      pygame.quit()
+      sys.exit()
 
   ballrect = ballrect.move(speed)
   if ballrect.left < 0 or ballrect.right > width:

@@ -1,25 +1,15 @@
 import time, threading
 from SimpleCV.base import *
 import SimpleCV.ImageClass
+import Queue
+import json
+
 try:
   import pygame as pg
   pg.init()
   
 except ImportError:
   raise ImportError('Error Importing Pygame/surfarray')
-
-class DisplayEventHandler(threading.Thread):
-  """
-  Helper class for the display -- make sure we can quit out 
-  """
-  events = ""
-  
-  def run():
-    events = ()
-    while True:
-      time.sleep(0.01)
-      for event in pg.event.get():
-        if event.type == pg.QUIT: sys.exit()
 
 
 class Display:
@@ -35,26 +25,81 @@ class Display:
    pygame.RESIZABLE     display window should be sizeable
    pygame.NOFRAME       display window will have no border or controls
    
+  Display should be used in a while loop with the isDone() method, which
+  checks events and sets the following internal state controls:
+  
+  mouseX - the x position of the mouse cursor
+  mouseY - the y position of the mouse curson
+  mouseLeft - the state of the left button
+  mouseRight - the state of the right button
+  mouseMiddle - the state of the middle button
+  mouseWheelUp - if the wheel has been clicked towards the top of the mouse
+  mouseWheelDown - if the wheel has been clicked towards the bottom of the mouse
+ 
   """
   screen = ''
   eventhandler = ''
+  mq = ''
+  done = False
+  mouseX = 0
+  mouseY = 0
+  mouseLeft = 0
+  mouseMiddle = 0
+  mouseRight = 0
+  mouseWheelUp = 0
+  mouseWheelDown = 0
   
-  def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", Threaded = True):
+  
+  def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV"):
     self.screen = pg.display.set_mode(resolution, flags)
     if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
       pg.display.set_caption(title)
       
-    if Threaded:
-      self.eventhandler = DisplayEventHandler()
-      self.eventhandler.daemon = True
-      self.eventhandler.start()
-      time.sleep(0)
     
   def writeFrame(self, img):
+    """
+    writeFrame copies the given Image object to the display, you can also use
+    Image.save()
+    """
     surface = pg.surfarray.make_surface(img.getNumpy())
     self.screen.blit(surface, surface.get_rect())
     pg.display.flip()
     
-  def addEvent(self, eventCondition, eventHandlerFunction):
-    self.eventhandler.events.append(eventCondition, eventHandlerFunction)
+  def _setButtonState(self, state, button):
+    if button == 1:
+      self.mouseLeft = state
+    if button == 2:
+      self.mouseMiddle = state
+    if button == 3:
+      self.mouseRight = state
+    if button == 4:
+      self.mouseWheelUp = 1
+    if button == 5:
+      self.mouseWheelDown = 1
+    
+  def checkEvents(self):
+    """
+    checkEvents checks the pygame event queue and sets the internal display
+    values based on any new generated events
+    """
+    self.mouseWheelUp = self.mouseWheelDown = 0
+    for event in pg.event.get():
+      if event.type == pg.QUIT:
+        pg.quit()
+        self.done = True
+      if event.type == pg.MOUSEMOTION:
+        self.mouseX = event.pos[0]
+        self.mouseY = event.pos[1]
+        self.mouseLeft, self.mouseMiddle, self.mouseRight = event.buttons
+      if event.type == pg.MOUSEBUTTONUP:
+        self._setButtonState(0, event.button)
+      if event.type == pg.MOUSEBUTTONDOWN:
+        self._setButtonState(1, event.button)
+
+  def isDone(self):
+    """
+    Checks the event queue and returns True if a quit event has been issued
+    """
+    self.checkEvents()
+    return self.done
     

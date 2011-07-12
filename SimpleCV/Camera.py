@@ -17,7 +17,7 @@ class FrameBufferThread(threading.Thread):
   causes problems at low sample rates.  This makes sure the frames returned
   by your camera are fresh.
   """
-  def run():
+  def run(self):
     global _cameras
     while (1):
       for cam in _cameras:

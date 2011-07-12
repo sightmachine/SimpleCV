@@ -5,9 +5,12 @@ from SimpleCV import *
 from SimpleCV.Display import Display, pg
 
 #create JPEG streamers
-d = Display(flags = 0)
+  
+d = Display()
 cam = Camera()
+done = False
 
-while (1):
-  d.writeFrame(cam.getImage().edges().flipHorizontal())
+
+while not d.isDone():
+  cam.getImage().flipHorizontal().save(d)
   time.sleep(0.01)

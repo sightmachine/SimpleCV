@@ -228,6 +228,11 @@ class Image:
         self.filehandle = fh
         fh.writeFrame(self)
 
+      elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
+        self.filename = "" 
+        self.filehandle = fh
+        fh.writeFrame(self)
+
       else:      
         if (not mode):
           mode = "jpeg"
