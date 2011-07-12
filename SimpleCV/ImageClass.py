@@ -1515,18 +1515,37 @@ class Image:
 
     
   def addDrawingLayer(self,layer):
+    """
+    Push a new drawing layer onto the back of the layer stack
+    """
     self._mLayers.append(layer)
     return len(self._mLayers)-1
     
   def insertDrawingLayer(self,layer,index):
+    """
+    Insert a new layer into the layer stack at the specified index
+    """
     self._mLayers.insert(index,layer)
     return None    
   
   def removeDrawingLayer(self,index):
+    """
+    Remove a layer from the layer stack based on the layer's index. 
+    """
     return self._mLayers.pop(index)
     
   def getDrawingLayer(self,index):
+    """
+    Return a drawing layer based on the provided index. 
+    """
     return self._mLayers[index]
+  
+  def clearLayers(self):
+    """
+    Remove all of the drawing layers. 
+    """
+    self._mLayers = []
+    return None
 
     #render the image. 
   def _renderImage(self, layer):
@@ -1535,6 +1554,10 @@ class Image:
     return self._surface2Image(imgSurf)
         
   def drawLayers(self,indicies=-1):
+    """
+    Render all of the layers onto the current image and return the result.
+    Indicies can be a list of integers specifying the layers to be used. 
+    """
     final = DrawingLayer((self.width,self.height))
     if(indicies==-1 and len(self._mLayers) > 0 ):
       retVal = self
