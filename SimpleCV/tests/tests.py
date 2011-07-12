@@ -699,3 +699,104 @@ def test_colormap_build():
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
+
+
+def test_feature_height():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  heights = lines.height()
+
+  if(len(heights) <= 0 ):
+    assert False
+  else:
+    pass
+
+def test_feature_width():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  widths = lines.width()
+
+  if(len(widths) <= 0):
+    assert False
+  else:
+    pass
+
+def test_feature_crop():
+  imgA = Image(logo)
+  lines = imgA.findLines(1)
+  croppedImages = lines.crop()
+
+  if(len(croppedImages) <= 0):
+    assert False
+  else:
+    pass
+
+    
+def test_color_conversion_func_BGR():
+  #we'll just go through the space to make sure nothing blows up
+  img = Image(testimage)
+  bgr = img.toBGR()
+  rgb = img.toRGB()
+  hls = img.toHLS()
+  hsv = img.toHSV()
+  xyz = img.toXYZ()
+  
+  foo = bgr.toBGR()
+  foo = bgr.toRGB()
+  foo = bgr.toHLS()
+  foo = bgr.toHSV()
+  foo = bgr.toXYZ()
+  
+  
+def test_color_conversion_func_RGB():
+  img = Image(testimage)
+  if( not img.isBGR() ):
+    assert False
+  rgb = img.toRGB()
+  
+  foo = rgb.toBGR()
+  if( not foo.isBGR() ):
+    assert False   
+  
+  foo = rgb.toRGB()
+  if( not foo.isRGB() ):
+    assert False   
+  
+  foo = rgb.toHLS()
+  if( not foo.isHLS() ):
+    assert False     
+  
+  foo = rgb.toHSV()
+  if( not foo.isHSV() ):
+    assert False 
+  
+  foo = rgb.toXYZ()
+  if( not foo.isXYZ() ):
+    assert False 
+
+def test_color_conversion_func_HSV():
+  img = Image(testimage)
+  hsv = img.toHSV()
+  foo = hsv.toBGR()
+  foo = hsv.toRGB()
+  foo = hsv.toHLS()
+  foo = hsv.toHSV()
+  foo = hsv.toXYZ()
+  
+def test_color_conversion_func_HLS():
+  img = Image(testimage)
+  hls = img.toHLS()
+  foo = hls.toBGR()
+  foo = hls.toRGB()
+  foo = hls.toHLS()
+  foo = hls.toHSV()
+  foo = hls.toXYZ()   
+
+def test_color_conversion_func_XYZ():
+  img = Image(testimage)
+  xyz = img.toXYZ()  
+  foo = xyz.toBGR()
+  foo = xyz.toRGB()
+  foo = xyz.toHLS()
+  foo = xyz.toHSV()
+  foo = xyz.toXYZ()  

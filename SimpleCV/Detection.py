@@ -77,12 +77,17 @@ For more information:
 * http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
   """
   cvblob = ""
-  
-  def __init__(self, i, cb): 
+    
+  def __init__(self, i, cb):
+    self.points = [0,0,0,0]
     self.image = i
     self.cvblob = cb
     (self.x, self.y) = cvb.Centroid(cb)
-
+    self.points[0] = (self.cvblob.minx, self.cvblob.miny)
+    self.points[1] = (self.cvblob.maxx, self.cvblob.miny)
+    self.points[2] = (self.cvblob.maxx, self.cvblob.maxy)
+    self.points[3] = (self.cvblob.minx, self.cvblob.maxy)
+    
   def area(self):
     return self.cvblob.area  
 
@@ -97,6 +102,7 @@ For more information:
     Length returns the longest dimension of the X/Y bounding box 
     """
     return max(self.cvblob.maxx-self.cvblob.minx, self.cvblob.maxy-self.cvblob.miny)
+   
 
 #  todo?
 #  def elongation(self):
@@ -125,7 +131,6 @@ class Line(Feature):
 
   l.points will be a tuple of the two points
   """
-  points = ()
 
   def __init__(self, i, line):
     self.image = i
@@ -257,7 +262,6 @@ class Barcode(Feature):
   - data is the parsed data of the code
   """
   data = ""
-  points = []
 
   #given a ZXing bar
   def __init__(self, i, zxbc):
@@ -321,6 +325,7 @@ class Barcode(Feature):
     #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
     return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
 
+
 class HaarFeature(Feature):
   """
   The HaarFeature is a rectangle returned by the FindHaarFeature() function.
@@ -329,7 +334,6 @@ class HaarFeature(Feature):
   - the classifier property refers to the cascade file used for detection 
   - points are the clockwise points of the bounding rectangle, starting in upper left
   """
-  points = ()
   classifier = "" 
   width = ""
   height = ""
@@ -380,10 +384,21 @@ class HaarFeature(Feature):
     if (self.width > self.height):
       return 0.00
     else:
-      return 90.00 
+      return 90.00
+
+  def width(self):
+    """
+    Get the width of the line.
+    """
+    return abs(self.points[1][0]- self.points[0][0])
+    
+  def height(self):
+    """
+    Get the height of the line
+    """    
+    return abs(self.points[1][1]- self.points[0][1])
 
 class Chessboard(Feature):
-  points = ()
   spCorners = []
   dimensions = ()
   
@@ -424,10 +439,7 @@ class Chessboard(Feature):
     q = sqform[1][3] 
     s = (a + b + c + d)/2.0 
     return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
-    
-    
-    
-    
+
 #TODO?
 #class Edge(Feature):
 #class Ridge(Feature):
