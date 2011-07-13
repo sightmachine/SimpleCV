@@ -48,10 +48,11 @@ class Display:
   mouseRight = 0
   mouseWheelUp = 0
   mouseWheelDown = 0
-  
+  _surfarr = ""
   
   def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV"):
     self.screen = pg.display.set_mode(resolution, flags)
+    self._surfarr = pg.surfarray.array3d(self.screen)
     if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
       pg.display.set_caption(title)
       
@@ -61,8 +62,8 @@ class Display:
     writeFrame copies the given Image object to the display, you can also use
     Image.save()
     """
-    surface = pg.surfarray.make_surface(img.getNumpy())
-    self.screen.blit(surface, surface.get_rect())
+    s = pg.image.fromstring(img.getPIL().tostring(), img.size(), "RGB")
+    self.screen.blit(s, s.get_rect())
     pg.display.flip()
     
   def _setButtonState(self, state, button):
