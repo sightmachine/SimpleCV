@@ -371,24 +371,32 @@ class DrawingLayer:
         self._mSurface.blit(tsurface,location)        
         return None
     
-    def sprite(self,img,pos=(0,0),scale=1.0,rot=0.0,alpha=1.0):
-        return None
+    #def sprite(self,img,rect,pos=(0,0),scale=1.0,rot=0.0,alpha=1.0):
+        #mySprite = pg.sprite.Sprite()
+        #try:
+        #    image,rect = pg.image.load(img)
+        #except pg.error, message:
+        #   print 'Cannot load image:', img
+        #   return
+        #mySprite.image= img
+        #mySprite.rect = rect
+        #return None
     #sprite overload
     
-    def watermark(self):
-        return None
+    #def watermark(self):
+    #    return None
         
     #capture time, color depth, path, etc
-    def printStats(self):
-        return None
+    #def printStats(self):
+    #    return None
     
     #plot 2D data on the image
-    def plot(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
-        return None
+    #def plot(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
+    #    return None
     
     #plot a histogram
-    def histogram(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
-        return None
+    #def histogram(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
+    #    return None
         
     def replaceOverlay(self, overlay):
         """
