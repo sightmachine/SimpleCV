@@ -220,3 +220,7 @@ You can save a frame to the video by using the Image.save() function::
       self.framecount += 1
     
     self.lastframe = img
+
+
+    
+    
