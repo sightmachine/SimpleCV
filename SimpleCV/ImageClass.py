@@ -1508,11 +1508,20 @@ class Image:
   def _surface2Image(self,surface):
     imgarray = pg.surfarray.array3d(surface)
     retVal = Image(imgarray)
+    retVal._colorSpace = ColorSpace.RGB
     return retVal.toBGR().rotate90()
     
   def _image2Surface(self,img):
-    return pg.surfarray.make_surface(img.toRGB().getNumpy())
+    return pg.image.fromstring(img.getPIL().tostring(),img.size(), "RGB") 
+    #return pg.surfarray.make_surface(img.toRGB().getNumpy())
 
+  def toPygameSurface(self):
+    """
+    Converts this image to a pygame surface. This is useful if you want
+    to treat an image as a sprite to render onto an image. An example
+    would be rendering blobs on to an image. THIS IS EXPERIMENTAL.
+    """
+    return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB") 
     
   def addDrawingLayer(self,layer):
     """

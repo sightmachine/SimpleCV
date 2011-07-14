@@ -36,6 +36,7 @@ class DrawingLayer:
         pg.init()
         if( not pg.font.get_init() ):
             pg.font.init()
+        #pg.display.set_mode((width,height))
         self._mSurface = pg.Surface((width,height),flags=pg.SRCALPHA)
         self._mDefaultAlpha = 255
         self._mClearColor = pg.Color(0,0,0,0)
@@ -87,7 +88,7 @@ class DrawingLayer:
             alpha = self._mDefaultAlpha
         if(color==Color.DEFAULT):
             color=self._mDefaultColor
-        retVal = pg.Color(color[2],color[1],color[0],alpha)
+        retVal = pg.Color(color[0],color[1],color[2],alpha)
         return retVal
     
     def setDefaultColor(self,color):
@@ -371,18 +372,34 @@ class DrawingLayer:
         self._mSurface.blit(tsurface,location)        
         return None
     
-    #def sprite(self,img,rect,pos=(0,0),scale=1.0,rot=0.0,alpha=1.0):
-        #mySprite = pg.sprite.Sprite()
-        #try:
-        #    image,rect = pg.image.load(img)
-        #except pg.error, message:
-        #   print 'Cannot load image:', img
-        #   return
-        #mySprite.image= img
-        #mySprite.rect = rect
-        #return None
-    #sprite overload
-    
+    def sprite(self,img,pos=(0,0),scale=1.0,rot=0.0,alpha=255):
+        """
+        sprite draws a sprite (a second small image) onto the current layer.
+        The sprite can be loaded directly from a supported image file like a
+        gif, jpg, bmp, or png, or loaded as a surface or SCV image.
+        
+        pos - the (x,y) position of the upper left hand corner of the sprite
+
+        scale - a scale multiplier as a float value. E.g. 1.1 makes the sprite 10% bigger
+        
+        rot = a rotation angle in degrees
+        
+        alpha = an alpha value 255=opaque 0=transparent. 
+        """
+        if(img.__class__.__name__=='str'):
+            image = pg.image.load(img, "RGB")
+        else:
+            image = img # we assume we have a surface
+        image = image.convert(self._mSurface)
+        if(rot != 0.00):    
+            image = pg.transform.rotate(image,rot)
+        if(scale != 1.0):
+            image = pg.transform.scale(image,(int(image.get_width()*scale),int(image.get_height()*scale)))
+        pixels_alpha = pg.surfarray.pixels_alpha(image)
+        pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
+        del pixels_alpha
+        self._mSurface.blit(image,pos)
+ 
     #def watermark(self):
     #    return None
         

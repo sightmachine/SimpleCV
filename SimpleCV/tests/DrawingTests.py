@@ -388,4 +388,20 @@ def test_alpha():
     if(diffImgs(temp,test)):
         pass
     else:
-        assert False        
+        assert False
+        
+def test_sprites():
+    img = Image(fname)
+    test = Image("../sampleimages/sprites.png")
+    sprites = DrawingLayer((img.width,img.height))
+    sprites.sprite("../sampleimages/logo.png",(0,0),alpha=128, rot=45,scale=1.5)
+    mySprite = Image("../sampleimages/logo.png").toPygameSurface()
+    sprites.sprite(mySprite,(100,100),alpha=128, rot=45,scale=1.5)
+    sprites.sprite(mySprite,(200,0))
+    sprites.sprite(mySprite,(0,200), rot=45,scale=1)
+    img.addDrawingLayer(sprites)
+    temp = img.drawLayers()
+    if(diffImgs(temp,test)):
+        pass
+    else:
+        assert False
