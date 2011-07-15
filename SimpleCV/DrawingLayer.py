@@ -96,7 +96,7 @@ class DrawingLayer:
         """
         self._mDefaultColor = color
         
-    def line(self,start,stop, color=Color.DEFAULT, width=1, antialias=False,alpha=-1 ):
+    def line(self,start,stop, color=Color.DEFAULT, width=1, antialias=True,alpha=-1 ):
         """
         Draw a single line from the (x,y) tuple start to the (x,y) tuple stop.
         Optional parameters:
@@ -119,7 +119,7 @@ class DrawingLayer:
             pg.draw.line(self._mSurface,self._csvRGB2pgColor(color,alpha),start,stop,width)        
         return None
     
-    def lines(self,points,color=Color.DEFAULT,antialias=False,alpha=-1,width=1 ):
+    def lines(self,points,color=Color.DEFAULT,antialias=True,alpha=-1,width=1 ):
         """
         Draw a set of lines from the list of (x,y) tuples points. Lines are draw
         between each successive pair of points.
@@ -191,7 +191,7 @@ class DrawingLayer:
         return None    
     
     
-    def polygon(self,points,color=Color.DEFAULT,width=1,filled=False,antialias=False,alpha=-1):
+    def polygon(self,points,color=Color.DEFAULT,width=1,filled=False,antialias=True,alpha=-1):
         """
         Draw a polygon from a list of (x,y)
         

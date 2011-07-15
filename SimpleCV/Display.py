@@ -2,14 +2,9 @@ import time, threading
 from SimpleCV.base import *
 import SimpleCV.ImageClass
 import Queue
-import json
+import pygame as pg
 
-try:
-    import pygame as pg
-    pg.init()
-  
-except ImportError:
-    raise ImportError('Error Importing Pygame/surfarray')
+pg.init()
 
 
 class Display:
@@ -64,8 +59,7 @@ class Display:
         """
         if img.size() != self.resolution:
             img = img.scale(self.resolution[0], self.resolution[1])
-        s = pg.image.fromstring(img.getPIL().tostring(), img.size(), "RGB")
-        #s = pg.surfarray.make_surface(img.toRGB().getNumpy())
+        s = img.getPGSurface()
         self.screen.blit(s, s.get_rect())
         pg.display.flip()
       

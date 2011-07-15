@@ -59,6 +59,8 @@ class Image:
   _pil = "" #holds a PIL object in buffer
   _numpy = "" #numpy form buffer
   _colorSpace= ColorSpace.UNKNOWN #Colorspace Object
+  _pgsurface = ""
+  
   #when we empty the buffers, populate with this:
   _initialized_buffers = { 
     "_bitmap": "", 
@@ -70,7 +72,8 @@ class Image:
     "_edgeMap": "",
     "_cannyparam": (0,0), 
     "_pil": "",
-    "_numpy": ""}  
+    "_numpy": "",
+    "_pgsurface": ""}  
     
   #initialize the frame
   #parameters: source designation (filename)
@@ -87,6 +90,11 @@ class Image:
     self._mLayers = []
     self.camera = camera
     self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
+    
+
+    
+    
+    
     if (type(source) == cv.cvmat):
       self._matrix = source
       if((source.step/source.cols)==3): #this is just a guess
@@ -129,6 +137,14 @@ class Image:
       self.filename = source
       self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
       self._colorSpace = ColorSpace.BGR
+    
+    elif (type(source) == pg.Surface):
+      self._pgsurface = source
+      self._bitmap = cv.CreateImageHeader(self._pgsurface.get_size(), cv.IPL_DEPTH_8U, 3)
+      cv.SetData(self._bitmap, pg.image.tostring(self._pgsurface, "RGB"))
+      cv.CvtColor(self._bitmap, self._bitmap,cv.CV_RGB2BGR)
+      self._colorSpace = ColorSpace.BGR
+
     elif (PIL_ENABLED and source.__class__.__name__ == "JpegImageFile"):
       self._pil = source
       #from the opencv cookbook 
@@ -385,17 +401,34 @@ class Image:
 
     return self._equalizedgraybitmap
     
+  def getPGSurface(self):
+    if (self._pgsurface):
+      return self._pgsurface
+    else:
+      self._pgsurface = pg.image.fromstring(self.getPIL().tostring(), self.size(), "RGB")
+      return self._pgsurface
+    
   def save(self, filehandle_or_filename="", mode=""):
     """
     Save the image to the specified filename.  If no filename is provided then
     then it will use the filename the Image was loaded from or the last
     place it was saved to. 
+    
+    Save will implicitly render the image's layers before saving, but the layers are 
+    not applied to the Image itself.
     """
     if (not filehandle_or_filename):
       if (self.filename):
         filehandle_or_filename = self.filename
       else:
         filehandle_or_filename = self.filehandle
+
+    if (len(self._mLayers)):
+      saveimg = self.copy()
+      saveimg._mLayers = self._mLayers
+      saveimg.applyLayers()
+    else:
+      saveimg = self
 
 
     if (type(filehandle_or_filename) != str):
@@ -408,7 +441,7 @@ class Image:
 
       if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
         fh.jpgdata = StringIO() 
-        self.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
+        saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
         fh.refreshtime = time.time()
         self.filename = "" 
         self.filehandle = fh
@@ -416,18 +449,18 @@ class Image:
       elif (type(fh) == InstanceType and fh.__class__.__name__ == "VideoStream"):
         self.filename = "" 
         self.filehandle = fh
-        fh.writeFrame(self)
+        fh.writeFrame(saveimg)
 
       elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
         self.filename = "" 
         self.filehandle = fh
-        fh.writeFrame(self)
+        fh.writeFrame(saveimg)
 
       else:      
         if (not mode):
           mode = "jpeg"
       
-        self.getPIL().save(fh, mode)
+        saveung.getPIL().save(fh, mode)
         self.filehandle = fh #set the filename for future save operations
         self.filename = ""
         
@@ -435,11 +468,11 @@ class Image:
 
     filename = filehandle_or_filename
     if (filename):
-      cv.SaveImage(filename, self.getBitmap())  
+      cv.SaveImage(filename, saveimg.getBitmap())  
       self.filename = filename #set the filename for future save operations
       self.filehandle = ""
     elif (self.filename):
-      cv.SaveImage(self.filename, self.getBitmap())
+      cv.SaveImage(self.filename, saveimg.getBitmap())
     else:
       return 0
 
@@ -1461,14 +1494,10 @@ class Image:
     only a single large blob in the image. 
     """
     cv.SetZero(self._bitmap)
-    _matrix = ""  #the matrix (cvmat) representation
-    _grayMatrix = "" #the gray scale (cvmat) representation -KAS
-    _graybitmap = ""  #a reusable 8-bit grayscale bitmap  
-    _equalizedgraybitmap = "" #the above bitmap, normalized 
-    _blobLabel = ""  #the label image for blobbing
-    _edgeMap = "" #holding reference for edge map
+    self._clearBuffers()
     
-  
+
+    
   def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
     """
     This function draws the string that is passed on the screen at the specified coordinates
@@ -1492,7 +1521,7 @@ class Image:
     
     return img
 
-  def show(self, type = 'browser'):
+  def show(self, type = 'window'):
     """
     This function automatically pops up a window and shows the current image
 
@@ -1500,29 +1529,27 @@ class Image:
     """
 
     if(type == 'browser'):
-      try:
-        import time, webbrowser
-      except ImportError:
-        print "Time or Webbrowser python library missing"
+
+      import webbrowser
       js = JpegStreamer(8080)
       self.save(js)
       webbrowser.open("http://localhost:8080", 2)
+      return js
+    elif (type == 'window'):
+      from SimpleCV.Display import Display
+      d = Display(self.size())
+      self.save(d)
+      return d
     else:
       print "Unknown type to show"
-
-  def _surface2Image(self,surface):
-    imgarray = pg.surfarray.array3d(surface)
-    retVal = Image(imgarray)
-    return retVal.toBGR().rotate90()
     
-  def _image2Surface(self,img):
-    return pg.surfarray.make_surface(img.toRGB().getNumpy())
-
-    
-  def addDrawingLayer(self,layer):
+  def addDrawingLayer(self,layer = ""):
     """
     Push a new drawing layer onto the back of the layer stack
     """
+    if not layer:
+      layer = DrawingLayer(self.size())
+    
     self._mLayers.append(layer)
     return len(self._mLayers)-1
     
@@ -1539,11 +1566,21 @@ class Image:
     """
     return self._mLayers.pop(index)
     
-  def getDrawingLayer(self,index):
+  def getDrawingLayer(self,index = -1):
     """
-    Return a drawing layer based on the provided index. 
+    Return a drawing layer based on the provided index.  If not provided, will
+    default to the top layer.  If no layers exist, one will be created
     """
+    if not len(self._mLayers):
+      self.addDrawingLayer()
+      
     return self._mLayers[index]
+    
+  def dl(self, index = -1):
+    """
+    Alias for getDrawingLayer()
+    """
+    return self.getDrawingLayer(index)
   
   def clearLayers(self):
     """
@@ -1554,11 +1591,11 @@ class Image:
 
     #render the image. 
   def _renderImage(self, layer):
-    imgSurf = self._image2Surface(self)
+    imgSurf = self.getPGSurface(self)
     imgSurf.blit(layer._mSurface,(0,0))
-    return self._surface2Image(imgSurf)
+    return Image(imgSurf)
         
-  def drawLayers(self,indicies=-1):
+  def applyLayers(self,indicies=-1):
     """
     Render all of the layers onto the current image and return the result.
     Indicies can be a list of integers specifying the layers to be used. 
@@ -1571,15 +1608,15 @@ class Image:
         layers.renderToOtherLayer(final)
       self._mLayers.reverse()  
       #then draw them
-      imgSurf = self._image2Surface(self)
+      imgSurf = self.getPGSurface()
       imgSurf.blit(final._mSurface,(0,0))
-      return self._surface2Image(imgSurf)
+      return Image(imgSurf)
     else:
       retVal = self
       indicies.reverse()
       for idx in indicies:
         retVal = self._mLayers[idx].renderToOtherLayer(final)
-      imgSurf = self._image2Surface(self)
+      imgSurf = self.getPGSurface()
       imgSurf.blit(final._mSurface,(0,0))
       indicies.reverse()
-      return self._surface2Image(imgSurf)
+      return Image(imgSurf)
