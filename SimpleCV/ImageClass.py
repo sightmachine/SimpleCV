@@ -7,6 +7,11 @@ from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
+from SimpleCV.DrawingLayer import * 
+from numpy import int32
+from numpy import uint8
+import pygame as pg
+    
 class ColorSpace:
   """
   This class is used to encapsulates the color space of a given image.
@@ -38,7 +43,7 @@ class Image:
   filename = "" #source filename
   filehandle = "" #filehandle if used
   camera = ""
-  
+  _mLayers = []  
 
   _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -79,6 +84,7 @@ class Image:
     Python Image Library: Image type
     Filename: All opencv supported types (jpg, png, bmp, gif, etc)
     """
+    self._mLayers = []
     self.camera = camera
     self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
     if (type(source) == cv.cvmat):
@@ -1252,7 +1258,14 @@ class Image:
     cv.WarpAffine(self.getBitmap(),retVal,rotMat)
     return Image(retVal,colorSpace=self._colorSpace) 
 
-
+  def rotate90(self):
+    """
+    Does a fast 90 degree rotation.
+    """
+    retVal = cv.CreateImage((self.height,self.width), cv.IPL_DEPTH_8U, 3)
+    cv.Transpose(self.getBitmap(),retVal)
+    return(Image(retVal,colorSpace=self._colorSpace))
+    
   def shear(self, cornerpoints):
     """
     Given a set of new corner points in clockwise order, return a shear-ed Image
@@ -1496,4 +1509,77 @@ class Image:
       webbrowser.open("http://localhost:8080", 2)
     else:
       print "Unknown type to show"
+
+  def _surface2Image(self,surface):
+    imgarray = pg.surfarray.array3d(surface)
+    retVal = Image(imgarray)
+    return retVal.toBGR().rotate90()
     
+  def _image2Surface(self,img):
+    return pg.surfarray.make_surface(img.toRGB().getNumpy())
+
+    
+  def addDrawingLayer(self,layer):
+    """
+    Push a new drawing layer onto the back of the layer stack
+    """
+    self._mLayers.append(layer)
+    return len(self._mLayers)-1
+    
+  def insertDrawingLayer(self,layer,index):
+    """
+    Insert a new layer into the layer stack at the specified index
+    """
+    self._mLayers.insert(index,layer)
+    return None    
+  
+  def removeDrawingLayer(self,index):
+    """
+    Remove a layer from the layer stack based on the layer's index. 
+    """
+    return self._mLayers.pop(index)
+    
+  def getDrawingLayer(self,index):
+    """
+    Return a drawing layer based on the provided index. 
+    """
+    return self._mLayers[index]
+  
+  def clearLayers(self):
+    """
+    Remove all of the drawing layers. 
+    """
+    self._mLayers = []
+    return None
+
+    #render the image. 
+  def _renderImage(self, layer):
+    imgSurf = self._image2Surface(self)
+    imgSurf.blit(layer._mSurface,(0,0))
+    return self._surface2Image(imgSurf)
+        
+  def drawLayers(self,indicies=-1):
+    """
+    Render all of the layers onto the current image and return the result.
+    Indicies can be a list of integers specifying the layers to be used. 
+    """
+    final = DrawingLayer((self.width,self.height))
+    if(indicies==-1 and len(self._mLayers) > 0 ):
+      retVal = self
+      self._mLayers.reverse()
+      for layers in self._mLayers: #compose all the layers
+        layers.renderToOtherLayer(final)
+      self._mLayers.reverse()  
+      #then draw them
+      imgSurf = self._image2Surface(self)
+      imgSurf.blit(final._mSurface,(0,0))
+      return self._surface2Image(imgSurf)
+    else:
+      retVal = self
+      indicies.reverse()
+      for idx in indicies:
+        retVal = self._mLayers[idx].renderToOtherLayer(final)
+      imgSurf = self._image2Surface(self)
+      imgSurf.blit(final._mSurface,(0,0))
+      indicies.reverse()
+      return self._surface2Image(imgSurf)
