@@ -219,7 +219,7 @@ class DrawingLayer:
             pg.draw.polygon(self._mSurface,self._csvRGB2pgColor(color,alpha),points,width)
         return None
     
-    def circle(self,center,radius,color=Color.DEFAULT,width=1,filled=False,alpha=-1):
+    def circle(self,center,radius,color=Color.DEFAULT,width=1,filled=False,alpha=-1, antialias = True):
         """
         Draw a circle given a location and a radius. 
         
@@ -236,7 +236,10 @@ class DrawingLayer:
         """           
         if(filled):
             width = 0
-        pg.draw.circle(self._mSurface,self._csvRGB2pgColor(color,alpha),center,radius,width)
+        if antialias == False:
+            pg.draw.circle(self._mSurface,self._csvRGB2pgColor(color,alpha),center,radius,width)
+        else:
+            pg.gfxdraw.aacircle(self._mSurface, center[0], center[1], radius, self._csvRGB2pgColor(color,alpha))
         return None
     
     def ellipse(self,center,dimensions,color=Color.DEFAULT,width=1, filled=False,alpha=-1):

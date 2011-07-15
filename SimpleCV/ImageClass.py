@@ -752,13 +752,14 @@ class Image:
     * a color tuple (default black)
     * the thickness of the circle
 
-    Note that this modifies the image in-place and clears all buffers.
+    Note that this function is depricated, try to use DrawingLayer.circle() instead
 
     Returns: NONE - Inline Operation
     """
-    cv.Circle(self.getBitmap(), (int(ctr[0]), int(ctr[1])), rad, reverse_tuple(color), thickness)
-    self._clearBuffers("_bitmap")
-
+    
+    
+    self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
+    
   def drawLine(self, pt1, pt2, color = (0,0,0), thickness = 1):
     """
     Draw a line on the Image, parameters include
@@ -773,8 +774,7 @@ class Image:
     """
     pt1 = (int(pt1[0]), int(pt1[1]))
     pt2 = (int(pt2[0]), int(pt2[1]))
-    cv.Line(self.getBitmap(), pt1, pt2, reverse_tuple(color), thickness, cv.CV_AA)
-
+    self.getDrawingLayer().line(pt1, pt2, color, thickness)
     
 
   def size(self):
@@ -1511,14 +1511,9 @@ class Image:
     if(y == None):
       y = (self.height / 2)
     
-    img = self.getPIL()
-    draw = pilImageDraw.Draw(img)
-    draw.text((x, y),text,color,font=font.getFont())
-    draw = pilImageDraw.Draw(img)
-
+    self.getDrawingLayer().setFontSize(fontsize)
+    self.getDrawingLayer().text(text, (x,y), color)
     
-    return img
-
   def show(self, type = 'window'):
     """
     This function automatically pops up a window and shows the current image
