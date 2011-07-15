@@ -424,9 +424,7 @@ class Image:
         filehandle_or_filename = self.filehandle
 
     if (len(self._mLayers)):
-      saveimg = self.copy()
-      saveimg._mLayers = self._mLayers
-      saveimg.applyLayers()
+      saveimg = self.applyLayers()
     else:
       saveimg = self
 
@@ -1586,7 +1584,9 @@ class Image:
     """
     Remove all of the drawing layers. 
     """
-    self._mLayers = []
+    for i in self._mLayers:
+      self._mLayers.remove(i)
+      
     return None
 
     #render the image. 
@@ -1608,7 +1608,7 @@ class Image:
         layers.renderToOtherLayer(final)
       self._mLayers.reverse()  
       #then draw them
-      imgSurf = self.getPGSurface()
+      imgSurf = self.toRGB().getPGSurface()
       imgSurf.blit(final._mSurface,(0,0))
       return Image(imgSurf)
     else:

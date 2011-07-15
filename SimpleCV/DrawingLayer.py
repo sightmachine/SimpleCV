@@ -87,7 +87,7 @@ class DrawingLayer:
             alpha = self._mDefaultAlpha
         if(color==Color.DEFAULT):
             color=self._mDefaultColor
-        retVal = pg.Color(color[2],color[1],color[0],alpha)
+        retVal = pg.Color(color[0],color[1],color[2],alpha)
         return retVal
     
     def setDefaultColor(self,color):
