@@ -59,6 +59,7 @@ class Color:
   INDIGO = (75, 0, 130)
   MAROON = (128, 0, 0)
   CRIMSON = (220, 20, 60)
+  DEFAULT = (0,0,0)
   
   
 
