@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 from SimpleCV import *
-from SimpleCV import RenderEngine
+from SimpleCV.DrawingLayer import DrawingLayer
 
 img = Image("../sampleimages/color.jpg")
 lineL = DrawingLayer((img.width,img.height))
