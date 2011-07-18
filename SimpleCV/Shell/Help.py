@@ -41,6 +41,19 @@ def magic_help(self,arg):
     clear()
     print FeatureSet.__doc__
     
+  elif(arg.lower() == "joshua"):
+      clear()
+      print "Greetings Professor Falken"
+      print ""
+      print "Hello"
+      print ""
+      print "A Strange Game."
+      print "The only winning move is"
+      print "not to play."
+      print ""
+      print "How about a nice game of chess?"
+      print ""
+        
   elif(arg.lower() == "camera"):
     clear()
     print Camera.__doc__
