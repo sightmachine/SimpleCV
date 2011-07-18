@@ -1872,7 +1872,7 @@ class Image:
                 layers.renderToOtherLayer(final)
             self._mLayers.reverse()  
             #then draw them
-            imgSurf = self.toRGB().getPGSurface()
+            imgSurf = self.getPGSurface()
             imgSurf.blit(final._mSurface, (0, 0))
             return Image(imgSurf)
         else:
