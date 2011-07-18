@@ -49,7 +49,7 @@ class Display:
         self.resolution = resolution
         self.screen = pg.display.set_mode(resolution, flags)
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
-          pg.display.set_caption(title)
+            pg.display.set_caption(title)
           
         
     def writeFrame(self, img):
