@@ -10,5 +10,5 @@ from SimpleCV.ColorModel import *
 from SimpleCV.DrawingLayer import *
 
 if (__name__ == '__main__'):
-  from SimpleCV.Shell import *
-  main()
+    from SimpleCV.Shell import *
+    main()
