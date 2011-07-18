@@ -189,12 +189,16 @@ def findCornerTilted(cb, i, calibration_set, dims):
   else:
     saveCalibrationImage(i, calibration_set, dims)
   
-def main(argv):
+def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = False, gridsize = 0.029, calibrationFile = "default"):
   global save_location
   
   camindex = 0
-  mode = 0
-  dims = (8, 5)  #change this if you are using something besides our 
+  if planemode:
+    mode = 7
+  else
+    mode = 0
+  
+  dims = (chessboard_width, chessboard_height)  #change this if you are using something besides our 
   gridsize = 0.029  #default calibration to mm
   calibrationFile = "default"
   
@@ -253,4 +257,16 @@ def main(argv):
     i.save(d)
     
 if __name__ == '__main__':
+  import argparse
+  
+  #parser = argparse.ArgumentParser("Create calibration files for your camera")
+  #args
+  #camera = 0
+  #chessboard_width = 8
+  #chessboard_height = 5
+  #plane_mode = False
+  #grid_size = 0.029
+  #calibrationFile
+  
+  #parser.add_argument('
   main(sys.argv)
