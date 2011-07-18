@@ -28,7 +28,7 @@ def test_line():
     lineL.line(a,c,color=Color.PLUM, alpha=52)
     lineL.line(b,d,width=5)
     img.addDrawingLayer(lineL)
-    temp = img.drawLayers()
+    temp = img.applyLayers()
     if(diffImgs(temp,test)):
         pass
     else:
@@ -51,7 +51,7 @@ def test_lines():
     pts = map(lambda x: ((x[0]+10),(x[1]+10)),pts)
     linesL.lines(pts,antialias=True)
     img.addDrawingLayer(linesL)
-    temp = img.drawLayers()    
+    temp = img.applyLayers()    
     if(diffImgs(temp,test)):
         pass
     else:
@@ -71,7 +71,7 @@ def test_rect_center():
     wh = (140,40)
     rectC.centeredRectangle(cxy,wh,color=Color.GREEN,filled=True)
     img.addDrawingLayer(rectC)
-    temp = img.drawLayers()
+    temp = img.applyLayers()
     if(diffImgs(temp,test)):
         pass
     else:
@@ -91,7 +91,7 @@ def test_rect():
     tr = (210,110)
     rectTR.rectangle(tr,wh,color=Color.GREEN,filled=True)
     img.addDrawingLayer(rectTR)
-    temp = img.drawLayers()
+    temp = img.applyLayers()
     if(diffImgs(temp,test)):
         pass
     else:
@@ -114,7 +114,7 @@ def test_poly():
     pts = map(lambda x: ((x[0]+10),(x[1]+10)),pts)
     polyL.polygon(pts,antialias=True,width=3,alpha=210)
     img.addDrawingLayer(polyL)
-    temp = img.drawLayers()    
+    temp = img.applyLayers()    
     if(diffImgs(temp,test)):
         pass
     else:
@@ -136,7 +136,7 @@ def test_circle():
     r = 90
     circleL.circle(c,r,color=Color.BLUE,alpha=172)
     img.addDrawingLayer(circleL)
-    temp = img.drawLayers()    
+    temp = img.applyLayers()    
     if(diffImgs(temp,test)):
         pass
     else:
@@ -156,7 +156,7 @@ def test_ellipse():
     wh = (140,40)
     ellipseL.ellipse(cxy,wh,color=Color.GREEN,filled=True)
     img.addDrawingLayer(ellipseL)
-    temp = img.drawLayers()    
+    temp = img.applyLayers()    
     if(diffImgs(temp,test)):
         pass
     else:
@@ -182,7 +182,7 @@ def test_bezier():
     pts = map(lambda x: ((x[0]+10),(x[1]+10)),pts)
     bez.bezier(pts,30,color=Color.GREEN, alpha=128)
     img.addDrawingLayer(bez)
-    temp = img.drawLayers()
+    temp = img.applyLayers()
  
     if(diffImgs(temp,test)):
         pass
@@ -222,7 +222,7 @@ def test_font():
     pos = (190,190)
     words.ezViewText("Can you read this better?",pos)
     img.addDrawingLayer(words)
-    temp = img.drawLayers()    
+    temp = img.applyLayers()    
     if(diffImgs(temp,test)):
         pass
     else:
@@ -302,7 +302,7 @@ def test_layers():
     img.addDrawingLayer(circleL)
     img.addDrawingLayer(bez)
     img.addDrawingLayer(words)
-    temp = img.drawLayers([0,2,3])    
+    temp = img.applyLayers([0,2,3])    
     if(diffImgs(temp,test)):
         pass
     else:
@@ -384,7 +384,7 @@ def test_alpha():
     img.addDrawingLayer(circleL)
     img.addDrawingLayer(bez)
     img.addDrawingLayer(words)
-    temp = img.drawLayers()
+    temp = img.applyLayers()
     if(diffImgs(temp,test)):
         pass
     else:
@@ -400,7 +400,7 @@ def test_sprites():
     sprites.sprite(mySprite,(200,0))
     sprites.sprite(mySprite,(0,200), rot=45,scale=1)
     img.addDrawingLayer(sprites)
-    temp = img.drawLayers()
+    temp = img.applyLayers()
     if(diffImgs(temp,test)):
         pass
     else:
