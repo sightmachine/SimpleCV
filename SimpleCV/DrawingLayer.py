@@ -412,6 +412,12 @@ class DrawingLayer:
     #def histogram(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
     #    return None
         
+    def blit(self, img, coordinates = (0,0)):
+      """
+Blit one image onto the drawing layer at upper left coordinates
+      """
+      self._mSurface.blit(img.getPGSurface(), coordinates)
+        
     def replaceOverlay(self, overlay):
         """
         This method allows you to set the surface manually. 
