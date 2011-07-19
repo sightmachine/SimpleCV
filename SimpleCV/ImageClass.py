@@ -301,7 +301,7 @@ class Image:
     else:
       warnings.warn("Image.toGray: There is no supported conversion to gray colorspace")
       return None;
-    return Image(retVal,colorSpace=ColorSpace.Gray )    
+    return Image(retVal,colorSpace=ColorSpace.GRAY)    
     
   def getEmpty(self, channels = 3):
     """
@@ -690,8 +690,6 @@ class Image:
 
     if (maxsize == 0):  
       maxsize = self.width * self.height / 2
-      
-    derp = self.binarize(threshval, 255, threshblocksize, threshconstant)
     
     #create a single channel image, thresholded to parameters
     grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
