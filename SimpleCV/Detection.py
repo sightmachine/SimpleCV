@@ -27,55 +27,57 @@ class Corner(Feature):
         self.image.drawCircle((self.x, self.y), 4, color)
 
 class Blob(Feature):
-    """
-    The Blob Feature is a wrapper for the cvblob-python library.  
-    
-    The findBlobs() function returns contiguous regions of light-colored area, given an intensity threshold.  The Blob class helps you map the position, volume, and shape of these areas.  The coordinates of the Blob are its centroid, and its area is defined by its total pixel count.
-    
-    Blob implements all of the Feature properties, and its core data structure, cvblob has the following properties (from cvblob.h)::
-   
-    CvLabel label; ///< Label assigned to the blob.
-    
-    union
-    {
-      unsigned int area; ///< Area (moment 00).
-      unsigned int m00; ///< Moment 00 (area).
-    };
-    
-    unsigned int minx; ///< X min.
-    unsigned int maxx; ///< X max.
-    unsigned int miny; ///< Y min.
-    unsigned int maxy; ///< y max.
-    
-    CvPoint2D64f centroid; ///< Centroid.
-    
-    double m10; ///< Moment 10.
-    double m01; ///< Moment 01.
-    double m11; ///< Moment 11.
-    double m20; ///< Moment 20.
-    double m02; ///< Moment 02.
-    
-    double u11; ///< Central moment 11.
-    double u20; ///< Central moment 20.
-    double u02; ///< Central moment 02.
-   
-    double n11; ///< Normalized central moment 11.
-    double n20; ///< Normalized central moment 20.
-    double n02; ///< Normalized central moment 02.
-   
-    double p1; ///< Hu moment 1.
-    double p2; ///< Hu moment 2.
-   
-    CvContourChainCode contour;           ///< Contour.
-    CvContoursChainCode internalContours; ///< Internal contours. 
-   
-   
-    For more information:
-   
-    * http://github.com/oostendo/cvblob-python
-    * http://code.google.com/p/cvblob
-    * http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
-    """
+"""
+The Blob Feature is a wrapper for the cvblob-python library.  
+
+The findBlobs() function returns contiguous regions of light-colored area, given an intensity threshold.
+The Blob class helps you map the position, volume, and shape of these areas.
+The coordinates of the Blob are its centroid, and its area is defined by its total pixel count.
+
+Blob implements all of the Feature properties, and its core data structure, cvblob has the following properties (from cvblob.h)::
+
+CvLabel label; ///< Label assigned to the blob.
+
+union
+{
+  unsigned int area; ///< Area (moment 00).
+  unsigned int m00; ///< Moment 00 (area).
+};
+
+unsigned int minx; ///< X min.
+unsigned int maxx; ///< X max.
+unsigned int miny; ///< Y min.
+unsigned int maxy; ///< y max.
+
+CvPoint2D64f centroid; ///< Centroid.
+
+double m10; ///< Moment 10.
+double m01; ///< Moment 01.
+double m11; ///< Moment 11.
+double m20; ///< Moment 20.
+double m02; ///< Moment 02.
+
+double u11; ///< Central moment 11.
+double u20; ///< Central moment 20.
+double u02; ///< Central moment 02.
+
+double n11; ///< Normalized central moment 11.
+double n20; ///< Normalized central moment 20.
+double n02; ///< Normalized central moment 02.
+
+double p1; ///< Hu moment 1.
+double p2; ///< Hu moment 2.
+
+CvContourChainCode contour;           ///< Contour.
+CvContoursChainCode internalContours; ///< Internal contours. 
+
+
+For more information:
+
+* http://github.com/oostendo/cvblob-python
+* http://code.google.com/p/cvblob
+* http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
+"""
     cvblob = ""
      
     def __init__(self, i, cb):
