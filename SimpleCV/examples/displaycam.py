@@ -8,8 +8,6 @@ display = Display(resolution = (800, 600)) #create a new display to draw images 
 cam = Camera() #initialize the camera
 done = False # setup boolean to stop the program
 
-lasttime = time.time() # add a timer for the thread to sleep
-
 # Loop until not needed
 while not display.isDone():
     cam.getImage().flipHorizontal().save(display) # get image, flip it so it looks mirrored, save to display
