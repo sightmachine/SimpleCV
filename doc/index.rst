@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-SimpleCV: a kinder, gentler machine vision library 
+SimpleCV: Make computers see with SimpleCV
 ======================================================
 
-a kinder, gentler machine vision python library
+Make computers see with SimpleCV!
 
 SimpleCV is an interface for Open Source machine vision libraries in Python.   
 It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
@@ -37,30 +37,46 @@ For more code snippets, look at the cookbook, or the example scripts.
 
 Installation
 ---------------------------
+`Easiest Method`
+
+The easiest method to install SimpleCV is with the 1-click installers
+located at <http://www.simplecv.org>.  These installers should
+install all the necessary libraries you need to get SimpleCV up and
+running easily.
+
+
+`Easier Method`
 
 You will absolutely need:
 
- * OpenCV installed for your platform http://opencv.willowgarage.com/wiki/InstallGuide
- * SciPY/Numpy installed for your platform http://www.scipy.org/Download
+ * OpenCV installed for your platform <http://opencv.willowgarage.com/wiki/InstallGuide>
+ * SciPY/Numpy installed for your platform <http://www.scipy.org/Download>
 
 Once you have all the required libraries installed::
 
     easy_install simplecv
 
-If you need more help, look at the `installation docs`<installation.html>
+
+
+`Easy Method`
+
+If you need more specific instructions per platform there is:
+<http://www.simplecv.org/doc/installation.html>
+
 
 
 Required Libraries
 ----------------------
 
-* OpenCV 2.2 with Python bindings http://opencv.willowgarage.com/wiki/
-* SciPY http://www.scipy.org/
+* OpenCV 2.2 with Python bindings <http://opencv.willowgarage.com/wiki/>
+* SciPY <http://www.scipy.org>
+* Python Image Library <http://www.pythonware.com/products/pil/>
 
 Optional Libraries
 ----------------------
+Device Support:
 
-* Python Image Library http://www.pythonware.com/products/pil/
-* OpenKinect/freenect http://openkinect.org/wiki/Main_Page
+* OpenKinect/freenect <http://openkinect.org/wiki/Main_Page>
 
 Blob detection:
 
@@ -85,38 +101,13 @@ Contents
    cookbook
 
 
-Videos
+Videos - Tutorials and Demos
 ==================
+Video tutorials and demos can be found at:
+http://www.youtube.com/user/IngenuitasOfficial
 
-Our `installation docs`<installation.html> contain videos for installing on each platform.
-
-`Anthony shows off the SimpleCV interactive shell <http://youtu.be/oKyPHtcujyE>`
-
-.. raw:: html
-
-  <iframe width="425" height="349" src="http://www.youtube.com/embed/oKyPHtcujyE" frameborder="0" allowfullscreen></iframe>
-
-`Nate demonstrating the Kinect Coloring Example <http://youtu.be/cLD4Hk1oNlw>`_
-
-.. raw:: html
-
-  <iframe width="425" height="349" src="http://www.youtube.com/embed/cLD4Hk1oNlw" frameborder="0" allowfullscreen></iframe>
-
-`Anthony shows off the simplecam example`
-
-.. raw:: html
-
-  <iframe width="425" height="349" src="http://www.youtube.com/embed/Drz99oldq-0" frameborder="0" allowfullscreen></iframe>
-
-
-
-`Nate demonstrating the Cookie Jar Alarm Example <http://www.youtube.com/watch?v=i5j3ORmaLTo>`_
-
-.. raw:: html
-
-  <iframe width="560" height="349" src="http://www.youtube.com/embed/i5j3ORmaLTo" frameborder="0" allowfullscreen></iframe>
-
-
+or check out:
+http://www.simplecv.org
 
 
 

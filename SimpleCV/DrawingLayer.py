@@ -362,6 +362,13 @@ class DrawingLayer:
         self._mSurface.blit(tsurface, location)        
         return None        
 
+    def textDimensions(self, text):
+        """
+        The textDimensions function takes a string and returns the dimensions (width, height)
+        of this text being rendered on the screen.
+        """
+        tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(Color.WHITE, 255))
+        return (tsurface.get_width(), tsurface.get_height())
     
     def ezViewText(self, text, location, fgcolor = Color.WHITE, bgcolor = Color.BLACK):
         """
@@ -377,7 +384,7 @@ class DrawingLayer:
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(fgcolor, alpha), self._csvRGB2pgColor(bgcolor, alpha))
         self._mSurface.blit(tsurface, location)        
         return None
-    
+
     def sprite(self,img,pos=(0,0),scale=1.0,rot=0.0,alpha=255):
         """
         sprite draws a sprite (a second small image) onto the current layer.
@@ -405,21 +412,7 @@ class DrawingLayer:
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
         del pixels_alpha
         self._mSurface.blit(image,pos)
- 
-    #def watermark(self):
-    #    return None
-        
-    #capture time, color depth, path, etc
-    #def printStats(self):
-    #    return None
-    
-    #plot 2D data on the image
-    #def plot(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
-    #    return None
-    
-    #plot a histogram
-    #def histogram(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
-    #    return None
+
         
     def replaceOverlay(self, overlay):
         """

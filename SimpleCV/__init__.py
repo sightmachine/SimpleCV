@@ -11,5 +11,5 @@ from SimpleCV.DrawingLayer import *
 from SimpleCV.BlobMaker import *
 
 if (__name__ == '__main__'):
-  from SimpleCV.Shell import *
-  main()
+    from SimpleCV.Shell import *
+    main()

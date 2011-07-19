@@ -7,28 +7,41 @@ from scipy.spatial.distance import euclidean as distance
 This script can be used to quickly calibrate a camera 
 """
 
+def showText(img, text):
+  img.dl().setFontSize(25)
+  width, height = img.dl().textDimensions(text)
+  #img.dl().text(str(width) + 'x' + str(height), (100, 100))
+  img.dl().text(text, ((img.width / 2) - (width / 2), 100 - height / 2), color = (0, 120, 0))
+  
+def drawline(img, pt1, pt2):
+  img.dl().line(pt1, pt2, Color.GREEN, 5, antialias = False)
+
 def saveCalibrationImage(i, imgset, dims):
   """
   Save our image in the calibration set
-  
   """
-  #if (len(imgset)):
-  #  lastcb = imgset[-1].findChessboard(dims, subpixel = False)
-  # thiscb = i.findChessboard(dims, subpixel = False)
-  #  if distance(lastcb.coordinates()[0], thiscb.coordinates()[0]) < 10:
-  #    return 
+  if (len(imgset)):
+    lastcb = imgset[-1].findChessboard(dims, subpixel = False)
+    thiscb = i.findChessboard(dims, subpixel = False)
+    
+    cbmid = len(lastcb.coordinates()) / 2
+    if distance(lastcb.coordinates()[cbmid], thiscb.coordinates()[cbmid]) < 30:
+      showText(i, "Move the chessboard around inside the green rectangle")
+      return
   
-  imgset.append(i)
+  imgset.append(i.copy())
   global save_location
   if not save_location:
     return
     
   filename = save_location + "_image" + str(len(imgset)) + ".png"
   imgset[-1].save(filename)
-  print "Saved to " + filename
 
 def relativeSize(cb, i):
   return cb.area() / float(i.width * i.height)
+
+def relPercent(cb, i):
+  return str(int(relativeSize(cb,i) * 100)) + "%"
 
 def horizontalTilt(cb):  #ratio between the 0,3 and 1,2 point pairs
   distance_ratio = distance(cb.points[0], cb.points[3]) / distance(cb.points[1], cb.points[2])
@@ -53,178 +66,140 @@ lens distortion and give you more accurate measurement.  You will need:
   
 To begin, please put your Chessboard close to the camera so the long side is
 horizontal and it fill most of the screen.  Keep it parellel to the camera so it
-appears as a rectangle.
-  
-We are going to take 10 pictures:
+appears within the rectangle.
   """
   
-def findLargeFlat(cb, i, calibration_set, dims):
-  j = i.copy()
-  
-  i.drawLine( (10, 10), (i.width - 10, 10), Color.GREEN )
-  i.drawLine( (i.width - 10, 10), (i.width - 10, i.height - 10), Color.GREEN )
-  i.drawLine( (10, i.height - 10), (i.width - 10, i.height - 10), Color.GREEN )
-  i.drawLine( (10, 10), (10, i.height - 10), Color.GREEN )
+def findLargeFlat(cb, i, calibration_set, dims):  
+  drawline(i,  (10, 10), (i.width - 10, 10))
+  drawline(i,  (i.width - 10, 10), (i.width - 10, i.height - 10))
+  drawline(i,  (10, i.height - 10), (i.width - 10, i.height - 10))
+  drawline(i,  (10, 10), (10, i.height - 10))
   
   
   if not cb:
     return
     
   if (relativeSize(cb, i) > 0.7):
-    print "Chessboard is " + str(int(relativeSize(cb,i) * 100)) + "% of view area, perfect!"
-    saveCalibrationImage(j, calibration_set, dims)
+    saveCalibrationImage(i, calibration_set, dims)
   else:
-    print "Chessboard is " + str(int(relativeSize(cb,i) * 100)) + "% of view area, bring it closer"
+    showText(i,  "Chessboard is " + str(int(relativeSize(cb,i) * 100)) + " < 70% of view area, bring it closer")
 
   cb.draw()
 
 
 
-def printSmallFlatMessage():
-  print """
-Now move back, so that the chessboard is parallel to the camera and far away, so
-that it occupies about 1/6th of the screen. Take at least one image near each of
-the corners and one near the center of the image.
-
-First, lets take a picture in the top left corner of the image.
-"""
-
-
-def findSmallFlat(cb, i, calibration_set, dims):
-  j = i.copy()
-  
+def findSmallFlat(cb, i, calibration_set, dims):  
   lcs = len(calibration_set)
   if (lcs % 5 == 0): #outline the top left corner
-    i.drawLine( (i.width / 2, 0), (i.width / 2, i.height / 2), Color.GREEN)
-    i.drawLine( (0, i.height / 2), (i.width / 2, i.height / 2), Color.GREEN) 
+    drawline(i,  (i.width / 2, 0), (i.width / 2, i.height / 2))
+    drawline(i,  (0, i.height / 2), (i.width / 2, i.height / 2)) 
   if (lcs % 5 == 1): #outline top right corner
-    i.drawLine( (i.width / 2, 0), (i.width / 2, i.height / 2), Color.GREEN) 
-    i.drawLine( (i.width, i.height/2), (i.width / 2, i.height / 2), Color.GREEN)
+    drawline(i,  (i.width / 2, 0), (i.width / 2, i.height / 2)) 
+    drawline(i,  (i.width, i.height/2), (i.width / 2, i.height / 2))
   if (lcs % 5 == 2): #outline bottom right corner
-    i.drawLine( (i.width, i.height/2), (i.width / 2, i.height / 2), Color.GREEN)
-    i.drawLine( (i.width / 2, i.height), (i.width / 2, i.height / 2), Color.GREEN)
+    drawline(i,  (i.width, i.height/2), (i.width / 2, i.height / 2))
+    drawline(i,  (i.width / 2, i.height), (i.width / 2, i.height / 2))
   if (lcs % 5 == 3): #outline bottom left corner
-    i.drawLine( (i.width / 2, i.height), (i.width / 2, i.height / 2), Color.GREEN)
-    i.drawLine( (0, i.height / 2), (i.width / 2, i.height / 2), Color.GREEN)
+    drawline(i,  (i.width / 2, i.height), (i.width / 2, i.height / 2))
+    drawline(i,  (0, i.height / 2), (i.width / 2, i.height / 2))
   if (lcs % 5 == 4): #outline center
-    i.drawLine( (i.width / 4, i.height / 4), (3 * i.width / 4, i.height / 4), Color.GREEN)
-    i.drawLine( (3 * i.width / 4, i.height / 4), (3 * i.width / 4, 3 * i.height / 4), Color.GREEN)
-    i.drawLine( (3 * i.width / 4, 3 * i.height / 4), (i.width / 4, 3 * i.height / 4), Color.GREEN)
-    i.drawLine( (i.width / 4, 3 * i.height / 4), (i.width / 4, i.height / 4), Color.GREEN)
+    drawline(i,  (i.width / 4, i.height / 4), (3 * i.width / 4, i.height / 4))
+    drawline(i,  (3 * i.width / 4, i.height / 4), (3 * i.width / 4, 3 * i.height / 4))
+    drawline(i,  (3 * i.width / 4, 3 * i.height / 4), (i.width / 4, 3 * i.height / 4))
+    drawline(i,  (i.width / 4, 3 * i.height / 4), (i.width / 4, i.height / 4))
 
   if not cb:
     return
     
-  if (relativeSize(cb, i) < 0.125):
-    print "Chessboard is too small, bring it closer"
+  if (relativeSize(cb, i) < 0.13):
+    showText(i,  "Chessboard is " + relPercent(cb, i) + " < 13% bring it closer")
   elif (relativeSize(cb, i) > 0.25):
-    print "Chessboard is too big, move it back"
+    showText(i,  "Chessboard is " + relPercent(cb, i) + " > 25% move it back")
   elif (horizontalTilt(cb) < 0.9 or verticalTilt < 0.9):
-    print "Chessboard is tilted, try to keep it flat"
+    showText(i,  "Chessboard is tilted, try to keep it flat")
   elif (lcs % 5 == 0): #top left corner
     if (cb.points[2][0] < i.width / 2 and cb.points[2][1] < i.height / 2):
-      saveCalibrationImage(j, calibration_set, dims)
+      saveCalibrationImage(i, calibration_set, dims)
+    else:
+      showText(i, "Put the chessboard within the green rectangle")
   elif (lcs % 5 == 1): #top right corner
     if (cb.points[3][0] > i.width / 2 and cb.points[3][1] < i.height / 2):
-      saveCalibrationImage(j, calibration_set, dims)
+      saveCalibrationImage(i, calibration_set, dims)
+    else:
+      showText(i, "Put the chessboard within the green rectangle")
   elif (lcs % 5 == 2): #bottom right corner
     if (cb.points[0][0] > i.width / 2 and cb.points[0][1] > i.height / 2):
-      saveCalibrationImage(j, calibration_set, dims)
+      saveCalibrationImage(i, calibration_set, dims)
+    else:
+      showText(i, "Put the chessboard within the green rectangle")
   elif (lcs % 5 == 3): #bottom left corner
     if (cb.points[1][0] < i.width / 2 and cb.points[1][1] > i.height / 2):
-      saveCalibrationImage(j, calibration_set, dims)
+      saveCalibrationImage(i, calibration_set, dims)
+    else:
+      showText(i, "Put the chessboard within the green rectangle")
   elif (lcs % 5 == 4): #center
     if (abs(cb.x - i.width / 2) < i.width/8.0 and abs(cb.y - i.height / 2) < i.height/8.0):
-      saveCalibrationImage(j, calibration_set, dims)
+      saveCalibrationImage(i, calibration_set, dims)
   
-def printHorizTiltedMessage():
-  print """
-Now bring the board close to the screen and tilt it to the right or left
-so that it is as close as it can be to a 45 degree angle from the camera.  Move it around the view
-area, we are going to take 5 pictures.
-  """
   
 def findHorizTilted(cb, i, calibration_set, dims):
-  j = i.copy()
-  
-  i.drawLine( (10, i.height / 8), (i.width - 10, 10), Color.GREEN )
-  i.drawLine( (i.width - 10, 10), (i.width - 10, i.height - 10), Color.GREEN )
-  i.drawLine( (10, i.height - i.height / 8), (i.width - 10, i.height - 10), Color.GREEN )
-  i.drawLine( (10, i.height / 8), (10, i.height - i.height / 8), Color.GREEN )
+  drawline(i,  (10, i.height / 8), (i.width - 10, 10))
+  drawline(i,  (i.width - 10, 10), (i.width - 10, i.height - 10))
+  drawline(i,  (10, i.height - i.height / 8), (i.width - 10, i.height - 10))
+  drawline(i,  (10, i.height / 8), (10, i.height - i.height / 8))
   if not cb:
     return
     
   if relativeSize(cb, i) < 0.4:
-    print "Bring the Chessboard closer"
+    showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring the Chessboard closer")
   elif horizontalTilt(cb) > 0.9:
-    print "Tip the right or left side of the Chessboard towards the camera"
+    showText(i,  "Tip the right or left side of the Chessboard towards the camera")
   else:
-    saveCalibrationImage(j, calibration_set, dims)
+    saveCalibrationImage(i, calibration_set, dims)
 
-    
-def printVertTiltedMessage():
-  print """
-Keeping the board close to the screen, tilt the top or bottom as much as you
-can towards a 45 degree angle from the camera.  Move it around the view area.
-  """
   
 def findVertTilted(cb, i, calibration_set, dims):
-  j = i.copy()
-  
-  i.drawLine( (i.width / 8, 10), (i.width - i.width / 8, 10), Color.GREEN )
-  i.drawLine( (i.width - i.width / 8, 10), (i.width - 10, i.height - 10), Color.GREEN )
-  i.drawLine( (10, i.height - 10), (i.width - 10, i.height - 10), Color.GREEN )
-  i.drawLine( (i.width / 8, 10), (10, i.height - 10), Color.GREEN )
+  drawline(i,  (i.width / 8, 10), (i.width - i.width / 8, 10))
+  drawline(i,  (i.width - i.width / 8, 10), (i.width - 10, i.height - 10))
+  drawline(i,  (10, i.height - 10), (i.width - 10, i.height - 10))
+  drawline(i,  (i.width / 8, 10), (10, i.height - 10))
   if not cb:
     return
     
   if relativeSize(cb, i) < 0.4:
-    print "Bring the Chessboard closer"
+    showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring the Chessboard closer")
   elif verticalTilt(cb) > 0.9:
-    print "Tip the top or bottom of the Chessboard towards the camera"
+    showText(i,  "Tip the top or bottom of the Chessboard towards the camera")
   else:
-    saveCalibrationImage(j, calibration_set, dims)
-
-def printCornerTiltedMessage():
-  print """
-Keeping the board close to the screen, tilt a corner as much as you
-can towards a 45 degree angle from the camera.  Move it around the view area.
-  """
+    saveCalibrationImage(i, calibration_set, dims)
   
 def findCornerTilted(cb, i, calibration_set, dims):
-  j = i.copy()
-  
-  i.drawLine( (i.width / 8, 10), (i.width - i.width / 8, 10), Color.GREEN )
-  i.drawLine( (i.width - i.width / 8, 10), (i.width - 10, i.height - i.height / 8), Color.GREEN )
-  i.drawLine( (10, i.height - 10), (i.width - 10, i.height - i.height / 8), Color.GREEN )
-  i.drawLine( (i.width / 8, 10), (10, i.height - 10), Color.GREEN )
+  drawline(i,  (i.width / 8, 10), (i.width - i.width / 8, 10))
+  drawline(i,  (i.width - i.width / 8, 10), (i.width - 10, i.height - i.height / 8))
+  drawline(i,  (10, i.height - 10), (i.width - 10, i.height - i.height / 8))
+  drawline(i,  (i.width / 8, 10), (10, i.height - 10))
   
   if not cb:
     return 
   
   if relativeSize(cb, i) < 0.4:
-    print "Bring the Chessboard closer"
+    showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring the Chessboard closer")
   elif verticalTilt(cb) > 0.9 or horizontalTilt(cb) > 0.9:
-    print "Tip the corner of the Chessboard more towards the camera"
+    showText(i,  "Tip the corner of the Chessboard more towards the camera")
   else:
-    saveCalibrationImage(j, calibration_set, dims)
-  
-def printDoneMessage():
-  print """
-We are now going to calibrate the camera.  This may take a few moments.
-"""
+    saveCalibrationImage(i, calibration_set, dims)
   
 def main(argv):
   global save_location
   
-  camindex = 1
+  camindex = 0
   mode = 0
   dims = (8, 5)  #change this if you are using something besides our 
   gridsize = 0.029  #default calibration to mm
-  calibrationFile = "oneplane2"
+  calibrationFile = "default"
   
   cam = Camera(camindex)
-  js = JpegStreamer()
+  d = cam.getImage().flipHorizontal().show()
 
   
   save_location = "" #change this if you want to save your calibration images
@@ -232,67 +207,50 @@ def main(argv):
   calibration_set = [] #calibration images
   fc_set = []
   
-  cam.getImage().flipHorizontal().save(js)
-  webbrowser.open(js.url())
-  
-  
   introMessage()
   
   
-  while True:
-    time.sleep(0.2)
-    i = cam.getImage()
+  while not d.isDone():
+    time.sleep(0.01)
+    i = cam.getImage().flipHorizontal()
     cb = i.findChessboard(dims, subpixel = False)
     
     
     if cb:
       cb = cb[0]
-      saveCalibrationImage(i, fc_set, dims) 
-    
+    elif mode != 6:
+      showText(i, "Put a chessboard in the green outline")
+      
     if mode == 0:  #10 pictures, chessboard filling 80% of the view space
       findLargeFlat(cb, i, calibration_set, dims)
       if (len(calibration_set) == 10):
-        mode = 2
-        printSmallFlatMessage()
-    elif mode == 1:  #10 pictures, chessboard filling 12% - 25% of view space
-      findSmallFlat(cb, i, calibration_set, dims)
-      if (len(calibration_set) == 20):
-        mode = 2
-        printHorizTiltedMessage()
-    elif mode == 2:  #5 pictures, chessboard filling 60% of screen, at 45 deg horiz
+        mode = 1
+    elif mode == 1:  #5 pictures, chessboard filling 60% of screen, at 45 deg horiz
       findHorizTilted(cb, i, calibration_set, dims)
-      if (len(calibration_set) == 25):
-        mode = 3
-        printVertTiltedMessage()
-    elif mode == 3:  #5 pictures, chessboard filling 60% of screen, at 45 deg vert
+      if (len(calibration_set) == 15):
+        mode = 2
+    elif mode == 2:  #5 pictures, chessboard filling 60% of screen, at 45 deg vert
       findVertTilted(cb, i, calibration_set, dims)
-      if (len(calibration_set) == 30):
-        mode = 4
-        printCornerTiltedMessage()
-    elif mode == 4:  #5 pictures, chessboard filling 40% of screen, corners at 45
+      if (len(calibration_set) == 20):
+        mode = 3
+    elif mode == 3:  #5 pictures, chessboard filling 40% of screen, corners at 45
       findCornerTilted(cb, i, calibration_set, dims)
+      if (len(calibration_set) == 25):
+        mode = 4
+    elif mode == 4:  #10 pictures, chessboard filling 12% - 25% of view space
+      findSmallFlat(cb, i, calibration_set, dims)
       if (len(calibration_set) == 35):
         mode = 5
     elif mode == 5:
-      printDoneMessage()
-      
       cam.calibrate(calibration_set, gridsize, dims)
       cam.saveCalibration(calibrationFile)
-      
-      cam.calibrate(random.sample(fc_set, 100), gridsize, dims)
-      cam.saveCalibration(calibrationFile + "full")
-      
-      print "Saved calibration to " + calibrationFile
-      print "you will need to load it with:"
-      print "    Camera.loadCalibration(\""+calibrationFile+"\")"
-      print "or "
-      print "    Camera(" + str(camindex) + ", calibrationfile = \"" + calibrationFile + "\")"
-      break
-      
-    
+      mode = 6
+    elif mode == 6:
+      showText(i,  "Saved calibration to " + calibrationFile)  
     if cb:
       cb.draw()
-    i.flipHorizontal().save(js)
+    
+    i.save(d)
     
 if __name__ == '__main__':
   main(sys.argv)

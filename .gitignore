@@ -3,3 +3,5 @@ SimpleCV.egg-info/
 build/
 dist/
 SimpleCV/SimpleCV
+doc/_build/
+

@@ -20,17 +20,18 @@ def magic_examples(self, arg):
 	HOMEDIR = os.getcwd()
 	files = listFiles()
 
-	if(arg == "list"):
-		for file in files: print file
+	if(arg.lower() == "list"):
+		for file in files:
+			print file
 		
-	elif arg == "":
+	elif(arg == ""):
 		print "To use examples type:"
 		print "example name"
 		print ""
 		print "to see which examples are available type:"
 		print "example list"
 		print ""
-
+        
 	elif(arg in files):
 		os.chdir("./SimpleCV/examples")
 		try:
@@ -39,6 +40,18 @@ def magic_examples(self, arg):
 			print "Error: can't run example: " + arg
 		
 		os.chdir(HOMEDIR)
+	elif(arg.lower() == "joshua"):
+		print "GREETINGS PROFESSOR FALKEN"
+		print ""
+		print "HELLO"
+		print ""
+		print "A STRANGE GAME."
+		print "THE ONLY WINNING MOVE IS"
+		print "NOT TO PLAY."
+		print ""
+		print "HOW ABOUT A NICE GAME OF CHESS?"
+		print ""
+		
 
 	else:
 		print "Example: " + arg + " does not exist, or an error occured"
