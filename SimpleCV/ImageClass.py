@@ -557,14 +557,23 @@ class Image:
     
     
     #scale this image, and return a new Image object with the new dimensions 
-    def scale(self, width, height):
+    def scale(self, width, height = -1):
         """
         Scale the image to a new width and height.
 
+        If no height is provided, the width is considered a scaling value ie::
+            
+            img.scale(200, 100) #scales the image to 200px x 100px
+            img.scale(2.0) #enlarges the image to 2x its current size
 
         Returns: IMAGE
         """
-        scaled_bitmap = cv.CreateImage((width, height), 8, 3)
+        w, h = width, height
+        if height == -1:
+          w = self.width * width
+          h = self.height * width
+          
+        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
