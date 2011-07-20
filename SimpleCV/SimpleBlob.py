@@ -26,6 +26,10 @@ class SimpleBlob:
     mLabelColor = [] # what color to draw the label
     mAvgColor = []
     mImg =  Image()#the segmented image of the blob
+    mMask = Image()
+    mHullMask = Image()
+    mSourceImgPtr = Image()
+    mHoleContour = [] 
     mVertEdgeHist = [] #vertical edge histogram
     mHortEdgeHist = [] #horizontal edge histgram
     
@@ -49,9 +53,13 @@ class SimpleBlob:
         self.mLabelColor = [] 
         self.mAvgColor = [-1,-1,-1]
         self.mImg = Image()# the segmented image of the blob
+        self.mMask = Image()
+        mSourceImgPtr = Image()
+        self.mHullMask = Image()
+        self.mHoleContour = [] 
         self.mVertEdgeHist = [] #vertical edge histogram
         self.mHortEdgeHist = [] #horizontal edge histgram
-    
+        
     def x(self):
         return(mBoundingBox[0])
 
@@ -121,5 +129,25 @@ class SimpleBlob:
         return None
     
     def contains(self,other,mode='FAST'):
+        return None
+    
+    # draw just the blob contours
+    def Draw(self, color=Color.WHITE, width=-1):
+        return None
+    
+    #draw the blob to a layer
+    def DrawToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1 ):
+        return None
+    
+    #draw the hull
+    def DrawHull(self, color=Color.WHITE, width=-1):
+        return None
+    
+    #draw the hull to a layer
+    def DrawHullToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1 ):
+        return None
+    
+    #draw the actual pixels inside the contour to the layer
+    def DrawMaskedToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1):
         return None
     
