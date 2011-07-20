@@ -25,7 +25,7 @@ class SimpleBlob:
     mLabel = ""
     mLabelColor = [] # what color to draw the label
     mAvgColor = []
-    mImg =  Image()#the segmented image of the blob
+    mImg =  Image()#    the segmented image of the blob
     mMask = Image()
     mHullMask = Image()
     mSourceImgPtr = Image()
@@ -54,7 +54,7 @@ class SimpleBlob:
         self.mAvgColor = [-1,-1,-1]
         self.mImg = Image()# the segmented image of the blob
         self.mMask = Image()
-        mSourceImgPtr = Image()
+        self.mSourceImgPtr = Image()
         self.mHullMask = Image()
         self.mHoleContour = [] 
         self.mVertEdgeHist = [] #vertical edge histogram

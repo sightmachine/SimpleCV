@@ -26,6 +26,7 @@ class BlobMaker:
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), cv.CreateMemStorage(), cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         retVal = []
         retVal = self._extractFromBinary(seq,False,colorImg,doHist,minArea)
+        del seq
         return retVal
     
     def _extractFromBinary(self, seq, isaHole, colorImg, doHist, minArea):
@@ -34,35 +35,19 @@ class BlobMaker:
             return None
         retVal = []
         #get the current feature
-        nextBlob = seq.h_next()
-        nextLayer = seq.v_next()
+        nextBlob = seq.h_next() # move to the next feature on our level
+        nextLayer = seq.v_next() # move down a layer
 
-        if(nextBlob is not None):
+        if(nextBlob is not None): #the next object is whatever this object is, add its list to ours
             retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, doHist, minArea)
-        if(nextLayer is not None):
+        if(nextLayer is not None): #the next object, since it is down a layer is different
             retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, doHist, minArea)
         
-        if( not isaHole ):         
+        if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
             temp =  self._extractData(seq,colorImg,doHist,minArea)
             if( temp is not None ):
                retVal.append(temp)
             
-        return retVal
-    
-        #
-        #return(bloblist.append(self._extractData(bloblist, seq, colorImg, doHist, minArea)))
-        #
-        #while( seq.h_next() is not None ):
-        #    seq = seq.h_next();
-        #    temp = self._extractData(seq,colorImg,doHist,minArea)
-        #    if(temp is not None):
-        #        retVal.append(temp)
-        #        #holes = seq
-        #        #while( holes.v_next() is not None ):
-        #        #    holes = holes.v_next()
-        #        #   temp = self._extractData(holes,colorImg,doHist)
-        #        #  if(temp is not None):
-        #        #      retVal.append(temp)
         return retVal
     
     def _extractData(self,seq,color,doHist = False,minArea=5):
@@ -72,15 +57,18 @@ class BlobMaker:
         if( area < minArea):
             return None
         retVal = SimpleBlob()
-        retVal.mArea = area #cv.ContourArea(seq)
-        retVal.mContour = list(seq)
-        chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
-        retVal.mConvexHull = list(chull)
-        del chull
+        retVal.mSourceImgPtr = color
+        retVal.mArea = area
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
         retVal.mBoundingBox = cv.BoundingRect(seq)
         retVal.mPerimeter = cv.ArcLength(seq)
-        retVal.mArea = cv.ContourArea(seq)
+        
+        retVal.mContour = list(seq)
+        chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
+        retVal.mConvexHull = list(chull)
+        retVal.mHullMask = self._getHullMask(chull,retVal.mBoundingBox)
+        del chull
+
         moments = cv.Moments(seq)
         retVal.m00 = moments.m00
         retVal.m10 = moments.m10
@@ -94,8 +82,21 @@ class BlobMaker:
         mask = self._getMask(seq,retVal.mBoundingBox)
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
+        retVal.mHoleContour = self._getHoles(seq)
         return retVal
     
+    def _getHoles(self,seq):
+        retVal = None
+        holes = seq.v_next()
+        if( holes is not None ):
+            retVal = [list(holes)]
+            while( holes.h_next() is not None ):
+                holes = holes.h_next();
+                temp = list(holes)
+                if( len(temp) >= 3 ): #exclude single pixel holes 
+                    retVal.append(temp)
+        return retVal
+        
     def _getMask(self,seq,bb):
         bb = cv.BoundingRect(seq)
         mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)
@@ -108,11 +109,15 @@ class BlobMaker:
                 holes = holes.h_next();
                 if(holes is not None):
                     cv.DrawContours(mask,holes,(0),(255),0,thickness=-1, offset=(-1*bb[0],-1*bb[1]))
-                    
-        derp = Image(mask)
-        derp.save("DERPINGTON.PNG")
         return mask
-        
+    
+    def _getHullMask(self,hull,bb):
+        bb = cv.BoundingRect(hull)
+        mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)
+        cv.Zero(mask)
+        cv.DrawContours(mask,hull,(255),(0),0,thickness=-1, offset=(-1*bb[0],-1*bb[1]))
+        return mask
+    
     def _getAvg(self,colorbitmap,bb,mask):
         cv.SetImageROI(colorbitmap,bb)
         #may need the offset parameter
