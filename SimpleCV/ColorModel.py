@@ -7,11 +7,11 @@ from pickle import *
 class ColorModel:
     """
     The color model is used to model the color of foreground and background objects
-    by using an example. The color model is trained by passing either color tuples
-    or images to learn from. The color model uses whatever color space the input imagery
-    is in. 
+    by using a a training set of images.
     
-    You can create the color model with any number of "training" images
+    You can create the color model with any number of "training" images, or
+    add images to the model with add() and remove().  Then for your data images,
+    you can useThresholdImage() to return a segmented picture.
     
     """
     #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
@@ -19,7 +19,7 @@ class ColorModel:
     mIsBackground = True
     mData = {}
     
-    def __init__(self, isBackground=True, trainingset = None):
+    def __init__(self, data = None, isBackground=True):
         self.mIsBackground = isBackground
         self.mData = {}
         
@@ -45,21 +45,22 @@ class ColorModel:
         elif(data.__class__.__name__ == 'list'  ):
             ret = np.array(data)
         elif (data.__class__.__name__=='tuple'):
-            ret = np.array(data)
+            ret = np.array([data])
         else:
             warnings.warn("ColorModel: color is not in an accepted format!")
             return None
     
-        rs = np.right_shift(ret, 4)  #right shift
+        rs = np.right_shift(ret, 4)  #right shift 4 bits
         
-        #tuple the triplets, find unique keys, create a dict.
-        return dict.fromkeys(np.unique(rs.view([('',rs.dtype)]*rs.shape[1])), 1)
+        uniques = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1, 3)
+        #create a unique set of colors.  I had to look this one up
+        
+        #create a dict of encoded strings
+        return dict.fromkeys(map(np.ndarray.tostring, uniques), 1)
   
     def add(self, data):
         """
         Add an image, array, or tuple to the color model.
-        Note that this operation can be slow on large images, and is insensitive
-        to colorspace (RGB vs HSV)
         """
         self.mData.update(self._makeCanonical(data))
   
@@ -69,7 +70,7 @@ class ColorModel:
         """
         self.mData = dict.fromkeys(set(self.mData) ^ set(self._makeCanonical(data)), 1)
   
-    def thresholdImage(self, img):
+    def threshold(self, img):
         """
         Perform a threshold operation on the given image. This involves iterating
         over the image and comparing each pixel to the model. If the pixel is in the
@@ -82,22 +83,17 @@ class ColorModel:
             a = 255
             b = 0
         
-        rs = np.right_shift(img.getNumpy(), 4).reshape(-1, 3)  #bitshift down and right shift
-        tupled = rs.view([('', rs.dtype)] * rs.shape[1])  #tuple the triplets
-        mapped = np.array(map(self.mData.has_key, rs[:,0]))
-        thresh = np.where(mapped, a, b)
-        #map the array through our colormap's has_key, replace True and False with fg and bg
+        rs = np.right_shift(img.getNumpy(), 4).reshape(-1, 3) #bitshift down and reshape to Nx3
+        mapped = np.array(map(self.mData.has_key, map(np.ndarray.tostring, rs))) #map to True/False based on the model
+        thresh = np.where(mapped, a, b) #replace True and False with fg and bg
         return Image(thresh.reshape(img.width, img.height))
     
-    def containsColor(self, c):
+    def contains(self, c):
         """
         Return true if a particular color is in our color model. 
         """
-        retVal = False
-        test = (int(c[0]) >> 4, int(c[1]) >> 4, int(c[2]) >> 4)
-        if test in self.mData:
-            retVal = True
-        return retVal
+        #reverse the color, cast to uint8, right shift, convert to string, check dict
+        return self.mData.has_key(np.right_shift(np.cast['uint8'](c[::-1]), 4).tostring())
     
     def setIsForeground(self):
         """
@@ -111,13 +107,13 @@ class ColorModel:
         """
         mIsBackground = True
       
-    def loadFromFile(self, filename):
+    def load(self, filename):
         """
         Dump the color model to the specified file.
         """
         self.mData =  load(open(filename))
     
-    def saveToFile(self, filename):
+    def save(self, filename):
         """
         Read a dumped color model file. 
         """

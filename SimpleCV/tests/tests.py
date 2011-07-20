@@ -682,20 +682,20 @@ def test_image_edgemap():
 
 def test_colormap_build():
   cm = ColorModel()
-  cm.addToModel(Image(testimage))
-  cm.addToModel((127,127,127))
-  if(cm.containsColor((127,127,127))):
-    cm.removeFromModel((127,127,127))
+  cm.add(Image(testimage))
+  cm.add((127,127,127))
+  if(cm.contains((127,127,127))):
+    cm.remove((127,127,127))
   else:
     assert False
-  img = cm.thresholdImage(Image(testimage))
+  img = cm.threshold(Image(testimage))
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
-  cm.saveToFile("temp.txt")
+  cm.save("temp.txt")
   cm2 = ColorModel()
-  cm2.loadFromFile("temp.txt")
-  img = cm2.thresholdImage(Image(testimage))
+  cm2.load("temp.txt")
+  img = cm2.threshold(Image(testimage))
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
