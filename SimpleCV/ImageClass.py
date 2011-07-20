@@ -189,34 +189,64 @@ class Image:
     
     
     def getColorSpace(self):
+        """
+        Returns the value matched in the color space class
+        so for instance you would use
+        if(image.getColorSpace() == ColorSpace.RGB)
+
+        RETURNS: Integer
+        """
         return self._colorSpace
   
   
     def isRGB(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.RGB)
 
 
     def isBGR(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.BGR)
     
     
     def isHSV(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.HSV)
     
     
     def isHLS(self):
+        """
+        Returns Boolean
+        """    
         return(self._colorSpace==ColorSpace.HLS)  
   
   
     def isXYZ(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.XYZ)
     
     
     def isGray(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.GRAY)    
   
   
     def toRGB(self):
+        """
+        Converts Image colorspace to RGB
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -236,6 +266,11 @@ class Image:
 
 
     def toBGR(self):
+        """
+        Converts image colorspace to BGR
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.RGB or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -255,6 +290,11 @@ class Image:
   
   
     def toHLS(self):
+        """
+        Converts image to HLS colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -276,6 +316,11 @@ class Image:
     
     
     def toHSV(self):
+        """
+        Converts image to HSV colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -297,6 +342,11 @@ class Image:
     
     
     def toXYZ(self):
+        """
+        Converts image to XYZ colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -318,6 +368,11 @@ class Image:
     
     
     def toGray(self):
+        """
+        Converts image to Grayscale colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -453,6 +508,11 @@ class Image:
     
     
     def getPGSurface(self):
+        """
+        Gets the pygame surface.  This is used for rendering the display
+
+        RETURNS: pgsurface
+        """
         if (self._pgsurface):
             return self._pgsurface
         else:

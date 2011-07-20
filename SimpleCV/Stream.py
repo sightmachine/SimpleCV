@@ -215,6 +215,13 @@ class VideoStream():
 
 
     def writeFrame(self, img):
+        """
+        This writes a frame to the display object
+        this is automatically called by image.save() but you can
+        use this function to save just the bitmap as well so
+        image markup is not implicit,typically you use image.save() but
+        this allows for more finer control
+        """
         if not self.writer:
             self.initializeWriter(img.size())
             self.lastframe = img
