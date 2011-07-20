@@ -23,44 +23,31 @@ class ColorModel:
   
     def _makeCanonical(self, data):
         """
-        Turn input types in a common form used by the rest of the class.
-        """  
-        retVal = None
+        Turn input types in a common form used by the rest of the class -- a
+        4-bit shifted list of unique colors
+        """ 
+        ret = ''
+        
+        #first cast everything to a numpy array
         if(data.__class__.__name__ == 'Image'):
-            retVal = np.array(data.getMatrix()).reshape(-1, 3).tolist()
-            for i in retVal: # the reshaping reverses the array.
-                temp = i[0] >> 4
-                i[0] = i[2] >> 4
-                i[1] = i[1] >> 4
-                i[2] = temp   
+            ret =  np.array(data.toBGR().getMatrix()).reshape(-1, 3)
         elif(data.__class__.__name__ == 'cvmat'):
-            retVal = np.array(data).reshape(-1, 3).tolist()
-            for i in retVal:
-                # the reshaping reverses the array.
-                # so we do reverse and bitshift in a single pass. 
-                temp = retVal[i][0] >> 4
-                retVal[i][0] = retVal[i][2] >> 4
-                retVal[i][1] = retVal[i][1] >> 4
-                retVal[i][2] = temp    
+            ret = np.array(data).reshape(-1, 3)
         elif(data.__class__.__name__ == 'list'  ):
-            retVal = data
-            for i in retVal:
-                # the reshaping reverses the array.
-                retVal[i][0] = retVal[i][0] >> 4
-                retVal[i][1] = retVal[i][1] >> 4
-                retVal[i][2] = retVal[i][2] >> 4
+            ret = np.array(data)
         elif (data.__class__.__name__=='tuple'):
-            retVal = list([(int(data[0]) >> 4, int(data[1]) >> 4, int(data[2]) >> 4)])
+            ret = np.array(data)
         else:
             warnings.warn("ColorModel: color is not in an accepted format!")
-            retVal = None
-        return retVal
+            return None
     
+        return ret.right_shift(4).unique()
   
     def addToModel(self, data):
         """
         Add an image, array, or tuple to the color model.
-        Note that this operation can be slow on large images. 
+        Note that this operation can be slow on large images, and is insensitive
+        to colorspace (RGB vs HSV)
         """
         data = self._makeCanonical(data)
         if( type(data) != None ):
