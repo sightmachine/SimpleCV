@@ -123,6 +123,7 @@ class Image:
             if (type(source[0, 0]) == np.ndarray): #we have a 3 channel array
                 #convert to an iplimage bitmap
                 source = source.astype(np.uint8)
+                source = source[:, :, ::-1].transpose([1, 0, 2])
                 self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
                 cv.SetData(self._bitmap, source.tostring(), 
                     source.dtype.itemsize * 3 * source.shape[1])
@@ -132,7 +133,7 @@ class Image:
                 #we have a single channel array, convert to an RGB iplimage
 
 
-                source = source.astype(np.uint8) 
+                source = source.astype(np.uint8)
                 self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
                 channel = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 1)
                 #initialize an empty channel bitmap
@@ -391,7 +392,7 @@ class Image:
         """
         Get a Numpy array of the image in width x height x RGB dimensions
         """
-        if self._numpy:
+        if self._numpy != "":
             return self._numpy
     
     
