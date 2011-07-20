@@ -27,7 +27,7 @@ class Corner(Feature):
         self.image.drawCircle((self.x, self.y), 4, color)
 
 class Blob(Feature):
-"""
+    """
 The Blob Feature is a wrapper for the cvblob-python library.  
 
 The findBlobs() function returns contiguous regions of light-colored area, given an intensity threshold.
@@ -77,7 +77,7 @@ For more information:
 * http://github.com/oostendo/cvblob-python
 * http://code.google.com/p/cvblob
 * http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
-"""
+    """
     cvblob = ""
      
     def __init__(self, i, cb):
