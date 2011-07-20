@@ -401,6 +401,10 @@ class HaarFeature(Feature):
         return abs(self.points[1][1]- self.points[0][1])
   
 class Chessboard(Feature):
+    """
+    This class is used for Calibration, it uses a chessboard
+    to calibrate from pixels to real world measurements
+    """
     spCorners = []
     dimensions = ()
     
