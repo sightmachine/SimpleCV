@@ -14,7 +14,6 @@ blobLayer = DrawingLayer((morphology.width,morphology.height))
 for b in test:
     name = "Blob"+str(i)+".png"
     b.mImg.save(name)
-    print(b.mContour)
     blobLayer.polygon(b.mContour,color=Color.RED, filled=True)
     blobLayer.polygon(b.mConvexHull, color=Color.GREEN, width=2,antialias=False)
     i = i + 1

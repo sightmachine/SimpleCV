@@ -20,28 +20,37 @@ class BlobMaker:
         """
         return None
     
-    def extractFromBinary(self,binaryImg,colorImg,doHist = False, doImg = False):
+    def extractFromBinary(self,binaryImg,colorImg,doHist = False, doImg = False, minArea = 5):
         #h_next moves to the next external contour
         #v_next() moves to the next internal contour
 
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), cv.CreateMemStorage(), cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
-        retVal = [] 
-        retVal.append(self._extractData(seq,colorImg.getBitmap(),doHist,doImg))
-        print(list(seq))
+        retVal = []
+        minArea=5
+        temp =  self._extractData(seq,colorImg.getBitmap(),doHist,doImg,minArea)
+        if( temp is not None ):
+            retVal.append(temp)
         while( seq.h_next() is not None ):
-
             seq = seq.h_next();
-            a = list(seq)
-            print(a)
-            retVal.append(self._extractData(seq,colorImg.getBitmap(),doHist,doImg))
-            while( seq.v_next() is not None ):
-                seq = seq.v_next()
-                retVal.append(self._extractData(seq,colorImg.getBitmap(),doHist,doImg))
+            temp = self._extractData(seq,colorImg.getBitmap(),doHist,doImg,minArea)
+            if(temp is not None):
+                retVal.append(temp)
+            holes = seq
+            while( holes.v_next() is not None ):
+                holes = holes.v_next()
+                temp = self._extractData(holes,colorImg.getBitmap(),doHist,doImg)
+                if(temp is not None):
+                  retVal.append(temp)
         return retVal
     
-    def _extractData(self,seq,color,doHist = False, doImg = False):
+    def _extractData(self,seq,color,doHist = False, doImg = False, minArea=5):
         if( seq == None ):
-            return None    
+            return None
+        area = cv.ContourArea(seq)
+        if( area < minArea):
+            return None
+        retVal = SimpleBlob()
+        retVal.mArea = area #cv.ContourArea(seq)
         retVal = SimpleBlob()   
         retVal.mContour = list(seq)
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
@@ -65,7 +74,6 @@ class BlobMaker:
         retVal.mAvgColor = self._getAvg(color,retVal.mBoundingBox,mask)
         if(doImg):
             retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color,mask)
-            retVal.mImg.save("huh.png")
         return retVal
     
     def _getMask(self,seq,bb,colorbitmap):
