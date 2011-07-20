@@ -10,15 +10,24 @@ class ColorModel:
     by using an example. The color model is trained by passing either color tuples
     or images to learn from. The color model uses whatever color space the input imagery
     is in. 
+    
+    You can create the color model with any number of "training" images
+    
     """
     #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
     #TODO: Work in HSV space
     mIsBackground = True
     mData = {}
     
-    def __init__(self, isBackground=True):
+    def __init__(self, isBackground=True, trainingset = None):
         self.mIsBackground = isBackground
         self.mData = {}
+        
+        if data:
+            try:
+                [ self.add(d) for d in data ]
+            except TypeError:
+                self.add(data)
   
   
     def _makeCanonical(self, data):
@@ -30,7 +39,7 @@ class ColorModel:
         
         #first cast everything to a numpy array
         if(data.__class__.__name__ == 'Image'):
-            ret =  np.array(data.toBGR().getMatrix()).reshape(-1, 3)
+            ret =  data.getNumpy().reshape(-1, 3)
         elif(data.__class__.__name__ == 'cvmat'):
             ret = np.array(data).reshape(-1, 3)
         elif(data.__class__.__name__ == 'list'  ):
@@ -41,27 +50,24 @@ class ColorModel:
             warnings.warn("ColorModel: color is not in an accepted format!")
             return None
     
-        return ret.right_shift(4).unique()
+        rs = np.right_shift(ret, 4)  #right shift
+        
+        #tuple the triplets, find unique keys, create a dict.
+        return dict.fromkeys(np.unique(rs.view([('',rs.dtype)]*rs.shape[1])), 1)
   
-    def addToModel(self, data):
+    def add(self, data):
         """
         Add an image, array, or tuple to the color model.
         Note that this operation can be slow on large images, and is insensitive
         to colorspace (RGB vs HSV)
         """
-        data = self._makeCanonical(data)
-        if( type(data) != None ):
-            for i in data:
-                self.mData[tuple(i)] = 1
+        self.mData.update(self._makeCanonical(data))
   
-    def removeFromModel(self, data):
+    def remove(self, data):
         """
         Remove an image, array, or tuple from the model.
-        """    
-        data = self._makeCanonical(data)
-        for i in data:
-            if tuple(i) in self.mData:
-                del self.mData[tuple(i)]
+        """
+        self.mData = dict.fromkeys(set(self.mData) ^ set(self._makeCanonical(data)), 1)
   
     def thresholdImage(self, img):
         """
@@ -75,17 +81,13 @@ class ColorModel:
         if( self.mIsBackground == False ):
             a = 255
             b = 0
-        mask = img.getEmpty(1)
-        for x in range(img.width):
-            for y in range(img.height):
-                #do the bit shift on the pixels
-                test = tuple(img[x, y])
-                pix = (int(test[0]) >> 4, int(test[1]) >> 4, int(test[2]) >> 4)
-                if pix  in self.mData:
-                    mask[y, x] = a
-                else:
-                    mask[y, x] = b    
-        return Image(mask)
+        
+        rs = np.right_shift(img.getNumpy(), 4).reshape(-1, 3)  #bitshift down and right shift
+        tupled = rs.view([('', rs.dtype)] * rs.shape[1])  #tuple the triplets
+        mapped = np.array(map(self.mData.has_key, rs[:,0]))
+        thresh = np.where(mapped, a, b)
+        #map the array through our colormap's has_key, replace True and False with fg and bg
+        return Image(thresh.reshape(img.width, img.height))
     
     def containsColor(self, c):
         """
