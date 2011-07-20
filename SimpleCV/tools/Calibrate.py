@@ -16,6 +16,19 @@ def showText(img, text):
 def drawline(img, pt1, pt2):
   img.dl().line(pt1, pt2, Color.GREEN, 5, antialias = False)
 
+def drawrect(img, pt1, pt2):
+  drawline(img, pt1, (pt1[0],pt2[1]))
+  drawline(img, (pt1[0], pt2[1]), pt2)
+  drawline(img, pt2, (pt2[0], pt1[1]))
+  drawline(img, pt1, (pt2[0], pt1[1]))
+  
+def inrect(rect, pts):
+  for p in pts:
+    if p[0] < rect[0][0] or p[1] < rect[0][1] or p[0] > rect[1][0] or p[1] > rect[1][1]:
+      return False
+      
+  return True
+
 def saveCalibrationImage(i, imgset, dims):
   """
   Save our image in the calibration set
@@ -36,6 +49,13 @@ def saveCalibrationImage(i, imgset, dims):
     
   filename = save_location + "_image" + str(len(imgset)) + ".png"
   imgset[-1].save(filename)
+
+def testrect(img, cb, calibration_set, dims, rect):
+  drawrect(img, rect[0], rect[1])
+  if inrect(rect, cb.points):
+    saveCalibrationImage(img, calibration_set, dims)
+    return True
+  return False
 
 def relativeSize(cb, i):
   return cb.area() / float(i.width * i.height)
@@ -188,14 +208,67 @@ def findCornerTilted(cb, i, calibration_set, dims):
     showText(i,  "Tip the corner of the Chessboard more towards the camera")
   else:
     saveCalibrationImage(i, calibration_set, dims)
+
+
+def findPlane(cb, i, calibration_set, dims):
+  if not cb:
+    drawrect(i, (10,10), (i.width - 10, i.height - 10))
+    return
   
+  cbwidth = cb.width()
+  cbheight = cb.height()
+  lcs = len(calibration_set)
+ 
+  tolerance = 1.2 #20% tolerance
+  
+  min_x = 5
+  left_x = i.width - cbwidth * tolerance
+  mid_min_x = i.width / 2 - cbwidth * tolerance / 2
+  mid_max_x = i.width / 2 + cbwidth * tolerance / 2
+  right_x = cbwidth * tolerance
+  max_x = i.width - 5
+  
+  min_y = 5
+  top_y = i.height - cbheight * tolerance
+  mid_min_y = i.height / 2 - cbheight * tolerance / 2
+  mid_max_y = i.height / 2 + cbheight * tolerance / 2
+  bottom_y = cbheight * tolerance
+  max_y = i.height - 5
+  
+  result = False
+
+  grid = (
+    #outline the top left corner
+    ((min_x, min_y), (right_x, bottom_y)),
+    #top middle
+    ((mid_min_x, min_y), (mid_max_x, bottom_y)),
+    #top right
+    ((left_x, min_y), (max_x, bottom_y)),
+    #right side middle
+    ((left_x, mid_min_y), (max_x, mid_max_y)),
+    # center
+    ((mid_min_x, mid_min_y), (mid_max_x, mid_max_y)),
+    #left middle
+    ((min_x, mid_min_y), (right_x, mid_max_y)),
+    #left bottom corner
+    ((min_x, top_y), (right_x, max_y)),
+    #bottom middle,
+    ((mid_min_x, top_y), (mid_max_x, max_y)),
+    #right bottom
+    ((left_x, top_y), (max_x, max_y)) )
+    
+  testrect(i, cb, calibration_set, dims, grid[lcs % len(grid)])
+
+  
+
+
 def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = False, gridsize = 0.029, calibrationFile = "default"):
   global save_location
   
   camindex = 0
   if planemode:
     mode = 7
-  else
+  else:
     mode = 0
   
   dims = (chessboard_width, chessboard_height)  #change this if you are using something besides our 
@@ -251,6 +324,11 @@ def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = 
       mode = 6
     elif mode == 6:
       showText(i,  "Saved calibration to " + calibrationFile)  
+    elif mode == 7:
+      findPlane(cb, i, calibration_set, dims)
+      if (len(calibration_set) == 25):
+        mode = 5
+        
     if cb:
       cb.draw()
     
@@ -259,14 +337,15 @@ def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = 
 if __name__ == '__main__':
   import argparse
   
-  #parser = argparse.ArgumentParser("Create calibration files for your camera")
+  parser = argparse.ArgumentParser(description = "Create calibration files for your camera")
   #args
-  #camera = 0
-  #chessboard_width = 8
-  #chessboard_height = 5
-  #plane_mode = False
-  #grid_size = 0.029
-  #calibrationFile
   
-  #parser.add_argument('
-  main(sys.argv)
+  parser.add_argument("--camera", type=int, help="id of the camera", default = 0)
+  parser.add_argument("--width",  type=int, help="number of chessboard squares wide", default = 8)
+  parser.add_argument("--height",  type=int, help="number of chessboard squares high", default = 5)
+  parser.add_argument("--planemode", action="store_true", help="calibrate on a single 2D plane", default = False)
+  parser.add_argument("--gridsize",  type=float, help="chessboard grid size in real units", default = 0.029)
+  parser.add_argument("--calibrationfile", type=str, help="filename to output calibration", default = "default")
+  
+  args = parser.parse_args()
+  main(args.camera, args.width, args.height, args.planemode, args.gridsize, args.calibrationfile)
