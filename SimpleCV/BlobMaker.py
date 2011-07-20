@@ -69,19 +69,18 @@ class BlobMaker:
         return retVal
     
     def _getMask(self,seq,bb,colorbitmap):
-        #bb = cv.BoundingRect(seq)
+        bb = cv.BoundingRect(seq)
         mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)
         cv.Zero(mask)
         cv.SetImageROI(colorbitmap,bb)
-        cv.DrawContours(mask,seq,(255,255,255),(0,0,0),0,thickness=-1)
+        cv.DrawContours(mask,seq,(255),(0),0,thickness=-1, offset=(-1*bb[0],-1*bb[1]))
         cv.ResetImageROI(colorbitmap)
+        derp = Image(mask)
         return mask
         
     def _getAvg(self,colorbitmap,bb,mask):
         cv.SetImageROI(colorbitmap,bb)
         #may need the offset parameter
-        print((mask.width,mask.height))
-        print(bb)
         avg = cv.Avg(colorbitmap,mask)
         cv.ResetImageROI(colorbitmap)
         return avg

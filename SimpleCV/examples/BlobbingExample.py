@@ -1,8 +1,9 @@
 #!/usr/bin/python 
 from SimpleCV import *
-morphology = Image('../sampleimages/mtest.png')
+morphology = Image('../sampleimages/hardblob.png')
 chull = Image('../sampleimages/chull.png')
 deep = Image('../sampleimages/test.png')
+hard = Image('../sampleimages/test.png')
 bm = BlobMaker()
 morphology.binarize(thresh=10).invert().save("DERP.png")
 #ZOMG! NEW RULE ALL BLOBS ARE WHITE, ALWAYS AND FOREVER AMEN
@@ -14,7 +15,8 @@ for b in test:
     name = "Blob"+str(i)+".png"
     b.mImg.save(name)
     print(b.mContour)
-    blobLayer.polygon(b.mContour,color=Color.RED)
+    blobLayer.polygon(b.mContour,color=Color.RED, filled=True)
+    blobLayer.polygon(b.mConvexHull, color=Color.GREEN, width=2,antialias=False)
     i = i + 1
 
 morphology.addDrawingLayer(blobLayer)

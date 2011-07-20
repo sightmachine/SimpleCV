@@ -99,16 +99,7 @@ class Image:
         self._mLayers = []
         self.camera = camera
         self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
-    
-    
 
-
-    
-    
-    
-    
-    
-    
         if (type(source) == cv.cvmat):
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
@@ -213,95 +204,8 @@ class Image:
     
     def isGray(self):
         return(self._colorSpace==ColorSpace.GRAY)    
-  
-  
-<<<<<<< HEAD
-  def toHLS(self):
-    retVal = self.getEmpty()
-    if( self._colorSpace == ColorSpace.BGR or
-        self._colorSpace == ColorSpace.UNKNOWN ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2HLS)
-    elif( self._colorSpace == ColorSpace.RGB):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2HLS)
-    elif( self._colorSpace == ColorSpace.HSV ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2HLS)
-    elif( self._colorSpace == ColorSpace.XYZ ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2HLS)
-    elif( self._colorSpace == ColorSpace.HLS ):
-      retVal = self.getBitmap()      
-    else:
-      warnings.warn("Image.toHSL: There is no supported conversion to HSL colorspace")
-      return None;
-    return Image(retVal,colorSpace=ColorSpace.HLS )
-    
-  def toHSV(self):
-    retVal = self.getEmpty()
-    if( self._colorSpace == ColorSpace.BGR or
-        self._colorSpace == ColorSpace.UNKNOWN ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2HSV)
-    elif( self._colorSpace == ColorSpace.RGB):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2HSV)
-    elif( self._colorSpace == ColorSpace.HLS ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2HSV)
-    elif( self._colorSpace == ColorSpace.XYZ ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2HSV)
-    elif( self._colorSpace == ColorSpace.HSV ):
-      retVal = self.getBitmap()      
-    else:
-      warnings.warn("Image.toHSV: There is no supported conversion to HSV colorspace")
-      return None;
-    return Image(retVal,colorSpace=ColorSpace.HSV )
-    
-  def toXYZ(self):
-    retVal = self.getEmpty()
-    if( self._colorSpace == ColorSpace.BGR or
-        self._colorSpace == ColorSpace.UNKNOWN ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2XYZ)
-    elif( self._colorSpace == ColorSpace.RGB):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2XYZ)
-    elif( self._colorSpace == ColorSpace.HLS ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2XYZ)
-    elif( self._colorSpace == ColorSpace.HSV ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2XYZ)
-    elif( self._colorSpace == ColorSpace.XYZ ):
-      retVal = self.getBitmap()      
-    else:
-      warnings.warn("Image.toXYZ: There is no supported conversion to XYZ colorspace")
-      return None;
-    return Image(retVal,colorSpace=ColorSpace.XYZ )
-    
-  def toGray(self):
-    retVal = self.getEmpty(1)
-    if( self._colorSpace == ColorSpace.BGR or
-        self._colorSpace == ColorSpace.UNKNOWN ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_BGR2GRAY)
-    elif( self._colorSpace == ColorSpace.RGB):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_RGB2GRAY)
-    elif( self._colorSpace == ColorSpace.HLS ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HLS2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2GRAY)
-    elif( self._colorSpace == ColorSpace.HSV ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_HSV2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2GRAY)
-    elif( self._colorSpace == ColorSpace.XYZ ):
-      cv.CvtColor(self.getBitmap(),retVal,cv.CV_XYZ2RGB)
-      cv.CvtColor(retVal,retVal,cv.CV_RGB2GRAY)  
-    else:
-      warnings.warn("Image.toGray: There is no supported conversion to gray colorspace")
-      return None;
-    return Image(retVal,colorSpace=ColorSpace.GRAY)    
-    
-  def getEmpty(self, channels = 3):
-    """
-    Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
-    """
-=======
+
+
     def toRGB(self):
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
@@ -422,7 +326,7 @@ class Image:
         else:
             warnings.warn("Image.toGray: There is no supported conversion to gray colorspace")
             return None
-        return Image(retVal, colorSpace = ColorSpace.Gray )    
+        return Image(retVal, colorSpace = ColorSpace.GRAY )    
     
     
     def getEmpty(self, channels = 3):
@@ -525,9 +429,6 @@ class Image:
       
     
     def _getEqualizedGrayscaleBitmap(self):
->>>>>>> f0b9dc27eaeacb2e457002bb207ecf97943098da
-
-
         if (self._equalizedgraybitmap):
             return self._equalizedgraybitmap
 
@@ -885,8 +786,8 @@ class Image:
             warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
             return None
 
-    if (maxsize == 0):  
-      maxsize = self.width * self.height / 2
+        if (maxsize == 0):  
+          maxsize = self.width * self.height / 2
     
         #create a single channel image, thresholded to parameters
         grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
