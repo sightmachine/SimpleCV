@@ -393,7 +393,9 @@ class Kinect(FrameSource):
 
 
 class JpegStreamReader(threading.Thread):
-    #threaded class for pulling down JPEG streams and breaking up the images
+    """
+    Threaded class for pulling down JPEG streams and breaking up the images
+    """
     url = ""
     currentframe = ""
   
