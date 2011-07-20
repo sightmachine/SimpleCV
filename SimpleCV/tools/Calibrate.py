@@ -5,6 +5,15 @@ from SimpleCV import Camera, Image, JpegStreamer, Color
 from scipy.spatial.distance import euclidean as distance
 """
 This script can be used to quickly calibrate a camera 
+
+
+You will need to print out the accompanying calibration grid, or provide your
+own.  The default arguments are for the provided grid.
+
+By default, the camera calibrates to maximize the amount of coverage of different
+planes and distances.  If you want higher accuracy for a single plane in a locked
+distance specify "planemode".
+
 """
 
 def showText(img, text):
