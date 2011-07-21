@@ -1,13 +1,20 @@
 Installation
 ================
+*Note: There are also video tutorials located online at:
+<http://simplecv.org>
+
+
+or on the youtube channel:
+<http://www.youtube.com/user/IngenuitasOfficial>
+
 
 Ubuntu (10.4 or above)
 -------------------------------------
 
 You can now download a .deb file from SourceForge -- look at http://sourceforge.net/projects/simplecv/files for an easier install.  
+This is the manual method for installation
 
-.. raw:: html
-    <iframe width="560" height="349" src="http://www.youtube.com/embed/yiOkyVYbS8w" frameborder="0" allowfullscreen></iframe>
+
 
 Steps:
 
