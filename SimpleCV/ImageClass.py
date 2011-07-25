@@ -179,34 +179,64 @@ class Image:
     
     
     def getColorSpace(self):
+        """
+        Returns the value matched in the color space class
+        so for instance you would use
+        if(image.getColorSpace() == ColorSpace.RGB)
+
+        RETURNS: Integer
+        """
         return self._colorSpace
   
   
     def isRGB(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.RGB)
 
 
     def isBGR(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.BGR)
     
     
     def isHSV(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.HSV)
     
     
     def isHLS(self):
+        """
+        Returns Boolean
+        """    
         return(self._colorSpace==ColorSpace.HLS)  
   
   
     def isXYZ(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.XYZ)
     
     
     def isGray(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.GRAY)    
 
 
     def toRGB(self):
+        """
+        Converts Image colorspace to RGB
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -226,6 +256,11 @@ class Image:
 
 
     def toBGR(self):
+        """
+        Converts image colorspace to BGR
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.RGB or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -245,6 +280,11 @@ class Image:
   
   
     def toHLS(self):
+        """
+        Converts image to HLS colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -266,6 +306,11 @@ class Image:
     
     
     def toHSV(self):
+        """
+        Converts image to HSV colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -287,6 +332,11 @@ class Image:
     
     
     def toXYZ(self):
+        """
+        Converts image to XYZ colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -308,6 +358,11 @@ class Image:
     
     
     def toGray(self):
+        """
+        Converts image to Grayscale colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -441,6 +496,11 @@ class Image:
     
     
     def getPGSurface(self):
+        """
+        Gets the pygame surface.  This is used for rendering the display
+
+        RETURNS: pgsurface
+        """
         if (self._pgsurface):
             return self._pgsurface
         else:
@@ -546,14 +606,23 @@ class Image:
     
     
     #scale this image, and return a new Image object with the new dimensions 
-    def scale(self, width, height):
+    def scale(self, width, height = -1):
         """
         Scale the image to a new width and height.
 
+        If no height is provided, the width is considered a scaling value ie::
+            
+            img.scale(200, 100) #scales the image to 200px x 100px
+            img.scale(2.0) #enlarges the image to 2x its current size
 
         Returns: IMAGE
         """
-        scaled_bitmap = cv.CreateImage((width, height), 8, 3)
+        w, h = width, height
+        if height == -1:
+          w = self.width * width
+          h = self.height * width
+          
+        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 

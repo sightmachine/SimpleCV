@@ -123,7 +123,7 @@ class Blob(Feature):
       """
       cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
       self.image._clearBuffers("_bitmap")
- 
+
 class Line(Feature):
     """
     The Line class is returned by the findLines function, but can also be initialized with any two points:
@@ -401,6 +401,10 @@ class HaarFeature(Feature):
         return abs(self.points[1][1]- self.points[0][1])
   
 class Chessboard(Feature):
+    """
+    This class is used for Calibration, it uses a chessboard
+    to calibrate from pixels to real world measurements
+    """
     spCorners = []
     dimensions = ()
     

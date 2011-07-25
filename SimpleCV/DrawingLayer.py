@@ -206,7 +206,8 @@ class DrawingLayer:
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent. 
         
-        width - The line width in pixels. This does not work if antialiasing is enabled.
+        width - The 
+        width in pixels. This does not work if antialiasing is enabled.
         
         filled -The object is filled in
         
@@ -413,6 +414,14 @@ class DrawingLayer:
         del pixels_alpha
         self._mSurface.blit(image,pos)
 
+        
+    def blit(self, img, coordinates = (0,0)):
+      """
+Blit one image onto the drawing layer at upper left coordinates
+      """
+      
+      #can we set a color mode so we can do a little bit of masking here?
+      self._mSurface.blit(img.getPGSurface(), coordinates)
         
     def replaceOverlay(self, overlay):
         """

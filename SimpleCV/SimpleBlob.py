@@ -100,11 +100,6 @@ class SimpleBlob:
         Rectify the blob image and the contour such that the major
         axis is aligned to either vertical=0 or horizontal=1 
         """
-    def overlaps(self,blob):
-        """
-        given two blobs determine if the overlap at all
-        """
-        return None
     
     def above(self,blob):
         """
@@ -122,32 +117,136 @@ class SimpleBlob:
     def left(self,blob):
         return None
     
-    def distanceTo(self,point, mode='Fast'):
+    def distanceTo(self,point,metric='centroid'):
         """
-        The distance to another blob 
+        The distance to another blob
+        metric = 'centroid' - Get the distance between the blob and this blob's centroid
+        metric = 'edge' - Get the distance to the nearest point on the blob
+        metric = 'edge appx' - Get the distance to the bounding box edge. 
         """
+        #if(metric=='centroid'):
+        #    if(point)
+        #else:
+            
         return None
     
     def contains(self,other,mode='FAST'):
+        """
+        Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
+        mode = 'FAST' - does an approximation of contains by using the bouding box
+        mode = 'PRECISE' - uses the blob's polygon approximation
+        """
         return None
     
+    def overlaps(self, other, mode='FAST'):
+        """
+        Returns true if this blob contains at least one point, part of a collection
+        of points, or any part of a blob. 
+        mode = 'FAST' - does an approximation of contains by using the bouding box
+        mode = 'PRECISE' - uses the blob's polygon approximation        
+        """
+        return None
     # draw just the blob contours
-    def Draw(self, color=Color.WHITE, width=-1):
+    def draw(self, color=Color.WHITE, w=-1,alpha=255):
+        """
+        Draw the blob to
+        return None
+        """
+        if( w < 0 ):
+            #blit the blob in
+            self.mSourceImgPtr.getDrawingLayer().polygon(self.mContour,color,filled=True,alpha=alpha)
+        else:
+            lastp = self.mContour[0] #this may work better.... than the other 
+            for nextp in self.mContour[1::]:
+                self.mSourceImgPtr.getDrawingLayer().line((int(lastp[0]),int(lastp[1])),(int(nextp[0]),int(nextp[1])),color,width=w,alpha=alpha,antialias = False)
+                lastp = nextp
+            self.mSourceImgPtr.getDrawingLayer().line(self.mContour[0],self.mContour[-1],color,width=w,alpha=alpha, antialias = False)
+                   
+    #draw the blob to a layer
+    def drawToLayer(self, layer, color=Color.WHITE, alpha=-1, w=-1):
+        """
+        Draw the blob to
+        return None
+        """
+        if( w < 0 ):
+            #blit the blob in
+            layer.polygon(self.mContour,color,filled=True,alpha=alpha)
+        else:
+            lastp = self.mContour[0] #this may work better.... than the other 
+            for nextp in self.mContour[1::]:
+                layer.line(lastp,nextp,color,width=w,alpha=alpha,antialias = False)
+                lastp = nextp
+            layer.line(self.mContour[0],self.mContour[-1],color,width=w,alpha=alpha, antialias = False)
         return None
     
-    #draw the blob to a layer
-    def DrawToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1 ):
-        return None
+    def drawHoles(self,color=Color.WHITE, alpha=-1, w=-1):
+        if(self.mHoleContour is None):
+            return 
+        if( w < 0 ):
+            #blit the blob in
+            for h in self.mHoleContour:
+                self.mSourceImgPtr.getDrawingLayer().polygon(h,color,filled=True,alpha=alpha)
+        else:
+            for h in self.mHoleContour:
+                lastp = h[0] #this may work better.... than the other 
+                for nextp in h[1::]:
+                    self.mSourceImgPtr.getDrawingLayer().line((int(lastp[0]),int(lastp[1])),(int(nextp[0]),int(nextp[1])),color,width=w,alpha=alpha,antialias = False)
+                    lastp = nextp
+                self.mSourceImgPtr.getDrawingLayer().line(h[0],h[-1],color,width=w,alpha=alpha, antialias = False)
+    
+    def drawHolesToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1):
+        if(self.mHoleContour is None):
+            return 
+        if( w < 0 ):
+            #blit the blob in
+            for h in self.mHoleContour:
+                layer.polygon(h,color,filled=True,alpha=alpha)
+        else:
+            for h in self.mHoleContour:
+                lastp = h[0] #this may work better.... than the other 
+                for nextp in h[1::]:
+                    layer.line((int(lastp[0]),int(lastp[1])),(int(nextp[0]),int(nextp[1])),color,width=w,alpha=alpha,antialias = False)
+                    lastp = nextp
+                layer.line(h[0],h[-1],color,width=w,alpha=alpha, antialias = False)
     
     #draw the hull
-    def DrawHull(self, color=Color.WHITE, width=-1):
+    def drawHull(self, color=Color.WHITE, w=-1):
+        """
+        Draw the blob to
+        return None
+        """
+        if( w < 0 ):
+            #blit the blob in
+            self.mSourceImgPtr.getDrawingLayer().polygon(self.mConvexHull,color,filled=True,alpha=alpha)
+        else:
+            lastp = self.mConvexHull[0] #this may work better.... than the other 
+            for nextp in self.mConvexHull[1::]:
+                self.mSourceImgPtr.getDrawingLayer().line(lastp,nextp,color,width=w,alpha=alpha,antialias = False)
+                lastp = nextp
+            self.mSourceImgPtr.getDrawingLayer().line(self.mConvexHull[0],self.mConvexHull[-1],color,width=w,alpha=alpha, antialias = False)
         return None
     
     #draw the hull to a layer
-    def DrawHullToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1 ):
+    def drawHullToLayer(self, layer, color=Color.WHITE, alpha=-1, w=-1 ):
+        """
+        Draw the blob to
+        return None
+        """
+        if( w < 0 ):
+            #blit the blob in
+            layer.polygon(self.mConvexHull,color,filled=True,alpha=alpha)
+        else:
+            lastp = self.mConvexHull[0] #this may work better.... than the other 
+            for nextp in self.mConvexHull[1::]:
+                layer.line(lastp,nextp,color,width=w,alpha=alpha,antialias = False)
+                lastp = nextp
+            layer.line(self.mConvexHull[0],self.mConvexHull[-1],color,width=w,alpha=alpha, antialias = False)        
         return None
     
     #draw the actual pixels inside the contour to the layer
-    def DrawMaskedToLayer(self, layer, color=Color.WHITE, alpha=-1, width=-1):
+    def drawMaskedToLayer(self, layer, offset=(0,0)):
+        mx = self.mBoundingBox[0]+offset[0]
+        my = self.mBoundingBox[1]+offset[1]
+        layer.blit(self.mImg,coordinates=(mx,my))
         return None
     
