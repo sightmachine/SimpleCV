@@ -47,7 +47,8 @@ class FrameSource:
 
     def calibrate(self, imageList, grid_sz=0.029, dimensions=(8, 5)):
         """
-        Camera calibration is agnostic of the imagery source 
+        Camera calibration will help remove distortion and fisheye effects
+        It is agnostic of the imagery source, and can be used with any camera
     
         imageList is a list of images of color calibration images. 
     
@@ -153,6 +154,7 @@ class FrameSource:
         
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
         measurement and return them in the original coordinate system.
+        
         """
         if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
             warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
@@ -482,47 +484,3 @@ class JpegStreamCamera(FrameSource):
         """
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
 
-
-
-class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    allow_reuse_address = True
-
-    #factory class for jpegtcpservers
-class JpegStreamer():
-    """
-    The JpegStreamer class allows the user to stream a jpeg encoded file
-    to a HTTP port.  Any updates to the jpg file will automatically be pushed
-    to the browser via multipart/replace content type.
-  
-    To initialize:
-    js = JpegStreamer()
-  
-    to update:
-    img.save(js)
-  
-    Note 3 optional parameters on the constructor:
-    - port (default 8080) which sets the TCP port you need to connect to
-    - sleep time (default 0.1) how often to update.  Above 1 second seems to cause dropped connections in Google chrome
-  
-    Once initialized, the buffer and sleeptime can be modified and will function properly -- port will not.
-    """
-    server = ""
-    host = ""
-    port = ""
-    sleeptime = ""
-    framebuffer = StringIO()
-  
-    def __init__(self, hostandport = 8080, st=0.1 ):
-        global _jpegstreamers
-        if (type(hostandport) == int):
-            self.port = hostandport
-        elif (type(hostandport) == tuple):
-            (self.host, self.port) = hostandport 
-    
-        self.sleeptime = st
-        
-        self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
-        self.server_thread = threading.Thread(target = self.server.serve_forever)
-        _jpegstreamers[self.port] = self
-        self.server_thread.daemon = True
-        self.server_thread.start()
