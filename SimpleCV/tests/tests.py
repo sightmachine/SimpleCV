@@ -229,66 +229,73 @@ def test_detection_lines():
   img.save(testoutput)
 
 def test_detection_feature_measures():
-  img = Image(testimage2)
+    img = Image(testimage2)
   
-  fs = FeatureSet()
-  fs.append(Corner(img, 5, 5))
-  fs.append(Line(img, ((2, 2), (3,3))))
+    fs = FeatureSet()
+    fs.append(Corner(img, 5, 5))
+    fs.append(Line(img, ((2, 2), (3,3))))
+    print(fs)
+    #if BLOBS_ENABLED:
+    bm = BlobMaker()
+    result = bm.extract(img)
+    fs.extend(result)
+    print(fs)
+    #fs.append(img.findBlobs()[0])
 
-  if BLOBS_ENABLED:
-    fs.append(img.findBlobs()[0])
+    #if ZXING_ENABLED:
+    # fake_barcode = Barcode(img, zxing.BarCode("""
+    #file:default.png (format: FAKE_DATA, type: TEXT):
+    #Raw result:
+    #foo-bar|the bar of foo
+    #Parsed result:
+    #foo-bar 
+    #the bar of foo
+    #Also, there were 4 result points:
+    #  Point 0: (24.0,18.0)
+    #  Point 1: (21.0,196.0)
+    #  Point 2: (201.0,198.0)
+    #  Point 3: (205.23952,21.0)
+    #"""))
+    #fs.append(fake_barcode) 
 
-  if ZXING_ENABLED:
-    fake_barcode = Barcode(img, zxing.BarCode("""
-file:default.png (format: FAKE_DATA, type: TEXT):
-Raw result:
-foo-bar|the bar of foo
-Parsed result:
-foo-bar 
-the bar of foo
-Also, there were 4 result points:
-  Point 0: (24.0,18.0)
-  Point 1: (21.0,196.0)
-  Point 2: (201.0,198.0)
-  Point 3: (205.23952,21.0)
-"""))
-    fs.append(fake_barcode) 
+    for f in fs:
+        a = f.area()
+        l = f.length()
+        c = f.meanColor()
+        d = f.colorDistance()
+        th = f.angle()
+        pts = f.coordinates()
+        dist = f.distanceFrom() #distance from center of image 
 
-  for f in fs:
-    a = f.area()
-    l = f.length()
-    c = f.meanColor()
-    d = f.colorDistance()
-    th = f.angle()
-    pts = f.coordinates()
-    dist = f.distanceFrom() #distance from center of image 
-
-  fs1 = fs.sortDistance()
-  fs2 = fs.sortAngle()
-  fs3 = fs.sortLength()
-  fs4 = fs.sortColorDistance()
-  fs5 = fs.sortArea()
-  
+    
+    fs2 = fs.sortAngle()
+    fs3 = fs.sortLength()
+    fs4 = fs.sortColorDistance()
+    fs5 = fs.sortArea()
+    fs1 = fs.sortDistance() 
 
 def test_detection_blobs():
-  if not BLOBS_ENABLED:
-    return None 
-  img = Image(testbarcode)
-  blobs = img.findBlobs()
+    if not BLOBS_ENABLED:
+      return None 
+    img = Image(testbarcode)
+  
+    bm = BlobMaker()
+    blobs = bm.extract(img)
 
-  blobs[0].draw((0, 255, 0))
-  img.save(testoutput)  
+    blobs[0].draw()
+    img.save(testoutput)  
 
-  pass
+    pass
 
 def test_detection_blobs_adaptive():
-  if not BLOBS_ENABLED:
-    return None 
-  img = Image(testbarcode)
-  blobs = img.findBlobs(-1)
-  blobs[0].draw((0, 255, 0))
-  img.save(testoutput)  
-  pass
+    if not BLOBS_ENABLED:
+        return None
+    img = Image(testimage)
+    bm = BlobMaker()
+    result = bm.extract(img, threshval=-1)
+    result[0].draw()
+    img.save(testoutput)  
+    pass
 
 
 def test_detection_barcode():
@@ -320,12 +327,15 @@ def test_detection_y():
     assert False
 
 def test_detection_area():
-  area_val = Image(testimage).findBlobs().area()[0]
+    img = Image(testimage2)
+    bm = BlobMaker()
+    result = bm.extract(img)
+    area_val = result[0].area()
   
-  if(area_val > 0):
-    pass
-  else:
-    assert False
+    if(area_val > 0):
+        pass
+    else:
+        assert False
 
 def test_detection_angle():
   angle_val = Image(testimage).findLines().angle()[0]
@@ -384,8 +394,10 @@ def test_detection_sortangle():
     assert False
     
 def test_detection_sortarea():
-  img = Image(testimage)
-  val = img.findBlobs().sortArea()
+    img = Image(testimage)
+    bm = BlobMaker()
+    result = bm.extract(img)
+    val = result.sortArea()
   #FIXME: Find blobs may appear to be broken. Returning type none
 
 def test_detection_sortLength():

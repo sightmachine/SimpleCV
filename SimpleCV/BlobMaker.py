@@ -1,6 +1,7 @@
 from SimpleCV.base import *
-from SimpleBlob import *
+from SimpleCV.Blob import *
 from SimpleCV.ImageClass import *
+from SimpleCV.Features import FeatureSet
 
 class BlobMaker:
     """
@@ -20,16 +21,28 @@ class BlobMaker:
         """
         return None
     
-    def extractFromBinary(self,binaryImg,colorImg,doHist = False, minArea = 5):
+    def extract(self, img, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
+        if (maxsize <= 0):  
+          maxsize = img.width * img.height / 2
+    
+        #create a single channel image, thresholded to parameters
+
+        blobs = self.extractFromBinary(img.binarize(threshval, 255, threshblocksize, threshconstant).invert(),img,doHist=False,minArea=minsize,maxArea=maxsize)
+
+        retVal = sorted(blobs,key=lambda x: x.mArea, reverse=True)
+
+        return FeatureSet(retVal)    
+    
+    def extractFromBinary(self,binaryImg,colorImg,doHist = False, minArea = 5, maxArea = -1):
         #h_next moves to the next external contour
         #v_next() moves to the next internal contour
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), cv.CreateMemStorage(), cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         retVal = []
-        retVal = self._extractFromBinary(seq,False,colorImg,doHist,minArea)
+        retVal = self._extractFromBinary(seq,False,colorImg,doHist,minArea,maxArea)
         del seq
         return retVal
     
-    def _extractFromBinary(self, seq, isaHole, colorImg, doHist, minArea):
+    def _extractFromBinary(self, seq, isaHole, colorImg, doHist, minArea,maxArea):
         #if there is nothing return the list
         if(seq is None):
             return None
@@ -38,29 +51,35 @@ class BlobMaker:
         nextBlob = seq.h_next() # move to the next feature on our level
         nextLayer = seq.v_next() # move down a layer
 
-        if(nextBlob is not None): #the next object is whatever this object is, add its list to ours
-            retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, doHist, minArea)
+     #   while(nextBlob is not None and cv.ContourArea(nextBlob) < minArea ):
+     #       nextBlob = seq.h_next()
+        if( nextBlob is not None ):
+            #the next object is whatever this object is, add its list to ours
+            retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, doHist, minArea,maxArea)
         if(nextLayer is not None): #the next object, since it is down a layer is different
-            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, doHist, minArea)
+            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, doHist, minArea,maxArea)
         
         if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
-            temp =  self._extractData(seq,colorImg,doHist,minArea)
+            temp =  self._extractData(seq,colorImg,doHist,minArea,maxArea)
             if( temp is not None ):
                retVal.append(temp)
             
         return retVal
     
-    def _extractData(self,seq,color,doHist = False,minArea=5):
+    def _extractData(self,seq,color,doHist = False,minArea=5, maxArea=-1):
         if( seq == None ):
             return None
         area = cv.ContourArea(seq)
-        if( area < minArea):
+        if( area < minArea or area > maxArea):
             return None
-        retVal = SimpleBlob()
-        retVal.mSourceImgPtr = color
+        retVal = Blob()
+        #retVal.mSourceImgPtr = color
+        retVal.image = color 
         retVal.mArea = area
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
         retVal.mBoundingBox = cv.BoundingRect(seq)
+        retVal.x = retVal.mBoundingBox[0]+(retVal.mBoundingBox[2]/2)
+        retVal.y = retVal.mBoundingBox[1]+(retVal.mBoundingBox[3]/2)
         retVal.mPerimeter = cv.ArcLength(seq)
         
         retVal.mContour = list(seq)
