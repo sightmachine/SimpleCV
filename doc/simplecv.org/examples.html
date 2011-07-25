@@ -1,0 +1,72 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+	<head> 
+		<meta charset="utf-8"> 
+		<title>SimpleCV - Ingenuitas</title>
+        <meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport">
+        <link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">    
+        <link href="http://fonts.googleapis.com/css?family=Play&v1" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="css/one.css?v=2">
+	</head> 
+	<body>
+		<div class="bg">
+                <h1>SimpleCV</h1>
+            <div class="pad">
+                <div class="skin"></div>
+                <img src="img/simplecv_lg.png" class="glow">
+                <h2>Make computers see with SimpleCV, the Open Source Framework for Vision</h2>
+                <iframe width="200" height="70" src="http://sf.net/projects/simplecv/best_release.html"></iframe>
+                <nav class="clearfix"> 
+                    <a href="/doc/" title="Documentation">Documentation</a> 
+                    <a href="http://sf.net/p/simplecv" title="SourceForge">SourceForge</a> 
+                    <a href="http://sf.net/projects/simplecv/files/" title="Downloads">Downloads</a> 
+                    <a href="http://www.youtube.com/user/IngenuitasOfficial" title="Source Code">YouTube</a> 
+                    <a href="http://twitter.com/Simple_CV/" title="Twitter">Twitter</a> 
+                    <a href="http://groups.google.com/group/simplecv">Support</a> 
+                </nav>                
+            </div>
+            <section class="clearfix">
+				<div class="page">
+					
+					<h2>Loading and Saving Images</h2>
+
+                    <p>
+					To load an image, specify the file path in the constructor:
+					<output>
+my_image = Image("path/to/image.jpg")
+					</output>
+					
+					To save the image, use the save method.  It will automatically use the file you loaded the image from:
+					<output>
+my_image.save()
+					</output>
+					
+					You can also specify a new file to save to, similar to a "Save As...", and future calls to save() will save to this new file:
+					<output>
+my_image.save("path/to/new_image.jpg")
+#...do some stuff...
+my_image.save()
+#saves to path/to/new_image.jpg
+					</output>
+					</p>
+				</div>
+			</section>
+            <footer> 
+               &copy; <a href="http://ingenuitas.com">2011 Ingenuitas, All Rights Reserved</a>
+            </footer>                          
+		</div>        
+		<script type="text/javascript">
+
+		  var _gaq = _gaq || [];
+		  _gaq.push(['_setAccount', 'UA-23517471-2']);
+		  _gaq.push(['_trackPageview']);
+
+		  (function() {
+		    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		  })();
+
+		</script>
+</body> 
+</html>

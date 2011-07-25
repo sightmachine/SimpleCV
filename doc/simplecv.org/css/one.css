@@ -146,3 +146,12 @@ vertical-align: top;
 font-size: 11pt;
 color: #8ecd14;
 }
+
+.page output {
+padding: 5px;
+width: 100%;
+}
+
+.page {
+text-align: left;
+}
