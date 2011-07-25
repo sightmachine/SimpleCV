@@ -244,15 +244,15 @@ class HaarFeature(Feature):
     - points are the clockwise points of the bounding rectangle, starting in upper left
     """
     classifier = "" 
-    width = ""
-    height = ""
+    _width = ""
+    _height = ""
     
     def __init__(self, i, haarobject, haarclassifier = None):
         self.image = i
-        ((x, y, self.width, self.height), self.neighbors) = haarobject
-        self.x = x + self.width/2
-        self.y = y + self.height/2 #set location of feature to middle of rectangle
-        self.points = ((x, y), (x + self.width, y), (x + self.width, y + self.height), (x, y + self.height))
+        ((x, y, self._width, self._height), self.neighbors) = haarobject
+        self.x = x + self._width/2
+        self.y = y + self._height/2 #set location of feature to middle of rectangle
+        self.points = ((x, y), (x + self._width, y), (x + self._width, y + self._height), (x, y + self._height))
         #set bounding points of the rectangle
         self.classifier = haarclassifier
     
@@ -299,13 +299,13 @@ class HaarFeature(Feature):
         """
         Get the width of the line.
         """
-        return abs(self.points[1][0]- self.points[0][0])
+        return self._width
       
     def height(self):
         """
         Get the height of the line
         """    
-        return abs(self.points[1][1]- self.points[0][1])
+        return self._height
   
 class Chessboard(Feature):
     """
@@ -339,7 +339,8 @@ class Chessboard(Feature):
     def area(self):
         """
         Returns the mean of the distance between corner points in the chessboard
-        This can be used as a proxy for distance from the camera
+        Given that the chessboard is of a known size, this can be used as a
+        proxy for distance from the camera
         """
         #note, copying this from barcode means we probably need a subclass of
         #feature called "quandrangle"
