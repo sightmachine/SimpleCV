@@ -12,14 +12,40 @@ Image
    :inherited-members:
    :undoc-members:
 
+Color
+--------
+
+.. autoclass:: Color
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
 .. autoclass:: ColorCurve 
    :show-inheritance:
    :members:
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: ColorMap
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
 
+.. autoclass:: ColorSpace
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
 
+.. autoclass:: ColorModel
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+    
 Features
 --------
 
@@ -60,6 +86,13 @@ Features
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: Chessboard
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+
 Cameras
 --------
 
@@ -97,3 +130,30 @@ Streams
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: VideoStream
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   :undoc-members:
+
+
+Display
+---------
+
+.. autoclass:: Display
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   :undoc-members:
+
+.. autoclass:: DrawingLayer
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   :undoc-members:
+
+.. autoclass:: Font
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   :undoc-members:

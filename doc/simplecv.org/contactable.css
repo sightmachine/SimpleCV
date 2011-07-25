@@ -1,0 +1,125 @@
+#contactable #contactable_inner {
+	background-image:url(images/feeback.png);
+	color:#FFFFFF;
+	background-color:#333333;
+	cursor:pointer;
+	height:102px;
+	left:0;
+	margin-left:-5px; 
+	*margin-left:-5px; 
+	overflow:hidden;
+	position:fixed;
+	*position:absolute;
+	text-indent:-100000px;
+	top:102px;
+	*margin-top:10px;
+	width:44px;
+	z-index:100000;
+}
+
+#contactable #contactForm {
+	background-color:#333333;
+	border:2px solid #FFFFFF;
+	color:#FFFFFF;
+	height:450px;
+	left:0;
+	margin-left:-400px;
+	*margin-left:-434px;
+	margin-top:-160px;
+	overflow:hidden;
+	padding-left:30px;
+	position:fixed;
+	top:200px;
+	width:360px;
+	*width:394px;
+	z-index:99;
+}
+
+#contactable form#contactForm input, textarea {
+	background:#FFFFFF none repeat scroll 0 0;
+	outline-style:none;
+	outline-width:medium;
+	width:325px;
+	padding:5px;
+	border:1px solid #dfdfdf;
+	font-family: georgia;
+	font-size:1em;
+	margin-bottom:10px;
+}
+
+#contactable form#contactForm .submit {
+	background: #F5410F none repeat scroll 0 0;
+	outline-style:none;
+	outline-width:medium;
+	width:325px;
+	padding:5px;
+	border:3px solid #F52D0F;
+	outline-color:-moz-use-text-color;
+	font-family: georgia;
+	font-size:1em;
+	cursor:pointer;
+	color:#FFF;
+	text-transform:uppercase;
+	font-weight:bolder;
+	font-family:Helvetica;
+	margin-top:10px;
+}
+
+#contactable form#contactForm p {
+	width:325px;
+	font-size:0.9em;
+}
+
+#contactable form#contactForm .disclaimer {
+	*margin-left:20px;
+}
+
+#contactable #contactForm .red {
+	color:	#F5410F;
+}
+
+#contactable #overlay {
+	background-color:#666666;
+	display:none;
+	height:100%;
+	left:0;
+	margin:0;
+	padding:0;
+	position:absolute;
+	top:0;
+	width:100%;
+	z-index:0;
+} 
+#contactable .error { background-color: #EDBE9C; }
+
+#contactable #name.error { background-color: #EDBE9C; } 
+#contactable #email.error { background-color: #EDBE9C; }
+#contactable #comment.error { background-color: #EDBE9C; }
+
+#contactable form#contactForm label{
+	*margin-left:20px;
+}
+
+#contactable form#contactForm #loading {
+	background: url(images/ajax-loader.gif) no-repeat;
+	width:55px;
+	height:55px;
+	margin: 100px auto;
+	display:none;
+}
+
+#contactable #callback {
+	font-family: georgia;
+	font-size:1.1em;
+	color: #FFF;
+	width:325px;
+	margin: 100px auto;	
+	display:none;
+}
+
+
+#contactable .holder {
+	margin:0 auto;
+	*margin-left:20px;
+	padding-top:20px;	
+}	
