@@ -48,12 +48,12 @@
 }
 
 #contactable form#contactForm .submit {
-	background: #F5410F none repeat scroll 0 0;
+	background: #8ECD14 none repeat scroll 0 0;
 	outline-style:none;
 	outline-width:medium;
 	width:325px;
 	padding:5px;
-	border:3px solid #F52D0F;
+	border:3px solid #8ECD14;
 	outline-color:-moz-use-text-color;
 	font-family: georgia;
 	font-size:1em;
@@ -75,7 +75,7 @@
 }
 
 #contactable #contactForm .red {
-	color:	#F5410F;
+	color:	#8ECD14;
 }
 
 #contactable #overlay {
