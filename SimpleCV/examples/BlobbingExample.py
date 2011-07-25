@@ -1,22 +1,24 @@
 #!/usr/bin/python 
 from SimpleCV import *
-morphology = Image('../sampleimages/blockhead.png')
+morphology = Image('../sampleimages/hardblob.png')#blockhead.png')
 chull = Image('../sampleimages/chull.png')
 deep = Image('../sampleimages/test.png')
 hard = Image('../sampleimages/test.png')
 bm = BlobMaker()
 morphology.binarize(thresh=10).invert().save("DERP.png")
 #ZOMG! NEW RULE ALL BLOBS ARE WHITE, ALWAYS AND FOREVER AMEN
-test = bm.extractFromBinary(morphology.binarize(thresh=10).invert(),morphology)
+test = bm.extract(morphology)
 print(len(test))
 i = 0
 blobLayer = DrawingLayer((morphology.width,morphology.height))
 resultLayer = DrawingLayer((morphology.width,morphology.height))
 test.reverse()
 for b in test:
-    b.drawMaskedToLayer(blobLayer)
-    b.draw(alpha=128,w=4,color=Color.AQUAMARINE)
-    b.drawHoles(alpha=128,w=4,color=Color.BLUE)
+    b.drawMaskToLayer(blobLayer)
+    
+    b.draw(color=Color.RED)
+    b.drawHoles(w=2,color=Color.BLUE)
+    b.drawHull(color=Color.ORANGE,w=2)
     name = "Blob"+str(i)+".png"
     b.mImg.save(name)
     print(name)
