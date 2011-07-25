@@ -17,19 +17,18 @@
                 <h2>Make computers see with SimpleCV, the Open Source Framework for Vision</h2>
                 <iframe width="200" height="70" src="http://sf.net/projects/simplecv/best_release.html"></iframe>
                 <nav class="clearfix"> 
-                    <a href="/doc/" title="Documentation">Documentation</a> 
-                    <a href="http://sf.net/p/simplecv" title="SourceForge">SourceForge</a> 
+                    <a href="http://www.youtube.com/user/IngenuitasOfficial" title="Source Code">Demos</a>
+                    <a href="examples.html" title="Examples">Examples</a>
                     <a href="http://sf.net/projects/simplecv/files/" title="Downloads">Downloads</a> 
-                    <a href="http://www.youtube.com/user/IngenuitasOfficial" title="Source Code">YouTube</a> 
                     <a href="http://twitter.com/Simple_CV/" title="Twitter">Twitter</a> 
-                    <a href="http://groups.google.com/group/simplecv">Support</a> 
+                    <a href="http://groups.google.com/group/simplecv">Support</a>
+                    <a href="http://sf.net/p/simplecv" title="SourceForge">Development</a>
+                    <a href="/doc/" title="Documentation">Documentation</a> 
                 </nav>                
             </div>
             <section class="clearfix">
 				<div class="page">
-					
 					<h2>Loading and Saving Images</h2>
-
                     <p>
 					To load an image, specify the file path in the constructor:
 					<output>
@@ -48,7 +47,44 @@ my_image.save("path/to/new_image.jpg")
 my_image.save()
 #saves to path/to/new_image.jpg
 					</output>
-					</p>
+                    <hr>
+                    <h2>Image Manipulation</h2>
+                    You can scale images using the "scale" function, so for instance to create a thumbnail.
+                    <output>
+thumbnail = my_image.scale(90, 90)
+                    </output>
+                    You can erode an image using:
+                    <output>
+eroded = my_image.erode()
+                    </output>
+                    You can crop an image using:
+                    <output>
+cropped = my_image.crop()
+                    </output>
+                    you can find all the <a href="http://www.simplecv.org/doc/api.html#image">Image operations here in the documentation</a>
+                    <hr>
+                    <h2>Features</h2>
+                    Search type functions return Feature Sets, for instance, finding all lines in an image:
+                    <output>
+image = Image()
+lines = image.findLines()
+                    </output>
+                    To find blobs its as easy as:
+                    <output>
+image = Image()
+blobs = image.findBlobs()
+                    </output>
+                    most of the features functions are prefixed with find
+                    they can be found in the <a href="http://www.simplecv.org/doc/api.html#image">Image documentation</a>
+                    or you can also view a the <a href="http://www.simplecv.org/doc/api.html#features">types of features in the documentations</a>
+                    <hr>
+                    <h2>Color</h2>
+                    You can use color to define various types of color for displaying text or marking up images:
+                    <output>
+black = Color.BLACK
+yellow = Color.YELLOW
+                    </output>
+                    </p>
 				</div>
 			</section>
             <footer> 
