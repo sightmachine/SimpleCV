@@ -10,8 +10,17 @@
         <link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">    
         <link href="http://fonts.googleapis.com/css?family=Play&v1" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="css/one.css?v=2">
-	</head> 
+    </head> 
 	<body>
+    <!--start contactable -->
+    <div id="contactable"><!-- contactable html placeholder --></div>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.validate.pack.js"></script>
+    <script type="text/javascript" src="jquery.contactable.min.js"></script>
+    <link rel="stylesheet" href="contactable.css" type="text/css" />
+    <script>$(function(){$('#contactable').contactable({subject: 'feedback URL:'+location.href});});</script>
+    <!--end contactable -->
+
 		<div class="bg">
                 <h1>SimpleCV</h1>
             <div class="pad">
