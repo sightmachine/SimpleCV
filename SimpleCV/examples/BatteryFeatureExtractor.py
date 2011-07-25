@@ -46,7 +46,7 @@ def ExtractFeatures( fname, outbase, colormodel ):
     #do an adaptive binary operation
     blurr = img.smooth(aperature=9)
     #blobs = img.binarize(thresh = -1, blocksize=21,p=3)
-    blobs = colormodel.thresholdImage(img)
+    blobs = colormodel.threshold(img)
     #blobs = blobs.dilate(0)
     #default behavior is black on white, invert that 
     #blobs = blobs.invert()
@@ -119,15 +119,15 @@ tempFile = 'goodtemp.csv'
 path = '../sampleimages/batteries/notbuldged/'
 i = 0
 colorModel = ColorModel()
-colorModel.addToModel(Image('../sampleimages/batteries/train/train0.jpg'))
+colorModel.add(Image('../sampleimages/batteries/train/train0.jpg'))
 print(len(colorModel.mData))
-colorModel.addToModel(Image('../sampleimages/batteries/train/train1.jpg'))
+colorModel.add(Image('../sampleimages/batteries/train/train1.jpg'))
 print(len(colorModel.mData))
-#colorModel.addToModel(Image('train2.jpg'))
+#colorModel.add(Image('train2.jpg'))
 #print(len(colorModel.mData))
-#colorModel.addToModel(Image('train3.jpg'))
+#colorModel.add(Image('train3.jpg'))
 #print(len(colorModel.mData))
-#colorModel.addToModel(Image('train4.jpg'))
+#colorModel.add(Image('train4.jpg'))
 #print(len(colorModel.mData))
 
 #for every file on our good directory
@@ -153,15 +153,15 @@ for infile in glob.glob( os.path.join(path, '*.JPG') ):
 
 
 colorModel = ColorModel()
-colorModel.addToModel(Image('../sampleimages/batteries/train/train5.jpg'))
+colorModel.add(Image('../sampleimages/batteries/train/train5.jpg'))
 print(len(colorModel.mData))
-colorModel.addToModel(Image('../sampleimages/batteries/train/train6.jpg'))
+colorModel.add(Image('../sampleimages/batteries/train/train6.jpg'))
 print(len(colorModel.mData))
-#colorModel.addToModel(Image('train7.jpg'))
+#colorModel.add(Image('train7.jpg'))
 #print(len(colorModel.mData))
-#colorModel.addToModel(Image('train8.jpg'))
+#colorModel.add(Image('train8.jpg'))
 #print(len(colorModel.mData))
-#colorModel.addToModel(Image('train9.jpg'))
+#colorModel.add(Image('train9.jpg'))
 #print(len(colorModel.mData))
 
 path = '../sampleimages/batteries/buldged/'

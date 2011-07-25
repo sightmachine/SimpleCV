@@ -1,39 +1,14 @@
-.. SimpleCV documentation master file, created by
-   sphinx-quickstart on Mon May 23 11:11:43 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+API - SimpleCV Application Programming Interface
+---------------------------
 
-SimpleCV: Make computers see with SimpleCV
-======================================================
+.. toctree::
+   :maxdepth: 2
+   :glob:
 
-Make computers see with SimpleCV!
-
-SimpleCV is an interface for Open Source machine vision libraries in Python.   
-It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
-
-Download from SourceForge: <http://sourceforge.net/projects/simplecv/files>
-
-SourceForge Project Page: <http://sf.net/p/simplecv>
-
-
-
-We like SimpleCV because:
-
- * Even beginning programmers can write simple machine vision tests
- * Cameras, video files, images, and video streams are all interoperable
- * Information on image features can be extracted, sorted and filtered easily
- * Manipulations are fast, with easy to remember names
- * Linear algebra is strictly optional
-
-
-Here is the simplecv "hello world"::
-
-    import SimpleCV
-
-    c = SimpleCV.Camera()
-    c.getImage().save("picture.jpg")
-
-For more code snippets, look at the cookbook, or the example scripts.
+   api
+   installation
+   cookbook
+   
 
 Installation
 ---------------------------
@@ -66,14 +41,14 @@ If you need more specific instructions per platform there is:
 
 
 Required Libraries
-----------------------
+==================
 
 * OpenCV 2.2 with Python bindings <http://opencv.willowgarage.com/wiki/>
 * SciPY <http://www.scipy.org>
 * Python Image Library <http://www.pythonware.com/products/pil/>
 
 Optional Libraries
-----------------------
+==================
 Device Support:
 
 * OpenKinect/freenect <http://openkinect.org/wiki/Main_Page>
@@ -89,20 +64,8 @@ Barcode reading:
 * python-zxing https://github.com/oostendo/python-zxing
 
     
-Contents
------------------
-
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   api
-   installation
-   cookbook
-
-
 Videos - Tutorials and Demos
-==================
+---------------------------
 Video tutorials and demos can be found at:
 http://www.youtube.com/user/IngenuitasOfficial
 
