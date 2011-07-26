@@ -919,6 +919,9 @@ class Image:
    
         You will need to provide your own cascade file - these are usually found in
         /usr/local/share/opencv/haarcascades and specify a number of body parts.
+        
+        Note that the cascade parameter can be either a filename, or a HaarCascade
+        loaded with cv.Load().
 
 
         Returns: FEATURESET
