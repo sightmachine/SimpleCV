@@ -140,7 +140,7 @@ class Image:
                 cv.SetData(channel, source.tostring(), 
                     source.dtype.itemsize * source.shape[1])
                 cv.Merge(channel, channel, channel, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
 
 
         elif (type(source) == cv.iplimage):
