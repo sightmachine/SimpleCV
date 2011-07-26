@@ -47,7 +47,8 @@ class FrameSource:
 
     def calibrate(self, imageList, grid_sz=0.029, dimensions=(8, 5)):
         """
-        Camera calibration is agnostic of the imagery source 
+        Camera calibration will help remove distortion and fisheye effects
+        It is agnostic of the imagery source, and can be used with any camera
     
         imageList is a list of images of color calibration images. 
     
@@ -153,6 +154,7 @@ class FrameSource:
         
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
         measurement and return them in the original coordinate system.
+        
         """
         if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
             warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
@@ -481,6 +483,4 @@ class JpegStreamCamera(FrameSource):
         Return the current frame of the JpegStream being monitored
         """
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
-
-
 
