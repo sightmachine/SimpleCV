@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 from SimpleCV import *
-morphology = Image('../sampleimages/hardblob.png')#blockhead.png')
+morphology = Image('../sampleimages/swisscheese.png')
 chull = Image('../sampleimages/chull.png')
 deep = Image('../sampleimages/test.png')
 hard = Image('../sampleimages/test.png')

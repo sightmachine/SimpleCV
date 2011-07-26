@@ -814,3 +814,112 @@ def test_color_conversion_func_XYZ():
   foo = xyz.toHLS()
   foo = xyz.toHSV()
   foo = xyz.toXYZ()  
+
+def test_blob_maker():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    results = blobber.extract(img)
+    print(len(results))
+    if( len(results) != 7 ):
+        assert False
+        
+def test_blob_holes():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    count = 0
+    for b in blobs:
+        if( b.mHoleContour is not None ):
+            count = count + len(b.mHoleContour)
+    if( count != 7 ):
+        assert False
+        
+def test_blob_hull():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    for b in blobs:
+        if( len(b.mConvexHull) < 3 ):
+            assert False
+
+def test_blob_data():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    for b in blobs:
+        if(b.mArea > 0):
+            pass
+        if(b.mPerimeter > 0):
+            pass
+        if(sum(b.mAvgColor) > 0 ):
+            pass
+        if(sum(b.mBoundingBox) > 0 ):
+            pass
+        if(b.m00 is not 0 and
+           b.m01 is not 0 and
+           b.m10 is not 0 and
+           b.m11 is not 0 and
+           b.m20 is not 0 and
+           b.m02 is not 0 and
+           b.m21 is not 0 and
+           b.m12 is not 0 ):
+            pass
+        if(sum(b.mHuMoments) > 0):
+            pass
+        
+def test_blob_render():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    dl = DrawingLayer((img.width,img.height))
+    reimg = DrawingLayer((img.width,img.height))
+    for b in blobs:        
+        b.draw(color=Color.RED, alpha=128)
+        b.drawHoles(w=2,color=Color.BLUE)
+        b.drawHull(color=Color.ORANGE,w=2)
+        b.draw(color=Color.RED, alpha=128,layer=dl)
+        b.drawHoles(w=2,color=Color.BLUE,layer=dl)
+        b.drawHull(color=Color.ORANGE,w=2,layer=dl)
+        b.drawMaskToLayer(reimg,offset=b.topLeftCorner())
+    pass
+
+def test_blob_methods():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    BL = (img.width,img.height)
+    first = blobs[0]
+    for b in blobs:
+        b.width()
+        b.height()
+        b.area()
+        b.maxX()
+        b.minX()
+        b.maxY()
+        b.minY()
+        b.minRectWidth()
+        b.minRectHeight()
+        b.minRectX()
+        b.minRectY()
+        b.aspectRatio()
+        b.angle()
+        if(not b.contains((b.x,b.y))):
+           assert False
+        if(b.below((0,0))):
+           assert False
+        if(not b.left((0,0))):
+            assert False
+        if(b.above(BL)):
+            assert False
+        if( not b.right(BL)):
+            assert False
+        b.overlaps(first)
+        b.above(first)
+        b.below(first)
+        b.left(first)
+        b.right(first)
+        b.contains(first)
+        b.overlaps(first)
+        
+#def test_get_holes()
+#def test 

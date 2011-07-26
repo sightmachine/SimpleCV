@@ -14,66 +14,101 @@ class BlobMaker:
     def __init__(self):
         return None
 
-    def extractUsingModel(self, img, colormodel,doHist = False):
+    def extractUsingModel(self, img, colormodel,minsize=10, maxsize=0):
         """
-        Extract using either a color model or yet to be writtne background model
-        (e.g. codebook or just an alpha beta color model)
+        Extract blobs using a color model
+        img        - The input image
+        colormodel - The color model to use.
+        minsize    - The minimum size of the returned features.
+        maxsize    - The maximum size of the returned features 0=uses the default value. 
         """
-        return None
+        if (maxsize <= 0):  
+          maxsize = img.width * img.height 
+        gray = colormodel.threshold(img)
+        blobs = self.extractFromBinary(gray,img,minArea=minsize,maxArea=maxsize)
+        retVal = sorted(blobs,key=lambda x: x.mArea, reverse=True)
+        return FeatureSet(retVal)
     
     def extract(self, img, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
+        """
+        This method performs a threshold operation on the input image and then
+        extracts and returns the blobs.
+        img       - The input image (color or b&w)
+        threshval - The threshold value for the binarize operation. If threshval = -1 adaptive thresholding is used
+        minsize   - The minimum blob size in pixels.
+        maxsize   - The maximum blob size in pixels. 0=uses the default value.
+        threshblocksize - The adaptive threhold block size.
+        threshconstant  - The minimum to subtract off the adaptive threshold
+        """
         if (maxsize <= 0):  
-          maxsize = img.width * img.height / 2
+          maxsize = img.width * img.height
     
         #create a single channel image, thresholded to parameters
 
-        blobs = self.extractFromBinary(img.binarize(threshval, 255, threshblocksize, threshconstant).invert(),img,doHist=False,minArea=minsize,maxArea=maxsize)
-
+        blobs = self.extractFromBinary(img.binarize(threshval, 255, threshblocksize, threshconstant).invert(),img,minsize,maxsize)
         retVal = sorted(blobs,key=lambda x: x.mArea, reverse=True)
-
         return FeatureSet(retVal)    
     
-    def extractFromBinary(self,binaryImg,colorImg,doHist = False, minArea = 5, maxArea = -1):
+    def extractFromBinary(self,binaryImg,colorImg, minsize = 5, maxsize = -1):
+        """
+        This method performs blob extraction given a binary source image that is used
+        to get the blob images, and a color source image.
+        binaryImg- The binary image with the blobs.
+        colorImg - The color image.
+        minSize  - The minimum size of the blobs in pixels.
+        maxSize  - The maximum blob size in pixels. 
+        """
         #h_next moves to the next external contour
         #v_next() moves to the next internal contour
+        if (maxsize <= 0):  
+          maxsize = img.width * img.height 
+          
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), cv.CreateMemStorage(), cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         retVal = []
-        retVal = self._extractFromBinary(seq,False,colorImg,doHist,minArea,maxArea)
+        retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
         del seq
         return retVal
     
-    def _extractFromBinary(self, seq, isaHole, colorImg, doHist, minArea,maxArea):
+    def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize):
+        """
+        The recursive entry point for the blob extraction. The blobs and holes are presented
+        as a tree and we traverse up and across the tree. 
+        """
         #if there is nothing return the list
-        if(seq is None):
-            return None
+        #if(seq is None):
+        #    return None
         retVal = []
+        
+        if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
+            temp =  self._extractData(seq,colorImg,minsize,maxsize)
+            if( temp is not None ):
+                retVal.append(temp)
+            
+                    
         #get the current feature
         nextBlob = seq.h_next() # move to the next feature on our level
         nextLayer = seq.v_next() # move down a layer
 
-     #   while(nextBlob is not None and cv.ContourArea(nextBlob) < minArea ):
-     #       nextBlob = seq.h_next()
         if( nextBlob is not None ):
             #the next object is whatever this object is, add its list to ours
-            retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, doHist, minArea,maxArea)
+            retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, minsize,maxsize)
         if(nextLayer is not None): #the next object, since it is down a layer is different
-            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, doHist, minArea,maxArea)
+            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize)
         
-        if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
-            temp =  self._extractData(seq,colorImg,doHist,minArea,maxArea)
-            if( temp is not None ):
-               retVal.append(temp)
-            
+
         return retVal
     
-    def _extractData(self,seq,color,doHist = False,minArea=5, maxArea=-1):
+    def _extractData(self,seq,color,minsize,maxsize):
+        """
+        Extract the bulk of the data from a give blob. If the blob's are is too large
+        or too small the method returns none. 
+        """
         if( seq == None ):
             return None
         area = cv.ContourArea(seq)
-        if( area < minArea or area > maxArea):
+        if( area < minsize or area > maxsize):
             return None
         retVal = Blob()
-        #retVal.mSourceImgPtr = color
         retVal.image = color 
         retVal.mArea = area
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
@@ -105,6 +140,9 @@ class BlobMaker:
         return retVal
     
     def _getHoles(self,seq):
+        """
+        This method returns the holes associated with a blob as a list of tuples.
+        """
         retVal = None
         holes = seq.v_next()
         if( holes is not None ):
@@ -117,6 +155,9 @@ class BlobMaker:
         return retVal
         
     def _getMask(self,seq,bb):
+        """
+        Return a binary image of a particular contour sequence. 
+        """
         bb = cv.BoundingRect(seq)
         mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)
         cv.Zero(mask)
@@ -131,6 +172,9 @@ class BlobMaker:
         return mask
     
     def _getHullMask(self,hull,bb):
+        """
+        Return a mask of teh convex hull of a blob. 
+        """
         bb = cv.BoundingRect(hull)
         mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)
         cv.Zero(mask)
@@ -138,6 +182,9 @@ class BlobMaker:
         return mask
     
     def _getAvg(self,colorbitmap,bb,mask):
+        """
+        Calculate the average color of a blob given the mask. 
+        """
         cv.SetImageROI(colorbitmap,bb)
         #may need the offset parameter
         avg = cv.Avg(colorbitmap,mask)
@@ -145,11 +192,12 @@ class BlobMaker:
         return avg
     
     def _getBlobAsImage(self,seq,bb,colorbitmap,mask):
+        """
+        Return an image that contains just pixels defined by the blob sequence. 
+        """
         cv.SetImageROI(colorbitmap,bb)
         outputImg = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,3)
         cv.Copy(colorbitmap,outputImg,mask)
         cv.ResetImageROI(colorbitmap)
         return(Image(outputImg))
         
-    def _extractEdgeHist(self,seq):
-        return None

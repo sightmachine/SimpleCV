@@ -7,13 +7,13 @@ class Blob(Feature):
     # that this lass holds as a little of the open CV data structures as possible
     # just because having a bunch of memory pointers around seems really unpythonic
     # the other difficulty is interior contours. Do we nest them or not?
-    mContour = []
-    mConvexHull = [] # the convex hull
+    mContour = [] # the blob's outer perimeter as a set of (x,y) tuples 
+    mConvexHull = [] # the convex hull contour as a set of (x,y) tuples
     mMinRectangle = [] #the smallest box rotated to fit the blob
     mBoundingBox = [] #get W/H and X/Y from this
-    mHuMoments = []
-    mPerimeter = 0
-    mArea = 0
+    mHuMoments = [] # The seven Hu Moments
+    mPerimeter = 0 # the length of the perimeter in pixels 
+    mArea = 0 # the area in pixels
     m00 = 0
     m01 = 0
     m10 = 0
@@ -22,16 +22,15 @@ class Blob(Feature):
     m02 = 0
     m21 = 0
     m12 = 0
-    mLabel = ""
+    mLabel = "" # A user label
     mLabelColor = [] # what color to draw the label
-    mAvgColor = []
-    mImg =  Image()#    the segmented image of the blob
-    mMask = Image()
-    mHullMask = Image()
-    image = Image()
-    mHoleContour = [] 
-    mVertEdgeHist = [] #vertical edge histogram
-    mHortEdgeHist = [] #horizontal edge histgram
+    mAvgColor = []#The average color of the blob's area. 
+    mImg =  Image()# the segmented image of the blob
+    mMask = Image()# A mask of the blob area
+    mHullMask = Image()#A mask of the hull area ... we may want to use this for the image mask. 
+    mHoleContour = []  # list of hole contours
+    #mVertEdgeHist = [] #vertical edge histogram
+    #mHortEdgeHist = [] #horizontal edge histgram
     
     def __init__(self):
         self.mContour = []
@@ -173,32 +172,32 @@ class Blob(Feature):
         """
         This is the x coordinate of the centroid for the minimum bounding rectangle
         """
-        return(self.mMinRectangle[0])
+        return(self.mMinRectangle[0][0])
         
     def minRectY(self):
         """
         This is the y coordinate of the centroid for the minimum bounding rectangle
         """
-        return(self.mMinRectangle[1])
+        return(self.mMinRectangle[0][1])
 
     def minRectWidth(self):
         """
         This is the y coordinate of the centroid for the minimum bounding rectangle
         """
-        return(self.mMinRectangle[2])
+        return(self.mMinRectangle[1][0])
     
     def minRectHeight(self):
         """
         This is the y coordinate of the centroid for the minimum bounding rectangle
         """
-        return(self.mMinRectangle[3])
+        return(self.mMinRectangle[1][1])
 
     def aspectRatio(self):
         """
         This method returns the aspect ration (W/H) of the bounding box of the
         blob. 
         """
-        return( float(self.mBoundingBox(2))/float(self.mBoundingBox(3)))
+        return( float(self.mBoundingBox[2])/float(self.mBoundingBox[3]))
     
     def rectifyMajorAxis(self,axis=0):
         """
@@ -212,44 +211,20 @@ class Blob(Feature):
         Given a point or another blob determine if this blob is above the other blob
         """
         if(blob.__class__.__name__ == 'blob' ):
-            return( self.minX() > blob.maxX() )
-        elif(blob.__class__.__name__ == 'tuple'):
-            return( self.minX() > blob[0] )
-        elif(blob.__class__.__name__ == 'ndarray'):
-            return( self.minX() > blob[0] )
-        else:
-            return None
-    
-    def below(self,blob):
-        """
-        Given a point or another blob determine if this blob is below the other blob
-        """    
-        if(blob.__class__.__name__ == 'blob' ):
-            return( self.maxX() < blob.minX() )
-        elif(blob.__class__.__name__ == 'tuple'):
-            return( self.maxX() < blob[0] )
-        elif(blob.__class__.__name__ == 'ndarray'):
-            return( self.maxX() < blob[0] )
-        else:
-            return None    
-    
-    def right(self,blob):
-        """
-        Given a point or another blob determine if this blob is to the right of the other blob
-        """         
-        if(blob.__class__.__name__ == 'blob' ):
             return( self.minY() > blob.maxY() )
         elif(blob.__class__.__name__ == 'tuple'):
             return( self.minY() > blob[1] )
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.minY() > blob[1] )
         else:
-            return None      
+            return None
+ 
+
     
-    def left(self,blob):
+    def below(self,blob):
         """
-        Given a point or another blob determine if this blob is to the left of the other blob
-        """           
+        Given a point or another blob determine if this blob is below the other blob
+        """    
         if(blob.__class__.__name__ == 'blob' ):
             return( self.maxY() < blob.minY() )
         elif(blob.__class__.__name__ == 'tuple'):
@@ -257,7 +232,34 @@ class Blob(Feature):
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.maxY() < blob[1] )
         else:
+            return None 
+    
+    def right(self,blob):
+        """
+        Given a point or another blob determine if this blob is to the right of the other blob
+        """
+        if(blob.__class__.__name__ == 'blob' ):
+            return( self.maxX() < blob.minX() )
+        elif(blob.__class__.__name__ == 'tuple'):
+            return( self.maxX() < blob[0] )
+        elif(blob.__class__.__name__ == 'ndarray'):
+            return( self.maxX() < blob[0] )
+        else:
             return None   
+     
+    
+    def left(self,blob):
+        """
+        Given a point or another blob determine if this blob is to the left of the other blob
+        """           
+        if(blob.__class__.__name__ == 'blob' ):
+            return( self.minX() > blob.maxX() )
+        elif(blob.__class__.__name__ == 'tuple'):
+            return( self.minX() > blob[0] )
+        elif(blob.__class__.__name__ == 'ndarray'):
+            return( self.minX() > blob[0] )
+        else:
+            return None  
     
 
     def contains(self,other):
@@ -269,7 +271,7 @@ class Blob(Feature):
             if( self.above(other) or self.below(other) or self.right(other) or self(below)):   
                 retVal = False             
             return retVal;
-        elif(other.__class__.__name__ == 'tuple' or blob.__class__.__name__ == 'ndarray'):
+        elif(other.__class__.__name__ == 'tuple' or other.__class__.__name__ == 'ndarray'):
             return( other[0] <= self.maxX() and
                     other[0] >= self.minX() and
                     other[1] <= self.maxY() and
