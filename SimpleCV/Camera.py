@@ -56,7 +56,11 @@ class FrameSource:
         the calibration unit value (i.e. if in doubt use meters, or U.S. standard)
     
         dimensions - is the the count of the *interior* corners in the calibration grid.
-        So for a grid where there are 4x4 black grid squares has seven interior corners. 
+        So for a grid where there are 4x4 black grid squares has seven interior corners.
+
+        The easiest way to run calibration is to run the
+        calibrate.py file under the tools directory for SimpleCV.
+        This will walk you through the calibration process.
         """
         # This routine was adapted from code originally written by:
         # Abid. K  -- abidrahman2@gmail.com
