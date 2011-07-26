@@ -904,7 +904,7 @@ class Image:
 
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascadefile, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
         If you want to find Haar Features (useful for face detection among other
         purposes) this will return Haar feature objects in a FeatureSet.  The
@@ -927,13 +927,16 @@ class Image:
 
 
         #lovely.  This segfaults if not present
-        if (not os.path.exists(cascadefile)):
-            warnings.warn("Could not find Haar Cascade file " + cascadefile)
-            return None
-        cascade = cv.Load(cascadefile) 
+        if type(cascade) == str:
+          if (not os.path.exists(cascade)):
+              warnings.warn("Could not find Haar Cascade file " + cascade)
+              return None
+          cascade = cv.Load(cascade)
+
+  
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, use_canny)
         if objects: 
-            return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
+            return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
     
     
         return None
