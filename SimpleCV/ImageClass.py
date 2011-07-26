@@ -114,7 +114,7 @@ class Image:
             if((source.step/source.cols)==3): #this is just a guess
                 self._colorSpace = ColorSpace.BGR
             elif((souce.step/source.cols)==1):
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
 
@@ -147,7 +147,7 @@ class Image:
             if (source.nChannels == 1):
                 self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
                 cv.Merge(source, source, source, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
