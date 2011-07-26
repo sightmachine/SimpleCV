@@ -12,7 +12,7 @@
 #
 
 #download all libraries needed for SimpleCV
-sudo apt-get install -y --force-yes git git python-dev python-numpy python-nose python-scipy ipython
+sudo apt-get install -y --force-yes git git python-dev python-numpy python-nose python-scipy ipython python-pygame
 #may have to reboot after installing libraries
 
 #Download SimpleCV
