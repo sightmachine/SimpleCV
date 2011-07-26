@@ -383,7 +383,7 @@ class Kinect(FrameSource):
         depth = freenect.sync_get_depth()[0]
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
-        depth = depth.astype(np.uint8).transpose([0,1])
+        depth = depth.astype(np.uint8).transpose()
     
         return Image(depth, self) 
   
