@@ -369,13 +369,13 @@ class HaarFeature(Feature):
         """
         Returns the longest dimension of the HaarFeature, either width or height
         """
-        return max(self.width, self.height)
+        return max(self._width, self._height)
   
     def area(self):
         """
         Returns the area contained within the HaarFeature's bounding rectangle 
         """
-        return self.width * self.height
+        return self._width * self._height
   
     def angle(self):
         """
@@ -383,7 +383,7 @@ class HaarFeature(Feature):
         """
         #Note this is misleading
         # I am not sure I like this 
-        if (self.width > self.height):
+        if (self._width > self._height):
             return 0.00
         else:
             return 90.00
