@@ -379,8 +379,8 @@ class Kinect(FrameSource):
     #https://github.com/amiller/libfreenect-goodies
     def getImage(self):
         video = freenect.sync_get_video()[0]
-        video = video[:, :, ::-1]  # RGB -> BGR
-        return Image(video, self)
+        #video = video[:, :, ::-1]  # RGB -> BGR
+        return Image(video.transpose([1,0,2]), self)
   
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def getDepth(self):

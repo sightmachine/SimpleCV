@@ -39,7 +39,7 @@ class Image:
 
     Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
-    standard format. 
+    standard format.  If dimensions are passed, an empty image is created.
     """
     width = 0    #width and height in px
     height = 0
@@ -100,14 +100,9 @@ class Image:
         self.camera = camera
         self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
     
-    
-
-
-    
-    
-    
-    
-    
+        if (type(source) == tuple):
+            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(source)
     
         if (type(source) == cv.cvmat):
             self._matrix = source
@@ -1940,6 +1935,10 @@ class Image:
         Render all of the layers onto the current image and return the result.
         Indicies can be a list of integers specifying the layers to be used. 
         """
+        if not len(self._mLayers):
+            return self
+        
+        
         final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
             retVal = self
