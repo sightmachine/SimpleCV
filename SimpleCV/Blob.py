@@ -204,8 +204,41 @@ class Blob(Feature):
         Rectify the blob image and the contour such that the major
         axis is aligned to either vertical=0 or horizontal=1 
         """
+        finalRotation = self.angle()
+        if(axis > 0 ):
+            finalRotation = finalRotation + 90
+        
+      
+        
+        #GRRR need to fill in 
+
         return None
-    
+    def rotate(self,angle):
+        """
+        NOTE THIS IS IN PLACE -- I NEED TO FIX THIS TO RETURN A BLOB
+        Rotate the blob given the angle in degrees most of the blob elements will
+        be rotated, not however this will "break" drawing back to the original image.
+        To draw the blob create a new layer and draw to that layer. 
+        """
+        theta = 2*np.pi*(angle/360.0)
+        self.mImg.rotate(finalRotation,"",(self.x,self.y))
+        self.mMask.rotate(finalRotation,"",(self.x,self.y))
+        self.mHullMask.rotate(finalRotation,"",(self.x,self.y))
+        self.mContour = map(lambda x,theta:
+                            (x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                             x[0]*np.sin(theta)+x[1]*np.cos(theta)),
+                             self.mContour , theta)
+        self.mConvexHull = map(lambda x,theta:
+                               (x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                                x[0]*np.sin(theta)+x[1]*np.cos(theta)),
+                               self.mConvexHull,theta)
+        for h in self.mHoleContour:
+            h = map(lambda x,theta:
+                (x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                 x[0]*np.sin(theta)+x[1]*np.cos(theta)),
+                 h,theta)
+            
+
     def above(self,blob):
         """
         Given a point or another blob determine if this blob is above the other blob
