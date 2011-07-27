@@ -39,7 +39,7 @@ class Image:
 
     Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
-    standard format. 
+    standard format.  If dimensions are passed, an empty image is created.
     """
     width = 0    #width and height in px
     height = 0
@@ -100,14 +100,9 @@ class Image:
         self.camera = camera
         self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
     
-    
-
-
-    
-    
-    
-    
-    
+        if (type(source) == tuple):
+            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(source)
     
         if (type(source) == cv.cvmat):
             self._matrix = source
