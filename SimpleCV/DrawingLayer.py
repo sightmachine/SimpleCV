@@ -25,6 +25,12 @@ class DrawingLayer:
     DrawingLayer gives you a way to mark up Image classes without changing
     the image data itself. This class wraps pygame's Surface class and
     provides basic drawing and text rendering functions
+
+
+    Example:
+    image = Image("/path/to/image.png")
+    image2 = Image("/path/to/image2.png")
+    image.dl().blit(image2) #write image 2 on top of image
     """
     _mSurface = []
     _mDefaultColor = 0

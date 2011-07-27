@@ -30,6 +30,20 @@ class Display:
     mouseMiddle - the state of the middle button
     mouseWheelUp - if the wheel has been clicked towards the top of the mouse
     mouseWheelDown - if the wheel has been clicked towards the bottom of the mouse
+
+
+
+    Example:
+    display = Display(resolution = (800, 600)) #create a new display to draw images on
+    cam = Camera() #initialize the camera
+    done = False # setup boolean to stop the program
+    
+    # Loop until not needed
+    while not display.isDone():
+        cam.getImage().flipHorizontal().save(display) # get image, flip it so it looks mirrored, save to display
+        time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
+        if display.mouseLeft:
+            display.done = True
  
     """
     resolution = ''
