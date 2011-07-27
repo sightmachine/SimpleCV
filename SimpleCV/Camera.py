@@ -406,7 +406,26 @@ class JpegStreamReader(threading.Thread):
     currentframe = ""
   
     def run(self):
-        f = urllib2.urlopen(self.url)
+      
+        f = ''
+        
+        if re.search('@', self.url):
+            authstuff = re.findall('//(\S+)@', self.url)[0]
+            self.url = re.sub("//\S+@", "//", self.url)
+            user, password = authstuff.split(":")
+            
+            #thank you missing urllib2 manual 
+            #http://www.voidspace.org.uk/python/articles/urllib2.shtml#id5
+            password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+            password_mgr.add_password(None, self.url, user, password)
+            
+            handler = urllib2.HTTPBasicAuthHandler(password_mgr)
+            opener = urllib2.build_opener(handler)
+            
+            f = opener.open(self.url)
+        else:
+            f = urllib2.urlopen(self.url)
+        
         headers = f.info()
         if (headers.has_key("content-type")):
             headers['Content-type'] = headers['content-type'] #force ucase first char
@@ -427,7 +446,8 @@ class JpegStreamReader(threading.Thread):
     
         #the first frame contains a boundarystring and some header info
         while (1):
-            if (data.strip() == boundary and len(buff)):
+            #print data
+            if (re.search(boundary, data.strip()) and len(buff)):
                 #we have a full jpeg in buffer.  Convert to an image  
                 self.currentframe = buff 
                 buff = ''
@@ -442,11 +462,12 @@ class JpegStreamReader(threading.Thread):
                 (header, length) = data.split(":")
                 length = int(length.strip())
                
-            if (re.search("JFIF", data, re.I)):
-                # we have reached the start of the image  
+            if (re.search("JFIF", data, re.I) or len(data) > 70):
+                # we have reached the start of the image 
                 buff = '' 
                 if length:
-                    buff += data + f.read(length - len(buff)) #read the remainder of the image
+                    buff += data + f.read(length - len(data)) #read the remainder of the image
+                    self.currentframe = buff
                 else:
                     while (not re.search(boundary, data)):
                         buff += data 
@@ -456,11 +477,9 @@ class JpegStreamReader(threading.Thread):
                     buff += endimg
                     data = boundary
                     continue
-            
-              
   
-        data = f.readline() #load the next (header) line
-        time.sleep(0) #let the other threads go
+            data = f.readline() #load the next (header) line
+            time.sleep(0) #let the other threads go
 
 class JpegStreamCamera(FrameSource):
     """
