@@ -1935,6 +1935,10 @@ class Image:
         Render all of the layers onto the current image and return the result.
         Indicies can be a list of integers specifying the layers to be used. 
         """
+        if not len(self._mLayers):
+            return self
+        
+        
         final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
             retVal = self
