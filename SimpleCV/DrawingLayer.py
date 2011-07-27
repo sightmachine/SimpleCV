@@ -122,7 +122,7 @@ class DrawingLayer:
         antialias - Draw an antialiased object of width one.
         
         """
-        if(antialias):           
+        if(antialias and width == 1):           
             pg.draw.aaline(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
         else:
             pg.draw.line(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)        
@@ -146,7 +146,7 @@ class DrawingLayer:
         
         antialias - Draw an antialiased object of width one.
         """        
-        if(antialias):
+        if(antialias and width == 1):
             pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
         else:
             pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)                
@@ -220,7 +220,7 @@ class DrawingLayer:
         if(filled):
             width = 0
         if(not filled):
-            if(antialias):
+            if(antialias and width == 1):
                 pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), True, points, width)
             else:
                 pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), True, points, width)
@@ -245,7 +245,7 @@ class DrawingLayer:
         """           
         if(filled):
             width = 0
-        if antialias == False:
+        if antialias == False or width > 1:
             pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, radius, width)
         else:
             pg.gfxdraw.aacircle(self._mSurface, center[0], center[1], radius, self._csvRGB2pgColor(color, alpha))
