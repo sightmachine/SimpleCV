@@ -28,11 +28,12 @@ while not d.isDone():
       depthbin = depth.binarize(np.min(depth.getNumpy()) + np.std(depth.getNumpy()) / 4).erode(3)
       #take the front 1/4 stdev of the depth map
   
-      img.dl().blit(img.crop(100, 0, 515, 480), (125,0))
+      img = img.crop(0,25, 605, 455).scale(640,480)
+      #img.dl().blit(img.crop(100, 25, 515, 455), (125,0))
       #this is a bit of a hack to compensate for the offset between cam and depth sensor
-      img = img.applyLayers()
+      #img = img.applyLayers()
       img = img - depthbin.invert()
-  
+      #img.save(d)
       meanred, meangrn, meanblue = img.meanColor()
   
       if meanred > meanblue and meanred > meangrn:
