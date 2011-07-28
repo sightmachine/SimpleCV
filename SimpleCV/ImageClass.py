@@ -810,7 +810,7 @@ class Image:
 
         Returns: IMAGE
         """
-        return cv.Avg(self.getMatrix())[0:3]  
+        return tuple(reversed(cv.Avg(self.getBitmap())[0:3]))  
   
   
 
