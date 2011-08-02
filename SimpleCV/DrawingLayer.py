@@ -347,7 +347,9 @@ class DrawingLayer:
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent. 
         
-        """  
+        """
+        if(len(text)<0):
+            return None
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(color, alpha))
         if(alpha == -1):
             alpha = self._mDefaultAlpha
@@ -381,6 +383,8 @@ class DrawingLayer:
         
         bgcolor - The background color for the text are. 
         """
+        if(len(text)<0):
+            return None
         alpha = 255
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(fgcolor, alpha), self._csvRGB2pgColor(bgcolor, alpha))
         self._mSurface.blit(tsurface, location)        

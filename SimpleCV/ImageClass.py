@@ -1932,7 +1932,7 @@ class Image:
         """
         final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
-            retVal = self
+            #retVal = self
             self._mLayers.reverse()
             for layers in self._mLayers: #compose all the layers
                 layers.renderToOtherLayer(final)
