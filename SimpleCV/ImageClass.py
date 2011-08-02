@@ -39,7 +39,7 @@ class Image:
 
     Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
-    standard format. 
+    standard format.  If dimensions are passed, an empty image is created.
     """
     width = 0    #width and height in px
     height = 0
@@ -99,14 +99,17 @@ class Image:
         self._mLayers = []
         self.camera = camera
         self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
-        #self._mBlobMaker = BlobMaker()
-        
+    
+        if (type(source) == tuple):
+            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(source)
+            x
         if (type(source) == cv.cvmat):
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
                 self._colorSpace = ColorSpace.BGR
             elif((souce.step/source.cols)==1):
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
 
@@ -132,14 +135,14 @@ class Image:
                 cv.SetData(channel, source.tostring(), 
                     source.dtype.itemsize * source.shape[1])
                 cv.Merge(channel, channel, channel, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
 
 
         elif (type(source) == cv.iplimage):
             if (source.nChannels == 1):
                 self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
                 cv.Merge(source, source, source, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
@@ -621,8 +624,8 @@ class Image:
         """
         w, h = width, height
         if height == -1:
-          w = self.width * width
-          h = self.height * width
+          w = int(self.width * width)
+          h = int(self.height * width)
           
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
@@ -805,7 +808,7 @@ class Image:
 
         Returns: IMAGE
         """
-        return cv.Avg(self.getMatrix())[0:3]  
+        return tuple(reversed(cv.Avg(self.getBitmap())[0:3]))  
   
   
 
@@ -891,7 +894,7 @@ class Image:
 
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascadefile, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
         If you want to find Haar Features (useful for face detection among other
         purposes) this will return Haar feature objects in a FeatureSet.  The
@@ -906,6 +909,9 @@ class Image:
    
         You will need to provide your own cascade file - these are usually found in
         /usr/local/share/opencv/haarcascades and specify a number of body parts.
+        
+        Note that the cascade parameter can be either a filename, or a HaarCascade
+        loaded with cv.Load().
 
 
         Returns: FEATURESET
@@ -914,13 +920,16 @@ class Image:
 
 
         #lovely.  This segfaults if not present
-        if (not os.path.exists(cascadefile)):
-            warnings.warn("Could not find Haar Cascade file " + cascadefile)
-            return None
-        cascade = cv.Load(cascadefile) 
+        if type(cascade) == str:
+          if (not os.path.exists(cascade)):
+              warnings.warn("Could not find Haar Cascade file " + cascade)
+              return None
+          cascade = cv.Load(cascade)
+
+  
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, use_canny)
         if objects: 
-            return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
+            return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
     
     
         return None
@@ -1930,6 +1939,10 @@ class Image:
         Render all of the layers onto the current image and return the result.
         Indicies can be a list of integers specifying the layers to be used. 
         """
+        if not len(self._mLayers):
+            return self
+        
+        
         final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
             #retVal = self

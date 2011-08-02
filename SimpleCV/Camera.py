@@ -47,7 +47,8 @@ class FrameSource:
 
     def calibrate(self, imageList, grid_sz=0.029, dimensions=(8, 5)):
         """
-        Camera calibration is agnostic of the imagery source 
+        Camera calibration will help remove distortion and fisheye effects
+        It is agnostic of the imagery source, and can be used with any camera
     
         imageList is a list of images of color calibration images. 
     
@@ -55,7 +56,11 @@ class FrameSource:
         the calibration unit value (i.e. if in doubt use meters, or U.S. standard)
     
         dimensions - is the the count of the *interior* corners in the calibration grid.
-        So for a grid where there are 4x4 black grid squares has seven interior corners. 
+        So for a grid where there are 4x4 black grid squares has seven interior corners.
+
+        The easiest way to run calibration is to run the
+        calibrate.py file under the tools directory for SimpleCV.
+        This will walk you through the calibration process.
         """
         # This routine was adapted from code originally written by:
         # Abid. K  -- abidrahman2@gmail.com
@@ -153,6 +158,7 @@ class FrameSource:
         
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
         measurement and return them in the original coordinate system.
+        
         """
         if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
             warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
@@ -373,15 +379,15 @@ class Kinect(FrameSource):
     #https://github.com/amiller/libfreenect-goodies
     def getImage(self):
         video = freenect.sync_get_video()[0]
-        video = video[:, :, ::-1]  # RGB -> BGR
-        return Image(video, self)
+        #video = video[:, :, ::-1]  # RGB -> BGR
+        return Image(video.transpose([1,0,2]), self)
   
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def getDepth(self):
         depth = freenect.sync_get_depth()[0]
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
-        depth = depth.astype(np.uint8).transpose([0,1])
+        depth = depth.astype(np.uint8).transpose()
     
         return Image(depth, self) 
   
@@ -400,7 +406,26 @@ class JpegStreamReader(threading.Thread):
     currentframe = ""
   
     def run(self):
-        f = urllib2.urlopen(self.url)
+      
+        f = ''
+        
+        if re.search('@', self.url):
+            authstuff = re.findall('//(\S+)@', self.url)[0]
+            self.url = re.sub("//\S+@", "//", self.url)
+            user, password = authstuff.split(":")
+            
+            #thank you missing urllib2 manual 
+            #http://www.voidspace.org.uk/python/articles/urllib2.shtml#id5
+            password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+            password_mgr.add_password(None, self.url, user, password)
+            
+            handler = urllib2.HTTPBasicAuthHandler(password_mgr)
+            opener = urllib2.build_opener(handler)
+            
+            f = opener.open(self.url)
+        else:
+            f = urllib2.urlopen(self.url)
+        
         headers = f.info()
         if (headers.has_key("content-type")):
             headers['Content-type'] = headers['content-type'] #force ucase first char
@@ -421,7 +446,8 @@ class JpegStreamReader(threading.Thread):
     
         #the first frame contains a boundarystring and some header info
         while (1):
-            if (data.strip() == boundary and len(buff)):
+            #print data
+            if (re.search(boundary, data.strip()) and len(buff)):
                 #we have a full jpeg in buffer.  Convert to an image  
                 self.currentframe = buff 
                 buff = ''
@@ -436,11 +462,12 @@ class JpegStreamReader(threading.Thread):
                 (header, length) = data.split(":")
                 length = int(length.strip())
                
-            if (re.search("JFIF", data, re.I)):
-                # we have reached the start of the image  
+            if (re.search("JFIF", data, re.I) or len(data) > 70):
+                # we have reached the start of the image 
                 buff = '' 
                 if length:
-                    buff += data + f.read(length - len(buff)) #read the remainder of the image
+                    buff += data + f.read(length - len(data)) #read the remainder of the image
+                    self.currentframe = buff
                 else:
                     while (not re.search(boundary, data)):
                         buff += data 
@@ -450,11 +477,9 @@ class JpegStreamReader(threading.Thread):
                     buff += endimg
                     data = boundary
                     continue
-            
-              
   
-        data = f.readline() #load the next (header) line
-        time.sleep(0) #let the other threads go
+            data = f.readline() #load the next (header) line
+            time.sleep(0) #let the other threads go
 
 class JpegStreamCamera(FrameSource):
     """
@@ -481,6 +506,4 @@ class JpegStreamCamera(FrameSource):
         Return the current frame of the JpegStream being monitored
         """
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
-
-
 

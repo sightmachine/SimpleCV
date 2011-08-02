@@ -14,6 +14,14 @@ class FeatureSet(list):
     
     In general, functions dealing with attributes will return numpy arrays, and
     functions dealing with sorting or filtering will return new FeatureSets.
+
+    Example:
+
+    image = Image("/path/to/image.png")
+    lines = image.findLines()  #lines are the feature set
+    lines.draw()
+    lines.x()
+    lines.crop()
     """
   
     def draw(self, color = (255, 0, 0)):
