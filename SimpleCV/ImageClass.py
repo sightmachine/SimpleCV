@@ -626,8 +626,8 @@ class Image:
         """
         w, h = width, height
         if height == -1:
-          w = self.width * width
-          h = self.height * width
+          w = int(self.width * width)
+          h = int(self.height * width)
           
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
@@ -810,7 +810,7 @@ class Image:
 
         Returns: IMAGE
         """
-        return cv.Avg(self.getMatrix())[0:3]  
+        return tuple(reversed(cv.Avg(self.getBitmap())[0:3]))  
   
   
 

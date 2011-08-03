@@ -2,6 +2,7 @@
 
 import webbrowser, sys, time, random
 from SimpleCV import Camera, Image, JpegStreamer, Color
+from SimpleCV.Display import Display
 from scipy.spatial.distance import euclidean as distance
 """
 This script can be used to quickly calibrate a camera 
@@ -274,7 +275,6 @@ def findPlane(cb, i, calibration_set, dims):
 def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = False, gridsize = 0.029, calibrationFile = "default"):
   global save_location
   
-  camindex = 0
   if planemode:
     mode = 7
   else:
@@ -285,7 +285,7 @@ def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = 
   calibrationFile = "default"
   
   cam = Camera(camindex)
-  d = cam.getImage().flipHorizontal().show()
+  d = Display((800, 600)) 
 
   
   save_location = "" #change this if you want to save your calibration images
