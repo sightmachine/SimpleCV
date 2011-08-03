@@ -45,7 +45,7 @@ class FrameSource:
     def getImage(self):
         return None
 
-    def calibrate(self, imageList, grid_sz=0.029, dimensions=(8, 5)):
+    def calibrate(self, imageList, grid_sz=0.03, dimensions=(8, 5)):
         """
         Camera calibration will help remove distortion and fisheye effects
         It is agnostic of the imagery source, and can be used with any camera
