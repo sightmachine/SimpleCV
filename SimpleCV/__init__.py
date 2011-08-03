@@ -1,5 +1,4 @@
 from SimpleCV.base import *
-from SimpleCV.Blob import * 
 from SimpleCV.Camera import *
 from SimpleCV.Color import *
 from SimpleCV.Detection import *   

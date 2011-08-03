@@ -171,7 +171,7 @@ class Feature(object):
     x = 0.0
     y = 0.0 
     image = "" #parent image
-    points = ()
+    points = []
   
     def __init__(self, i, at_x, at_y):
         self.x = at_x

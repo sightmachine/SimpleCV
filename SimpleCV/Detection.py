@@ -15,6 +15,7 @@ from SimpleCV.Color import *
 from SimpleCV.Features import Feature, FeatureSet
 
 
+
 class Corner(Feature):
     """
     The Corner feature is a point returned by the FindCorners function
@@ -354,6 +355,3 @@ class Chessboard(Feature):
         s = (a + b + c + d)/2.0 
         return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
   
-#TODO?
-#class Edge(Feature):
-#class Ridge(Feature):

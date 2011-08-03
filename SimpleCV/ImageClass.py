@@ -9,6 +9,7 @@ from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
 from SimpleCV.DrawingLayer import *
+
 from numpy import int32
 from numpy import uint8
 import pygame as pg
@@ -66,7 +67,7 @@ class Image:
     _numpy = "" #numpy form buffer
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
-    #_mBlobMaker = BlobMaker()  
+  
   
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
@@ -98,12 +99,11 @@ class Image:
         """
         self._mLayers = []
         self.camera = camera
-        self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
-    
+        self._colorSpace = colorSpace
+        
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
             cv.Zero(source)
-            x
         if (type(source) == cv.cvmat):
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
@@ -839,58 +839,32 @@ class Image:
         return FeatureSet(corner_features)
 
 
+    def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
+        """
+        This will look for continuous
+        light regions and return them as Blob features in a FeatureSet.  Parameters
+        specify the binarize filter threshold value, and minimum and maximum size for blobs.  
+        If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+ 
+        Note that this previously used cvblob and the python-cvblob library, 
+        which is no longer necessary
     
+        Returns: FEATURESET
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height / 2
+        #create a single channel image, thresholded to parameters
     
-    #def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
-    #    """
-    #    If you have the cvblob library installed, this will look for continuous
-    #    light regions and return them as Blob features in a FeatureSet.  Parameters
-    #    specify the binarize filter threshold value, and minimum and maximum size for blobs.  If a
-    #    threshold value is -1, it will use an adaptive threshold.  See binarize() for
-    #    more information about adaptive thresholding.  The threshblocksize and threshconstant
-    #    parameters are only used for adaptive threshold.
-    #
-    #
-    #    You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
-    #
-    #
-    #    Returns: FEATURESET
-    #    """
-    #    #if not BLOBS_ENABLED:
-    #    #    warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
-    #    #    return None
-    #
-    #    if (maxsize == 0):  
-    #      maxsize = self.width * self.height / 2
-    #
-    #    #create a single channel image, thresholded to parameters
-    #
-    #    blobs = self._mBlobMaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),self,doHist=False,minArea=minsize,maxArea=maxsize)
-    #
-    #    #create the label image
-    #    #self._blobLabel = self.binarize(threshval, 255, threshblocksize, threshconstant).invert()._getGrayscaleBitmap()
-    #
-    #    retVal = sorted(blobs,key=lambda x: x.mArea, reverse=True)
-    #
-    #    return FeatureSet(retVal)
-    #    #initialize the cvblobs blobs data structure (dict with label -> blob)
-    #    #blobs = cvb.Blobs()
-    #
-    #
-    #    #result = cvb.Label(grey, self._blobLabel, blobs)
-    #    #cvb.FilterByArea(blobs, minsize, maxsize) 
-    #
-    #
-    #    #blobs_sizesorted = sorted(blobs.values(), key=lambda x: x.area, reverse=True) 
-    #
-    #
-    #    #blobsFS = [] #create a new featureset for the blobs
-    #    #for b in blobs_sizesorted:
-    #    #    blobsFS.append(Blob(self, b)) #wrapper the cvblob type in SimpleCV's blob type 
-    #
-    #
-    #    #return FeatureSet(blobsFS) 
-
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
+            self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+            
+        return FeatureSet(blobs).sortArea()
 
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
@@ -1929,7 +1903,7 @@ class Image:
 
         #render the image. 
     def _renderImage(self, layer):
-        imgSurf = self.getPGSurface(self)
+        imgSurf = self.getPGSurface(self).copy()
         imgSurf.blit(layer._mSurface, (0, 0))
         return Image(imgSurf)
         
@@ -1951,7 +1925,7 @@ class Image:
                 layers.renderToOtherLayer(final)
             self._mLayers.reverse()  
             #then draw them
-            imgSurf = self.getPGSurface()
+            imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             return Image(imgSurf)
         else:
@@ -1959,7 +1933,9 @@ class Image:
             indicies.reverse()
             for idx in indicies:
                 retVal = self._mLayers[idx].renderToOtherLayer(final)
-            imgSurf = self.getPGSurface()
+            imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+
+from SimpleCV.BlobMaker import BlobMaker

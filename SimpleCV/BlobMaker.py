@@ -1,7 +1,8 @@
 from SimpleCV.base import *
-from SimpleCV.Blob import *
-from SimpleCV.ImageClass import *
+from SimpleCV.ImageClass import Image
 from SimpleCV.Features import FeatureSet
+from SimpleCV.Blob import Blob
+
 
 class BlobMaker:
     """
@@ -133,10 +134,18 @@ class BlobMaker:
         retVal.m21 = moments.m21
         retVal.m12 = moments.m12
         retVal.mHu = cv.GetHuMoments(moments)
-        mask = self._getMask(seq,retVal.mBoundingBox)
+        retVal.mMask = self._getMask(seq,retVal.mBoundingBox)
+        mask = retVal.mMask
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
         retVal.mHoleContour = self._getHoles(seq)
+        
+        bb = retVal.mBoundingBox
+        retVal.points.append((bb[0], bb[1]))
+        retVal.points.append((bb[0] + bb[2], bb[1]))
+        retVal.points.append((bb[0] + bb[2], bb[1] + bb[3]))
+        retVal.points.append((bb[0], bb[1] + bb[3]))
+        
         return retVal
     
     def _getHoles(self,seq):
