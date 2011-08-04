@@ -875,11 +875,11 @@ def test_blob_render():
     reimg = DrawingLayer((img.width,img.height))
     for b in blobs:        
         b.draw(color=Color.RED, alpha=128)
-        b.drawHoles(w=2,color=Color.BLUE)
-        b.drawHull(color=Color.ORANGE,w=2)
+        b.drawHoles(width=2,color=Color.BLUE)
+        b.drawHull(color=Color.ORANGE,width=2)
         b.draw(color=Color.RED, alpha=128,layer=dl)
-        b.drawHoles(w=2,color=Color.BLUE,layer=dl)
-        b.drawHull(color=Color.ORANGE,w=2,layer=dl)
+        b.drawHoles(width=2,color=Color.BLUE,layer=dl)
+        b.drawHull(color=Color.ORANGE,width=2,layer=dl)
         b.drawMaskToLayer(reimg,offset=b.topLeftCorner())
     pass
 
