@@ -317,6 +317,20 @@ class Blob(Feature):
             return retVal;
 
     def draw(self, color = Color.GREEN, alpha=-1, width=-1, layer=None):
+        """
+        Draw the blob, in the given color, to the appropriate layer
+        
+        By default, this draws the entire blob filled in, with holes.  If you
+        provide a width, an outline of the exterior and interior contours is drawn.
+        
+        color = The color to render the blob.
+        alpha = The alpha value of the rendered blob.
+        width = The width of the drawn blob in pixels, if -1 then filled
+                then the polygon is filled.
+        layer = if layer is not None, the blob is rendered to the layer versus
+                the source image. 
+        
+        """
         if not layer:
             layer = self.image.dl()
             
@@ -336,6 +350,8 @@ class Blob(Feature):
             
             masksurface = Image(maskbit).getPGSurface()
             masksurface.set_colorkey(Color.BLACK)
+            if alpha != -1:
+                masksurface.set_alpha(alpha)
             layer._mSurface.blit(masksurface, self.points[0])
         else:
             self.drawOutline(color, alpha, width, layer)
@@ -349,7 +365,7 @@ class Blob(Feature):
         
         color = The color to render the blob.
         alpha = The alpha value of the rendered blob.
-        width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
+        width = The width of the drawn blob in pixels, -1 then the polygon is filled.
         layer = if layer is not None, the blob is rendered to the layer versus
                 the source image. 
         """
@@ -374,7 +390,7 @@ class Blob(Feature):
         
         color = The color to render the blob's holes.
         alpha = The alpha value of the rendered blob hole.
-        widt  = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
+        width = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
         layer = if layer is not None, the blob is rendered to the layer versus
                 the source image. 
         """
@@ -402,7 +418,7 @@ class Blob(Feature):
         
         color = The color to render the blob's convex hull.
         alpha = The alpha value of the rendered blob.
-        w     = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
+        width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
         layer = if layer is not None, the blob is rendered to the layer versus
                 the source image. 
         """
