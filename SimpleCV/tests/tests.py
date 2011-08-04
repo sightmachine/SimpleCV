@@ -229,66 +229,73 @@ def test_detection_lines():
   img.save(testoutput)
 
 def test_detection_feature_measures():
-  img = Image(testimage2)
+    img = Image(testimage2)
   
-  fs = FeatureSet()
-  fs.append(Corner(img, 5, 5))
-  fs.append(Line(img, ((2, 2), (3,3))))
+    fs = FeatureSet()
+    fs.append(Corner(img, 5, 5))
+    fs.append(Line(img, ((2, 2), (3,3))))
+    print(fs)
+    #if BLOBS_ENABLED:
+    bm = BlobMaker()
+    result = bm.extract(img)
+    fs.extend(result)
+    print(fs)
+    #fs.append(img.findBlobs()[0])
 
-  if BLOBS_ENABLED:
-    fs.append(img.findBlobs()[0])
+    #if ZXING_ENABLED:
+    # fake_barcode = Barcode(img, zxing.BarCode("""
+    #file:default.png (format: FAKE_DATA, type: TEXT):
+    #Raw result:
+    #foo-bar|the bar of foo
+    #Parsed result:
+    #foo-bar 
+    #the bar of foo
+    #Also, there were 4 result points:
+    #  Point 0: (24.0,18.0)
+    #  Point 1: (21.0,196.0)
+    #  Point 2: (201.0,198.0)
+    #  Point 3: (205.23952,21.0)
+    #"""))
+    #fs.append(fake_barcode) 
 
-  if ZXING_ENABLED:
-    fake_barcode = Barcode(img, zxing.BarCode("""
-file:default.png (format: FAKE_DATA, type: TEXT):
-Raw result:
-foo-bar|the bar of foo
-Parsed result:
-foo-bar 
-the bar of foo
-Also, there were 4 result points:
-  Point 0: (24.0,18.0)
-  Point 1: (21.0,196.0)
-  Point 2: (201.0,198.0)
-  Point 3: (205.23952,21.0)
-"""))
-    fs.append(fake_barcode) 
+    for f in fs:
+        a = f.area()
+        l = f.length()
+        c = f.meanColor()
+        d = f.colorDistance()
+        th = f.angle()
+        pts = f.coordinates()
+        dist = f.distanceFrom() #distance from center of image 
 
-  for f in fs:
-    a = f.area()
-    l = f.length()
-    c = f.meanColor()
-    d = f.colorDistance()
-    th = f.angle()
-    pts = f.coordinates()
-    dist = f.distanceFrom() #distance from center of image 
-
-  fs1 = fs.sortDistance()
-  fs2 = fs.sortAngle()
-  fs3 = fs.sortLength()
-  fs4 = fs.sortColorDistance()
-  fs5 = fs.sortArea()
-  
+    
+    fs2 = fs.sortAngle()
+    fs3 = fs.sortLength()
+    fs4 = fs.sortColorDistance()
+    fs5 = fs.sortArea()
+    fs1 = fs.sortDistance() 
 
 def test_detection_blobs():
-  if not BLOBS_ENABLED:
-    return None 
-  img = Image(testbarcode)
-  blobs = img.findBlobs()
+    if not BLOBS_ENABLED:
+      return None 
+    img = Image(testbarcode)
+  
+    bm = BlobMaker()
+    blobs = bm.extract(img)
 
-  blobs[0].draw((0, 255, 0))
-  img.save(testoutput)  
+    blobs[0].draw()
+    img.save(testoutput)  
 
-  pass
+    pass
 
 def test_detection_blobs_adaptive():
-  if not BLOBS_ENABLED:
-    return None 
-  img = Image(testbarcode)
-  blobs = img.findBlobs(-1)
-  blobs[0].draw((0, 255, 0))
-  img.save(testoutput)  
-  pass
+    if not BLOBS_ENABLED:
+        return None
+    img = Image(testimage)
+    bm = BlobMaker()
+    result = bm.extract(img, threshval=-1)
+    result[0].draw()
+    img.save(testoutput)  
+    pass
 
 
 def test_detection_barcode():
@@ -320,12 +327,15 @@ def test_detection_y():
     assert False
 
 def test_detection_area():
-  area_val = Image(testimage).findBlobs().area()[0]
+    img = Image(testimage2)
+    bm = BlobMaker()
+    result = bm.extract(img)
+    area_val = result[0].area()
   
-  if(area_val > 0):
-    pass
-  else:
-    assert False
+    if(area_val > 0):
+        pass
+    else:
+        assert False
 
 def test_detection_angle():
   angle_val = Image(testimage).findLines().angle()[0]
@@ -384,8 +394,10 @@ def test_detection_sortangle():
     assert False
     
 def test_detection_sortarea():
-  img = Image(testimage)
-  val = img.findBlobs().sortArea()
+    img = Image(testimage)
+    bm = BlobMaker()
+    result = bm.extract(img)
+    val = result.sortArea()
   #FIXME: Find blobs may appear to be broken. Returning type none
 
 def test_detection_sortLength():
@@ -802,3 +814,112 @@ def test_color_conversion_func_XYZ():
   foo = xyz.toHLS()
   foo = xyz.toHSV()
   foo = xyz.toXYZ()  
+
+def test_blob_maker():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    results = blobber.extract(img)
+    print(len(results))
+    if( len(results) != 7 ):
+        assert False
+        
+def test_blob_holes():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    count = 0
+    for b in blobs:
+        if( b.mHoleContour is not None ):
+            count = count + len(b.mHoleContour)
+    if( count != 7 ):
+        assert False
+        
+def test_blob_hull():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    for b in blobs:
+        if( len(b.mConvexHull) < 3 ):
+            assert False
+
+def test_blob_data():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    for b in blobs:
+        if(b.mArea > 0):
+            pass
+        if(b.mPerimeter > 0):
+            pass
+        if(sum(b.mAvgColor) > 0 ):
+            pass
+        if(sum(b.mBoundingBox) > 0 ):
+            pass
+        if(b.m00 is not 0 and
+           b.m01 is not 0 and
+           b.m10 is not 0 and
+           b.m11 is not 0 and
+           b.m20 is not 0 and
+           b.m02 is not 0 and
+           b.m21 is not 0 and
+           b.m12 is not 0 ):
+            pass
+        if(sum(b.mHuMoments) > 0):
+            pass
+        
+def test_blob_render():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    dl = DrawingLayer((img.width,img.height))
+    reimg = DrawingLayer((img.width,img.height))
+    for b in blobs:        
+        b.draw(color=Color.RED, alpha=128)
+        b.drawHoles(width=2,color=Color.BLUE)
+        b.drawHull(color=Color.ORANGE,width=2)
+        b.draw(color=Color.RED, alpha=128,layer=dl)
+        b.drawHoles(width=2,color=Color.BLUE,layer=dl)
+        b.drawHull(color=Color.ORANGE,width=2,layer=dl)
+        b.drawMaskToLayer(reimg,offset=b.topLeftCorner())
+    pass
+
+def test_blob_methods():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    BL = (img.width,img.height)
+    first = blobs[0]
+    for b in blobs:
+        b.width()
+        b.height()
+        b.area()
+        b.maxX()
+        b.minX()
+        b.maxY()
+        b.minY()
+        b.minRectWidth()
+        b.minRectHeight()
+        b.minRectX()
+        b.minRectY()
+        b.aspectRatio()
+        b.angle()
+        if(not b.contains((b.x,b.y))):
+           assert False
+        if(b.below((0,0))):
+           assert False
+        if(not b.left((0,0))):
+            assert False
+        if(b.above(BL)):
+            assert False
+        if( not b.right(BL)):
+            assert False
+        b.overlaps(first)
+        b.above(first)
+        b.below(first)
+        b.left(first)
+        b.right(first)
+        b.contains(first)
+        b.overlaps(first)
+        
+#def test_get_holes()
+#def test 

@@ -1,3 +1,20 @@
+Changes in 1.1
+-------------------------------
+All drawing has been moved to pygame-based surfaces in DrawingLayers
+text, and more advanced polygon drawing functions
+SDL-based display provided by Pygame
+python-cvblob has been removed and replaced by BlobMaker
+colorspace support for HSV
+videostream out for writing AVI files
+rotation operations
+feature-crop functions
+ColorMap for value -> color conversion
+ColorModel for training background/foreground segmentation
+numerous code adjustments to fit pylint
+calibration script for generating calibration
+superpacks include freenect and freenect-python drivers
+ 
+
 Changes in 1.0
 ------------------------------
 Superpack installers for Mac and Windows

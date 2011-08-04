@@ -40,11 +40,16 @@ class DrawingLayer:
     _mFontName = ""
     _mFontSize = 0
     _mDefaultAlpha = 255
+    width = 0
+    height = 0
 
     def __init__(self, (width, height)):
-        pg.init()
+        #pg.init()  
         if( not pg.font.get_init() ):
             pg.font.init()
+            
+        self.width = width
+        self.height = height
         self._mSurface = pg.Surface((width, height), flags = pg.SRCALPHA)
         self._mDefaultAlpha = 255
         self._mClearColor = pg.Color(0, 0, 0, 0)
@@ -94,6 +99,7 @@ class DrawingLayer:
     def _csvRGB2pgColor(self, color, alpha = -1):
         if(alpha == -1):
             alpha = self._mDefaultAlpha
+
         if(color == Color.DEFAULT):
             color = self._mDefaultColor
         retVal = pg.Color(color[0], color[1], color[2], alpha)
@@ -211,7 +217,8 @@ class DrawingLayer:
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent. 
         
-        width - The line width in pixels. This does not work if antialiasing is enabled.
+        width - The 
+        width in pixels. This does not work if antialiasing is enabled.
         
         filled -The object is filled in
         
@@ -351,7 +358,9 @@ class DrawingLayer:
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent. 
         
-        """  
+        """
+        if(len(text)<0):
+            return None
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(color, alpha))
         if(alpha == -1):
             alpha = self._mDefaultAlpha
@@ -385,43 +394,48 @@ class DrawingLayer:
         
         bgcolor - The background color for the text are. 
         """
+        if(len(text)<0):
+            return None
         alpha = 255
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(fgcolor, alpha), self._csvRGB2pgColor(bgcolor, alpha))
         self._mSurface.blit(tsurface, location)        
         return None
-    
-    
-    #def sprite(self,img,rect,pos=(0,0),scale=1.0,rot=0.0,alpha=1.0):
-        #mySprite = pg.sprite.Sprite()
-        #try:
-        #    image,rect = pg.image.load(img)
-        #except pg.error, message:
-        #   print 'Cannot load image:', img
-        #   return
-        #mySprite.image= img
-        #mySprite.rect = rect
-        #return None
-    #sprite overload
-    
-    #def watermark(self):
-    #    return None
+
+    def sprite(self,img,pos=(0,0),scale=1.0,rot=0.0,alpha=255):
+        """
+        sprite draws a sprite (a second small image) onto the current layer.
+        The sprite can be loaded directly from a supported image file like a
+        gif, jpg, bmp, or png, or loaded as a surface or SCV image.
         
-    #capture time, color depth, path, etc
-    #def printStats(self):
-    #    return None
-    
-    #plot 2D data on the image
-    #def plot(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
-    #    return None
-    
-    #plot a histogram
-    #def histogram(self,rect,data,color=Color.DEFAULT,show_axis=TRUE):
-    #    return None
+        pos - the (x,y) position of the upper left hand corner of the sprite
+
+        scale - a scale multiplier as a float value. E.g. 1.1 makes the sprite 10% bigger
+        
+        rot = a rotation angle in degrees
+        
+        alpha = an alpha value 255=opaque 0=transparent. 
+        """
+        if(img.__class__.__name__=='str'):
+            image = pg.image.load(img, "RGB")
+        else:
+            image = img # we assume we have a surface
+        image = image.convert(self._mSurface)
+        if(rot != 0.00):    
+            image = pg.transform.rotate(image,rot)
+        if(scale != 1.0):
+            image = pg.transform.scale(image,(int(image.get_width()*scale),int(image.get_height()*scale)))
+        pixels_alpha = pg.surfarray.pixels_alpha(image)
+        pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
+        del pixels_alpha
+        self._mSurface.blit(image,pos)
+
         
     def blit(self, img, coordinates = (0,0)):
       """
 Blit one image onto the drawing layer at upper left coordinates
       """
+      
+      #can we set a color mode so we can do a little bit of masking here?
       self._mSurface.blit(img.getPGSurface(), coordinates)
         
     def replaceOverlay(self, overlay):
