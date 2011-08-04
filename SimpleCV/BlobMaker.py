@@ -104,7 +104,7 @@ class BlobMaker:
         Extract the bulk of the data from a give blob. If the blob's are is too large
         or too small the method returns none. 
         """
-        if( seq == None ):
+        if( seq == None or not len(seq)):
             return None
         area = cv.ContourArea(seq)
         if( area < minsize or area > maxsize):
@@ -182,7 +182,7 @@ class BlobMaker:
     
     def _getHullMask(self,hull,bb):
         """
-        Return a mask of teh convex hull of a blob. 
+        Return a mask of the convex hull of a blob. 
         """
         bb = cv.BoundingRect(hull)
         mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)

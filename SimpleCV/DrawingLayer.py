@@ -40,11 +40,16 @@ class DrawingLayer:
     _mFontName = ""
     _mFontSize = 0
     _mDefaultAlpha = 255
+    width = 0
+    height = 0
 
     def __init__(self, (width, height)):
-        pg.init()
+        #pg.init()  
         if( not pg.font.get_init() ):
             pg.font.init()
+            
+        self.width = width
+        self.height = height
         self._mSurface = pg.Surface((width, height), flags = pg.SRCALPHA)
         self._mDefaultAlpha = 255
         self._mClearColor = pg.Color(0, 0, 0, 0)

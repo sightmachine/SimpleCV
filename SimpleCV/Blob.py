@@ -1,6 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
+from SimpleCV.ImageClass import Image
 
 
 class Blob(Feature):
@@ -315,17 +316,40 @@ class Blob(Feature):
                 retVal = True            
             return retVal;
 
-        
+    def draw(self, color = Color.GREEN, alpha=-1, width=-1, layer=None):
+        if not layer:
+            layer = self.image.dl()
+            
+        if width == -1:
+            #copy the mask into 3 channels and multiply by the appropriate color
+            maskred = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
+            maskgrn = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
+            maskblu = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
+            
+            maskbit = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 3) 
+
+            cv.ConvertScale(self.mMask, maskred, color[0] / 255.0)
+            cv.ConvertScale(self.mMask, maskgrn, color[1] / 255.0)
+            cv.ConvertScale(self.mMask, maskblu, color[2] / 255.0)
+            
+            cv.Merge(maskblu, maskgrn, maskred, None, maskbit)    
+            
+            masksurface = Image(maskbit).getPGSurface()
+            masksurface.set_colorkey(Color.BLACK)
+            layer._mSurface.blit(masksurface, self.points[0])
+        else:
+            self.drawOutline(color, alpha, width, layer)
+            self.drawHoles(color, alpha, width, layer)
+            
                    
-    #draw the blob to a layer
-    def draw(self, color=Color.GREEN, alpha=-1, w=-1, layer=None):
+    def drawOutline(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
-        Draw the blob contour to either the source image or to the specified layer
-        given by layer.
+        Draw the blob contour the given layer -- if no layer is provided, draw
+        to the source image
         
         color = The color to render the blob.
         alpha = The alpha value of the rendered blob.
-        w     = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
+        width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
         layer = if layer is not None, the blob is rendered to the layer versus
                 the source image. 
         """
@@ -333,24 +357,24 @@ class Blob(Feature):
         if( layer is None ):
             layer = self.image.dl()
         
-        if( w < 0 ):
+        if( width < 0 ):
             #blit the blob in
             layer.polygon(self.mContour,color,filled=True,alpha=alpha)
         else:
             lastp = self.mContour[0] #this may work better.... than the other 
             for nextp in self.mContour[1::]:
-                layer.line(lastp,nextp,color,width=w,alpha=alpha,antialias = False)
+                layer.line(lastp,nextp,color,width=width,alpha=alpha,antialias = False)
                 lastp = nextp
-            layer.line(self.mContour[0],self.mContour[-1],color,width=w,alpha=alpha, antialias = False)
+            layer.line(self.mContour[0],self.mContour[-1],color,width=width,alpha=alpha, antialias = False)
         
     
-    def drawHoles(self, color=Color.WHITE, alpha=-1, w=-1, layer=None):
+    def drawHoles(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
         This method renders all of the holes (if any) that are present in the blob
         
         color = The color to render the blob's holes.
         alpha = The alpha value of the rendered blob hole.
-        w     = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
+        widt  = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
         layer = if layer is not None, the blob is rendered to the layer versus
                 the source image. 
         """
@@ -359,7 +383,7 @@ class Blob(Feature):
         if( layer is None ):
             layer = self.image.dl()
             
-        if( w < 0 ):
+        if( width < 0 ):
             #blit the blob in
             for h in self.mHoleContour:
                 layer.polygon(h,color,filled=True,alpha=alpha)
@@ -367,11 +391,11 @@ class Blob(Feature):
             for h in self.mHoleContour:
                 lastp = h[0] #this may work better.... than the other 
                 for nextp in h[1::]:
-                    layer.line((int(lastp[0]),int(lastp[1])),(int(nextp[0]),int(nextp[1])),color,width=w,alpha=alpha,antialias = False)
+                    layer.line((int(lastp[0]),int(lastp[1])),(int(nextp[0]),int(nextp[1])),color,width=width,alpha=alpha,antialias = False)
                     lastp = nextp
-                layer.line(h[0],h[-1],color,width=w,alpha=alpha, antialias = False)
+                layer.line(h[0],h[-1],color,width=width,alpha=alpha, antialias = False)
 
-    def drawHull(self, color=Color.WHITE, alpha=-1, w=-1, layer=None ):
+    def drawHull(self, color=Color.GREEN, alpha=-1, width=-1, layer=None ):
         """
         Draw the blob's convex hull to either the source image or to the
         specified layer given by layer.
@@ -382,18 +406,18 @@ class Blob(Feature):
         layer = if layer is not None, the blob is rendered to the layer versus
                 the source image. 
         """
-        if( layer is not None ):
+        if( layer is None ):
             layer = self.image.dl()
             
-        if( w < 0 ):
+        if( width < 0 ):
             #blit the blob in
             layer.polygon(self.mConvexHull,color,filled=True,alpha=alpha)
         else:
             lastp = self.mConvexHull[0] #this may work better.... than the other 
             for nextp in self.mConvexHull[1::]:
-                layer.line(lastp,nextp,color,width=w,alpha=alpha,antialias = False)
+                layer.line(lastp,nextp,color,width=width,alpha=alpha,antialias = False)
                 lastp = nextp
-            layer.line(self.mConvexHull[0],self.mConvexHull[-1],color,width=w,alpha=alpha, antialias = False)        
+            layer.line(self.mConvexHull[0],self.mConvexHull[-1],color,width=width,alpha=alpha, antialias = False)        
         
     
     #draw the actual pixels inside the contour to the layer
@@ -411,4 +435,5 @@ class Blob(Feature):
         layer.blit(self.mImg,coordinates=(mx,my))
         return None
 
-        
+
+ 
