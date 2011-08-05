@@ -961,6 +961,26 @@ class Image:
         return cv.GetSize(self.getBitmap())
 
 
+    def split(self, cols, rows):
+        """
+        Given number of cols and rows, splits the image into a cols x rows 2d array 
+        of cropped images
+        
+        quadrants = Image("foo.jpg").split(2,2) <-- returns a 2d array of 4 images
+        """
+        crops = []
+        
+        wratio = self.width / cols
+        hratio = self.height / rows
+        
+        for i in range(rows):
+            row = []
+            for j in range(cols):
+                row.append(self.crop(j * wratio, i * hratio, wratio, hratio))
+            crops.append(row)
+        
+        return crops
+
     def splitChannels(self, grayscale = True):
         """
         Split the channels of an image into RGB (not the default BGR)
