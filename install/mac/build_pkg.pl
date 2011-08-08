@@ -147,9 +147,7 @@ my $ff = File::Fetch->new(uri => $examples_url);
 my $where = $ff->fetch( to => $appdir );
 chdir($appdir);
 `unzip $where`;
-`mv SimpleCV_Examples/* .`;
 `rm $where`;
-`rm -r SimpleCV_Examples`;
 
 chdir($buildpath);
 `chown -R root:staff usr`;
