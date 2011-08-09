@@ -58,6 +58,9 @@ class ColorModel:
         #create a dict of encoded strings
         return dict.fromkeys(map(np.ndarray.tostring, uniques), 1)
   
+    def reset(self):
+        self.mData = {}
+  
     def add(self, data):
         """
         Add an image, array, or tuple to the color model.

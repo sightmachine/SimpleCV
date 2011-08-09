@@ -9,7 +9,8 @@ from SimpleCV.Font import *
 from SimpleCV.ColorModel import *
 from SimpleCV.DrawingLayer import *
 from SimpleCV.BlobMaker import *
-
+from SimpleCV.SegmentationBase import *
+from SimpleCV.ColorSegmentation import *
 
 if (__name__ == '__main__'):
     from SimpleCV.Shell import *
