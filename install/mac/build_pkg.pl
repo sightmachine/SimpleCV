@@ -21,8 +21,7 @@ my $easyinstall_location = "http://pypi.python.org/packages/$python_version/s/se
 #what packages we need to postinstall
 my @pkgs = qw(
   http://r.research.att.com/gfortran-42-5664.pkg
-  http://github.com/downloads/oostendo/cvblob-python/cvblob-0.3.pkg
-  http://ingenuitas.com/shared/pygame-1.9.2pre-py2.6-macosx10.6.mpkg
+  http://f0o.com/~rene/stuff/pygame-1.9.2pre-py2.6-macosx10.6.mpkg.zip
 );
 
 #the python libs we're going to bundle and easyinstall
@@ -99,6 +98,10 @@ $postinstall_script .= "./$easyinstall_fname\n";
 $postinstall_script .= "\n#install external pkgs\n";
 foreach my $pkg (@pkgs) {
   my $pkg_fname = fetchPackage($pkg);
+  if ($pkg_fname =~ /zip$/) {
+    $postinstall_script .= "sudo unzip $pkg_fname\n";
+    $pkg_fname =~ s/\.zip$//g;
+  }
   $postinstall_script .= "sudo installer -pkg '$pkg_fname' -target '/'\n";
 }
 
