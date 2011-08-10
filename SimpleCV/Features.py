@@ -82,7 +82,7 @@ class FeatureSet(list):
         The resulting N x N array can be used to quickly look up distances
         between features.
         """
-        return spsd.squareform(spsd.pdist(self.coordinates())
+        return spsd.squareform(spsd.pdist(self.coordinates()))
   
     def angle(self):
         """
