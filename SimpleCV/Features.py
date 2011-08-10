@@ -67,7 +67,10 @@ class FeatureSet(list):
         Returns a numpy array of the distance each Feature is from a given coordinate.
         Default is the center of the image. 
         """
-        return np.array([f.distanceFrom(point) for f in self ])
+        if (point[0] == -1 or point[1] == -1 and len(self)):
+            point = self[0].image.size()
+            
+        return spsd.cdist(self.coordinates(), [point])[:,0]
   
     def sortDistance(self, point = (-1, -1)):
         """
