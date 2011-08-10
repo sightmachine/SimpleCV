@@ -73,6 +73,13 @@ class ColorSegmentation(SegmentationBase):
         """
         self.mColorModel.reset()
     
+    def getRawImage(self):
+        """
+        Return the segmented image with white representing the foreground
+        and black the background. 
+        """
+        return self.mCurImg
+    
     def getSegmentedImage(self, whiteFG=True):
         """
         Return the segmented image with white representing the foreground
@@ -80,7 +87,7 @@ class ColorSegmentation(SegmentationBase):
         """
         return self.mCurImg
  
-    def getSetmentedBlobs(self):
+    def getSegmentedBlobs(self):
         """
         return the segmented blobs from the fg/bg image
         """

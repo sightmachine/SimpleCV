@@ -11,6 +11,7 @@ from SimpleCV.DrawingLayer import *
 from SimpleCV.BlobMaker import *
 from SimpleCV.SegmentationBase import *
 from SimpleCV.ColorSegmentation import *
+from SimpleCV.DiffSegmentation import *
 
 if (__name__ == '__main__'):
     from SimpleCV.Shell import *

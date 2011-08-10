@@ -67,7 +67,14 @@ class SegmentationBase(object):
         """
         Perform a reset of the segmentation systems underlying data.
         """
-    
+
+    @abc.abstractmethod
+    def getRawImage(self):
+        """
+        Return the segmented image with white representing the foreground
+        and black the background. 
+        """
+        
     @abc.abstractmethod
     def getSegmentedImage(self, whiteFG=True):
         """
@@ -76,7 +83,7 @@ class SegmentationBase(object):
         """
         
     @abc.abstractmethod
-    def getSetmentedBlobs(self):
+    def getSegmentedBlobs(self):
         """
         return the segmented blobs from the fg/bg image
         """

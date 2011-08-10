@@ -59,11 +59,12 @@ class BlobMaker:
         minSize  - The minimum size of the blobs in pixels.
         maxSize  - The maximum blob size in pixels. 
         """
+        sys.setrecursionlimit(100000)
         #h_next moves to the next external contour
         #v_next() moves to the next internal contour
         if (maxsize <= 0):  
-          maxsize = img.width * img.height 
-          
+          maxsize = colorImg.width * colorImg.height 
+        
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), cv.CreateMemStorage(), cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         retVal = []
         retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
@@ -79,6 +80,7 @@ class BlobMaker:
         #if(seq is None):
         #    return None
         retVal = []
+
         
         if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
             temp =  self._extractData(seq,colorImg,minsize,maxsize)
