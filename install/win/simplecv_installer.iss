@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SimpleCV Superpack"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "Ingenuitas Inc. "
 #define MyAppURL "http://www.simplecv.org"
 #define MyAppExeName "Shell.py"
@@ -25,16 +25,14 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=C:\SimpleCV\installer
-<<<<<<< HEAD
 SetupIconFile=C:\SimpleCV\installer\simplecv.ico
-OutputBaseFilename=SimpleCV-Superpack-1.0
+OutputBaseFilename=SimpleCV-Superpack-1.1
 Compression=lzma
 SolidCompression=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 #include <C:\SimpleCV\installer\it_download.iss>;
-
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}";
@@ -50,6 +48,8 @@ begin
  itd_init;
 
  //Let's download two zipfiles from my website..
+ itd_addfile('http://pygame.org/ftp/pygame-1.9.2a0.win32-py2.7.msi',expandconstant('{tmp}\pygame.msi'))
+ 
  itd_addfile('http://downloads.sourceforge.net/project/scipy/scipy/0.9.0/scipy-0.9.0-win32-superpack-python2.7.exe',expandconstant('{tmp}\sci-py.exe'))
  itd_addfile('http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi',expandconstant('{tmp}\python27.msi'));
 
@@ -73,7 +73,13 @@ begin
   pythonCmd := '/i /quiet '
   pythonSrc := ExpandConstant('{tmp}\python27.msi')
   Insert(pythonSrc,pythonCmd,3);
-  Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);  
+  Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+  
+  pythonCmd := '/i /quiet '
+  pythonSrc := ExpandConstant('{tmp}\pygame.msi')
+  Insert(pythonSrc,pythonCmd,3);
+  Exec('msiexec.exe', pythonCmd, '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
+    
   Exec(ExpandConstant('{tmp}\ezinstall.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\numpy.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
   Exec(ExpandConstant('{tmp}\sci-py.exe'), '', '', SW_SHOW,ewWaitUntilTerminated, ResultCode);
@@ -87,12 +93,13 @@ begin
 end;
 
 [Icons]
-Name: "{group}\SimpleCV Shell"; Filename: "C:\Python27\python.exe"; WorkingDir: ""; Parameters: " -m SimpleCV.__init__"; IconFilename: "{app}\simplecv.ico"; Tasks: desktopicon
+Name: "{commondesktop}\SimpleCV Shell"; Filename: "C:\Python27\python.exe"; WorkingDir: ""; Parameters: " -m SimpleCV.__init__"; IconFilename: "{app}\simplecv.ico"; Tasks: desktopicon
 Name: "{group}\SimpleCV Shell"; Filename: "C:\Python27\python.exe"; WorkingDir: ""; Parameters: " -m SimpleCV.__init__"; IconFilename: "{app}\simplecv.ico";
 Name: "{group}\Examples"; Filename: "C:\Program Files\SimpleCV Superpack\simplecv-git\SimpleCV\examples"; WorkingDir: ""; IconFilename: "{app}\simplecv.ico";
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
 Name: "{group}\{cm:ProgramOnTheWeb,{#Ingenuitas}}"; Filename: "{#IngenuitasURL}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+
 
 
 [Run]
