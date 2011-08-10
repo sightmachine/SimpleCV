@@ -75,6 +75,14 @@ class FeatureSet(list):
         Default is from the center of the image. 
         """
         return FeatureSet(sorted(self, key = lambda f: f.distanceFrom(point)))
+        
+    def distancePairs(self):
+        """
+        Returns the square-form of pairwise distances for the featureset.
+        The resulting N x N array can be used to quickly look up distances
+        between features.
+        """
+        return spsd.squareform(spsd.pdist(self.coordinates())
   
     def angle(self):
         """
