@@ -164,7 +164,7 @@ class FeatureSet(list):
   
     def crop(self):
         """
-        Returns a nparray which is the height of all the objects in the FeatureSet
+        Returns a nparray with the cropped features as Imges
         """
         return np.array([f.crop() for f in self])  
     
