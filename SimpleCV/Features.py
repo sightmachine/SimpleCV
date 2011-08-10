@@ -125,7 +125,7 @@ class FeatureSet(list):
         Return a numpy array of the distance each features average color is from
         a given color tuple (default black, so colorDistance() returns intensity)
         """
-        return np.array([f.colorDistance(color) for f in self])
+        return spsd.cdist(self.meanColor(), [color])[:,0]
     
     def sortColorDistance(self, color = (0, 0, 0)):
         """
