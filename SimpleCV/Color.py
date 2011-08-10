@@ -121,5 +121,5 @@ class ColorMap:
         self.ratios = (self.endcolor - self.startcolor) / self.valuerange
       
     def __getitem__(self, value):
-        return tuple(self.startcolor + (self.ratios * (value - self.startmap)))
-        
+        color = tuple(self.startcolor + (self.ratios * (value - self.startmap)))
+        return (int(color[0]), int(color[1]), int(color[2]))
