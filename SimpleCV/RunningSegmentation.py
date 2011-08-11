@@ -7,23 +7,24 @@ from SimpleCV.SegmentationBase import SegmentationBase
 import abc
 
 
-class DiffSegmentation(SegmentationBase):
+class RunningSegmentation(SegmentationBase):
 
     mError = False
-    mLastImg = None
-    mCurrImg = None
+    mAlpha = 0.1
+    mThresh = 10
+    mModelImg = None
     mDiffImg = None
-    mColorImg = None
-    mGrayOnlyMode = True
-    mThreshold = 10
+    mCurrImg = None
     mBlobMaker = None
+    mGrayOnly = True
+    mReady = False
     
-    def __init__(self, grayOnly=False, threshold = (10,10,10) ):
-        self.mGrayOnlyMode = grayOnly
-        self.mThreshold = threshold 
+    def __init__(self, alpha=0.7, thresh=(20,20,20)):
         self.mError = False
-        self.mCurrImg = None
-        self.mLastImg = None
+        self.mReady = False
+        self.mAlpha = alpha
+        self.mThresh = thresh
+        self.mModelImg = None
         self.mDiffImg = None
         self.mColorImg = None
         self.mBlobMaker = BlobMaker()
@@ -33,9 +34,9 @@ class DiffSegmentation(SegmentationBase):
         Load all of the segmentation settings from file
         """
         myFile = open(file,'w')
-        myFile.writeline("Difference Segmentation Parameters")
-        myFile.write(str(self.mGrayOnlyMode))
-        myFile.write(str(self.mThreshold))
+        myFile.writeline("Running Segmentation Parameters")
+        myFile.write(str(self.mThresh))
+        myFile.write(str(self.mAlpha))
         myFile.close()
         return
     
@@ -45,8 +46,8 @@ class DiffSegmentation(SegmentationBase):
         """
         myFile = open(file,'r')
         myFile.readline()
-        self.mGrayOnlyMode = myFile.readline()
-        self.mThreshold = myFile.readline()
+        self.mThresh = myFile.readline()
+        self.mAlpha = myFile.readline()
         myFile.close()
         return
     
@@ -56,29 +57,17 @@ class DiffSegmentation(SegmentationBase):
         """
         if( img is None ):
             return
-        if( self.mLastImg == None ):
-            if( self.mGrayOnlyMode ):
-                self.mLastImg = img.toGray()
-                self.mDiffImg = Image(self.mLastImg.getEmpty(1))
-                self.mCurrImg = None
-            else:
-                self.mLastImg = img
-                self.mDiffImg = Image(self.mLastImg.getEmpty(3))
-                self.mCurrImg = None                
+        
+        self.mColorImg = img 
+        if( self.mModelImg == None ):    
+            self.mModelImg = Image(cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_32F, 3))          
+            self.mDiffImg = Image(cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_32F, 3))           
         else:   
-            if( self.mCurrImg is not None ): #catch the first step
-                self.mLastImg = self.mCurrImg
-
-            if( self.mGrayOnlyMode ):
-                self.mColorImg = img
-                self.mCurrImg = img.toGray()
-            else:
-                self.mColorImg = img
-                self.mCurrImg = img
-                
-                
-            cv.AbsDiff(self.mCurrImg.getBitmap(),self.mLastImg.getBitmap(),self.mDiffImg.getBitmap())
-
+            # do the difference 
+            cv.AbsDiff(self.mModelImg.getBitmap(),img.getFPMatrix(),self.mDiffImg.getBitmap())
+            #update the model 
+            cv.RunningAvg(img.getFPMatrix(),self.mModelImg.getBitmap(),self.mAlpha)
+            self.mReady = True
         return
     
 
@@ -86,10 +75,7 @@ class DiffSegmentation(SegmentationBase):
         """
         Returns true if the camera has a segmented image ready. 
         """
-        if( self.mDiffImg is None ):
-            return False
-        else:
-            return True
+        return self.mReady
 
     
     def isError(self):
@@ -111,8 +97,7 @@ class DiffSegmentation(SegmentationBase):
         """
         Perform a reset of the segmentation systems underlying data.
         """
-        self.mCurrImg = None
-        self.mLastImg = None
+        self.mModelImg = None
         self.mDiffImg = None
     
     def getRawImage(self):
@@ -120,7 +105,7 @@ class DiffSegmentation(SegmentationBase):
         Return the segmented image with white representing the foreground
         and black the background. 
         """
-        return self.mDiffImg
+        return self._floatToInt(self.mDiffImg)
     
     def getSegmentedImage(self, whiteFG=True):
         """
@@ -128,10 +113,11 @@ class DiffSegmentation(SegmentationBase):
         and black the background. 
         """
         retVal = None
+        img = self._floatToInt(self.mDiffImg)
         if( whiteFG ):
-            retVal = self.mDiffImg.binarize(thresh=self.mThreshold)
+            retVal = img.binarize(thresh=self.mThresh)
         else:
-            retVal = self.mDiffImg.binarize(thresh=self.mThreshold).invert()
+            retVal = img.binarize(thresh=self.mThresh).invert()
         return retVal
     
     def getSegmentedBlobs(self):
@@ -140,10 +126,20 @@ class DiffSegmentation(SegmentationBase):
         """
         retVal = []
         if( self.mColorImg is not None and self.mDiffImg is not None ):
-            retVal = self.mBlobMaker.extractFromBinary(self.mDiffImg.binarize(thresh=self.mThreshold),self.mColorImg)
+
+            eightBit = self._floatToInt(self.mDiffImg)
+            retVal = self.mBlobMaker.extractFromBinary(eightBit.binarize(thresh=self.mThresh),self.mColorImg)
  
         return retVal
-        
-        
+    
+    
+    def _floatToInt(self,input):
+        """
+        convert a 32bit floating point cv array to an int array
+        """
+        temp = cv.CreateImage((input.width,input.height), cv.IPL_DEPTH_8U, 3) 
+        cv.Convert(input.getBitmap(),temp)
+   
+        return Image(temp) 
     
     

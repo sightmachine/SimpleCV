@@ -11,22 +11,23 @@ done = False # setup boolean to stop the program
 
 count = 0 
 #segmentor = ColorSegmentation()
-segmentor = DiffSegmentation(threshold=(10,10,10));
+segmentor = RunningSegmentation();
 # Loop until not needed
 
 temp = cam.getImage()
 #segmentor.addToModel(temp)
 
 while not display.isDone():
-    image = cam.getImage() #Image("../sampleimages/aerospace.jpg") #cam.getImage() # get image (or frame) from camera
+    image = cam.getImage()
+    blobLayer = DrawingLayer((image.width,image.height))    
     segmentor.addImage(image)
         
     if(segmentor.isReady()):
         test = segmentor.getRawImage()
         blobs = segmentor.getSegmentedBlobs()
-        blobLayer = DrawingLayer((image.width,image.height))
+        
         for b in blobs:
-            b.drawHull(color=Color.RED,layer=blobLayer,alpha=128)
+            b.draw(color=Color.RED,layer=blobLayer,alpha=128)
 
     image.addDrawingLayer(blobLayer)
     image.save(display)

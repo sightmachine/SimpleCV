@@ -425,6 +425,14 @@ class Image:
             return self._matrix
 
 
+    def getFPMatrix(self):
+        """
+        Converts the standard int bitmap to a floating point bitmap.
+        """
+        retVal =  cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
+        cv.Convert(self.getBitmap(),retVal)
+        return retVal
+    
     def getPIL(self):
         """ 
         Get a PIL Image object for use with the Python Image Library
