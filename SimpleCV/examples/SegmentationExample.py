@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 import time
+import pdb
 from SimpleCV import *
 from SimpleCV.Display import Display, pg
 
@@ -10,22 +11,23 @@ done = False # setup boolean to stop the program
 
 count = 0 
 #segmentor = ColorSegmentation()
-segmentor = DiffSegmentation(threshold=(40,40,40),grayOnly=False);
+segmentor = DiffSegmentation(threshold=(10,10,10));
 # Loop until not needed
 
 temp = cam.getImage()
 #segmentor.addToModel(temp)
-print("Got Image")
+
 while not display.isDone():
-    image = cam.getImage() # get image (or frame) from camera
+    image = cam.getImage() #Image("../sampleimages/aerospace.jpg") #cam.getImage() # get image (or frame) from camera
     segmentor.addImage(image)
         
     if(segmentor.isReady()):
-        test = segmentor.getSegmentedImage()
+        test = segmentor.getRawImage()
         blobs = segmentor.getSegmentedBlobs()
         blobLayer = DrawingLayer((image.width,image.height))
         for b in blobs:
-            b.draw(color=Color.GOLD,layer=blobLayer,width=1)
+            b.drawHull(color=Color.RED,layer=blobLayer,alpha=128)
+
     image.addDrawingLayer(blobLayer)
     image.save(display)
     image.clearLayers()

@@ -12,7 +12,9 @@ class BlobMaker:
     would use for blob extraction. Later implementations may include tracking and
     other features.
     """
+    mMemStorage = None
     def __init__(self):
+        self.mMemStorage = cv.CreateMemStorage()
         return None
 
     def extractUsingModel(self, img, colormodel,minsize=10, maxsize=0):
@@ -64,9 +66,14 @@ class BlobMaker:
         #v_next() moves to the next internal contour
         if (maxsize <= 0):  
           maxsize = colorImg.width * colorImg.height 
-        
-        seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), cv.CreateMemStorage(), cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+          
         retVal = []
+        test = binaryImg.meanColor()
+        if( test[0]==0.00 and test[1]==0.00 and test[2]==0.00):
+            return retVal 
+        
+        seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+        
         retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
         del seq
         return retVal
@@ -76,29 +83,27 @@ class BlobMaker:
         The recursive entry point for the blob extraction. The blobs and holes are presented
         as a tree and we traverse up and across the tree. 
         """
-        #if there is nothing return the list
-        #if(seq is None):
-        #    return None
         retVal = []
 
+        if( seq is None ):
+            return retVal
         
         if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
             temp =  self._extractData(seq,colorImg,minsize,maxsize)
             if( temp is not None ):
                 retVal.append(temp)
             
-                    
         #get the current feature
         nextBlob = seq.h_next() # move to the next feature on our level
-        nextLayer = seq.v_next() # move down a layer
 
         if( nextBlob is not None ):
             #the next object is whatever this object is, add its list to ours
             retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, minsize,maxsize)
+            
+        nextLayer = seq.v_next() # move down a layer    
         if(nextLayer is not None): #the next object, since it is down a layer is different
             retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize)
         
-
         return retVal
     
     def _extractData(self,seq,color,minsize,maxsize):
@@ -106,7 +111,7 @@ class BlobMaker:
         Extract the bulk of the data from a give blob. If the blob's are is too large
         or too small the method returns none. 
         """
-        if( seq == None or not len(seq)):
+        if( seq is None or not len(seq)):
             return None
         area = cv.ContourArea(seq)
         if( area < minsize or area > maxsize):
@@ -120,12 +125,13 @@ class BlobMaker:
         retVal.y = retVal.mBoundingBox[1]+(retVal.mBoundingBox[3]/2)
         retVal.mPerimeter = cv.ArcLength(seq)
         
-        retVal.mContour = list(seq)
+        if( seq is not None):  #KAS 
+            retVal.mContour = list(seq)
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
         retVal.mHullMask = self._getHullMask(chull,retVal.mBoundingBox)
         del chull
-
+        
         moments = cv.Moments(seq)
         retVal.m00 = moments.m00
         retVal.m10 = moments.m10
