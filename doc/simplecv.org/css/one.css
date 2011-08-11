@@ -159,3 +159,6 @@ text-align: left;
 nav {
 font-size: 10pt;
 }
+
+.video {border: 2px solid #000000; display: block; position: relative !important; top: 0; right: 0; text-align: center; width: 48em;}
+
