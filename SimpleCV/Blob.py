@@ -446,6 +446,7 @@ class Blob(Feature):
         """
         if( layer is not None ):
             layer = self.image.dl()
+            
         mx = self.mBoundingBox[0]+offset[0]
         my = self.mBoundingBox[1]+offset[1]
         layer.blit(self.mImg,coordinates=(mx,my))
