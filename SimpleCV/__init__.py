@@ -13,6 +13,7 @@ from SimpleCV.SegmentationBase import *
 from SimpleCV.ColorSegmentation import *
 from SimpleCV.DiffSegmentation import *
 from SimpleCV.RunningSegmentation import *
+from SimpleCV.CodebookSegmentation import *
 if (__name__ == '__main__'):
     from SimpleCV.Shell import *
     main()

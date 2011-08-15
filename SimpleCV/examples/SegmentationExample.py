@@ -11,7 +11,7 @@ done = False # setup boolean to stop the program
 
 count = 0 
 #segmentor = ColorSegmentation()
-segmentor = RunningSegmentation();
+segmentor = CodebookSegmentation();
 # Loop until not needed
 
 temp = cam.getImage()
