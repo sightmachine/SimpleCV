@@ -67,7 +67,10 @@ class FeatureSet(list):
         Returns a numpy array of the distance each Feature is from a given coordinate.
         Default is the center of the image. 
         """
-        return np.array([f.distanceFrom(point) for f in self ])
+        if (point[0] == -1 or point[1] == -1 and len(self)):
+            point = self[0].image.size()
+            
+        return spsd.cdist(self.coordinates(), [point])[:,0]
   
     def sortDistance(self, point = (-1, -1)):
         """
@@ -75,6 +78,14 @@ class FeatureSet(list):
         Default is from the center of the image. 
         """
         return FeatureSet(sorted(self, key = lambda f: f.distanceFrom(point)))
+        
+    def distancePairs(self):
+        """
+        Returns the square-form of pairwise distances for the featureset.
+        The resulting N x N array can be used to quickly look up distances
+        between features.
+        """
+        return spsd.squareform(spsd.pdist(self.coordinates()))
   
     def angle(self):
         """
@@ -114,7 +125,7 @@ class FeatureSet(list):
         Return a numpy array of the distance each features average color is from
         a given color tuple (default black, so colorDistance() returns intensity)
         """
-        return np.array([f.colorDistance(color) for f in self])
+        return spsd.cdist(self.meanColor(), [color])[:,0]
     
     def sortColorDistance(self, color = (0, 0, 0)):
         """
@@ -153,7 +164,7 @@ class FeatureSet(list):
   
     def crop(self):
         """
-        Returns a nparray which is the height of all the objects in the FeatureSet
+        Returns a nparray with the cropped features as Imges
         """
         return np.array([f.crop() for f in self])  
     
