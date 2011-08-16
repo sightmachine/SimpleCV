@@ -83,6 +83,14 @@ class Blob(Feature):
         """        
         return self.mBoundingBox[0]+self.mBoundingBox[2]
 
+    def center(self):
+        """
+        This mehtod returns the center of the blob's bounding box
+        """
+        x = self.mBoundingBox[0]+(self.mBoundingBox[3]/2)
+        y = self.mBoundingBox[1]+(self.mBoundingBox[2]/2)
+        return ([x,y])
+
     def minY(self):
         """
         This method return the minimum y value of the bounding box of the
