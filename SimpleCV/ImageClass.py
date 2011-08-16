@@ -167,6 +167,7 @@ class Image:
             self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
             cv.SetData(self._bitmap, self._pil.tostring())
             self._colorSpace = ColorSpace.BGR
+            cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
             #self._bitmap = cv.iplimage(self._bitmap)
 
 
@@ -758,9 +759,12 @@ class Image:
         Returns: IMAGE
         """
         try:
-            newimg = self.getEmpty() 
-            cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
-            return Image(newimg, colorSpace=self._colorSpace)
+            newimg = self.getEmpty(1) 
+            cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, 255, cv.CV_THRESH_TOZERO)
+            cv.Not(newimg, newimg)
+            cv.Threshold(newimg, newimg, 255 - thresh_high, 255, cv.CV_THRESH_TOZERO)
+            cv.Not(newimg, newimg)
+            return Image(newimg)
         except:
             return None
       
@@ -931,10 +935,6 @@ class Image:
 
         Returns: NONE - Inline Operation
         """
-    
-    
-    
-    
         self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
     
     

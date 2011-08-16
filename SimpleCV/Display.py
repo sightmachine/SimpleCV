@@ -108,7 +108,17 @@ class Display:
             if event.type == pg.MOUSEBUTTONDOWN:
                 self._setButtonState(1, event.button)
 
+<<<<<<< HEAD
         
+=======
+        pressed = pg.key.get_pressed()
+        #If ESC pressed, end the display
+        if(pressed[27] == 1):
+            self.done = True
+            
+
+
+>>>>>>> c2c6c912c87b54add9400ccf7961e8f6e5211a51
     def isDone(self):
         """
         Checks the event queue and returns True if a quit event has been issued

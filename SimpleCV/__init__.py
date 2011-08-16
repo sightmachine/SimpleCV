@@ -1,3 +1,5 @@
+__version__ = '1.1.0'
+
 from SimpleCV.base import *
 from SimpleCV.Camera import *
 from SimpleCV.Color import *
