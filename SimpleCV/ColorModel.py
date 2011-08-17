@@ -52,7 +52,7 @@ class ColorModel:
             warnings.warn("ColorModel: color is not in an accepted format!")
             return None
     
-        rs = np.right_shift(ret, 4)  #right shift 4 bits
+        rs = np.right_shift(ret, self.mBits)  #right shift 4 bits
         
         uniques = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1, 3)
         #create a unique set of colors.  I had to look this one up

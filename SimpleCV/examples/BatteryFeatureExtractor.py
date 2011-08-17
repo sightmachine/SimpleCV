@@ -19,7 +19,8 @@ def BuildWidthHistogram( img, bins ):
             w = points[0][-1]-points[0][0]
             # and add that to our array
             raw_vals.append(w)
-    # and return a normalized histgram of the results        
+    # and return a normalized histgram of the results
+    print(raw_vals)
     return np.histogram(raw_vals,bins, normed = True)
     
 def BuildHeightHistogram( img, bins ):
@@ -50,8 +51,8 @@ def ExtractFeatures( fname, outbase, colormodel ):
  
     #blobs = blobs.dilate(0)
     #default behavior is black on white, invert that 
-    blobs = blobs.invert()
-    blobs = blobs.dilate();
+    #blobs = blobs.invert()
+    blobs = blobs.dilate(2);
     blobs.save('derp1.png')
     #grow the blob images a little bit
     #t = outbase + "blob.png"
@@ -73,6 +74,7 @@ def ExtractFeatures( fname, outbase, colormodel ):
     chunks = blobmaker.extract(mult)
     mult.clear()
     chunks[0].drawHull(color=(255,255,255))
+    #mult.applyLayers()
     #t = outbase + "mult.png"
     #mult.save(t)
     mult.save("mult0.png")
@@ -85,8 +87,14 @@ def ExtractFeatures( fname, outbase, colormodel ):
     # and the blobs rotation, the 90- is to get the battery so it is vertical
     angle = chunks[0].angle()
     # now we rotate the blob so that the major axis is parallel to the sides of our image
-    mult = mult.rotate(angle,point=(x,y))
-    mult.save("mult1.png")
+    print(angle)
+    print((x,y))
+    print(chunks[0].width())
+    print(chunks[0].height())
+    
+    mult = mult.applyLayers()
+    mult = mult.rotate(angle,point=(x,y),mode='full')
+    mult.save("rotated.png")
     # now we reapply the blobbing on the straightened image
     # chunks = mult.findBlobs(threshval=-1)   
     if( len(chunks) == 0 ):
@@ -95,16 +103,20 @@ def ExtractFeatures( fname, outbase, colormodel ):
         return None 
     # now we crop the image to emlinate a lot of the noise and other junk
     # we crow the blob by 1/5th its original width and 1/10th its height
-    w = chunks[0].width()
-    h = chunks[0].height()
-    (cx,cy) = chunks[0].center()
+    #chunks = blobmaker.extract(mult)
+    #mult.clear()
+    #chunks[0].drawHull(color=(255,255,255))   
+   
+    #w = chunks[0].width()
+    #h = chunks[0].height()
+    #(cx,cy) = chunks[0].center()
     #cx = chunks[0].cvblob.minx+(w/2)
     #cy = chunks[0].cvblob.miny+(h/2)
-    mult = mult.crop(cx,cy,w,h,centered=True)
+    #mult = mult.crop(cx,cy,w,h,centered=True)
     #now we do an erode since we did so much dilation
     #mult = mult.erode()
     #finally we save the image
-    t = outbase + ".png"
+    #t = outbase + ".png"
     mult.save('final.png')
     #and build the edge histogram
     hhist = BuildWidthHistogram( mult, 10 )
@@ -112,12 +124,14 @@ def ExtractFeatures( fname, outbase, colormodel ):
     vhist = BuildHeightHistogram(mult,10)
     data = np.append(data,vhist[0])
     chunks = mult.findBlobs(threshval=-1)
-    data = np.append(data,chunks[0].cvblob.m00)
-    data = np.append(data,chunks[0].cvblob.m10)
-    data = np.append(data,chunks[0].cvblob.m01)
-    data = np.append(data,chunks[0].cvblob.m11)
-    data = np.append(data,chunks[0].cvblob.m02)
-    data = np.append(data,chunks[0].cvblob.m20)
+    data = np.append(data,chunks[0].m00)
+    data = np.append(data,chunks[0].m10)
+    data = np.append(data,chunks[0].m01)
+    data = np.append(data,chunks[0].m11)
+    data = np.append(data,chunks[0].m02)
+    data = np.append(data,chunks[0].m20)
+    data = np.append(data,chunks[0].m21)
+    data = np.append(data,chunks[0].m12)
     return data
 
 dataset = np.array([])
