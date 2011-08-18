@@ -42,30 +42,33 @@ def BuildHeightHistogram( img, bins ):
         
 def ExtractFeatures( fname, outbase, colormodel, display ):
     img = Image(fname)
-    img.save(display)
+    img = img.crop(img.width/2-100,0,250,img.height)
+    print('from app')
+    print((img.width,img.height))
+    display.writeFrame(img, scale=False)
     #try to smooth everything to get rid of noise
     #img = img.medianFilter()
     #do an adaptive binary operation
     blurr = img.smooth(aperature=9)
     blobs = img.binarize(thresh = -1, blocksize=21,p=3)
     blobs = colormodel.threshold(img)
-    blobs.save(display)
+    display.writeFrame(blobs)
     blobs = blobs.erode(1)
-    blobs.save(display)
+    display.writeFrame(blobs)
     blobs = blobs.dilate(2);
-    blobs.save(display)
+    display.writeFrame(blobs)
     #grow the blob images a little bit
     #t = outbase + "blob.png"
     #blobs.save(t)
     #also perform a canny edge detection
     edges = img.edges()
     #also grow that a little bit to fill in gaps
-    edges.save(display)
+    display.writeFrame(edges)
     #t = outbase + "edge.png"
     #edges.save(t)
     #now reinforce the image, we only want edges that are in both, so we multiply
     mult = blobs
-    mult.save(display)
+    display.writeFrame(mult)
     #mult = mult.dilate(2)
     #mult.save(display)
     #mult = mult.erode(3)
@@ -78,7 +81,7 @@ def ExtractFeatures( fname, outbase, colormodel, display ):
     #mult.applyLayers()
     #t = outbase + "mult.png"
     #mult.save(t)
-    mult.save(display)
+    display.writeFrame(mult,scale=False)
     if( len(chunks) == 0 ):
         mult.save("BadImage.png")
         warnings.warn("BAD IMAGE: "+fname)

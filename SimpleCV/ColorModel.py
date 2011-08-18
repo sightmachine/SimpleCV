@@ -18,12 +18,12 @@ class ColorModel:
     #TODO: Work in HSV space
     mIsBackground = True
     mData = {}
-    mBits = 2
+    mBits = 1
     
     def __init__(self, data = None, isBackground=True):
         self.mIsBackground = isBackground
         self.mData = {}
-        self.mBits = 2
+        self.mBits = 1
         
         if data:
             try:

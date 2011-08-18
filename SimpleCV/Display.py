@@ -66,16 +66,158 @@ class Display:
             pg.display.set_caption(title)
           
         
-    def writeFrame(self, img):
+    def writeFrame(self, img, fit=True):
         """
         writeFrame copies the given Image object to the display, you can also use
         Image.save()
         """
-        if img.size() != self.resolution:
+        # Grrrrr we're going to need to re-write this functionality
+        # So if the image is the right size do nothing
+        # if the image has a 'nice' scale factor we should scale it e.g. 800x600=>640x480
+        # if( fit )
+        #   if one axis is too big -> scale it down to fit
+        #   if both axes are too big and they don't match eg 800x800 img and 640x480 screen => scale to 400x400 and center
+        #   if both axis are too small -> scale the biggest to fill
+        #   if one axis is too small and one axis is alright we center along the too small axis
+        # else(!fit)
+        #   if one / both axis is too big - crop it
+        #   if one / both too small - center along axis
+        #
+        wndwAR = float(self.resolution[0])/float(self.resolution[1])
+        imgAR = float(img.width)/float(img.height)
+        if( img.size() == self.resolution): # we have to resize
+            s = img.getPGSurface()
+            self.screen.blit(s, s.get_rect())
+            pg.display.flip() 
+        elif( imgAR == wndwAR ):
             img = img.scale(self.resolution[0], self.resolution[1])
-        s = img.getPGSurface()
-        self.screen.blit(s, s.get_rect())
-        pg.display.flip()
+            s = img.getPGSurface()
+            self.screen.blit(s, s.get_rect())
+            pg.display.flip() 
+        elif(fit):
+            #scale factors 
+            wscale = (float(img.width)/float(self.resolution[0]))
+            hscale = (float(img.height)/float(self.resolution[1]))
+            if(wscale>1): #we're shrinking what is the percent reduction
+                wscale=1-(1.0/wscale)
+            else: # we need to grow the image by a percentage
+                wscale = 1.0-wscale
+            if(hscale>1):
+                hscale=1-(1.0/hscale)
+            else:
+                hscale=1.0-hscale
+            if( wscale == 0 ): #if we can get away with not scaling do that
+                targetx = 0
+                targety = (self.resolution[1]-img.height)/2
+                s = img.getPGSurface()
+            elif( hscale == 0 ): #if we can get away with not scaling do that
+                targetx = (self.resolution[0]-img.width)/2
+                targety = 0
+                s = img.getPGSurface()
+            elif(wscale < hscale): # the width has less distortion
+                sfactor = float(self.resolution[0])/float(img.width)
+                targetw = int(float(img.width)*sfactor)
+                targeth = int(float(img.height)*sfactor)
+                if( targetw > self.resolution[0] or targeth > self.resolution[1]):
+                    #aw shucks that still didn't work do the other way instead
+                    sfactor = float(self.resolution[1])/float(img.height)
+                    targetw = int(float(img.width)*sfactor)
+                    targeth = int(float(img.height)*sfactor)
+                    targetx = (self.resolution[0]-targetw)/2
+                    targety = 0
+                else:
+                    targetx = 0
+                    targety = (self.resolution[1]-targeth)/2
+                img = img.scale(targetw,targeth)
+                s = img.getPGSurface()
+            else: #the height has more distortion
+                sfactor = float(self.resolution[1])/float(img.height)
+                targetw = int(float(img.width)*sfactor)
+                targeth = int(float(img.height)*sfactor)
+                if( targetw > self.resolution[0] or targeth > self.resolution[1]):
+                    #aw shucks that still didn't work do the other way instead
+                    sfactor = float(self.resolution[0])/float(img.width)
+                    targetw = int(float(img.width)*sfactor)
+                    targeth = int(float(img.height)*sfactor)
+                    targetx = 0
+                    targety = (self.resolution[1]-targeth)/2
+                else:
+                    targetx = (self.resolution[0]-targetw)/2
+                    targety = 0
+                img = img.scale(targetw,targeth)
+                s = img.getPGSurface()
+            #clear out the screen so everything is clean
+            black = pg.Surface((self.resolution[0], self.resolution[1]))
+            black.fill((0,0,0))
+            self.screen.blit(black,black.get_rect())
+            self.screen.blit(s,(targetx,targety))
+            pg.display.flip() 
+        else: # we're going to crop instead
+            targetx = 0
+            targety = 0
+            if(img.width <= self.resolution[0] and img.height <= self.resolution[1] ): # center a too small image 
+                #we're too small just center the thing
+                targetx = (self.resolution[0]/2)-(img.width/2)
+                targety = (self.resolution[1]/2)-(img.height/2)
+                s = img.getPGSurface()
+            elif(img.width > self.resolution[0] and img.height > self.resolution[1]): #crop too big on both axes
+                targetw = self.resolution[0]
+                targeth = self.resolution[1]
+                targetx = 0
+                targety = 0
+                x = (img.width-self.resolution[0])/2
+                y = (img.height-self.resolution[1])/2
+                img = img.crop(x,y,targetw,targeth)
+                s = img.getPGSurface()
+            elif( img.width < self.resolution[0] and img.height >= self.resolution[1]): #height too big
+                #crop along the y dimension and center along the x dimension
+                targetw = img.width
+                targeth = self.resolution[1]
+                targetx = (self.resolution[0]-img.width)/2
+                targety = 0
+                x = 0
+                y = (img.height-self.resolution[1])/2
+                img = img.crop(x,y,targetw,targeth)
+                s = img.getPGSurface()
+            elif( img.width > self.resolution[0] and img.height <= self.resolution[1]): #width too big
+                #crop along the y dimension and center along the x dimension
+                targetw = self.resolution[0]
+                targeth = img.height
+                targetx = 0
+                targety = (self.resolution[1]-img.height)/2
+                x = (img.width-self.resolution[0])/2
+                y = 0
+                img = img.crop(x,y,targetw,targeth)
+                s = img.getPGSurface()
+            black = pg.Surface((self.resolution[0], self.resolution[1]))
+            black.fill((0,0,0))
+            self.screen.blit(black,black.get_rect())                    
+            self.screen.blit(s,(targetx,targety))
+            pg.display.flip() 
+                                    
+            # only scale the axes that need to be scaled to fit the image
+            # otherwise 
+            #if( scale ):
+            #    img = img.scale(self.resolution[0], self.resolution[1])
+            #    s = img.getPGSurface()
+            #    self.screen.blit(s, s.get_rect())
+            #    pg.display.flip()
+            #else:
+            #    s = img.getPGSurface()
+            #    black = pg.Surface((self.resolution[0], self.resolution[1]))
+            #    black.fill((0,0,0))
+            #    self.screen.blit(black,black.get_rect())
+            #    x = (self.resolution[0]/2)-(img.width/2)
+            #    y = (self.resolution[1]/2)-(img.height/2)
+            #    print('resolution screen')
+            #    print((self.resolution[0],self.resolution[1]))
+            #    print('resolution img')
+            #    print((img.width,img.height))
+            #    print(x,y)
+            #    self.screen.blit(s,(x,y))
+                
+                
+
       
     def _setButtonState(self, state, button):
         if button == 1:
