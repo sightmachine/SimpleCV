@@ -1,0 +1,152 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+	<head> 
+		<meta charset="utf-8"> 
+		<title>SimpleCV - Ingenuitas</title>
+        <meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport">
+        <link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">    
+        <link href="http://fonts.googleapis.com/css?family=Play&v1" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="css/one.css?v=2">
+	</head> 
+	<body>
+    <!--start contactable -->
+    <div id="contactable"><!-- contactable html placeholder --></div>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.validate.pack.js"></script>
+    <script type="text/javascript" src="jquery.contactable.min.js"></script>
+    <link rel="stylesheet" href="contactable.css" type="text/css" />
+    <script>$(function(){$('#contactable').contactable({subject: 'feedback URL:'+location.href});});</script>
+    <!--end contactable -->
+		<div class="bg">
+                <h1>SimpleCV</h1>
+            <div class="pad">
+                <div class="skin"></div>
+                <a href="http://github.com/ingenuitas/simplecv"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/71eeaab9d563c2b3c590319b398dd35683265e85/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub"></a>
+                <a href="http://www.simplecv.org">
+                    <img src="img/simplecv_lg.png" class="glow">
+                </a>
+                <h2>Make computers see with SimpleCV, the Open Source Framework for Vision</h2>
+                <nav class="clearfix"> 
+                    <a href="demos.html" title="Source Code">Demos</a>
+                    <a href="examples.html" title="Examples">Examples</a>
+                    <a href="http://sf.net/projects/simplecv/files/" title="Downloads">Downloads</a>
+                    <a href="https://github.com/ingenuitas/SimpleCV" title="SourceForge">Code</a>  
+                </nav>
+                <nav class="clearfix"> 
+                    <a href="http://simplecv.tumblr.com">Blog</a> 
+                    <a href="http://twitter.com/Simple_CV/" title="Twitter">Twitter</a> 
+                    <a href="http://groups.google.com/group/simplecv">Support</a>
+                    <a href="/doc/" title="Documentation">Docs</a> 
+                </nav>                     
+            </div>
+            <section class="clearfix">
+				<div class="page">
+					<h2>Loading and Saving Images</h2>
+                    <p>
+					To load an image, specify the file path in the constructor:
+					<output>
+my_image = Image("path/to/image.jpg")
+					</output>
+					
+					To save the image, use the save method.  It will automatically use the file you loaded the image from:
+					<output>
+my_image.save()
+					</output>
+					
+					You can also specify a new file to save to, similar to a "Save As...", and future calls to save() will save to this new file:
+					<output>
+my_image.save("path/to/new_image.jpg")
+my_image.save()
+					</output>
+                    You can also show the image:
+                    <output>
+my_image.show()
+                    </output>
+                    <hr>
+                    <h2>Image Manipulation</h2>
+                    You can scale images using the "scale" function, so for instance to create a thumbnail.
+                    <output>
+thumbnail = my_image.scale(90, 90)
+                    </output>
+                    You can erode an image using:
+                    <output>
+eroded = my_image.erode()
+                    </output>
+                    You can crop an image using:
+                    <output>
+cropped = my_image.crop()
+                    </output>
+                    you can find all the <a href="http://www.simplecv.org/doc/api.html#image">Image operations here in the documentation</a>
+                    <hr>
+                    <h2>Features</h2>
+                    Search type functions return Feature Sets, for instance, finding all lines in an image:
+                    <output>
+image = Image()
+lines = image.findLines()
+                    </output>
+                    To find blobs its as easy as:
+                    <output>
+image = Image()
+blobs = image.findBlobs()
+                    </output>
+                    most of the features functions are prefixed with find
+                    they can be found in the <a href="http://www.simplecv.org/doc/api.html#image">Image documentation</a>
+                    or you can also view a the <a href="http://www.simplecv.org/doc/api.html#features">types of features in the documentations</a>
+                    <hr>
+                    <h2>Color</h2>
+                    You can use color to define various types of color for displaying text or marking up images:
+                    <output>
+black = Color.BLACK
+yellow = Color.YELLOW
+                    </output>
+                    see the <a href="http://www.simplecv.org/doc/api.html#color">color documentation</a> for more information.
+                    <hr>
+                    ColorCurve is a color spline class for performing color correction.  
+                    It can takeas parameters a SciPy Univariate spline, or an array with at 
+                    least 4 point pairs.  Either of these must map in a 255x255 space.  The curve 
+                    can then be used in the applyRGBCurve, applyHSVCurve, and 
+                    applyInstensityCurve functions:
+                    <output>
+clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+image.applyIntensityCurve(clr)
+                    </output>
+                    see the <a href="http://www.simplecv.org/doc/api.html#colorcurve">color curve documentation</a> for more info
+                    <hr>                    
+                    A color map takes a start and end point in 3D space and lets you map a range
+                    of values to it.  Using the colormap like an array gives you the mapped color.
+                    
+                    This is useful for color coding elements by an attribute:
+                    <output>                    
+blobs = image.findBlobs()
+cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
+    startmap = min(blobs.area()) , endmap = max(blobs.area())
+     
+for b in blobs:
+    b.draw(cm[b.area()])
+                    </output>
+                    see the <a href="http://www.simplecv.org/doc/api.html#colormap">color map documentation</a> for more info
+                    <hr>
+                    <h2>More Examples</h2>
+                    Please check out the <a href="http://www.youtube.com/user/IngenuitasOfficial">youtube channel</a> for demos, or join the <a href="http://groups.google.com/group/simplecv">mailing list</a> to find out more.
+                    </p>
+				</div>
+			</section>
+            <footer> 
+               &copy; <a href="http://ingenuitas.com">2011 Ingenuitas, All Rights Reserved</a>
+            </footer>                          
+		</div>        
+		<script type="text/javascript">
+
+		  var _gaq = _gaq || [];
+		  _gaq.push(['_setAccount', 'UA-23517471-2']);
+		  _gaq.push(['_trackPageview']);
+
+		  (function() {
+		    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		  })();
+
+		</script>
+</body> 
+</html>

@@ -25,6 +25,12 @@ class DrawingLayer:
     DrawingLayer gives you a way to mark up Image classes without changing
     the image data itself. This class wraps pygame's Surface class and
     provides basic drawing and text rendering functions
+
+
+    Example:
+    image = Image("/path/to/image.png")
+    image2 = Image("/path/to/image2.png")
+    image.dl().blit(image2) #write image 2 on top of image
     """
     _mSurface = []
     _mDefaultColor = 0
@@ -34,11 +40,16 @@ class DrawingLayer:
     _mFontName = ""
     _mFontSize = 0
     _mDefaultAlpha = 255
+    width = 0
+    height = 0
 
     def __init__(self, (width, height)):
-        pg.init()
+        #pg.init()  
         if( not pg.font.get_init() ):
             pg.font.init()
+            
+        self.width = width
+        self.height = height
         self._mSurface = pg.Surface((width, height), flags = pg.SRCALPHA)
         self._mDefaultAlpha = 255
         self._mClearColor = pg.Color(0, 0, 0, 0)
@@ -117,7 +128,7 @@ class DrawingLayer:
         antialias - Draw an antialiased object of width one.
         
         """
-        if(antialias):           
+        if(antialias and width == 1):           
             pg.draw.aaline(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
         else:
             pg.draw.line(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)        
@@ -141,7 +152,7 @@ class DrawingLayer:
         
         antialias - Draw an antialiased object of width one.
         """        
-        if(antialias):
+        if(antialias and width == 1):
             pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
         else:
             pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)                
@@ -206,7 +217,8 @@ class DrawingLayer:
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent. 
         
-        width - The line width in pixels. This does not work if antialiasing is enabled.
+        width - The 
+        width in pixels. This does not work if antialiasing is enabled.
         
         filled -The object is filled in
         
@@ -215,7 +227,7 @@ class DrawingLayer:
         if(filled):
             width = 0
         if(not filled):
-            if(antialias):
+            if(antialias and width == 1):
                 pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), True, points, width)
             else:
                 pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), True, points, width)
@@ -240,7 +252,7 @@ class DrawingLayer:
         """           
         if(filled):
             width = 0
-        if antialias == False:
+        if antialias == False or width > 1:
             pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, radius, width)
         else:
             pg.gfxdraw.aacircle(self._mSurface, center[0], center[1], radius, self._csvRGB2pgColor(color, alpha))
@@ -346,7 +358,9 @@ class DrawingLayer:
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent. 
         
-        """  
+        """
+        if(len(text)<0):
+            return None
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(color, alpha))
         if(alpha == -1):
             alpha = self._mDefaultAlpha
@@ -380,6 +394,8 @@ class DrawingLayer:
         
         bgcolor - The background color for the text are. 
         """
+        if(len(text)<0):
+            return None
         alpha = 255
         tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(fgcolor, alpha), self._csvRGB2pgColor(bgcolor, alpha))
         self._mSurface.blit(tsurface, location)        
@@ -413,6 +429,14 @@ class DrawingLayer:
         del pixels_alpha
         self._mSurface.blit(image,pos)
 
+        
+    def blit(self, img, coordinates = (0,0)):
+      """
+Blit one image onto the drawing layer at upper left coordinates
+      """
+      
+      #can we set a color mode so we can do a little bit of masking here?
+      self._mSurface.blit(img.getPGSurface(), coordinates)
         
     def replaceOverlay(self, overlay):
         """

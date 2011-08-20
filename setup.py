@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 import sys, os
 
 setup(name="SimpleCV",
-  version="1.0",
-  download_url='http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV-1.0.tar.gz',
-  description="A kinder, gentler Python Vision Library",
+  version="1.1",
+  download_url='http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV-1.1.tar.gz',
+  description="Make Computers See with SimpleCV, the Python Framework for Machine Vision",
   long_description="""Super-library for machine vision wrappers in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
   classifiers=[
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
     'Intended Audience :: Manufacturing',
@@ -25,5 +25,5 @@ setup(name="SimpleCV",
   license='BSD',
   packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'sampleimages']),
   zip_safe = True,
-  requires=['cv', 'numpy', 'scipy', 'scipy.spatial.distance']
+  requires=['cv', 'numpy', 'scipy', 'pygame', 'pil']
   )

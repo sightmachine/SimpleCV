@@ -1,18 +1,24 @@
 #!/usr/bin/python
-# *To run this test you need python nose tools installed
+# To run this test you need python nose tools installed
 # Run test just use:
 #   nosetest tests.py
+#
+# *Note: If you add additional test, please prefix the function name
+# to the type of operation being performed.  For instance modifying an
+# image, test_image_erode().  If you are looking for lines, then
+# test_detection_lines().  This makes it easier to verify visually
+# that all the correct test per operation exist
 
 import os, sys
 from SimpleCV import * 
 from nose.tools import with_setup
 
 #colors
-black = (0,0,0)
-white = (255,255,255)
-red = (255,0,0)
-green = (0,255,0)
-blue = (0,0,255)
+black = Color.BLACK
+white = Color.WHITE
+red = Color.RED
+green = Color.GREEN
+blue = Color.BLUE
 
 
 #images
@@ -29,7 +35,7 @@ greyscaleimage = "../sampleimages/greyscale.jpg"
 logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 
-
+#These function names are required by nose test, please leave them as is
 def setup_context():
   img = Image(testimage)
   
@@ -37,7 +43,7 @@ def destroy_context():
   img = ""
 
 @with_setup(setup_context, destroy_context)
-def test_loadsave():
+def test_image_loadsave():
   img = Image(testimage)
   img.save(testoutput)  
   if (os.path.isfile(testoutput)):
@@ -46,7 +52,7 @@ def test_loadsave():
   else: 
     assert False
   
-def test_numpy_constructor():
+def test_image_numpy_constructor():
   img = Image(testimage)
   grayimg = img.grayscale()
 
@@ -62,7 +68,7 @@ def test_numpy_constructor():
     assert False 
 
 
-def test_bitmap():
+def test_image_bitmap():
   img = Image(testimage)
   bmp = img.getBitmap();
   if bmp.width > 0:
@@ -70,26 +76,21 @@ def test_bitmap():
   else:
     assert False
 
-#TODO: get this test working
-#def test_matrix():
-#  img = Image(testimage)
-#  m = img.getMatrix()
-#  if (m.rows == img.getBitmap().width):
-#    pass
-#  assert False
 
-def test_stretch():
+# Image Class Test
+
+def test_image_stretch():
   img = Image(greyscaleimage)
   stretched = img.stretch(100,200)
   img.save(tmpimg)
 
   
-def test_scale():
+def test_image_scale():
   img = Image(testimage)
   thumb = img.scale(30,30)
   thumb.save(testoutput)
 
-def test_copy():
+def test_image_copy():
   img = Image(testimage2)
   copy = img.copy()
 
@@ -98,7 +99,7 @@ def test_copy():
   pass
   
 
-def test_getitem():
+def test_image_getitem():
   img = Image(testimage)
   colors = img[1,1]
   if (colors[0] == 255 and colors[1] == 255 and colors[2] == 255):
@@ -106,14 +107,14 @@ def test_getitem():
   else: 
     assert False
 
-def test_getslice():
+def test_image_getslice():
   img = Image(testimage)
   section = img[1:10,1:10]
   section.save(testoutput)
   pass
 
 
-def test_setitem():
+def test_image_setitem():
   img = Image(testimage)
   img[1,1] = (0, 0, 0)
   newimg = Image(img.getBitmap())
@@ -123,7 +124,7 @@ def test_setitem():
   else:
     assert False
 
-def test_setslice():
+def test_image_setslice():
   img = Image(testimage)
   img[1:10,1:10] = (0,0,0) #make a black box
   newimg = Image(img.getBitmap())
@@ -134,7 +135,7 @@ def test_setslice():
       assert False  
   pass
 
-def test_findCorners():
+def test_detection_findCorners():
   img = Image(testimage2)
   corners = img.findCorners(25)
   if (len(corners) == 0):
@@ -142,7 +143,7 @@ def test_findCorners():
   corners.draw()
   img.save(testoutput)
   
-def test_meancolor():
+def test_color_meancolor():
   img = Image(testimage2)
   roi = img[1:50,1:50]
   
@@ -151,7 +152,7 @@ def test_meancolor():
   if (r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255):
     pass 
 
-def test_smooth():
+def test_image_smooth():
   img = Image(testimage2)
   img.smooth()
   img.smooth('bilateral', (3,3), 4, 1)
@@ -160,7 +161,7 @@ def test_smooth():
   img.smooth('gaussian', (5,5), 0) 
   pass
 
-def test_binarize():
+def test_image_binarize():
   img =  Image(testimage2)
   binary = img.binarize()
   binary2 = img.binarize((60, 100, 200))
@@ -171,7 +172,7 @@ def test_binarize():
   else:
     assert False
 
-def test_binarize_adaptive():
+def test_image_binarize_adaptive():
   img =  Image(testimage2)
   binary = img.binarize(-1)
   hist = binary.histogram(20)  
@@ -180,7 +181,7 @@ def test_binarize_adaptive():
   else:
     assert False
 
-def test_invert():
+def test_image_invert():
   img = Image(testimage2)
   clr = img[1,1]
   img = img.invert()
@@ -191,7 +192,7 @@ def test_invert():
     assert False
 
 
-def test_size():
+def test_image_size():
   img = Image(testimage2)
   (width, height) = img.size()
   if type(width) == int and type(height) == int and width > 0 and height > 0:
@@ -199,18 +200,18 @@ def test_size():
   else:
     assert False
 
-def test_drawing():
+def test_image_drawing():
   img = Image(testimageclr)
   img.drawCircle((5, 5), 3)
   img.drawLine((5, 5), (5, 8))
   
-def test_splitchannels():  
+def test_image_splitchannels():  
   img = Image(testimageclr)
   (r, g, b) = img.splitChannels(True)
   (red, green, blue) = img.splitChannels()
   pass
 
-def test_histogram():
+def test_image_histogram():
   img = Image(testimage2)
   h = img.histogram(25)
 
@@ -220,77 +221,84 @@ def test_histogram():
 
   pass
 
-def test_lines():
+def test_detection_lines():
   img = Image(testimage2)
   lines = img.findLines()
 
   lines.draw()
   img.save(testoutput)
 
-def test_feature_measures():
-  img = Image(testimage2)
+def test_detection_feature_measures():
+    img = Image(testimage2)
   
-  fs = FeatureSet()
-  fs.append(Corner(img, 5, 5))
-  fs.append(Line(img, ((2, 2), (3,3))))
+    fs = FeatureSet()
+    fs.append(Corner(img, 5, 5))
+    fs.append(Line(img, ((2, 2), (3,3))))
+    print(fs)
+    #if BLOBS_ENABLED:
+    bm = BlobMaker()
+    result = bm.extract(img)
+    fs.extend(result)
+    print(fs)
+    #fs.append(img.findBlobs()[0])
 
-  if BLOBS_ENABLED:
-    fs.append(img.findBlobs()[0])
+    #if ZXING_ENABLED:
+    # fake_barcode = Barcode(img, zxing.BarCode("""
+    #file:default.png (format: FAKE_DATA, type: TEXT):
+    #Raw result:
+    #foo-bar|the bar of foo
+    #Parsed result:
+    #foo-bar 
+    #the bar of foo
+    #Also, there were 4 result points:
+    #  Point 0: (24.0,18.0)
+    #  Point 1: (21.0,196.0)
+    #  Point 2: (201.0,198.0)
+    #  Point 3: (205.23952,21.0)
+    #"""))
+    #fs.append(fake_barcode) 
 
-  if ZXING_ENABLED:
-    fake_barcode = Barcode(img, zxing.BarCode("""
-file:default.png (format: FAKE_DATA, type: TEXT):
-Raw result:
-foo-bar|the bar of foo
-Parsed result:
-foo-bar 
-the bar of foo
-Also, there were 4 result points:
-  Point 0: (24.0,18.0)
-  Point 1: (21.0,196.0)
-  Point 2: (201.0,198.0)
-  Point 3: (205.23952,21.0)
-"""))
-    fs.append(fake_barcode) 
+    for f in fs:
+        a = f.area()
+        l = f.length()
+        c = f.meanColor()
+        d = f.colorDistance()
+        th = f.angle()
+        pts = f.coordinates()
+        dist = f.distanceFrom() #distance from center of image 
 
-  for f in fs:
-    a = f.area()
-    l = f.length()
-    c = f.meanColor()
-    d = f.colorDistance()
-    th = f.angle()
-    pts = f.coordinates()
-    dist = f.distanceFrom() #distance from center of image 
+    
+    fs2 = fs.sortAngle()
+    fs3 = fs.sortLength()
+    fs4 = fs.sortColorDistance()
+    fs5 = fs.sortArea()
+    fs1 = fs.sortDistance() 
 
-  fs1 = fs.sortDistance()
-  fs2 = fs.sortAngle()
-  fs3 = fs.sortLength()
-  fs4 = fs.sortColorDistance()
-  fs5 = fs.sortArea()
+def test_detection_blobs():
+    if not BLOBS_ENABLED:
+      return None 
+    img = Image(testbarcode)
   
+    bm = BlobMaker()
+    blobs = bm.extract(img)
 
-def test_blobs():
-  if not BLOBS_ENABLED:
-    return None 
-  img = Image(testbarcode)
-  blobs = img.findBlobs()
+    blobs[0].draw()
+    img.save(testoutput)  
 
-  blobs[0].draw((0, 255, 0))
-  img.save(testoutput)  
+    pass
 
-  pass
-
-def test_blobs_adaptive():
-  if not BLOBS_ENABLED:
-    return None 
-  img = Image(testbarcode)
-  blobs = img.findBlobs(-1)
-  blobs[0].draw((0, 255, 0))
-  img.save(testoutput)  
-  pass
+def test_detection_blobs_adaptive():
+    if not BLOBS_ENABLED:
+        return None
+    img = Image(testimage)
+    bm = BlobMaker()
+    result = bm.extract(img, threshval=-1)
+    result[0].draw()
+    img.save(testoutput)  
+    pass
 
 
-def test_barcode():
+def test_detection_barcode():
   if not ZXING_ENABLED:
     return None
 
@@ -302,7 +310,7 @@ def test_barcode():
   if code.points:
     pass
     
-def test_x():
+def test_detection_x():
   tmpX = Image(testimage).findLines().x()[0]
 
   if (tmpX > 0 and Image(testimage).size()[0]):
@@ -310,7 +318,7 @@ def test_x():
   else:
     assert False
 
-def test_y():
+def test_detection_y():
   tmpY = Image(testimage).findLines().y()[0]
 
   if (tmpY > 0 and Image(testimage).size()[0]):
@@ -318,15 +326,18 @@ def test_y():
   else:
     assert False
 
-def test_area():
-  area_val = Image(testimage).findBlobs().area()[0]
+def test_detection_area():
+    img = Image(testimage2)
+    bm = BlobMaker()
+    result = bm.extract(img)
+    area_val = result[0].area()
   
-  if(area_val > 0):
-    pass
-  else:
-    assert False
+    if(area_val > 0):
+        pass
+    else:
+        assert False
 
-def test_angle():
+def test_detection_angle():
   angle_val = Image(testimage).findLines().angle()[0]
 
 def test_image():
@@ -336,7 +347,7 @@ def test_image():
   else:
     assert False
 
-def test_colordistance():
+def test_color_colordistance():
   img = Image(blackimage)
   (r,g,b) = img.splitChannels()
   avg = img.meanColor()
@@ -357,7 +368,7 @@ def test_colordistance():
     
   pass
   
-def test_length():
+def test_detection_length():
   img = Image(testimage)
   val = img.findLines().length()
 
@@ -373,7 +384,7 @@ def test_length():
 
   
   
-def test_sortangle():
+def test_detection_sortangle():
   img = Image(testimage)
   val = img.findLines().sortAngle()
 
@@ -382,12 +393,14 @@ def test_sortangle():
   else:
     assert False
     
-def test_sortarea():
-  img = Image(testimage)
-  val = img.findBlobs().sortArea()
+def test_detection_sortarea():
+    img = Image(testimage)
+    bm = BlobMaker()
+    result = bm.extract(img)
+    val = result.sortArea()
   #FIXME: Find blobs may appear to be broken. Returning type none
 
-def test_sortLength():
+def test_detection_sortLength():
   img = Image(testimage)
   val = img.findLines().sortLength()
   #FIXME: Length is being returned as euclidean type, believe we need a universal type, either Int or scvINT or something.
@@ -436,7 +449,7 @@ def test_color_curve_GRAY():
   if( g[0]-i2[0] > 1 ): #there may be a bit of roundoff error 
     assert False
 
-def test_dilate():
+def test_image_dilate():
   img=Image(barcode)
   img2 = img.dilate(20)
   c=img2.meanColor()
@@ -444,7 +457,7 @@ def test_dilate():
   if( c[0] < 254 or c[1] < 254 or c[2] < 254 ):
     assert False;
 
-def test_erode():
+def test_image_erode():
   img=Image(barcode)
   img2 = img.erode(100)
   c=img2.meanColor()
@@ -452,7 +465,7 @@ def test_erode():
   if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
     assert False;
   
-def test_morph_open():
+def test_image_morph_open():
   img = Image(barcode);
   erode= img.erode()
   dilate = erode.dilate()
@@ -463,7 +476,7 @@ def test_morph_open():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False;
 
-def test_morph_close():
+def test_image_morph_close():
   img = Image(barcode)
   dilate = img.dilate()
   erode = dilate.erode()
@@ -474,7 +487,7 @@ def test_morph_close():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False;
 
-def test_morph_grad():
+def test_image_morph_grad():
   img = Image(barcode)
   dilate = img.dilate()
   erode = img.erode()
@@ -485,7 +498,7 @@ def test_morph_grad():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
-def test_rotate_fixed():
+def test_image_rotate_fixed():
   img = Image(testimage2)
   img2=img.rotate(180, scale = 1)
   img3=img.flipVertical()
@@ -497,7 +510,7 @@ def test_rotate_fixed():
     assert False
 
 
-def test_rotate_full():
+def test_image_rotate_full():
   img = Image(testimage2)
   img2=img.rotate(180,"full",scale = 1)
   c1=img.meanColor()
@@ -505,7 +518,7 @@ def test_rotate_full():
   if( abs(c1[0]-c2[0]) > 5 or abs(c1[1]-c2[1]) > 5 or abs(c1[2]-c2[2]) > 5 ):
     assert False
 
-def test_shear_warp():
+def test_image_shear_warp():
   img = Image(testimage2)
   dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
   s = img.shear(dst)
@@ -521,7 +534,7 @@ def test_shear_warp():
 
   pass
 
-def test_affine():
+def test_image_affine():
   img = Image(testimage2)
   src =  ((0,0),(img.width-1,0),(img.width-1,img.height-1))
   dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
@@ -536,7 +549,7 @@ def test_affine():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
-def test_perspective():
+def test_image_perspective():
   img = Image(testimage2)
   src = ((0,0),(img.width-1,0),(img.width-1,img.height-1),(0,img.height-1))
   dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
@@ -554,43 +567,44 @@ def test_perspective():
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
     
-def test_horz_scanline():
+def test_image_horz_scanline():
   img = Image(logo)
   sl = img.getHorzScanline(10)
   if( sl.shape[0]!=img.width or sl.shape[1]!=3 ):
     assert False
 
-def test_vert_scanline():
+def test_image_vert_scanline():
   img = Image(logo)
   sl = img.getVertScanline(10)
   if( sl.shape[0]!=img.height or sl.shape[1]!=3 ):
     assert False
     
-def test_horz_scanline_gray():
+def test_image_horz_scanline_gray():
   img = Image(logo)
   sl = img.getHorzScanlineGray(10)
   if( sl.shape[0]!=img.width or sl.shape[1]!=1 ):
     assert False
 
-def test_vert_scanline_gray():
+def test_image_vert_scanline_gray():
   img = Image(logo)
   sl = img.getVertScanlineGray(10)
   if( sl.shape[0]!=img.height or sl.shape[1]!=1 ):
     assert False
 
-def test_get_pixel():
+def test_image_get_pixel():
     img = Image(logo)
     px = img.getPixel(0,0)
     if(px[0] != 0 or px[1] != 0 or px[2] != 0 ):
       assert False
       
-def test_get_gray_pixel():
+def test_image_get_gray_pixel():
     img = Image(logo)
     px = img.getGrayPixel(0,0)
     if(px != 0):
       assert False
+
       
-def test_calibration():
+def test_camera_calibration():
   fakeCamera = FrameSource()
   path = "../sampleimages/CalibImage"
   ext = ".png"
@@ -612,7 +626,7 @@ def test_calibration():
   if( False == fakeCamera.loadCalibration(matname)):
     assert False
 
-def test_undistort():
+def test_camera_undistort():
   fakeCamera = FrameSource()
   fakeCamera.loadCalibration("Default")
   img = Image("../sampleimages/CalibImage0.png") 
@@ -620,7 +634,7 @@ def test_undistort():
   if( not img2 ): #right now just wait for this to return 
     assert False
     
-def test_crop():
+def test_image_crop():
   img = Image(logo)
   x = 5
   y = 6
@@ -633,7 +647,7 @@ def test_crop():
   if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
     assert False
 
-def test_region_select():
+def test_image_region_select():
   img = Image(logo)
   x1 = 0
   y1 = 0
@@ -645,7 +659,7 @@ def test_region_select():
   if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
     assert False
 
-def test_subtract():
+def test_image_subtract():
   imgA = Image(logo)
   imgB = Image(logo_inverted)
 
@@ -680,22 +694,22 @@ def test_image_edgemap():
   imgB = imgA._getEdgeMap()
 
 
-def test_colormap_build():
+def test_color_colormap_build():
   cm = ColorModel()
-  cm.addToModel(Image(testimage))
-  cm.addToModel((127,127,127))
-  if(cm.containsColor((127,127,127))):
-    cm.removeFromModel((127,127,127))
+  cm.add(Image(testimage))
+  cm.add((127,127,127))
+  if(cm.contains((127,127,127))):
+    cm.remove((127,127,127))
   else:
     assert False
-  img = cm.thresholdImage(Image(testimage))
+  img = cm.threshold(Image(testimage))
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
-  cm.saveToFile("temp.txt")
+  cm.save("temp.txt")
   cm2 = ColorModel()
-  cm2.loadFromFile("temp.txt")
-  img = cm2.thresholdImage(Image(testimage))
+  cm2.load("temp.txt")
+  img = cm2.threshold(Image(testimage))
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
@@ -800,3 +814,112 @@ def test_color_conversion_func_XYZ():
   foo = xyz.toHLS()
   foo = xyz.toHSV()
   foo = xyz.toXYZ()  
+
+def test_blob_maker():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    results = blobber.extract(img)
+    print(len(results))
+    if( len(results) != 7 ):
+        assert False
+        
+def test_blob_holes():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    count = 0
+    for b in blobs:
+        if( b.mHoleContour is not None ):
+            count = count + len(b.mHoleContour)
+    if( count != 7 ):
+        assert False
+        
+def test_blob_hull():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    for b in blobs:
+        if( len(b.mConvexHull) < 3 ):
+            assert False
+
+def test_blob_data():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    for b in blobs:
+        if(b.mArea > 0):
+            pass
+        if(b.mPerimeter > 0):
+            pass
+        if(sum(b.mAvgColor) > 0 ):
+            pass
+        if(sum(b.mBoundingBox) > 0 ):
+            pass
+        if(b.m00 is not 0 and
+           b.m01 is not 0 and
+           b.m10 is not 0 and
+           b.m11 is not 0 and
+           b.m20 is not 0 and
+           b.m02 is not 0 and
+           b.m21 is not 0 and
+           b.m12 is not 0 ):
+            pass
+        if(sum(b.mHuMoments) > 0):
+            pass
+        
+def test_blob_render():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    dl = DrawingLayer((img.width,img.height))
+    reimg = DrawingLayer((img.width,img.height))
+    for b in blobs:        
+        b.draw(color=Color.RED, alpha=128)
+        b.drawHoles(width=2,color=Color.BLUE)
+        b.drawHull(color=Color.ORANGE,width=2)
+        b.draw(color=Color.RED, alpha=128,layer=dl)
+        b.drawHoles(width=2,color=Color.BLUE,layer=dl)
+        b.drawHull(color=Color.ORANGE,width=2,layer=dl)
+        b.drawMaskToLayer(reimg,offset=b.topLeftCorner())
+    pass
+
+def test_blob_methods():
+    img = Image("../sampleimages/blockhead.png")
+    blobber = BlobMaker()
+    blobs = blobber.extract(img)
+    BL = (img.width,img.height)
+    first = blobs[0]
+    for b in blobs:
+        b.width()
+        b.height()
+        b.area()
+        b.maxX()
+        b.minX()
+        b.maxY()
+        b.minY()
+        b.minRectWidth()
+        b.minRectHeight()
+        b.minRectX()
+        b.minRectY()
+        b.aspectRatio()
+        b.angle()
+        if(not b.contains((b.x,b.y))):
+           assert False
+        if(b.below((0,0))):
+           assert False
+        if(not b.left((0,0))):
+            assert False
+        if(b.above(BL)):
+            assert False
+        if( not b.right(BL)):
+            assert False
+        b.overlaps(first)
+        b.above(first)
+        b.below(first)
+        b.left(first)
+        b.right(first)
+        b.contains(first)
+        b.overlaps(first)
+        
+#def test_get_holes()
+#def test 

@@ -10,7 +10,11 @@
 #
 #load required libraries
 from SimpleCV.base import *
+from SimpleCV.ImageClass import *
+from SimpleCV.Color import * 
 from SimpleCV.Features import Feature, FeatureSet
+
+
 
 class Corner(Feature):
     """
@@ -26,104 +30,8 @@ class Corner(Feature):
         """
         self.image.drawCircle((self.x, self.y), 4, color)
 
-class Blob(Feature):
-  """
-  The Blob Feature is a wrapper for the cvblob-python library.  
-  
-  The findBlobs() function returns contiguous regions of light-colored area, given an intensity threshold.
-  The Blob class helps you map the position, volume, and shape of these areas.
-  The coordinates of the Blob are its centroid, and its area is defined by its total pixel count.
-  
-  Blob implements all of the Feature properties, and its core data structure, cvblob has the following properties (from cvblob.h)::
-  
-  CvLabel label; ///< Label assigned to the blob.
-  
-  union
-  {
-    unsigned int area; ///< Area (moment 00).
-    unsigned int m00; ///< Moment 00 (area).
-  };
-  
-  unsigned int minx; ///< X min.
-  unsigned int maxx; ///< X max.
-  unsigned int miny; ///< Y min.
-  unsigned int maxy; ///< y max.
-  
-  CvPoint2D64f centroid; ///< Centroid.
-  
-  double m10; ///< Moment 10.
-  double m01; ///< Moment 01.
-  double m11; ///< Moment 11.
-  double m20; ///< Moment 20.
-  double m02; ///< Moment 02.
-  
-  double u11; ///< Central moment 11.
-  double u20; ///< Central moment 20.
-  double u02; ///< Central moment 02.
-  
-  double n11; ///< Normalized central moment 11.
-  double n20; ///< Normalized central moment 20.
-  double n02; ///< Normalized central moment 02.
-  
-  double p1; ///< Hu moment 1.
-  double p2; ///< Hu moment 2.
-  
-  CvContourChainCode contour;           ///< Contour.
-  CvContoursChainCode internalContours; ///< Internal contours. 
-  
-  
-  For more information:
-  
-  * http://github.com/oostendo/cvblob-python
-  * http://code.google.com/p/cvblob
-  * http://code.google.com/p/cvblob/source/browse/trunk/cvBlob/cvblob.h 
-  """
-  cvblob = ""
-   
-  def __init__(self, i, cb):
-      self.points = [0, 0, 0, 0]
-      self.image = i
-      self.cvblob = cb
-      (self.x, self.y) = cvb.Centroid(cb)
-      self.points[0] = (self.cvblob.minx, self.cvblob.miny)
-      self.points[1] = (self.cvblob.maxx, self.cvblob.miny)
-      self.points[2] = (self.cvblob.maxx, self.cvblob.maxy)
-      self.points[3] = (self.cvblob.minx, self.cvblob.maxy)
-   
-  def area(self):
-      return self.cvblob.area  
 
-  def meanColor(self):
-      """
-      Returns the color tuple of the entire area of the blob
-      """
-      return cvb.BlobMeanColor(self.cvblob, self.image._blobLabel, self.image.getBitmap())
-
-  def length(self):
-      """
-      Length returns the longest dimension of the X/Y bounding box 
-      """
-      return max(self.cvblob.maxx-self.cvblob.minx, self.cvblob.maxy-self.cvblob.miny)
-  
-
-  #  todo?
-  #  def elongation(self):
-  #  def perimeter(self):
-  #return angle in radians
-  def angle(self):
-      """
-      This Angle function is defined as: 
-      .5*atan2(2.* blob.cvblob.u11,(blob.cvblob.u20-blob.cvblob.u02))
-      """
-      return 360.00 * ( cvb.Angle(self.cvblob) / (2 * np.pi) )
-
-  def draw(self, color = (0, 255, 0)):
-      """
-      Fill in the blob with the given color (default green), and flush buffers
-      """
-      cvb.RenderBlob(self.image._blobLabel, self.cvblob, self.image.getBitmap(), self.image.getBitmap(), cvb.CV_BLOB_RENDER_COLOR, color)
-      self.image._clearBuffers("_bitmap")
- 
+    
 class Line(Feature):
     """
     The Line class is returned by the findLines function, but can also be initialized with any two points:
@@ -369,13 +277,13 @@ class HaarFeature(Feature):
         """
         Returns the longest dimension of the HaarFeature, either width or height
         """
-        return max(self.width, self.height)
+        return max(self._width, self._height)
   
     def area(self):
         """
         Returns the area contained within the HaarFeature's bounding rectangle 
         """
-        return self.width * self.height
+        return self._width * self._height
   
     def angle(self):
         """
@@ -383,7 +291,7 @@ class HaarFeature(Feature):
         """
         #Note this is misleading
         # I am not sure I like this 
-        if (self.width > self.height):
+        if (self._width > self._height):
             return 0.00
         else:
             return 90.00
@@ -401,6 +309,10 @@ class HaarFeature(Feature):
         return self._height
   
 class Chessboard(Feature):
+    """
+    This class is used for Calibration, it uses a chessboard
+    to calibrate from pixels to real world measurements
+    """
     spCorners = []
     dimensions = ()
     
@@ -443,6 +355,3 @@ class Chessboard(Feature):
         s = (a + b + c + d)/2.0 
         return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
   
-#TODO?
-#class Edge(Feature):
-#class Ridge(Feature):

@@ -13,7 +13,7 @@ my $python_version = 2.6;
 my $python_install_dir = "/Library/Python/$python_version/site-packages/";
 
 #first, let's ID all the stuff we homebrew'd
-my @homebrew_libs = qw(boost jpeg jasper libfreenect libtiff libusb-freenect little-cms opencv pil tbb);
+my @homebrew_libs = qw(jpeg jasper libfreenect libtiff libusb-freenect little-cms opencv pil tbb);
 
 #where the most recent/appropriate version of easy install is
 my $easyinstall_location = "http://pypi.python.org/packages/$python_version/s/setuptools/setuptools-0.6c11-py$python_version.egg";
@@ -21,7 +21,7 @@ my $easyinstall_location = "http://pypi.python.org/packages/$python_version/s/se
 #what packages we need to postinstall
 my @pkgs = qw(
   http://r.research.att.com/gfortran-42-5664.pkg
-  http://github.com/downloads/oostendo/cvblob-python/cvblob-0.3.pkg
+  http://f0o.com/~rene/stuff/pygame-1.9.2pre-py2.6-macosx10.6.mpkg.zip
 );
 
 #the python libs we're going to bundle and easyinstall
@@ -29,15 +29,15 @@ my @python_libs = qw(
   http://dl.dropbox.com/u/233041/PyMC/numpy-2.0.0.dev_3071eab_20110527-py2.6-macosx-10.6-universal.egg
   http://dl.dropbox.com/u/233041/PyMC/scipy-0.10.0.dev_20110527-py2.6-macosx-10.6-universal.egg
   http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2-py2.6.egg
-  http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV-1.0.tar.gz
+  http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV-1.1.tar.gz
 );
 
-my $examples_url = "http://sourceforge.net/projects/simplecv/files/1.0/SimpleCV_examples-1.0.zip";
+my $examples_url = "http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV_examples-1.1.zip";
 
 
 
 my @python_lib_manual = qw(
-  http://github.com/downloads/oostendo/cvblob-python/cvblob-python-macosx10.6-python2.6.tar.gz
+  http://ingenuitas.com/shared/freenect-python-0.0.0.tar.gz
 );
     
 my $python_install_directory = "/Library/Python/$python_version/site-packages/";
@@ -98,6 +98,10 @@ $postinstall_script .= "./$easyinstall_fname\n";
 $postinstall_script .= "\n#install external pkgs\n";
 foreach my $pkg (@pkgs) {
   my $pkg_fname = fetchPackage($pkg);
+  if ($pkg_fname =~ /zip$/) {
+    $postinstall_script .= "sudo unzip $pkg_fname\n";
+    $pkg_fname =~ s/\.zip$//g;
+  }
   $postinstall_script .= "sudo installer -pkg '$pkg_fname' -target '/'\n";
 }
 
@@ -146,9 +150,7 @@ my $ff = File::Fetch->new(uri => $examples_url);
 my $where = $ff->fetch( to => $appdir );
 chdir($appdir);
 `unzip $where`;
-`mv SimpleCV_Examples/* .`;
 `rm $where`;
-`rm -r SimpleCV_Examples`;
 
 chdir($buildpath);
 `chown -R root:staff usr`;

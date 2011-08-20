@@ -3,12 +3,13 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Blob, Corner, HaarFeature, Line, Chessboard
+from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
-from SimpleCV.DrawingLayer import * 
+from SimpleCV.DrawingLayer import *
+
 from numpy import int32
 from numpy import uint8
 import pygame as pg
@@ -39,7 +40,7 @@ class Image:
 
     Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
-    standard format. 
+    standard format.  If dimensions are passed, an empty image is created.
     """
     width = 0    #width and height in px
     height = 0
@@ -98,14 +99,17 @@ class Image:
         """
         self._mLayers = []
         self.camera = camera
-        self._colorSpace = ColorSpace.UNKNOWN # this is the default - we'll fill out as we learn more
-
+        self._colorSpace = colorSpace
+        
+        if (type(source) == tuple):
+            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(source)
         if (type(source) == cv.cvmat):
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
                 self._colorSpace = ColorSpace.BGR
             elif((souce.step/source.cols)==1):
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
 
@@ -114,6 +118,7 @@ class Image:
             if (type(source[0, 0]) == np.ndarray): #we have a 3 channel array
                 #convert to an iplimage bitmap
                 source = source.astype(np.uint8)
+                source = source[:, :, ::-1].transpose([1, 0, 2])
                 self._bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
                 cv.SetData(self._bitmap, source.tostring(), 
                     source.dtype.itemsize * 3 * source.shape[1])
@@ -122,22 +127,22 @@ class Image:
             else:
                 #we have a single channel array, convert to an RGB iplimage
 
-
-                source = source.astype(np.uint8) 
-                self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
+                source = source.astype(np.uint8)
+                source = source.transpose([1,0]) #we expect width/height but use col/row
+                self._bitmap = cv.CreateImage((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3) 
                 channel = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 1)
                 #initialize an empty channel bitmap
                 cv.SetData(channel, source.tostring(), 
                     source.dtype.itemsize * source.shape[1])
-                cv.Merge(source, source, source, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
+                cv.Merge(channel, channel, channel, None, self._bitmap)
+                self._colorSpace = ColorSpace.BGR
 
 
         elif (type(source) == cv.iplimage):
             if (source.nChannels == 1):
                 self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3) 
                 cv.Merge(source, source, source, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
+                self._colorSpace = ColorSpace.BGR
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
@@ -162,6 +167,7 @@ class Image:
             self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
             cv.SetData(self._bitmap, self._pil.tostring())
             self._colorSpace = ColorSpace.BGR
+            cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
             #self._bitmap = cv.iplimage(self._bitmap)
 
 
@@ -179,34 +185,64 @@ class Image:
     
     
     def getColorSpace(self):
+        """
+        Returns the value matched in the color space class
+        so for instance you would use
+        if(image.getColorSpace() == ColorSpace.RGB)
+
+        RETURNS: Integer
+        """
         return self._colorSpace
   
   
     def isRGB(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.RGB)
 
 
     def isBGR(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.BGR)
     
     
     def isHSV(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.HSV)
     
     
     def isHLS(self):
+        """
+        Returns Boolean
+        """    
         return(self._colorSpace==ColorSpace.HLS)  
   
   
     def isXYZ(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.XYZ)
     
     
     def isGray(self):
+        """
+        Returns Boolean
+        """
         return(self._colorSpace==ColorSpace.GRAY)    
 
 
     def toRGB(self):
+        """
+        Converts Image colorspace to RGB
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -226,6 +262,11 @@ class Image:
 
 
     def toBGR(self):
+        """
+        Converts image colorspace to BGR
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.RGB or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -245,6 +286,11 @@ class Image:
   
   
     def toHLS(self):
+        """
+        Converts image to HLS colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -266,6 +312,11 @@ class Image:
     
     
     def toHSV(self):
+        """
+        Converts image to HSV colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -287,6 +338,11 @@ class Image:
     
     
     def toXYZ(self):
+        """
+        Converts image to XYZ colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -308,6 +364,11 @@ class Image:
     
     
     def toGray(self):
+        """
+        Converts image to Grayscale colorspace
+
+        RETURNS: Image
+        """
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -365,6 +426,14 @@ class Image:
             return self._matrix
 
 
+    def getFPMatrix(self):
+        """
+        Converts the standard int bitmap to a floating point bitmap.
+        """
+        retVal =  cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
+        cv.Convert(self.getBitmap(),retVal)
+        return retVal
+    
     def getPIL(self):
         """ 
         Get a PIL Image object for use with the Python Image Library
@@ -382,7 +451,7 @@ class Image:
         """
         Get a Numpy array of the image in width x height x RGB dimensions
         """
-        if self._numpy:
+        if self._numpy != "":
             return self._numpy
     
     
@@ -441,6 +510,11 @@ class Image:
     
     
     def getPGSurface(self):
+        """
+        Gets the pygame surface.  This is used for rendering the display
+
+        RETURNS: pgsurface
+        """
         if (self._pgsurface):
             return self._pgsurface
         else:
@@ -546,14 +620,23 @@ class Image:
     
     
     #scale this image, and return a new Image object with the new dimensions 
-    def scale(self, width, height):
+    def scale(self, width, height = -1):
         """
         Scale the image to a new width and height.
 
+        If no height is provided, the width is considered a scaling value ie::
+            
+            img.scale(200, 100) #scales the image to 200px x 100px
+            img.scale(2.0) #enlarges the image to 2x its current size
 
         Returns: IMAGE
         """
-        scaled_bitmap = cv.CreateImage((width, height), 8, 3)
+        w, h = width, height
+        if height == -1:
+          w = int(self.width * width)
+          h = int(self.height * width)
+          
+        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
@@ -676,9 +759,12 @@ class Image:
         Returns: IMAGE
         """
         try:
-            newimg = self.getEmpty() 
-            cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, thresh_high, cv.CV_THRESH_TRUNC)
-            return Image(newimg, colorSpace=self._colorSpace)
+            newimg = self.getEmpty(1) 
+            cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, 255, cv.CV_THRESH_TOZERO)
+            cv.Not(newimg, newimg)
+            cv.Threshold(newimg, newimg, 255 - thresh_high, 255, cv.CV_THRESH_TOZERO)
+            cv.Not(newimg, newimg)
+            return Image(newimg)
         except:
             return None
       
@@ -734,7 +820,7 @@ class Image:
 
         Returns: IMAGE
         """
-        return cv.Avg(self.getMatrix())[0:3]  
+        return tuple(reversed(cv.Avg(self.getBitmap())[0:3]))  
   
   
 
@@ -765,60 +851,36 @@ class Image:
         return FeatureSet(corner_features)
 
 
-    
-    
     def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
         """
-        If you have the cvblob library installed, this will look for continuous
+        This will look for continuous
         light regions and return them as Blob features in a FeatureSet.  Parameters
-        specify the binarize filter threshold value, and minimum and maximum size for blobs.  If a
-        threshold value is -1, it will use an adaptive threshold.  See binarize() for
-        more information about adaptive thresholding.  The threshblocksize and threshconstant
+        specify the binarize filter threshold value, and minimum and maximum size for blobs.  
+        If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
         parameters are only used for adaptive threshold.
-
-
-        You can find the cv-blob python library at http://github.com/oostendo/cvblob-python
-
-
+ 
+        Note that this previously used cvblob and the python-cvblob library, 
+        which is no longer necessary
+    
         Returns: FEATURESET
         """
-        if not BLOBS_ENABLED:
-            warnings.warn("You tried to use findBlobs, but cvblob is not installed.  Go to http://github.com/oostendo/cvblob-python and git clone it.")
-            return None
-
         if (maxsize == 0):  
-          maxsize = self.width * self.height / 2
-    
+            maxsize = self.width * self.height / 2
         #create a single channel image, thresholded to parameters
-        grey = self.binarize(threshval, 255, threshblocksize, threshconstant)._getGrayscaleBitmap()
-
-
-        #create the label image
-        self._blobLabel = cv.CreateImage(cv.GetSize(self.getBitmap()), cvb.IPL_DEPTH_LABEL, 1)
-
-
-        #initialize the cvblobs blobs data structure (dict with label -> blob)
-        blobs = cvb.Blobs()
-
-
-        result = cvb.Label(grey, self._blobLabel, blobs)
-        cvb.FilterByArea(blobs, minsize, maxsize) 
-
-
-        blobs_sizesorted = sorted(blobs.values(), key=lambda x: x.area, reverse=True) 
-
-
-        blobsFS = [] #create a new featureset for the blobs
-        for b in blobs_sizesorted:
-            blobsFS.append(Blob(self, b)) #wrapper the cvblob type in SimpleCV's blob type 
-
-
-        return FeatureSet(blobsFS) 
-
+    
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
+            self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+            
+        return FeatureSet(blobs).sortArea()
 
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascadefile, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
         If you want to find Haar Features (useful for face detection among other
         purposes) this will return Haar feature objects in a FeatureSet.  The
@@ -833,6 +895,9 @@ class Image:
    
         You will need to provide your own cascade file - these are usually found in
         /usr/local/share/opencv/haarcascades and specify a number of body parts.
+        
+        Note that the cascade parameter can be either a filename, or a HaarCascade
+        loaded with cv.Load().
 
 
         Returns: FEATURESET
@@ -841,13 +906,16 @@ class Image:
 
 
         #lovely.  This segfaults if not present
-        if (not os.path.exists(cascadefile)):
-            warnings.warn("Could not find Haar Cascade file " + cascadefile)
-            return None
-        cascade = cv.Load(cascadefile) 
+        if type(cascade) == str:
+          if (not os.path.exists(cascade)):
+              warnings.warn("Could not find Haar Cascade file " + cascade)
+              return None
+          cascade = cv.Load(cascade)
+
+  
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, use_canny)
         if objects: 
-            return FeatureSet([HaarFeature(self, o, cascadefile) for o in objects])
+            return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
     
     
         return None
@@ -867,10 +935,6 @@ class Image:
 
         Returns: NONE - Inline Operation
         """
-    
-    
-    
-    
         self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
     
     
@@ -904,6 +968,26 @@ class Image:
         """
         return cv.GetSize(self.getBitmap())
 
+
+    def split(self, cols, rows):
+        """
+        Given number of cols and rows, splits the image into a cols x rows 2d array 
+        of cropped images
+        
+        quadrants = Image("foo.jpg").split(2,2) <-- returns a 2d array of 4 images
+        """
+        crops = []
+        
+        wratio = self.width / cols
+        hratio = self.height / rows
+        
+        for i in range(rows):
+            row = []
+            for j in range(cols):
+                row.append(self.crop(j * wratio, i * hratio, wratio, hratio))
+            crops.append(row)
+        
+        return crops
 
     def splitChannels(self, grayscale = True):
         """
@@ -1013,10 +1097,10 @@ class Image:
         By default this will give image intensity (distance from pure black)
         """ 
         bgr_color = tuple(reversed(color)) #our matrix is in BGR
-        pixels = np.array(self.getMatrix()).reshape(-1, 3)   #reshape our matrix to 1xN
+        pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
         distances = spsd.cdist(pixels, [bgr_color]) #calculate the distance each pixel is
         distances *= (255.0/distances.max()) #normalize to 0 - 255
-        return Image(distances.reshape(self.height, self.width), colorSpace=self._colorSpace) #return an Image
+        return Image(distances.reshape(self.width, self.height), colorSpace=self._colorSpace) #return an Image
     
     
       
@@ -1847,7 +1931,7 @@ class Image:
 
         #render the image. 
     def _renderImage(self, layer):
-        imgSurf = self.getPGSurface(self)
+        imgSurf = self.getPGSurface(self).copy()
         imgSurf.blit(layer._mSurface, (0, 0))
         return Image(imgSurf)
         
@@ -1857,15 +1941,19 @@ class Image:
         Render all of the layers onto the current image and return the result.
         Indicies can be a list of integers specifying the layers to be used. 
         """
+        if not len(self._mLayers):
+            return self
+        
+        
         final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
-            retVal = self
+            #retVal = self
             self._mLayers.reverse()
             for layers in self._mLayers: #compose all the layers
                 layers.renderToOtherLayer(final)
             self._mLayers.reverse()  
             #then draw them
-            imgSurf = self.getPGSurface()
+            imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             return Image(imgSurf)
         else:
@@ -1873,7 +1961,9 @@ class Image:
             indicies.reverse()
             for idx in indicies:
                 retVal = self._mLayers[idx].renderToOtherLayer(final)
-            imgSurf = self.getPGSurface()
+            imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+
+from SimpleCV.BlobMaker import BlobMaker
