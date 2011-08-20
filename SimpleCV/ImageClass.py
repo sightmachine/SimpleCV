@@ -1096,11 +1096,10 @@ class Image:
     
         By default this will give image intensity (distance from pure black)
         """ 
-        bgr_color = tuple(reversed(color)) #our matrix is in BGR
         pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
-        distances = spsd.cdist(pixels, [bgr_color]) #calculate the distance each pixel is
+        distances = spsd.cdist(pixels, [color]) #calculate the distance each pixel is
         distances *= (255.0/distances.max()) #normalize to 0 - 255
-        return Image(distances.reshape(self.width, self.height), colorSpace=self._colorSpace) #return an Image
+        return Image(distances.reshape(self.width, self.height)) #return an Image
     
     
       
