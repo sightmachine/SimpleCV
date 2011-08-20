@@ -3,6 +3,7 @@ do a git clone (or clean)
 update changelog
 change version in setup.py
 change version in doc/conf.py
+change version in init.py
 python setup.py sdist --format=zip 
 python setup.py sdist --format=gztar
 log in and go to: https://sourceforge.net/projects/simplecv/files/
