@@ -70,6 +70,19 @@ class Display:
         """
         writeFrame copies the given Image object to the display, you can also use
         Image.save()
+        
+        Write frame trys to fit the image to the display with the minimum ammount
+        of distortion possible. When fit=True write frame will decide how to scale
+        the image such that the aspect ratio is maintained and the smallest amount
+        of distorition possible is completed. This means the axis that has the minimum
+        scaling needed will be shrunk or enlarged to match the display.
+        
+        
+        When fit=False write frame will crop and center the image as best it can.
+        If the image is too big it is cropped and centered. If it is too small
+        it is centered. If it is too big along one axis that axis is cropped and
+        the other axis is centered if necessary.
+ 
         """
         # Grrrrr we're going to need to re-write this functionality
         # So if the image is the right size do nothing
@@ -194,28 +207,6 @@ class Display:
             self.screen.blit(black,black.get_rect())                    
             self.screen.blit(s,(targetx,targety))
             pg.display.flip() 
-                                    
-            # only scale the axes that need to be scaled to fit the image
-            # otherwise 
-            #if( scale ):
-            #    img = img.scale(self.resolution[0], self.resolution[1])
-            #    s = img.getPGSurface()
-            #    self.screen.blit(s, s.get_rect())
-            #    pg.display.flip()
-            #else:
-            #    s = img.getPGSurface()
-            #    black = pg.Surface((self.resolution[0], self.resolution[1]))
-            #    black.fill((0,0,0))
-            #    self.screen.blit(black,black.get_rect())
-            #    x = (self.resolution[0]/2)-(img.width/2)
-            #    y = (self.resolution[1]/2)-(img.height/2)
-            #    print('resolution screen')
-            #    print((self.resolution[0],self.resolution[1]))
-            #    print('resolution img')
-            #    print((img.width,img.height))
-            #    print(x,y)
-            #    self.screen.blit(s,(x,y))
-                
                 
 
       
