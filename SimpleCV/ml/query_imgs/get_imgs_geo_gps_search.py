@@ -1,4 +1,12 @@
 #!/usr/bin/python
+#
+# So this script is in a bit of a hack state right now. 
+# This script reads 
+#
+#
+#
+
+
 # Graciously copied and modified from:
 # http://graphics.cs.cmu.edu/projects/im2gps/flickr_code.html
 #Image querying script written by Tamara Berg,
@@ -26,6 +34,8 @@ socket.setdefaulttimeout(30)  #30 second time out on sockets before they throw
 #the time out needs to be pretty long, it seems, because the flickr servers can be slow
 #to respond to our big searches.
 
+#returns a query and the search times to attempt to get a desired number of photos
+#this needs serious refactoring -KAS
 def DoSearch(fapi,query_string,desired_photos):
     # number of seconds to skip per query  
     #timeskip = 62899200 #two years
@@ -71,7 +81,7 @@ def DoSearch(fapi,query_string,desired_photos):
                                         media="photos",
                                         per_page="250", 
                                         page="1",
-                                        has_geo = "1", #bbox="-180, -90, 180, 90",
+                                        has_geo = "0", #bbox="-180, -90, 180, 90",
                                         text=query_string,
                                         accuracy="6", #6 is region level. 
                                         min_upload_date=str(mintime),
@@ -121,22 +131,6 @@ def DoSearch(fapi,query_string,desired_photos):
 
 
 
-
-
-
-
-
-
-
-print sys.argv 
-if len(sys.argv) > 1:
-    print "Reading queries from file " + sys.argv[1]
-    query_file_name = sys.argv[1] #0 is the command name.
-else:
-    print "No command line arguments, reading queries from " + 'query.dat'
-    query_file_name = 'query.dat'
-    #query_file_name = 'place_rec_queries_fall08.txt'
-
 ###########################################################################
 # Modify this section to reflect your data and specific search 
 ###########################################################################
@@ -144,7 +138,13 @@ else:
 # change these to your flickr api keys and secret
 flickrAPIKey = "fa33550d413b36b3fddc473a931a3b3b"  # API key
 flickrSecret = "7fd481bff0916055"                  # shared "secret"
+rootpath = "../data/" #where do you want the data
+desired_photos = 25 #how many photos do you want to try and get
+query_file_name = 'query.dat' #The file to get the queries from
 
+
+
+#query_file_name = 'place_rec_queries_fall08.txt'
 query_file = open(query_file_name, 'r')
 
 #aggregate all of the positive and negative queries together.
@@ -167,7 +167,7 @@ print pos_queries
 print 'negative queries:  ' + neg_queries
 print 'num_queries = ' + str(num_queries)
 #this is the desired number of photos in each block
-desired_photos = 25
+
     
 # make a new FlickrAPI instance
 fapi = FlickrAPI(flickrAPIKey, flickrSecret)
@@ -176,7 +176,19 @@ for current_tag in range(0, num_queries):
   
     print('TOP OF LOOP')
     # change this to the location where you want to put your output file
-    out_file = open('./' + pos_queries[current_tag] + '.txt','w')
+    try:
+        stats = os.stat(rootpath)
+    except OSError:
+        os.mkdir(rootpath)
+        
+    outpath = rootpath+pos_queries[current_tag]+'/'
+    try:
+        os.mkdir(outpath)
+    except OSError:
+        shutil.rmtree(outpath,True)
+        os.mkdir(outpath)
+       
+    out_file = open(rootpath + pos_queries[current_tag] + '.txt','w')
     ###########################################################################
     
     #form the query string.
@@ -187,7 +199,7 @@ for current_tag in range(0, num_queries):
     total_images_queried = 0;
     [mintime,maxtime,total_images,rsp] = DoSearch(fapi,query_string,desired_photos)
 
-  
+    print('GETTING TOTATL IMAGES:'+str(total_images))
     s = '\nmintime: ' + str(mintime) + ' maxtime: ' + str(maxtime)
     print s
     out_file.write(s + '\n') 
@@ -219,13 +231,7 @@ for current_tag in range(0, num_queries):
         #print 'stopping before page ' + str(int(math.ceil(num/3) + 1)) + '\n'
     
         pagenum = 1;
-        outpath = './'+pos_queries[current_tag]+'/'
-        try:
-            os.mkdir(outpath)
-        except OSError:
-            shutil.rmtree(outpath,True)
-            os.mkdir(outpath)
-       
+
         counter = -1
         while( pagenum <= num_visit_pages ):
         #for pagenum in range(1, num_visit_pages + 1):  #page one is searched twice
@@ -238,7 +244,7 @@ for current_tag in range(0, num_queries):
                                     per_page="250", 
                                     page=str(pagenum),
                                     sort="interestingness-desc",
-                                    has_geo = "1", #bbox="-180, -90, 180, 90",
+                                    has_geo = "0", #bbox="-180, -90, 180, 90",
                                     text=query_string,
                                     accuracy="6", #6 is region level.  most things seem 10 or better.
                                     extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
@@ -283,8 +289,8 @@ for current_tag in range(0, num_queries):
                                 mycurl.perform()
                                 mycurl.close()
                                 myfile.close()
-                                out_file.write('URL: '+myurl)
-                                out_file.write('File: '+ fname)
+                                out_file.write('URL: '+myurl+'\n')
+                                out_file.write('File: '+ fname+'\n')
                                 out_file.write('photo: ' + b['id'] + ' ' + b['secret'] + ' ' + b['server'] + '\n')
                                 out_file.write('owner: ' + b['owner'] + '\n') 
                                 out_file.write('title: ' + b['title'].encode("ascii","replace") + '\n')
