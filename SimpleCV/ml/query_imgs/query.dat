@@ -11,7 +11,6 @@
 
 #metro areas, by population, top 100, decreasing
 cat
-lolcat
 cheeseburger
 
 #negative queries.  should these be restricted to tags only?

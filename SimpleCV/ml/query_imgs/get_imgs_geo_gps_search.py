@@ -139,7 +139,7 @@ def DoSearch(fapi,query_string,desired_photos):
 flickrAPIKey = "fa33550d413b36b3fddc473a931a3b3b"  # API key
 flickrSecret = "7fd481bff0916055"                  # shared "secret"
 rootpath = "../data/" #where do you want the data
-desired_photos = 25 #how many photos do you want to try and get
+desired_photos = 1000 #how many photos do you want to try and get
 query_file_name = 'query.dat' #The file to get the queries from
 
 
@@ -238,6 +238,7 @@ for current_tag in range(0, num_queries):
             
             print '  page number ' + str(pagenum)
             try:
+                # WARNING THIS QUERY HAS TO MATCH THE SEARCH QUERY!!!!
                 rsp = fapi.photos_search(api_key=flickrAPIKey,
                                     ispublic="1",
                                     media="photos",
