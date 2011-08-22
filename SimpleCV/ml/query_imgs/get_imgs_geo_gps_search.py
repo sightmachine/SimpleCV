@@ -26,63 +26,7 @@ socket.setdefaulttimeout(30)  #30 second time out on sockets before they throw
 #the time out needs to be pretty long, it seems, because the flickr servers can be slow
 #to respond to our big searches.
 
-print sys.argv 
-if len(sys.argv) > 1:
-    print "Reading queries from file " + sys.argv[1]
-    query_file_name = sys.argv[1] #0 is the command name.
-else:
-    print "No command line arguments, reading queries from " + 'query.dat'
-    query_file_name = 'query.dat'
-    #query_file_name = 'place_rec_queries_fall08.txt'
-
-###########################################################################
-# Modify this section to reflect your data and specific search 
-###########################################################################
-# flickr auth information:
-# change these to your flickr api keys and secret
-flickrAPIKey = "fa33550d413b36b3fddc473a931a3b3b"  # API key
-flickrSecret = "7fd481bff0916055"                  # shared "secret"
-
-query_file = open(query_file_name, 'r')
-
-#aggregate all of the positive and negative queries together.
-pos_queries = []  #an empty list
-neg_queries = ''  #a string
-num_queries = 0
-
-for line in query_file:
-    if line[0] != '#' and len(line) > 1:  #line end character is 2 long?
-      print line[0:len(line)-1]
-      if line[0] != '-':
-        pos_queries = pos_queries + [line[0:len(line)-1]]
-        num_queries = num_queries + 1
-      if line[0] == '-':
-        neg_queries = neg_queries + ' ' + line[0:len(line)-1]
-        
-query_file.close()
-print 'positive queries:  '
-print pos_queries
-print 'negative queries:  ' + neg_queries
-print 'num_queries = ' + str(num_queries)
-
-# make a new FlickrAPI instance
-fapi = FlickrAPI(flickrAPIKey, flickrSecret)
-
-for current_tag in range(0, num_queries):
-  
-    print('TOP OF LOOP')
-    # change this to the location where you want to put your output file
-    out_file = open('./' + pos_queries[current_tag] + '.txt','w')
-    ###########################################################################
-    
-    #form the query string.
-    query_string = pos_queries[current_tag] + ' ' + neg_queries
-    #query_string = "hamster " + neg_queries
-    print '\n\nquery_string is ' + query_string
-    
-    total_images_queried = 0;
-
-
+def DoSearch(fapi,query_string,desired_photos):
     # number of seconds to skip per query  
     #timeskip = 62899200 #two years
     #timeskip = 604800  #one week
@@ -99,8 +43,7 @@ for current_tag in range(0, num_queries):
     maxtime = mintime+timeskip
     endtime = 1192165200  #10/12/2007, at the end of im2gps queries
 
-    #this is the desired number of photos in each block
-    desired_photos = 25
+
 
     print datetime.fromtimestamp(mintime)
     print datetime.fromtimestamp(endtime)
@@ -173,128 +116,199 @@ for current_tag in range(0, num_queries):
                 print ('Exception encountered while querying for images\n')
 
         #end of while binary search    
-        print 'finished binary search'    
-        s = '\nmintime: ' + str(mintime) + ' maxtime: ' + str(maxtime)
-        print s
-        out_file.write(s + '\n') 
-        i = getattr(rsp,'photos',None)
-        if i:
-                
-            s = 'numimgs: ' + total_images
-            print s
-            out_file.write(s + '\n')
-            
-            current_image_num = 1;
-            
-            num = int(rsp.photos[0]['pages'])
-            s =  'total pages: ' + str(num)
-            print s
-            out_file.write(s + '\n')
-            
-            #only visit 16 pages max, to try and avoid the dreaded duplicate bug
-            #16 pages = 4000 images, should be duplicate safe.  Most interesting pictures will be taken.
-            
-            num_visit_pages = min(16,num)
-            
-            s = 'visiting only ' + str(num_visit_pages) + ' pages ( up to ' + str(num_visit_pages * 250) + ' images)'
-            print s
-            out_file.write(s + '\n')
-            
-            total_images_queried = total_images_queried + min((num_visit_pages * 250), int(total_images))
+        print 'finished binary search'
+        return([mintime,maxtime,total_images,rsp])
 
-            #print 'stopping before page ' + str(int(math.ceil(num/3) + 1)) + '\n'
+
+
+
+
+
+
+
+
+
+print sys.argv 
+if len(sys.argv) > 1:
+    print "Reading queries from file " + sys.argv[1]
+    query_file_name = sys.argv[1] #0 is the command name.
+else:
+    print "No command line arguments, reading queries from " + 'query.dat'
+    query_file_name = 'query.dat'
+    #query_file_name = 'place_rec_queries_fall08.txt'
+
+###########################################################################
+# Modify this section to reflect your data and specific search 
+###########################################################################
+# flickr auth information:
+# change these to your flickr api keys and secret
+flickrAPIKey = "fa33550d413b36b3fddc473a931a3b3b"  # API key
+flickrSecret = "7fd481bff0916055"                  # shared "secret"
+
+query_file = open(query_file_name, 'r')
+
+#aggregate all of the positive and negative queries together.
+pos_queries = []  #an empty list
+neg_queries = ''  #a string
+num_queries = 0
+
+for line in query_file:
+    if line[0] != '#' and len(line) > 1:  #line end character is 2 long?
+      print line[0:len(line)-1]
+      if line[0] != '-':
+        pos_queries = pos_queries + [line[0:len(line)-1]]
+        num_queries = num_queries + 1
+      if line[0] == '-':
+        neg_queries = neg_queries + ' ' + line[0:len(line)-1]
         
-            pagenum = 1;
-            outpath = './'+pos_queries[current_tag]+'/'
-            try:
-                os.mkdir(outpath)
-            except OSError:
-                shutil.rmtree(outpath,True)
-                os.mkdir(outpath)
-           
-            counter = -1
-            while( pagenum <= num_visit_pages ):
-            #for pagenum in range(1, num_visit_pages + 1):  #page one is searched twice
-                
-                print '  page number ' + str(pagenum)
-                try:
-                    rsp = fapi.photos_search(api_key=flickrAPIKey,
-                                        ispublic="1",
-                                        media="photos",
-                                        per_page="250", 
-                                        page=str(pagenum),
-                                        sort="interestingness-desc",
-                                        has_geo = "1", #bbox="-180, -90, 180, 90",
-                                        text=query_string,
-                                        accuracy="6", #6 is region level.  most things seem 10 or better.
-                                        extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
-                                        min_upload_date=str(mintime),
-                                        max_upload_date=str(maxtime))
-                                        ##min_taken_date=str(datetime.fromtimestamp(mintime)),
-                                        ##max_taken_date=str(datetime.fromtimestamp(maxtime)))
-                    time.sleep(1)
-                    fapi.testFailure(rsp)
-                except KeyboardInterrupt:
-                    print('Keyboard exception while querying for images, exiting\n')
-                    raise
-                except:
-                    print sys.exc_info()[0]
-                    #print type(inst)     # the exception instance
-                    #print inst.args      # arguments stored in .args
-                    #print inst           # __str__ allows args to printed directly
-                    print ('Exception encountered while querying for images\n')
-                else:
+query_file.close()
+print 'positive queries:  '
+print pos_queries
+print 'negative queries:  ' + neg_queries
+print 'num_queries = ' + str(num_queries)
+#this is the desired number of photos in each block
+desired_photos = 25
+    
+# make a new FlickrAPI instance
+fapi = FlickrAPI(flickrAPIKey, flickrSecret)
 
-                    # and print them
-                    k = getattr(rsp,'photos',None)
-                    if k:
-                        m = getattr(rsp.photos[0],'photo',None)
-                        if m:
-                            for b in rsp.photos[0].photo:
-                                if b!=None:
-                                    counter = counter + 1
-             ##print(http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg)
-                                    
-                                    myurl = 'http://farm'+b['farm']+".static.flickr.com/"+b['server']+"/"+b['id']+"_"+b['secret']+'.jpg'
-                                    fname = outpath+pos_queries[current_tag]+str(counter)+'.jpg' #b['id']+"_"+b['secret']+'.jpg'
-                                    print(myurl)
-                                    print(fname)
-                                    mycurl = pycurl.Curl()
-                                    mycurl.setopt(pycurl.URL, str(myurl))
-                                    myfile = open(fname,"wb")
-                                    mycurl.setopt(pycurl.WRITEDATA, myfile)
-                                    mycurl.setopt(pycurl.FOLLOWLOCATION, 1)
-                                    mycurl.setopt(pycurl.MAXREDIRS, 5)
-                                    mycurl.setopt(pycurl.NOSIGNAL, 1)
-                                    mycurl.perform()
-                                    mycurl.close()
-                                    myfile.close()
-                                    out_file.write('URL: '+myurl)
-                                    out_file.write('File: '+ fname)
-                                    out_file.write('photo: ' + b['id'] + ' ' + b['secret'] + ' ' + b['server'] + '\n')
-                                    out_file.write('owner: ' + b['owner'] + '\n') 
-                                    out_file.write('title: ' + b['title'].encode("ascii","replace") + '\n')
-                                    
-                                    out_file.write('originalsecret: ' + b['originalsecret'] + '\n')
-                                    out_file.write('originalformat: ' + b['originalformat'] + '\n')
-                                    out_file.write('o_height: ' + b['o_height'] + '\n')
-                                    out_file.write('o_width: ' + b['o_width'] + '\n')
-                                    out_file.write('datetaken: ' + b['datetaken'].encode("ascii","replace") + '\n')
-                                    out_file.write('dateupload: ' + b['dateupload'].encode("ascii","replace") + '\n')
-                                    
-                                    out_file.write('tags: ' + b['tags'].encode("ascii","replace") + '\n')
-                                    
-                                    out_file.write('license: ' + b['license'].encode("ascii","replace") + '\n')
-                                    out_file.write('latitude: '  + b['latitude'].encode("ascii","replace") + '\n')
-                                    out_file.write('longitude: ' + b['longitude'].encode("ascii","replace") + '\n')
-                                    out_file.write('accuracy: '  + b['accuracy'].encode("ascii","replace") + '\n')
-                                    
-                                    out_file.write('views: ' + b['views'] + '\n')
-                                    out_file.write('interestingness: ' + str(current_image_num) + ' out of ' + str(total_images) + '\n');
-                                    out_file.write('\n')
-                                    current_image_num = current_image_num + 1;
-                    pagenum = pagenum + 1;  #this is in the else exception block.  Itwon't increment for a failure.
-                print('')
+for current_tag in range(0, num_queries):
+  
+    print('TOP OF LOOP')
+    # change this to the location where you want to put your output file
+    out_file = open('./' + pos_queries[current_tag] + '.txt','w')
+    ###########################################################################
+    
+    #form the query string.
+    query_string = pos_queries[current_tag] + ' ' + neg_queries
+    #query_string = "hamster " + neg_queries
+    print '\n\nquery_string is ' + query_string
+    
+    total_images_queried = 0;
+    [mintime,maxtime,total_images,rsp] = DoSearch(fapi,query_string,desired_photos)
+
+  
+    s = '\nmintime: ' + str(mintime) + ' maxtime: ' + str(maxtime)
+    print s
+    out_file.write(s + '\n') 
+    i = getattr(rsp,'photos',None)
+    if i:
+            
+        s = 'numimgs: ' + total_images
+        print s
+        out_file.write(s + '\n')
+        
+        current_image_num = 1;
+        
+        num = int(rsp.photos[0]['pages'])
+        s =  'total pages: ' + str(num)
+        print s
+        out_file.write(s + '\n')
+        
+        #only visit 16 pages max, to try and avoid the dreaded duplicate bug
+        #16 pages = 4000 images, should be duplicate safe.  Most interesting pictures will be taken.
+        
+        num_visit_pages = min(16,num)
+        
+        s = 'visiting only ' + str(num_visit_pages) + ' pages ( up to ' + str(num_visit_pages * 250) + ' images)'
+        print s
+        out_file.write(s + '\n')
+        
+        total_images_queried = total_images_queried + min((num_visit_pages * 250), int(total_images))
+
+        #print 'stopping before page ' + str(int(math.ceil(num/3) + 1)) + '\n'
+    
+        pagenum = 1;
+        outpath = './'+pos_queries[current_tag]+'/'
+        try:
+            os.mkdir(outpath)
+        except OSError:
+            shutil.rmtree(outpath,True)
+            os.mkdir(outpath)
+       
+        counter = -1
+        while( pagenum <= num_visit_pages ):
+        #for pagenum in range(1, num_visit_pages + 1):  #page one is searched twice
+            
+            print '  page number ' + str(pagenum)
+            try:
+                rsp = fapi.photos_search(api_key=flickrAPIKey,
+                                    ispublic="1",
+                                    media="photos",
+                                    per_page="250", 
+                                    page=str(pagenum),
+                                    sort="interestingness-desc",
+                                    has_geo = "1", #bbox="-180, -90, 180, 90",
+                                    text=query_string,
+                                    accuracy="6", #6 is region level.  most things seem 10 or better.
+                                    extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
+                                    min_upload_date=str(mintime),
+                                    max_upload_date=str(maxtime))
+                                    ##min_taken_date=str(datetime.fromtimestamp(mintime)),
+                                    ##max_taken_date=str(datetime.fromtimestamp(maxtime)))
+                time.sleep(1)
+                fapi.testFailure(rsp)
+            except KeyboardInterrupt:
+                print('Keyboard exception while querying for images, exiting\n')
+                raise
+            except:
+                print sys.exc_info()[0]
+                #print type(inst)     # the exception instance
+                #print inst.args      # arguments stored in .args
+                #print inst           # __str__ allows args to printed directly
+                print ('Exception encountered while querying for images\n')
+            else:
+
+                # and print them
+                k = getattr(rsp,'photos',None)
+                if k:
+                    m = getattr(rsp.photos[0],'photo',None)
+                    if m:
+                        for b in rsp.photos[0].photo:
+                            if b!=None:
+                                counter = counter + 1
+         ##print(http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg)
+                                
+                                myurl = 'http://farm'+b['farm']+".static.flickr.com/"+b['server']+"/"+b['id']+"_"+b['secret']+'.jpg'
+                                fname = outpath+pos_queries[current_tag]+str(counter)+'.jpg' #b['id']+"_"+b['secret']+'.jpg'
+                                print(myurl)
+                                print(fname)
+                                mycurl = pycurl.Curl()
+                                mycurl.setopt(pycurl.URL, str(myurl))
+                                myfile = open(fname,"wb")
+                                mycurl.setopt(pycurl.WRITEDATA, myfile)
+                                mycurl.setopt(pycurl.FOLLOWLOCATION, 1)
+                                mycurl.setopt(pycurl.MAXREDIRS, 5)
+                                mycurl.setopt(pycurl.NOSIGNAL, 1)
+                                mycurl.perform()
+                                mycurl.close()
+                                myfile.close()
+                                out_file.write('URL: '+myurl)
+                                out_file.write('File: '+ fname)
+                                out_file.write('photo: ' + b['id'] + ' ' + b['secret'] + ' ' + b['server'] + '\n')
+                                out_file.write('owner: ' + b['owner'] + '\n') 
+                                out_file.write('title: ' + b['title'].encode("ascii","replace") + '\n')
+                                
+                                out_file.write('originalsecret: ' + b['originalsecret'] + '\n')
+                                out_file.write('originalformat: ' + b['originalformat'] + '\n')
+                                out_file.write('o_height: ' + b['o_height'] + '\n')
+                                out_file.write('o_width: ' + b['o_width'] + '\n')
+                                out_file.write('datetaken: ' + b['datetaken'].encode("ascii","replace") + '\n')
+                                out_file.write('dateupload: ' + b['dateupload'].encode("ascii","replace") + '\n')
+                                
+                                out_file.write('tags: ' + b['tags'].encode("ascii","replace") + '\n')
+                                
+                                out_file.write('license: ' + b['license'].encode("ascii","replace") + '\n')
+                                out_file.write('latitude: '  + b['latitude'].encode("ascii","replace") + '\n')
+                                out_file.write('longitude: ' + b['longitude'].encode("ascii","replace") + '\n')
+                                out_file.write('accuracy: '  + b['accuracy'].encode("ascii","replace") + '\n')
+                                
+                                out_file.write('views: ' + b['views'] + '\n')
+                                out_file.write('interestingness: ' + str(current_image_num) + ' out of ' + str(total_images) + '\n');
+                                out_file.write('\n')
+                                current_image_num = current_image_num + 1;
+                pagenum = pagenum + 1;  #this is in the else exception block.  Itwon't increment for a failure.
+            print('')
 
             #this block is indented such that it will only run if there are no exceptions
             #in the original query.  That means if there are exceptions, mintime won't be incremented
