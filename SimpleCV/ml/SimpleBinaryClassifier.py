@@ -5,7 +5,7 @@ from SimpleCV.FeatureExtractorBase import *
 import orange
 import os
 import glob
-
+import time
 """
 This is more or less a hack space right now so I can do a proof of concept
 on some of the ML stuff
@@ -38,6 +38,10 @@ class SimpleBinaryClassifier:
             self.mDataSetRaw.append(featureVector)
             #print(featureVector)
             if(disp is not None):
+                layer = DrawingLayer((img.width,img.height))
+                layer.text(self.mClassAName,(20,20), color = Color.RED)
+                img.addDrawingLayer(layer)
+                img.applyLayers()
                 img.save(disp)
             del img
             count = count + 1
@@ -52,6 +56,10 @@ class SimpleBinaryClassifier:
             self.mDataSetRaw.append(featureVector)
             #print(featureVector)
             if(disp is not None):
+                layer = DrawingLayer((img.width,img.height))
+                layer.text(self.mClassBName,(20,20), color = Color.RED)
+                img.addDrawingLayer(layer)
+                img.applyLayers()
                 img.save(disp)
             del img
             count = count + 1
@@ -84,8 +92,10 @@ class SimpleBinaryClassifier:
         
     def test(self,pathA,pathB,disp=None):
         count = 0
+        correct = 0
+        incorrect = 0
         names = []
-        tempRawDataSet = []
+        #tempRawDataSet = []
         for infile in glob.glob( os.path.join(pathA, '*.jpg') ):
             print "Class A opening file: " + infile
             img = Image(infile)
@@ -94,11 +104,24 @@ class SimpleBinaryClassifier:
             for extractor in self.mFeatureExtractors:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassAName])
-            tempRawDataSet.append(featureVector)
-            #print(featureVector)
-            del img
+            test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
+            c = self.mClassifier(test[0])
+            testClass = test[0].getclass()
+            text =  "original " + str(testClass) + " classified as " + str(c)
+            print(text)
+            if(disp is not None):
+                layer = DrawingLayer((img.width,img.height))
+                layer.text(text,(20,20), color = Color.RED)
+                img.addDrawingLayer(layer)
+                img.applyLayers()
+                img.save(disp)
+            if(testClass==c):
+                correct = correct + 1
+            else:
+                incorrect = incorrect + 1
             count = count + 1
-            
+            #time.sleep(1)
+         
         for infile in glob.glob( os.path.join(pathB, '*.jpg') ):
             print "Class B opening file: " + infile
             img = Image(infile)
@@ -107,37 +130,24 @@ class SimpleBinaryClassifier:
             for extractor in self.mFeatureExtractors:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassBName])
-            tempRawDataSet.append(featureVector)
-            #print(featureVector)
-            del img
-            count = count + 1
-        
-        colNames = []
-        for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.getFieldNames())
-        
-        self.mClassVals = [self.mClassAName,self.mClassBName]
-        #self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
-        tempDataSetOrange = orange.ExampleTable(self.mOrangeDomain,tempRawDataSet)
-
-        #self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
-        correct = 0
-        incorrect = 0
-        for i in range(count):
-            c = self.mClassifier(tempDataSetOrange[i])
-            test = tempDataSetOrange[i].getclass()
-            text =  "original " + str(test) + " classified as " + str(c)
+            test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
+            c = self.mClassifier(test[0])
+            testClass = test[0].getclass()
+            text =  "original " + str(testClass) + " classified as " + str(c)
             print(text)
-            if(test==c):
+            if(disp is not None):
+                layer = DrawingLayer((img.width,img.height))
+                layer.text(text,(20,20), color = Color.RED)
+                img.addDrawingLayer(layer)
+                img.applyLayers()
+                img.save(disp)
+            if(testClass==c):
                 correct = correct + 1
             else:
                 incorrect = incorrect + 1
-            if(disp is not None):
-                img = Image(names[i])
-                layer = DrawingLayer((img.width,img.height))
-                layer.text(text,(img.width/2,img.height), color = Color.RED)
-                img.addDrawingLayer(layer)
-                img.save(disp)
+            count = count + 1
+            #time.sleep(1)
+            
 
         print(correct)
         print(incorrect)

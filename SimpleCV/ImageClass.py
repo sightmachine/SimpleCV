@@ -1964,5 +1964,117 @@ class Image:
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+            
+    def adaptiveScale(self, resolution,fit=True):
+        
+        wndwAR = float(resolution[0])/float(resolution[1])
+        imgAR = float(self.width)/float(self.height)
+        img = self
+        targetx = 0
+        targety = 0
+        targetw = resolution[0]
+        targeth = resolution[1]
+        if( self.size() == resolution): # we have to resize
+            retVal = self
+        elif( imgAR == wndwAR ):
+            retVal = img.scale(resolution[0],resolution[1])
+        elif(fit):
+            #scale factors
+            retVal = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(retVal)
+            wscale = (float(self.width)/float(resolution[0]))
+            hscale = (float(self.height)/float(resolution[1]))
+            if(wscale>1): #we're shrinking what is the percent reduction
+                wscale=1-(1.0/wscale)
+            else: # we need to grow the image by a percentage
+                wscale = 1.0-wscale
+            if(hscale>1):
+                hscale=1-(1.0/hscale)
+            else:
+                hscale=1.0-hscale
+            if( wscale == 0 ): #if we can get away with not scaling do that
+                targetx = 0
+                targety = (self.resolution[1]-self.height)/2
+            elif( hscale == 0 ): #if we can get away with not scaling do that
+                targetx = (self.resolution[0]-img.width)/2
+                targety = 0
+            elif(wscale < hscale): # the width has less distortion
+                sfactor = float(resolution[0])/float(self.width)
+                targetw = int(float(self.width)*sfactor)
+                targeth = int(float(self.height)*sfactor)
+                if( targetw > resolution[0] or targeth > resolution[1]):
+                    #aw shucks that still didn't work do the other way instead
+                    sfactor = float(resolution[1])/float(self.height)
+                    targetw = int(float(self.width)*sfactor)
+                    targeth = int(float(self.height)*sfactor)
+                    targetx = (resolution[0]-targetw)/2
+                    targety = 0
+                else:
+                    targetx = 0
+                    targety = (resolution[1]-targeth)/2
+                img = img.scale(targetw,targeth)
+            else: #the height has more distortion
+                sfactor = float(resolution[1])/float(self.height)
+                targetw = int(float(self.width)*sfactor)
+                targeth = int(float(self.height)*sfactor)
+                if( targetw > resolution[0] or targeth > resolution[1]):
+                    #aw shucks that still didn't work do the other way instead
+                    sfactor = float(resolution[0])/float(self.width)
+                    targetw = int(float(self.width)*sfactor)
+                    targeth = int(float(self.height)*sfactor)
+                    targetx = 0
+                    targety = (resolution[1]-targeth)/2
+                else:
+                    targetx = (resolution[0]-targetw)/2
+                    targety = 0
+                img = img.scale(targetw,targeth)
+            print(targetw)
+            print(targeth)
+            print(targetx)
+            print(targety)
+            cv.SetImageROI(retVal,(targetx,targety,targetw,targeth))
+            cv.Copy(img.getBitmap(),retVal)
+            cv.ResetImageROI(retVal)
+            retVal = Image(retVal)
+        else: # we're going to crop instead
+            retVal = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 3) 
+            cv.Zero(retVal)
+            if(self.width <= resolution[0] and self.height <= resolution[1] ): # center a too small image 
+                #we're too small just center the thing
+                targetx = (resolution[0]/2)-(self.width/2)
+                targety = (resolution[1]/2)-(self.height/2)
+            elif(self.width > resolution[0] and self.height > resolution[1]): #crop too big on both axes
+                targetw = resolution[0]
+                targeth = resolution[1]
+                targetx = 0
+                targety = 0
+                x = (self.width-resolution[0])/2
+                y = (self.height-resolution[1])/2
+                img = img.crop(x,y,targetw,targeth)
+            elif( self.width < resolution[0] and self.height >= resolution[1]): #height too big
+                #crop along the y dimension and center along the x dimension
+                targetw = self.width
+                targeth = resolution[1]
+                targetx = (resolution[0]-self.width)/2
+                targety = 0
+                x = 0
+                y = (self.height-resolution[1])/2
+                img = img.crop(x,y,targetw,targeth)
+            elif( self.width > resolution[0] and self.height <= resolution[1]): #width too big
+                #crop along the y dimension and center along the x dimension
+                targetw = resolution[0]
+                targeth = self.height
+                targetx = 0
+                targety = (resolution[1]-self.height)/2
+                x = (self.width-resolution[0])/2
+                y = 0
+                img = img.crop(x,y,targetw,targeth)
+
+            cv.SetImageROI(retVal,(x,y,targetw,targeth))
+            cv.Copy(img.getBitmap(),retVal)
+            cv.ResetImageROI(retVal)
+            retval = Image(retVal)
+        return(retVal)
+
 
 from SimpleCV.BlobMaker import BlobMaker

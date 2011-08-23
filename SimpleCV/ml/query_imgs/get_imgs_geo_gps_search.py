@@ -193,7 +193,6 @@ for current_tag in range(0, num_queries):
     
     #form the query string.
     query_string = pos_queries[current_tag] + ' ' + neg_queries
-    #query_string = "hamster " + neg_queries
     print '\n\nquery_string is ' + query_string
     
     total_images_queried = 0;
@@ -212,7 +211,7 @@ for current_tag in range(0, num_queries):
         
         current_image_num = 1;
         
-        num = int(rsp.photos[0]['pages'])
+        num = 4 # CHANGE THIS BACK int(rsp.photos[0]['pages'])
         s =  'total pages: ' + str(num)
         print s
         out_file.write(s + '\n')
@@ -237,20 +236,35 @@ for current_tag in range(0, num_queries):
         #for pagenum in range(1, num_visit_pages + 1):  #page one is searched twice
             
             print '  page number ' + str(pagenum)
+            
             try:
+                print("PAGE")
+                print(pagenum)
                 # WARNING THIS QUERY HAS TO MATCH THE SEARCH QUERY!!!!
                 rsp = fapi.photos_search(api_key=flickrAPIKey,
-                                    ispublic="1",
-                                    media="photos",
-                                    per_page="250", 
-                                    page=str(pagenum),
-                                    sort="interestingness-desc",
-                                    has_geo = "0", #bbox="-180, -90, 180, 90",
-                                    text=query_string,
-                                    accuracy="6", #6 is region level.  most things seem 10 or better.
-                                    extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
-                                    min_upload_date=str(mintime),
-                                    max_upload_date=str(maxtime))
+                                        ispublic="1",
+                                        media="photos",
+                                        per_page="250", 
+                                        page=str(pagenum),
+                                        has_geo = "0",
+                                        text=query_string,
+                                        #extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
+                                        #accuracy="6", #6 is region level. 
+                                        min_upload_date=str(1121832000),#mintime),
+                                        max_upload_date=str(1192165200))#maxtime))
+                
+                #rsp = fapi.photos_search(api_key=flickrAPIKey,
+                 #                   ispublic="1",
+                  #                  media="photos",
+                   #                 per_page="250", 
+                    #                page='0', #str(pagenum),
+                     #               sort="interestingness-desc",
+                      #              has_geo = "0", #bbox="-180, -90, 180, 90",
+                       #             text=query_string,
+                        #            #accuracy="6", #6 is region level.  most things seem 10 or better.
+                         #           extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
+                          #          min_upload_date=str(mintime),
+                           #         max_upload_date=str(maxtime))
                                     ##min_taken_date=str(datetime.fromtimestamp(mintime)),
                                     ##max_taken_date=str(datetime.fromtimestamp(maxtime)))
                 time.sleep(1)
@@ -265,16 +279,19 @@ for current_tag in range(0, num_queries):
                 #print inst           # __str__ allows args to printed directly
                 print ('Exception encountered while querying for images\n')
             else:
-
+                print('got a response')
                 # and print them
                 k = getattr(rsp,'photos',None)
                 if k:
+                    print('In K')
                     m = getattr(rsp.photos[0],'photo',None)
                     if m:
+                        print('In    M')
                         for b in rsp.photos[0].photo:
+                            print('In b')
                             if b!=None:
                                 counter = counter + 1
-         ##print(http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg)
+                                ##print(http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg)
                                 
                                 myurl = 'http://farm'+b['farm']+".static.flickr.com/"+b['server']+"/"+b['id']+"_"+b['secret']+'.jpg'
                                 fname = outpath+pos_queries[current_tag]+str(counter)+'.jpg' #b['id']+"_"+b['secret']+'.jpg'
@@ -314,9 +331,9 @@ for current_tag in range(0, num_queries):
                                 out_file.write('interestingness: ' + str(current_image_num) + ' out of ' + str(total_images) + '\n');
                                 out_file.write('\n')
                                 current_image_num = current_image_num + 1;
-                pagenum = pagenum + 1;  #this is in the else exception block.  Itwon't increment for a failure.
+               
             print('')
-
+            pagenum = pagenum + 1;  #this is in the else exception block.  Itwon't increment for a failure.
             #this block is indented such that it will only run if there are no exceptions
             #in the original query.  That means if there are exceptions, mintime won't be incremented
             #and it will try again
