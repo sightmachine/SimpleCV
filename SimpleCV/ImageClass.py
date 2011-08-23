@@ -2028,10 +2028,6 @@ class Image:
                     targetx = (resolution[0]-targetw)/2
                     targety = 0
                 img = img.scale(targetw,targeth)
-            print(targetw)
-            print(targeth)
-            print(targetx)
-            print(targety)
             cv.SetImageROI(retVal,(targetx,targety,targetw,targeth))
             cv.Copy(img.getBitmap(),retVal)
             cv.ResetImageROI(retVal)

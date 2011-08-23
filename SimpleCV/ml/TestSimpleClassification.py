@@ -11,7 +11,7 @@ h = 600
 display = Display(resolution = (w,h))
 hue_extractor = HueHistogramFeatureExtractor()
 edge_extractor = EdgeHistogramFeatureExtractor()
-classifier = SimpleBinaryClassifier('cat','cheeseburger',[hue_extractor,edge_extractor])
+classifier = SimpleBinaryClassifier('cat','cheeseburger',[hue_extractor])#,edge_extractor])
 cat_train_path = "./data/cat/truth/"
 cheeseburger_train_path = "./data/cheeseburger/truth/"
 cat_test_path = "./data/cat/test/"

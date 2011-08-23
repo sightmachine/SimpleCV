@@ -36,13 +36,7 @@ class SimpleBinaryClassifier:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassAName])
             self.mDataSetRaw.append(featureVector)
-            #print(featureVector)
-            if(disp is not None):
-                layer = DrawingLayer((img.width,img.height))
-                layer.text(self.mClassAName,(20,20), color = Color.RED)
-                img.addDrawingLayer(layer)
-                img.applyLayers()
-                img.save(disp)
+            self._WriteText(disp,img,self.mClassAName,Color.WHITE)
             del img
             count = count + 1
             
@@ -54,13 +48,7 @@ class SimpleBinaryClassifier:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassBName])
             self.mDataSetRaw.append(featureVector)
-            #print(featureVector)
-            if(disp is not None):
-                layer = DrawingLayer((img.width,img.height))
-                layer.text(self.mClassBName,(20,20), color = Color.RED)
-                img.addDrawingLayer(layer)
-                img.applyLayers()
-                img.save(disp)
+            self._WriteText(disp,img,self.mClassBName,Color.WHITE)
             del img
             count = count + 1
         
@@ -92,8 +80,10 @@ class SimpleBinaryClassifier:
         
     def test(self,pathA,pathB,disp=None):
         count = 0
+        subcount = 0
         correct = 0
         incorrect = 0
+        confusion = []
         names = []
         #tempRawDataSet = []
         for infile in glob.glob( os.path.join(pathA, '*.jpg') ):
@@ -107,21 +97,21 @@ class SimpleBinaryClassifier:
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
-            text =  "original " + str(testClass) + " classified as " + str(c)
+            text =  "Classified as " + str(c)
             print(text)
-            if(disp is not None):
-                layer = DrawingLayer((img.width,img.height))
-                layer.text(text,(20,20), color = Color.RED)
-                img.addDrawingLayer(layer)
-                img.applyLayers()
-                img.save(disp)
             if(testClass==c):
+                self._WriteText(disp,img,text, Color.GREEN)
                 correct = correct + 1
             else:
+                self._WriteText(disp,img,text, Color.RED)
                 incorrect = incorrect + 1
             count = count + 1
+            subcount = subcount + 1
+        t = 100*(float(incorrect)/float(subcount))
+        confusion.append([t,100.00-t])
             #time.sleep(1)
-         
+
+        subcount = 0
         for infile in glob.glob( os.path.join(pathB, '*.jpg') ):
             print "Class B opening file: " + infile
             img = Image(infile)
@@ -133,19 +123,18 @@ class SimpleBinaryClassifier:
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
-            text =  "original " + str(testClass) + " classified as " + str(c)
+            text =  "Classified as " + str(c)
             print(text)
-            if(disp is not None):
-                layer = DrawingLayer((img.width,img.height))
-                layer.text(text,(20,20), color = Color.RED)
-                img.addDrawingLayer(layer)
-                img.applyLayers()
-                img.save(disp)
             if(testClass==c):
+                self._WriteText(disp,img,text,Color.GREEN)
                 correct = correct + 1
             else:
+                self._WriteText(disp,img,text,Color.RED)
                 incorrect = incorrect + 1
             count = count + 1
+            subcount = subcount + 1
+        t = 100*(float(incorrect)/float(subcount))
+        confusion.append([t,100.00-t])
             #time.sleep(1)
             
 
@@ -153,7 +142,19 @@ class SimpleBinaryClassifier:
         print(incorrect)
         good = 100*(float(correct)/float(count))
         bad = 100*(float(incorrect)/float(count))
+        print(confusion)
         print("Correct: "+str(good))
         print("Incorrect: "+str(bad))
         return
+    
+    def _WriteText(self, disp, img, txt,color):
+        if(disp is not None):
+            txt = ' ' + txt + ' '
+            img = img.adaptiveScale(disp.resolution)
+            layer = DrawingLayer((img.width,img.height))
+            layer.setFontSize(60)
+            layer.ezViewText(txt,(20,20),fgcolor=color)
+            img.addDrawingLayer(layer)
+            img.applyLayers()
+            img.save(disp)
     
