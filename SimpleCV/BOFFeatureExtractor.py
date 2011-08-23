@@ -10,16 +10,26 @@ class BOFFeatureExtractor(object):
     
     mPatchSize = (11,11)
     mNumCodes = 128
+    mPadding = 4
+    mLayout = (16,8)
+    mCodebookImg = None
+    mCodebook = None
     
-    def __init__(self,patchsz=(11,11),numcodes=256):
+    def __init__(self,patchsz=(11,11),numcodes=128,imglayout=(16,8),padding=4):
+        self.mPadding = padding
+        self.mLayout = imglayout
         self.mPatchSize = patchsz
         self.mNumCodes = numcodes
     
-    def generate(self,imgdirs,numcodes=256,sz=(11,11),imgs_per_dir=50):
+    def generate(self,imgdirs,numcodes=128,sz=(11,11),imgs_per_dir=50,img_layout=(16,8),padding=4):
         """
         WARNING: THIS METHOD WILL TAKE FOREVER
         """
-        rawFeatures = np.zeros(sz[0]*sz[1])
+        self.mPadding = padding
+        self.mLayout = img_layout
+        self.mNumCodes = numcodes
+        self.mPatchSize = sz
+        rawFeatures = np.zeros(sz[0]*sz[1])#fakeout numpy so we can use vstack
         for path in imgdirs:
             fcount = 0
             files = glob.glob( os.path.join(path, '*.jpg'))
@@ -33,12 +43,14 @@ class BOFFeatureExtractor(object):
                     rawFeatures = np.vstack((rawFeatures,newFeat))
                     #rawFeatures.extend(newFeat)
                     del img
+        rawFeatures = rawFeatures[1:,:] # pop the fake value we put on the top
         print "=================================="
         print "Got " + str(len(rawFeatures)) + " features "
-        print "Doing K-Means .... this will take a long ass time"
-        centroids = self._makeCodebook(rawFeatures)
-        retVal = self._codebook2Img(centroids,self.mPatchSize,self.mNumCodes,(16,8),4)
-        retVal.save('codebook.png')
+        print "Doing K-Means .... this take a long time"
+        self.mCodebook = self._makeCodebook(rawFeatures)
+        self.mCodebookImg = self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
+        self.mCodebookImg.save('codebook.png')
+        
         
     def _makeCodebook(self,data):
         """
@@ -55,11 +67,24 @@ class BOFFeatureExtractor(object):
         patch_arrangement = how are the patches grided in the image (eg 128 = (8x16) 256=(16x16) )
         spacersz = the number of pixels between patches
         """
+        img = img.toHLS()
+        lmat = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
+        patch = cv.CreateImage(patchsize,cv.IPL_DEPTH_8U,1)
+        cv.Split(img.getBitmap(),None,lmat,None,None)
+        w = patchsize[0]
+        h = patchsize[1]
+        length = w*h
+        retVal = np.zeros(length)
         for widx in range(patch_arrangement[0]):
             for hidx in range(patch_arrangement[1]):
-                x = (widx*patchsz[0])+((widx+1)*spacersz)
-                y = (hidx*patchsz[1])+((hidx+1)*spacersz)
-                temp = Image.crop(x,y,patchsz[0],patchsz[1])
+                x = (widx*patchsize[0])+((widx+1)*spacersz)
+                y = (hidx*patchsize[1])+((hidx+1)*spacersz)
+                cv.SetImageROI(lmat,(x,y,w,h))
+                cv.Copy(lmat,patch)
+                cv.ResetImageROI(lmat)
+                retVal = np.vstack((retVal,np.array(patch[:,:]).reshape(length)))
+        retVal = retVal[1:,:]
+        return retVal                
 
         
         
@@ -106,16 +131,52 @@ class BOFFeatureExtractor(object):
                 
                 retVal = np.vstack((retVal,np.array(patch[:,:]).reshape(length)))
                 #retVal.append()
-        print retVal
-        print retVal.shape
+        retVal = retVal[1:,:] # pop the fake value we put on top of the stack
         return retVal
 
         
     
-    def load(self,imgfile,datafile):
+    def load(self,datafile):
+        myFile = open(datafile, 'r')
+        temp = myFile.readline()
+        print(temp)
+        self.mNumCodes = int(myFile.readline())
+        print(self.mNumCodes)
+        w = int(myFile.readline())
+        h = int(myFile.readline())
+        self.mPatchSize = (w,h)
+        print(self.mPatchSize)
+        self.mPadding = int(myFile.readline())
+        print(self.mPadding)
+        w = int(myFile.readline())
+        h = int(myFile.readline())
+        self.mLayout = (w,h)
+        print(self.mLayout)
+        imgfname = myFile.readline().strip()
+        print(imgfname)
+        self.mCodebookImg = Image(imgfname)        
+        self.mCodebook = self._img2Codebook(self.mCodebookImg,
+                                            self.mPatchSize,
+                                            self.mNumCodes,
+                                            self.mLayout,
+                                            self.mPadding)
+        print(self.mCodebook)        
         return
     
-    def save(self,imgfile,datafile):
+    def save(self,imgfname,datafname):
+        myFile = open(datafname,'w')
+        myFile.write("BOF Codebook Data\n")
+        myFile.write(str(self.mNumCodes)+"\n")
+        myFile.write(str(self.mPatchSize[0])+"\n")
+        myFile.write(str(self.mPatchSize[1])+"\n")
+        myFile.write(str(self.mPadding)+"\n")
+        myFile.write(str(self.mLayout[0])+"\n")
+        myFile.write(str(self.mLayout[1])+"\n")
+        myFile.write(imgfname+"\n")
+        myFile.close()
+        if(self.mCodebookImg is None):
+            self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
+        self.mCodebookImg.save(imgfname)
         return
     
     def extract(self, img):
@@ -124,8 +185,12 @@ class BOFFeatureExtractor(object):
         object of all of the features. These features can be of any interal type
         (string, float, integer) but must contain no sub lists.
         """
-    
-      
+        data = self._getPatches(img)
+        p = spsd.cdist(data,self.mCodebook)
+        codes = np.argmin(p,axis=1)
+        [retVal,foo] = np.histogram(codes,self.mNumCodes,normed=True,range=(0,self.mNumCodes-1))
+        return retVal
+        
     def getFieldNames(self):
         """
         This method gives the names of each field in the feature vector in the
