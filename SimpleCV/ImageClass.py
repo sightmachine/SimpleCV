@@ -14,7 +14,7 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
     
-    
+     
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -2072,5 +2072,27 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
+    def blit(self, img, pos=(0,0)):
+        """
+        Take image and copy it into this image at the specified to image and return
+        the result. If pos+img.sz exceeds the size of this image then img is cropped.
+        Pos is the top left corner of the input image
+        """
+        retVal = self
+        w = img.width
+        h = img.height
+        if(pos[0] >= self.width or pos[1] >= self.height ):
+            warnings.warn("Image.blit: specified position exceeds image dimensions")
+            return None
+        if(img.width+pos[0] > self.width or img.height+pos[1] > self.height):
+            w = self.width-pos[0]
+            h = self.height-pos[1]
+            cv.SetImageROI(img.getBitmap(),(0,0,w,h))
+        
+        cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))
+        cv.Copy(img.getBitmap(),retVal.getBitmap())
+        cv.ResetImageROI(img.getBitmap())
+        cv.ResetImageROI(retVal.getBitmap())
+        return retVal
 
 from SimpleCV.BlobMaker import BlobMaker

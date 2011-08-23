@@ -14,6 +14,7 @@ from SimpleCV.BlobMaker import *
 from SimpleCV.SegmentationBase import *
 from SimpleCV.ColorSegmentation import *
 from SimpleCV.DiffSegmentation import *
+from SimpleCV.BOFFeatureExtractor import *
 from SimpleCV.RunningSegmentation import *
 from SimpleCV.CodebookSegmentation import *
 from SimpleCV.FeatureExtractorBase import *

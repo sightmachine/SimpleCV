@@ -18,7 +18,7 @@ class FeatureExtractorBase(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def extract(self, imag):
+    def extract(self, img):
         """
         Given an image extract the feature vector. The output should be a list
         object of all of the features. These features can be of any interal type
