@@ -59,14 +59,22 @@ class SimpleBinaryClassifier:
         self.mClassVals = [self.mClassAName,self.mClassBName]
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        orange.saveTabDelimited ("image_data.tab", self.mDataSetOrange)
 
-        self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+        #self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+        svmProto = orange.SVMLearner()
+        #svmProto.kernel_type = orange.SVMLearner.Linear
+        #svmProto.svm_type = orange.SVMLearner.Nu_SVC
+        #svmProto.probability = True
+        #svmProto.nu = 0.5
+        self.mClassifier = svmProto(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
+            
             c = self.mClassifier(self.mDataSetOrange[i])
             test = self.mDataSetOrange[i].getclass()
-            print "original", test, "classified as", c
+            print "original", test, "classified as", c 
             if(test==c):
                 correct = correct + 1
             else:

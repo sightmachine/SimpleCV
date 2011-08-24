@@ -10,18 +10,18 @@ class BOFFeatureExtractor(object):
     
     mPatchSize = (11,11)
     mNumCodes = 128
-    mPadding = 4
-    mLayout = (16,8)
+    mPadding = 0
+    mLayout = (8,16)
     mCodebookImg = None
     mCodebook = None
     
-    def __init__(self,patchsz=(11,11),numcodes=128,imglayout=(16,8),padding=4):
+    def __init__(self,patchsz=(11,11),numcodes=128,imglayout=(8,16),padding=0):
         self.mPadding = padding
         self.mLayout = imglayout
         self.mPatchSize = patchsz
         self.mNumCodes = numcodes
     
-    def generate(self,imgdirs,numcodes=128,sz=(11,11),imgs_per_dir=50,img_layout=(16,8),padding=4):
+    def generate(self,imgdirs,numcodes=128,sz=(11,11),imgs_per_dir=50,img_layout=(8,16),padding=0):
         """
         WARNING: THIS METHOD WILL TAKE FOREVER
         """
@@ -35,6 +35,7 @@ class BOFFeatureExtractor(object):
             files = glob.glob( os.path.join(path, '*.jpg'))
             if(len(files) >= imgs_per_dir):
                 for i in range(imgs_per_dir):
+                    print(path+" "+str(i)+" of "+str(imgs_per_dir))
                     infile = files[i]
                     print "Opening file: " + infile
                     img = Image(infile)
@@ -125,8 +126,11 @@ class BOFFeatureExtractor(object):
         retVal = np.zeros(length)
         for widx in range(wsteps):
             for hidx in range(hsteps):
-                cv.SetImageROI(lmat,(widx,hidx,w,h)) 
+                x = (widx*self.mPatchSize[0])
+                y = (hidx*self.mPatchSize[1])
+                cv.SetImageROI(lmat,(x,y,w,h)) 
                 cv.EqualizeHist(lmat,patch)
+                #cv.Copy(lmat,patch)
                 cv.ResetImageROI(lmat)
                 
                 retVal = np.vstack((retVal,np.array(patch[:,:]).reshape(length)))
@@ -191,11 +195,41 @@ class BOFFeatureExtractor(object):
         [retVal,foo] = np.histogram(codes,self.mNumCodes,normed=True,range=(0,self.mNumCodes-1))
         return retVal
         
+    def reconstruct(self,img):
+        retVal = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
+        data = self._getPatches(img)
+        p = spsd.cdist(data,self.mCodebook)
+        foo = p.shape[0]
+        codes = np.argmin(p,axis=1)   
+        count = 0
+        wsteps = img.width/self.mPatchSize[0]
+        hsteps = img.height/self.mPatchSize[1]
+        w=self.mPatchSize[0]
+        h=self.mPatchSize[1]
+        length = w*h
+        retVal = Image(retVal)
+        for widx in range(wsteps):
+            for hidx in range(hsteps):
+                x = (widx*self.mPatchSize[0])
+                y = (hidx*self.mPatchSize[1])
+                p = codes[count]
+                temp = Image(self.mCodebook[p,:].reshape(self.mPatchSize[0],self.mPatchSize[1]))    
+                retVal.blit(temp,pos=(x,y))
+                count = count + 1
+        return retVal#Image(retVal)
+        
     def getFieldNames(self):
         """
         This method gives the names of each field in the feature vector in the
         order in which they are returned. For example, 'xpos' or 'width'
         """
+        retVal = []
+        for widx in range(self.mLayout[0]):
+            for hidx in range(self.mLayout[1]):
+                temp = "CB_R"+str(widx)+"_C"+str(hidx)
+                retVal.append(temp)
+        return retVal
+
     
     def getFieldTypes(self):
         """
