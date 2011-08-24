@@ -114,8 +114,10 @@
                 
                 function my_completion_handler(msg) {
                     // extract URL out of PHP output
-                    if (msg.match(/(http\:\/\/\S+)/)) {
-                        var image_url = RegExp.$1;
+                    console.log(location.href)
+                    console.log(msg)
+                    if (true) {
+                        var image_url = location.href + msg
                         // show JPEG image in page
                         document.getElementById('upload_results').innerHTML = 
                             '<h1>Uploaded Image</h1>' + 
