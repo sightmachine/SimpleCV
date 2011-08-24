@@ -21,14 +21,21 @@ class SimpleBinaryClassifier:
     mOrangeDomain = None
     mClassVals = None
     
-    def __init__(self,classAName,classBName,featureExtractors,disp=None):
+    def __init__(self,classAName,classBName,featureExtractors):
         self.mClassAName = classAName
         self.mClassBName = classBName
         self.mFeatureExtractors =  featureExtractors
         
-    def train(self,pathA,pathB,disp=None):
+    def train(self,pathA,pathB,disp=None,subset=-1):
         count = 0
-        for infile in glob.glob( os.path.join(pathA, '*.jpg') ):
+        files = glob.glob( os.path.join(pathA, '*.jpg'))
+        if(subset > 0):
+            nfiles = min(subset,len(files))
+        else:
+            nfiles = len(files)
+            
+        for i in range(nfiles):
+            infile = files[i]
             print "Class A opening file: " + infile
             img = Image(infile)
             featureVector = []
@@ -40,8 +47,14 @@ class SimpleBinaryClassifier:
             del img
             count = count + 1
             
-        for infile in glob.glob( os.path.join(pathB, '*.jpg') ):
-            print "Class B opening file: " + infile
+        files = glob.glob( os.path.join(pathB, '*.jpg'))
+        if(subset > 0):
+            nfiles = min(subset,len(files))
+        else:
+            nfiles = len(files)
+            
+        for i in range(nfiles):
+            infile = files[i]
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -61,13 +74,13 @@ class SimpleBinaryClassifier:
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
         orange.saveTabDelimited ("image_data.tab", self.mDataSetOrange)
 
-        #self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
-        svmProto = orange.SVMLearner()
+        self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+        #svmProto = orange.SVMLearner()
         #svmProto.kernel_type = orange.SVMLearner.Linear
         #svmProto.svm_type = orange.SVMLearner.Nu_SVC
         #svmProto.probability = True
         #svmProto.nu = 0.5
-        self.mClassifier = svmProto(self.mDataSetOrange)
+        #self.mClassifier = svmProto(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
@@ -86,15 +99,22 @@ class SimpleBinaryClassifier:
         print("Correct: "+str(good))
         print("Incorrect: "+str(bad))
         
-    def test(self,pathA,pathB,disp=None):
+    def test(self,pathA,pathB,disp=None,subset=-1):
         count = 0
+        totalC = 0
         subcount = 0
         correct = 0
         incorrect = 0
         confusion = []
         names = []
-        #tempRawDataSet = []
-        for infile in glob.glob( os.path.join(pathA, '*.jpg') ):
+        files = glob.glob( os.path.join(pathA, '*.jpg'))
+        if(subset > 0):
+            nfiles = min(subset,len(files))
+        else:
+            nfiles = len(files)
+            
+        for i in range(nfiles):
+            infile = files[i]
             print "Class A opening file: " + infile
             img = Image(infile)
             names.append(infile)
@@ -105,12 +125,13 @@ class SimpleBinaryClassifier:
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
-            text =  "Classified as " + str(c)
-            print(text)
             if(testClass==c):
+                text =  "Classified as " + str(c)
                 self._WriteText(disp,img,text, Color.GREEN)
                 correct = correct + 1
+                totalC = totalC + 1 
             else:
+                text =  "Mislassified as " + str(c)
                 self._WriteText(disp,img,text, Color.RED)
                 incorrect = incorrect + 1
             count = count + 1
@@ -119,8 +140,17 @@ class SimpleBinaryClassifier:
         confusion.append([t,100.00-t])
             #time.sleep(1)
 
+        correct = 0
+        incorrect = 0
         subcount = 0
-        for infile in glob.glob( os.path.join(pathB, '*.jpg') ):
+        files = glob.glob( os.path.join(pathB, '*.jpg'))
+        if(subset > 0):
+            nfiles = min(subset,len(files))
+        else:
+            nfiles = len(files)
+            
+        for i in range(nfiles):
+            infile = files[i]
             print "Class B opening file: " + infile
             img = Image(infile)
             names.append(infile)
@@ -131,12 +161,13 @@ class SimpleBinaryClassifier:
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
-            text =  "Classified as " + str(c)
-            print(text)
             if(testClass==c):
+                text =  "Classified as " + str(c)
                 self._WriteText(disp,img,text,Color.GREEN)
                 correct = correct + 1
+                totalC = totalC + 1
             else:
+                text =  "Misclassified as " + str(c)
                 self._WriteText(disp,img,text,Color.RED)
                 incorrect = incorrect + 1
             count = count + 1
@@ -145,15 +176,10 @@ class SimpleBinaryClassifier:
         confusion.append([t,100.00-t])
             #time.sleep(1)
             
-
-        print(correct)
-        print(incorrect)
-        good = 100*(float(correct)/float(count))
-        bad = 100*(float(incorrect)/float(count))
         print(confusion)
-        print("Correct: "+str(good))
-        print("Incorrect: "+str(bad))
-        return
+        total_correct = 100*float(totalC)/float(count)
+        print("OVERALL ACCURACY: "+str(total_correct))
+
     
     def _WriteText(self, disp, img, txt,color):
         if(disp is not None):
