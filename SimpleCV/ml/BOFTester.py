@@ -1,6 +1,5 @@
 from SimpleCV import *
 from numpy import *
-from SimpleCV.Display import Display, pg
 from SimpleCV.BOFFeatureExtractor import *
 import os
 import glob
@@ -10,7 +9,7 @@ cheeseburger_path = "./data/cheeseburger/truth/"
 paths = [cat_path,cheeseburger_path]
 bof = BOFFeatureExtractor()
 #bof.load('cbdata.txt')
-bof.generate(paths,imgs_per_dir=150,numcodes=128,sz=(11,11),img_layout=(16,8),padding=4 )
+bof.generate(paths,imgs_per_dir=200,numcodes=128,sz=(11,11),img_layout=(16,8),padding=4 )
 bof.save("codebook.png","cbdata.txt")
 #count = 0
 #test = bof.reconstruct(Image("codebook.png"))

@@ -33,17 +33,16 @@ class BOFFeatureExtractor(object):
         for path in imgdirs:
             fcount = 0
             files = glob.glob( os.path.join(path, '*.jpg'))
-            if(len(files) >= imgs_per_dir):
-                for i in range(imgs_per_dir):
-                    print(path+" "+str(i)+" of "+str(imgs_per_dir))
-                    infile = files[i]
-                    print "Opening file: " + infile
-                    img = Image(infile)
-                    newFeat = self._getPatches(img)
-                    print "     Got " + str(len(newFeat)) + " features."
-                    rawFeatures = np.vstack((rawFeatures,newFeat))
-                    #rawFeatures.extend(newFeat)
-                    del img
+            nimgs = min(len(files),imgs_per_dir)
+            for i in range(nimgs):
+                print(path+" "+str(i)+" of "+str(imgs_per_dir))
+                infile = files[i]
+                print "Opening file: " + infile
+                img = Image(infile)
+                newFeat = self._getPatches(img)
+                print "     Got " + str(len(newFeat)) + " features."
+                rawFeatures = np.vstack((rawFeatures,newFeat))
+                del img
         rawFeatures = rawFeatures[1:,:] # pop the fake value we put on the top
         print "=================================="
         print "Got " + str(len(rawFeatures)) + " features "

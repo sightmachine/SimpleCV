@@ -122,6 +122,7 @@ class SimpleBinaryClassifier:
             for extractor in self.mFeatureExtractors:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassAName])
+            self.mDataSetRaw.append(featureVector)
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
@@ -158,6 +159,7 @@ class SimpleBinaryClassifier:
             for extractor in self.mFeatureExtractors:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassBName])
+            self.mDataSetRaw.append(featureVector)
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
@@ -179,6 +181,10 @@ class SimpleBinaryClassifier:
         print(confusion)
         total_correct = 100*float(totalC)/float(count)
         print("OVERALL ACCURACY: "+str(total_correct))
+        self.mClassVals = [self.mClassAName,self.mClassBName]
+        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
+        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        orange.saveTabDelimited ("image_data.tab", self.mDataSetOrange)
 
     
     def _WriteText(self, disp, img, txt,color):
