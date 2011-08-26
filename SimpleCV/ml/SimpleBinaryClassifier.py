@@ -43,7 +43,8 @@ class SimpleBinaryClassifier:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassAName])
             self.mDataSetRaw.append(featureVector)
-            self._WriteText(disp,img,self.mClassAName,Color.WHITE)
+            text = 'Training: ' + self.mClassAName
+            self._WriteText(disp,img,text,Color.WHITE)
             del img
             count = count + 1
             
@@ -55,13 +56,15 @@ class SimpleBinaryClassifier:
             
         for i in range(nfiles):
             infile = files[i]
+            print "Class B opening file: " + infile
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 featureVector.extend(extractor.extract(img))
             featureVector.extend([self.mClassBName])
             self.mDataSetRaw.append(featureVector)
-            self._WriteText(disp,img,self.mClassBName,Color.WHITE)
+            text = 'Training: ' + self.mClassBName
+            self._WriteText(disp,img,text,Color.WHITE)
             del img
             count = count + 1
         
@@ -181,6 +184,9 @@ class SimpleBinaryClassifier:
         print(confusion)
         total_correct = 100*float(totalC)/float(count)
         print("OVERALL ACCURACY: "+str(total_correct))
+        colNames = []
+        for extractor in self.mFeatureExtractors:
+            colNames.extend(extractor.getFieldNames())
         self.mClassVals = [self.mClassAName,self.mClassBName]
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
