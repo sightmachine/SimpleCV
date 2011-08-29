@@ -5,6 +5,7 @@
 
 #load system libraries
 from SimpleCV.base import *
+from SimpleCV.Color import *
 
 
 class FeatureSet(list):
@@ -24,11 +25,13 @@ class FeatureSet(list):
     lines.crop()
     """
   
-    def draw(self, color = (255, 0, 0)):
+    def draw(self, color = (255, 0, 0), autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
         """
         for f in self:
+            if(autocolor):
+                color = Color().getRandom()
             f.draw(color) 
   
     def x(self):
