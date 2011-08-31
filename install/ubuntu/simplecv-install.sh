@@ -17,7 +17,7 @@ sudo apt-get install -y --force-yes git git python-dev python-numpy python-nose 
 
 #Download SimpleCV
 cd ~/Code/
-git clone git://git.code.sf.net/p/simplecv/git.git simplecv
+git clone git://github.com/ingenuitas/SimpleCV.git
 cd ~/Code/simplecv
 #Install SimpleCV
 sudo python setup.py install
