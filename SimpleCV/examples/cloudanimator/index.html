@@ -1,6 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!doctype html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="language" content="en">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Cloud Animation - SimpleCV</title>
+    <link href='http://fonts.googleapis.com/css?family=Cabin:400,700' rel='stylesheet' type='text/css'>
     <style type="text/css">
         body
         {
@@ -12,82 +17,105 @@
             background-repeat: no-repeat;
             height: 100%;
             width: 100%;
+            font-family:"Cabin";
+            text-align: center;
+            margin: 0;
         }
         h1
         {
-            color: #8ECD14;
+            color: rgb(160,160,170);
             font-size: 1em;
-            
+            font-weight: 400;
+            padding: .5em 1em;
+            border-radius: 4px 4px 0 0;
+            box-shadow:  #000 0 1px 3px;
+            background-color: rgb(30,30,40);
+            margin: -1em -1em 1em;
+            text-shadow: #000 0 -1px 0;
+            background-image: -moz-linear-gradient(top,rgb(60,60,70), rgb(30,30,40));
+            background-image: -webkit-linear-gradient(top,rgb(60,60,70), rgb(30,30,40));
+            background-image: linear-gradient(top,rgb(60,60,70), rgb(30,30,40));
         }
-        h3
+        h2
         {
-            font-size: 0.75em;
-            color: #ffffff;
-        }
-        p
+            color: #fff;
+            font-size: .8em;
+            font-weight: 400;
+            margin: 1em 0 1.5em;
+        }        
+        header
         {
-            font-family:"Times New Roman";
-            font-size:20px;
+            font-size: .8em;
+            color: #8ECD14;
+            box-shadow: #000 0 -1px 0, #000 0 1px 3px;
+            clear: both;
+            padding: 1em 1.5em;
+            background-color: rgb(30,30,40);
+            background-image: -moz-linear-gradient(top,rgb(60,60,70), rgb(30,30,40));
+            background-image: -webkit-linear-gradient(top,rgb(60,60,70), rgb(30,30,40));
+            background-image: linear-gradient(top,rgb(60,60,70), rgb(30,30,40));
         }
-        td
-        {
-       
+        section {
+            width: 960px; 
+            margin: 20px auto;
         }
+        footer {
+            border-radius: 4px; 
+            margin: 0 auto;
+            width: 960px;
+            font-size: .8em;
+            color: rgb(40,40,50);
+            clear: both;
+            text-shadow: #000 0 1px 0;
+            padding: 1em 0 3em;
+            box-shadow:  inset rgb(20,20,30) 0 -5px 20px, inset #000 0 1px 1px,inset rgb(10,10,20) 0 3px 5px;
+            background-color: rgb(20,20,30);
+        }
+        p { font-size: 0.85em }
         a,
         a:visited,
-        a:hover
-        {
-            color: #AACCEE;
-        }
-        input
-        {
-            margin: 10px;
-        }
-        table
-        {
-            margin-left: 0 auto;
-            margin-right: 0 auto;
-            width: 950px;
-
-            position: relative;
-        }
-        td
-        {
-           border: 3px solid #AACCEE;
-           width: 400px;
-           text-align: center;
-           border-radius: 10px;
-           margin: 10px;
-        }
+        a:hover { color: #ace }
+        input { margin: 10px }
         .button {
-            background-color: #AACCEE;
-            color: #000000;
-            text-align: center;
-            background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFFFFF), to(#666666), color-stop(1,#333333));
-            background-image: -moz-linear-gradient(19% 75% 90deg,#FFFFFF, #C9C9C9, #C7C7C7 100%);
-            border-radius: 10px;
+            color: #444;
+            font-size: .7em;
+            font-weight: 700;
+            text-shadow: rgba(255,255,255,.7) 0 1px 0;
+            box-shadow: inset rgba(255,255,255,.9) 0 1px 0,  inset rgba(0,0,0,.9) 0 -1px 0;
+            padding: 1em 1.5em;
+            background-color: #ace;
+            background-image: -moz-linear-gradient(top,rgb(230,230,230), rgb(170,170,170));
+            background-image: -webkit-linear-gradient(top,rgb(230,230,230), rgb(170,170,170));
+            background-image: linear-gradient(top,rgb(230,230,230), rgb(170,170,170));
+            border-radius: 4px;
+            border: none;
+        }    
+        .button:hover {
+            opacity: .8;
+            background-image: -moz-linear-gradient(top,rgb(170,170,170), rgb(230,230,230));
+            background-image: -webkit-linear-gradient(top,rgb(170,170,170), rgb(230,230,230));
+            background-image: linear-gradient(top,rgb(170,170,170), rgb(230,230,230));
         }
         img,
-        embed
-        {
-
-            border: 1px solid #AACCEE;
+        embed { 
+            box-shadow: rgb(60,60,70) 1px 1px 0,  rgb(20,20,30) -1px -1px 0;
+            border: 4px solid rgb(30,30,40);
+            border-radius: 2px;
+            margin-bottom: 1em;
         }
-        #left
-        {
-            float: left;
-        }
-        #right
-        {
-            float: right;
-        }
-        #center
-        {
-            text-align: center;
-            margin-left: 0 auto;
-            margin-right: 0 auto;
-            background: #AACCEE;
-            font-size: 16pt;
+        div.left { float: left }
+        div.right { float: right }
+        div.left,
+        div.right { 
+            width: 400px;
+            margin: 1em 0 3em;
+            padding: 1em;
+            border-radius: 4px;
+            box-shadow: rgb(30,30,40) 0 4px 0, #000 0 10px 20px;
+            background-color: rgb(30,30,40);
+            background-image: -moz-linear-gradient(top,rgb(60,60,70), rgb(40,40,50));
+            background-image: -webkit-linear-gradient(top,rgb(60,60,70), rgb(40,40,50));
+            background-image: linear-gradient(top,rgb(60,60,70), rgb(40,40,50));
         }
         #time,
         #console a
@@ -107,13 +135,14 @@
     <meta name="author" content="SimpleCV">
 </head>
 <body>
-    <center>
-    <table>
-        <tr>
-            <td valign=top id="left">
+    <header>
+            Welcome to the animation station - Click "add frame" to begin animation
+    </header>
+    <section>
+        <div class="left">
             <h1>SimpleCV: Cloud Animation Station Demo</h1>
-            <h3>1-click & upload implementation cloud image processing</h3>
-            
+            <h2>1-click & upload implementation cloud image processing</h2>
+        
             <!-- First, include the JPEGCam JavaScript Library -->
             <script type="text/javascript" src="webcam.js"></script>
             <script type="text/javascript" src="jquery.min.js"></script>
@@ -148,25 +177,25 @@
                 webcam.set_quality( 100 ); // JPEG quality (1 - 100)
                 webcam.set_shutter_sound( false );
             </script>
-            
+        
             <!-- Next, write the movie to the page at 320x240 -->
             <script language="JavaScript">
                 document.write( webcam.get_html(320, 240) );
             </script>
-            
+        
             <!-- Some buttons for controlling things -->
             <br/>
             <form>
                 <input class="button" type=button value="Add Frame" onClick="take_snapshot()">
-<!--
+    <!--
                 <input class="button" type=button value="..." onClick="webcam.configure()">
--->
+    -->
             </form>
-            
+        
             <!-- Code to handle the server response (see test.php) -->
             <script language="JavaScript">
                 webcam.set_hook( 'onComplete', 'my_completion_handler' );
-                
+            
                 function take_snapshot() {
                     $('#console').prepend("<span id='time'>" + getTime() + "</span>" + ": Updating Animation...<br>");
                     // take snapshot and upload to server
@@ -200,7 +229,7 @@
                         $('#console').prepend("<span id='time'>" + getTime() + "</span>" + ": Image has been uploaded to: <a href='http://simplecv.org'>Image Hosting Service</a><br>");
                     },'html');
                 }
-                
+            
                 function my_completion_handler(msg) {
                     // extract URL out of PHP output
                     console.log(location.href)
@@ -226,28 +255,22 @@
                     else alert("Image Upload Error: " + msg);
                 }
             </script>
-            </td>
-            <td valign=top id="right">
-                <div id="upload_results">
+            </div>
+            <div class="right">
+                <span id="upload_results">
                     <h1>Animation Image</h1>
-                    <h3>This image processed by <a href="http://www.simplecv.org">SimpleCV</a></h3>
+                    <h2>This image processed by <a href="http://www.simplecv.org">SimpleCV</a></h2>
                     <img width="320" height="240" src="simplecv_logo.png">
                     <form>
                         <input class="button" type=button value="Reset Animation" onClick="reset_image()">
                         <input class="button" type=button value="Upload" onClick="update_image()">
                     </form>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td valign=middle id="center">
-                <div id="console">
-                Welcome to the animation station - Click "add frame" to begin animation
-                </div>
-            </td>
-        </tr>
-    </table>
-    </center>
-</body>
+                </span>
+            </div>
+        </section>
+        <footer>
+            INGENUITAS - SIMPLE CV
+        </footer>
+    </body>
 </html>
 
