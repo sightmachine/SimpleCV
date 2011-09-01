@@ -76,7 +76,7 @@ class BlobMaker:
         
         retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
         del seq
-        return retVal
+        return FeatureSet(retVal)
     
     def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize):
         """

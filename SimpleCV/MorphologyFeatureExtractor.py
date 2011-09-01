@@ -1,6 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.FeatureExtractorBase import *
+from SimpleCV.BlobMaker import * 
 import abc
 
 
@@ -13,16 +14,34 @@ class MorphologyFeatureExtractor(object):
     """
     mNBins = 12
     mBlobMaker = None
-    def __init__(self):
+    mThresholdOpeation = None
+    def __init__(self, thresholdOperation=None):
         self.mNBins = 12
-        self.mBlobMaker = BlobMaker() 
+        self.mBlobMaker = BlobMaker()
+        self.mThresholdOpeation = thresholdOperation
+    
+    def setThresholdOperation(self, threshOp):
+        """
+        The threshold operation is a function of the form
+        binaryimg = threshold(img)
+        
+        the simplest example would be:
+        def binarize_wrap(img):
+            return img.binarize()
+        """
+        self.mThresholdOperation = threshOp
 
-    def extract(self, bwImg, colorImg):
+    def extract(self, img):
         """
         This feature extractor takes in a color image and returns a normalized color
         histogram of the pixel counts of each hue. 
         """
-        fs = self.mBlobMaker.extractFromBinary(bwImg,colorImg)
+        if(self.mThresholdOpeation is not None):
+            bwImg = self.mThresholdOpeation(img)
+        else:
+            bwImg = img.binarize()
+            
+        fs = self.mBlobMaker.extractFromBinary(bwImg,img)
         fs = fs.sortArea()
         retVal = []
         retVal.append(fs[0].mArea/fs[0].mPerimeter)
