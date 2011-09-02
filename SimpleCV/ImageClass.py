@@ -2072,7 +2072,7 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
-    def blit(self, img, pos=(0,0)):
+    def blit(self, img, pos=(0,0),centered=False):
         """
         Take image and copy it into this image at the specified to image and return
         the result. If pos+img.sz exceeds the size of this image then img is cropped.
@@ -2081,6 +2081,9 @@ class Image:
         retVal = self
         w = img.width
         h = img.height
+        if(centered):
+            pos = (pos[0]-(w/2),pos[1]-(h/2))
+            
         if(pos[0] >= self.width or pos[1] >= self.height ):
             warnings.warn("Image.blit: specified position exceeds image dimensions")
             return None
