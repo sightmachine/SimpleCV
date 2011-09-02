@@ -45,64 +45,64 @@ class BinarySVMClassifier:
         self.mFeatureExtractors = extractors
         return None
     
-    def train(self,pathA,pathB,disp=None,subset=-1):
+    def _trainPath(self,path,className,subset,disp):
         count = 0
-        files = glob.glob( os.path.join(pathA, '*.jpg'))
+        files = glob.glob( os.path.join(path, '*.jpg'))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
             nfiles = len(files)
-            
+        badFeat = False   
         for i in range(nfiles):
             infile = files[i]
-            print "Class A opening file: " + infile
+            print "Opening file: " + infile
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
-                featureVector.extend(extractor.extract(img))
-            featureVector.extend([self.mClassAName])
-            self.mDataSetRaw.append(featureVector)
-            text = 'Training: ' + self.mClassAName
-            self._WriteText(disp,img,text,Color.WHITE)
-            del img
-            count = count + 1
+                feats = extractor.extract(img)
+                if( feats is not None ):
+                    featureVector.extend(feats)
+                else:
+                    badFeat = True
+                    
+            if(badFeat):
+                badFeat = False
+                continue
             
-        files = glob.glob( os.path.join(pathB, '*.jpg'))
-        if(subset > 0):
-            nfiles = min(subset,len(files))
-        else:
-            nfiles = len(files)
-            
-        for i in range(nfiles):
-            infile = files[i]
-            print "Class B opening file: " + infile
-            img = Image(infile)
-            featureVector = []
-            for extractor in self.mFeatureExtractors:
-                featureVector.extend(extractor.extract(img))
-            featureVector.extend([self.mClassBName])
+            featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
-            text = 'Training: ' + self.mClassBName
+            text = 'Training: ' + className
             self._WriteText(disp,img,text,Color.WHITE)
-            del img
             count = count + 1
+            del img
+        return count
         
+    def train(self,pathA,pathB,disp=None,subset=-1,savedata=None):
+        count = 0
+        count = self._trainPath(pathA,self.mClassAName,subset,disp)
+        count = count + self._trainPath(pathB,self.mClassBName,subset,disp)
+           
         colNames = []
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
+            
+        if(count <= 0):
+            warnings.warn("No features extracted - bailing")
+            return None
         
         self.mClassVals = [self.mClassAName,self.mClassBName]
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
-        orange.saveTabDelimited ("image_data.tab", self.mDataSetOrange)
+        if(savedata is not None):
+            orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
-        self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
-        #svmProto = orange.SVMLearner()
-        #svmProto.kernel_type = orange.SVMLearner.Linear
-        #svmProto.svm_type = orange.SVMLearner.Nu_SVC
+        #self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+        svmProto = orange.SVMLearner()
+        svmProto.kernel_type = orange.SVMLearner.Linear
+        svmProto.svm_type = orange.SVMLearner.Nu_SVC
         #svmProto.probability = True
-        #svmProto.nu = 0.5
-        #self.mClassifier = svmProto(self.mDataSetOrange)
+        svmProto.nu = 0.5
+        self.mClassifier = svmProto(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
@@ -120,30 +120,33 @@ class BinarySVMClassifier:
         bad = 100*(float(incorrect)/float(count))
         print("Correct: "+str(good))
         print("Incorrect: "+str(bad))
-        
-    def test(self,pathA,pathB,disp=None,subset=-1):
+    
+    def _testPath(self,path,className,subset,disp):
         count = 0
-        totalC = 0
-        subcount = 0
         correct = 0
-        incorrect = 0
-        confusion = []
-        names = []
-        files = glob.glob( os.path.join(pathA, '*.jpg'))
+        badFeat = False
+        files = glob.glob( os.path.join(path, '*.jpg'))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
             nfiles = len(files)
-            
+        
         for i in range(nfiles):
             infile = files[i]
-            print "Class A opening file: " + infile
+            print "Opening file: " + infile
             img = Image(infile)
-            names.append(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
-                featureVector.extend(extractor.extract(img))
-            featureVector.extend([self.mClassAName])
+                feats = extractor.extract(img)
+                if( feats is not None ):
+                    featureVector.extend(feats)
+                else:
+                    badFeat = True
+            if( badFeat ):
+                del img
+                badFeat = False
+                continue 
+            featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
             c = self.mClassifier(test[0])
@@ -152,64 +155,44 @@ class BinarySVMClassifier:
                 text =  "Classified as " + str(c)
                 self._WriteText(disp,img,text, Color.GREEN)
                 correct = correct + 1
-                totalC = totalC + 1 
-            else:
+            else:   
                 text =  "Mislassified as " + str(c)
                 self._WriteText(disp,img,text, Color.RED)
-                incorrect = incorrect + 1
             count = count + 1
-            subcount = subcount + 1
-        t = 100*(float(incorrect)/float(subcount))
-        confusion.append([t,100.00-t])
-            #time.sleep(1)
+            del img
+            
+        return([count,correct])
 
+    def test(self,pathA,pathB,disp=None,subset=-1,savedata=None):
+        count = 0
+        totalC = 0
+        subcount = 0
         correct = 0
         incorrect = 0
-        subcount = 0
-        files = glob.glob( os.path.join(pathB, '*.jpg'))
-        if(subset > 0):
-            nfiles = min(subset,len(files))
-        else:
-            nfiles = len(files)
-            
-        for i in range(nfiles):
-            infile = files[i]
-            print "Class B opening file: " + infile
-            img = Image(infile)
-            names.append(infile)
-            featureVector = []
-            for extractor in self.mFeatureExtractors:
-                featureVector.extend(extractor.extract(img))
-            featureVector.extend([self.mClassBName])
-            self.mDataSetRaw.append(featureVector)
-            test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
-            c = self.mClassifier(test[0])
-            testClass = test[0].getclass()
-            if(testClass==c):
-                text =  "Classified as " + str(c)
-                self._WriteText(disp,img,text,Color.GREEN)
-                correct = correct + 1
-                totalC = totalC + 1
-            else:
-                text =  "Misclassified as " + str(c)
-                self._WriteText(disp,img,text,Color.RED)
-                incorrect = incorrect + 1
-            count = count + 1
-            subcount = subcount + 1
-        t = 100*(float(incorrect)/float(subcount))
+        confusion = []
+        names = []
+        (cnt,crct) = self._testPath(pathA,self.mClassAName,subset,disp)
+        count = count + cnt
+        correct = correct + crct
+        t = 100*(float(cnt-crct)/float(cnt))
         confusion.append([t,100.00-t])
-            #time.sleep(1)
-            
+        (cnt,crct) = self._testPath(pathB,self.mClassBName,subset,disp)
+        count = count + cnt
+        correct = correct + crct
+        t = 100*(float(cnt-crct)/float(cnt))
+        confusion.append([t,100.00-t])
+
         print(confusion)
-        total_correct = 100*float(totalC)/float(count)
+        total_correct = 100*float(correct)/float(count)
         print("OVERALL ACCURACY: "+str(total_correct))
-        colNames = []
-        for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.getFieldNames())
-        self.mClassVals = [self.mClassAName,self.mClassBName]
-        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
-        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
-        orange.saveTabDelimited ("image_data.tab", self.mDataSetOrange)
+        if savedata is not None:
+            colNames = []
+            for extractor in self.mFeatureExtractors:
+                colNames.extend(extractor.getFieldNames())
+            self.mClassVals = [self.mClassAName,self.mClassBName]
+            self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
+            self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+            orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
     
     def _WriteText(self, disp, img, txt,color):

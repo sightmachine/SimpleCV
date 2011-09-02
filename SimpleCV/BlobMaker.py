@@ -70,7 +70,7 @@ class BlobMaker:
         retVal = []
         test = binaryImg.meanColor()
         if( test[0]==0.00 and test[1]==0.00 and test[2]==0.00):
-            return retVal 
+            return FeatureSet(retVal) 
         
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         

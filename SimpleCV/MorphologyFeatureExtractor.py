@@ -36,23 +36,25 @@ class MorphologyFeatureExtractor(object):
         This feature extractor takes in a color image and returns a normalized color
         histogram of the pixel counts of each hue. 
         """
+        retVal = None
         if(self.mThresholdOpeation is not None):
             bwImg = self.mThresholdOpeation(img)
         else:
             bwImg = img.binarize()
             
         fs = self.mBlobMaker.extractFromBinary(bwImg,img)
-        fs = fs.sortArea()
-        retVal = []
-        retVal.append(fs[0].mArea/fs[0].mPerimeter)
-        retVal.append(fs[0].mAspectRatio)
-        retVal.append(fs[0].mHuMoments[0])
-        retVal.append(fs[0].mHuMoments[1])
-        retVal.append(fs[0].mHuMoments[2])
-        retVal.append(fs[0].mHuMoments[3])
-        retVal.append(fs[0].mHuMoments[4])
-        retVal.append(fs[0].mHuMoments[5])
-        retVal.append(fs[0].mHuMoments[6])
+        if( fs is not None and len(fs) > 0 ):
+            fs = fs.sortArea()
+            retVal = []
+            retVal.append(fs[0].mArea/fs[0].mPerimeter)
+            retVal.append(fs[0].mAspectRatio)
+            retVal.append(fs[0].mHuMoments[0])
+            retVal.append(fs[0].mHuMoments[1])
+            retVal.append(fs[0].mHuMoments[2])
+            retVal.append(fs[0].mHuMoments[3])
+            retVal.append(fs[0].mHuMoments[4])
+            retVal.append(fs[0].mHuMoments[5])
+            retVal.append(fs[0].mHuMoments[6])
         return retVal
 
     
