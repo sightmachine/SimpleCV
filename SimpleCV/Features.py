@@ -148,7 +148,7 @@ class FeatureSet(list):
         my_corners.filter(my_corners.x() - my_corners.y() > 0) #only return corners in the upper diagonal of the image
     
         """
-        return FeatureSet(list(np.array(self)[filterarray]))
+        return FeatureSet(list(np.array(self)[np.array(filterarray)]))
   
     def width(self):
         """
