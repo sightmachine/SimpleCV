@@ -5,6 +5,7 @@
 
 #load system libraries
 from SimpleCV.base import *
+from SimpleCV.Color import *
 
 
 class FeatureSet(list):
@@ -24,11 +25,13 @@ class FeatureSet(list):
     lines.crop()
     """
   
-    def draw(self, color = (255, 0, 0)):
+    def draw(self, color = (255, 0, 0), autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
         """
         for f in self:
+            if(autocolor):
+                color = Color().getRandom()
             f.draw(color) 
   
     def x(self):
@@ -148,7 +151,7 @@ class FeatureSet(list):
         my_corners.filter(my_corners.x() - my_corners.y() > 0) #only return corners in the upper diagonal of the image
     
         """
-        return FeatureSet(list(np.array(self)[filterarray]))
+        return FeatureSet(list(np.array(self)[np.array(filterarray)]))
   
     def width(self):
         """
