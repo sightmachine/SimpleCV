@@ -13,10 +13,16 @@ class Blob(Feature):
     mContour = [] # the blob's outer perimeter as a set of (x,y) tuples 
     mConvexHull = [] # the convex hull contour as a set of (x,y) tuples
     mMinRectangle = [] #the smallest box rotated to fit the blob
+    # mMinRectangle[0] = centroid (x,y)
+    # mMinRectangle[1] = (w,h)
+    # mMinRectangle[2] = angle
+    
     mBoundingBox = [] #get W/H and X/Y from this
+
     mHuMoments = [] # The seven Hu Moments
     mPerimeter = 0 # the length of the perimeter in pixels 
     mArea = 0 # the area in pixels
+    mAspectRatio = 0
     m00 = 0
     m01 = 0
     m10 = 0
@@ -43,6 +49,7 @@ class Blob(Feature):
         self.mHuMoments = [-1,-1,-1,-1,-1,-1,-1]
         self.mPerimeter = 0
         self.mArea = 0
+        self.mAspectRatio = 0
         self.m00 = 0
         self.m01 = 0
         self.m10 = 0

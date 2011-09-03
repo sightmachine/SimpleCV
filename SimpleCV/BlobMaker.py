@@ -70,13 +70,13 @@ class BlobMaker:
         retVal = []
         test = binaryImg.meanColor()
         if( test[0]==0.00 and test[1]==0.00 and test[2]==0.00):
-            return retVal 
+            return FeatureSet(retVal) 
         
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         
         retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
         del seq
-        return retVal
+        return FeatureSet(retVal)
     
     def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize):
         """
@@ -147,7 +147,7 @@ class BlobMaker:
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
         retVal.mHoleContour = self._getHoles(seq)
-        
+        retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
         bb = retVal.mBoundingBox
         retVal.points.append((bb[0], bb[1]))
         retVal.points.append((bb[0] + bb[2], bb[1]))
