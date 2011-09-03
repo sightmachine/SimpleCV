@@ -3,6 +3,7 @@
 # This library is used to modify different color properties of images
 
 #load required libraries
+import random
 from SimpleCV.base import *
 from SimpleCV.ImageClass import * 
 from pickle import *
@@ -18,6 +19,8 @@ class Color:
     
     To use Red, for instance if you want to do a line.draw(Color.RED)
     """
+    colorlist = []
+    
     #Primary Colors
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
@@ -61,8 +64,52 @@ class Color:
     CRIMSON = (220, 20, 60)
     DEFAULT = (0, 0, 0)
   
-  
+    colorlist = [
+                BLACK,
+                WHITE,                
+                BLUE,
+                YELLOW,
+                RED,                
+                VIOLET,
+                ORANGE,
+                GREEN,
+                GRAY,
+                IVORY,
+                BEIGE,
+                WHEAT,
+                TAN,
+                KHAKI,
+                SILVER,
+                CHARCOAL,
+                NAVYBLUE,
+                ROYALBLUE,
+                MEDIUMBLUE,
+                AZURE,
+                CYAN,
+                AQUAMARINE,
+                TEAL,
+                FORESTGREEN,
+                OLIVE,
+                LIME,
+                GOLD,
+                SALMON,
+                HOTPINK,
+                FUCHSIA,
+                PUCE,
+                PLUM,
+                INDIGO,
+                MAROON,
+                CRIMSON,
+                DEFAULT
+                ]
 
+    def getRandom(self):
+        """
+        Returns a random color in tuple format
+        """
+        r = random.randint(1, (len(self.colorlist) - 1))
+        return self.colorlist[r]
+         
 
 class ColorCurve:
     """

@@ -26,7 +26,7 @@ cd ~/Code/OpenCV-2.2.0
 #Build OpenCV
 mkdir ~/Code/OpenCV-2.2.0/build
 cd ~/Code/OpenCV-2.2.0/build
-cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_PYTHON_SUPPORT=ON ..
+cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_PYTHON_SUPPORT=ON -D WITH_TBB=ON ..
 make
 sudo make install
 
