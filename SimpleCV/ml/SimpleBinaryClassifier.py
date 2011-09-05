@@ -102,6 +102,24 @@ class SimpleBinaryClassifier:
         print("Correct: "+str(good))
         print("Incorrect: "+str(bad))
         
+    def load(self,path):
+        self.mDataSetOrange = orange.ExampleTable(path)
+        if(self.mDataSetOrange is not None):
+            print('Loading '+path)
+            self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+            colNames = []
+            for i in range(100):
+                c = self.mClassifier(self.mDataSetOrange[i])
+                print(c)
+                print(self.mDataSetOrange[i].getclass())
+                print("\n")
+            for extractor in self.mFeatureExtractors:
+                colNames.extend(extractor.getFieldNames())
+            self.mClassVals = [self.mClassAName,self.mClassBName]
+            self.mOrangeDomain = self.mClassifier.domain
+
+
+    
     def test(self,pathA,pathB,disp=None,subset=-1):
         count = 0
         totalC = 0
