@@ -90,6 +90,6 @@ if __name__ == '__main__':
                 'server.socket_host' : '0.0.0.0'
                 }
             }
-    webbrowser.open("http://localhost:8000")    
+    #webbrowser.open("http://localhost:8000")    
     cherrypy.quickstart(CloudAnimator(), config=conf)
 
