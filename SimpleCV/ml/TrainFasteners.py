@@ -18,5 +18,11 @@ morph_extractor = MorphologyFeatureExtractor()
 classifier = BinarySVMClassifier('nut','bolt',[edge_extractor,morph_extractor])
 nut_path = "./data/nuts/"
 bolt_path = "./data/bolts/"
-classifier.train(nut_path,bolt_path,disp=display)
-classifier.test(nut_path,bolt_path,disp=display)
+#classifier.train(nut_path,bolt_path,disp=display)
+saveFile = 'test.tab'
+#classifier.save(saveFile)
+classifierB = BinarySVMClassifier('nut','bolt',[edge_extractor,morph_extractor])
+classifierB.load(saveFile)
+classifierB.test(nut_path,bolt_path,disp=display)
+name = classifierB.classify(Image('./data/nuts/datapoint44.jpg'))
+print(name)
