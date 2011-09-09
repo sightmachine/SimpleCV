@@ -148,7 +148,7 @@ class SimpleBinaryClassifier:
                 correct = correct + 1
                 totalC = totalC + 1 
             else:
-                text =  "Mislassified as " + str(c)
+                text =  "Misclassified as " + str(c)
                 self._WriteText(disp,img,text, Color.RED)
                 incorrect = incorrect + 1
             count = count + 1
