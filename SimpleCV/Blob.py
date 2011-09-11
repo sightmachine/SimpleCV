@@ -212,14 +212,18 @@ class Blob(Feature):
         axis is aligned to either vertical=0 or horizontal=1 
         """
         finalRotation = self.angle()
+        w = self.minRectWidth()
+        h = self.minRectHeight()
+        
+        if( w > h ):
+            finalRotation = finalRotation - 90
+            
         if(axis > 0 ):
-            finalRotation = finalRotation + 90
-        
-      
-        
-        #GRRR need to fill in 
+            finalRotation = finalRotation - 90
 
+        self.rotate(finalRotation)  
         return None
+    
     def rotate(self,angle):
         """
         NOTE THIS IS IN PLACE -- I NEED TO FIX THIS TO RETURN A BLOB
@@ -228,22 +232,34 @@ class Blob(Feature):
         To draw the blob create a new layer and draw to that layer. 
         """
         theta = 2*np.pi*(angle/360.0)
-        self.mImg.rotate(finalRotation,"",(self.x,self.y))
-        self.mMask.rotate(finalRotation,"",(self.x,self.y))
-        self.mHullMask.rotate(finalRotation,"",(self.x,self.y))
-        self.mContour = map(lambda x,theta:
+        mode = ""
+        point =(self.x,self.y)
+        self.mImg = self.mImg.rotate(angle,mode,point)
+        #this is a bit of a hack, but it saves a lot of code
+        #I left masks as bitmaps grrrr
+        tempMask = Image(self.mMask)
+        self.mMask = tempMask.rotate(angle,mode,point).getBitmap()
+        
+        tempMask = Image(self.mHullMask)
+        self.mHullMask = tempMask.rotate(angle,mode,point).getBitmap()
+        
+        #self.mMask.rotate(theta,"",(self.x,self.y))
+        #self.mHullMask.rotate(theta,"",(self.x,self.y))
+        self.mContour = map(lambda x:
                             (x[0]*np.cos(theta)-x[1]*np.sin(theta),
                              x[0]*np.sin(theta)+x[1]*np.cos(theta)),
-                             self.mContour , theta)
-        self.mConvexHull = map(lambda x,theta:
+                             self.mContour)
+        self.mConvexHull = map(lambda x:
                                (x[0]*np.cos(theta)-x[1]*np.sin(theta),
                                 x[0]*np.sin(theta)+x[1]*np.cos(theta)),
-                               self.mConvexHull,theta)
-        for h in self.mHoleContour:
-            h = map(lambda x,theta:
-                (x[0]*np.cos(theta)-x[1]*np.sin(theta),
-                 x[0]*np.sin(theta)+x[1]*np.cos(theta)),
-                 h,theta)
+                               self.mConvexHull)
+
+        if( self.mHoleContour is not None):
+            for h in self.mHoleContour:
+                h = map(lambda x:
+                    (x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                     x[0]*np.sin(theta)+x[1]*np.cos(theta)),
+                     h)
             
 
     def above(self,blob):

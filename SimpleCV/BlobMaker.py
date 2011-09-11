@@ -70,9 +70,10 @@ class BlobMaker:
         retVal = []
         test = binaryImg.meanColor()
         if( test[0]==0.00 and test[1]==0.00 and test[2]==0.00):
-            return FeatureSet(retVal) 
+            return FeatureSet(retVal)
+
         
-        seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+        seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         
         retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
         del seq
@@ -175,7 +176,7 @@ class BlobMaker:
         """
         Return a binary image of a particular contour sequence. 
         """
-        bb = cv.BoundingRect(seq)
+        #bb = cv.BoundingRect(seq)
         mask = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,1)
         cv.Zero(mask)
         cv.DrawContours(mask,seq,(255),(0),0,thickness=-1, offset=(-1*bb[0],-1*bb[1]))
@@ -214,6 +215,7 @@ class BlobMaker:
         """
         cv.SetImageROI(colorbitmap,bb)
         outputImg = cv.CreateImage((bb[2],bb[3]),cv.IPL_DEPTH_8U,3)
+        cv.Zero(outputImg)
         cv.Copy(colorbitmap,outputImg,mask)
         cv.ResetImageROI(colorbitmap)
         return(Image(outputImg))

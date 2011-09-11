@@ -1500,7 +1500,7 @@ class Image:
         By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
         contents retain the original size, and the Image object will scale
         by default, the point is the center of the image. 
-        you can also specify a scaling parameter
+        you can also specify a scaling pa   rameter
 
 
         Returns: IMAGE
