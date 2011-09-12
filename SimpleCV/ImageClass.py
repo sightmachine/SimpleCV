@@ -2088,10 +2088,13 @@ class Image:
             warnings.warn("Image.blit: specified position exceeds image dimensions")
             return None
         if(img.width+pos[0] > self.width or img.height+pos[1] > self.height):
-            w = self.width-pos[0]
-            h = self.height-pos[1]
+            w = min(self.width-pos[0],img.width)
+            h = min(self.height-pos[1],img.height)
             cv.SetImageROI(img.getBitmap(),(0,0,w,h))
-        
+        print('Size: '+str([self.width,self.height]))
+        print('Blit: '+str([w,h]))
+        print('Blit actual: '+ str([img.width,img.height]))
+        print('Pos: '+str(pos))
         cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))
         cv.Copy(img.getBitmap(),retVal.getBitmap())
         cv.ResetImageROI(img.getBitmap())
