@@ -448,8 +448,9 @@ class JpegStreamReader(threading.Thread):
         while (1):
             #print data
             if (re.search(boundary, data.strip()) and len(buff)):
-                #we have a full jpeg in buffer.  Convert to an image  
-                self.currentframe = buff 
+                #we have a full jpeg in buffer.  Convert to an image
+                if contenttype == "jpeg":
+                    self.currentframe = buff 
                 buff = ''
       
             if (re.match("Content-Type", data, re.I)):
@@ -462,12 +463,13 @@ class JpegStreamReader(threading.Thread):
                 (header, length) = data.split(":")
                 length = int(length.strip())
                
-            if (re.search("JFIF", data, re.I) or len(data) > 70):
+            if (re.search("JFIF", data, re.I) or len(data) > 50):
                 # we have reached the start of the image 
                 buff = '' 
-                if length:
+                if length and length > len(data):
                     buff += data + f.read(length - len(data)) #read the remainder of the image
-                    self.currentframe = buff
+                    if contenttype == "jpeg":
+                        self.currentframe = buff
                 else:
                     while (not re.search(boundary, data)):
                         buff += data 
@@ -477,7 +479,7 @@ class JpegStreamReader(threading.Thread):
                     buff += endimg
                     data = boundary
                     continue
-  
+                    
             data = f.readline() #load the next (header) line
             time.sleep(0) #let the other threads go
 
