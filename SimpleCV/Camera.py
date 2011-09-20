@@ -21,7 +21,10 @@ class FrameBufferThread(threading.Thread):
         global _cameras
         while (1):
             for cam in _cameras:
-                cv.GrabFrame(cam.capture)
+                if cam.pygame_camera:
+                    cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
+                else:
+                    cv.GrabFrame(cam.capture)
             time.sleep(0.04)    #max 25 fps, if you're lucky
 
 
@@ -249,6 +252,8 @@ class Camera(FrameSource):
     """
     capture = ""   #cvCapture object
     thread = ""
+    pygame_camera = False
+    pygame_buffer = ""
   
   
     prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
@@ -274,18 +279,28 @@ class Camera(FrameSource):
         debuffer the camera.  If you specify True, the camera is essentially 'on' at
         all times.  If you specify off, you will have to manage camera buffers.
         """
-        self.capture = cv.CaptureFromCAM(camera_index)
-        self.threaded = False
-        if (platform.system() == "Windows"):
-            threaded = False
+        if platform.system() == "Linux" and prop_set.has_key('height') and prop_set['height'] > 480:
+            import pygame.camera
+            pygame.camera.init()
+            threaded = True  #pygame must be threaded
+            self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
+            self.capture.start()
+            time.sleep(0)
+            self.pygame_buffer = self.capture.get_image()
+            self.pygame_camera = True
+        else:
+            self.capture = cv.CaptureFromCAM(camera_index)
+            self.threaded = False
+            if (platform.system() == "Windows"):
+                threaded = False
         
-        if (not self.capture):
-            return None 
+            if (not self.capture):
+                return None 
 
-        #set any properties in the constructor
-        for p in prop_set.keys():
-            if p in self.prop_map:
-                cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
+            #set any properties in the constructor
+            for p in prop_set.keys():
+                if p in self.prop_map:
+                    cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
 
         if (threaded):
             self.threaded = True
@@ -305,6 +320,9 @@ class Camera(FrameSource):
         """
         Retrieve the value of a given property, wrapper for cv.GetCaptureProperty
         """
+        if self.pygame_camera:
+            return False
+            
         if prop in self.prop_map:
             return cv.GetCaptureProperty(self.capture, self.prop_map[prop])
         return False 
@@ -313,6 +331,8 @@ class Camera(FrameSource):
         """
         Return all properties from the camera 
         """
+        if self.pygame_camera:
+            return False
         props = {} 
         for p in self.prop_map:
             props[p] = self.getProperty(p)
@@ -327,6 +347,10 @@ class Camera(FrameSource):
 
         We're working on how to solve this problem.
         """
+        
+        if self.pygame_camera:
+            return Image(self.pygame_buffer.copy())
+        
         if (not self.threaded):
             cv.GrabFrame(self.capture)
 
