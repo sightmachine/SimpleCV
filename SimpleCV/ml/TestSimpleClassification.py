@@ -15,6 +15,11 @@ display = Display(resolution = (w,h))
 hue_extractor = HueHistogramFeatureExtractor(mNBins=16)
 edge_extractor = EdgeHistogramFeatureExtractor()
 bof_extractor = BOFFeatureExtractor()
+cat_train_path = "./data/cat/truth/"
+cheeseburger_train_path = "./data/cheeseburger/truth/"
+
+#bof_extractor.generate([cat_train_path,cheeseburger_train_path],)
+#bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
 
 classifier = SimpleBinaryClassifier('cat','cheeseburger',[bof_extractor,hue_extractor])#,edge_extractor])
@@ -25,7 +30,7 @@ cheeseburger_test_path = "./data/cheeseburger/test/"
 #classifier.train(cat_train_path,cheeseburger_train_path,disp=display,subset=50)
 
 classifier.load('image_data.tab')
-classifier.test(cat_test_path,cheeseburger_test_path,disp=display,subset=5)
+classifier.test(cat_test_path,cheeseburger_test_path,disp=display,subset=50)
 
 
 

@@ -11,9 +11,9 @@ from BinarySVMClassifier import *
 
 #we pass this methods as our threshold operation
 def thresholdOp(in_image):
-    return in_image.binarize(thresh=100).dilate(2)
+    return in_image.binarize(thresh=90).dilate(2)
 
-cam = Camera(1)
+cam = Camera(0)
 #setup the feature extractors
 edge_extractor = EdgeHistogramFeatureExtractor()
 morph_extractor = MorphologyFeatureExtractor()
@@ -24,7 +24,7 @@ saveFile = 'test.tab'
 classifier = BinarySVMClassifier('nut','bolt',[edge_extractor,morph_extractor])
 classifier.load(saveFile)
 blobber = BlobMaker()
-disp = Display(resolution=(800,600))
+disp = Display(resolution=(1440,900))
 #these params are to save the image
 count = 0
 path = ''
@@ -42,6 +42,7 @@ while not disp.isDone():
     y = img.height/2
     w = x
     h = y
+    hthresh = w*h*0.05
     dl = DrawingLayer((w,h))
     #crop the image, to get rid of illumination effects
     img = img.crop(x,y,w,h,centered=True)
@@ -73,14 +74,23 @@ while not disp.isDone():
                     blob.rotate(180)
                 #apply the classifier
                 name = classifier.classify(blob.mImg)
-                #get the name and apply it
-                itemName = str(name)
-                if(itemName=='bolt'):
-                    img.dl().polygon(hull,color=Color.GREEN,width=3)
-                else:
-                    img.dl().polygon(hull,color=Color.ORANGE,width=3)
-                img.dl().setFontSize(50)
-                img.dl().text(itemName,(blob.x,blob.y),color=Color.BLACK)
+                if( name is not None ):
+                    #get the name and apply it
+                    itemName = str(name)
+                    if(blob.mArea > hthresh ):
+                        img.dl().polygon(hull, color=Color.RED,width=7)
+                        img.dl().setFontSize(70)
+                        img.dl().text('HUMAN - DESTROY',(blob.x,blob.y),color=Color.RED)
+                    elif(itemName=='bolt'):
+                        img.dl().polygon(hull,color=Color.GREEN,width=3)
+                        img.dl().setFontSize(50)
+                        img.dl().text(itemName,(blob.x,blob.y),color=Color.BLACK)
+                    else:
+                        img.dl().polygon(hull,color=Color.ORANGE,width=3)
+                        img.dl().setFontSize(50)
+                        img.dl().text(itemName,(blob.x,blob.y),color=Color.BLACK)
+                    
+                    i
                 #print(name)
         if(disp.mouseLeft):
             #save any frame we click on 
@@ -89,4 +99,4 @@ while not disp.isDone():
             print('Saved '+fname)
             img.save(fname)
             count = count + 1    
-        img.save(disp)    
+    img.save(disp)    

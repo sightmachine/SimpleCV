@@ -69,7 +69,9 @@ class BinarySVMClassifier:
             feats = extractor.extract(image)
             if( feats is not None ):
                 featureVector.extend(feats)
-        featureVector.extend([self.mClassAName])     
+        featureVector.extend([self.mClassAName])
+        if( len(featureVector) != 30 ):
+            return None
         test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
         c = self.mClassifier(test[0]) #classify
         return c #return to class name
@@ -85,7 +87,9 @@ class BinarySVMClassifier:
     
     def _trainPath(self,path,className,subset,disp):
         count = 0
-        files = glob.glob( os.path.join(path, '*.jpg'))
+        files = glob.glob( os.path.join(path, '*.png'))
+        print(files)
+        print(path)
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
@@ -179,7 +183,7 @@ class BinarySVMClassifier:
         count = 0
         correct = 0
         badFeat = False
-        files = glob.glob( os.path.join(path, '*.jpg'))
+        files = glob.glob( os.path.join(path, '*.png'))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
