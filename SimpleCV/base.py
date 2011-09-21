@@ -29,12 +29,12 @@ from scipy.interpolate import UnivariateSpline
 #optional libraries
 PIL_ENABLED = True
 try:
-    import PIL.Image as pil
-    from PIL import ImageFont as pilImageFont
-    from PIL import ImageDraw as pilImageDraw
+    import Image as pil
 except ImportError:
     try:
-        import Image as pil  #needed on homebrew on mac
+        import PIL.Image as pil
+        from PIL import ImageFont as pilImageFont
+        from PIL import ImageDraw as pilImageDraw
     except ImportError:
         PIL_ENABLED = False 
 
