@@ -1101,11 +1101,41 @@ class Image:
         distances *= (255.0/distances.max()) #normalize to 0 - 255
         return Image(distances.reshape(self.width, self.height)) #return an Image
     
-    
-      
-      
-      
-      
+    def hueDistance(self, color = [0, 0, 0], minsaturation = 20, minvalue = 20):
+        """
+        Returns an image representing the distance of each pixel from the given hue
+        of a specific color.  The hue is "wrapped" at 180, so we have to take the shorter
+        of the distances between them -- this gives a hue distance of max 90, which we'll 
+        scale into a 0-255 grayscale image.
+        
+        The minsaturation and minvalue are optional parameters to weed out very weak hue
+        signals in the picture, they will be pushed to max distance [255]
+        """
+        color_px = Image((1,1))
+        color_px[0,0] = color
+        color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
+        
+        vsh_matrix = self.toHSV().getNumpy().reshape(-1,3) #again, gets transposed to vsh
+        hue_channel = vsh_matrix[:,2]
+        
+        if color_hue < 90:
+            hue_loop = 180
+        else:
+            hue_loop = -180
+        #set whether we need to move back or forward on the hue circle
+        
+        distances = np.minimum( np.abs(hue_channel - color_hue), np.abs(hue_channel - (color_hue + hue_loop)))
+        #take the minimum distance for each pixel
+        
+        
+        distances = np.where(
+            np.logical_and(vsh_matrix[:,0] > minvalue, vsh_matrix[:,1] > minsaturation),
+            distances * (255.0 / 90.0), #normalize 0 - 90 -> 0 - 255
+            255.0) #use the maxvalue if it false outside of our value/saturation tolerances
+        
+        return Image(distances.reshape(self.width, self.height))
+        
+        
     def erode(self, iterations=1):
         """
         Apply a morphological erosion. An erosion has the effect of removing small bits of noise
@@ -1442,7 +1472,7 @@ class Image:
    
         returns a FeatureSet with the Chessboard feature, or none
         """
-        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
                 spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
