@@ -355,3 +355,23 @@ class Chessboard(Feature):
         s = (a + b + c + d)/2.0 
         return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
   
+
+class TemplateMatch(Feature):
+
+    template_image = None
+    quality = 0
+
+    def __init__(self, image, template, location, quality):
+        self.template_image = template
+        self.image = image
+        self.quality = quality
+        self.x = location[0] + template.width / 2
+        self.y = location[1] + template.height / 2
+        self.points = [location,
+                        (location[0] + template.width, location[1]),
+                        (location[0] + template.width, location[1] + template.height),
+                        (location[0], location[1] + template.height)]
+                        
+
+    def draw(self, color = Color.GREEN):
+        self.image.dl().rectangle(self.points[0], (self.width(), self.height()), color = color)

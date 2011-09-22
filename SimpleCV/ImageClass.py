@@ -3,7 +3,7 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard
+from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
@@ -1986,5 +1986,50 @@ class Image:
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+            
+    def findTemplate(self, template_image = None, threshold = 0):
+        if(template_image == None):
+            print "Need image for matching"
+            return
 
+        if(template_image.width > self.width):
+            print "Image too wide"
+            return
+
+        if(template_image.height > self.height):
+            print "Image too tall"
+            return
+
+        #load template image
+        tpl = template_image.getBitmap()
+        
+        #get image's properties
+        img_width  = self.width
+        img_height = self.height
+        tpl_width  = template_image.width
+        tpl_height = template_image.height
+        res_width  = img_width - tpl_width + 1
+        res_height = img_height - tpl_height + 1
+
+        #create new image for template matching computation
+        #res = cvCreateImage( cvSize( res_width, res_height ), IPL_DEPTH_32F, 1 );
+        n = cv.CreateMat(res_width, res_height, cv.CV_32FC1)
+
+        #choose template matching method to be used
+        cv.MatchTemplate( self.getBitmap(), tpl, n, cv.CV_TM_SQDIFF )
+        #cvMatchTemplate( img, tpl, res, CV_TM_SQDIFF_NORMED );
+        #cvMatchTemplate( img, tpl, res, CV_TM_CCORR );
+        #cvMatchTemplate( img, tpl, res, CV_TM_CCORR_NORMED );
+        #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF );
+        #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF_NORMED );
+        #~ threshold = 10000000
+        compute = np.where(n < np.min(n) + threshold)
+        mapped = map(tuple, np.column_stack(compute))
+        fs = FeatureSet()
+        for location in mapped:
+            fs.append(TemplateMatch(self, tpl, location, n[location[0], location[1]]))
+            
+        return fs
+        #~ cvMinMaxLoc( res, &minval, &maxval, &minloc, &maxloc, 0 );
+        
 from SimpleCV.BlobMaker import BlobMaker
