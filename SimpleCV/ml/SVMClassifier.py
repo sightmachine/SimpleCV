@@ -2,9 +2,12 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
 from SimpleCV.FeatureExtractorBase import *
+import pickle
 import orange
+import orngTest #for cross validation
+import orngStat
 import os
-import glob
+import glob #for directory scanning
 import time
 """
 This is more or less a hack space right now so I can do a proof of concept
@@ -18,89 +21,75 @@ class SVMClassifier:
     mClassifier = None
     mFeatureExtractors = None
     mOrangeDomain = None
-
-    
     mSVMPrototype = None
-    mKernelType = None #default is a RBF Kernel
-    mSVM_Nu = 0.5 # NU for SVM NU
-    mSVM_C = 1.0 #C for SVM C - the slack variable
-    mSVM_Degree = 3 #degree for poly kernels - defaults to 3
-    mSVM_Coef0 = 0  #coef for Poly/Sigmoid defaults to 0
-    mSVM_Gamma = None  #kernel param for poly/rbf/sigma - default is 1/#samples
-    mSVMType = None # default is C 
     
-    def __init__(self,classes,featureExtractors,kernelType='RBF',type = 'Nu', nu=None, c=None, degree = None, coef = None, gamma = None):
+    mKernelType = {
+        'RBF':orange.SVMLearner.RBF,
+        'Linear':orange.SVMLearner.Linear,
+        'Poly':orange.SVMLearner.Polynomial,
+        'Sigmoid':orange.SVMLearner.Sigmoid
+    }
+    
+    mSVMType = {
+        'NU':orange.SVMLearner.Nu_SVC,
+        'C':orange.SVMLearner.C_SVC
+    }
+    mSVMProperties = {
+        'KernelType':'RBF', #default is a RBF Kernel
+        'SVMType':'NU',     #default is C 
+        'nu':None,          # NU for SVM NU
+        'c':None,           #C for SVM C - the slack variable
+        'degree':None,      #degree for poly kernels - defaults to 3
+        'coef':None,        #coef for Poly/Sigmoid defaults to 0
+        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
+    }
+    #human readable to CV constant property mapping
+    
+    def __init__(self,classes,featureExtractors,properties=None):
         self.mClassNames = classes
         self.mFeatureExtractors =  featureExtractors    
-        self.mSVM_Nu = nu
-        self.mSVM_C = c
-        self.mSVM_Degree = degree
-        self.mSVM_Coef0 = coef
-        self.mSVM_Gamma = gamma 
-        self.mSVMType = None
-        self._setKernel(kernelType)
+        if(properties is not None):
+            self.mSVMProperties = properties
+        self._setKernel()
         self._setType(type)
         self._parameterizeKernel()
-    
-    def _setKernel(self,kernel_name):
-        if(kernel_name == 'RBF'):
-            self.mKernelType = orange.SVMLearner.RBF
-        elif(kernel_name == 'Linear' ):
-            self.mKernelType = orange.SVMLearner.Linear
-        elif(kernel_name == 'Poly'):
-            self.mKernelType = orange.SVMLearner.Polynomial
-        elif(kernel_name == 'Sigmoid'):
-            self.mKernelType = orange.SVMLearner.Sigmoid
-            
-    def _setType(self, svmType):
-        #note that from the libsvm documentation
-        # SVR = Support Vector Regression
-        # SVC = Support Vector Classification
-        # We want the latter so only give two choices
-        if(svmType=='C' ):
-            self.svm_type = orange.SVMLearner.C_SVC
-        else:
-            self.mSVMType = orange.SVMLearner.Nu_SVC
             
     def _parameterizeKernel(self):
+        #Set the parameters for our SVM
         self.mSVMPrototype = orange.SVMLearner()
-        self.mSVMPrototype.svm_type = self.mSVMType
-        self.mSVMPrototype.kernel_type = self.mKernelType
-        if(self.mSVM_Nu is not None):
-            self.mSVMPrototype.nu = self.mSVM_Nu
-        if(self.mSVM_C is not None):
-            self.mSVMPrototype.C = self.mSVM_C
-        if(self.mSVM_Degree is not None):
-            self.mSVMPrototype.degree = self.mSVM_Degree
-        if(self.mSVM_Coef0 is not None):
-            self.mSVMPrototype.coef0 = self.mSVM_Coef0
-        if(self.mSVM_Gamma is not None):
-            self.mSVMPrototype.gamma = self.mSVM_Gamma
+        self.mSVMPrototype.svm_type = self.mSVMType[self.mSVMProperties["SVMType"]]
+        self.mSVMPrototype.kernel_type = self.mKernelType[self.mSVMProperties["KernelType"]]
+        if(self.mSVMProperties["nu"] is not None):
+            self.mSVMPrototype.nu = self.mSVMProperties["nu"] 
+        if(self.mSVMProperties["c"] is not None):
+            self.mSVMPrototype.C = self.mSVMProperties["c"] 
+        if(self.mSVMProperties["degree"]  is not None):
+            self.mSVMPrototype.degree = self.mSVMProperties["degree"] 
+        if(self.mSVMProperties["coef"] is not None):
+            self.mSVMPrototype.coef0 = self.mSVMProperties["coef"] 
+        if(self.mSVMProperties["gamma"] is not None):
+            self.mSVMPrototype.gamma = self.mSVMProperties["gamma"] 
         
         
-    def load(self, path):
+    def load(cls, fname):
         """
         Load the classifier from file
         """
-        self.mDataSetOrange = orange.ExampleTable(path)
-        if(self.mDataSetOrange is not None):
-            print('Loading '+path)
-            self.mClassifier = self.mSVMPrototype(self.mDataSetOrange)
-            colNames = []
-            for extractor in self.mFeatureExtractors:
-                colNames.extend(extractor.getFieldNames())
-            self.mClassVals =   self.mClassNames 
-            self.mOrangeDomain = self.mClassifier.domain
-        return None
+        return pickle.load(file(fname))
+    load = classmethod(load)
+
     
     def save(self, fname):
         """
         Save the classifier to file
         """
-        if( self.mDataSetOrange is not None ):
-            orange.saveTabDelimited (fname, self.mDataSetOrange)
-
-        return False
+        output = open(fname, 'wb')
+        pickle.dump(self,output,2)
+        output.close()
+                
+        #if( self.mDataSetOrange is not None ):
+         #   orange.saveTabDelimited (fname, self.mDataSetOrange)
+        #return False
     
     def classify(self, image):
         """
@@ -116,8 +105,6 @@ class SVMClassifier:
             if( feats is not None ):
                 featureVector.extend(feats)
         featureVector.extend([self.mClassAName])
-        if( len(featureVector) != 30 ):
-            return None
         test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
         c = self.mClassifier(test[0]) #classify
         return c #return to class name
@@ -131,7 +118,7 @@ class SVMClassifier:
         self.mFeatureExtractors = extractors
         return None
     
-    def _trainPath(self,path,className,subset,disp):
+    def _trainPath(self,path,className,subset,disp,verbose):
         count = 0
         files = glob.glob( os.path.join(path, '*.jpg'))
         if(subset > 0):
@@ -141,7 +128,8 @@ class SVMClassifier:
         badFeat = False   
         for i in range(nfiles):
             infile = files[i]
-            print "Opening file: " + infile
+            if verbose:
+                print "Opening file: " + infile
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -163,12 +151,13 @@ class SVMClassifier:
             del img
         return count
         
-    def train(self,paths,classNames,disp=None,subset=-1,savedata=None):
+    def train(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
         """
         Train the classifier.
         paths the order of the paths in the same order as the class type 
         
         - Note all image classes must be in seperate directories
+        - The class names must also align to the directories
         
         disp - if display is a display we show images and class label,
         otherwise nothing is done.
@@ -177,21 +166,26 @@ class SVMClassifier:
         use min(#images,subset)
         
         savedata - if save data is None nothing is saved. If savedata is a file
-        name we save the data to a tab delimited file. 
+        name we save the data to a tab delimited file.
+        
+        verbose - print confusion matrix and file names 
+        returns [%Correct %Incorrect Confusion_Matrix]
         """
         count = 0
         self.mClassNames = classNames
+        # fore each class, get all of the data in the path and train
         for i in range(len(classNames)):
-            count = count + self._trainPath(paths[i],classNames[i],subset,disp)
+            count = count + self._trainPath(paths[i],classNames[i],subset,disp,verbose)
            
         colNames = []
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
-            
+        
         if(count <= 0):
             warnings.warn("No features extracted - bailing")
             return None
         
+        # push our data into an orange example table
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
         if(savedata is not None):
@@ -203,27 +197,39 @@ class SVMClassifier:
         for i in range(count):
             c = self.mClassifier(self.mDataSetOrange[i])
             test = self.mDataSetOrange[i].getclass()
-            print "original", test, "classified as", c 
+            if verbose:
+                print "original", test, "classified as", c 
             if(test==c):
                 correct = correct + 1
             else:
                 incorrect = incorrect + 1
-        print(correct)
-        print(incorrect)
+                
         good = 100*(float(correct)/float(count))
         bad = 100*(float(incorrect)/float(count))
-        print("Correct: "+str(good))
-        print("Incorrect: "+str(bad))
+
+        crossValidator = orngTest.crossValidation([self.mSVMPrototype],self.mDataSetOrange)
+        confusion = orngStat.confusionMatrices(crossValidator)[0]
+
+        if verbose:
+            print("Correct: "+str(good))
+            print("Incorrect: "+str(bad))
+            classes = self.mDataSetOrange.domain.classVar.values
+            print "\t"+"\t".join(classes)
+            for className, classConfusions in zip(classes, confusion):
+                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
+            
+        return [good, bad, confusion]
+
+
     
     
-    def test(self,paths,classNames,disp=None,subset=-1,savedata=None):
+    def test(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
         """
-        Test the classifier - returns the confusion matrix between the two classes
-        
-        pathA the path to the A image set - all jpgs
-        pathB the path to the B image set - all jpgs
+        Train the classifier.
+        paths the order of the paths in the same order as the class type 
         
         - Note all image classes must be in seperate directories
+        - The class names must also align to the directories
         
         disp - if display is a display we show images and class label,
         otherwise nothing is done.
@@ -232,21 +238,46 @@ class SVMClassifier:
         use min(#images,subset)
         
         savedata - if save data is None nothing is saved. If savedata is a file
-        name we save the data to a tab delimited file. 
+        name we save the data to a tab delimited file.
+        
+        verbose - print confusion matrix and file names 
+        returns [%Correct %Incorrect Confusion_Matrix]
         """
+        count = 0
+        correct = 0
+        self.mClassNames = classNames
+        colNames = []
+        for extractor in self.mFeatureExtractors:
+            colNames.extend(extractor.getFieldNames())
+            self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
+        
         for i in range(len(classNames)):
-            self._testPath(paths[i],classNames[i],subset,disp)
+            [cnt,crct] =self._testPath(paths[i],classNames[i],subset,disp,verbose)
+            count = count + cnt
+            correct = correct + crct
+            
 
+        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        
         if savedata is not None:
-            colNames = []
-            for extractor in self.mFeatureExtractors:
-                colNames.extend(extractor.getFieldNames())
-            self.mClassVals = [self.mClassAName,self.mClassBName]
-            self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassVals))
-            self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
+                
+        crossValidator = orngTest.crossValidation([self.mSVMPrototype],self.mDataSetOrange)
+        confusion = orngStat.confusionMatrices(crossValidator)[0]
+
+        good = 100*(float(correct)/float(count))
+        bad = 100*(float(count-correct)/float(count))
+        if verbose:
+            print("Correct: "+str(good))
+            print("Incorrect: "+str(bad))
+            classes = self.mDataSetOrange.domain.classVar.values
+            print "\t"+"\t".join(classes)
+            for className, classConfusions in zip(classes, confusion):
+                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
+            
+        return [good, bad, confusion]
     
-    def _testPath(self,path,className,subset,disp):
+    def _testPath(self,path,className,subset,disp,verbose):
         count = 0
         correct = 0
         badFeat = False
@@ -255,10 +286,10 @@ class SVMClassifier:
             nfiles = min(subset,len(files))
         else:
             nfiles = len(files)
-        
         for i in range(nfiles):
             infile = files[i]
-            print "Opening file: " + infile
+            if verbose:
+                print "Opening file: " + infile
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
