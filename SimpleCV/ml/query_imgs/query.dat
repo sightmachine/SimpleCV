@@ -10,8 +10,7 @@
 #need to query west virginia before virginia
 
 #metro areas, by population, top 100, decreasing
-cat
-cheeseburger
+goldfish
 
 #negative queries.  should these be restricted to tags only?
 -interior
