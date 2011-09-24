@@ -1987,7 +1987,7 @@ class Image:
             indicies.reverse()
             return Image(imgSurf)
             
-    def findTemplate(self, template_image = None, threshold = 0):
+    def findTemplate(self, template_image = None, threshold = 1):
         if(template_image == None):
             print "Need image for matching"
             return
@@ -2013,7 +2013,7 @@ class Image:
 
         #create new image for template matching computation
         #res = cvCreateImage( cvSize( res_width, res_height ), IPL_DEPTH_32F, 1 );
-        n = cv.CreateMat(res_width, res_height, cv.CV_32FC1)
+        n = cv.CreateMat(res_height, res_width, cv.CV_32FC1)
 
         #choose template matching method to be used
         cv.MatchTemplate( self.getBitmap(), tpl, n, cv.CV_TM_SQDIFF )
