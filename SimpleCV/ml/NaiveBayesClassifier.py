@@ -24,42 +24,16 @@ is as follows.
 7. Save the classifier.
 8. Deploy using the classify method. 
 """
-class SVMClassifier:
+class NaiveBayesClassifier:
     mClassNames = []
     mDataSetRaw = [] 
     mDataSetOrange = []
     mClassifier = None
     mFeatureExtractors = None
     mOrangeDomain = None
-    mSVMPrototype = None
     
-    mKernelType = {
-        'RBF':orange.SVMLearner.RBF,
-        'Linear':orange.SVMLearner.Linear,
-        'Poly':orange.SVMLearner.Polynomial,
-        'Sigmoid':orange.SVMLearner.Sigmoid
-    }
-    
-    mSVMType = {
-        'NU':orange.SVMLearner.Nu_SVC,
-        'C':orange.SVMLearner.C_SVC
-    }
-    mSVMProperties = {
-        'KernelType':'RBF', #default is a RBF Kernel
-        'SVMType':'NU',     #default is C 
-        'nu':None,          # NU for SVM NU
-        'c':None,           #C for SVM C - the slack variable
-        'degree':None,      #degree for poly kernels - defaults to 3
-        'coef':None,        #coef for Poly/Sigmoid defaults to 0
-        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
-    }
-    #human readable to CV constant property mapping
-    
-    def __init__(self,featureExtractors,properties=None):
+    def __init__(self,featureExtractors):
         self.mFeatureExtractors =  featureExtractors    
-        if(properties is not None):
-            self.mSVMProperties = properties
-        self._parameterizeKernel()
         
     def setProperties(self, properties):
         """
@@ -69,23 +43,6 @@ class SVMClassifier:
         if(properties is not None):
             self.mSVMProperties = properties
         self._parameterizeKernel()
-        
-            
-    def _parameterizeKernel(self):
-        #Set the parameters for our SVM
-        self.mSVMPrototype = orange.SVMLearner()
-        self.mSVMPrototype.svm_type = self.mSVMType[self.mSVMProperties["SVMType"]]
-        self.mSVMPrototype.kernel_type = self.mKernelType[self.mSVMProperties["KernelType"]]
-        if(self.mSVMProperties["nu"] is not None):
-            self.mSVMPrototype.nu = self.mSVMProperties["nu"] 
-        if(self.mSVMProperties["c"] is not None):
-            self.mSVMPrototype.C = self.mSVMProperties["c"] 
-        if(self.mSVMProperties["degree"]  is not None):
-            self.mSVMPrototype.degree = self.mSVMProperties["degree"] 
-        if(self.mSVMProperties["coef"] is not None):
-            self.mSVMPrototype.coef0 = self.mSVMProperties["coef"] 
-        if(self.mSVMProperties["gamma"] is not None):
-            self.mSVMPrototype.gamma = self.mSVMProperties["gamma"] 
         
         
     def load(cls, fname):
@@ -101,7 +58,7 @@ class SVMClassifier:
         Save the classifier to file
         """
         output = open(fname, 'wb')
-        pickle.dump(self,output,2) # use two otherwise it w
+        pickle.dump(self,output,2) # use two otherwise it borks the system 
         output.close()
 
     
@@ -118,7 +75,7 @@ class SVMClassifier:
             feats = extractor.extract(image)
             if( feats is not None ):
                 featureVector.extend(feats)
-        featureVector.extend([self.mClassAName])
+        featureVector.extend([self.mClassNames[0]])
         test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
         c = self.mClassifier(test[0]) #classify
         return c #return to class name
@@ -206,7 +163,7 @@ class SVMClassifier:
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
-        self.mClassifier = self.mSVMPrototype(self.mDataSetOrange)
+        self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
@@ -222,7 +179,8 @@ class SVMClassifier:
         good = 100*(float(correct)/float(count))
         bad = 100*(float(incorrect)/float(count))
 
-        crossValidator = orngTest.learnAndTestOnLearnData([self.mSVMPrototype],self.mDataSetOrange)
+        confusion = 0
+        crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
         confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
@@ -276,9 +234,9 @@ class SVMClassifier:
         testData = orange.ExampleTable(self.mOrangeDomain,dataset)
         
         if savedata is not None:
-            orange.saveTabDelimited (savedata, testdata)
+            orange.saveTabDelimited (savedata, testData)
                 
-        crossValidator = orngTest.learnAndTestOnTestData([self.mSVMPrototype],self.mDataSetOrange,testData)
+        crossValidator = orngTest.learnAndTestOnTestData([orange.BayesLearner()],self.mDataSetOrange,testData)
         confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))

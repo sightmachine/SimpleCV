@@ -142,28 +142,28 @@ class BOFFeatureExtractor(object):
     def load(self,datafile):
         myFile = open(datafile, 'r')
         temp = myFile.readline()
-        print(temp)
+        #print(temp)
         self.mNumCodes = int(myFile.readline())
-        print(self.mNumCodes)
+        #print(self.mNumCodes)
         w = int(myFile.readline())
         h = int(myFile.readline())
         self.mPatchSize = (w,h)
-        print(self.mPatchSize)
+        #print(self.mPatchSize)
         self.mPadding = int(myFile.readline())
-        print(self.mPadding)
+        #print(self.mPadding)
         w = int(myFile.readline())
         h = int(myFile.readline())
         self.mLayout = (w,h)
-        print(self.mLayout)
+        #print(self.mLayout)
         imgfname = myFile.readline().strip()
-        print(imgfname)
+        #print(imgfname)
         self.mCodebookImg = Image(imgfname)        
         self.mCodebook = self._img2Codebook(self.mCodebookImg,
                                             self.mPatchSize,
                                             self.mNumCodes,
                                             self.mLayout,
                                             self.mPadding)
-        print(self.mCodebook)        
+        #print(self.mCodebook)        
         return
     
     def save(self,imgfname,datafname):

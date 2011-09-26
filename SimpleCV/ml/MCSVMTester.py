@@ -8,6 +8,7 @@ import os
 import glob
 import pickle
 from SVMClassifier import *
+from NaiveBayesClassifier import *
 
 w = 800
 h = 600
@@ -27,6 +28,12 @@ classes = ['cat','burger','empire']
 ##bof_extractor.generate(train_path)
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
+
+
+classifierBayes = NaiveBayesClassifier([hue_extractor,bof_extractor])#,edge_extractor])
+classifierBayes.train(train_path,classes,disp=display,subset=10) #train
+[pos,neg,confuse] = classifierBayes.test(test_path,classes,disp=display,subset=10)
+
 
 #Set up am SVM with a poly kernel
 props ={
