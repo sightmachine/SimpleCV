@@ -10,10 +10,20 @@ import os
 import glob #for directory scanning
 import time
 """
-This is more or less a hack space right now so I can do a proof of concept
-on some of the ML stuff
+This class is encapsulates almost everything needed to train, test, and deploy a
+multiclass support vector machine for an image classifier. Training data should
+be stored in separate directories for each class. This class uses the feature
+extractor base class to  convert images into a feature vector. The basic workflow
+is as follows.
+1. Get data.
+2. Setup Feature Extractors (roll your own or use the ones I have written).
+3. Train the classifier.
+4. Test the classifier.
+5. Tweak parameters as necessary.
+6. Repeat until you reach the desired accuracy.
+7. Save the classifier.
+8. Deploy using the classify method. 
 """
-#KAS - we need a way to save and load the feature extractors from file
 class SVMClassifier:
     mClassNames = []
     mDataSetRaw = [] 
@@ -45,14 +55,21 @@ class SVMClassifier:
     }
     #human readable to CV constant property mapping
     
-    def __init__(self,classes,featureExtractors,properties=None):
-        self.mClassNames = classes
+    def __init__(self,featureExtractors,properties=None):
         self.mFeatureExtractors =  featureExtractors    
         if(properties is not None):
             self.mSVMProperties = properties
-        self._setKernel()
-        self._setType(type)
         self._parameterizeKernel()
+        
+    def setProperties(self, properties):
+        """
+        Note that resetting the properties will reset the SVM and you will need
+        to retrain. 
+        """
+        if(properties is not None):
+            self.mSVMProperties = properties
+        self._parameterizeKernel()
+        
             
     def _parameterizeKernel(self):
         #Set the parameters for our SVM
@@ -84,12 +101,9 @@ class SVMClassifier:
         Save the classifier to file
         """
         output = open(fname, 'wb')
-        pickle.dump(self,output,2)
+        pickle.dump(self,output,2) # use two otherwise it borks the system 
         output.close()
-                
-        #if( self.mDataSetOrange is not None ):
-         #   orange.saveTabDelimited (fname, self.mDataSetOrange)
-        #return False
+
     
     def classify(self, image):
         """
@@ -113,7 +127,8 @@ class SVMClassifier:
     def setFeatureExtractors(self, extractors):
         """
         Add a list of feature extractors to the classifier. These feature extractors
-        must match the ones used to train the classifier. 
+        must match the ones used to train the classifier. If the classifier is already
+        trained then this method will require that you retrain the data. 
         """
         self.mFeatureExtractors = extractors
         return None

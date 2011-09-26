@@ -23,30 +23,39 @@ cheeseburger_test_path = "./data/cheeseburger/test/"
 data_test_path = "./data/empire/test/"
 train_path = [cat_train_path,cheeseburger_train_path,empire_train_path]
 test_path = [cat_test_path,cheeseburger_test_path,empire_train_path]
-classes = ['cat','cheeseburger','empire']
+classes = ['cat','burger','empire']
 ##bof_extractor.generate(train_path)
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
 
-#
-#classifier = SVMClassifier(classes,[hue_extractor,bof_extractor])#,edge_extractor])
-#
-#
-#classifier.train(train_path,classes,disp=display,subset=10)
-##classifier.test(test_path,classes,disp=display,subset=50)
-#bof_extractor.mCodebookImg = None
-#classifier.save('test.pkl')
-#print 'pickled'
-#classifier2 = SVMClassifier(classes,[hue_extractor,bof_extractor])#,edge_extractor])
-classifier2 = SVMClassifier.load('test.pkl')
-#input = open('data.pkl', 'rb')
-#print 'starting load'
-#classifier2 = pickle.load(input)
-#input.close()
-#print 'let us give this a shot'
-print(classifier2)
-classifier2.test(test_path,classes,disp=display,subset=5)
-#print('whoa! that worked')
+#Set up am SVM with a poly kernel
+props ={
+        'KernelType':'Poly', #default is a RBF Kernel
+        'SVMType':'C',     #default is C 
+        'nu':None,          # NU for SVM NU
+        'c':None,           #C for SVM C - the slack variable
+        'degree':3,      #degree for poly kernels - defaults to 3
+        'coef':None,        #coef for Poly/Sigmoid defaults to 0
+        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
+    }
+classifier = SVMClassifier([hue_extractor,bof_extractor],props)#,edge_extractor])
+classifier.train(train_path,classes,disp=display,subset=10) #train
+[pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=10)
+
+# now try an RBF kernel
+props ={
+        'KernelType':'RBF', #default is a RBF Kernel
+        'SVMType':'NU',     #default is C 
+        'nu':None,          # NU for SVM NU
+        'c':None,           #C for SVM C - the slack variable
+        'degree':None,      #degree for poly kernels - defaults to 3
+        'coef':None,        #coef for Poly/Sigmoid defaults to 0
+        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
+    }
+classifier.setProperties(props)
+classifier.train(train_path,classes,disp=display,subset=10)
+[pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=10)
+classifier.save('class.pkl')
 
 
 
