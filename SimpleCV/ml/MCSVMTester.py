@@ -9,9 +9,11 @@ import glob
 import pickle
 from SVMClassifier import *
 from NaiveBayesClassifier import *
-
+from KNNClassifier import *
 w = 800
 h = 600
+n=10
+
 display = Display(resolution = (w,h))
 hue_extractor = HueHistogramFeatureExtractor(mNBins=16)
 edge_extractor = EdgeHistogramFeatureExtractor()
@@ -28,12 +30,21 @@ classes = ['cat','burger','empire']
 ##bof_extractor.generate(train_path)
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
-
-
+print('###############################################################################')
+print('KNN')
+classifierKNN = KNNClassifier([hue_extractor,bof_extractor])#
+print('Train')
+classifierKNN.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierKNN.test(test_path,classes,disp=display,subset=n)
+print('###############################################################################')
+print('Bayes')
 classifierBayes = NaiveBayesClassifier([hue_extractor,bof_extractor])#,edge_extractor])
-classifierBayes.train(train_path,classes,disp=display,subset=10) #train
-[pos,neg,confuse] = classifierBayes.test(test_path,classes,disp=display,subset=10)
-
+print('Train')
+classifierBayes.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierBayes.test(test_path,classes,disp=display,subset=n)
+print('###############################################################################')
 
 #Set up am SVM with a poly kernel
 props ={
@@ -46,8 +57,8 @@ props ={
         'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
     }
 classifier = SVMClassifier([hue_extractor,bof_extractor],props)#,edge_extractor])
-classifier.train(train_path,classes,disp=display,subset=10) #train
-[pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=10)
+classifier.train(train_path,classes,disp=display,subset=n) #train
+[pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=n)
 
 # now try an RBF kernel
 props ={
@@ -60,8 +71,8 @@ props ={
         'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
     }
 classifier.setProperties(props)
-classifier.train(train_path,classes,disp=display,subset=10)
-[pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=10)
+classifier.train(train_path,classes,disp=display,subset=n)
+[pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=n)
 classifier.save('class.pkl')
 
 

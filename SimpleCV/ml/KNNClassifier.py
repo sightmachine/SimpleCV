@@ -11,7 +11,7 @@ import glob #for directory scanning
 import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
-multiclass support vector machine for an image classifier. Training data should
+multiclass k-nearest neighbors image classifier. Training data should
 be stored in separate directories for each class. This class uses the feature
 extractor base class to  convert images into a feature vector. The basic workflow
 is as follows.
@@ -24,18 +24,45 @@ is as follows.
 7. Save the classifier.
 8. Deploy using the classify method. 
 """
-class NaiveBayesClassifier:
+class KNNClassifier:
     mClassNames = []
-    mDataSetRaw = [] 
+    mDataSetRaw = []
+    mK=3
+    mDistType = None
     mDataSetOrange = []
     mClassifier = None
     mFeatureExtractors = None
     mOrangeDomain = None
+
+    mDistDict = {
+        'Hamming': orange.ExamplesDistanceConstructor_Hamming(), # Hamming - only good for discrete variables
+        'Maximal': orange.ExamplesDistance_Maximal(),
+        'Manhattan':orange.ExamplesDistanceConstructor_Manhattan(),
+        'Euclidean':orange.ExamplesDistanceConstructor_Euclidean(),
+        'Normalized':None
+    }
     
-    def __init__(self,featureExtractors):
-        self.mFeatureExtractors =  featureExtractors    
+    def __init__(self,featureExtractors,k=3,dist='Normalized'):
+        """
+        dist = distance algorithm
+        k = number of nearest neighbors
+        """
+        self.mFeatureExtractors =  featureExtractors
+        self.mDistType = self.mDistDict[dist];
+        self.mK = k;
         
-        
+    def setK(self,k):
+        """
+        Note that training and testing will need to be redone.
+        """
+        self.mK = k
+    
+    def setDistanceMetric(self,dist):
+        """
+        Note that training and testing will need to be redone.
+        """
+        self.mDistType = self.mDistDict[dist]
+
     def load(cls, fname):
         """
         Load the classifier from file
@@ -154,7 +181,11 @@ class NaiveBayesClassifier:
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
-        self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+        self.mClassifier =  orange.kNNLearner()
+        self.mClassifier.k = self.mK
+        if(self.mDistType is not None):
+            self.mClassifier.distanceConstructor = self.mDistType        
+        self.mClassifier = self.mClassifier(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
