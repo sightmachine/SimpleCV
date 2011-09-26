@@ -357,6 +357,10 @@ class Chessboard(Feature):
   
 
 class TemplateMatch(Feature):
+    """
+    This class is used for template (pattern) matching in images
+    The template matching cannot handle scale or rotation
+    """
 
     template_image = None
     quality = 0

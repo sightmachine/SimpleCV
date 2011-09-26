@@ -1988,6 +1988,24 @@ class Image:
             return Image(imgSurf)
             
     def findTemplate(self, template_image = None, threshold = 1):
+        """
+        This function searches an image for a template image.  The template
+        image is a smaller image that is searched for in the bigger image.
+        This is a basic pattern finder in an image.  This uses the standard
+        OpenCV template (pattern) matching and cannot handle scaling or rotation
+
+        Example:
+        image = Image("/path/to/img.png")
+        pattern_image = image.crop(100,100,100,100)
+
+        found_patterns = image.findTemplate(pattern_image)
+        found_patterns.draw()
+        image.show()
+
+
+
+        RETURNS: FeatureSet
+        """
         if(template_image == None):
             print "Need image for matching"
             return
@@ -2000,36 +2018,27 @@ class Image:
             print "Image too tall"
             return
 
-        #load template image
-        tpl = template_image.getBitmap()
-        
-        #get image's properties
-        img_width  = self.width
-        img_height = self.height
-        tpl_width  = template_image.width
-        tpl_height = template_image.height
-        res_width  = img_width - tpl_width + 1
-        res_height = img_height - tpl_height + 1
 
         #create new image for template matching computation
-        #res = cvCreateImage( cvSize( res_width, res_height ), IPL_DEPTH_32F, 1 );
-        n = cv.CreateMat(res_height, res_width, cv.CV_32FC1)
-
+        matches = cv.CreateMat( (self.height - template_image.height + 1),
+                                (self.width - template_image.width + 1),
+                                cv.CV_32FC1)
+            
         #choose template matching method to be used
-        cv.MatchTemplate( self.getBitmap(), tpl, n, cv.CV_TM_SQDIFF )
+        cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, cv.CV_TM_SQDIFF )
         #cvMatchTemplate( img, tpl, res, CV_TM_SQDIFF_NORMED );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCORR );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCORR_NORMED );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF_NORMED );
-        #~ threshold = 10000000
-        compute = np.where(n < np.min(n) + threshold)
+
+        compute = np.where(matches < np.min(matches) + threshold)
         mapped = map(tuple, np.column_stack(compute))
         fs = FeatureSet()
         for location in mapped:
-            fs.append(TemplateMatch(self, tpl, location, n[location[0], location[1]]))
+            fs.append(TemplateMatch(self, template_image.getBitmap(), location, matches[location[0], location[1]]))
             
         return fs
-        #~ cvMinMaxLoc( res, &minval, &maxval, &minloc, &maxloc, 0 );
+
         
 from SimpleCV.BlobMaker import BlobMaker
