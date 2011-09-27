@@ -10,6 +10,8 @@ import pickle
 from SVMClassifier import *
 from NaiveBayesClassifier import *
 from KNNClassifier import *
+from TreeClassifier import *
+
 w = 800
 h = 600
 n=10
@@ -30,6 +32,13 @@ classes = ['cat','burger','empire']
 ##bof_extractor.generate(train_path)
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
+print('###############################################################################')
+print('KNN')
+classifierTree = TreeClassifier([hue_extractor,bof_extractor])#
+print('Train')
+classifierTree.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierTree.test(test_path,classes,disp=display,subset=n)
 print('###############################################################################')
 print('KNN')
 classifierKNN = KNNClassifier([hue_extractor,bof_extractor])#
