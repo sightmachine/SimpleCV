@@ -354,24 +354,3 @@ class Chessboard(Feature):
         q = sqform[1][3] 
         s = (a + b + c + d)/2.0 
         return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
-  
-
-class OCR(Feature):
-
-    image = None
-    text = None
-    
-    def __init__(self, image = None):
-        self.image = image
-        #~ self.x = x + self._width/2
-        #~ self.y = y + self._height/2 #set location of feature to middle of rectangle
-        #~ self.points = ((x, y), (x + self._width, y), (x + self._width, y + self._height), (x, y + self._height))
-    
-    def draw(self, color = Color.GREEN):
-        """
-        Draw the bounding rectangle, default color green
-        """
-        self.image.drawLine(self.points[0], self.points[1], color)
-        self.image.drawLine(self.points[1], self.points[2], color)
-        self.image.drawLine(self.points[2], self.points[3], color)
-        self.image.drawLine(self.points[3], self.points[0], color)

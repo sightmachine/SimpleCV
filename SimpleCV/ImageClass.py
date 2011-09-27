@@ -3,7 +3,7 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard,OCR
+from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
@@ -1987,16 +1987,21 @@ class Image:
             indicies.reverse()
             return Image(imgSurf)
 
-    def findText(self):
+    def readText(self):
         """
         This function will return any text it can find using OCR on the
         image.
+
+        Please note that it does not handle rotation well, so if you need
+        it in your application try to rotate and/or crop the area so that
+        the text would be the same way a document is read
+
+        RETURNS: String
         """
 
         if(not OCR_ENABLED):
             return "Please install the correct OCR library required"
         
-        findOCR = OCR(self)
         api = tesseract.TessBaseAPI()
         api.SetOutputName("outputName")
         api.Init(".","eng",tesseract.OEM_DEFAULT)
@@ -2008,9 +2013,6 @@ class Image:
         jpgdata.seek(0)
         stringbuffer = jpgdata.read()
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
-        findOCR.text = result
-        fs = FeatureSet()
-        fs.append(findOCR)
-        return fs
+        return result
 
 from SimpleCV.BlobMaker import BlobMaker
