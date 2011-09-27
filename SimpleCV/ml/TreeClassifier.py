@@ -6,12 +6,13 @@ import pickle
 import orange
 import orngTest #for cross validation
 import orngStat
+import orngEnsemble # for bagging / boosting
 import os
 import glob #for directory scanning
 import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
-multiclass k-nearest neighbors image classifier. Training data should
+multiclass decision tree / forrest image classifier. Training data should
 be stored in separate directories for each class. This class uses the feature
 extractor base class to  convert images into a feature vector. The basic workflow
 is as follows.
@@ -29,15 +30,16 @@ class TreeClassifier:
     mDataSetRaw = []
     mDataSetOrange = []
     mClassifier = None
+    mTree = None
     mFeatureExtractors = None
     mOrangeDomain = None
 
     mTreeTypeDict = {
         "C45":0,     # Vanilla C45 implementation
         "Tree":1,    # A vanilla classification tree
-        "Bagging":2, # Bootstrap aggregating aka bagging - make new data sets and test on them
+        "Bagged":2, # Bootstrap aggregating aka bagging - make new data sets and test on them
         "Forrest":3, # Lots of little trees
-        "Boosting":4 # Highly optimized trees. 
+        "Boosted":4 # Highly optimized trees. 
     }
     
     #mSplitMethodDict = {
@@ -48,11 +50,12 @@ class TreeClassifier:
     #    "Threshold": orange.TreeSplitConstructor_Threshold() # RIGHT NOW USE ONLY THIS - Only option for continuous variables. 
     #}
     
-    def __init__(self,featureExtractors,k=3,dist='Normalized'):
+    def __init__(self,featureExtractors,flavor='Tree'):
         """
         dist = distance algorithm
         k = number of nearest neighbors
         """
+        self.mFlavor = self.mTreeTypeDict[flavor]
         self.mFeatureExtractors =  featureExtractors
         
 
@@ -174,8 +177,24 @@ class TreeClassifier:
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
-        self.mClassifier =  orange.TreeLearner()      
-        self.mClassifier = self.mClassifier(self.mDataSetOrange)
+        if(self.mFlavor == 0):
+            self.mClassifier =  orange.TreeLearner()      
+            self.mClassifier = self.mClassifier(self.mDataSetOrange)            
+        elif(self.mFlavor == 1):
+            self.mClassifier =  orange.TreeLearner()      
+            self.mClassifier = self.mClassifier(self.mDataSetOrange)            
+        elif(self.mFlavor == 2): #bagged
+            self.mTree =  orange.TreeLearner()      
+            self.mClassifier = orngEnsemble.BaggedLearner(self.mTree)
+            self.mClassifier = self.mClassifier(self.mDataSetOrange) 
+        elif(self.mFlavor == 3):#forrest
+            self.mClassifier =  orngEnsemble.RandomForestLearner(trees=50, name="forest")
+            self.mClassifier = self.mClassifier(self.mDataSetOrange) 
+        elif(self.mFlavor == 4):#boosted
+            self.mTree =  orange.TreeLearner()      
+            self.mClassifier = orngEnsemble.BoostedLearner(self.mTree)
+            self.mClassifier = self.mClassifier(self.mDataSetOrange)     
+
         correct = 0
         incorrect = 0
         for i in range(count):
@@ -202,7 +221,11 @@ class TreeClassifier:
             print "\t"+"\t".join(classes)
             for className, classConfusions in zip(classes, confusion):
                 print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-        self._PrintTree(self.mClassifier)
+                
+            if(self.mFlavor == 1):
+                self._PrintTree(self.mClassifier)
+            #else:
+            #    self._PrintTree(self.mTree)
         return [good, bad, confusion]
 
 
@@ -317,6 +340,7 @@ class TreeClassifier:
             img.save(disp)
             
     def _PrintTree(self,x):
+        #adapted from the orange documentation
         if type(x) == orange.TreeClassifier:
             self._PrintTree0(x.tree, 0)
         elif type(x) == orange.TreeNode:
@@ -325,6 +349,7 @@ class TreeClassifier:
             raise TypeError, "invalid parameter"
 
     def _PrintTree0(self,node,level):
+        #adapted from the orange documentation
         if not node:
             print " "*level + "<null node>"
             return

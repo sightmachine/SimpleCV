@@ -32,13 +32,37 @@ classes = ['cat','burger','empire']
 ##bof_extractor.generate(train_path)
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
+n=50
 print('###############################################################################')
-print('KNN')
-classifierTree = TreeClassifier([hue_extractor,bof_extractor])#
+print('Bagged Tree')
+classifierBaggedTree = TreeClassifier([hue_extractor],flavor='Bagged')#
+print('Train')
+classifierBaggedTree.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierBaggedTree.test(test_path,classes,disp=display,subset=n)
+print('###############################################################################')
+print('Boosted Tree')
+classifierBoostedTree = TreeClassifier([hue_extractor],flavor='Boosted')#
+print('Train')
+classifierBoostedTree.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierBoostedTree.test(test_path,classes,disp=display,subset=n)
+print('###############################################################################')
+print('Forrest')
+classifierForrest = TreeClassifier([hue_extractor],flavor='Forrest')#
+print('Train')
+classifierForrest.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierForrest.test(test_path,classes,disp=display,subset=n)
+print('###############################################################################')
+print('Vanilla Tree')
+classifierTree = TreeClassifier([hue_extractor])#
 print('Train')
 classifierTree.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierTree.test(test_path,classes,disp=display,subset=n)
+
+n=10
 print('###############################################################################')
 print('KNN')
 classifierKNN = KNNClassifier([hue_extractor,bof_extractor])#
