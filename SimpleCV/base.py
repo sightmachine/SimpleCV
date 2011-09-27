@@ -56,6 +56,12 @@ try:
 except ImportError:
     FREENECT_ENABLED = False 
 
+OCR_ENABLED = True
+try:
+    import tesseract
+except ImportError:
+    OCR_ENABLED = False
+
 #couple quick typecheck helper functions
 def is_number(n):
     """

@@ -3,7 +3,7 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard
+from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard,OCR
 from SimpleCV.Features import FeatureSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
@@ -1986,5 +1986,31 @@ class Image:
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+
+    def findText(self):
+        """
+        This function will return any text it can find using OCR on the
+        image.
+        """
+
+        if(not OCR_ENABLED):
+            return "Please install the correct OCR library required"
+        
+        findOCR = OCR(self)
+        api = tesseract.TessBaseAPI()
+        api.SetOutputName("outputName")
+        api.Init(".","eng",tesseract.OEM_DEFAULT)
+        api.SetPageSegMode(tesseract.PSM_AUTO)
+
+
+        jpgdata = StringIO()
+        self.getPIL().save(jpgdata, "jpeg")
+        jpgdata.seek(0)
+        stringbuffer = jpgdata.read()
+        result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
+        findOCR.text = result
+        fs = FeatureSet()
+        fs.append(findOCR)
+        return fs
 
 from SimpleCV.BlobMaker import BlobMaker
