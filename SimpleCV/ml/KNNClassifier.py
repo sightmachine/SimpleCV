@@ -202,7 +202,7 @@ class KNNClassifier:
         bad = 100*(float(incorrect)/float(count))
 
         confusion = 0
-        crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
+        crossValidator = orngTest.learnAndTestOnLearnData([orange.kNNLearner],self.mDataSetOrange)
         confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
@@ -258,7 +258,7 @@ class KNNClassifier:
         if savedata is not None:
             orange.saveTabDelimited (savedata, testData)
                 
-        crossValidator = orngTest.learnAndTestOnTestData([orange.BayesLearner()],self.mDataSetOrange,testData)
+        crossValidator = orngTest.learnAndTestOnTestData([orange.kNNLearner()],self.mDataSetOrange,testData)
         confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))

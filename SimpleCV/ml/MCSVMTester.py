@@ -33,34 +33,35 @@ classes = ['cat','burger','empire']
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
 n=50
-print('###############################################################################')
-print('Bagged Tree')
-classifierBaggedTree = TreeClassifier([hue_extractor],flavor='Bagged')#
-print('Train')
-classifierBaggedTree.train(train_path,classes,disp=display,subset=n) #train
-print('Test')
-[pos,neg,confuse] = classifierBaggedTree.test(test_path,classes,disp=display,subset=n)
+#print('###############################################################################')
+#print('Vanilla Tree')
+#classifierTree = TreeClassifier([hue_extractor])#
+#print('Train')
+#classifierTree.train(train_path,classes,disp=display,subset=n) #train
+#print('Test')
+#[pos,neg,confuse] = classifierTree.test(test_path,classes,disp=display,subset=n)
 print('###############################################################################')
 print('Boosted Tree')
 classifierBoostedTree = TreeClassifier([hue_extractor],flavor='Boosted')#
 print('Train')
-classifierBoostedTree.train(train_path,classes,disp=display,subset=n) #train
+classifierBoostedTree.train([cat_train_path,cheeseburger_train_path],['cat','burger'],disp=display,subset=n) #train
 print('Test')
-[pos,neg,confuse] = classifierBoostedTree.test(test_path,classes,disp=display,subset=n)
+[pos,neg,confuse] = classifierBoostedTree.test([cat_test_path,cheeseburger_test_path],['cat','burger'],disp=display,subset=n)
+
 print('###############################################################################')
-print('Forrest')
-classifierForrest = TreeClassifier([hue_extractor],flavor='Forrest')#
+print('Bagged Tree')
+classifierBaggedTree = TreeClassifier([hue_extractor],flavor='Bagged')#
 print('Train')
-classifierForrest.train(train_path,classes,disp=display,subset=n) #train
-print('Test')
-[pos,neg,confuse] = classifierForrest.test(test_path,classes,disp=display,subset=n)
+classifierBaggedTree.train([cat_train_path,cheeseburger_train_path],['cat','burger'],disp=display,subset=n)
+[pos,neg,confuse] = classifierBaggedTree.test([cat_test_path,cheeseburger_test_path],['cat','burger'],disp=display,subset=n)
+
 print('###############################################################################')
-print('Vanilla Tree')
-classifierTree = TreeClassifier([hue_extractor])#
+print('Forest')
+classifierForest = TreeClassifier([hue_extractor],flavor='Forest')#
 print('Train')
-classifierTree.train(train_path,classes,disp=display,subset=n) #train
+classifierForest.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
-[pos,neg,confuse] = classifierTree.test(test_path,classes,disp=display,subset=n)
+[pos,neg,confuse] = classifierForest.test(test_path,classes,disp=display,subset=n)
 
 n=10
 print('###############################################################################')

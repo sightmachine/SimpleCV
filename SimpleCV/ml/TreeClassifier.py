@@ -12,7 +12,7 @@ import glob #for directory scanning
 import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
-multiclass decision tree / forrest image classifier. Training data should
+multiclass decision tree / forest image classifier. Training data should
 be stored in separate directories for each class. This class uses the feature
 extractor base class to  convert images into a feature vector. The basic workflow
 is as follows.
@@ -33,31 +33,43 @@ class TreeClassifier:
     mTree = None
     mFeatureExtractors = None
     mOrangeDomain = None
+    mFlavorParams = None
 
     mTreeTypeDict = {
-        "C45":0,     # Vanilla C45 implementation
-        "Tree":1,    # A vanilla classification tree
-        "Bagged":2, # Bootstrap aggregating aka bagging - make new data sets and test on them
-        "Forrest":3, # Lots of little trees
-        "Boosted":4 # Highly optimized trees. 
+        "Tree":0,    # A vanilla classification tree
+        "Bagged":1, # Bootstrap aggregating aka bagging - make new data sets and test on them
+        "Forest":2, # Lots of little trees
+        "Boosted":3 # Highly optimized trees. 
     }
     
-    #mSplitMethodDict = {
-    #    "Default":None,
-    #    "Attribute":orange.TreeSplitConstructor_Attribute(),
-    #    "Measure":orange.TreeSplitConstructor_Measure(),
-    #    "Exhaustive":orange.TreeSplitConstructor_ExhaustiveBinary(),
-    #    "Threshold": orange.TreeSplitConstructor_Threshold() # RIGHT NOW USE ONLY THIS - Only option for continuous variables. 
-    #}
-    
-    def __init__(self,featureExtractors,flavor='Tree'):
+    mforestFlavorDict = {
+        "NTrees":100, #number of trees in our forest
+        "NAttributes":None # number of attributes per split sqrt(features) is default
+     }
+    mBoostedFlavorDict = {
+        "NClassifiers":10, #number of learners 
+    }
+    mBaggedFlavorDict = {
+        "NClassifiers":10, #numbers of classifiers / tree splits
+    }
+
+    def __init__(self,featureExtractors,flavor='Tree',flavorDict=None):
         """
         dist = distance algorithm
         k = number of nearest neighbors
         """
         self.mFlavor = self.mTreeTypeDict[flavor]
+
+        if(flavorDict is None):
+            if(self.mFlavor == self.mTreeTypeDict["Bagged"]):
+                self.mFlavorParams = self.mBaggedFlavorDict 
+            elif(self.mFlavor == self.mTreeTypeDict["Forest"]):
+                self.mFlavorParams = self.mforestFlavorDict #mmmm tastes like pinecones and squirrels 
+            elif(self.mFlavor == self.mTreeTypeDict["Boosted"]):
+                self.mFlavorParams = self.mBoostedFlavorDict
+        else:
+            self.mFlavorParams = flavorDict
         self.mFeatureExtractors =  featureExtractors
-        
 
     def load(cls, fname):
         """
@@ -157,6 +169,9 @@ class TreeClassifier:
         verbose - print confusion matrix and file names 
         returns [%Correct %Incorrect Confusion_Matrix]
         """
+        if( (self.mFlavor == 1 or self.mFlavor == 3) and len(classNames) > 2):
+            warnings.warn("Boosting / Bagging only works for binary classification tasks!!!")
+            
         count = 0
         self.mClassNames = classNames
         # fore each class, get all of the data in the path and train
@@ -176,22 +191,21 @@ class TreeClassifier:
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
-
+        
         if(self.mFlavor == 0):
             self.mClassifier =  orange.TreeLearner()      
             self.mClassifier = self.mClassifier(self.mDataSetOrange)            
-        elif(self.mFlavor == 1):
-            self.mClassifier =  orange.TreeLearner()      
-            self.mClassifier = self.mClassifier(self.mDataSetOrange)            
-        elif(self.mFlavor == 2): #bagged
-            self.mTree =  orange.TreeLearner()      
-            self.mClassifier = orngEnsemble.BaggedLearner(self.mTree)
+        elif(self.mFlavor == 1): #bagged
+            self.mTree =  orange.TreeLearner()
+            self.mClassifier = orngEnsemble.BaggedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
             self.mClassifier = self.mClassifier(self.mDataSetOrange) 
-        elif(self.mFlavor == 3):#forrest
-            self.mClassifier =  orngEnsemble.RandomForestLearner(trees=50, name="forest")
+        elif(self.mFlavor == 2):#forest
+            self.mTree =  orange.TreeLearner()
+            self.mClassifier =  orngEnsemble.RandomForestLearner(trees=self.mFlavorParams["NTrees"], attributes=self.mFlavorParams["NAttributes"])
             self.mClassifier = self.mClassifier(self.mDataSetOrange) 
-        elif(self.mFlavor == 4):#boosted
-            self.mTree =  orange.TreeLearner()      
+        elif(self.mFlavor == 3):#boosted
+            self.mTree =  orange.TreeLearner()
+            self.mClassifier = orngEnsemble.BoostedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
             self.mClassifier = orngEnsemble.BoostedLearner(self.mTree)
             self.mClassifier = self.mClassifier(self.mDataSetOrange)     
 
@@ -211,21 +225,22 @@ class TreeClassifier:
         bad = 100*(float(incorrect)/float(count))
 
         confusion = 0
-        crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
-        confusion = orngStat.confusionMatrices(crossValidator)[0]
+        if( self.mFlavor != 1 and self.mFlavor != 3):
+            crossValidator = orngTest.learnAndTestOnLearnData([self.mClassifier],self.mDataSetOrange)
+            confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
             print("Correct: "+str(good))
             print("Incorrect: "+str(bad))
-            classes = self.mDataSetOrange.domain.classVar.values
-            print "\t"+"\t".join(classes)
-            for className, classConfusions in zip(classes, confusion):
-                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-                
-            if(self.mFlavor == 1):
-                self._PrintTree(self.mClassifier)
-            #else:
-            #    self._PrintTree(self.mTree)
+            if( confusion != 0 ):
+                classes = self.mDataSetOrange.domain.classVar.values
+                print "\t"+"\t".join(classes)
+                for className, classConfusions in zip(classes, confusion):
+                    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(    classConfusions))
+                    
+        if(self.mFlavor == 0):
+            self._PrintTree(self.mClassifier)
+
         return [good, bad, confusion]
 
 
@@ -271,19 +286,21 @@ class TreeClassifier:
         if savedata is not None:
             orange.saveTabDelimited (savedata, testData)
                 
-        crossValidator = orngTest.learnAndTestOnTestData([orange.BayesLearner()],self.mDataSetOrange,testData)
-        confusion = orngStat.confusionMatrices(crossValidator)[0]
+        confusion = 0
+        if( self.mFlavor != 1 and self.mFlavor != 3):
+            crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
+            confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))
         bad = 100*(float(count-correct)/float(count))
         if verbose:
             print("Correct: "+str(good))
             print("Incorrect: "+str(bad))
-            classes = self.mDataSetOrange.domain.classVar.values
-            print "\t"+"\t".join(classes)
-            for className, classConfusions in zip(classes, confusion):
-                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-            
+            if( confusion != 0 ):
+                classes = self.mDataSetOrange.domain.classVar.values
+                print "\t"+"\t".join(classes)
+                for className, classConfusions in zip(classes, confusion):
+                    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(    classConfusions))
         return [good, bad, confusion]
     
     def _testPath(self,path,className,dataset,subset,disp,verbose):
