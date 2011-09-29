@@ -4,4 +4,4 @@ build/
 dist/
 SimpleCV/SimpleCV
 doc/_build/
-
+SimpleCV/.settings.xml
