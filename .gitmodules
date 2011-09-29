@@ -1,0 +1,3 @@
+[submodule "SimpleCV/utils/cloud9"]
+	path = SimpleCV/utils/cloud9
+	url = git@github.com:ingenuitas/cloud9.git
