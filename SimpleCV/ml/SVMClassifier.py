@@ -60,6 +60,11 @@ class SVMClassifier:
         if(properties is not None):
             self.mSVMProperties = properties
         self._parameterizeKernel()
+        self.mClassNames = []
+        self.mDataSetRaw = []
+        self.mDataSetOrange = []
+        self.mClassifier = None
+        self.mOrangeDomain = None
         
     def setProperties(self, properties):
         """
@@ -222,8 +227,10 @@ class SVMClassifier:
         good = 100*(float(correct)/float(count))
         bad = 100*(float(incorrect)/float(count))
 
-        crossValidator = orngTest.learnAndTestOnLearnData([self.mSVMPrototype],self.mDataSetOrange)
-        confusion = orngStat.confusionMatrices(crossValidator)[0]
+        confusion = 0
+        if( len(self.mClassNames) > 2 ):
+            crossValidator = orngTest.learnAndTestOnLearnData([self.mSVMPrototype],self.mDataSetOrange)
+            confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
             print("Correct: "+str(good))
@@ -278,8 +285,10 @@ class SVMClassifier:
         if savedata is not None:
             orange.saveTabDelimited (savedata, testdata)
                 
-        crossValidator = orngTest.learnAndTestOnTestData([self.mSVMPrototype],self.mDataSetOrange,testData)
-        confusion = orngStat.confusionMatrices(crossValidator)[0]
+        confusion = 0
+        if( len(self.mClassNames) > 2 ):
+            crossValidator = orngTest.learnAndTestOnTestData([self.mSVMPrototype],self.mDataSetOrange,testData)
+            confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))
         bad = 100*(float(count-correct)/float(count))

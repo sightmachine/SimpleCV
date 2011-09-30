@@ -30,6 +30,7 @@ class TreeClassifier:
     mDataSetRaw = []
     mDataSetOrange = []
     mClassifier = None
+    mLearner = None
     mTree = None
     mFeatureExtractors = None
     mOrangeDomain = None
@@ -58,8 +59,16 @@ class TreeClassifier:
         dist = distance algorithm
         k = number of nearest neighbors
         """
+        self.mClassNames = []
+        self.mDataSetRaw = []
+        self.mDataSetOrange = []
+        self.mClassifier = None
+        self.mLearner = None
+        self.mTree = None
+        self.mFeatureExtractors = None
+        self.mOrangeDomain = None
+        self.mFlavorParams = None        
         self.mFlavor = self.mTreeTypeDict[flavor]
-
         if(flavorDict is None):
             if(self.mFlavor == self.mTreeTypeDict["Bagged"]):
                 self.mFlavorParams = self.mBaggedFlavorDict 
@@ -169,8 +178,8 @@ class TreeClassifier:
         verbose - print confusion matrix and file names 
         returns [%Correct %Incorrect Confusion_Matrix]
         """
-        if( (self.mFlavor == 1 or self.mFlavor == 3) and len(classNames) > 2):
-            warnings.warn("Boosting / Bagging only works for binary classification tasks!!!")
+        #if( (self.mFlavor == 1 or self.mFlavor == 3) and len(classNames) > 2):
+        #    warnings.warn("Boosting / Bagging only works for binary classification tasks!!!")
             
         count = 0
         self.mClassNames = classNames
@@ -186,28 +195,26 @@ class TreeClassifier:
             warnings.warn("No features extracted - bailing")
             return None
         
-        # push our data into an orange example table
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
         
         if(self.mFlavor == 0):
-            self.mClassifier =  orange.TreeLearner()      
-            self.mClassifier = self.mClassifier(self.mDataSetOrange)            
+            self.mLearner =  orange.TreeLearner()      
+            self.mClassifier = self.mLearner(self.mDataSetOrange)            
         elif(self.mFlavor == 1): #bagged
             self.mTree =  orange.TreeLearner()
-            self.mClassifier = orngEnsemble.BaggedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
-            self.mClassifier = self.mClassifier(self.mDataSetOrange) 
+            self.mLearner = orngEnsemble.BaggedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
+            self.mClassifier = self.mLearner(self.mDataSetOrange) 
         elif(self.mFlavor == 2):#forest
             self.mTree =  orange.TreeLearner()
-            self.mClassifier =  orngEnsemble.RandomForestLearner(trees=self.mFlavorParams["NTrees"], attributes=self.mFlavorParams["NAttributes"])
-            self.mClassifier = self.mClassifier(self.mDataSetOrange) 
+            self.mLearner =  orngEnsemble.RandomForestLearner(trees=self.mFlavorParams["NTrees"], attributes=self.mFlavorParams["NAttributes"])
+            self.mClassifier = self.mLearner(self.mDataSetOrange) 
         elif(self.mFlavor == 3):#boosted
             self.mTree =  orange.TreeLearner()
-            self.mClassifier = orngEnsemble.BoostedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
-            self.mClassifier = orngEnsemble.BoostedLearner(self.mTree)
-            self.mClassifier = self.mClassifier(self.mDataSetOrange)     
+            self.mLearner = orngEnsemble.BoostedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
+            self.mClassifier = self.mLearner(self.mDataSetOrange)     
 
         correct = 0
         incorrect = 0
@@ -225,8 +232,8 @@ class TreeClassifier:
         bad = 100*(float(incorrect)/float(count))
 
         confusion = 0
-        if( self.mFlavor != 1 and self.mFlavor != 3):
-            crossValidator = orngTest.learnAndTestOnLearnData([self.mClassifier],self.mDataSetOrange)
+        if( len(self.mClassNames) > 2 ):
+            crossValidator = orngTest.learnAndTestOnLearnData([self.mLearner],self.mDataSetOrange)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
@@ -272,7 +279,8 @@ class TreeClassifier:
         colNames = []
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
-            self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
+            if(self.mOrangeDomain is None):
+                self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
         
         dataset = []
         for i in range(len(classNames)):
@@ -287,8 +295,8 @@ class TreeClassifier:
             orange.saveTabDelimited (savedata, testData)
                 
         confusion = 0
-        if( self.mFlavor != 1 and self.mFlavor != 3):
-            crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
+        if( len(self.mClassNames) > 2 ):
+            crossValidator = orngTest.learnAndTestOnTestData([self.mLearner],self.mDataSetOrange,testData)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))

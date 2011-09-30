@@ -14,7 +14,7 @@ from TreeClassifier import *
 
 w = 800
 h = 600
-n=10
+n=50
 
 display = Display(resolution = (w,h))
 hue_extractor = HueHistogramFeatureExtractor(mNBins=16)
@@ -32,29 +32,29 @@ classes = ['cat','burger','empire']
 ##bof_extractor.generate(train_path)
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
-n=50
-#print('###############################################################################')
-#print('Vanilla Tree')
-#classifierTree = TreeClassifier([hue_extractor])#
-#print('Train')
-#classifierTree.train(train_path,classes,disp=display,subset=n) #train
-#print('Test')
-#[pos,neg,confuse] = classifierTree.test(test_path,classes,disp=display,subset=n)
+print('###############################################################################')
+print('Vanilla Tree')
+classifierTree = TreeClassifier([hue_extractor])#
+print('Train')
+classifierTree.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierTree.test(test_path,classes,disp=display,subset=n)
+classifierTree.save('tree.pkl')
 print('###############################################################################')
 print('Boosted Tree')
 classifierBoostedTree = TreeClassifier([hue_extractor],flavor='Boosted')#
 print('Train')
-classifierBoostedTree.train([cat_train_path,cheeseburger_train_path],['cat','burger'],disp=display,subset=n) #train
+classifierBoostedTree.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
-[pos,neg,confuse] = classifierBoostedTree.test([cat_test_path,cheeseburger_test_path],['cat','burger'],disp=display,subset=n)
-
+[pos,neg,confuse] = classifierBoostedTree.test(test_path,classes,disp=display,subset=n)
+classifierBoostedTree.save('boosted.pkl')
 print('###############################################################################')
 print('Bagged Tree')
 classifierBaggedTree = TreeClassifier([hue_extractor],flavor='Bagged')#
 print('Train')
 classifierBaggedTree.train([cat_train_path,cheeseburger_train_path],['cat','burger'],disp=display,subset=n)
 [pos,neg,confuse] = classifierBaggedTree.test([cat_test_path,cheeseburger_test_path],['cat','burger'],disp=display,subset=n)
-
+classifierBaggedTree.save('bagged.pkl')
 print('###############################################################################')
 print('Forest')
 classifierForest = TreeClassifier([hue_extractor],flavor='Forest')#
@@ -62,24 +62,25 @@ print('Train')
 classifierForest.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierForest.test(test_path,classes,disp=display,subset=n)
-
-n=10
+classifierForest.save('forest.pkl')
 print('###############################################################################')
 print('KNN')
-classifierKNN = KNNClassifier([hue_extractor,bof_extractor])#
+classifierKNN = KNNClassifier([hue_extractor])#
 print('Train')
 classifierKNN.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierKNN.test(test_path,classes,disp=display,subset=n)
+classifierKNN.save('knn.pkl')
 print('###############################################################################')
 print('Bayes')
-classifierBayes = NaiveBayesClassifier([hue_extractor,bof_extractor])#,edge_extractor])
+classifierBayes = NaiveBayesClassifier([hue_extractor])#,edge_extractor])
 print('Train')
 classifierBayes.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierBayes.test(test_path,classes,disp=display,subset=n)
+classifierBayes.save('bayes.pkl')
 print('###############################################################################')
-
+print('SVMPoly')
 #Set up am SVM with a poly kernel
 props ={
         'KernelType':'Poly', #default is a RBF Kernel
@@ -90,10 +91,12 @@ props ={
         'coef':None,        #coef for Poly/Sigmoid defaults to 0
         'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
     }
-classifier = SVMClassifier([hue_extractor,bof_extractor],props)#,edge_extractor])
+classifier = SVMClassifier([hue_extractor],props)#,edge_extractor])
 classifier.train(train_path,classes,disp=display,subset=n) #train
 [pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=n)
-
+classifier.save('PolySVM.pkl')
+print('###############################################################################')
+print('SVMRBG')
 # now try an RBF kernel
 props ={
         'KernelType':'RBF', #default is a RBF Kernel
@@ -107,7 +110,7 @@ props ={
 classifier.setProperties(props)
 classifier.train(train_path,classes,disp=display,subset=n)
 [pos,neg,confuse] = classifier.test(test_path,classes,disp=display,subset=n)
-classifier.save('class.pkl')
+classifier.save('RBFSVM.pkl')
 
 
 

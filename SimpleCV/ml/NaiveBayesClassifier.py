@@ -34,7 +34,11 @@ class NaiveBayesClassifier:
     
     def __init__(self,featureExtractors):
         self.mFeatureExtractors =  featureExtractors    
-        
+        self.mClassNames = []
+        self.mDataSetRaw = []
+        self.mDataSetOrange = []
+        self.mClassifier = None
+        self.mOrangeDomain = None
         
     def load(cls, fname):
         """
@@ -171,8 +175,9 @@ class NaiveBayesClassifier:
         bad = 100*(float(incorrect)/float(count))
 
         confusion = 0
-        crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
-        confusion = orngStat.confusionMatrices(crossValidator)[0]
+        if( len(self.mClassNames) > 2 ):
+            crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
+            confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
             print("Correct: "+str(good))
@@ -226,9 +231,11 @@ class NaiveBayesClassifier:
         
         if savedata is not None:
             orange.saveTabDelimited (savedata, testData)
-                
-        crossValidator = orngTest.learnAndTestOnTestData([orange.BayesLearner()],self.mDataSetOrange,testData)
-        confusion = orngStat.confusionMatrices(crossValidator)[0]
+        
+        confusion = 0
+        if( len(self.mClassNames) > 2 ):
+            crossValidator = orngTest.learnAndTestOnTestData([orange.BayesLearner()],self.mDataSetOrange,testData)
+            confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))
         bad = 100*(float(count-correct)/float(count))
