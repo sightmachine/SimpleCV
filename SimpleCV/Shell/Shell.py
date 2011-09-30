@@ -44,8 +44,8 @@ def magic_clear(self, arg):
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
-def main():
-    clear()
+
+def setup_shell():  
     banner = '+----------------------------------------------------+\n'
     banner += ' SimpleCV [interactive shell]\n'
     banner += '+----------------------------------------------------+\n'
@@ -73,9 +73,6 @@ def main():
     banner += '?Image.save\n'
     banner += '\t\twill give help on the image save function'
 
-    
-
-    
     exit_msg = '\nExiting the SimpleCV interactive shell\n'
     
 
@@ -91,6 +88,11 @@ def main():
     scvShell.IP.api.expose_magic("cheatsheet", magic_cheatsheet)
     scvShell.IP.api.expose_magic("example", magic_examples)
     
+    return scvShell
 
+def main():
+    clear()
+    
+    scvShell = setup_shell()
     #Note that all loaded libraries are inherited in the embedded ipython shell
     sys.exit(scvShell())
