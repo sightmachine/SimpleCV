@@ -2121,14 +2121,24 @@ class Image:
             w = min(self.width-pos[0],img.width)
             h = min(self.height-pos[1],img.height)
             cv.SetImageROI(img.getBitmap(),(0,0,w,h))
-        print('Size: '+str([self.width,self.height]))
-        print('Blit: '+str([w,h]))
-        print('Blit actual: '+ str([img.width,img.height]))
-        print('Pos: '+str(pos))
         cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))
         cv.Copy(img.getBitmap(),retVal.getBitmap())
         cv.ResetImageROI(img.getBitmap())
         cv.ResetImageROI(retVal.getBitmap())
         return retVal
+    
+    def integralImage(self):
+        """
+        Calculate the integral image and return it as a numpy array.
+        The integral image gives the sum of all of the pixels above and to the
+        right of a given pixel location. It is useful for computing Haar cascades.
+        The return type is a numpy array the same size of the image. The integral
+        image requires 32Bit values which are not easily supported by the SimpleCV
+        Image class.
+        """
+        img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1) 
+        cv.Integral(self._getGrayscaleBitmap(),img2)
+        return np.array(cv.GetMat(img2))
+        
 
 from SimpleCV.BlobMaker import BlobMaker
