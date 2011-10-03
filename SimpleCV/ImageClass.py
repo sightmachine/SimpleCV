@@ -146,7 +146,9 @@ class Image:
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
-        elif (type(source) == type(str()) and source != ''):
+        elif (type(source) == type(str())):
+            if source == '':
+                raise IOError("No filename provided to Image constructor")
             self.filename = source
             self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
             self._colorSpace = ColorSpace.BGR
