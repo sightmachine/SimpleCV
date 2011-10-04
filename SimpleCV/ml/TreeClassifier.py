@@ -183,7 +183,7 @@ class TreeClassifier:
             
         count = 0
         self.mClassNames = classNames
-        # fore each class, get all of the data in the path and train
+        # for each class, get all of the data in the path and train
         for i in range(len(classNames)):
             count = count + self._trainPath(paths[i],classNames[i],subset,disp,verbose)
            

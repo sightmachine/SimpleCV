@@ -2127,7 +2127,7 @@ class Image:
         cv.ResetImageROI(retVal.getBitmap())
         return retVal
     
-    def integralImage(self):
+    def integralImage(self,tilted=False):
         """
         Calculate the integral image and return it as a numpy array.
         The integral image gives the sum of all of the pixels above and to the
@@ -2136,8 +2136,14 @@ class Image:
         image requires 32Bit values which are not easily supported by the SimpleCV
         Image class.
         """
-        img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1) 
-        cv.Integral(self._getGrayscaleBitmap(),img2)
+        
+        if(tilted):
+            img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
+            img3 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1) 
+            cv.Integral(self._getGrayscaleBitmap(),img3,None,img2)
+        else:
+            img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1) 
+            cv.Integral(self._getGrayscaleBitmap(),img2)
         return np.array(cv.GetMat(img2))
         
 
