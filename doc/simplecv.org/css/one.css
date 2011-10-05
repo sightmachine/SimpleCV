@@ -70,10 +70,16 @@ iframe {border: none; display: block; position: absolute; top: 4em; right: 2em;}
 h1 {margin: 1em 0 2em;color: rgb(20,20,30);text-shadow: rgb(130,130,140) 0 1px 0;
 z-index: 1;
 position: relative;}
-h2 {color: rgb(70,70,80);text-shadow: #fff 0 1px 0;
+.pad h2 {
+color: rgb(70,70,80);
+text-shadow: #fff 0 1px 0;
 z-index: 1;
 position: relative;
 }
+h2 {
+color: #ccc;
+}
+
 footer {
 clear: both;
 margin: 1em auto;
@@ -111,9 +117,9 @@ background-image: linear-gradient(top, #eee, #ccc);
 filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#eeeeee', EndColorStr='#cccccc'); /* IE6–IE9 */
 }
 /* Theme */
-div.skin {background: url('../img/hive_sm.png'); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}
-div.skin2 {background: url('../img/stitch.png'); opacity: .5; filter: alpha(opacity=50); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}
-div.skin3 {background: url('../img/hive.png'); opacity: .3; filter: alpha(opacity=30); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}  
+div.skin {background: url('/hive_sm.png'); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}
+div.skin2 {background: url('/stitch.png'); opacity: .5; filter: alpha(opacity=50); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}
+div.skin3 {background: url('/hive.png'); opacity: .3; filter: alpha(opacity=30); height: 100%; position: absolute; top: 0; left: 0; width: 100%; z-index: 0; display: block;}  
 
 section .col3 {width: 30%; margin: 0 0 0 1em; float: left; text-align: left; font-size: .8em;}
 section .col3:last-child { width: 15em; margin-left: 3em;}  
