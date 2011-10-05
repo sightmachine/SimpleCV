@@ -1,5 +1,5 @@
 #contactable #contactable_inner {
-	background-image:url(images/feeback.png);
+	background-image:url(/feeback.png);
 	color:#FFFFFF;
 	background-color:#333333;
 	cursor:pointer;
@@ -101,7 +101,7 @@
 }
 
 #contactable form#contactForm #loading {
-	background: url(images/ajax-loader.gif) no-repeat;
+	background: url(/ajax-loader.gif) no-repeat;
 	width:55px;
 	height:55px;
 	margin: 100px auto;
