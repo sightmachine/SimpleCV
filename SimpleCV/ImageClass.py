@@ -2150,5 +2150,23 @@ class Image:
             cv.Integral(self._getGrayscaleBitmap(),img2)
         return np.array(cv.GetMat(img2))
         
+        
+    def convolve(self,kernel,center=None):
+        if(type(kernel)==np.ndarray):
+            sz = kernel.shape
+            kernel = kernel.astype(np.float32)
+            myKernel = cv.CreateMat(sz[0], sz[1], cv.CV_32FC1)
+            cv.SetData(myKernel, kernel.tostring(), kernel.dtype.itemsize * kernel.shape[1])
+        elif(type(kernel)==cv.mat):
+            myKernel = kernel
+        else:
+            warnings.warn("Convolution uses numpy arrays or cv.mat type.")
+            return None
+        retVal = self.getEmpty(3)
+        if(center is None):
+            cv.Filter2D(self.getBitmap(),retVal,myKernel)
+        else:
+            cv.Filter2D(self.getBitmap(),retVal,myKernel,center)
+        return Image(retVal)
 
 from SimpleCV.BlobMaker import BlobMaker

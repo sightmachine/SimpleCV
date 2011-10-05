@@ -920,6 +920,16 @@ def test_blob_methods():
         b.right(first)
         b.contains(first)
         b.overlaps(first)
-        
+def test_convolve():
+    img = Image(testimageclr)
+    kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
+    img2 = img.convolve(kernel,center=(2,2))
+    c=img.meanColor()
+    d=img2.meanColor()
+    e0 = abs(c[0]-d[0])
+    e1 = abs(c[1]-d[1])
+    e2 = abs(c[2]-d[2])
+    if( e0 > 1 or e1 > 1 or e2 > 1 ):
+        assert False
 #def test_get_holes()
 #def test 
