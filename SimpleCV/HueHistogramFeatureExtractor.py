@@ -4,10 +4,10 @@ from SimpleCV.FeatureExtractorBase import *
 import abc
 
 
-class HaarLikeFeatureExtractor(object):
+class HueHistogramFeatureExtractor(object):
 
     mNBins = 32
-    def __init__(self, regions=None):
+    def __init__(self, mNBins=16):
         #we define the black (positive) and white (negative) regions of an image
         #to get our haar wavelet 
         self.mNBins = mNBins
