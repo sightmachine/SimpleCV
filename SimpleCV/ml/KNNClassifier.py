@@ -27,10 +27,11 @@ is as follows.
 class KNNClassifier:
     mClassNames = []
     mDataSetRaw = []
-    mK=3
+    mK=1
     mDistType = None
     mDataSetOrange = []
     mClassifier = None
+    mLearner = None
     mFeatureExtractors = None
     mOrangeDomain = None
 
@@ -42,14 +43,16 @@ class KNNClassifier:
         'Normalized':None
     }
     
-    def __init__(self,featureExtractors,k=3,dist='Normalized'):
+    def __init__(self,featureExtractors,k=1,dist=None):
         """
         dist = distance algorithm
         k = number of nearest neighbors
         """
         self.mFeatureExtractors =  featureExtractors
-        self.mDistType = self.mDistDict[dist];
+        if( dist is not None ):
+            self.mDistType = self.mDistDict[dist];
         self.mK = k;
+        self.mLearner = None
         self.mClassNames = []
         self.mDataSetRaw = []
         self.mDataSetOrange = []
@@ -186,11 +189,11 @@ class KNNClassifier:
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
-        self.mClassifier =  orange.kNNLearner()
-        self.mClassifier.k = self.mK
+        self.mLearner =  orange.kNNLearner()
+        self.mLearner.k = self.mK
         if(self.mDistType is not None):
             self.mClassifier.distanceConstructor = self.mDistType        
-        self.mClassifier = self.mClassifier(self.mDataSetOrange)
+        self.mClassifier = self.mLearner(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
@@ -208,7 +211,7 @@ class KNNClassifier:
 
         confusion = 0
         if( len(self.mClassNames) > 2 ):
-            crossValidator = orngTest.learnAndTestOnLearnData([orange.kNNLearner],self. mDataSetOrange)
+            crossValidator = orngTest.learnAndTestOnLearnData([self.mLearner],self. mDataSetOrange)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
@@ -218,7 +221,7 @@ class KNNClassifier:
             print "\t"+"\t".join(classes)
             for className, classConfusions in zip(classes, confusion):
                 print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-            
+        print self.mClassifier;
         return [good, bad, confusion]
 
 
@@ -244,6 +247,7 @@ class KNNClassifier:
         verbose - print confusion matrix and file names 
         returns [%Correct %Incorrect Confusion_Matrix]
         """
+        print(self.mClassifier)
         count = 0
         correct = 0
         self.mClassNames = classNames
@@ -266,7 +270,7 @@ class KNNClassifier:
 
         confusion = 0
         if( len(self.mClassNames) > 2 ):                
-            crossValidator = orngTest.learnAndTestOnTestData([orange.kNNLearner()],self.mDataSetOrange,testData)
+            crossValidator = orngTest.learnAndTestOnTestData([self.mLearner],self.mDataSetOrange,testData)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))
@@ -282,6 +286,7 @@ class KNNClassifier:
         return [good, bad, confusion]
     
     def _testPath(self,path,className,dataset,subset,disp,verbose):
+        print(self.mClassifier)
         count = 0
         correct = 0
         badFeat = False

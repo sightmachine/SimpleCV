@@ -33,6 +33,14 @@ classes = ['cat','burger','empire']
 ##bof_extractor.save('codebook.png','cbdata.txt')
 bof_extractor.load('cbdata.txt')
 print('###############################################################################')
+print('KNN')
+classifierKNN = KNNClassifier([hue_extractor])#
+print('Train')
+classifierKNN.train(train_path,classes,disp=display,subset=n) #train
+print('Test')
+[pos,neg,confuse] = classifierKNN.test(test_path,classes,disp=display,subset=n)
+classifierKNN.save('knn.pkl')
+print('###############################################################################')
 print('Vanilla Tree')
 classifierTree = TreeClassifier([hue_extractor])#
 print('Train')
@@ -63,14 +71,7 @@ classifierForest.train(train_path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierForest.test(test_path,classes,disp=display,subset=n)
 classifierForest.save('forest.pkl')
-print('###############################################################################')
-print('KNN')
-classifierKNN = KNNClassifier([hue_extractor])#
-print('Train')
-classifierKNN.train(train_path,classes,disp=display,subset=n) #train
-print('Test')
-[pos,neg,confuse] = classifierKNN.test(test_path,classes,disp=display,subset=n)
-classifierKNN.save('knn.pkl')
+
 print('###############################################################################')
 print('Bayes')
 classifierBayes = NaiveBayesClassifier([hue_extractor])#,edge_extractor])
