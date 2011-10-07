@@ -482,6 +482,57 @@ class Blob(Feature):
         my = self.mBoundingBox[1]+offset[1]
         layer.blit(self.mImg,coordinates=(mx,my))
         return None
-
+    
+    def isSquare(self, tolerance = 0.05, ratiotolerance = 0.05):
+        """
+        Given a tolerance, test if the blob is a rectangle, and how close its
+        bounding rectangle's aspect ratio is to 1.0
+        """
+        if self.isRectangle(tolerance) and abs(1 - self.aspectRatio()) < ratiotolerance:
+            return True
+        return False
+            
+    
+    def isRectangle(self, tolerance = 0.05):
+        """
+        Given a tolerance, test the blob against the rectangle distance to see if
+        it is rectangular
+        """
+        if self.rectangleDistance() < tolerance:
+            return True
+        return False
+    
+    def rectangleDistance(self):
+        """
+        This compares the hull mask to the bounding rectangle.  Returns the area
+        of the blob's hull as a fraction of the bounding rectangle 
+        """
+        blackcount, whitecount = Image(self.mHullMask).histogram(2)
+        return abs(1.0 - float(whitecount) / (self.minRectWidth() * self.minRectHeight()))
+        
+    
+    def isCircle(self, tolerance = 0.05):
+        """
+        Test circlde distance against a tolerance to see if the blob is circlular
+        """
+        if self.circleDistance() < tolerance:
+            return True
+        return False
+    
+    def circleDistance(self):
+        """
+        Compare the hull mask to an ideal circle and count the number of pixels
+        that deviate as a fraction of total area of the ideal circle
+        """
+        idealcircle = Image((self.width(), self.height()))
+        radius = min(self.width(), self.height()) / 2
+        idealcircle.dl().circle((self.width()/2, self.height()/2), radius, filled= True, color=Color.WHITE)
+        idealcircle = idealcircle.applyLayers()
+        
+        hullmask = Image(self.mHullMask)
+        
+        netdiff = (idealcircle - hullmask) + (hullmask - idealcircle)
+        numblack, numwhite = netdiff.histogram(2)
+        return float(numwhite) / (radius * radius * np.pi)
 
  
