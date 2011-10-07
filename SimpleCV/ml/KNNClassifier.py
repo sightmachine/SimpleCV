@@ -84,6 +84,11 @@ class KNNClassifier:
         Save the classifier to file
         """
         output = open(fname, 'wb')
+        self.mFeatureExtractors =  []
+        self.mDistType = None
+        self.mLearner = None
+        self.mDataSetRaw = []
+        self.mDataSetOrange = []
         pickle.dump(self,output,2) # use two otherwise it borks the system 
         output.close()
 

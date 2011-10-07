@@ -92,6 +92,14 @@ class TreeClassifier:
         """
         Save the classifier to file
         """
+        self.mFeatureExtractors = None;
+        self.mDataSetRaw = []
+        self.mDataSetOrange = []
+        self.mLearner = None
+        self.mTree = None
+        self.mFeatureExtractors = None
+        self.mFlavorParams = None
+
         output = open(fname, 'wb')
         pickle.dump(self,output,2) # use two otherwise it borks the system 
         output.close()

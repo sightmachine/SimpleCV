@@ -53,6 +53,9 @@ class NaiveBayesClassifier:
         Save the classifier to file
         """
         output = open(fname, 'wb')
+        self.mFeatureExtractors =  None
+        self.mDataSetRaw = []
+        self.mDataSetOrange = []
         pickle.dump(self,output,2) # use two otherwise it borks the system 
         output.close()
 
