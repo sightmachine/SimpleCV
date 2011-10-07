@@ -73,7 +73,7 @@ class NaiveBayesClassifier:
         featureVector.extend([self.mClassNames[0]])
         test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
         c = self.mClassifier(test[0]) #classify
-        return c #return to class name
+        return str(c) #return to class name
 
     
     def setFeatureExtractors(self, extractors):

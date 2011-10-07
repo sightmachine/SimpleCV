@@ -54,7 +54,7 @@ class TreeClassifier:
         "NClassifiers":10, #numbers of classifiers / tree splits
     }
 
-    def __init__(self,featureExtractors,flavor='Tree',flavorDict=None):
+    def __init__(self,featureExtractors=[],flavor='Tree',flavorDict=None):
         """
         dist = distance algorithm
         k = number of nearest neighbors
@@ -73,7 +73,7 @@ class TreeClassifier:
             if(self.mFlavor == self.mTreeTypeDict["Bagged"]):
                 self.mFlavorParams = self.mBaggedFlavorDict 
             elif(self.mFlavor == self.mTreeTypeDict["Forest"]):
-                self.mFlavorParams = self.mforestFlavorDict #mmmm tastes like pinecones and squirrels 
+                self.mFlavorParams = self.mforestFlavorDict #mmmm tastes like   pinecones and squirrels 
             elif(self.mFlavor == self.mTreeTypeDict["Boosted"]):
                 self.mFlavorParams = self.mBoostedFlavorDict
         else:
@@ -113,7 +113,7 @@ class TreeClassifier:
         featureVector.extend([self.mClassNames[0]])
         test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
         c = self.mClassifier(test[0]) #classify
-        return c #return to class name
+        return str(c) #return to class name
 
     
     def setFeatureExtractors(self, extractors):

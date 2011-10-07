@@ -104,7 +104,7 @@ class KNNClassifier:
         featureVector.extend([self.mClassNames[0]])
         test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
         c = self.mClassifier(test[0]) #classify
-        return c #return to class name
+        return str(c) #return to class name
 
     
     def setFeatureExtractors(self, extractors):
@@ -221,7 +221,6 @@ class KNNClassifier:
             print "\t"+"\t".join(classes)
             for className, classConfusions in zip(classes, confusion):
                 print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-        print self.mClassifier;
         return [good, bad, confusion]
 
 
@@ -247,7 +246,6 @@ class KNNClassifier:
         verbose - print confusion matrix and file names 
         returns [%Correct %Incorrect Confusion_Matrix]
         """
-        print(self.mClassifier)
         count = 0
         correct = 0
         self.mClassNames = classNames
