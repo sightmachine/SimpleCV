@@ -504,4 +504,11 @@ class Blob(Feature):
         numblack, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
 
- 
+    def centroid(self):
+        return (self.m10 / self.m00, self.m01 / self.m00)
+        
+    def radius(self):
+        return np.mean(spsd.cdist(self.mContour, [self.centroid()]))
+        
+    def hullRadius(self):
+        return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
