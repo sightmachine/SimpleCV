@@ -16,7 +16,7 @@ We like SimpleCV because:
 
 Here is the simplecv "hello world":
 
-    from SimpleCV import Camera
+    import SimpleCV
     SimpleCV.Camera().getImage().save("picture.jpg")
 
 For more code snippets, we recommend the [cookbook](http://simplecv.org/doc/cookbook.html) or looking at our example scripts in SimpleCV/examples
