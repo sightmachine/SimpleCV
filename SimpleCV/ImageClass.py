@@ -827,7 +827,21 @@ class Image:
         between corners.
 
 
-        Returns: FEATURESET 
+        Returns: FEATURESET
+
+
+        
+        Standard Test:
+        >>> img = Image("sampleimages/simplecv.png")
+        >>> corners = img.findCorners()
+        >>> if corners: True
+        True
+
+        Validation Test:
+        >>> img = Image("sampleimages/black.png")
+        >>> corners = img.findCorners()
+        >>> if not corners: True
+        True
         """
         #initialize buffer frames
         eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
