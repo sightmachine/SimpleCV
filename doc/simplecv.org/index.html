@@ -1,80 +1,68 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-	<head> 
-		<meta charset="utf-8"> 
-		<title>Make Computers See with SimpleCV, Machine Vision made Easy </title>
+<!DOCTYPE html>
+<html lang="en" id="index">
+    <head>
+        <meta charset="utf-8">
+        <title>Machine Vision made Easy - SimpleCV</title>
         <meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport">
-        <meta http-equiv="Content-Language" content="en">
         <meta name="description" content="SimpleCV is a Computer Vision framework that gives you everything you need to process data from images, and supports the Xbox Kinect">
-        <meta name="keywords" content="simplecv opencv computer vision machine vision kinect video processing face recognition">
-        <link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">    
+        <meta name="keywords" content="simplecv, opencv, computer vision, machine vision, kinect, video processing, face recognition">
         <link href="http://fonts.googleapis.com/css?family=Play&v1" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="http://simplecv.s3.amazonaws.com/one.css">
-        <link rel="icon" href="images/simplecv_icon.ico">
-    </head> 
-	<body>
-    
-    <!--start contactable -->
-    <div id="contactable"><!-- contactable html placeholder --></div>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-    <script type="text/javascript" src="http://simplecv.s3.amazonaws.com/jquery.validate.pack.js"></script>
-    <script type="text/javascript" src="http://simplecv.s3.amazonaws.com/jquery.contactable.min.js"></script>
-    <link rel="stylesheet" href="http://simplecv.s3.amazonaws.com/contactable.css" type="text/css">
-    <script>$(function(){$('#contactable').contactable({subject: 'feedback URL:'+location.href});});</script>
-    <!--end contactable -->
-    
-		<div class="bg">
-            
-                <h1>SimpleCV</h1>
+        <link rel="stylesheet" href="http://simplecv.s3.amazonaws.com/contactable.css" type="text/css">
+    </head>
+    <body>
+        <div id="contactable"></div>
+        <div class="bg">
+            <div class="skin"></div>
+            <h1>SimpleCV</h1>
             <div class="pad">
-                <div class="skin"></div>
                 <a href="http://github.com/ingenuitas/simplecv"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/71eeaab9d563c2b3c590319b398dd35683265e85/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub"></a>
-                <a href="http://www.simplecv.org">
-                    <img src="http://simplecv.s3.amazonaws.com/simplecv_lg.png" class="glow">
-                </a>
-                <h2>Make computers see with SimpleCV, the Open Source Framework for Vision</h2>
-                <nav class="clearfix"> 
-                    <a href="demos.html" title="Source Code">Demos</a>
-                    <a href="examples.html" title="Examples">Examples</a>
-                    <a href="http://sf.net/projects/simplecv/files/" title="Downloads">Downloads</a>
-                    <a href="https://github.com/ingenuitas/SimpleCV" title="SourceForge">Code</a>
+                <img src="http://simplecv.s3.amazonaws.com/simplecv_lg.png" class="glow">
+                <h2>Make computers see with SimpleCV<br>The Open Source Framework for Vision</h2>
+                <nav> 
+                    <a href="demos.html">Demos</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="http://sf.net/projects/simplecv/files/">Download</a>
+                    <a href="https://github.com/ingenuitas/SimpleCV">Code</a>
                     <a href="http://simplecv.tumblr.com">Blog</a> 
-                    <a href="http://twitter.com/Simple_CV/" title="Twitter">Twitter</a> 
-                    <a href="http://groups.google.com/group/simplecv">Support</a>
-                    <a href="/doc/" title="Documentation">Docs</a> 
+                    <a href="/doc/">Docs</a> 
+                    <a href="http://groups.google.com/group/simplecv" class="highlight">Submit Bug</a> 
                 </nav>                  
             </div>
             <section class="clearfix">
                 <div class="col3">
-                    <p>SimpleCV is a Python interface to several powerful open source computer vision libraries in a single convenient package.
-		    With it, your software can have access to high level algorithms in feature detection, filtering, and pattern recognition in a unified framework.
-		    Forget about bit depths, file formats, color spaces, buffer management, eigenvalues, and matrix vs bitmap storage.
-		    </p>
-		    <p>We love clean, readable computer vision code and hope you'll love how easy SimpleCV is to work with:
+                    <h3>About SimpleCV</h3>
+                    <p>
+                        SimpleCV is a Python interface to several powerful open source computer vision libraries in a single convenient package. With it, your software can have access to high level algorithms in feature detection, filtering, and pattern recognition in a unified framework. Forget about bit depths, file formats, color spaces, buffer management, eigenvalues, and matrix vs bitmap storage.
                     </p>
-		    <output>from SimpleCV import Camera
+                    <p>
+                        We love clean, readable computer vision code and hope you'll love how easy SimpleCV is to work with:
+                    </p>
+<output>
+from SimpleCV import Camera
 image = Camera().getImage()
-image.save("hello.jpg")</output>
-                </div>    
+image.save("hello.jpg")
+
+</output>
+                </div>
                 <div class="col3">
-                    <ul> 
-                        <li>Convenient "Superpack" installation for rapid deployment</li> 
-                        <li>Feature detection and discrimination of Corners, Edges, Blobs, Barcodes</li> 
-                        <li>Filter and sort features by location, color, quality, and size</li> 
+                    <h3>Features</h3>
+                    <ul>
+                        <li>Convenient "Superpack" installation for rapid deployment</li>
+                        <li>Feature detection and discrimination of Corners, Edges, Blobs, Barcodes</li>
+                        <li>Filter and sort features by location, color, quality, and size</li>
                         <li>Integrated iPython interactive shell makes experimenting easy</li>
-			<li>Image manipulation and format conversion</li>
-			<li>Capture and process video streams from Kinect, Webcams, Firewire, IP Cams, and even mobile phones</li> 
-
-
+                        <li>Image manipulation and format conversion</li>
+                        <li>Capture and process video streams from Kinect, Webcams, Firewire, IP Cams, and even mobile phones</li>
                     </ul>
-                </div>   
+                </div>
                 <div class="col3">
+                    <h3>Get Started</h3>
                     <p>
                         To Install, you need <a href="http://python.org">Python 2</a>, <a href="http://opencv.willowgarage.com">OpenCV</a> and <a href="http://scipy.org">SciPY</a>, then you can:
-			<blockquote><i>easy_install&nbsp;simplecv</i></blockquote>
-			
-			Installation instructions and all-in-one superpacks:
-					</p>
+                        <blockquote><i>easy_install&nbsp;simplecv</i></blockquote>
+                        Installation instructions and all-in-one superpacks:
+                    </p>
                     <ul class="clean">
                         <li><a href="/doc/installation.html#windows-7-vista">Windows 7/Vista/XP instructions</a>/<a href="http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV-Superpack-1.1.exe/download">superpack</a></li>
                         <li><a href="/doc/installation.html#mac-os-x-10-5-8-and-above">Mac 10.6+ instructions</a>/<a href="http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV%20Superpack%201.1.pkg/download">superpack</a></li>
@@ -82,22 +70,23 @@ image.save("hello.jpg")</output>
                     </ul>
                 </div>
             </section>
-            <footer> 
-               &copy; <a href="http://ingenuitas.com">2011 Ingenuitas, All Rights Reserved</a>
-            </footer>                          
-		</div>        
-		<script type="text/javascript">
-
-		  var _gaq = _gaq || [];
-		  _gaq.push(['_setAccount', 'UA-23517471-2']);
-		  _gaq.push(['_trackPageview']);
-
-		  (function() {
-		    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-		  })();
-
-		</script>
-</body> 
+            <footer>
+               &copy; 2011 <a href="http://ingenuitas.com">Ingenuitas</a>, All Rights Reserved
+            </footer>
+        </div>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+        <script type="text/javascript" src="http://simplecv.s3.amazonaws.com/jquery.validate.pack.js"></script>
+        <script type="text/javascript" src="http://simplecv.s3.amazonaws.com/jquery.contactable.min.js"></script>
+        <script>$(function(){$('#contactable').contactable({subject: 'feedback URL:'+location.href});});</script>
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-23517471-2']);
+          _gaq.push(['_trackPageview']);
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+    </body>
 </html>

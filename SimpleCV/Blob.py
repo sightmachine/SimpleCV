@@ -10,6 +10,7 @@ class Blob(Feature):
     # that this lass holds as a little of the open CV data structures as possible
     # just because having a bunch of memory pointers around seems really unpythonic
     # the other difficulty is interior contours. Do we nest them or not?
+    seq = '' #the cvseq object that defines this blob
     mContour = [] # the blob's outer perimeter as a set of (x,y) tuples 
     mConvexHull = [] # the convex hull contour as a set of (x,y) tuples
     mMinRectangle = [] #the smallest box rotated to fit the blob
@@ -18,8 +19,7 @@ class Blob(Feature):
     # mMinRectangle[2] = angle
     
     mBoundingBox = [] #get W/H and X/Y from this
-
-    mHuMoments = [] # The seven Hu Moments
+    mHu = [] # The seven Hu Moments
     mPerimeter = 0 # the length of the perimeter in pixels 
     mArea = 0 # the area in pixels
     mAspectRatio = 0
@@ -46,7 +46,7 @@ class Blob(Feature):
         self.mConvexHull = []
         self.mMinRectangle = [-1,-1,-1,-1,-1] #angle from this
         self.mBoundingBox = [-1,-1,-1,-1] #get W/H and X/Y from this
-        self.mHuMoments = [-1,-1,-1,-1,-1,-1,-1]
+        self.mHu = [-1,-1,-1,-1,-1,-1,-1]
         self.mPerimeter = 0
         self.mArea = 0
         self.mAspectRatio = 0
@@ -535,4 +535,40 @@ class Blob(Feature):
         numblack, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
 
- 
+    def centroid(self):
+        """
+        Return the centroid (mass-determined center) of the blob
+        """
+        return (self.m10 / self.m00, self.m01 / self.m00)
+        
+    def radius(self):
+        """
+        Return the radius, the avg distance of each contour point from the centroid
+        """
+        return np.mean(spsd.cdist(self.mContour, [self.centroid()]))
+        
+    def hullRadius(self):
+        """
+        Return the radius of the convex hull contour from the centroid
+        """
+        return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
+        
+    def match(self, otherblob):
+        """
+        Compare the Hu moments between two blobs to see if they match.  Returns
+        a comparison factor -- lower numbers are a closer match
+        """
+        #note: this should use cv.MatchShapes -- but that seems to be
+        #broken in OpenCV 2.2  Instead, I reimplemented in numpy
+        #according to the description in the docs for method I1 (reciprocal log transformed abs diff)
+        #return np.log(cv.MatchShapes(self.seq, otherblob.seq, cv.CV_CONTOURS_MATCH_I1))
+
+        mySigns = np.sign(self.mHu)
+        myLogs = np.log(np.abs(self.mHu))
+        myM = mySigns * myLogs
+        
+        otherSigns = np.sign(otherblob.mHu) 
+        otherLogs = np.log(np.abs(otherblob.mHu))
+        otherM = otherSigns * otherLogs
+        
+        return np.sum(abs((1/ myM - 1/ otherM)))
