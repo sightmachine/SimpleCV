@@ -1,0 +1,8 @@
+BOF Codebook Data
+128
+11
+11
+0
+8
+16
+codebook.png
