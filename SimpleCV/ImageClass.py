@@ -108,7 +108,7 @@ class Image:
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
                 self._colorSpace = ColorSpace.BGR
-            elif((souce.step/source.cols)==1):
+            elif((source.step/source.cols)==1):
                 self._colorSpace = ColorSpace.BGR
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
@@ -2049,9 +2049,18 @@ class Image:
         #cvMatchTemplate( img, tpl, res, CV_TM_CCORR_NORMED );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF_NORMED );
-
-        compute = np.where(matches < np.min(matches) + threshold)
+        #derp = Image(matches)
+        #derp.save('templateout.png')
+        m =np.min(matches)
+        print(np.min(matches))
+        print(np.max(matches))
+        print(threshold)
+        print(m+threshold)
+        compute = np.where(matches > (np.min(matches) + threshold))
+        print(compute[0].shape)
+        print(compute)
         mapped = map(tuple, np.column_stack(compute))
+        print(len(mapped))
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image.getBitmap(), location, matches[location[0], location[1]]))
