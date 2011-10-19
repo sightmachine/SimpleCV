@@ -146,7 +146,9 @@ class Image:
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
-        elif (type(source) == type(str()) and source != ''):
+        elif (type(source) == type(str())):
+            if source == '':
+                raise IOError("No filename provided to Image constructor")
             self.filename = source
             self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
             self._colorSpace = ColorSpace.BGR
@@ -825,7 +827,21 @@ class Image:
         between corners.
 
 
-        Returns: FEATURESET 
+        Returns: FEATURESET
+
+
+        
+        Standard Test:
+        >>> img = Image("sampleimages/simplecv.png")
+        >>> corners = img.findCorners()
+        >>> if corners: True
+        True
+
+        Validation Test:
+        >>> img = Image("sampleimages/black.png")
+        >>> corners = img.findCorners()
+        >>> if not corners: True
+        True
         """
         #initialize buffer frames
         eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
@@ -1955,7 +1971,15 @@ class Image:
         imgSurf = self.getPGSurface(self).copy()
         imgSurf.blit(layer._mSurface, (0, 0))
         return Image(imgSurf)
-        
+    
+    def mergedLayers(self):
+        """
+        Return all DrawingLayer objects as a single DrawingLayer
+        """
+        final = DrawingLayer(self.size())
+        for layers in self._mLayers: #compose all the layers
+                layers.renderToOtherLayer(final)
+        return final
         
     def applyLayers(self, indicies=-1):
         """
@@ -1965,19 +1989,13 @@ class Image:
         if not len(self._mLayers):
             return self
         
-        
-        final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
-            #retVal = self
-            self._mLayers.reverse()
-            for layers in self._mLayers: #compose all the layers
-                layers.renderToOtherLayer(final)
-            self._mLayers.reverse()  
-            #then draw them
+            final = self.mergedLayers()
             imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             return Image(imgSurf)
         else:
+            final = DrawingLayer((self.width, self.height))
             retVal = self
             indicies.reverse()
             for idx in indicies:

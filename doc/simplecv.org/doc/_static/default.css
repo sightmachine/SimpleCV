@@ -10,15 +10,15 @@
 body {
     font-family: sans-serif;
     font-size: 100%;
-    background-color: #11303d;
-    color: #000;
+    background-color: rgb(60,60,70);
+    color: #fff;
     margin: 0;
     padding: 0;
 }
 
 div.document {
-    background-color: #000000;
-}
+    background-color: rgb(60,60,70);
+    }
 
 div.documentwrapper {
     float: left;
@@ -30,17 +30,32 @@ div.bodywrapper {
 }
 
 div.body {
-    background-color: #f2f2f2;
-    color: #A0A0A5;
-    padding: 0 20px 30px 20px;
+    background-color: #fff;
+    color: #444;
+    border-left: 2px solid rgb(0,0,0);
+    padding: 40px 20px 30px 20px;
 }
 
 div.footer {
     color: #ffffff;
     width: 100%;
-    padding: 9px 0 9px 0;
     text-align: center;
     font-size: 75%;
+     position: fixed;
+     bottom: 0;
+     padding: 10px 0 5px;
+     background-color: rgb(60,60,70);
+     background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+     background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+     background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+     background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+     background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+     background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+     z-index: 100000;
+     -moz-box-shadow: inset rgba(255,255,255,.1) 0 1px 1px, rgba(0,0,0,.9) 0 -1px 0;
+     -webkit-box-shadow: inset rgba(255,255,255,.1) 0 1px 1px, rgba(0,0,0,.9) 0 -1px 0;
+     box-shadow: inset rgba(255,255,255,.1) 0 1px 1px, rgba(0,0,0,.9) 0 -1px 0;
+     
 }
 
 div.footer a {
@@ -49,22 +64,41 @@ div.footer a {
 }
 
 div.related {
-    background-color: #000000;
-    line-height: 30px;
-    color: #ffffff;
-}
+    font-family: "Cabin", sans-serif;
+    line-height: 40px;
+    text-transform: uppercase;
+    position: fixed;
+    background-color: rgb(60,60,70);
+    background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+    background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+    background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+    background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+    background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+    background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+    z-index: 100000;
+    -moz-box-shadow: rgba(0,0,0,1) 0 2px 4px, rgba(0,0,0,.9) 0 1px 0;
+    -webkit-box-shadow: rgba(0,0,0,1) 0 2px 4px, rgba(0,0,0,.9) 0 1px 0;
+    box-shadow: rgba(0,0,0,1) 0 2px 4px, rgba(0,0,0,.9) 0 1px 0;
+    color: rgba(255,255,255,.2);
+    }
 
 div.related a {
     color: #ffffff;
 }
 
 div.sphinxsidebar {
-    top: 30px;
+    top: 50px;
     bottom: 0;
     margin: 0;
     position: fixed;
     overflow: auto;
     height: auto;
+    background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+    background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+    background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+    background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+    background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+    background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));    
 }
 /* this is nice, but it it leads to hidden headings when jumping
    to an anchor */
@@ -79,9 +113,8 @@ div.documentwrapper {
 */
 
 div.sphinxsidebar h3 {
-    font-family: 'Trebuchet MS', sans-serif;
     color: #ffffff;
-    font-size: 1.4em;
+    font-size: 16px;
     font-weight: normal;
     margin: 0;
     padding: 0;
@@ -92,9 +125,8 @@ div.sphinxsidebar h3 a {
 }
 
 div.sphinxsidebar h4 {
-    font-family: 'Trebuchet MS', sans-serif;
     color: #ffffff;
-    font-size: 1.3em;
+    font-size: 14px;
     font-weight: normal;
     margin: 5px 0 0 0;
     padding: 0;
@@ -119,15 +151,17 @@ div.sphinxsidebar a {
 }
 
 div.sphinxsidebar input {
-    border: 1px solid #8ecd14;
+    border: 1px solid #aaa;
     font-family: sans-serif;
-    font-size: 1em;
+    font-size: 13px;
+    padding: 3px;
+    border-radius: 4px;
 }
 
 /* -- body styles ----------------------------------------------------------- */
 
 a {
-    color: #8ecd14;
+    color: #0E84B5;
     text-decoration: none;
 }
 
@@ -146,21 +180,24 @@ div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    font-family: 'Trebuchet MS', sans-serif;
-    background-color: #cccccc;
+    background-color: rgb(60,60,70);
+    background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+    background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+    background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+    background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+    background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+    background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
     font-weight: normal;
-    color: #20435c;
-    border-bottom: 1px solid #ccc;
-    margin: 20px -20px 10px -20px;
-    padding: 3px 0 3px 10px;
+    color: #fff;
+    margin: 20px -20px;
+    padding: 10px 20px;
 }
 
-div.body h1 { margin-top: 0; font-size: 200%; }
-div.body h2 { font-size: 160%; }
-div.body h3 { font-size: 140%; }
-div.body h4 { font-size: 120%; }
-div.body h5 { font-size: 110%; }
-div.body h6 { font-size: 100%; }
+div.body h1 { margin-top: 0; font-size: 18px; }
+div.body h2 { font-size: 16px; }
+div.body h3 { font-size: 14px; }
+div.body h4 { font-size: 13px; }
+
 
 a.headerlink {
     color: #c60f0f;
@@ -223,13 +260,11 @@ p.admonition-title:after {
 }
 
 pre {
-    padding: 5px;
-    background-color: #AACCEE;
-    color: #333333;
+    padding: 10px;
+    background-color: #def;
+    color: #789;
     line-height: 120%;
-    border: 1px solid #ac9;
-    border-left: none;
-    border-right: none;
+    border: 1px solid #abc;
 }
 
 tt {

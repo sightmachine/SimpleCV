@@ -252,7 +252,7 @@ class DrawingLayer:
         """           
         if(filled):
             width = 0
-        if antialias == False or width > 1:
+        if antialias == False or width > 1 or filled:
             pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, radius, width)
         else:
             pg.gfxdraw.aacircle(self._mSurface, center[0], center[1], radius, self._csvRGB2pgColor(color, alpha))
