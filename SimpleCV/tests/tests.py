@@ -925,9 +925,10 @@ def test_blob_methods():
 
 def test_detection_ocr():
     img = Image(ocrimage)
-    
+    print "TESTING OCR"
     foundtext = img.readText()
-    if(foundtext == '\n'):
+    print foundtext
+    if(len(foundtext) <= 1):
         assert False
     else:
         pass
