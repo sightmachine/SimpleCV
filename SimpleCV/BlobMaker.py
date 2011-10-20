@@ -61,7 +61,10 @@ class BlobMaker:
         minSize  - The minimum size of the blobs in pixels.
         maxSize  - The maximum blob size in pixels. 
         """
-        sys.setrecursionlimit(100000)
+        #If you hit this recursion limit may god have mercy on your soul.
+        #If you really are having problems set the value higher, but this means
+        # you have over 10,000,000 blobs in your image. 
+        sys.setrecursionlimit(10000000)
         #h_next moves to the next external contour
         #v_next() moves to the next internal contour
         if (maxsize <= 0):  
@@ -69,7 +72,14 @@ class BlobMaker:
           
         retVal = []
         test = binaryImg.meanColor()
-        if( test[0]==0.00 and test[1]==0.00 and test[2]==0.00):
+        # There are a couple of weird corner cases with the opencv
+        # connect components libraries - when you try to find contours
+        # in an all black image, or an image with a single white pixel
+        # that sits on the edge of an image the whole thing explodes
+        # this check catches those bugs. -KAS
+        # Also I am submitting a bug report to Willow Garage - please bare with us. 
+        ptest = 510.0/(binaryImg.width*binaryImg.height) # val if two pixels are white
+        if( test[0]<ptest and test[1]<ptest and test[2]<ptest):
             return retVal 
         
         seq = cv.FindContours(binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
@@ -92,10 +102,11 @@ class BlobMaker:
             temp =  self._extractData(seq,colorImg,minsize,maxsize)
             if( temp is not None ):
                 retVal.append(temp)
-            
+
         #get the current feature
         nextBlob = seq.h_next() # move to the next feature on our level
-
+       
+        
         if( nextBlob is not None ):
             #the next object is whatever this object is, add its list to ours
             retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, minsize,maxsize)
