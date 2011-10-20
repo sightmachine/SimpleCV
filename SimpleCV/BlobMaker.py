@@ -144,8 +144,9 @@ class BlobMaker:
         retVal.mHu = cv.GetHuMoments(moments)
         retVal.mMask = self._getMask(seq,retVal.mBoundingBox)
         mask = retVal.mMask
-        retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
+        retVal.mAvgColor = self._getAvg(retVal.mImg,retVal.m00)
+        
         retVal.mHoleContour = self._getHoles(seq)
         
         bb = retVal.mBoundingBox
@@ -198,15 +199,15 @@ class BlobMaker:
         cv.DrawContours(mask,hull,(255),(0),0,thickness=-1, offset=(-1*bb[0],-1*bb[1]))
         return mask
     
-    def _getAvg(self,colorbitmap,bb,mask):
+    def _getAvg(self,colorimg,blobarea):
         """
         Calculate the average color of a blob given the mask. 
         """
-        cv.SetImageROI(colorbitmap,bb)
-        #may need the offset parameter
-        avg = cv.Avg(colorbitmap,mask)
-        cv.ResetImageROI(colorbitmap)
-        return avg
+        #this needs to operate on the image
+        cAvg = colorimg.meanColor()
+        sz = colorimg.width*colorimg.height
+        factor = float(sz)/float(blobarea)
+        return (cAvg[0]*factor,cAvg[1]*factor,cAvg[2]*factor)
     
     def _getBlobAsImage(self,seq,bb,colorbitmap,mask):
         """
