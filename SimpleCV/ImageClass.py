@@ -2043,7 +2043,7 @@ class Image:
                                 cv.CV_32FC1)
             
         #choose template matching method to be used
-        cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, cv.CV_TM_SQDIFF )
+        cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, cv.CV_TM_CCORR )
         #cvMatchTemplate( img, tpl, res, CV_TM_SQDIFF_NORMED );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCORR );
         #cvMatchTemplate( img, tpl, res, CV_TM_CCORR_NORMED );
@@ -2051,12 +2051,12 @@ class Image:
         #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF_NORMED );
         #derp = Image(matches)
         #derp.save('templateout.png')
-        m =np.min(matches)
+        m =np.max(matches)
         print(np.min(matches))
         print(np.max(matches))
         print(threshold)
         print(m+threshold)
-        compute = np.where(matches > (np.min(matches) + threshold))
+        compute = np.where(matches > (m*0.9999999))
         print(compute[0].shape)
         print(compute)
         mapped = map(tuple, np.column_stack(compute))
