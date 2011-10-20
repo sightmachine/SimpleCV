@@ -218,4 +218,5 @@ class BlobMaker:
         cv.Copy(colorbitmap,outputImg,mask)
         cv.ResetImageROI(colorbitmap)
         return(Image(outputImg))
-        
+    
+
