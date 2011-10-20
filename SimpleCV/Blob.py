@@ -531,7 +531,7 @@ class Blob(Feature):
         #note: this should use cv.MatchShapes -- but that seems to be
         #broken in OpenCV 2.2  Instead, I reimplemented in numpy
         #according to the description in the docs for method I1 (reciprocal log transformed abs diff)
-        #return np.log(cv.MatchShapes(self.seq, otherblob.seq, cv.CV_CONTOURS_MATCH_I1))
+        #return cv.MatchShapes(self.seq, otherblob.seq, cv.CV_CONTOURS_MATCH_I1)
 
         mySigns = np.sign(self.mHu)
         myLogs = np.log(np.abs(self.mHu))

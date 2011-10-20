@@ -108,7 +108,7 @@ class Image:
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
                 self._colorSpace = ColorSpace.BGR
-            elif((souce.step/source.cols)==1):
+            elif((source.step/source.cols)==1):
                 self._colorSpace = ColorSpace.BGR
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
