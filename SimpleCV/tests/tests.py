@@ -864,7 +864,7 @@ def test_blob_data():
            b.m21 is not 0 and
            b.m12 is not 0 ):
             pass
-        if(sum(b.mHuMoments) > 0):
+        if(sum(b.mHu) > 0):
             pass
         
 def test_blob_render():
