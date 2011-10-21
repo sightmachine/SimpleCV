@@ -378,4 +378,4 @@ class TemplateMatch(Feature):
                         
 
     def draw(self, color = Color.GREEN):
-        self.image.dl().rectangle(self.points[0], (self.width(), self.height()), color = color)
+        self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color)

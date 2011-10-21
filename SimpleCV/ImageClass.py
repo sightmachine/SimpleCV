@@ -2005,13 +2005,30 @@ class Image:
             indicies.reverse()
             return Image(imgSurf)
             
-    def findTemplate(self, template_image = None, threshold = 3, method = "SQR_DIFF_NORM"):
+    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM"):
         """
         This function searches an image for a template image.  The template
         image is a smaller image that is searched for in the bigger image.
         This is a basic pattern finder in an image.  This uses the standard
         OpenCV template (pattern) matching and cannot handle scaling or rotation
 
+        
+        Template matching returns a match score for every pixel in the image.
+        Often pixels that are near to each other and a close match to the template
+        are returned as a match. If the threshold is set too low expect to get
+        a huge number of values. The threshold parameter is in terms of the
+        number of standard deviations from the mean match value you are looking
+        
+        For example, matches that are above three standard deviations will return
+        0.1% of the pixels. In a 800x600 image this means there will be
+        800*600*0.001 = 480 matches.
+
+        This method returns the locations of wherever it finds a match above a
+        threshold. Because of how template matching works, very often multiple
+        instances of the template overlap significantly. The best approach is to
+        find the centroid of all of these values. We suggest using an iterative
+        k-means approach to find the centroids.
+        
         Example:
         image = Image("/path/to/img.png")
         pattern_image = image.crop(100,100,100,100)

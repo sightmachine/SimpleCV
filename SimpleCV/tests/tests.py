@@ -921,5 +921,14 @@ def test_blob_methods():
         b.contains(first)
         b.overlaps(first)
         
+def test_template_match():
+    source = Image("../sampleimages/templatetest.png")
+    template = Image("../sampleimages/template.png")
+    t = 5
+    methods = ["SQR_DIFF","SQR_DIFF_NORM","CCOEFF","CCOEFF_NORM","CCORR","CCORR_NORM"]
+    for m in methods:
+        fs = source.findTemplate(template,threshold=t,method=m)
+    pass
+
 #def test_get_holes()
 #def test 
