@@ -96,10 +96,22 @@ class Image:
         OpenCV: iplImage and cvMat types
         Python Image Library: Image type
         Filename: All opencv supported types (jpg, png, bmp, gif, etc)
+        URL: The source can be a url, but must include the http://
         """
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
+
+        if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
+            try:
+                img_file = urllib2.urlopen(source)
+            except:
+                print "Couldn't open Image from URL" + source
+                return None
+
+            im = StringIO(img_file.read())
+            source = pil.open(im).convert("RGB")
+
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
@@ -149,9 +161,11 @@ class Image:
         elif (type(source) == type(str())):
             if source == '':
                 raise IOError("No filename provided to Image constructor")
-            self.filename = source
-            self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
-            self._colorSpace = ColorSpace.BGR
+
+            else:
+                self.filename = source
+                self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                self._colorSpace = ColorSpace.BGR
     
     
         elif (type(source) == pg.Surface):
