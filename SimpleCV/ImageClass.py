@@ -2005,7 +2005,7 @@ class Image:
             indicies.reverse()
             return Image(imgSurf)
             
-    def findTemplate(self, template_image = None, threshold = 1):
+    def findTemplate(self, template_image = None, threshold = 3, method = "SQR_DIFF_NORM"):
         """
         This function searches an image for a template image.  The template
         image is a smaller image that is searched for in the bigger image.
@@ -2036,34 +2036,43 @@ class Image:
             print "Image too tall"
             return
 
-
+        check = 0; # if check = 0 we want maximal value, otherwise minimal
+        if(method is None or method == "" or method == "SQR_DIFF_NORM"):#minimal
+            method = cv.CV_TM_SQDIFF_NORMED
+            check = 1;
+        elif(method == "SQR_DIFF"): #minimal
+            method = cv.CV_TM_SQDIFF
+            check = 1
+        elif(method == "CCOEFF"): #maximal
+            method = cv.CV_TM_CCOEFF
+        elif(method == "CCOEFF_NORM"): #maximal
+            method = cv.CV_TM_CCOEFF_NORMED
+        elif(method == "CCORR"): #maximal
+            method = cv.CV_TM_CCORR
+        elif(method == "CCORR_NORM"): #maximal 
+            method = cv.CV_TM_CCORR_NORMED
+        else:
+            warnings.warn("ooops.. I don't know what template matching method you are looking for.")
+            return None
         #create new image for template matching computation
         matches = cv.CreateMat( (self.height - template_image.height + 1),
                                 (self.width - template_image.width + 1),
                                 cv.CV_32FC1)
             
         #choose template matching method to be used
-        cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, cv.CV_TM_CCORR )
-        #cvMatchTemplate( img, tpl, res, CV_TM_SQDIFF_NORMED );
-        #cvMatchTemplate( img, tpl, res, CV_TM_CCORR );
-        #cvMatchTemplate( img, tpl, res, CV_TM_CCORR_NORMED );
-        #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF );
-        #cvMatchTemplate( img, tpl, res, CV_TM_CCOEFF_NORMED );
-        #derp = Image(matches)
-        #derp.save('templateout.png')
-        m =np.max(matches)
-        print(np.min(matches))
-        print(np.max(matches))
-        print(threshold)
-        print(m+threshold)
-        compute = np.where(matches > (m*0.9999999))
-        print(compute[0].shape)
-        print(compute)
+        
+        cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+        mean = np.mean(matches)
+        sd = np.std(matches)
+        if(check > 0):
+            compute = np.where((matches < mean-threshold*sd) )
+        else:
+            compute = np.where((matches > mean+threshold*sd) )
+
         mapped = map(tuple, np.column_stack(compute))
-        print(len(mapped))
         fs = FeatureSet()
         for location in mapped:
-            fs.append(TemplateMatch(self, template_image.getBitmap(), location, matches[location[0], location[1]]))
+            fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
             
         return fs
 

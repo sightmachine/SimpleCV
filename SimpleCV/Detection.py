@@ -369,8 +369,8 @@ class TemplateMatch(Feature):
         self.template_image = template
         self.image = image
         self.quality = quality
-        self.x = location[0] + template.width / 2
-        self.y = location[1] + template.height / 2
+        self.x = location[0]
+        self.y = location[1]
         self.points = [location,
                         (location[0] + template.width, location[1]),
                         (location[0] + template.width, location[1] + template.height),
