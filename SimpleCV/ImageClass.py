@@ -2165,7 +2165,20 @@ class Image:
         return np.array(cv.GetMat(img2))
         
         
-    def convolve(self,kernel,center=None):
+    def convolve(self,kernel = [[1,0,0],[0,1,0],[0,0,1]],center=None):
+        """
+        Convolution performs a shape change on an image.  It is similiar to
+        something like a dilate.  You pass it a kernel in the form of a list, np.array, or cvMat
+
+
+        example:
+        >>> img = Image("sampleimages/simplecv.png")
+        >>> kernel = [[1,0,0],[0,1,0],[0,0,1]]
+        >>> conv = img.convolve()
+        """
+        if(isinstance(kernel, list)):
+            kernel = np.array(kernel)
+            
         if(type(kernel)==np.ndarray):
             sz = kernel.shape
             kernel = kernel.astype(np.float32)
