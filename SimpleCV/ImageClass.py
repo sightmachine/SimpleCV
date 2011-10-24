@@ -4,7 +4,7 @@
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch
-from SimpleCV.Features import FeatureSet
+from SimpleCV.Features import FeatureSet, Feature
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
@@ -1801,16 +1801,32 @@ class Image:
         return retVal
 
 
-    def crop(self, x , y, w, h, centered=False):
+    def crop(self, x , y = None, w = None, h = None, centered=False):
         """
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
         define the top and left of the cropped rectangle. When centered is true
         the function uses x and y as the centroid of the cropped region.
+
+        You can also pass a feature into crop and have it automatically return
+        the cropped image within the bounding outside area of that feature
     
     
         The function returns a new image. 
         """
+
+        #If it's a feature extract what we need
+        if(isinstance(x, Feature)):
+            theFeature = x
+            x = theFeature.points[0][0]
+            y = theFeature.points[0][1]
+            w = theFeature.width()
+            h = theFeature.height()
+
+        if(y == None or w == None or h == None):
+            print "Please provide an x, y, width, height to function"
+
+ 
         retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
         if( centered ):
             rectangle = (x-(w/2), y-(h/2), w, h)
