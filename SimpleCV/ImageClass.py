@@ -1224,7 +1224,13 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+            
+            
         return( Image(retVal) )
 
 
@@ -1248,7 +1254,12 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_CLOSE, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+        
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -1271,7 +1282,10 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_GRADIENT, 1)
         return Image(retVal, colorSpace=self._colorSpace )
 
 
