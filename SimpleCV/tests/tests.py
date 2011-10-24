@@ -865,7 +865,7 @@ def test_blob_data():
            b.m21 is not 0 and
            b.m12 is not 0 ):
             pass
-        if(sum(b.mHuMoments) > 0):
+        if(sum(b.mHu) > 0):
             pass
         
 def test_blob_render():
@@ -932,5 +932,15 @@ def test_detection_ocr():
         assert False
     else:
         pass
+        
+def test_template_match():
+    source = Image("../sampleimages/templatetest.png")
+    template = Image("../sampleimages/template.png")
+    t = 5
+    methods = ["SQR_DIFF","SQR_DIFF_NORM","CCOEFF","CCOEFF_NORM","CCORR","CCORR_NORM"]
+    for m in methods:
+        fs = source.findTemplate(template,threshold=t,method=m)
+    pass
+
 #def test_get_holes()
 #def test 

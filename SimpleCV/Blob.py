@@ -10,11 +10,12 @@ class Blob(Feature):
     # that this lass holds as a little of the open CV data structures as possible
     # just because having a bunch of memory pointers around seems really unpythonic
     # the other difficulty is interior contours. Do we nest them or not?
+    seq = '' #the cvseq object that defines this blob
     mContour = [] # the blob's outer perimeter as a set of (x,y) tuples 
     mConvexHull = [] # the convex hull contour as a set of (x,y) tuples
     mMinRectangle = [] #the smallest box rotated to fit the blob
     mBoundingBox = [] #get W/H and X/Y from this
-    mHuMoments = [] # The seven Hu Moments
+    mHu = [] # The seven Hu Moments
     mPerimeter = 0 # the length of the perimeter in pixels 
     mArea = 0 # the area in pixels
     m00 = 0
@@ -40,7 +41,7 @@ class Blob(Feature):
         self.mConvexHull = []
         self.mMinRectangle = [-1,-1,-1,-1,-1] #angle from this
         self.mBoundingBox = [-1,-1,-1,-1] #get W/H and X/Y from this
-        self.mHuMoments = [-1,-1,-1,-1,-1,-1,-1]
+        self.mHu = [-1,-1,-1,-1,-1,-1,-1]
         self.mPerimeter = 0
         self.mArea = 0
         self.m00 = 0
@@ -451,6 +452,93 @@ class Blob(Feature):
         my = self.mBoundingBox[1]+offset[1]
         layer.blit(self.mImg,coordinates=(mx,my))
         return None
+    
+    def isSquare(self, tolerance = 0.05, ratiotolerance = 0.05):
+        """
+        Given a tolerance, test if the blob is a rectangle, and how close its
+        bounding rectangle's aspect ratio is to 1.0
+        """
+        if self.isRectangle(tolerance) and abs(1 - self.aspectRatio()) < ratiotolerance:
+            return True
+        return False
+            
+    
+    def isRectangle(self, tolerance = 0.05):
+        """
+        Given a tolerance, test the blob against the rectangle distance to see if
+        it is rectangular
+        """
+        if self.rectangleDistance() < tolerance:
+            return True
+        return False
+    
+    def rectangleDistance(self):
+        """
+        This compares the hull mask to the bounding rectangle.  Returns the area
+        of the blob's hull as a fraction of the bounding rectangle 
+        """
+        blackcount, whitecount = Image(self.mHullMask).histogram(2)
+        return abs(1.0 - float(whitecount) / (self.minRectWidth() * self.minRectHeight()))
+        
+    
+    def isCircle(self, tolerance = 0.05):
+        """
+        Test circlde distance against a tolerance to see if the blob is circlular
+        """
+        if self.circleDistance() < tolerance:
+            return True
+        return False
+    
+    def circleDistance(self):
+        """
+        Compare the hull mask to an ideal circle and count the number of pixels
+        that deviate as a fraction of total area of the ideal circle
+        """
+        idealcircle = Image((self.width(), self.height()))
+        radius = min(self.width(), self.height()) / 2
+        idealcircle.dl().circle((self.width()/2, self.height()/2), radius, filled= True, color=Color.WHITE)
+        idealcircle = idealcircle.applyLayers()
+        
+        hullmask = Image(self.mHullMask)
+        
+        netdiff = (idealcircle - hullmask) + (hullmask - idealcircle)
+        numblack, numwhite = netdiff.histogram(2)
+        return float(numwhite) / (radius * radius * np.pi)
 
+    def centroid(self):
+        """
+        Return the centroid (mass-determined center) of the blob
+        """
+        return (self.m10 / self.m00, self.m01 / self.m00)
+        
+    def radius(self):
+        """
+        Return the radius, the avg distance of each contour point from the centroid
+        """
+        return np.mean(spsd.cdist(self.mContour, [self.centroid()]))
+        
+    def hullRadius(self):
+        """
+        Return the radius of the convex hull contour from the centroid
+        """
+        return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
+        
+    def match(self, otherblob):
+        """
+        Compare the Hu moments between two blobs to see if they match.  Returns
+        a comparison factor -- lower numbers are a closer match
+        """
+        #note: this should use cv.MatchShapes -- but that seems to be
+        #broken in OpenCV 2.2  Instead, I reimplemented in numpy
+        #according to the description in the docs for method I1 (reciprocal log transformed abs diff)
+        #return cv.MatchShapes(self.seq, otherblob.seq, cv.CV_CONTOURS_MATCH_I1)
 
- 
+        mySigns = np.sign(self.mHu)
+        myLogs = np.log(np.abs(self.mHu))
+        myM = mySigns * myLogs
+        
+        otherSigns = np.sign(otherblob.mHu) 
+        otherLogs = np.log(np.abs(otherblob.mHu))
+        otherM = otherSigns * otherLogs
+        
+        return np.sum(abs((1/ myM - 1/ otherM)))

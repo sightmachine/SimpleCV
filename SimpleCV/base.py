@@ -11,6 +11,7 @@ import urllib2
 import types
 import SocketServer
 import threading
+import tempfile
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
@@ -31,6 +32,7 @@ PIL_ENABLED = True
 try:
     import Image as pil
 except ImportError:
+    print "import error"
     try:
         import PIL.Image as pil
         from PIL import ImageFont as pilImageFont
