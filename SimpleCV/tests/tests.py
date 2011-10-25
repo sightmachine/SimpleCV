@@ -864,7 +864,7 @@ def test_blob_data():
            b.m21 is not 0 and
            b.m12 is not 0 ):
             pass
-        if(sum(b.mHuMoments) > 0):
+        if(sum(b.mHu) > 0):
             pass
         
 def test_blob_render():
@@ -920,7 +920,8 @@ def test_blob_methods():
         b.right(first)
         b.contains(first)
         b.overlaps(first)
-def test_convolve():
+        
+def test_image_convolve():
     img = Image(testimageclr)
     kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
     img2 = img.convolve(kernel,center=(2,2))
@@ -931,5 +932,13 @@ def test_convolve():
     e2 = abs(c[2]-d[2])
     if( e0 > 1 or e1 > 1 or e2 > 1 ):
         assert False
+
+def test_image_intergralimage():
+    img = Image(logo)
+    ii = img.integralImage()
+    if len(ii) == 0:
+        assert False
+
+        
 #def test_get_holes()
 #def test 
