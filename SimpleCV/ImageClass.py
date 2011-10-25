@@ -121,6 +121,7 @@ class Image:
 
             except:
                 print "Couldn't load Logo"
+                return None
 
             im = StringIO(LOGO)
             source = scvLogo
