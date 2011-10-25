@@ -9,6 +9,7 @@ from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
 from SimpleCV.DrawingLayer import *
+from SimpleCV.Images import *
 
 from numpy import int32
 from numpy import uint8
@@ -102,16 +103,28 @@ class Image:
         self.camera = camera
         self._colorSpace = colorSpace
 
+        #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
             try:
                 img_file = urllib2.urlopen(source)
             except:
-                print "Couldn't open Image from URL" + source
+                print "Couldn't open Image from URL:" + source
                 return None
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
 
+        #See if we need to load the SimpleCV Logo    
+        if type(source) == str and source.lower() == "logo":
+            try:
+                scvLogo = pil.fromstring("RGB", (118,118), LOGO)
+
+            except:
+                print "Couldn't load Logo"
+
+            im = StringIO(LOGO)
+            source = scvLogo
+        
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
