@@ -4,4 +4,9 @@ build/
 dist/
 SimpleCV/SimpleCV
 doc/_build/
+SimpleCV/tests/TestCalibrationDistortion.xml
+SimpleCV/tests/TestCalibrationIntrinsic.xml
+SimpleCV/tests/temp.txt
+SimpleCV/sampleimages/tmpimg.jpg
+SimpleCV/sampleimages/9d4l.jpg
 

@@ -34,6 +34,7 @@ tmpimg = "../sampleimages/tmpimg.jpg"
 greyscaleimage = "../sampleimages/greyscale.jpg"
 logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
+ocrimage = "../sampleimages/ocr-test.png"
 
 #These function names are required by nose test, please leave them as is
 def setup_context():
@@ -864,7 +865,7 @@ def test_blob_data():
            b.m21 is not 0 and
            b.m12 is not 0 ):
             pass
-        if(sum(b.mHuMoments) > 0):
+        if(sum(b.mHu) > 0):
             pass
         
 def test_blob_render():
@@ -920,6 +921,7 @@ def test_blob_methods():
         b.right(first)
         b.contains(first)
         b.overlaps(first)
+<<<<<<< HEAD
 def test_convolve():
     img = Image(testimageclr)
     kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
@@ -931,5 +933,28 @@ def test_convolve():
     e2 = abs(c[2]-d[2])
     if( e0 > 1 or e1 > 1 or e2 > 1 ):
         assert False
+=======
+
+
+def test_detection_ocr():
+    img = Image(ocrimage)
+    print "TESTING OCR"
+    foundtext = img.readText()
+    print foundtext
+    if(len(foundtext) <= 1):
+        assert False
+    else:
+        pass
+        
+def test_template_match():
+    source = Image("../sampleimages/templatetest.png")
+    template = Image("../sampleimages/template.png")
+    t = 5
+    methods = ["SQR_DIFF","SQR_DIFF_NORM","CCOEFF","CCOEFF_NORM","CCORR","CCORR_NORM"]
+    for m in methods:
+        fs = source.findTemplate(template,threshold=t,method=m)
+    pass
+
+>>>>>>> cd669754cf6fdb481681f6d29d1d34d34da9f45e
 #def test_get_holes()
 #def test 
