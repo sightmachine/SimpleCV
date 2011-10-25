@@ -48,13 +48,13 @@ class MorphologyFeatureExtractor(object):
             retVal = []
             retVal.append(fs[0].mArea/fs[0].mPerimeter)
             retVal.append(fs[0].mAspectRatio)
-            retVal.append(fs[0].mHuMoments[0])
-            retVal.append(fs[0].mHuMoments[1])
-            retVal.append(fs[0].mHuMoments[2])
-            retVal.append(fs[0].mHuMoments[3])
-            retVal.append(fs[0].mHuMoments[4])
-            retVal.append(fs[0].mHuMoments[5])
-            retVal.append(fs[0].mHuMoments[6])
+            retVal.append(fs[0].mHu[0])
+            retVal.append(fs[0].mHu[1])
+            retVal.append(fs[0].mHu[2])
+            retVal.append(fs[0].mHu[3])
+            retVal.append(fs[0].mHu[4])
+            retVal.append(fs[0].mHu[5])
+            retVal.append(fs[0].mHu[6])
         return retVal
 
     
