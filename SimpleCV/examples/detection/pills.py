@@ -1,3 +1,9 @@
+# This demo is used to find missing pills in a blister type of package
+# it would be used in quality control in manufacturing type of application
+# were you are verifying that the correct number of pills are present
+
+
+
 from SimpleCV import *
 
 pillcolor = (153, 198, 252)

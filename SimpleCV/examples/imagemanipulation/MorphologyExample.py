@@ -20,10 +20,8 @@ example = 1
 
 # Loop until not needed
 while not display.isDone():
-    image = cam.getImage() # get image (or frame) from camera
-    flipped_image = image.flipHorizontal() # flip it so it looks mirrored
+    image = cam.getImage().flipHorizontal() # get image (or frame) from camera
 
-    print threshold
     # This just automatically cycles through threshold levels
     if(threshold >= 20):
         threshold = max_threshold
@@ -39,31 +37,24 @@ while not display.isDone():
     if(example == 1):
         image = image.erode(threshold)
         text = "Erode Morphology Example: img.erode(" + str(threshold) + ")"
-        image.drawText(text)
 		    
     elif(example == 2):
         image = image.dilate(threshold)
         text = "Dilate Morphology Example: img.dilate(" + str(threshold) + ")"
-        image.drawText(text)
 		    
     elif(example == 3):
         image = image.morphOpen()
         text = "Open Morphology Example: img.morphOpen()"
-        image.drawText(text)
     
     elif(example == 4):
         image = image.morphClose()
         text = "Close Morphology Example: img.morphClose()"
-        image.drawText(text)
     
     elif(example == 5):
         image = image.morphGradient()
         text = "Gradient Morphology Example: img.morphGradient()"
-        image.drawText(text)
-		
-    image.save(display)
-    time.sleep(0.1) # Let the program sleep for 1 millisecond so the computer can do other things
-    if display.mouseLeft:
-		    display.done = True #if the left arrow is pressed, close the program
+
+    image.drawText(text, 10, 10, color=Color.RED, fontsize=30)	
+    image.show()
 
 
