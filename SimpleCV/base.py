@@ -32,7 +32,6 @@ PIL_ENABLED = True
 try:
     import Image as pil
 except ImportError:
-    print "import error"
     try:
         import PIL.Image as pil
         from PIL import ImageFont as pilImageFont
@@ -57,6 +56,12 @@ try:
     import freenect
 except ImportError:
     FREENECT_ENABLED = False 
+
+OCR_ENABLED = True
+try:
+    import tesseract
+except ImportError:
+    OCR_ENABLED = False
 
 #couple quick typecheck helper functions
 def is_number(n):

@@ -3,12 +3,13 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard
-from SimpleCV.Features import FeatureSet
+from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch
+from SimpleCV.Features import FeatureSet, Feature
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
 from SimpleCV.DrawingLayer import *
+from SimpleCV.Images import *
 
 from numpy import int32
 from numpy import uint8
@@ -102,16 +103,29 @@ class Image:
         self.camera = camera
         self._colorSpace = colorSpace
 
+        #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
             try:
                 img_file = urllib2.urlopen(source)
             except:
-                print "Couldn't open Image from URL" + source
+                print "Couldn't open Image from URL:" + source
                 return None
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
 
+        #See if we need to load the SimpleCV Logo    
+        if type(source) == str and source.lower() == "logo":
+            try:
+                scvLogo = pil.fromstring("RGB", (118,118), LOGO)
+
+            except:
+                print "Couldn't load Logo"
+                return None
+
+            im = StringIO(LOGO)
+            source = scvLogo
+        
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
@@ -1224,7 +1238,13 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+            
+            
         return( Image(retVal) )
 
 
@@ -1248,7 +1268,12 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_CLOSE, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+        
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -1271,7 +1296,10 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_GRADIENT, 1)
         return Image(retVal, colorSpace=self._colorSpace )
 
 
@@ -1801,16 +1829,32 @@ class Image:
         return retVal
 
 
-    def crop(self, x , y, w, h, centered=False):
+    def crop(self, x , y = None, w = None, h = None, centered=False):
         """
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
         define the top and left of the cropped rectangle. When centered is true
         the function uses x and y as the centroid of the cropped region.
+
+        You can also pass a feature into crop and have it automatically return
+        the cropped image within the bounding outside area of that feature
     
     
         The function returns a new image. 
         """
+
+        #If it's a feature extract what we need
+        if(isinstance(x, Feature)):
+            theFeature = x
+            x = theFeature.points[0][0]
+            y = theFeature.points[0][1]
+            w = theFeature.width()
+            h = theFeature.height()
+
+        if(y == None or w == None or h == None):
+            print "Please provide an x, y, width, height to function"
+
+ 
         retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
         if( centered ):
             rectangle = (x-(w/2), y-(h/2), w, h)
@@ -2018,5 +2062,121 @@ class Image:
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+            
+    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM"):
+        """
+        This function searches an image for a template image.  The template
+        image is a smaller image that is searched for in the bigger image.
+        This is a basic pattern finder in an image.  This uses the standard
+        OpenCV template (pattern) matching and cannot handle scaling or rotation
+
+        
+        Template matching returns a match score for every pixel in the image.
+        Often pixels that are near to each other and a close match to the template
+        are returned as a match. If the threshold is set too low expect to get
+        a huge number of values. The threshold parameter is in terms of the
+        number of standard deviations from the mean match value you are looking
+        
+        For example, matches that are above three standard deviations will return
+        0.1% of the pixels. In a 800x600 image this means there will be
+        800*600*0.001 = 480 matches.
+
+        This method returns the locations of wherever it finds a match above a
+        threshold. Because of how template matching works, very often multiple
+        instances of the template overlap significantly. The best approach is to
+        find the centroid of all of these values. We suggest using an iterative
+        k-means approach to find the centroids.
+        
+        Example:
+        image = Image("/path/to/img.png")
+        pattern_image = image.crop(100,100,100,100)
+
+        found_patterns = image.findTemplate(pattern_image)
+        found_patterns.draw()
+        image.show()
+
+
+
+        RETURNS: FeatureSet
+        """
+        if(template_image == None):
+            print "Need image for matching"
+            return
+
+        if(template_image.width > self.width):
+            print "Image too wide"
+            return
+
+        if(template_image.height > self.height):
+            print "Image too tall"
+            return
+
+        check = 0; # if check = 0 we want maximal value, otherwise minimal
+        if(method is None or method == "" or method == "SQR_DIFF_NORM"):#minimal
+            method = cv.CV_TM_SQDIFF_NORMED
+            check = 1;
+        elif(method == "SQR_DIFF"): #minimal
+            method = cv.CV_TM_SQDIFF
+            check = 1
+        elif(method == "CCOEFF"): #maximal
+            method = cv.CV_TM_CCOEFF
+        elif(method == "CCOEFF_NORM"): #maximal
+            method = cv.CV_TM_CCOEFF_NORMED
+        elif(method == "CCORR"): #maximal
+            method = cv.CV_TM_CCORR
+        elif(method == "CCORR_NORM"): #maximal 
+            method = cv.CV_TM_CCORR_NORMED
+        else:
+            warnings.warn("ooops.. I don't know what template matching method you are looking for.")
+            return None
+        #create new image for template matching computation
+        matches = cv.CreateMat( (self.height - template_image.height + 1),
+                                (self.width - template_image.width + 1),
+                                cv.CV_32FC1)
+            
+        #choose template matching method to be used
+        
+        cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+        mean = np.mean(matches)
+        sd = np.std(matches)
+        if(check > 0):
+            compute = np.where((matches < mean-threshold*sd) )
+        else:
+            compute = np.where((matches > mean+threshold*sd) )
+
+        mapped = map(tuple, np.column_stack(compute))
+        fs = FeatureSet()
+        for location in mapped:
+            fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+            
+        return fs
+
+    def readText(self):
+        """
+        This function will return any text it can find using OCR on the
+        image.
+
+        Please note that it does not handle rotation well, so if you need
+        it in your application try to rotate and/or crop the area so that
+        the text would be the same way a document is read
+
+        RETURNS: String
+        """
+
+        if(not OCR_ENABLED):
+            return "Please install the correct OCR library required"
+        
+        api = tesseract.TessBaseAPI()
+        api.SetOutputName("outputName")
+        api.Init(".","eng",tesseract.OEM_DEFAULT)
+        api.SetPageSegMode(tesseract.PSM_AUTO)
+
+
+        jpgdata = StringIO()
+        self.getPIL().save(jpgdata, "jpeg")
+        jpgdata.seek(0)
+        stringbuffer = jpgdata.read()
+        result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
+        return result
 
 from SimpleCV.BlobMaker import BlobMaker

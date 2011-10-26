@@ -25,7 +25,7 @@ class FeatureSet(list):
     lines.crop()
     """
   
-    def draw(self, color = (255, 0, 0), autocolor = False):
+    def draw(self, color = Color.GREEN, autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
         """
@@ -198,7 +198,7 @@ class Feature(object):
         """
         return np.array([self.x, self.y])  
   
-    def draw(self, color = (255.0, 0.0, 0.0)):
+    def draw(self, color = Color.GREEN):
         """
         With no dimension information, color the x,y point for the featuer 
         """
