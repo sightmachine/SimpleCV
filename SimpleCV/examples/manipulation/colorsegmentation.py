@@ -12,8 +12,8 @@ t = int(time.time())
 ticks = 0
 
 while not d.isDone():
-    #cm.threshold(c.getImage()).save(d)
-    c.getImage().save(d)
+    cm.threshold(c.getImage()).save(d)
+    #~ c.getImage().save(d)
     time.sleep(0.01)
     ticks = ticks + 1
     if (int(time.time()) > t):
