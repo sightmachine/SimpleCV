@@ -25,6 +25,11 @@ is as follows.
 8. Deploy using the classify method. 
 """
 class NaiveBayesClassifier:
+    """
+    This class encapsulates a Naive Bayes Classifier.
+    See:
+    http://en.wikipedia.org/wiki/Naive_bayes
+    """
     mClassNames = []
     mDataSetRaw = [] 
     mDataSetOrange = []

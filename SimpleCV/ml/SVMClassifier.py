@@ -25,6 +25,11 @@ is as follows.
 8. Deploy using the classify method. 
 """
 class SVMClassifier:
+    """
+    This class encapsulates a Naive Bayes Classifier.
+    See:
+    http://en.wikipedia.org/wiki/Support_vector_machine
+    """
     mClassNames = []
     mDataSetRaw = [] 
     mDataSetOrange = []
@@ -34,10 +39,10 @@ class SVMClassifier:
     mSVMPrototype = None
     
     mKernelType = {
-        'RBF':orange.SVMLearner.RBF,
-        'Linear':orange.SVMLearner.Linear,
-        'Poly':orange.SVMLearner.Polynomial,
-        'Sigmoid':orange.SVMLearner.Sigmoid
+        'RBF':orange.SVMLearner.RBF, #Radial basis kernel
+        'Linear':orange.SVMLearner.Linear, #Linear basis kernel
+        'Poly':orange.SVMLearner.Polynomial, #Polynomial kernel
+        'Sigmoid':orange.SVMLearner.Sigmoid #Sigmoid Kernel
     }
     
     mSVMType = {
