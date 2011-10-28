@@ -2179,4 +2179,14 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
+
+    def __getstate__(self):
+        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
+        
+    def __setstate__(self, mydict):        
+        self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
+        cv.SetData(self._bitmap, mydict['image'])
+        self._colorSpace = mydict['colorspace']
+
+
 from SimpleCV.BlobMaker import BlobMaker
