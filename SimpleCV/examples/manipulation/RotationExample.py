@@ -5,42 +5,46 @@ from scipy.interpolate import UnivariateSpline
 import sys, time, socket
 
 #settings for the project)
-srcImg  = "../sampleimages/orson_welles.jpg"
-input = Image(srcImg)
-input.save("RotSource.png")
-
-rot  = input.rotate(45)
-rot.save("r45.png")
-
-rotS  = input.rotate(45,scale=0.5)
-rotS.save("rs45.png")
-
-rotST  = input.rotate(45,scale=0.5, point = (0,0) )
-rotST.save("rst45.png")
+srcImg  = "../../sampleimages/orson_welles.jpg"
+font_size = 20
+sleep_for = 3 #seconds to sleep for
+draw_color = Color.RED
 
 
-rotF  = input.rotate(45, "full")
-rotF.save("fr45.png")
+while True:
+    image = Image(srcImg)
+    image.drawText("Original Size", 10,10, color=draw_color, fontsize=font_size)
+    image.show()
+    time.sleep(sleep_for)
+    
+    rot = image.rotate(45)
+    rot.drawText("Rotated 45 degrees", 10,10, color=draw_color, fontsize=font_size)
+    rot.show()
+    time.sleep(sleep_for)
+    
+    rot = image.rotate(45, scale=0.5)
+    rot.drawText("Rotated 45 degrees and scaled", 10,10, color=draw_color, fontsize=font_size)
+    rot.show()
+    time.sleep(sleep_for)
+    
+    rot = image.rotate(45,scale=0.5, point = (0,0) )
+    rot.drawText("Rotated 45 degrees and scaled around a point", 10,10, color=draw_color, fontsize=font_size)
+    rot.show()
+    time.sleep(sleep_for)
 
-rotFS  = input.rotate(45, "full", scale=0.5)
-rotFS.save("frs45.png")
+    rot = image.rotate(45,"full")
+    rot.drawText("Rotated 45 degrees and full", 10,10, color=draw_color, fontsize=font_size)
+    rot.show()
+    time.sleep(sleep_for)
+    
+    atrans = image.shear([(image.width/2,0),(image.width-1,image.height/2),(image.width/2,image.height-1)])
+    atrans.drawText("Affine Transformation", 10,10, color=draw_color, fontsize=font_size)
+    atrans.show()
+    time.sleep(sleep_for)
 
-rotFST  = input.rotate(45, "full", scale=0.5, point = (0,0) )
-rotFST.save("frst45.png")
-
-
-#Now do affine transform
-#we're going to use openCV to calculate our transform for now
-
-img = Image(srcImg)
-
-atrans = img.shear([(img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1)])
-atrans.save("atrans.png")
-
-#now do the perspective transform 
-ptrans = img.warp([(img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9)])
-ptrans.save("ptrans.png")
-
-
-
+    ptrans = image.warp([(image.width*0.05,image.height*0.03),(image.width*0.9,image.height*0.1),(image.width*0.8,image.height*0.7),(image.width*0.2,image.height*0.9)])
+    ptrans.drawText("Perspective Transformation", 10,10, color=draw_color, fontsize=font_size)
+    ptrans.show()
+    time.sleep(sleep_for)
+    
 

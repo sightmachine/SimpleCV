@@ -1,4 +1,10 @@
-#!/usr/bin/python 
+#!/usr/bin/python
+# This SimpleCV example uses a technique called frame differencing to determine
+# if motion has occured.  You take an initial image, then another, subtract
+# the difference, what is left over is what has changed between those two images
+# this are typically blobs on the images, so we do a blob search to count
+# the number of blobs and if they exist then motion has occured
+
 import sys, time, socket
 from SimpleCV import *
 #setup the camera
