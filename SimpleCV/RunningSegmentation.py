@@ -8,6 +8,12 @@ import abc
 
 
 class RunningSegmentation(SegmentationBase):
+    """
+    RunningSegmentation performs segmentation using a running background model.
+    This model uses an accumulator which performs a running average of previous frames
+    where:
+    accumulator = ((1-alpha)input_image)+((alpha)accumulator)
+    """
 
     mError = False
     mAlpha = 0.1
@@ -20,6 +26,13 @@ class RunningSegmentation(SegmentationBase):
     mReady = False
     
     def __init__(self, alpha=0.7, thresh=(20,20,20)):
+        """
+        Create an running background difference.
+        alpha - the update weighting where:
+        accumulator = ((1-alpha)input_image)+((alpha)accumulator)
+        
+        threshold - the foreground background difference threshold. 
+        """
         self.mError = False
         self.mReady = False
         self.mAlpha = alpha

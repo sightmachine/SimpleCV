@@ -19,6 +19,24 @@ class DiffSegmentation(SegmentationBase):
     mBlobMaker = None
     
     def __init__(self, grayOnly=False, threshold = (10,10,10) ):
+        """
+        This method will do image segmentation by looking at the difference between
+        two frames.
+        
+        grayOnly - use only gray images.
+        threshold - The value at which we consider the color difference to
+        be significant enough to be foreground imagery.
+        
+        The general usage is
+        
+        segmentor = DiffSegmentation()
+        cam = Camera()
+        while(1):
+            segmentor.addImage(cam.getImage())
+            if(segmentor.isReady()):
+                img = segmentor.getSegmentedImage()
+                #perform task
+        """
         self.mGrayOnlyMode = grayOnly
         self.mThreshold = threshold 
         self.mError = False

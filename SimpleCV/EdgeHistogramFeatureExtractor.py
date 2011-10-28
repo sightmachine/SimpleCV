@@ -7,13 +7,20 @@ import abc
 class EdgeHistogramFeatureExtractor(object):
 
     mNBins = 10
-    def __init__(self, mNBins=10):
-        self.mNBins = mNBins
+    def __init__(self, bins=10):
+        """
+        Create a 1D edge length histogram and 1D edge angle histogram.
+        
+        This method takes in an image, applies an edge detector, and calculates
+        the length and direction of lines in the image.
+        
+        bins = the number of bins
+        """
+        self.mNBins = bins
 
     def extract(self, img):
         """
-        This feature extractor takes in a color image and returns a normalized color
-        histogram of the pixel counts of each hue. 
+        Extract the line orientation and and length histogram.
         """
         #I am not sure this is the best normalization constant. 
         retVal = []
@@ -32,6 +39,9 @@ class EdgeHistogramFeatureExtractor(object):
 
     
     def getFieldNames(self):
+        """
+        Return the names of all of the length and angle fields. 
+        """
         retVal = []
         for i in range(self.mNBins):
             name = "Length"+str(i)
@@ -49,7 +59,6 @@ class EdgeHistogramFeatureExtractor(object):
     def getFieldTypes(self):
         """
         This method returns the field types
-        - Do we need this - spec out 
         """
 
     def getNumFields(self):

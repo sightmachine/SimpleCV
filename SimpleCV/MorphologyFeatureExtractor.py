@@ -16,6 +16,14 @@ class MorphologyFeatureExtractor(object):
     mBlobMaker = None
     mThresholdOpeation = None
     def __init__(self, thresholdOperation=None):
+        """
+        The threshold operation is a function of the form
+        binaryimg = threshold(img)
+        
+        the simplest example would be:
+        def binarize_wrap(img):
+            
+        """
         self.mNBins = 12
         self.mBlobMaker = BlobMaker()
         self.mThresholdOpeation = thresholdOperation
@@ -33,8 +41,9 @@ class MorphologyFeatureExtractor(object):
 
     def extract(self, img):
         """
-        This feature extractor takes in a color image and returns a normalized color
-        histogram of the pixel counts of each hue. 
+        This method takes in a image and returns some basic morphology
+        characteristics about the largest blob in the image. The
+        if a color image is provided the threshold operation is applied.
         """
         retVal = None
         if(self.mThresholdOpeation is not None):
@@ -79,7 +88,6 @@ class MorphologyFeatureExtractor(object):
     def getFieldTypes(self):
         """
         This method returns the field types
-        - Do we need this - spec out 
         """
 
     def getNumFields(self):

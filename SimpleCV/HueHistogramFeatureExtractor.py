@@ -6,8 +6,15 @@ import abc
 
 class HueHistogramFeatureExtractor(object):
 
-    mNBins = 32
+    mNBins = 16
     def __init__(self, mNBins=16):
+        """
+        Create a Hue Histogram feature extractor. This feature extractor
+        takes in an image, gets the hue channel, bins the number of pixels
+        with a particular Hue, and returns the results.
+        
+        mNBins - the number of Hue bins. 
+        """
         #we define the black (positive) and white (negative) regions of an image
         #to get our haar wavelet 
         self.mNBins = mNBins
