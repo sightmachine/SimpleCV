@@ -33,7 +33,7 @@ class BOFFeatureExtractor(object):
         self.mPatchSize = patchsz
         self.mNumCodes = numcodes
     
-    def generate(self,imgdirs,numcodes=128,sz=(11,11),imgs_per_dir=50,img_layout=(8,16),padding=0):
+    def generate(self,imgdirs,numcodes=128,sz=(11,11),imgs_per_dir=50,img_layout=(8,16),padding=0, verbose=True):
         """
         This method builds the bag of features codebook from a list of directories
         with images in them. Each directory should be broken down by image class.
@@ -44,6 +44,7 @@ class BOFFeatureExtractor(object):
         padding = the pixel padding of each patch in the resulting image.
         imgs_per_dir = this method can use a specified number of images per directory
                         i.e. min(#imgs_in_dir,imgs_per_dir)
+        verbose = print output
                         
         Once the method has completed it will save the results to a local file
         using the file name codebook.png 
@@ -61,18 +62,21 @@ class BOFFeatureExtractor(object):
             files = glob.glob( os.path.join(path, '*.jpg'))
             nimgs = min(len(files),imgs_per_dir)
             for i in range(nimgs):
-                print(path+" "+str(i)+" of "+str(imgs_per_dir))
                 infile = files[i]
-                print "Opening file: " + infile
+                if verbose:
+                    print(path+" "+str(i)+" of "+str(imgs_per_dir))
+                    print "Opening file: " + infile
                 img = Image(infile)
                 newFeat = self._getPatches(img)
-                print "     Got " + str(len(newFeat)) + " features."
+                if verbose:
+                    print "     Got " + str(len(newFeat)) + " features."
                 rawFeatures = np.vstack((rawFeatures,newFeat))
                 del img
         rawFeatures = rawFeatures[1:,:] # pop the fake value we put on the top
-        print "=================================="
-        print "Got " + str(len(rawFeatures)) + " features "
-        print "Doing K-Means .... this will take a long time"
+        if verbose:
+            print "=================================="
+            print "Got " + str(len(rawFeatures)) + " features "
+            print "Doing K-Means .... this will take a long time"
         self.mCodebook = self._makeCodebook(rawFeatures)
         self.mCodebookImg = self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
         self.mCodebookImg.save('codebook.png')
