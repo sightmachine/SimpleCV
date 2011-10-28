@@ -2370,5 +2370,4 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
-
 from SimpleCV.BlobMaker import BlobMaker

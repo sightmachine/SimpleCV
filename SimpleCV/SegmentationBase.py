@@ -88,10 +88,3 @@ class SegmentationBase(object):
         return the segmented blobs from the fg/bg image
         """
         
- #   @abc.abstractmethod    
- #   def setInternalResolution(width,height):
- #       """
- #       If this is set the segmentation algorithm automatically scales the input image
- #       prior to performing an operation so as to reduce computional time. The width and
- #       height values should be actual pixel values. 
- #       """

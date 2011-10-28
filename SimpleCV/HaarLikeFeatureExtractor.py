@@ -12,7 +12,8 @@ class HaarLikeFeatureExtractor(object):
     def __init__(self, fname=None, do45=True):
         """
         fname - The feature file name
-        do45 - use the regular integral image plus the 45 degree integral image 
+        do45 - if this is true we use the regular integral image plus the
+        45 degree integral image 
         """
         #we define the black (positive) and white (negative) regions of an image
         #to get our haar wavelet
@@ -69,8 +70,8 @@ class HaarLikeFeatureExtractor(object):
     
     def extract(self, img):
         """
-        This feature extractor takes in a color image and returns a normalized color
-        histogram of the pixel counts of each hue. 
+        This extractor takes in an image, creates the integral image, applies
+        the Haar cascades, and returns the result as a feature vector. 
         """        
         regular = img.integralImage()
         retVal = []
