@@ -922,7 +922,12 @@ def test_blob_methods():
         b.contains(first)
         b.overlaps(first)
 <<<<<<< HEAD
+<<<<<<< HEAD
 def test_convolve():
+=======
+        
+def test_image_convolve():
+>>>>>>> 95b158a07971f3340d5ac3fb70572cb6abca06a6
     img = Image(testimageclr)
     kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
     img2 = img.convolve(kernel,center=(2,2))
@@ -933,6 +938,7 @@ def test_convolve():
     e2 = abs(c[2]-d[2])
     if( e0 > 1 or e1 > 1 or e2 > 1 ):
         assert False
+<<<<<<< HEAD
 =======
 
 
@@ -956,5 +962,15 @@ def test_template_match():
     pass
 
 >>>>>>> cd669754cf6fdb481681f6d29d1d34d34da9f45e
+=======
+
+def test_image_intergralimage():
+    img = Image(logo)
+    ii = img.integralImage()
+    if len(ii) == 0:
+        assert False
+
+        
+>>>>>>> 95b158a07971f3340d5ac3fb70572cb6abca06a6
 #def test_get_holes()
 #def test 
