@@ -64,7 +64,7 @@ class BlobMaker:
         #If you hit this recursion limit may god have mercy on your soul.
         #If you really are having problems set the value higher, but this means
         # you have over 10,000,000 blobs in your image. 
-        sys.setrecursionlimit(10000000)
+        sys.setrecursionlimit(5000)
         #h_next moves to the next external contour
         #v_next() moves to the next internal contour
         if (maxsize <= 0):  
@@ -90,7 +90,14 @@ class BlobMaker:
         
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         
-        retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
+        try:
+            # note to self
+            # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
+            retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
+        except RuntimeError,e:
+            warnings.warn("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
+        except:
+            warnings.warn("SimpleCV Find Blobs Failed - This could be an OpenCV python binding issue")
         del seq
         return FeatureSet(retVal)
     

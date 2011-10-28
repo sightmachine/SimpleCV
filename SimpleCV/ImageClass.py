@@ -9,6 +9,7 @@ from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.Color import *
 from SimpleCV.DrawingLayer import *
+from SimpleCV.Images import *
 
 from numpy import int32
 from numpy import uint8
@@ -102,16 +103,29 @@ class Image:
         self.camera = camera
         self._colorSpace = colorSpace
 
+        #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
             try:
                 img_file = urllib2.urlopen(source)
             except:
-                print "Couldn't open Image from URL" + source
+                print "Couldn't open Image from URL:" + source
                 return None
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
 
+        #See if we need to load the SimpleCV Logo    
+        if type(source) == str and source.lower() == "logo":
+            try:
+                scvLogo = pil.fromstring("RGB", (118,118), LOGO)
+
+            except:
+                print "Couldn't load Logo"
+                return None
+
+            im = StringIO(LOGO)
+            source = scvLogo
+        
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
@@ -1232,7 +1246,13 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+            
+            
         return( Image(retVal) )
 
 
@@ -1256,7 +1276,12 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_CLOSE, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+        
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -1279,7 +1304,10 @@ class Image:
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_GRADIENT, 1)
         return Image(retVal, colorSpace=self._colorSpace )
 
 

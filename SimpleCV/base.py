@@ -32,7 +32,6 @@ PIL_ENABLED = True
 try:
     import Image as pil
 except ImportError:
-    print "import error"
     try:
         import PIL.Image as pil
         from PIL import ImageFont as pilImageFont
