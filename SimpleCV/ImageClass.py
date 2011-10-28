@@ -2371,4 +2371,16 @@ class Image:
         return result
 
 
+<<<<<<< HEAD
+=======
+    def __getstate__(self):
+        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
+        
+    def __setstate__(self, mydict):        
+        self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
+        cv.SetData(self._bitmap, mydict['image'])
+        self._colorSpace = mydict['colorspace']
+
+
+>>>>>>> ba1841ca37689b3859af14c4b35d414b16ffe939
 from SimpleCV.BlobMaker import BlobMaker
