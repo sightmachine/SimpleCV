@@ -16,7 +16,22 @@ class FeatureExtractorBase(object):
     """
     
     __metaclass__ = abc.ABCMeta
+    def load(cls, fname):
+        """
+        load segmentation settings to file.
+        """
+        return pickle.load(file(fname))
+    load = classmethod(load)
+
     
+    def save(self, fname):
+        """
+        Save segmentation settings to file.
+        """
+        output = open(fname, 'wb')
+        pickle.dump(self,output,2) # use two otherwise it borks the system 
+        output.close()
+        
     @abc.abstractmethod
     def extract(self, img):
         """
@@ -31,13 +46,7 @@ class FeatureExtractorBase(object):
         This method gives the names of each field in the feature vector in the
         order in which they are returned. For example, 'xpos' or 'width'
         """
-    
-    @abc.abstractmethod
-    def getFieldTypes(self):
-        """
-        This method returns the field types
-        - Do we need this - spec out 
-        """
+
     @abc.abstractmethod
     def getNumFields(self):
         """

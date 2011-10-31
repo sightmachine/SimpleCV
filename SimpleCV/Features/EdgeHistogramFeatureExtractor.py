@@ -4,7 +4,7 @@ from SimpleCV.Features.FeatureExtractorBase import *
 import abc
 
 
-class EdgeHistogramFeatureExtractor(object):
+class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
     """
     Create a 1D edge length histogram and 1D edge angle histogram.
     

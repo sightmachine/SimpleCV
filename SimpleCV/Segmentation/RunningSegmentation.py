@@ -40,29 +40,7 @@ class RunningSegmentation(SegmentationBase):
         self.mDiffImg = None
         self.mColorImg = None
         self.mBlobMaker = BlobMaker()
- 
-    def loadSettings(self, file):       
-        """
-        Load all of the segmentation settings from file
-        """
-        myFile = open(file,'w')
-        myFile.writeline("Running Segmentation Parameters")
-        myFile.write(str(self.mThresh))
-        myFile.write(str(self.mAlpha))
-        myFile.close()
-        return
-    
-    def saveSettings(self, file):
-        """
-        save all of the segmentation settings from file
-        """
-        myFile = open(file,'r')
-        myFile.readline()
-        self.mThresh = myFile.readline()
-        self.mAlpha = myFile.readline()
-        myFile.close()
-        return
-    
+     
     def addImage(self, img):
         """
         Add a single image to the segmentation algorithm

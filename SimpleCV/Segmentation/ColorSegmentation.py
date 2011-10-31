@@ -25,20 +25,7 @@ class ColorSegmentation(SegmentationBase):
         self.mCurImg = Image()
         self.mTruthImg = Image()
         self.mBlobMaker = BlobMaker()
- 
-    def loadSettings(self, file):       
-        """
-        Load all of the segmentation settings from file
-        """
-        self.mColorModel.load(file)
-        return
-    
-    def saveSettings(self, file):
-        """
-        save all of the segmentation settings from file
-        """
-        self.mColorModel.save(file)
-        return
+        
     
     def addImage(self, img):
         """

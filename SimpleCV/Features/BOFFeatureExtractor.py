@@ -285,12 +285,6 @@ class BOFFeatureExtractor(object):
                 retVal.append(temp)
         return retVal
 
-    
-    def getFieldTypes(self):
-        """
-        This method returns the field types
-        - Do we need this - spec out 
-        """
 
     def getNumFields(self):
         """

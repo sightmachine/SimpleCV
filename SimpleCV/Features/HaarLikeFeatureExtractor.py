@@ -5,7 +5,7 @@ from SimpleCV.Features.FeatureExtractorBase import *
 import abc
 
 
-class HaarLikeFeatureExtractor(object):
+class HaarLikeFeatureExtractor(FeatureExtractorBase):
 
     mFeatureSet = None
     mDo45 = True
@@ -98,12 +98,6 @@ class HaarLikeFeatureExtractor(object):
                 retVal.append(name)
         return retVal
 
-    
-    def getFieldTypes(self):
-        """
-        This method returns the field types
-        - Do we need this - spec out 
-        """
 
     def getNumFields(self):
         """

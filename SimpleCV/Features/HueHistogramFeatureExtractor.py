@@ -4,7 +4,7 @@ from SimpleCV.Features.FeatureExtractorBase import *
 import abc
 
 
-class HueHistogramFeatureExtractor(object):
+class HueHistogramFeatureExtractor(FeatureExtractorBase):
     """
     Create a Hue Histogram feature extractor. This feature extractor
     takes in an image, gets the hue channel, bins the number of pixels
@@ -42,13 +42,6 @@ class HueHistogramFeatureExtractor(object):
             name = "Hue"+str(i)
             retVal.append(name)
         return retVal
-
-    
-    def getFieldTypes(self):
-        """
-        This method returns the field types
-        - Do we need this - spec out 
-        """
 
     def getNumFields(self):
         """
