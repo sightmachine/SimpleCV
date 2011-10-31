@@ -12,7 +12,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
-from SimpleCV.Features import Feature, FeatureSet
+from SimpleCV.Features.Features import Feature, FeatureSet
 
 
 

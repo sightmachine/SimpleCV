@@ -18,19 +18,21 @@ class SegmentationBase(object):
     
     __metaclass__ = abc.ABCMeta
     
-    @abc.abstractmethod
-    def loadSettings(self, file):
+    def load(cls, fname):
         """
-        Load all of the segmentation settings from file
+        load segmentation settings to file.
         """
-        return
+        return pickle.load(file(fname))
+    load = classmethod(load)
+
     
-    @abc.abstractmethod
-    def saveSettings(self, file):
+    def save(self, fname):
         """
-        save all of the segmentation settings from file
+        Save segmentation settings to file.
         """
-        return
+        output = open(fname, 'wb')
+        pickle.dump(self,output,2) # use two otherwise it borks the system 
+        output.close()
     
     @abc.abstractmethod
     def addImage(self, img):

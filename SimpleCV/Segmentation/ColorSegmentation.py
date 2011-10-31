@@ -1,15 +1,18 @@
 from SimpleCV.base import *
-from SimpleCV.Features import Feature, FeatureSet
+from SimpleCV.Features import Feature, FeatureSet, BlobMaker
 from SimpleCV.ColorModel import ColorModel
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
-from SimpleCV.BlobMaker import BlobMaker
-from SimpleCV.SegmentationBase import SegmentationBase
+from SimpleCV.Segmentation.SegmentationBase import SegmentationBase
 
 import abc
 
 
 class ColorSegmentation(SegmentationBase):
+    """
+    Perform color segmentation based on a color model or color provided. This class
+    uses ColorModel.py to create a color model. 
+    """
     mColorModel = []
     mError = False
     mCurImg = []
@@ -22,20 +25,7 @@ class ColorSegmentation(SegmentationBase):
         self.mCurImg = Image()
         self.mTruthImg = Image()
         self.mBlobMaker = BlobMaker()
- 
-    def loadSettings(self, file):       
-        """
-        Load all of the segmentation settings from file
-        """
-        self.mColorModel.load(file)
-        return
-    
-    def saveSettings(self, file):
-        """
-        save all of the segmentation settings from file
-        """
-        self.mColorModel.save(file)
-        return
+        
     
     def addImage(self, img):
         """

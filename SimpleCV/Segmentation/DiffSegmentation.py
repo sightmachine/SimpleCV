@@ -1,14 +1,30 @@
 from SimpleCV.base import *
-from SimpleCV.Features import Feature, FeatureSet
+from SimpleCV.Features import Feature, FeatureSet, BlobMaker
 from SimpleCV.ImageClass import Image
-from SimpleCV.BlobMaker import BlobMaker
-from SimpleCV.SegmentationBase import SegmentationBase
+from SimpleCV.Segmentation.SegmentationBase import SegmentationBase
 
 import abc
 
 
 class DiffSegmentation(SegmentationBase):
-
+    """
+    This method will do image segmentation by looking at the difference between
+    two frames.
+    
+    grayOnly - use only gray images.
+    threshold - The value at which we consider the color difference to
+    be significant enough to be foreground imagery.
+    
+    The general usage is
+    
+    segmentor = DiffSegmentation()
+    cam = Camera()
+    while(1):
+        segmentor.addImage(cam.getImage())
+        if(segmentor.isReady()):
+            img = segmentor.getSegmentedImage()
+            #perform task
+    """
     mError = False
     mLastImg = None
     mCurrImg = None
@@ -19,24 +35,6 @@ class DiffSegmentation(SegmentationBase):
     mBlobMaker = None
     
     def __init__(self, grayOnly=False, threshold = (10,10,10) ):
-        """
-        This method will do image segmentation by looking at the difference between
-        two frames.
-        
-        grayOnly - use only gray images.
-        threshold - The value at which we consider the color difference to
-        be significant enough to be foreground imagery.
-        
-        The general usage is
-        
-        segmentor = DiffSegmentation()
-        cam = Camera()
-        while(1):
-            segmentor.addImage(cam.getImage())
-            if(segmentor.isReady()):
-                img = segmentor.getSegmentedImage()
-                #perform task
-        """
         self.mGrayOnlyMode = grayOnly
         self.mThreshold = threshold 
         self.mError = False
@@ -45,28 +43,6 @@ class DiffSegmentation(SegmentationBase):
         self.mDiffImg = None
         self.mColorImg = None
         self.mBlobMaker = BlobMaker()
- 
-    def loadSettings(self, file):       
-        """
-        Load all of the segmentation settings from file
-        """
-        myFile = open(file,'w')
-        myFile.writeline("Difference Segmentation Parameters")
-        myFile.write(str(self.mGrayOnlyMode))
-        myFile.write(str(self.mThreshold))
-        myFile.close()
-        return
-    
-    def saveSettings(self, file):
-        """
-        save all of the segmentation settings from file
-        """
-        myFile = open(file,'r')
-        myFile.readline()
-        self.mGrayOnlyMode = myFile.readline()
-        self.mThreshold = myFile.readline()
-        myFile.close()
-        return
     
     def addImage(self, img):
         """

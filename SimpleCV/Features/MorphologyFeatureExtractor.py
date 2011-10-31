@@ -1,11 +1,11 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
-from SimpleCV.FeatureExtractorBase import *
-from SimpleCV.BlobMaker import * 
+from SimpleCV.Features.FeatureExtractorBase import *
+from SimpleCV.Features.BlobMaker import * 
 import abc
 
 
-class MorphologyFeatureExtractor(object):
+class MorphologyFeatureExtractor(FeatureExtractorBase):
     """
     This feature extractor collects some basic morphology infromation about a given
     image. It is assumed that the object to be recognized is the largest object
@@ -84,11 +84,6 @@ class MorphologyFeatureExtractor(object):
         retVal.append('Hu6')
         return retVal
 
-    
-    def getFieldTypes(self):
-        """
-        This method returns the field types
-        """
 
     def getNumFields(self):
         """

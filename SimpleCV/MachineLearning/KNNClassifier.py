@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
-from SimpleCV.FeatureExtractorBase import *
+from SimpleCV.Features import FeatureExtractorBase
 import pickle
 import orange
 import orngTest #for cross validation
@@ -11,7 +11,7 @@ import glob #for directory scanning
 import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
-multiclass support vector machine for an image classifier. Training data should
+multiclass k-nearest neighbors image classifier. Training data should
 be stored in separate directories for each class. This class uses the feature
 extractor base class to  convert images into a feature vector. The basic workflow
 is as follows.
@@ -24,27 +24,58 @@ is as follows.
 7. Save the classifier.
 8. Deploy using the classify method. 
 """
-class NaiveBayesClassifier:
+class KNNClassifier:
     """
-    This class encapsulates a Naive Bayes Classifier.
-    See:
-    http://en.wikipedia.org/wiki/Naive_bayes
+    This class encapsulates a K- Nearest Neighbor Classifier.
+    
+    See http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
     """
     mClassNames = []
-    mDataSetRaw = [] 
+    mDataSetRaw = []
+    mK=1
+    mDistType = None
     mDataSetOrange = []
     mClassifier = None
+    mLearner = None
     mFeatureExtractors = None
     mOrangeDomain = None
+
+    mDistDict = {
+        'Hamming': orange.ExamplesDistanceConstructor_Hamming(), # Hamming - only good for discrete variables
+        'Maximal': orange.ExamplesDistance_Maximal(),
+        'Manhattan':orange.ExamplesDistanceConstructor_Manhattan(),
+        'Euclidean':orange.ExamplesDistanceConstructor_Euclidean(),
+        'Normalized':None
+    }
     
-    def __init__(self,featureExtractors):
-        self.mFeatureExtractors =  featureExtractors    
+    def __init__(self,featureExtractors,k=1,dist=None):
+        """
+        dist = distance algorithm
+        k = number of nearest neighbors
+        """
+        self.mFeatureExtractors =  featureExtractors
+        if( dist is not None ):
+            self.mDistType = self.mDistDict[dist];
+        self.mK = k;
+        self.mLearner = None
         self.mClassNames = []
         self.mDataSetRaw = []
         self.mDataSetOrange = []
         self.mClassifier = None
         self.mOrangeDomain = None
         
+    def setK(self,k):
+        """
+        Note that training and testing will need to be redone.
+        """
+        self.mK = k
+    
+    def setDistanceMetric(self,dist):
+        """
+        Note that training and testing will need to be redone.
+        """
+        self.mDistType = self.mDistDict[dist]
+
     def load(cls, fname):
         """
         Load the classifier from file
@@ -58,7 +89,9 @@ class NaiveBayesClassifier:
         Save the classifier to file
         """
         output = open(fname, 'wb')
-        self.mFeatureExtractors =  None
+        self.mFeatureExtractors =  []
+        self.mDistType = None
+        self.mLearner = None
         self.mDataSetRaw = []
         self.mDataSetOrange = []
         pickle.dump(self,output,2) # use two otherwise it borks the system 
@@ -166,7 +199,11 @@ class NaiveBayesClassifier:
         if(savedata is not None):
             orange.saveTabDelimited (savedata, self.mDataSetOrange)
 
-        self.mClassifier = orange.BayesLearner(self.mDataSetOrange)
+        self.mLearner =  orange.kNNLearner()
+        self.mLearner.k = self.mK
+        if(self.mDistType is not None):
+            self.mClassifier.distanceConstructor = self.mDistType        
+        self.mClassifier = self.mLearner(self.mDataSetOrange)
         correct = 0
         incorrect = 0
         for i in range(count):
@@ -184,7 +221,7 @@ class NaiveBayesClassifier:
 
         confusion = 0
         if( len(self.mClassNames) > 2 ):
-            crossValidator = orngTest.learnAndTestOnLearnData([orange.BayesLearner],self.mDataSetOrange)
+            crossValidator = orngTest.learnAndTestOnLearnData([self.mLearner],self. mDataSetOrange)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
@@ -194,7 +231,6 @@ class NaiveBayesClassifier:
             print "\t"+"\t".join(classes)
             for className, classConfusions in zip(classes, confusion):
                 print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-            
         return [good, bad, confusion]
 
 
@@ -239,10 +275,10 @@ class NaiveBayesClassifier:
         
         if savedata is not None:
             orange.saveTabDelimited (savedata, testData)
-        
+
         confusion = 0
-        if( len(self.mClassNames) > 2 ):
-            crossValidator = orngTest.learnAndTestOnTestData([orange.BayesLearner()],self.mDataSetOrange,testData)
+        if( len(self.mClassNames) > 2 ):                
+            crossValidator = orngTest.learnAndTestOnTestData([self.mLearner],self.mDataSetOrange,testData)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         good = 100*(float(correct)/float(count))
@@ -258,6 +294,7 @@ class NaiveBayesClassifier:
         return [good, bad, confusion]
     
     def _testPath(self,path,className,dataset,subset,disp,verbose):
+        print(self.mClassifier)
         count = 0
         correct = 0
         badFeat = False

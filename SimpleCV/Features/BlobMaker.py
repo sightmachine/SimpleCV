@@ -1,7 +1,4 @@
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image
-from SimpleCV.Features import FeatureSet
-from SimpleCV.Blob import Blob
 
 
 class BlobMaker:
@@ -244,3 +241,7 @@ class BlobMaker:
         return(Image(outputImg))
     
 
+
+from SimpleCV.ImageClass import Image
+from SimpleCV.Features.Features import FeatureSet
+from SimpleCV.Features.Blob import Blob

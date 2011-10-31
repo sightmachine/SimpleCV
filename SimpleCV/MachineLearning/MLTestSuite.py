@@ -1,10 +1,6 @@
 from numpy import *
 from SimpleCV.Display import Display, pg
-from SimpleCV.EdgeHistogramFeatureExtractor import *
-from SimpleCV.HueHistogramFeatureExtractor import *
-from SimpleCV.BOFFeatureExtractor import *
-from SimpleCV.HaarLikeFeatureExtractor import *
-from SimpleCV.MorphologyFeatureExtractor import *
+from SimpleCV.Features import EdgeHistogramFeatureExtractor, HueHistogramFeatureExtractor, BOFFeatureExtractor, HaarLikeFeatureExtractor, MorphologyFeatureExtractor
 import Orange
 import os
 import glob

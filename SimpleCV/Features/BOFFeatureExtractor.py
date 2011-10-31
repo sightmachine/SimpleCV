@@ -1,13 +1,24 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
-from SimpleCV.FeatureExtractorBase import *
+from SimpleCV.Features.FeatureExtractorBase import *
 import scipy.cluster.vq as cluster #for kmeans
 import glob
 import os
 import abc
 
 class BOFFeatureExtractor(object):
+    """
+    For a discussion of bag of features please see:
+    http://en.wikipedia.org/wiki/Bag_of_words_model_in_computer_vision
     
+    Initialize the bag of features extractor. This assumes you don't have
+    the feature codebook pre-computed.
+    patchsz = the dimensions of each codebook patch
+    numcodes = the number of different patches in the codebook.
+    imglayout = the shape of the resulting image in terms of patches
+    padding = the pixel padding of each patch in the resulting image.
+    
+    """    
     mPatchSize = (11,11)
     mNumCodes = 128
     mPadding = 0
@@ -16,18 +27,7 @@ class BOFFeatureExtractor(object):
     mCodebook = None
     
     def __init__(self,patchsz=(11,11),numcodes=128,imglayout=(8,16),padding=0):
-        """
-        For a discussion of bag of features please see:
-        http://en.wikipedia.org/wiki/Bag_of_words_model_in_computer_vision
-        
-        Initialize the bag of features extractor. This assumes you don't have
-        the feature codebook pre-computed.
-        patchsz = the dimensions of each codebook patch
-        numcodes = the number of different patches in the codebook.
-        imglayout = the shape of the resulting image in terms of patches
-        padding = the pixel padding of each patch in the resulting image.
-        
-        """
+
         self.mPadding = padding
         self.mLayout = imglayout
         self.mPatchSize = patchsz
@@ -285,12 +285,6 @@ class BOFFeatureExtractor(object):
                 retVal.append(temp)
         return retVal
 
-    
-    def getFieldTypes(self):
-        """
-        This method returns the field types
-        - Do we need this - spec out 
-        """
 
     def getNumFields(self):
         """

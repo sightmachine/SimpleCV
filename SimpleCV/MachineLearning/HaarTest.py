@@ -5,14 +5,11 @@ import glob
 import pickle
 
 from SimpleCV.Display import Display, pg
-from SimpleCV.EdgeHistogramFeatureExtractor import *
-from SimpleCV.HueHistogramFeatureExtractor import *
-from SimpleCV.HaarLikeFeatureExtractor import *
-from SimpleCV.BOFFeatureExtractor import *
-from SVMClassifier import *
-from NaiveBayesClassifier import *
-from KNNClassifier import *
-from TreeClassifier import *
+from SimpleCV.Features import EdgeHistogramFeatureExtractor, HueHistogramFeatureExtractor, HaarLikeFeatureExtractor, BOFFeatureExtractor
+from SimpleCV.MachineLearning.SVMClassifier import *
+from SimpleCV.MachineLearning.NaiveBayesClassifier import *
+from SimpleCV.MachineLearning.KNNClassifier import *
+from SimpleCV.MachineLearning.TreeClassifier import *
 
 img = Image("..//sampleimages//aerospace.jpg")
 haar = HaarLikeFeatureExtractor(fname="haar.txt")
