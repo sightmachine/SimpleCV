@@ -12,6 +12,19 @@ Image
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: DiffSegmentation
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: EdgeHistogramFeatureExtractor
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+    
+
 Color
 --------
 
@@ -45,6 +58,13 @@ Color
     :inherited-members:
     :undoc-members:
 
+.. autoclass:: ColorSegmentation
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+    
+
     
 Features
 --------
@@ -74,6 +94,24 @@ Features
    :inherited-members:
    :undoc-members:
 
+.. autoclass:: HaarLikeFeature
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:   
+
+.. autoclass:: HaarLikeFeatureExtractor
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+    
+.. autoclass:: HueHistogramFeatureExtractor
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
 .. autoclass:: Blob 
    :show-inheritance:
    :members:
@@ -92,6 +130,36 @@ Features
     :inherited-members:
     :undoc-members:
 
+.. autoclass:: FeatureExtractorBase
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: SegmentationBase
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+
+.. autoclass:: RunningSegmentation
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: TemplateMatch
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: Chessboard
+    :show-inheritance:
+    :members:
+    :inherited-members:
+    :undoc-members:
 
 Cameras
 --------

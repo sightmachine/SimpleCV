@@ -32,14 +32,12 @@ class HaarLikeFeature():
         Set the list of regions. The regions are square coordinates on a unit
         sized image followed by the sign of a region.
         
-        The format is [[[TL],[BR],SIGN],
-                       [[TL],[BR],SIGN].....]
+        The format is [[[TL],[BR],SIGN],[[TL],[BR],SIGN].....]
         Where TR and BL are the unit coorinates for the top right and bottom
         left coodinates.
         
         For example
-        [[[0,0],[0.5,0.5],1],
-         [[0.5.0],[1.0,1.0],-1]]
+        [[[0,0],[0.5,0.5],1],[[0.5.0],[1.0,1.0],-1]]
         
         Takes the right side of the image and subtracts from the left hand side
         of the image. 

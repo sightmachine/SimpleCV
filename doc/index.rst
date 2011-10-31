@@ -1,5 +1,5 @@
 API - SimpleCV Application Programming Interface
----------------------------
+------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2
@@ -11,7 +11,7 @@ API - SimpleCV Application Programming Interface
    
 
 Installation
----------------------------
+------------------------------------------------------------------------
 `Easiest Method`
 
 The easiest method to install SimpleCV is with the 1-click installers
@@ -41,14 +41,14 @@ If you need more specific instructions per platform there is:
 
 
 Required Libraries
-==================
+========================================================================
 
 * OpenCV 2.2 with Python bindings <http://opencv.willowgarage.com/wiki/>
 * SciPY <http://www.scipy.org>
 * Python Image Library <http://www.pythonware.com/products/pil/>
 
 Optional Libraries
-==================
+========================================================================
 Device Support:
 
 * OpenKinect/freenect <http://openkinect.org/wiki/Main_Page>
@@ -65,7 +65,7 @@ Barcode reading:
 
     
 Videos - Tutorials and Demos
----------------------------
+------------------------------------------------------------------------
 Video tutorials and demos can be found at:
 http://www.youtube.com/user/IngenuitasOfficial
 
@@ -75,7 +75,7 @@ http://www.simplecv.org
 
 
 Indices and tables
-==================
+========================================================================
 
 * :ref:`genindex`
 * :ref:`modindex`

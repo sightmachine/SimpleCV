@@ -356,11 +356,8 @@ class Blob(Feature):
         
         color = The color to render the blob.
         alpha = The alpha value of the rendered blob.
-        width = The width of the drawn blob in pixels, if -1 then filled
-                then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus
-                the source image. 
-        
+        width = The width of the drawn blob in pixels, if -1 then filled then the polygon is filled.
+        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
         """
         if not layer:
             layer = self.image.dl()
@@ -397,8 +394,7 @@ class Blob(Feature):
         color = The color to render the blob.
         alpha = The alpha value of the rendered blob.
         width = The width of the drawn blob in pixels, -1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus
-                the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
         """
         
         if( layer is None ):
@@ -422,8 +418,7 @@ class Blob(Feature):
         color = The color to render the blob's holes.
         alpha = The alpha value of the rendered blob hole.
         width = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus
-                the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
         """
         if(self.mHoleContour is None):
             return
@@ -450,8 +445,7 @@ class Blob(Feature):
         color = The color to render the blob's convex hull.
         alpha = The alpha value of the rendered blob.
         width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus
-                the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
         """
         if( layer is None ):
             layer = self.image.dl()
