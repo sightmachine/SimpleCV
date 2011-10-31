@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
-from SimpleCV.FeatureExtractorBase import *
-from SimpleCV.BlobMaker import * 
+from SimpleCV.Features.FeatureExtractorBase import *
+from SimpleCV.FeaturesBlobMaker import * 
 import abc
 
 

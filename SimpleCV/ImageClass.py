@@ -3,14 +3,7 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch
-from SimpleCV.Features import FeatureSet, Feature
-from SimpleCV.Stream import JpegStreamer
-from SimpleCV.Font import *
 from SimpleCV.Color import *
-from SimpleCV.DrawingLayer import *
-from SimpleCV.Images import *
-
 from numpy import int32
 from numpy import uint8
 import pygame as pg
@@ -2379,5 +2372,9 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
 
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker
+from SimpleCV.Stream import JpegStreamer
+from SimpleCV.Font import *
+from SimpleCV.DrawingLayer import *
+from SimpleCV.Images import *
 
-from SimpleCV.BlobMaker import BlobMaker

@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
-from SimpleCV.FeatureExtractorBase import *
+from SimpleCV.Features import FeatureExtractorBase
 import pickle
 import orange
 import orngTest #for cross validation
