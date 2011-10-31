@@ -1,3 +1,33 @@
+Changes in 1.2
+-------------------------------
+scale - updated so it can be a value
+blit - overlay images on top of other images with the blit function
+start/stop camera - You now have the ability to start and stop a camera object without restarting simplecv
+randomized color - set each feature to support auto coloring
+stretch filter fixed
+foreground/background (codebook) segmentation - Easily compute the difference between foreground and background
+use web based flash to acquire images in webpage
+bag of features - This is used to detect features and use those features in image classification
+shape detectors - Added functions like isCircle(), isSquare(), etc.
+better camera support - Now supports HD and fallbacks so if openCV isn't working it tries other methods to work with camera
+python imaging library is now required
+hue distance - get the distance in hue from current image to another
+template matching - This is basic pattern matching
+convolution added
+integral image - take the derivative of an image
+haar wavelet calculations
+SVM (binary/multiclass) support added using OrangeSVM
+naive bayes (binary/multiclass) support added
+decision learning tree (binary/multiclass) support added
+random forrest machine learning added
+optical character recognition (OCR) support added via Tesseract
+ability to load images from URL. i.e. img = Image("http://www.foo.com/bar.png")
+pass a feature to crop function
+KNN classifier
+image segmentation
+
+
+
 Changes in 1.1
 -------------------------------
 All drawing has been moved to pygame-based surfaces in DrawingLayers
