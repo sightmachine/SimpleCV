@@ -5,17 +5,17 @@ import abc
 
 
 class EdgeHistogramFeatureExtractor(object):
-
+    """
+    Create a 1D edge length histogram and 1D edge angle histogram.
+    
+    This method takes in an image, applies an edge detector, and calculates
+    the length and direction of lines in the image.
+    
+    bins = the number of bins
+    """
     mNBins = 10
     def __init__(self, bins=10):
-        """
-        Create a 1D edge length histogram and 1D edge angle histogram.
-        
-        This method takes in an image, applies an edge detector, and calculates
-        the length and direction of lines in the image.
-        
-        bins = the number of bins
-        """
+
         self.mNBins = bins
 
     def extract(self, img):
@@ -54,11 +54,6 @@ class EdgeHistogramFeatureExtractor(object):
         """
         This method gives the names of each field in the feature vector in the
         order in which they are returned. For example, 'xpos' or 'width'
-        """
-    
-    def getFieldTypes(self):
-        """
-        This method returns the field types
         """
 
     def getNumFields(self):
