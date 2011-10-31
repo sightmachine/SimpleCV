@@ -3,26 +3,26 @@ from SimpleCV.ImageClass import Image
 
 
 class HaarLikeFeature():
+    """
+    Create a single Haar feature and optionally set the regions that define
+    the Haar feature and its name. The formal of the feature is 
 
+    The format is [[[TL],[BR],SIGN],
+                   [[TL],[BR],SIGN].....]
+    Where TR and BL are the unit coorinates for the top right and bottom
+    left coodinates.
+    
+    For example
+    [[[0,0],[0.5,0.5],1],
+     [[0.5.0],[1.0,1.0],-1]]
+    
+    Takes the right side of the image and subtracts from the left hand side
+    of the image. 
+    """
     mName = None
     mRegions = None
     def __init__(self, name=None,regions=None):
-        """
-        Create a single Haar feature and optionally set the regions that define
-        the Haar feature and its name. The formal of the feature is 
 
-        The format is [[[TL],[BR],SIGN],
-                       [[TL],[BR],SIGN].....]
-        Where TR and BL are the unit coorinates for the top right and bottom
-        left coodinates.
-        
-        For example
-        [[[0,0],[0.5,0.5],1],
-         [[0.5.0],[1.0,1.0],-1]]
-        
-        Takes the right side of the image and subtracts from the left hand side
-        of the image. 
-        """
         self.mName = name;
         self.mRegions = regions;
     
