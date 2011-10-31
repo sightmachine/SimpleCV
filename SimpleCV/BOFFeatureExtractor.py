@@ -218,6 +218,21 @@ class BOFFeatureExtractor(object):
             self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
         self.mCodebookImg.save(imgfname)
         return
+        
+    def __getstate__(self):
+        if(self.mCodebookImg is None):
+            self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
+        mydict = self.__dict__.copy()
+        del mydict['mCodebook']
+        return mydict
+    
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        self.mCodebook = self._img2Codebook(self.mCodebookImg,
+                                            self.mPatchSize,
+                                            self.mNumCodes,
+                                            self.mLayout,
+                                            self.mPadding)
     
     def extract(self, img):
         """
