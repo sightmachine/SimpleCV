@@ -10,6 +10,10 @@ import abc
 
 
 class ColorSegmentation(SegmentationBase):
+    """
+    Perform color segmentation based on a color model or color provided. This class
+    uses ColorModel.py to create a color model. 
+    """
     mColorModel = []
     mError = False
     mCurImg = []
