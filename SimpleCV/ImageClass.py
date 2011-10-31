@@ -1138,7 +1138,7 @@ class Image:
         distances *= (255.0/distances.max()) #normalize to 0 - 255
         return Image(distances.reshape(self.width, self.height)) #return an Image
     
-    def hueDistance(self, color = [0, 0, 0], minsaturation = 20, minvalue = 20):
+    def hueDistance(self, color = (0, 0, 0), minsaturation = 20, minvalue = 20):
         """
         Returns an image representing the distance of each pixel from the given hue
         of a specific color.  The hue is "wrapped" at 180, so we have to take the shorter
@@ -1148,12 +1148,15 @@ class Image:
         The minsaturation and minvalue are optional parameters to weed out very weak hue
         signals in the picture, they will be pushed to max distance [255]
         """
-        color_px = Image((1,1))
-        color_px[0,0] = color
-        color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
+        if isinstance(color,  (float,int,long,complex)):
+            color_hue = color
+        else:
+            color_px = Image((1,1))
+            color_px[0,0] = color
+            color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
         
         vsh_matrix = self.toHSV().getNumpy().reshape(-1,3) #again, gets transposed to vsh
-        hue_channel = vsh_matrix[:,2]
+        hue_channel = np.cast['int'](vsh_matrix[:,2])
         
         if color_hue < 90:
             hue_loop = 180
@@ -1317,6 +1320,127 @@ class Image:
 
         (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
         return hist.tolist()
+        
+    def hueHistogram(self, bins = 179):
+        """
+        Returns the histogram of the hue channel for the image
+        """
+        return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
+
+    def huePeaks(self, bins = 179):
+        """
+        Takes the histogram of hues, and returns the peak hue values, which
+        can be useful for determining what the "main colors" in a picture now.
+        
+        The bins parameter can be used to lump hues together, by default it is 179
+        (the full resolution in OpenCV's HSV format)
+        
+        Peak detection code taken from https://gist.github.com/1178136
+        Converted from/based on a MATLAB script at http://billauer.co.il/peakdet.html
+        
+        Returns a list of tuples, each tuple contains the hue, and the fraction
+        of the image that has it.  
+        
+        """
+        """
+        keyword arguments:
+        y_axis -- A list containg the signal over which to find peaks
+        x_axis -- A x-axis whose values correspond to the 'y_axis' list and is used
+            in the return to specify the postion of the peaks. If omitted the index
+            of the y_axis is used. (default: None)
+        lookahead -- (optional) distance to look ahead from a peak candidate to
+            determine if it is the actual peak (default: 500) 
+            '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
+        delta -- (optional) this specifies a minimum difference between a peak and
+            the following points, before a peak may be considered a peak. Useful
+            to hinder the algorithm from picking up false peaks towards to end of
+            the signal. To work well delta should be set to 'delta >= RMSnoise * 5'.
+            (default: 0)
+                Delta function causes a 20% decrease in speed, when omitted
+                Correctly used it can double the speed of the algorithm
+        
+        return --  Each cell of the lists contains a tupple of:
+            (position, peak_value) 
+            to get the average peak value do 'np.mean(maxtab, 0)[1]' on the results
+        """
+        y_axis, x_axis = np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)
+        x_axis = x_axis[0:bins]
+        lookahead = int(bins / 17)
+        delta = 0
+        
+        maxtab = []
+        mintab = []
+        dump = []   #Used to pop the first hit which always if false
+           
+        length = len(y_axis)
+        if x_axis is None:
+            x_axis = range(length)
+        
+        #perform some checks
+        if length != len(x_axis):
+            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+        if lookahead < 1:
+            raise ValueError, "Lookahead must be above '1' in value"
+        if not (np.isscalar(delta) and delta >= 0):
+            raise ValueError, "delta must be a positive number"
+        
+        #needs to be a numpy array
+        y_axis = np.asarray(y_axis)
+        
+        #maxima and minima candidates are temporarily stored in
+        #mx and mn respectively
+        mn, mx = np.Inf, -np.Inf
+        
+        #Only detect peak if there is 'lookahead' amount of points after it
+        for index, (x, y) in enumerate(zip(x_axis[:-lookahead], y_axis[:-lookahead])):
+            if y > mx:
+                mx = y
+                mxpos = x
+            if y < mn:
+                mn = y
+                mnpos = x
+            
+            ####look for max####
+            if y < mx-delta and mx != np.Inf:
+                #Maxima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].max() < mx:
+                    maxtab.append((mxpos, mx))
+                    dump.append(True)
+                    #set algorithm to only find minima now
+                    mx = np.Inf
+                    mn = np.Inf
+            
+            ####look for min####
+            if y > mn+delta and mn != -np.Inf:
+                #Minima peak candidate found 
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].min() > mn:
+                    mintab.append((mnpos, mn))
+                    dump.append(False)
+                    #set algorithm to only find maxima now
+                    mn = -np.Inf
+                    mx = -np.Inf
+        
+        
+        #Remove the false hit on the first value of the y_axis
+        try:
+            if dump[0]:
+                maxtab.pop(0)
+                #print "pop max"
+            else:
+                mintab.pop(0)
+                #print "pop min"
+            del dump
+        except IndexError:
+            #no peaks were found, should the function return empty lists?
+            pass
+      
+        huetab = []
+        for hue, pixelcount in maxtab:
+            huetab.append((hue, pixelcount / float(self.width * self.height)))
+        return huetab
+
 
 
     def __getitem__(self, coord):
