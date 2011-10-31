@@ -1,6 +1,6 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
-from SimpleCV.FeatureExtractorBase import *
+from SimpleCV.Features.FeatureExtractorBase import *
 import abc
 
 

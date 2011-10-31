@@ -1,6 +1,6 @@
 from SimpleCV import *
 from numpy import *
-from SimpleCV.BOFFeatureExtractor import *
+from SimpleCV.Features import BOFFeatureExtractor
 import os
 import glob
 import time
