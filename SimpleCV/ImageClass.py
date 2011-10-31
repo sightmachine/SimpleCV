@@ -2371,8 +2371,6 @@ class Image:
         return result
 
 
-<<<<<<< HEAD
-=======
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
@@ -2382,5 +2380,4 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
->>>>>>> ba1841ca37689b3859af14c4b35d414b16ffe939
 from SimpleCV.BlobMaker import BlobMaker

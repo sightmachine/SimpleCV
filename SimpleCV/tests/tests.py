@@ -918,17 +918,6 @@ def test_blob_methods():
         b.contains(first)
         b.overlaps(first)
 
-
-def test_detection_ocr():
-    img = Image(ocrimage)
-    print "TESTING OCR"
-    foundtext = img.readText()
-    print foundtext
-    if(len(foundtext) <= 1):
-        assert False
-    else:
-        pass
-        
 def test_image_convolve():
     img = Image(testimageclr)
     kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
@@ -941,12 +930,16 @@ def test_image_convolve():
     if( e0 > 1 or e1 > 1 or e2 > 1 ):
         assert False
 
-def test_image_intergralimage():
-    img = Image(logo)
-    ii = img.integralImage()
-    if len(ii) == 0:
-        assert False
 
+def test_detection_ocr():
+    img = Image(ocrimage)
+    print "TESTING OCR"
+    foundtext = img.readText()
+    print foundtext
+    if(len(foundtext) <= 1):
+        assert False
+    else:
+        pass
         
 def test_template_match():
     source = Image("../sampleimages/templatetest.png")
@@ -958,5 +951,12 @@ def test_template_match():
     pass
 
 
+def test_image_intergralimage():
+    img = Image(logo)
+    ii = img.integralImage()
+    if len(ii) == 0:
+        assert False
+
+        
 #def test_get_holes()
 #def test 

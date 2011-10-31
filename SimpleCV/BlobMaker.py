@@ -167,6 +167,8 @@ class BlobMaker:
         mask = retVal.mMask
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
+        retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
+        retVal.mAvgColor = retVal.mAvgColor[0:3]
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]

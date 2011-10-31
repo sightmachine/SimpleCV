@@ -25,6 +25,11 @@ is as follows.
 8. Deploy using the classify method. 
 """
 class KNNClassifier:
+    """
+    This class encapsulates a K- Nearest Neighbor Classifier.
+    
+    See http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
+    """
     mClassNames = []
     mDataSetRaw = []
     mK=1

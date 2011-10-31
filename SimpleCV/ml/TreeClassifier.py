@@ -26,6 +26,22 @@ is as follows.
 8. Deploy using the classify method. 
 """
 class TreeClassifier:
+    """
+    This method encapsulates a number of tree-based machine learning approaches
+    and associated meta algorithms. 
+    
+    Decision trees:
+    http://en.wikipedia.org/wiki/Decision_trees
+    
+    boosted adpative decision trees
+    http://en.wikipedia.org/wiki/Adaboost
+    
+    random forrests
+    http://en.wikipedia.org/wiki/Random_forest
+    
+    bagging (bootstrap aggregating)
+    http://en.wikipedia.org/wiki/Bootstrap_aggregating
+    """
     mClassNames = []
     mDataSetRaw = []
     mDataSetOrange = []
