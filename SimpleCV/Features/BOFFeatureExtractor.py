@@ -59,7 +59,7 @@ class BOFFeatureExtractor(object):
         rawFeatures = np.zeros(sz[0]*sz[1])#fakeout numpy so we can use vstack
         for path in imgdirs:
             fcount = 0
-            files = glob.glob( os.path.join(path, '*.jpg'))
+            files = glob.glob( os.path.join(path, IMAGE_FORMATS_REGEX))
             nimgs = min(len(files),imgs_per_dir)
             for i in range(nimgs):
                 infile = files[i]
@@ -67,7 +67,7 @@ class BOFFeatureExtractor(object):
                     print(path+" "+str(i)+" of "+str(imgs_per_dir))
                     print "Opening file: " + infile
                 img = Image(infile)
-                newFeat = self._getPatches(img)
+                newFeat = self._getPatches(img,sz)
                 if verbose:
                     print "     Got " + str(len(newFeat)) + " features."
                 rawFeatures = np.vstack((rawFeatures,newFeat))
@@ -77,16 +77,30 @@ class BOFFeatureExtractor(object):
             print "=================================="
             print "Got " + str(len(rawFeatures)) + " features "
             print "Doing K-Means .... this will take a long time"
-        self.mCodebook = self._makeCodebook(rawFeatures)
+        self.mCodebook = self._makeCodebook(rawFeatures,self.mNumCodes)
         self.mCodebookImg = self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
         self.mCodebookImg.save('codebook.png')
+    
+    def extractPatches(self, img, sz=(11,11) ):
+        """
+        Get patches from a single images. This is an external access method. The
+        user will need to maintain the list of features. See the generate method
+        as a guide to doing this by hand. Sz is the image patch size. 
+        """
+        return self._getPatches(img,sz)
+
+    def makeCodebook(self, featureStack,ncodes=128):
+        """
+        This method will return the centroids of the k-means analysis of a large
+        number of images. Ncodes is the number of centroids to find.
+        """
+        return self._makeCodebook(featureStack,ncodes)
         
-        
-    def _makeCodebook(self,data):
+    def _makeCodebook(self,data,ncodes=128):
         """
         Do the k-means ... this is slow as as shit
         """
-        [centroids, membership] = cluster.kmeans2(data,self.mNumCodes, minit='points')
+        [centroids, membership] = cluster.kmeans2(data,ncodes, minit='points')
         return(centroids)
         
     def _img2Codebook(self, img, patchsize, count, patch_arrangement, spacersz):
@@ -141,22 +155,22 @@ class BOFFeatureExtractor(object):
                 count = count + 1
         return img
         
-    def _getPatches(self,img):
+    def _getPatches(self,img,sz):
         #retVal = [] # may need to go to np.array
         img2 = img.toHLS()
         lmat = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
         patch = cv.CreateImage(self.mPatchSize,cv.IPL_DEPTH_8U,1)
         cv.Split(img2.getBitmap(),None,lmat,None,None)
-        wsteps = img2.width/self.mPatchSize[0]
-        hsteps = img2.height/self.mPatchSize[1]
-        w=self.mPatchSize[0]
-        h=self.mPatchSize[1]
+        wsteps = img2.width/sz[0]
+        hsteps = img2.height/sz[1]
+        w=sz[0]
+        h=sz[1]
         length = w*h
         retVal = np.zeros(length)
         for widx in range(wsteps):
             for hidx in range(hsteps):
-                x = (widx*self.mPatchSize[0])
-                y = (hidx*self.mPatchSize[1])
+                x = (widx*sz[0])
+                y = (hidx*sz[1])
                 cv.SetImageROI(lmat,(x,y,w,h)) 
                 cv.EqualizeHist(lmat,patch)
                 #cv.Copy(lmat,patch)
