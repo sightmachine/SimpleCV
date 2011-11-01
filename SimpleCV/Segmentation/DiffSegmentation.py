@@ -17,13 +17,13 @@ class DiffSegmentation(SegmentationBase):
     
     The general usage is
     
-    segmentor = DiffSegmentation()
-    cam = Camera()
-    while(1):
-        segmentor.addImage(cam.getImage())
-        if(segmentor.isReady()):
-            img = segmentor.getSegmentedImage()
-            #perform task
+    >>> segmentor = DiffSegmentation()
+    >>> cam = Camera()
+    >>> while(1):
+    >>>    segmentor.addImage(cam.getImage())
+    >>>    if(segmentor.isReady()):
+    >>>        img = segmentor.getSegmentedImage()
+
     """
     mError = False
     mLastImg = None
