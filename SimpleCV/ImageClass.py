@@ -803,16 +803,16 @@ class Image:
             return None
       
       
-    def binarize(self, thresh = 127, maxv = 255, blocksize = 3, p = 5):
+    def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         Do a binary threshold the image, changing all values above thresh to maxv
         and all below to black.  If a color tuple is provided, each color channel
         is thresholded separately.
     
-    
-        If threshold is -1, an adaptive sampling method is used - similar to a moving
-        average.  Over each region of block*block pixels a threshold is applied
-        where threshold = local_mean - p.
+
+        If threshold is -1 (default), an adaptive method (OTSU's method) is used. 
+        If then a blocksize is specified, a moving average over each region of block*block 
+        pixels a threshold is applied where threshold = local_mean - p.
         """
         if (is_tuple(thresh)):
             r = self.getEmpty(1) 
@@ -835,8 +835,11 @@ class Image:
     
         elif thresh == -1:
             newbitmap = self.getEmpty(1)
-            cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
-                cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize, p)
+            if blocksize:
+                cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
+                    cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize, p)
+            else:
+                cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
             return Image(newbitmap, colorSpace=self._colorSpace)
         else:
             newbitmap = self.getEmpty(1) 
