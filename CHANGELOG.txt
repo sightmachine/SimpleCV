@@ -1,6 +1,7 @@
 Changes in 1.2
 -------------------------------
-scale - updated so it can be a value
+scale - updated so it can be a value (eg Image.scale(0.5))
+binarize - now defaults to Otsu's method rather than binarize 127
 blit - overlay images on top of other images with the blit function
 start/stop camera - You now have the ability to start and stop a camera object without restarting simplecv
 randomized color - set each feature to support auto coloring
