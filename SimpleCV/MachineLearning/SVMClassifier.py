@@ -31,17 +31,10 @@ class SVMClassifier:
     mOrangeDomain = None
     mSVMPrototype = None
     
-    mKernelType = {
-        'RBF':orange.SVMLearner.RBF, #Radial basis kernel
-        'Linear':orange.SVMLearner.Linear, #Linear basis kernel
-        'Poly':orange.SVMLearner.Polynomial, #Polynomial kernel
-        'Sigmoid':orange.SVMLearner.Sigmoid #Sigmoid Kernel
-    }
+    mKernelType = {} 
     
-    mSVMType = {
-        'NU':orange.SVMLearner.Nu_SVC,
-        'C':orange.SVMLearner.C_SVC
-    }
+    mSVMType = {}
+    
     mSVMProperties = {
         'KernelType':'RBF', #default is a RBF Kernel
         'SVMType':'NU',     #default is C 
@@ -58,6 +51,18 @@ class SVMClassifier:
         if not ORANGE_ENABLED:
             warnings.warn("The required orange machine learning library is not installed")
             return None
+        
+        self.mKernelType = {
+            'RBF':orange.SVMLearner.RBF, #Radial basis kernel
+            'Linear':orange.SVMLearner.Linear, #Linear basis kernel
+            'Poly':orange.SVMLearner.Polynomial, #Polynomial kernel
+            'Sigmoid':orange.SVMLearner.Sigmoid #Sigmoid Kernel
+        }
+        
+        self.mSVMType = {
+            'NU':orange.SVMLearner.Nu_SVC,
+            'C':orange.SVMLearner.C_SVC
+        }
             
         self.mFeatureExtractors =  featureExtractors    
         if(properties is not None):

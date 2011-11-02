@@ -33,13 +33,7 @@ class KNNClassifier:
     mFeatureExtractors = None
     mOrangeDomain = None
 
-    mDistDict = {
-        'Hamming': orange.ExamplesDistanceConstructor_Hamming(), # Hamming - only good for discrete variables
-        'Maximal': orange.ExamplesDistance_Maximal(),
-        'Manhattan':orange.ExamplesDistanceConstructor_Manhattan(),
-        'Euclidean':orange.ExamplesDistanceConstructor_Euclidean(),
-        'Normalized':None
-    }
+    mDistDict = {}
     
     def __init__(self,featureExtractors,k=1,dist=None):
         """
@@ -49,6 +43,15 @@ class KNNClassifier:
         if not ORANGE_ENABLED:
             warnings.warn("The required orange machine learning library is not installed")
             return None
+        
+        self.mDistDict = {
+            'Hamming': orange.ExamplesDistanceConstructor_Hamming(), # Hamming - only good for discrete variables
+            'Maximal': orange.ExamplesDistance_Maximal(),
+            'Manhattan':orange.ExamplesDistanceConstructor_Manhattan(),
+            'Euclidean':orange.ExamplesDistanceConstructor_Euclidean(),
+            'Normalized':None
+        }
+        
         
         self.mFeatureExtractors =  featureExtractors
         if( dist is not None ):
