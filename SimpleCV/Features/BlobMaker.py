@@ -20,7 +20,13 @@ class BlobMaker:
         img        - The input image
         colormodel - The color model to use.
         minsize    - The minimum size of the returned features.
-        maxsize    - The maximum size of the returned features 0=uses the default value. 
+        maxsize    - The maximum size of the returned features 0=uses the default value.
+
+        Parameters:
+            img - Image
+            colormodel - ColorModel object
+            minsize - Int
+            maxsize - Int
         """
         if (maxsize <= 0):  
           maxsize = img.width * img.height 

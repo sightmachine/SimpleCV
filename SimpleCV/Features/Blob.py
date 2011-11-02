@@ -5,11 +5,16 @@ from SimpleCV.ImageClass import Image
 
 
 class Blob(Feature):
-    # In general the factory will get most of this stuff, or allow the user
-    # to get the data if they really need it. My preference is for this is
-    # that this lass holds as a little of the open CV data structures as possible
-    # just because having a bunch of memory pointers around seems really unpythonic
-    # the other difficulty is interior contours. Do we nest them or not?
+    """
+    A blob is a typicall a cluster of pixels that form a feature or unique
+    shape that allows it to be distinguished from the rest of the image
+    Blobs typically are computed very quickly so they are used often to
+    find various items in a picture based on properties.  Typically these
+    things like color, shape, size, etc.   Since blobs are computed quickly
+    they are typically used to narrow down search regions in an image, where
+    you quickly find a blob and then that blobs region is used for more
+    computational intensive type image processing
+    """
     seq = '' #the cvseq object that defines this blob
     mContour = [] # the blob's outer perimeter as a set of (x,y) tuples 
     mConvexHull = [] # the convex hull contour as a set of (x,y) tuples
@@ -73,6 +78,9 @@ class Blob(Feature):
     def meanColor(self):
         """
         This function returns a tuple representing the average color of the blob
+
+        Returns:
+            Tuple
         """
         return (self.mAvgColor[0],self.mAvgColor[1],self.mAvgColor[2])
 
@@ -93,6 +101,9 @@ class Blob(Feature):
     def center(self):
         """
         This mehtod returns the center of the blob's bounding box
+
+        Returns:
+            Tuple
         """
         x = self.mBoundingBox[0]+(self.mBoundingBox[2]/2)
         y = self.mBoundingBox[1]+(self.mBoundingBox[3]/2)
@@ -226,11 +237,15 @@ class Blob(Feature):
     
     def rotate(self,angle):
         """
-        NOTE THIS IS IN PLACE -- I NEED TO FIX THIS TO RETURN A BLOB
         Rotate the blob given the angle in degrees most of the blob elements will
         be rotated, not however this will "break" drawing back to the original image.
-        To draw the blob create a new layer and draw to that layer. 
+        To draw the blob create a new layer and draw to that layer.
+
+        Parameters:
+            angle - Int or Float
+            
         """
+        #FIXME: This function should return a blob
         theta = 2*np.pi*(angle/360.0)
         mode = ""
         point =(self.x,self.y)
@@ -357,7 +372,13 @@ class Blob(Feature):
         color = The color to render the blob.
         alpha = The alpha value of the rendered blob.
         width = The width of the drawn blob in pixels, if -1 then filled then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Parameters:
+            color - Color object or Color tuple
+            alpha - Int
+            width - Int
+            layer - DrawingLayer
         """
         if not layer:
             layer = self.image.dl()
@@ -394,7 +415,13 @@ class Blob(Feature):
         color = The color to render the blob.
         alpha = The alpha value of the rendered blob.
         width = The width of the drawn blob in pixels, -1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Parameters:
+            color - Color object or Color tuple
+            alpha - Int
+            width - Int
+            layer - DrawingLayer
         """
         
         if( layer is None ):
@@ -418,7 +445,13 @@ class Blob(Feature):
         color = The color to render the blob's holes.
         alpha = The alpha value of the rendered blob hole.
         width = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Parameters:
+            color - Color object or Color tuple
+            alpha - Int
+            width - Int
+            layer - DrawingLayer
         """
         if(self.mHoleContour is None):
             return
@@ -445,7 +478,13 @@ class Blob(Feature):
         color = The color to render the blob's convex hull.
         alpha = The alpha value of the rendered blob.
         width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image. 
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Parameters:
+            color - Color object or Color tuple
+            alpha - Int
+            width - Int
+            layer - DrawingLayer
         """
         if( layer is None ):
             layer = self.image.dl()
@@ -467,7 +506,11 @@ class Blob(Feature):
         Draw the actual pixels of the blob to another layer. This is handy if you
         want to examine just the pixels inside the contour. 
             
-        offset = The offset from the top left corner where we want to place the mask. 
+        offset = The offset from the top left corner where we want to place the mask.
+
+        Parameters:
+            layer - DrawingLayer
+            offset - Tuple
         """
         if( layer is not None ):
             layer = self.image.dl()
@@ -481,6 +524,10 @@ class Blob(Feature):
         """
         Given a tolerance, test if the blob is a rectangle, and how close its
         bounding rectangle's aspect ratio is to 1.0
+
+        Parameters:
+            tolerance - Float
+            ratiotolerance - Float
         """
         if self.isRectangle(tolerance) and abs(1 - self.aspectRatio()) < ratiotolerance:
             return True
@@ -491,6 +538,9 @@ class Blob(Feature):
         """
         Given a tolerance, test the blob against the rectangle distance to see if
         it is rectangular
+
+        Parameters:
+            tolerance - Float
         """
         if self.rectangleDistance() < tolerance:
             return True
@@ -499,7 +549,7 @@ class Blob(Feature):
     def rectangleDistance(self):
         """
         This compares the hull mask to the bounding rectangle.  Returns the area
-        of the blob's hull as a fraction of the bounding rectangle 
+        of the blob's hull as a fraction of the bounding rectangle
         """
         blackcount, whitecount = Image(self.mHullMask).histogram(2)
         return abs(1.0 - float(whitecount) / (self.minRectWidth() * self.minRectHeight()))

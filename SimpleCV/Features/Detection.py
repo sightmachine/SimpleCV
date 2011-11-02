@@ -19,6 +19,9 @@ from SimpleCV.Features.Features import Feature, FeatureSet
 class Corner(Feature):
     """
     The Corner feature is a point returned by the FindCorners function
+    Corners are used in machine vision as a very computationally low way
+    to find unique features in an image.  These corners can be used in
+    conjunction with many other algorithms.
     """
     def __init__(self, i, at_x, at_y):
         super(Corner, self).__init__(i, at_x, at_y)

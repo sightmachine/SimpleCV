@@ -84,6 +84,10 @@ class Display:
         If the image is too big it is cropped and centered. If it is too small
         it is centered. If it is too big along one axis that axis is cropped and
         the other axis is centered if necessary.
+
+        Parameters:
+            img - Image
+            fit - Boolean
  
         """
         # Grrrrr we're going to need to re-write this functionality
