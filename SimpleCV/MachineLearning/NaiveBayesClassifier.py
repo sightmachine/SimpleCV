@@ -95,7 +95,7 @@ class NaiveBayesClassifier:
     
     def _trainPath(self,path,className,subset,disp,verbose):
         count = 0
-        files = glob.glob( os.path.join(path, '*.jpg'))
+        files = glob.glob( os.path.join(path, IMAGE_FORMATS_REGEX))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
@@ -261,7 +261,7 @@ class NaiveBayesClassifier:
         count = 0
         correct = 0
         badFeat = False
-        files = glob.glob( os.path.join(path, '*.jpg'))
+        files = glob.glob( os.path.join(path, IMAGE_FORMATS_REGEX))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
