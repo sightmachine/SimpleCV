@@ -902,7 +902,7 @@ class Image:
         return FeatureSet(corner_features)
 
 
-    def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
+    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
         """
         This will look for continuous
         light regions and return them as Blob features in a FeatureSet.  Parameters
