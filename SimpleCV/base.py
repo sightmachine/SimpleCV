@@ -12,6 +12,10 @@ import types
 import SocketServer
 import threading
 import tempfile
+import pickle
+import glob #for directory scanning
+import abc #abstract base class
+
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
@@ -19,12 +23,15 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 from types import IntType, LongType, FloatType, InstanceType
 from cStringIO import StringIO
 
+
 # SimpleCV library includes
 import cv
 import numpy as np
 import scipy.spatial.distance as spsd
+import scipy.cluster.vq as cluster #for kmeans
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
+
 
 
 #optional libraries
@@ -62,6 +69,17 @@ try:
     import tesseract
 except ImportError:
     OCR_ENABLED = False
+
+
+ORANGE_ENABLED = True
+try:
+    import orange
+    import orngTest #for cross validation
+    import orngStat
+    import orngEnsemble # for bagging / boosting
+    
+except ImportError:
+    ORANGE_ENABLED = False
 
 #couple quick typecheck helper functions
 def is_number(n):

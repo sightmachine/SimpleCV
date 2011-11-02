@@ -2,13 +2,6 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Features import FeatureExtractorBase 
-import pickle
-import orange
-import orngTest #for cross validation
-import orngStat
-import os
-import glob #for directory scanning
-import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
 multiclass support vector machine for an image classifier. Training data should
@@ -38,6 +31,11 @@ class NaiveBayesClassifier:
     mOrangeDomain = None
     
     def __init__(self,featureExtractors):
+
+        if not ORANGE_ENABLED:
+            warning.warn("The required orange machine learning library is not installed")
+            return None
+            
         self.mFeatureExtractors =  featureExtractors    
         self.mClassNames = []
         self.mDataSetRaw = []

@@ -2,13 +2,6 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Features import FeatureExtractorBase
-import pickle
-import orange
-import orngTest #for cross validation
-import orngStat
-import os
-import glob #for directory scanning
-import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
 multiclass support vector machine for an image classifier. Training data should
@@ -61,6 +54,11 @@ class SVMClassifier:
     #human readable to CV constant property mapping
     
     def __init__(self,featureExtractors,properties=None):
+
+        if not ORANGE_ENABLED:
+            warnings.warn("The required orange machine learning library is not installed")
+            return None
+            
         self.mFeatureExtractors =  featureExtractors    
         if(properties is not None):
             self.mSVMProperties = properties

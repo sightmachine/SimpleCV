@@ -1,7 +1,6 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.FeatureExtractorBase import *
-import abc
 
 
 class EdgeHistogramFeatureExtractor(FeatureExtractorBase):

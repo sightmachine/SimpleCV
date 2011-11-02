@@ -5,9 +5,6 @@ from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 from SimpleCV.Segmentation.SegmentationBase import SegmentationBase
 
-import abc
-
-
 class ColorSegmentation(SegmentationBase):
     """
     Perform color segmentation based on a color model or color provided. This class

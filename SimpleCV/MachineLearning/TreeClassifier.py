@@ -2,14 +2,8 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Features import FeatureExtractorBase
-import pickle
-import orange
-import orngTest #for cross validation
-import orngStat
-import orngEnsemble # for bagging / boosting
-import os
-import glob #for directory scanning
-import time
+
+
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
 multiclass decision tree / forest image classifier. Training data should
@@ -75,6 +69,10 @@ class TreeClassifier:
         dist = distance algorithm
         k = number of nearest neighbors
         """
+        if not ORANGE_ENABLED:
+            warnings.warn("I'm sorry, but you need the orange machine learning library installed to use this")
+            return None
+        
         self.mClassNames = []
         self.mDataSetRaw = []
         self.mDataSetOrange = []

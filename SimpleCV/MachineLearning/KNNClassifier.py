@@ -2,13 +2,6 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Features import FeatureExtractorBase
-import pickle
-import orange
-import orngTest #for cross validation
-import orngStat
-import os
-import glob #for directory scanning
-import time
 """
 This class is encapsulates almost everything needed to train, test, and deploy a
 multiclass k-nearest neighbors image classifier. Training data should
@@ -53,6 +46,10 @@ class KNNClassifier:
         dist = distance algorithm
         k = number of nearest neighbors
         """
+        if not ORANGE_ENABLED:
+            warnings.warn("The required orange machine learning library is not installed")
+            return None
+        
         self.mFeatureExtractors =  featureExtractors
         if( dist is not None ):
             self.mDistType = self.mDistDict[dist];

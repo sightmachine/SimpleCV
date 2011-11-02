@@ -2,8 +2,6 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.FeatureExtractorBase import *
 from SimpleCV.Features.BlobMaker import * 
-import abc
-
 
 class MorphologyFeatureExtractor(FeatureExtractorBase):
     """

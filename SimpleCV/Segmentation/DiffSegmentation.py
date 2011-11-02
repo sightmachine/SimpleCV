@@ -3,8 +3,6 @@ from SimpleCV.Features import Feature, FeatureSet, BlobMaker
 from SimpleCV.ImageClass import Image
 from SimpleCV.Segmentation.SegmentationBase import SegmentationBase
 
-import abc
-
 
 class DiffSegmentation(SegmentationBase):
     """
