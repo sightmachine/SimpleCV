@@ -1,14 +1,15 @@
 from numpy import *
 from SimpleCV.Display import Display, pg
 from SimpleCV.Features import EdgeHistogramFeatureExtractor, HueHistogramFeatureExtractor, BOFFeatureExtractor, HaarLikeFeatureExtractor, MorphologyFeatureExtractor
+from SimpleCV.MachineLearning import SVMClassifier 
+from SimpleCV.MachineLearning import NaiveBayesClassifier 
+from SimpleCV.MachineLearning import KNNClassifier 
+from SimpleCV.MachineLearning import TreeClassifier
 import Orange
 import os
 import glob
 import pickle
-from SVMClassifier import *
-from NaiveBayesClassifier import *
-from KNNClassifier import *
-from TreeClassifier import *
+
 
 w = 800
 h = 600
