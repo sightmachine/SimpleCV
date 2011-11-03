@@ -113,14 +113,26 @@ class SVMClassifier:
         """
         Save the classifier to file
         """
-        
         output = open(fname, 'wb')
-        self.mFeatureExtractors = None 
-        self.mSVMProperties = None
-        self.mDataSetRaw = []
-        self.mDataSetOrange = []
         pickle.dump(self,output,2) # use two otherwise it w
         output.close()
+
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        self.mDataSetOrange = None
+        del mydict['mDataSetOrange']
+        self.mOrangeDomain = None
+        del mydict['mOrangeDomain']
+        return mydict
+    
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        colNames = []
+        for extractor in self.mFeatureExtractors:
+            colNames.extend(extractor.getFieldNames())
+        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
+        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        
 
     
     def classify(self, image):

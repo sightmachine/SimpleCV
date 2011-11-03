@@ -48,6 +48,9 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
             bwImg = self.mThresholdOpeation(img)
         else:
             bwImg = img.binarize()
+        
+        if( self.mBlobMaker is None ):
+            self.mBlobMaker = BlobMaker()
             
         fs = self.mBlobMaker.extractFromBinary(bwImg,img)
         if( fs is not None and len(fs) > 0 ):
@@ -88,3 +91,13 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         This method returns the total number of fields in the feature vector.
         """
         return self.mNBins
+    
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        self.mBlobMaker = None
+        del mydict['mBlobMaker']     
+        return mydict
+    
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        self.mBlobMaker = BlobMaker()

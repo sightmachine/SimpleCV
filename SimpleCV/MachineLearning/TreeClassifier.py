@@ -106,18 +106,45 @@ class TreeClassifier:
         """
         Save the classifier to file
         """
-        self.mFeatureExtractors = None;
-        self.mDataSetRaw = []
-        self.mDataSetOrange = []
-        self.mLearner = None
-        self.mTree = None
-        self.mFeatureExtractors = None
-        self.mFlavorParams = None
-
         output = open(fname, 'wb')
-        pickle.dump(self,output,2) # use two otherwise it borks the system 
+        pickle.dump(self,output,2) # use two otherwise it w
         output.close()
 
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        self.mDataSetOrange = None
+        del mydict['mDataSetOrange']
+        self.mOrangeDomain = None
+        del mydict['mOrangeDomain']
+        self.mLearner = None
+        del mydict['mLearner']
+        self.mTree = None
+        del mydict['mTree']        
+        return mydict
+    
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        colNames = []
+        for extractor in self.mFeatureExtractors:
+            colNames.extend(extractor.getFieldNames())
+        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
+        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        if(self.mFlavor == 0):
+            self.mLearner =  orange.TreeLearner()      
+            self.mClassifier = self.mLearner(self.mDataSetOrange)            
+        elif(self.mFlavor == 1): #bagged
+            self.mTree =  orange.TreeLearner()
+            self.mLearner = orngEnsemble.BaggedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
+            self.mClassifier = self.mLearner(self.mDataSetOrange) 
+        elif(self.mFlavor == 2):#forest
+            self.mTree =  orange.TreeLearner()
+            self.mLearner =  orngEnsemble.RandomForestLearner(trees=self.mFlavorParams["NTrees"], attributes=self.mFlavorParams["NAttributes"])
+            self.mClassifier = self.mLearner(self.mDataSetOrange) 
+        elif(self.mFlavor == 3):#boosted
+            self.mTree =  orange.TreeLearner()
+            self.mLearner = orngEnsemble.BoostedLearner(self.mTree,t=self.mFlavorParams["NClassifiers"])
+            self.mClassifier = self.mLearner(self.mDataSetOrange)   
+        
     
     def classify(self, image):
         """
