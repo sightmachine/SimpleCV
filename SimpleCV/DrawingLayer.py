@@ -200,7 +200,43 @@ class DrawingLayer:
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
         return None
  
-   
+    def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+        """
+        Draw a rectangle given two (x,y) points
+        
+        color - The object's color as a simple CVColor object, if no value  is sepcified
+                the default is used.
+        
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque, while 0
+                means transparent. 
+        
+        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        
+        filled -The rectangle is filled in 
+        """
+        w = 0
+        h = 0
+        x = 0
+        y = 0
+        if(pt0[0] > pt1[0]):
+            w = pt0[0]-pt1[0]
+            x = pt1[0]
+        else:
+            w = pt1[0]-pt0[0]
+            x = pt0[0]
+        if(pt0[1] > pt1[1]):
+            h = pt0[1]-pt1[1]
+            y = pt1[1]
+        else:
+            h = pt1[1]-pt0[1]
+            y = pt0[1]            
+        if(filled):
+            width = 0
+        r = pg.Rect((x,y),(w,h))
+        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+        return None
+  
     def centeredRectangle(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
         """
         Draw a rectangle given the center (x,y) of the rectangle and dimensions (width, height)
@@ -217,7 +253,7 @@ class DrawingLayer:
         filled -The rectangle is filled in
 
 
-        Parameters:
+     rameters:
             center - Tuple
             dimenions - Tuple
             color - Color object or Color Tuple

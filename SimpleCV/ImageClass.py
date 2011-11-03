@@ -2110,7 +2110,10 @@ class Image:
         if(y == None or w == None or h == None):
             print "Please provide an x, y, width, height to function"
 
- 
+        if( w <= 0 or h <= 0 ):
+            warnings.warn("Can't do a negative crop!")
+            return None
+        
         retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
         if( centered ):
             rectangle = (x-(w/2), y-(h/2), w, h)
