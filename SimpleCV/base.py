@@ -140,4 +140,4 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
         warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
 
 #supported image formats regular expression
-IMAGE_FORMATS_REGEX= "*.[bmp,dcx,eps,ps,gif,im,jpg,jpe,jpeg,pcd,pcx,png,pbm,pgm,ppm,psd,tif,tiff,xbm,xpm]"
+IMAGE_FORMATS = ('*.bmp','*.dcx','*.eps','*.ps','*.gif','*.im','*.jpg','*.jpe','*.jpeg','*.pcd','*.pcx','*.png','*.pbm','*.pgm','*.ppm','*.psd','*.tif','*.tiff','*.xbm','*.xpm')

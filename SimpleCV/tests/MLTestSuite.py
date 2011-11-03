@@ -1,4 +1,6 @@
 from numpy import *
+from SimpleCV.base import *
+from SimpleCV.ImageClass import *
 from SimpleCV.Display import Display, pg
 from SimpleCV.Features import EdgeHistogramFeatureExtractor, HueHistogramFeatureExtractor, BOFFeatureExtractor, HaarLikeFeatureExtractor, MorphologyFeatureExtractor
 from SimpleCV.MachineLearning import SVMClassifier 
@@ -16,12 +18,13 @@ h = 600
 n=50
 
 display = Display(resolution = (w,h))
+
 hue = HueHistogramFeatureExtractor(mNBins=16)
 edge = EdgeHistogramFeatureExtractor()
 bof = BOFFeatureExtractor()
-bof.load('cbdata.txt')
+bof.load('../Features/cbdata.txt')
+haar = HaarLikeFeatureExtractor(fname="../Features/haar.txt")
 morph = MorphologyFeatureExtractor()
-haar = HaarLikeFeatureExtractor(fname="haar.txt")
 
 spath = "../sampleimages/data/structured/"
 upath = "../sampleimages/data/unstructured/"
@@ -63,7 +66,9 @@ classifierSVMP = SVMClassifier(extractors,props)
 classifierSVMP.train(path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierSVMP.test(path,classes,disp=display,subset=n)
-files = glob.glob( os.path.join(path[0], '*.jpg'))
+files = [] 
+for ext in IMAGE_FORMATS:
+        files.extend(glob.glob( os.path.join(path[0], ext)))
 for i in range(10):
         img = Image(files[i])
         cname = classifierSVMP.classify(img)

@@ -55,7 +55,9 @@ class BOFFeatureExtractor(object):
         rawFeatures = np.zeros(sz[0]*sz[1])#fakeout numpy so we can use vstack
         for path in imgdirs:
             fcount = 0
-            files = glob.glob( os.path.join(path, IMAGE_FORMATS_REGEX))
+            files = [] 
+            for ext in IMAGE_FORMATS:
+                files.extend(glob.glob( os.path.join(path, ext)))
             nimgs = min(len(files),imgs_per_dir)
             for i in range(nimgs):
                 infile = files[i]

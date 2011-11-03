@@ -5,6 +5,7 @@ from SimpleCV.Features.Blob import *
 from SimpleCV.Features.BOFFeatureExtractor import *
 from SimpleCV.Features.FeatureExtractorBase import *
 from SimpleCV.Features.HueHistogramFeatureExtractor import *
+from SimpleCV.Features.MorphologyFeatureExtractor import *
 from SimpleCV.Features.EdgeHistogramFeatureExtractor import *
 from SimpleCV.Features.HaarLikeFeatureExtractor import *
 from SimpleCV.Features.HaarLikeFeature import *

@@ -153,7 +153,9 @@ class SVMClassifier:
     
     def _trainPath(self,path,className,subset,disp,verbose):
         count = 0
-        files = glob.glob( os.path.join(path, IMAGE_FORMATS_REGEX))
+        files = [] 
+        for ext in IMAGE_FORMATS:
+            files.extend(glob.glob( os.path.join(path, ext)))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
@@ -319,7 +321,9 @@ class SVMClassifier:
         count = 0
         correct = 0
         badFeat = False
-        files = glob.glob( os.path.join(path, IMAGE_FORMATS_REGEX))
+        files = [] 
+        for ext in IMAGE_FORMATS:
+            files.extend(glob.glob( os.path.join(path, ext)))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
