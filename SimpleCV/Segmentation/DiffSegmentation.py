@@ -133,9 +133,17 @@ class DiffSegmentation(SegmentationBase):
         retVal = []
         if( self.mColorImg is not None and self.mDiffImg is not None ):
             retVal = self.mBlobMaker.extractFromBinary(self.mDiffImg.binarize(thresh=self.mThreshold),self.mColorImg)
- 
         return retVal
-        
+    
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        self.mBlobMaker = None
+        del mydict['mBlobMaker']     
+        return mydict
+    
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        self.mBlobMaker = BlobMaker()
         
     
     

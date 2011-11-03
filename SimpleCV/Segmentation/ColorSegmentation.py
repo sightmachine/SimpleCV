@@ -88,4 +88,12 @@ class ColorSegmentation(SegmentationBase):
     def subtractModel(self, data):
         self.mColorModel.remove(data)
     
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        self.mBlobMaker = None
+        del mydict['mBlobMaker']     
+        return mydict
     
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        self.mBlobMaker = BlobMaker()

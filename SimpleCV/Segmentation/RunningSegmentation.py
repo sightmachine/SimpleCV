@@ -127,6 +127,20 @@ class RunningSegmentation(SegmentationBase):
         temp = cv.CreateImage((input.width,input.height), cv.IPL_DEPTH_8U, 3) 
         cv.Convert(input.getBitmap(),temp)
    
-        return Image(temp) 
+        return Image(temp)
+        
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        self.mBlobMaker = None
+        self.mModelImg = None
+        self.mDiffImg = None
+        del mydict['mBlobMaker']
+        del mydict['mModelImg']
+        del mydict['mDiffImg']
+        return mydict
+    
+    def __setstate__(self, mydict):
+        self.__dict__ = mydict
+        self.mBlobMaker = BlobMaker()
     
     
