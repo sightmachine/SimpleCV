@@ -957,6 +957,40 @@ def test_image_intergralimage():
     if len(ii) == 0:
         assert False
 
-        
-#def test_get_holes()
-#def test 
+
+def test_segmentation_diff():
+    segmentor = DiffSegmentation()
+    i1 = Image("logo")
+    i2 = Image("logo_inverted")
+    segmentor.addImage(i1)
+    segmentor.addImage(i2)
+    blobs = segmentor.getSegmentedBlobs()
+    if(blobs == None):
+        assert False
+    else:
+        pass
+
+def test_segmentation_running():
+    segmentor = RunningSegmentation()
+    i1 = Image("logo")
+    i2 = Image("logo_inverted")
+    segmentor.addImage(i1)
+    segmentor.addImage(i2)
+    blobs = segmentor.getSegmentedBlobs()
+    if(blobs == None):
+        assert False
+    else:
+        pass
+
+def test_segmentation_color():
+    segmentor = ColorSegmentation()
+    i1 = Image("logo")
+    i2 = Image("logo_inverted")
+    segmentor.addImage(i1)
+    segmentor.addImage(i2)
+    blobs = segmentor.getSegmentedBlobs()
+    if(blobs == None):
+        assert False
+    else:
+        pass
+

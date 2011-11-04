@@ -42,7 +42,11 @@ class Image:
 
 
     You can also just load the SimpleCV logo using:
+    >>> img = Image("simplecv")
     >>> img = Image("logo")
+    >>> img = Image("logo_inverted")
+    >>> img = Image("logo_transparent")
+    >>> img = Image("barcode")
 
     Or you can load an image from a URL:
     >>> img = Image("http://www.simplecv.org/image.png")
@@ -118,18 +122,51 @@ class Image:
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
 
-        #See if we need to load the SimpleCV Logo    
-        if type(source) == str and source.lower() == "logo":
-            try:
-                scvLogo = pil.fromstring("RGB", (118,118), LOGO)
+        #This section loads custom built-in images    
+        if type(source) == str:
+            if source.lower() == "simplecv":
+                try:
+                    scvImg = pil.fromstring("RGB", (118,118), SIMPLECV)
 
-            except:
-                print "Couldn't load Logo"
-                return None
+                except:
+                    warnings.warn("Couldn't load Image")
+                    return None
 
-            im = StringIO(LOGO)
-            source = scvLogo
-        
+                im = StringIO(SIMPLECV)
+                source = scvImg
+
+            elif source.lower() == "logo":
+                try:
+                    scvImg = pil.fromstring("RGB", (64,64), LOGO)
+
+                except:
+                    warnings.warn("Couldn't load Image")
+                    return None
+
+                im = StringIO(LOGO)
+                source = scvImg
+
+            elif source.lower() == "logo_inverted":
+                try:
+                    scvImg = pil.fromstring("RGB", (64,64), LOGO_INVERTED)
+
+                except:
+                    warnings.warn("Couldn't load Image")
+                    return None
+
+                im = StringIO(LOGO_INVERTED)
+                source = scvImg
+
+            elif source.lower() == "logo_transparent":
+                try:
+                    scvImg = pil.fromstring("RGB", (64,64), LOGO_TRANSPARENT)
+
+                except:
+                    warnings.warn("Couldn't load Image")
+                    return None
+
+                im = StringIO(LOGO_TRANSPARENT)
+                source = scvImg
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)

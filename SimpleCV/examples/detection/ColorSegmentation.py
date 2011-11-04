@@ -3,7 +3,7 @@ from SimpleCV import *
 from SimpleCV.Display import Display, pg
 from SimpleCV.Segmentation import ColorSegmentation
 segmentation = ColorSegmentation()
-cam = Camera(1)
+cam = Camera()
 SegmentMode = False
 x0 = 0
 y0 = 0
