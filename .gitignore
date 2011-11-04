@@ -10,3 +10,5 @@ SimpleCV/tests/TestCalibrationIntrinsic.xml
 SimpleCV/tests/temp.txt
 SimpleCV/sampleimages/tmpimg.jpg
 SimpleCV/sampleimages/9d4l.jpg
+SimpleCV/utils/*
+SimpleCV/utils/
