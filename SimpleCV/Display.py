@@ -1,11 +1,9 @@
-import time, threading
 from SimpleCV.base import *
 import SimpleCV.ImageClass
 import Queue
-import pygame as pg
 
-pg.init()
 
+PYGAME_INITIALIZED = False
 
 class Display:
     """
@@ -47,6 +45,8 @@ class Display:
  
     """
     resolution = ''
+    sourceresolution = ''
+    sourceoffset = ''
     screen = ''
     eventhandler = ''
     mq = ''
@@ -60,6 +60,12 @@ class Display:
     mouseWheelDown = 0
     
     def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV"):
+        global PYGAME_INITIALIZED
+        
+        if not PYGAME_INITIALIZED:
+            pg.init()
+            PYGAME_INITIALIZED = True
+        
         self.resolution = resolution
         self.screen = pg.display.set_mode(resolution, flags)
         scvLogo = SimpleCV.Image("logo").scale(32,32)
@@ -104,6 +110,8 @@ class Display:
         #
         wndwAR = float(self.resolution[0])/float(self.resolution[1])
         imgAR = float(img.width)/float(img.height)
+        self.sourceresolution = img.size()
+        self.sourceoffset = (0,0)
         if( img.size() == self.resolution): # we have to resize
             s = img.getPGSurface()
             self.screen.blit(s, s.get_rect())
@@ -170,6 +178,7 @@ class Display:
             black.fill((0,0,0))
             self.screen.blit(black,black.get_rect())
             self.screen.blit(s,(targetx,targety))
+            self.sourceoffset = (targetx, targety)
             pg.display.flip() 
         else: # we're going to crop instead
             targetx = 0
@@ -241,6 +250,7 @@ class Display:
             if event.type == pg.MOUSEMOTION:
                 self.mouseX = event.pos[0]
                 self.mouseY = event.pos[1]
+                #TODO TEST THIS WORKS AND MAKE SURE IT STAYS IN BOUNDS
                 self.mouseLeft, self.mouseMiddle, self.mouseRight = event.buttons
             if event.type == pg.MOUSEBUTTONUP:
                 self._setButtonState(0, event.button)

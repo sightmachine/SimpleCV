@@ -31,6 +31,7 @@ import scipy.spatial.distance as spsd
 import scipy.cluster.vq as cluster #for kmeans
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
+import pygame as pg
 
 
 

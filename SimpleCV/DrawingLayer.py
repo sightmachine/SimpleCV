@@ -8,17 +8,13 @@ from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
 from pygame import gfxdraw
-try:
-    import pygame as pg
+
     
 #DOCS
 #TESTS
 #IMAGE AGNOSTIC
 #RESIZE
 #ADD IMAGE INTERFACE
-
-except ImportError:
-    raise ImportError('Error Importing Pygame/surfarray')
 
 class DrawingLayer:
     """
