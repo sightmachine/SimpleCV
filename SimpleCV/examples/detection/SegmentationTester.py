@@ -1,10 +1,6 @@
 import time
 from SimpleCV import *
-import SimpleCV.Segmentation.DiffSegmentation
-import SimpleCV.Segmentation.RunningSegmentation
-import SimpleCV.Segmentation.ColorSegmentation
 
-from SimpleCV.Display import Display
 def runSegmentor(segmentor,nframes,display):
     count = 0
     while(count < nframes):
