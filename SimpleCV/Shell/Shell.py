@@ -73,8 +73,8 @@ def magic_editor(self, arg):
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
-def main():
-    clear()
+
+def setup_shell():  
     banner = '+----------------------------------------------------+\n'
     banner += ' SimpleCV [interactive shell] - http://simplecv.org\n'
     banner += '+----------------------------------------------------+\n'
@@ -95,7 +95,13 @@ def main():
     banner += '\texample: help Image\n'
     banner += 'Editor:\n'
     banner += '\t"editor" will run the SimpleCV code editor in a browser\n'
-   
+    banner += '\t\texample:'
+    banner += 'help Image or ?Image\n'
+    banner += '\t\twill give the in-depth information about that class\n'
+    banner += '\t"?function_name" will give the quick API documentation\n'
+    banner += '\t\texample:'
+    banner += '?Image.save\n'
+    banner += '\t\twill give help on the image save function'
     exit_msg = '\nExiting the SimpleCV interactive shell\n'
     
 
@@ -111,6 +117,11 @@ def main():
     scvShell.IP.api.expose_magic("example", magic_examples)
     scvShell.IP.api.expose_magic("editor", magic_editor)
     
+    return scvShell
 
+def main():
+    clear()
+    
+    scvShell = setup_shell()
     #Note that all loaded libraries are inherited in the embedded ipython shell
     sys.exit(scvShell())

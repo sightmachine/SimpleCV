@@ -279,17 +279,23 @@ class Camera(FrameSource):
         debuffer the camera.  If you specify True, the camera is essentially 'on' at
         all times.  If you specify off, you will have to manage camera buffers.
         """
-        if platform.system() == "Linux" and prop_set.has_key('height') and prop_set['height'] > 480:
+
+        #This fixes bug with opencv not being able to grab frames from webcams on linux
+        self.capture = cv.CaptureFromCAM(camera_index)
+        if platform.system() == "Linux" and (prop_set.has_key("height") or cv.GrabFrame(self.capture) == False):
             import pygame.camera
             pygame.camera.init()
             threaded = True  #pygame must be threaded
-            self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
+            if(prop_set.has_key("height") and prop_set.has_key("width")):
+                self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
+            else:
+                self.capture = pygame.camera.Camera("/dev/video" + str(camera_index))
+                
             self.capture.start()
             time.sleep(0)
             self.pygame_buffer = self.capture.get_image()
             self.pygame_camera = True
         else:
-            self.capture = cv.CaptureFromCAM(camera_index)
             self.threaded = False
             if (platform.system() == "Windows"):
                 threaded = False
@@ -487,7 +493,7 @@ class JpegStreamReader(threading.Thread):
                 (header, length) = data.split(":")
                 length = int(length.strip())
                
-            if (re.search("JFIF", data, re.I) or len(data) > 50):
+            if (re.search("JFIF", data, re.I) or re.search("\xff\xd8\xff\xdb", data) or len(data) > 50):
                 # we have reached the start of the image 
                 buff = '' 
                 if length and length > len(data):

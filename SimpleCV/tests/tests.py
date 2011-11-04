@@ -34,6 +34,7 @@ tmpimg = "../sampleimages/tmpimg.jpg"
 greyscaleimage = "../sampleimages/greyscale.jpg"
 logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
+ocrimage = "../sampleimages/ocr-test.png"
 
 #These function names are required by nose test, please leave them as is
 def setup_context():
@@ -82,13 +83,15 @@ def test_image_bitmap():
 def test_image_stretch():
   img = Image(greyscaleimage)
   stretched = img.stretch(100,200)
-  img.save(tmpimg)
+  if(stretched == None):
+      assert False
 
   
 def test_image_scale():
   img = Image(testimage)
   thumb = img.scale(30,30)
-  thumb.save(testoutput)
+  if(thumb == None):
+      assert False
 
 def test_image_copy():
   img = Image(testimage2)
@@ -110,8 +113,9 @@ def test_image_getitem():
 def test_image_getslice():
   img = Image(testimage)
   section = img[1:10,1:10]
-  section.save(testoutput)
-  pass
+  if(section == None):
+      assert False
+
 
 
 def test_image_setitem():
@@ -140,8 +144,7 @@ def test_detection_findCorners():
   corners = img.findCorners(25)
   if (len(corners) == 0):
     assert False 
-  corners.draw()
-  img.save(testoutput)
+
   
 def test_color_meancolor():
   img = Image(testimage2)
@@ -222,11 +225,11 @@ def test_image_histogram():
   pass
 
 def test_detection_lines():
-  img = Image(testimage2)
-  lines = img.findLines()
+    img = Image(testimage2)
+    lines = img.findLines()
 
-  lines.draw()
-  img.save(testoutput)
+    if(lines == 0 or lines == None):
+        assert False
 
 def test_detection_feature_measures():
     img = Image(testimage2)
@@ -278,24 +281,18 @@ def test_detection_blobs():
     if not BLOBS_ENABLED:
       return None 
     img = Image(testbarcode)
-  
-    bm = BlobMaker()
-    blobs = bm.extract(img)
-
-    blobs[0].draw()
-    img.save(testoutput)  
-
-    pass
+    blobs = img.findBlobs()
+    if blobs == None:
+        assert False
+        
 
 def test_detection_blobs_adaptive():
     if not BLOBS_ENABLED:
         return None
     img = Image(testimage)
-    bm = BlobMaker()
-    result = bm.extract(img, threshval=-1)
-    result[0].draw()
-    img.save(testoutput)  
-    pass
+    blobs = img.findBlobs(-1, threshblocksize=99)
+    if blobs == None:
+        assert False
 
 
 def test_detection_barcode():
@@ -864,7 +861,7 @@ def test_blob_data():
            b.m21 is not 0 and
            b.m12 is not 0 ):
             pass
-        if(sum(b.mHuMoments) > 0):
+        if(sum(b.mHu) > 0):
             pass
         
 def test_blob_render():
@@ -920,6 +917,46 @@ def test_blob_methods():
         b.right(first)
         b.contains(first)
         b.overlaps(first)
+
+def test_image_convolve():
+    img = Image(testimageclr)
+    kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
+    img2 = img.convolve(kernel,center=(2,2))
+    c=img.meanColor()
+    d=img2.meanColor()
+    e0 = abs(c[0]-d[0])
+    e1 = abs(c[1]-d[1])
+    e2 = abs(c[2]-d[2])
+    if( e0 > 1 or e1 > 1 or e2 > 1 ):
+        assert False
+
+
+def test_detection_ocr():
+    img = Image(ocrimage)
+    print "TESTING OCR"
+    foundtext = img.readText()
+    print foundtext
+    if(len(foundtext) <= 1):
+        assert False
+    else:
+        pass
+        
+def test_template_match():
+    source = Image("../sampleimages/templatetest.png")
+    template = Image("../sampleimages/template.png")
+    t = 5
+    methods = ["SQR_DIFF","SQR_DIFF_NORM","CCOEFF","CCOEFF_NORM","CCORR","CCORR_NORM"]
+    for m in methods:
+        fs = source.findTemplate(template,threshold=t,method=m)
+    pass
+
+
+def test_image_intergralimage():
+    img = Image(logo)
+    ii = img.integralImage()
+    if len(ii) == 0:
+        assert False
+
         
 #def test_get_holes()
 #def test 

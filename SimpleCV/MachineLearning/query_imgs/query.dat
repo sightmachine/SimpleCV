@@ -1,0 +1,63 @@
+#should be safe to use existing duplicate removal, even with hundreds of negative constraints
+#what to do about spaces?  exclude those cities, or only search tags, or use AND
+#spaces would screw up the negative constraints.  We should just eliminate all spaces-
+#searching for "washingtondc" finds images tagged "washington dc"
+#however, "washingtondc -washington" does not return any images tagged "washington dc", only "washingtondc"
+#"mexicocity -mexico" works very badly
+#"mexico -mexicocity" works as desired, though.  Or "washington -washingtondc"
+#"newmexico -mexico" will cause problems.
+#so we need to query from specific to general, cities, then states, then countries
+#need to query west virginia before virginia
+
+#metro areas, by population, top 100, decreasing
+goldfish
+
+#negative queries.  should these be restricted to tags only?
+-interior
+-paradise
+-parrot
+-buffet
+-pizza
+-parrothead
+-florida
+-head
+-key
+-west
+-keywest
+-margaritta
+-birthday
+-party
+-parties
+-people
+-portrait
+-bw
+-abstract
+-macro
+-me
+-wedding
+-indoors
+-fun
+-kid
+-child
+-children
+-graffiti
+-prom
+-concert
+-friend
+-family
+-face
+-cameraphone
+-woman
+-women
+-girl
+-lady
+-boy
+-guy
+-nude
+-fraternity
+-frat
+-live
+-baby
+-stilllife
+-art
+# need trailing comment for python to read the last real line

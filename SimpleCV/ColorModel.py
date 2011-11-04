@@ -18,10 +18,12 @@ class ColorModel:
     #TODO: Work in HSV space
     mIsBackground = True
     mData = {}
+    mBits = 1
     
     def __init__(self, data = None, isBackground=True):
         self.mIsBackground = isBackground
         self.mData = {}
+        self.mBits = 1
         
         if data:
             try:
@@ -50,13 +52,16 @@ class ColorModel:
             warnings.warn("ColorModel: color is not in an accepted format!")
             return None
     
-        rs = np.right_shift(ret, 4)  #right shift 4 bits
+        rs = np.right_shift(ret, self.mBits)  #right shift 4 bits
         
         uniques = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1, 3)
         #create a unique set of colors.  I had to look this one up
         
         #create a dict of encoded strings
         return dict.fromkeys(map(np.ndarray.tostring, uniques), 1)
+  
+    def reset(self):
+        self.mData = {}
   
     def add(self, data):
         """
@@ -83,7 +88,7 @@ class ColorModel:
             a = 255
             b = 0
         
-        rs = np.right_shift(img.getNumpy(), 4).reshape(-1, 3) #bitshift down and reshape to Nx3
+        rs = np.right_shift(img.getNumpy(), self.mBits).reshape(-1, 3) #bitshift down and reshape to Nx3
         mapped = np.array(map(self.mData.has_key, map(np.ndarray.tostring, rs))) #map to True/False based on the model
         thresh = np.where(mapped, a, b) #replace True and False with fg and bg
         return Image(thresh.reshape(img.width, img.height))
@@ -93,7 +98,7 @@ class ColorModel:
         Return true if a particular color is in our color model. 
         """
         #reverse the color, cast to uint8, right shift, convert to string, check dict
-        return self.mData.has_key(np.right_shift(np.cast['uint8'](c[::-1]), 4).tostring())
+        return self.mData.has_key(np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring())
     
     def setIsForeground(self):
         """

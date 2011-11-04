@@ -3,18 +3,12 @@
 
 #load required libraries
 from SimpleCV.base import *
-from SimpleCV.Detection import Barcode, Corner, HaarFeature, Line, Chessboard
-from SimpleCV.Features import FeatureSet
-from SimpleCV.Stream import JpegStreamer
-from SimpleCV.Font import *
 from SimpleCV.Color import *
-from SimpleCV.DrawingLayer import *
-
 from numpy import int32
 from numpy import uint8
 import pygame as pg
     
-    
+     
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -41,6 +35,17 @@ class Image:
     Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
     standard format.  If dimensions are passed, an empty image is created.
+
+    Examples:
+    >>> i = Image("/path/to/image.png")
+    >>> i = Camera().getImage()
+
+
+    You can also just load the SimpleCV logo using:
+    >>> img = Image("logo")
+
+    Or you can load an image from a URL:
+    >>> img = Image("http://www.simplecv.org/image.png")
     """
     width = 0    #width and height in px
     height = 0
@@ -96,10 +101,35 @@ class Image:
         OpenCV: iplImage and cvMat types
         Python Image Library: Image type
         Filename: All opencv supported types (jpg, png, bmp, gif, etc)
+        URL: The source can be a url, but must include the http://
         """
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
+
+        #Check if need to load from URL
+        if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
+            try:
+                img_file = urllib2.urlopen(source)
+            except:
+                print "Couldn't open Image from URL:" + source
+                return None
+
+            im = StringIO(img_file.read())
+            source = pil.open(im).convert("RGB")
+
+        #See if we need to load the SimpleCV Logo    
+        if type(source) == str and source.lower() == "logo":
+            try:
+                scvLogo = pil.fromstring("RGB", (118,118), LOGO)
+
+            except:
+                print "Couldn't load Logo"
+                return None
+
+            im = StringIO(LOGO)
+            source = scvLogo
+        
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
@@ -108,7 +138,7 @@ class Image:
             self._matrix = source
             if((source.step/source.cols)==3): #this is just a guess
                 self._colorSpace = ColorSpace.BGR
-            elif((souce.step/source.cols)==1):
+            elif((source.step/source.cols)==1):
                 self._colorSpace = ColorSpace.BGR
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
@@ -146,10 +176,14 @@ class Image:
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
-        elif (type(source) == type(str()) and source != ''):
-            self.filename = source
-            self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
-            self._colorSpace = ColorSpace.BGR
+        elif (type(source) == type(str())):
+            if source == '':
+                raise IOError("No filename provided to Image constructor")
+
+            else:
+                self.filename = source
+                self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                self._colorSpace = ColorSpace.BGR
     
     
         elif (type(source) == pg.Surface):
@@ -426,6 +460,14 @@ class Image:
             return self._matrix
 
 
+    def getFPMatrix(self):
+        """
+        Converts the standard int bitmap to a floating point bitmap.
+        """
+        retVal =  cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
+        cv.Convert(self.getBitmap(),retVal)
+        return retVal
+    
     def getPIL(self):
         """ 
         Get a PIL Image object for use with the Python Image Library
@@ -761,16 +803,16 @@ class Image:
             return None
       
       
-    def binarize(self, thresh = 127, maxv = 255, blocksize = 3, p = 5):
+    def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         Do a binary threshold the image, changing all values above thresh to maxv
         and all below to black.  If a color tuple is provided, each color channel
         is thresholded separately.
     
-    
-        If threshold is -1, an adaptive sampling method is used - similar to a moving
-        average.  Over each region of block*block pixels a threshold is applied
-        where threshold = local_mean - p.
+
+        If threshold is -1 (default), an adaptive method (OTSU's method) is used. 
+        If then a blocksize is specified, a moving average over each region of block*block 
+        pixels a threshold is applied where threshold = local_mean - p.
         """
         if (is_tuple(thresh)):
             r = self.getEmpty(1) 
@@ -793,8 +835,11 @@ class Image:
     
         elif thresh == -1:
             newbitmap = self.getEmpty(1)
-            cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
-                cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize, p)
+            if blocksize:
+                cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
+                    cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize, p)
+            else:
+                cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
             return Image(newbitmap, colorSpace=self._colorSpace)
         else:
             newbitmap = self.getEmpty(1) 
@@ -825,7 +870,21 @@ class Image:
         between corners.
 
 
-        Returns: FEATURESET 
+        Returns: FEATURESET
+
+
+        
+        Standard Test:
+        >>> img = Image("sampleimages/simplecv.png")
+        >>> corners = img.findCorners()
+        >>> if corners: True
+        True
+
+        Validation Test:
+        >>> img = Image("sampleimages/black.png")
+        >>> corners = img.findCorners()
+        >>> if not corners: True
+        True
         """
         #initialize buffer frames
         eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
@@ -843,7 +902,7 @@ class Image:
         return FeatureSet(corner_features)
 
 
-    def findBlobs(self, threshval = 127, minsize=10, maxsize=0, threshblocksize=3, threshconstant=5):
+    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
         """
         This will look for continuous
         light regions and return them as Blob features in a FeatureSet.  Parameters
@@ -1072,13 +1131,15 @@ class Image:
         """
         Intensity applied to all three color channels
 
-
-        Returns: Image
+        Parameters:
+            curve - ColorCurve object
+        Returns:
+            Image
         """
         return self.applyRGBCurve(curve, curve, curve)
       
       
-    def colorDistance(self, color = [0, 0, 0]):
+    def colorDistance(self, color = Color.BLACK):
         """
         Returns an image representing the distance of each pixel from a given color
         tuple, scaled between 0 (the given color) and 255.  Pixels distant from the 
@@ -1087,13 +1148,18 @@ class Image:
     
     
         By default this will give image intensity (distance from pure black)
+
+        Parameters:
+            color - Color object or Color Tuple
+        Returns:
+            Image
         """ 
         pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
         distances = spsd.cdist(pixels, [color]) #calculate the distance each pixel is
         distances *= (255.0/distances.max()) #normalize to 0 - 255
         return Image(distances.reshape(self.width, self.height)) #return an Image
     
-    def hueDistance(self, color = [0, 0, 0], minsaturation = 20, minvalue = 20):
+    def hueDistance(self, color = Color.BLACK, minsaturation = 20, minvalue = 20):
         """
         Returns an image representing the distance of each pixel from the given hue
         of a specific color.  The hue is "wrapped" at 180, so we have to take the shorter
@@ -1102,13 +1168,25 @@ class Image:
         
         The minsaturation and minvalue are optional parameters to weed out very weak hue
         signals in the picture, they will be pushed to max distance [255]
+
+        Parameters:
+            color = Color object or Color Tuple
+            minsaturation - Integer
+            minvalue - Integer
+        Returns:
+            Image
+
+        
         """
-        color_px = Image((1,1))
-        color_px[0,0] = color
-        color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
+        if isinstance(color,  (float,int,long,complex)):
+            color_hue = color
+        else:
+            color_px = Image((1,1))
+            color_px[0,0] = color
+            color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
         
         vsh_matrix = self.toHSV().getNumpy().reshape(-1,3) #again, gets transposed to vsh
-        hue_channel = vsh_matrix[:,2]
+        hue_channel = np.cast['int'](vsh_matrix[:,2])
         
         if color_hue < 90:
             hue_loop = 180
@@ -1141,8 +1219,10 @@ class Image:
         Example Use: A threshold/blob image has 'salt and pepper' noise. 
         Example Code: ./examples/MorphologyExample.py
 
-
-        Returns: IMAGE
+        Parameters:
+            iterations - Int
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty() 
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
@@ -1168,7 +1248,10 @@ class Image:
         Example Code: ./examples/MorphologyExample.py
 
 
-        Returns: IMAGE
+        Parameters:
+            iterations - Integer
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty() 
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
@@ -1188,13 +1271,19 @@ class Image:
         Example Use: two part blobs are 'sticking' together.
         Example Code: ./examples/MorphologyExample.py
 
-
-        Returns: IMAGE
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+            
+            
         return( Image(retVal) )
 
 
@@ -1213,12 +1302,18 @@ class Image:
         Example Code: ./examples/MorphologyExample.py
 
 
-        Returns: IMAGE
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_CLOSE, 1)
+            #OPENCV 2.2 vs 2.3 compatability 
+        
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -1235,13 +1330,17 @@ class Image:
         Example Code: ./examples/MorphologyExample.py
 
 
-        Returns: IMAGE
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty() 
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        try:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+        except:
+            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_GRADIENT, 1)
         return Image(retVal, colorSpace=self._colorSpace )
 
 
@@ -1251,13 +1350,148 @@ class Image:
         Single parameter is how many "bins" to have.
 
 
-        Returns: LIST
+        Parameters:
+            numbins - Integer
+        
+        Returns:
+            LIST
         """
         gray = self._getGrayscaleBitmap()
 
 
         (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
         return hist.tolist()
+        
+    def hueHistogram(self, bins = 179):
+        """
+        Returns the histogram of the hue channel for the image
+
+        Parameters:
+            bins - Integer
+        Returns:
+            Numpy Histogram
+        """
+        return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
+
+    def huePeaks(self, bins = 179):
+        """
+        Takes the histogram of hues, and returns the peak hue values, which
+        can be useful for determining what the "main colors" in a picture now.
+        
+        The bins parameter can be used to lump hues together, by default it is 179
+        (the full resolution in OpenCV's HSV format)
+        
+        Peak detection code taken from https://gist.github.com/1178136
+        Converted from/based on a MATLAB script at http://billauer.co.il/peakdet.html
+        
+        Returns a list of tuples, each tuple contains the hue, and the fraction
+        of the image that has it.
+
+        Parameters:
+            bins - Integer
+        Returns:
+            list of tuples
+        
+        """
+        """
+        keyword arguments:
+        y_axis -- A list containg the signal over which to find peaks
+        x_axis -- A x-axis whose values correspond to the 'y_axis' list and is used
+            in the return to specify the postion of the peaks. If omitted the index
+            of the y_axis is used. (default: None)
+        lookahead -- (optional) distance to look ahead from a peak candidate to
+            determine if it is the actual peak (default: 500) 
+            '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
+        delta -- (optional) this specifies a minimum difference between a peak and
+            the following points, before a peak may be considered a peak. Useful
+            to hinder the algorithm from picking up false peaks towards to end of
+            the signal. To work well delta should be set to 'delta >= RMSnoise * 5'.
+            (default: 0)
+                Delta function causes a 20% decrease in speed, when omitted
+                Correctly used it can double the speed of the algorithm
+        
+        return --  Each cell of the lists contains a tupple of:
+            (position, peak_value) 
+            to get the average peak value do 'np.mean(maxtab, 0)[1]' on the results
+        """
+        y_axis, x_axis = np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)
+        x_axis = x_axis[0:bins]
+        lookahead = int(bins / 17)
+        delta = 0
+        
+        maxtab = []
+        mintab = []
+        dump = []   #Used to pop the first hit which always if false
+           
+        length = len(y_axis)
+        if x_axis is None:
+            x_axis = range(length)
+        
+        #perform some checks
+        if length != len(x_axis):
+            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+        if lookahead < 1:
+            raise ValueError, "Lookahead must be above '1' in value"
+        if not (np.isscalar(delta) and delta >= 0):
+            raise ValueError, "delta must be a positive number"
+        
+        #needs to be a numpy array
+        y_axis = np.asarray(y_axis)
+        
+        #maxima and minima candidates are temporarily stored in
+        #mx and mn respectively
+        mn, mx = np.Inf, -np.Inf
+        
+        #Only detect peak if there is 'lookahead' amount of points after it
+        for index, (x, y) in enumerate(zip(x_axis[:-lookahead], y_axis[:-lookahead])):
+            if y > mx:
+                mx = y
+                mxpos = x
+            if y < mn:
+                mn = y
+                mnpos = x
+            
+            ####look for max####
+            if y < mx-delta and mx != np.Inf:
+                #Maxima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].max() < mx:
+                    maxtab.append((mxpos, mx))
+                    dump.append(True)
+                    #set algorithm to only find minima now
+                    mx = np.Inf
+                    mn = np.Inf
+            
+            ####look for min####
+            if y > mn+delta and mn != -np.Inf:
+                #Minima peak candidate found 
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].min() > mn:
+                    mintab.append((mnpos, mn))
+                    dump.append(False)
+                    #set algorithm to only find maxima now
+                    mn = -np.Inf
+                    mx = -np.Inf
+        
+        
+        #Remove the false hit on the first value of the y_axis
+        try:
+            if dump[0]:
+                maxtab.pop(0)
+                #print "pop max"
+            else:
+                mintab.pop(0)
+                #print "pop min"
+            del dump
+        except IndexError:
+            #no peaks were found, should the function return empty lists?
+            pass
+      
+        huetab = []
+        for hue, pixelcount in maxtab:
+            huetab.append((hue, pixelcount / float(self.width * self.height)))
+        return huetab
+
 
 
     def __getitem__(self, coord):
@@ -1352,8 +1586,10 @@ class Image:
         The maximum value of my image, and the other image, in each channel
         If other is a number, returns the maximum of that and the number
 
-
-        Returns: IMAGE
+        Parameters:
+            other - Image
+        Returns:
+            IMAGE
         """ 
         newbitmap = self.getEmpty() 
         if is_number(other):
@@ -1368,8 +1604,10 @@ class Image:
         The minimum value of my image, and the other image, in each channel
         If other is a number, returns the minimum of that and the number
 
-
-        Returns: IMAGE
+        Parameters:
+            other - Image
+        Returns:
+            IMAGE
         """ 
         newbitmap = self.getEmpty() 
         if is_number(other):
@@ -1396,7 +1634,8 @@ class Image:
 
         You can clone python-zxing at http://github.com/oostendo/python-zxing
 
-
+        Parameters:
+            zxing_path - String
         Returns: BARCODE
         """
         if not ZXING_ENABLED:
@@ -1436,8 +1675,15 @@ class Image:
 
         For more information, consult the cv.HoughLines2 documentation
 
-
-        Returns: FEATURESET
+        Parameters:
+            threshold - Int
+            minlinelength - Int
+            maxlinegap - Int
+            cannyth1 - Int
+            cannyth2 - Int
+            
+        Returns:
+            FEATURESET
         """
         em = self._getEdgeMap(cannyth1, cannyth2)
     
@@ -1461,8 +1707,12 @@ class Image:
     
         The single parameter is the dimensions of the chessboard, typical one can be found in \SimpleCV\tools\CalibGrid.png
    
-   
-        returns a FeatureSet with the Chessboard feature, or none
+        Parameters:
+            dimensions - Tuple
+            subpixel - Boolean
+
+        Returns:
+            FeatureSet
         """
         corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
@@ -1486,8 +1736,12 @@ class Image:
         <http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html>
         <http://en.wikipedia.org/wiki/Canny_edge_detector>
 
-
-        Returns: IMAGE
+        Parameters:
+            t1 - Int
+            t2 - Int
+            
+        Returns:
+            IMAGE
         """
         return Image(self._getEdgeMap(t1, t2), colorSpace=self._colorSpace)
 
@@ -1522,10 +1776,17 @@ class Image:
         By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
         contents retain the original size, and the Image object will scale
         by default, the point is the center of the image. 
-        you can also specify a scaling parameter
+        you can also specify a scaling pa   rameter
 
 
-        Returns: IMAGE
+        Parameters:
+            angle - Int
+            mode - String
+            point - list
+            scale - Int
+            
+        Returns:
+            IMAGE
         """
         if( point[0] == -1 or point[1] == -1 ):
             point[0] = (self.width-1)/2
@@ -1600,6 +1861,9 @@ class Image:
     def rotate90(self):
         """
         Does a fast 90 degree rotation.
+
+        Returns:
+            Image
         """
         retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
         cv.Transpose(self.getBitmap(), retVal)
@@ -1615,10 +1879,8 @@ class Image:
 
         cornerpoints is a 2x4 array of point tuples
 
-
-
-
-        Returns: IMAGE
+        Returns:
+            IMAGE
         """
         src =  ((0, 0), (self.width-1, 0), (self.width-1, self.height-1))
         #set the original points
@@ -1636,8 +1898,11 @@ class Image:
         The matrix can be a either an openCV mat or an np.ndarray type. 
         The matrix should be a 2x3
 
-
-        Returns: IMAGE
+        Parameters:
+            rotMatrix - Numpy Array or CvMat
+            
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty()
         if(type(rotMatrix) == np.ndarray ):
@@ -1653,9 +1918,11 @@ class Image:
         will be the same size as the original image
 
 
+        Parameters:
+            cornerpoints - List of Tuples
 
-
-        Returns: IMAGE
+        Returns:
+            IMAGE
         """
         #original coordinates
         src = ((0, 0), (self.width-1, 0), (self.width-1, self.height-1), (0, self.height-1))
@@ -1669,15 +1936,16 @@ class Image:
 
 
     def transformPerspective(self, rotMatrix):
-
-
         """
         This helper function for warp performs an affine rotation using the supplied matrix. 
         The matrix can be a either an openCV mat or an np.ndarray type. 
         The matrix should be a 3x3
 
+        Parameters:
+            rotMatrix - Numpy Array or CvMat
 
-        Returns: IMAGE
+        Returns:
+            IMAGE
         """
         retVal = self.getEmpty()
         if(type(rotMatrix) == np.ndarray ):
@@ -1689,6 +1957,13 @@ class Image:
     def getPixel(self, x, y):
         """
         This function returns the RGB value for a particular image pixel given a specific row and column.
+
+        Parameters:
+            x - Int
+            y - Int
+
+        Returns:
+            Int
         """
         retVal = None
         if( x < 0 or x >= self.width ):
@@ -1703,6 +1978,13 @@ class Image:
     def getGrayPixel(self, x, y):
         """
         This function returns the Gray value for a particular image pixel given a specific row and column.
+
+        Parameters:
+            x - Int
+            y - Int
+
+        Returns:
+            Int
         """
         retVal = None
         if( x < 0 or x >= self.width ):
@@ -1717,7 +1999,13 @@ class Image:
       
     def getVertScanline(self, column):
         """
-        This function returns a single column of RGB values from the image. 
+        This function returns a single column of RGB values from the image.
+
+        Parameters:
+            column - Int
+
+        Returns:
+            Numpy Array
         """
         retVal = None
         if( column < 0 or column >= self.width ):
@@ -1731,7 +2019,13 @@ class Image:
   
     def getHorzScanline(self, row):
         """
-        This function returns a single row of RGB values from the image. 
+        This function returns a single row of RGB values from the image.
+
+        Parameters:
+            row - Int
+
+        Returns:
+            Numpy Array
         """
         retVal = None
         if( row < 0 or row >= self.height ):
@@ -1745,7 +2039,13 @@ class Image:
   
     def getVertScanlineGray(self, column):
         """
-        This function returns a single column of gray values from the image. 
+        This function returns a single column of gray values from the image.
+
+        Parameters:
+            row - Int
+
+        Return:
+            Numpy Array
         """
         retVal = None
         if( column < 0 or column >= self.width ):
@@ -1759,7 +2059,13 @@ class Image:
   
     def getHorzScanlineGray(self, row):
         """
-        This function returns a single row of RGB values from the image. 
+        This function returns a single row of RGB values from the image.
+
+        Parameters:
+            row - Int
+
+        Returns:
+            Numpy Array
         """
         retVal = None
         if( row < 0 or row >= self.height ):
@@ -1771,16 +2077,43 @@ class Image:
         return retVal
 
 
-    def crop(self, x , y, w, h, centered=False):
+    def crop(self, x , y = None, w = None, h = None, centered=False):
         """
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
         define the top and left of the cropped rectangle. When centered is true
         the function uses x and y as the centroid of the cropped region.
+
+        You can also pass a feature into crop and have it automatically return
+        the cropped image within the bounding outside area of that feature
     
     
-        The function returns a new image. 
+        Parameters:
+            x - Int or Image
+            y - Int
+            w - Int
+            h - Int
+            centered - Boolean
+
+        Returns:
+            Image
         """
+
+        #If it's a feature extract what we need
+        if(isinstance(x, Feature)):
+            theFeature = x
+            x = theFeature.points[0][0]
+            y = theFeature.points[0][1]
+            w = theFeature.width()
+            h = theFeature.height()
+
+        if(y == None or w == None or h == None):
+            print "Please provide an x, y, width, height to function"
+
+        if( w <= 0 or h <= 0 ):
+            warnings.warn("Can't do a negative crop!")
+            return None
+        
         retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
         if( centered ):
             rectangle = (x-(w/2), y-(h/2), w, h)
@@ -1799,7 +2132,16 @@ class Image:
         Region select is similar to crop, but instead of taking a position and width
         and height values it simply takes to points on the image and returns the selected
         region. This is very helpful for creating interactive scripts that require
-        the user to select a region. 
+        the user to select a region.
+
+        Parameters:
+            x1 - Int
+            y1 - Int
+            x2 - Int
+            y2 - Int
+
+        Returns:
+            Image
         """
         w = abs(x1-x2)
         h = abs(y1-y2)
@@ -1844,9 +2186,15 @@ class Image:
         The text will default to the center of the screen if you don't pass it a value
 
 
-        returns Image
-    
-    
+        Parameters:
+            text - String
+            x - Int
+            y - Int
+            color - Color object or Color Tuple
+            fontsize - Int
+            
+        Returns:
+            Image
         """
         if(x == None):
             x = (self.width / 2)
@@ -1861,6 +2209,16 @@ class Image:
     def show(self, type = 'window'):
         """
         This function automatically pops up a window and shows the current image
+
+        Types:
+            window
+            browser
+
+        Parameters:
+            type - String
+
+        Return:
+            Display
         """
         if(type == 'browser'):
           import webbrowser
@@ -1898,6 +2256,12 @@ class Image:
     def addDrawingLayer(self, layer = ""):
         """
         Push a new drawing layer onto the back of the layer stack
+
+        Parameters:
+            layer - String
+
+        Returns:
+            Int
         """
         if not layer:
             layer = DrawingLayer(self.size())
@@ -1908,6 +2272,11 @@ class Image:
     def insertDrawingLayer(self, layer, index):
         """
         Insert a new layer into the layer stack at the specified index
+
+        Parameters:
+            layer - DrawingLayer
+            index - Int
+
         """
         self._mLayers.insert(index, layer)
         return None    
@@ -1915,7 +2284,10 @@ class Image:
   
     def removeDrawingLayer(self, index):
         """
-        Remove a layer from the layer stack based on the layer's index. 
+        Remove a layer from the layer stack based on the layer's index.
+
+        Parameters:
+            index - Int
         """
         return self._mLayers.pop(index)
     
@@ -1924,6 +2296,9 @@ class Image:
         """
         Return a drawing layer based on the provided index.  If not provided, will
         default to the top layer.  If no layers exist, one will be created
+
+        Parameters:
+            index - Int
         """
         if not len(self._mLayers):
             self.addDrawingLayer()
@@ -1955,29 +2330,37 @@ class Image:
         imgSurf = self.getPGSurface(self).copy()
         imgSurf.blit(layer._mSurface, (0, 0))
         return Image(imgSurf)
-        
+    
+    def mergedLayers(self):
+        """
+        Return all DrawingLayer objects as a single DrawingLayer
+
+        Returns:
+            DrawingLayer
+        """
+        final = DrawingLayer(self.size())
+        for layers in self._mLayers: #compose all the layers
+                layers.renderToOtherLayer(final)
+        return final
         
     def applyLayers(self, indicies=-1):
         """
         Render all of the layers onto the current image and return the result.
-        Indicies can be a list of integers specifying the layers to be used. 
+        Indicies can be a list of integers specifying the layers to be used.
+
+        Parameters:
+            indicies - Int
         """
         if not len(self._mLayers):
             return self
         
-        
-        final = DrawingLayer((self.width, self.height))
         if(indicies==-1 and len(self._mLayers) > 0 ):
-            #retVal = self
-            self._mLayers.reverse()
-            for layers in self._mLayers: #compose all the layers
-                layers.renderToOtherLayer(final)
-            self._mLayers.reverse()  
-            #then draw them
+            final = self.mergedLayers()
             imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             return Image(imgSurf)
         else:
+            final = DrawingLayer((self.width, self.height))
             retVal = self
             indicies.reverse()
             for idx in indicies:
@@ -1986,5 +2369,361 @@ class Image:
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
+            
+    def adaptiveScale(self, resolution,fit=True):
+        """
+        Adapative Scale is used in the Display to automatically
+        adjust image size to match the display size.
 
-from SimpleCV.BlobMaker import BlobMaker
+        This is typically used in this instance:
+        >>> d = Display((800,600))
+        >>> i = Image((640, 480))
+        >>> i.save(d)
+
+        Where this would scale the image to match the display size of 800x600
+
+        Parameters:
+            resolution - Tuple
+            fit - Boolean
+
+        Returns:
+            Image
+        """
+        
+        wndwAR = float(resolution[0])/float(resolution[1])
+        imgAR = float(self.width)/float(self.height)
+        img = self
+        targetx = 0
+        targety = 0
+        targetw = resolution[0]
+        targeth = resolution[1]
+        if( self.size() == resolution): # we have to resize
+            retVal = self
+        elif( imgAR == wndwAR ):
+            retVal = img.scale(resolution[0],resolution[1])
+        elif(fit):
+            #scale factors
+            retVal = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(retVal)
+            wscale = (float(self.width)/float(resolution[0]))
+            hscale = (float(self.height)/float(resolution[1]))
+            if(wscale>1): #we're shrinking what is the percent reduction
+                wscale=1-(1.0/wscale)
+            else: # we need to grow the image by a percentage
+                wscale = 1.0-wscale
+            if(hscale>1):
+                hscale=1-(1.0/hscale)
+            else:
+                hscale=1.0-hscale
+            if( wscale == 0 ): #if we can get away with not scaling do that
+                targetx = 0
+                targety = (self.resolution[1]-self.height)/2
+            elif( hscale == 0 ): #if we can get away with not scaling do that
+                targetx = (self.resolution[0]-img.width)/2
+                targety = 0
+            elif(wscale < hscale): # the width has less distortion
+                sfactor = float(resolution[0])/float(self.width)
+                targetw = int(float(self.width)*sfactor)
+                targeth = int(float(self.height)*sfactor)
+                if( targetw > resolution[0] or targeth > resolution[1]):
+                    #aw shucks that still didn't work do the other way instead
+                    sfactor = float(resolution[1])/float(self.height)
+                    targetw = int(float(self.width)*sfactor)
+                    targeth = int(float(self.height)*sfactor)
+                    targetx = (resolution[0]-targetw)/2
+                    targety = 0
+                else:
+                    targetx = 0
+                    targety = (resolution[1]-targeth)/2
+                img = img.scale(targetw,targeth)
+            else: #the height has more distortion
+                sfactor = float(resolution[1])/float(self.height)
+                targetw = int(float(self.width)*sfactor)
+                targeth = int(float(self.height)*sfactor)
+                if( targetw > resolution[0] or targeth > resolution[1]):
+                    #aw shucks that still didn't work do the other way instead
+                    sfactor = float(resolution[0])/float(self.width)
+                    targetw = int(float(self.width)*sfactor)
+                    targeth = int(float(self.height)*sfactor)
+                    targetx = 0
+                    targety = (resolution[1]-targeth)/2
+                else:
+                    targetx = (resolution[0]-targetw)/2
+                    targety = 0
+                img = img.scale(targetw,targeth)
+            cv.SetImageROI(retVal,(targetx,targety,targetw,targeth))
+            cv.Copy(img.getBitmap(),retVal)
+            cv.ResetImageROI(retVal)
+            retVal = Image(retVal)
+        else: # we're going to crop instead
+            retVal = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 3) 
+            cv.Zero(retVal)
+            if(self.width <= resolution[0] and self.height <= resolution[1] ): # center a too small image 
+                #we're too small just center the thing
+                targetx = (resolution[0]/2)-(self.width/2)
+                targety = (resolution[1]/2)-(self.height/2)
+            elif(self.width > resolution[0] and self.height > resolution[1]): #crop too big on both axes
+                targetw = resolution[0]
+                targeth = resolution[1]
+                targetx = 0
+                targety = 0
+                x = (self.width-resolution[0])/2
+                y = (self.height-resolution[1])/2
+                img = img.crop(x,y,targetw,targeth)
+            elif( self.width < resolution[0] and self.height >= resolution[1]): #height too big
+                #crop along the y dimension and center along the x dimension
+                targetw = self.width
+                targeth = resolution[1]
+                targetx = (resolution[0]-self.width)/2
+                targety = 0
+                x = 0
+                y = (self.height-resolution[1])/2
+                img = img.crop(x,y,targetw,targeth)
+            elif( self.width > resolution[0] and self.height <= resolution[1]): #width too big
+                #crop along the y dimension and center along the x dimension
+                targetw = resolution[0]
+                targeth = self.height
+                targetx = 0
+                targety = (resolution[1]-self.height)/2
+                x = (self.width-resolution[0])/2
+                y = 0
+                img = img.crop(x,y,targetw,targeth)
+
+            cv.SetImageROI(retVal,(x,y,targetw,targeth))
+            cv.Copy(img.getBitmap(),retVal)
+            cv.ResetImageROI(retVal)
+            retval = Image(retVal)
+        return(retVal)
+
+    def blit(self, img, pos=(0,0),centered=False):
+        """
+        Take image and copy it into this image at the specified to image and return
+        the result. If pos+img.sz exceeds the size of this image then img is cropped.
+        Pos is the top left corner of the input image
+
+        Parameters:
+            img - Image
+            pos - Tuple
+            centered - Boolean
+
+        """
+        retVal = self
+        w = img.width
+        h = img.height
+        if(centered):
+            pos = (pos[0]-(w/2),pos[1]-(h/2))
+            
+        if(pos[0] >= self.width or pos[1] >= self.height ):
+            warnings.warn("Image.blit: specified position exceeds image dimensions")
+            return None
+        if(img.width+pos[0] > self.width or img.height+pos[1] > self.height):
+            w = min(self.width-pos[0],img.width)
+            h = min(self.height-pos[1],img.height)
+            cv.SetImageROI(img.getBitmap(),(0,0,w,h))
+        cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))
+        cv.Copy(img.getBitmap(),retVal.getBitmap())
+        cv.ResetImageROI(img.getBitmap())
+        cv.ResetImageROI(retVal.getBitmap())
+        return retVal
+    
+    def integralImage(self,tilted=False):
+        """
+        Calculate the integral image and return it as a numpy array.
+        The integral image gives the sum of all of the pixels above and to the
+        right of a given pixel location. It is useful for computing Haar cascades.
+        The return type is a numpy array the same size of the image. The integral
+        image requires 32Bit values which are not easily supported by the SimpleCV
+        Image class.
+
+        Parameters:
+            tilted - Boolean
+
+        Returns:
+            Numpy Array
+        """
+        
+        if(tilted):
+            img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
+            img3 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1) 
+            cv.Integral(self._getGrayscaleBitmap(),img3,None,img2)
+        else:
+            img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1) 
+            cv.Integral(self._getGrayscaleBitmap(),img2)
+        return np.array(cv.GetMat(img2))
+        
+        
+    def convolve(self,kernel = [[1,0,0],[0,1,0],[0,0,1]],center=None):
+        """
+        Convolution performs a shape change on an image.  It is similiar to
+        something like a dilate.  You pass it a kernel in the form of a list, np.array, or cvMat
+
+
+        example:
+        >>> img = Image("sampleimages/simplecv.png")
+        >>> kernel = [[1,0,0],[0,1,0],[0,0,1]]
+        >>> conv = img.convolve()
+
+
+        Parameters:
+            kernel - Array, Numpy Array, CvMat
+            center - Boolean
+
+        Returns:
+            Image
+        """
+        if(isinstance(kernel, list)):
+            kernel = np.array(kernel)
+            
+        if(type(kernel)==np.ndarray):
+            sz = kernel.shape
+            kernel = kernel.astype(np.float32)
+            myKernel = cv.CreateMat(sz[0], sz[1], cv.CV_32FC1)
+            cv.SetData(myKernel, kernel.tostring(), kernel.dtype.itemsize * kernel.shape[1])
+        elif(type(kernel)==cv.mat):
+            myKernel = kernel
+        else:
+            warnings.warn("Convolution uses numpy arrays or cv.mat type.")
+            return None
+        retVal = self.getEmpty(3)
+        if(center is None):
+            cv.Filter2D(self.getBitmap(),retVal,myKernel)
+        else:
+            cv.Filter2D(self.getBitmap(),retVal,myKernel,center)
+        return Image(retVal)
+
+    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM"):
+        """
+        This function searches an image for a template image.  The template
+        image is a smaller image that is searched for in the bigger image.
+        This is a basic pattern finder in an image.  This uses the standard
+        OpenCV template (pattern) matching and cannot handle scaling or rotation
+
+        
+        Template matching returns a match score for every pixel in the image.
+        Often pixels that are near to each other and a close match to the template
+        are returned as a match. If the threshold is set too low expect to get
+        a huge number of values. The threshold parameter is in terms of the
+        number of standard deviations from the mean match value you are looking
+        
+        For example, matches that are above three standard deviations will return
+        0.1% of the pixels. In a 800x600 image this means there will be
+        800*600*0.001 = 480 matches.
+
+        This method returns the locations of wherever it finds a match above a
+        threshold. Because of how template matching works, very often multiple
+        instances of the template overlap significantly. The best approach is to
+        find the centroid of all of these values. We suggest using an iterative
+        k-means approach to find the centroids.
+        
+        Example:
+        >>> image = Image("/path/to/img.png")
+        >>> pattern_image = image.crop(100,100,100,100)
+
+        >>> found_patterns = image.findTemplate(pattern_image)
+        >>> found_patterns.draw()
+        >>> image.show()
+
+
+        Parameters:
+            template_image - Image
+            threshold - Int
+            method - String
+        
+        RETURNS:
+            FeatureSet
+        """
+        if(template_image == None):
+            print "Need image for matching"
+            return
+
+        if(template_image.width > self.width):
+            print "Image too wide"
+            return
+
+        if(template_image.height > self.height):
+            print "Image too tall"
+            return
+
+        check = 0; # if check = 0 we want maximal value, otherwise minimal
+        if(method is None or method == "" or method == "SQR_DIFF_NORM"):#minimal
+            method = cv.CV_TM_SQDIFF_NORMED
+            check = 1;
+        elif(method == "SQR_DIFF"): #minimal
+            method = cv.CV_TM_SQDIFF
+            check = 1
+        elif(method == "CCOEFF"): #maximal
+            method = cv.CV_TM_CCOEFF
+        elif(method == "CCOEFF_NORM"): #maximal
+            method = cv.CV_TM_CCOEFF_NORMED
+        elif(method == "CCORR"): #maximal
+            method = cv.CV_TM_CCORR
+        elif(method == "CCORR_NORM"): #maximal 
+            method = cv.CV_TM_CCORR_NORMED
+        else:
+            warnings.warn("ooops.. I don't know what template matching method you are looking for.")
+            return None
+        #create new image for template matching computation
+        matches = cv.CreateMat( (self.height - template_image.height + 1),
+                                (self.width - template_image.width + 1),
+                                cv.CV_32FC1)
+            
+        #choose template matching method to be used
+        
+        cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+        mean = np.mean(matches)
+        sd = np.std(matches)
+        if(check > 0):
+            compute = np.where((matches < mean-threshold*sd) )
+        else:
+            compute = np.where((matches > mean+threshold*sd) )
+
+        mapped = map(tuple, np.column_stack(compute))
+        fs = FeatureSet()
+        for location in mapped:
+            fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+            
+        return fs
+
+    def readText(self):
+        """
+        This function will return any text it can find using OCR on the
+        image.
+
+        Please note that it does not handle rotation well, so if you need
+        it in your application try to rotate and/or crop the area so that
+        the text would be the same way a document is read
+
+        RETURNS: String
+        """
+
+        if(not OCR_ENABLED):
+            return "Please install the correct OCR library required"
+        
+        api = tesseract.TessBaseAPI()
+        api.SetOutputName("outputName")
+        api.Init(".","eng",tesseract.OEM_DEFAULT)
+        api.SetPageSegMode(tesseract.PSM_AUTO)
+
+
+        jpgdata = StringIO()
+        self.getPIL().save(jpgdata, "jpeg")
+        jpgdata.seek(0)
+        stringbuffer = jpgdata.read()
+        result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
+        return result
+
+
+    def __getstate__(self):
+        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
+        
+    def __setstate__(self, mydict):        
+        self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
+        cv.SetData(self._bitmap, mydict['image'])
+        self._colorSpace = mydict['colorspace']
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker
+from SimpleCV.Stream import JpegStreamer
+from SimpleCV.Font import *
+from SimpleCV.DrawingLayer import *
+from SimpleCV.Images import *
+

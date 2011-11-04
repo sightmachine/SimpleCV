@@ -107,7 +107,10 @@ class DrawingLayer:
     
     def setDefaultColor(self, color):
         """
-        This method sets the default rendering color. 
+        This method sets the default rendering color.
+
+        Parameters:
+            color - Color object or Color Tuple
         """
         self._mDefaultColor = color
         
@@ -126,6 +129,14 @@ class DrawingLayer:
         width - The line width in pixels. 
         
         antialias - Draw an antialiased object of width one.
+
+        Parameters:
+            start - Tuple
+            stop - Tuple
+            color - Color object or Color Tuple
+            width - Int
+            antialias - Boolean
+            alpha - Int
         
         """
         if(antialias and width == 1):           
@@ -151,6 +162,14 @@ class DrawingLayer:
         width - The line width in pixels. 
         
         antialias - Draw an antialiased object of width one.
+
+        Parameters:
+            points - Tuple
+            color - Color object or Color Tuple
+            antialias - Boolean
+            alpha - Int
+            width - Int
+            
         """        
         if(antialias and width == 1):
             pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
@@ -181,7 +200,43 @@ class DrawingLayer:
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
         return None
  
-   
+    def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+        """
+        Draw a rectangle given two (x,y) points
+        
+        color - The object's color as a simple CVColor object, if no value  is sepcified
+                the default is used.
+        
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque, while 0
+                means transparent. 
+        
+        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        
+        filled -The rectangle is filled in 
+        """
+        w = 0
+        h = 0
+        x = 0
+        y = 0
+        if(pt0[0] > pt1[0]):
+            w = pt0[0]-pt1[0]
+            x = pt1[0]
+        else:
+            w = pt1[0]-pt0[0]
+            x = pt0[0]
+        if(pt0[1] > pt1[1]):
+            h = pt0[1]-pt1[1]
+            y = pt1[1]
+        else:
+            h = pt1[1]-pt0[1]
+            y = pt0[1]            
+        if(filled):
+            width = 0
+        r = pg.Rect((x,y),(w,h))
+        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+        return None
+  
     def centeredRectangle(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
         """
         Draw a rectangle given the center (x,y) of the rectangle and dimensions (width, height)
@@ -195,7 +250,17 @@ class DrawingLayer:
         
         w -     The line width in pixels. This does not work if antialiasing is enabled.
         
-        filled -The rectangle is filled in 
+        filled -The rectangle is filled in
+
+
+     rameters:
+            center - Tuple
+            dimenions - Tuple
+            color - Color object or Color Tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
+            
         """
         if(filled):
             width = 0
@@ -249,10 +314,19 @@ class DrawingLayer:
         width - The line width in pixels. This does not work if antialiasing is enabled.
         
         filled -The object is filled in
+
+        Parameters:
+            center - Tuple
+            radius - Int
+            color - Color object or Color Tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
+            antialias - Int
         """           
         if(filled):
             width = 0
-        if antialias == False or width > 1:
+        if antialias == False or width > 1 or filled:
             pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, radius, width)
         else:
             pg.gfxdraw.aacircle(self._mSurface, center[0], center[1], radius, self._csvRGB2pgColor(color, alpha))
@@ -272,6 +346,14 @@ class DrawingLayer:
         width - The line width in pixels. This does not work if antialiasing is enabled.
         
         filled -The object is filled in
+
+        Parameters:
+            center - Tuple
+            dimensions - Tuple
+            color - Color object or Color tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
         """          
         if(filled):
             width = 0
@@ -288,7 +370,14 @@ class DrawingLayer:
         
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
-                means transparent. 
+                means transparent
+
+        Parameters:
+            points - list
+            steps - Int
+            color - Color object or Color Tuple
+            alpha - Int
+        
         
         """      
         pg.gfxdraw.bezier(self._mSurface, points, steps, self._csvRGB2pgColor(color, alpha))
@@ -296,7 +385,7 @@ class DrawingLayer:
         
     def setFontBold(self, doBold):
         """
-        This method sets and unsets the current font to be bold. 
+        This method sets and unsets the current font to be bold.
         """
         self._mFont.set_bold(doBold)
         return None
@@ -337,7 +426,10 @@ class DrawingLayer:
     def setFontSize(self, sz):
         """
         This method sets the font size roughly in points. A size of 10 is almost
-        too small to read. A size of 20 is roughly 10 pixels high and a good choice. 
+        too small to read. A size of 20 is roughly 10 pixels high and a good choice.
+
+        Parameters:
+            sz = Int
         """
         self._mFontSize = sz
         self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
@@ -356,7 +448,13 @@ class DrawingLayer:
         
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
-                means transparent. 
+                means transparent.
+
+        Parameters:
+            text - String
+            location - Tuple
+            color - Color object or Color tuple
+            alpha - Int
         
         """
         if(len(text)<0):
@@ -431,16 +529,24 @@ class DrawingLayer:
 
         
     def blit(self, img, coordinates = (0,0)):
-      """
-Blit one image onto the drawing layer at upper left coordinates
-      """
+        """
+        Blit one image onto the drawing layer at upper left coordinates
+
+        Parameters:
+            img - Image
+            coordinates - Tuple
+        
+        """
       
-      #can we set a color mode so we can do a little bit of masking here?
-      self._mSurface.blit(img.getPGSurface(), coordinates)
+        #can we set a color mode so we can do a little bit of masking here?
+        self._mSurface.blit(img.getPGSurface(), coordinates)
         
     def replaceOverlay(self, overlay):
         """
-        This method allows you to set the surface manually. 
+        This method allows you to set the surface manually.
+
+        Parameters:
+            overlay - Pygame Surface
         """
         self._mSurface = overlay
         return None
@@ -457,6 +563,9 @@ Blit one image onto the drawing layer at upper left coordinates
     def renderToSurface(self, surf):
         """
         Blit this layer to another surface.
+
+        Parameters:
+            surf - Pygame Surface
         """
         surf.blit(self._mSurface, (0, 0))
         return(surf)
@@ -464,6 +573,9 @@ Blit one image onto the drawing layer at upper left coordinates
     
     def renderToOtherLayer(self, otherLayer):
         """
-        Add this layer to another layer. 
+        Add this layer to another layer.
+
+        Parameters:
+            otherLayer - Pygame Surface
         """
         otherLayer._mSurface.blit(self._mSurface, (0, 0))
