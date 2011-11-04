@@ -51,9 +51,9 @@ def magic_editor(self, arg):
     print "please wait while checking for editor updates..."
     time.sleep(2)
     if os_type == "windows":
-        cmd = "cmd /c git submodule update --init --recursive"
-        call(["cmd","/c","git","submodule","update","--init","--recursive"])
-        path = "./SimpleCV/utils/cloud9/bin/cloud9-win32.bat"
+        print "Currently windows can't auto install the editor"
+        print "this is a limitation of git on windows"
+        return
         
     else:
         cmd = "git submodule update --init --recursive"
