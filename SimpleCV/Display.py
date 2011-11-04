@@ -62,7 +62,7 @@ class Display:
     def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV"):
         self.resolution = resolution
         self.screen = pg.display.set_mode(resolution, flags)
-        scvLogo = SimpleCV.Image("logo").scale(32,32)
+        scvLogo = SimpleCV.Image("simplecv").scale(32,32)
         pg.display.set_icon(scvLogo.getPGSurface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
