@@ -10,26 +10,29 @@ y0 = 0
 x1 = 0
 y1 = 0
 img = cam.getImage()
-w = 800
-h = 600
-display = Display((w,h))
+display = Display((img.width,img.height))
 mouse_down = False
 while not display.isDone():
-    temp = cam.getImage()
-    img = temp.scale(w,h)
-    dl = DrawingLayer((w,h))
+    img = cam.getImage()
+    img = img.scale(160,120)
+    dl = DrawingLayer((img.width,img.height))
+    mystring = "( " +str(display.mouseX)+" , "+str(display.mouseY)+" )"
+    #print((display.mouseX,display.mouseY))
     if SegmentMode:
         segmentation.addImage(img)
         if(segmentation.isReady()):
             img = segmentation.getSegmentedImage()
             img = img.erode(iterations = 2).dilate().invert()
-            img.save(display)
+            img.dl().ezViewText(mystring, (30,30))
+            img = img.applyLayers()
+            display.writeFrame(img)
         if(display.mouseLeft):
             SegmentMode = False
             segmentation.reset()
             display.mouseLeft = False
     else:
         if(display.mouseLeft and not mouse_down):
+            #print( (display.mouseX,display.mouseY))
             x0 = display.mouseX
             y0 = display.mouseY
             mouse_down = True
@@ -48,7 +51,10 @@ while not display.isDone():
                 SegmentMode = True
                 mouse_down = False
         img.addDrawingLayer(dl)
-        img.save(display)
+        img.dl().ezViewText(mystring, (30,30))
+        #img.save(display)
+        img = img.applyLayers();
+        display.writeFrame(img)
  
     time.sleep(0.001)
     
