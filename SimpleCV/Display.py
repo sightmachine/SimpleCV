@@ -163,6 +163,8 @@ class Display:
             #scale factors 
             wscale = (float(img.width)/float(self.resolution[0]))
             hscale = (float(img.height)/float(self.resolution[1]))
+            targetw = img.width
+            targeth = img.height
             if(wscale>1): #we're shrinking what is the percent reduction
                 wscale=1-(1.0/wscale)
             else: # we need to grow the image by a percentage

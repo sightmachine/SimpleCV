@@ -3,7 +3,7 @@ from SimpleCV import *
 from SimpleCV.Display import Display, pg
 w = 400
 h = 300
-t=10
+t=1
 display = Display(resolution = (w,h)) #create a new display to draw images on
 img = Image('../sampleimages/aerospace.jpg')
 img = img.scale(800,600)
