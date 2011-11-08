@@ -1,0 +1,282 @@
+/**
+ * Sphinx stylesheet -- default theme
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+@import url("basic.css");
+
+/* -- page layout ----------------------------------------------------------- */
+
+body {
+    font-family: sans-serif;
+    font-size: 100%;
+    background-color: rgb(60,60,70);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+div.document {
+    background-color: rgb(60,60,70);
+    }
+
+div.documentwrapper {
+    float: left;
+    width: 100%;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 230px;
+}
+
+div.body {
+    background-color: #fff;
+    color: #444;
+    border-left: 2px solid rgb(0,0,0);
+    padding: 40px 20px 30px 20px;
+}
+
+div.footer {
+    color: #ffffff;
+    width: 100%;
+    text-align: center;
+    font-size: 75%;
+     position: fixed;
+     bottom: 0;
+     padding: 10px 0 5px;
+     background-color: rgb(60,60,70);
+     background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+     background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+     background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+     background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+     background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+     background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+     z-index: 100000;
+     -moz-box-shadow: inset rgba(255,255,255,.1) 0 1px 1px, rgba(0,0,0,.9) 0 -1px 0;
+     -webkit-box-shadow: inset rgba(255,255,255,.1) 0 1px 1px, rgba(0,0,0,.9) 0 -1px 0;
+     box-shadow: inset rgba(255,255,255,.1) 0 1px 1px, rgba(0,0,0,.9) 0 -1px 0;
+     
+}
+
+div.footer a {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+div.related {
+    font-family: "Cabin", sans-serif;
+    line-height: 40px;
+    text-transform: uppercase;
+    position: fixed;
+    background-color: rgb(60,60,70);
+    background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+    background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+    background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+    background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+    background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+    background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+    z-index: 100000;
+    -moz-box-shadow: rgba(0,0,0,1) 0 2px 4px, rgba(0,0,0,.9) 0 1px 0;
+    -webkit-box-shadow: rgba(0,0,0,1) 0 2px 4px, rgba(0,0,0,.9) 0 1px 0;
+    box-shadow: rgba(0,0,0,1) 0 2px 4px, rgba(0,0,0,.9) 0 1px 0;
+    color: rgba(255,255,255,.2);
+    }
+
+div.related a {
+    color: #ffffff;
+}
+
+div.sphinxsidebar {
+    top: 50px;
+    bottom: 0;
+    margin: 0;
+    position: fixed;
+    overflow: auto;
+    height: auto;
+    background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+    background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+    background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+    background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+    background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+    background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));    
+}
+/* this is nice, but it it leads to hidden headings when jumping
+   to an anchor */
+/*
+div.related {
+    position: fixed;
+}
+
+div.documentwrapper {
+    margin-top: 30px;
+}
+*/
+
+div.sphinxsidebar h3 {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0;
+    padding: 0;
+}
+
+div.sphinxsidebar h3 a {
+    color: #ffffff;
+}
+
+div.sphinxsidebar h4 {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: normal;
+    margin: 5px 0 0 0;
+    padding: 0;
+}
+
+div.sphinxsidebar p {
+    color: #ffffff;
+}
+
+div.sphinxsidebar p.topless {
+    margin: 5px 10px 10px 10px;
+}
+
+div.sphinxsidebar ul {
+    margin: 10px;
+    padding: 0;
+    color: #ffffff;
+}
+
+div.sphinxsidebar a {
+    color: #8ecd14;
+}
+
+div.sphinxsidebar input {
+    border: 1px solid #aaa;
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 3px;
+    border-radius: 4px;
+}
+
+/* -- body styles ----------------------------------------------------------- */
+
+a {
+    color: #0E84B5;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+div.body p, div.body dd, div.body li {
+    text-align: justify;
+    line-height: 130%;
+}
+
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6 {
+    background-color: rgb(60,60,70);
+    background-image: -moz-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* FF3.6 */
+    background-image: -ms-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* IE10 */
+    background-image: -o-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Opera 11.10+ */
+    background-image: -webkit-linear-gradient(top, rgb(60,60,70), rgb(20,20,30)); /* Chrome 10+, Saf5.1+ */
+    background-image: -webkit-gradient(linear,left top, left bottom, from(rgb(60,60,70)), to(rgb(20,20,30))); /* iPad/iphone */  
+    background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+    font-weight: normal;
+    color: #fff;
+    margin: 20px -20px;
+    padding: 10px 20px;
+}
+
+div.body h1 { margin-top: 0; font-size: 18px; }
+div.body h2 { font-size: 16px; }
+div.body h3 { font-size: 14px; }
+div.body h4 { font-size: 13px; }
+
+
+a.headerlink {
+    color: #c60f0f;
+    font-size: 0.8em;
+    padding: 0 4px 0 4px;
+    text-decoration: none;
+}
+
+a.headerlink:hover {
+    background-color: #c60f0f;
+    color: white;
+}
+
+div.body p, div.body dd, div.body li {
+    text-align: justify;
+    line-height: 130%;
+}
+
+div.admonition p.admonition-title + p {
+    display: inline;
+}
+
+div.admonition p {
+    margin-bottom: 5px;
+}
+
+div.admonition pre {
+    margin-bottom: 5px;
+}
+
+div.admonition ul, div.admonition ol {
+    margin-bottom: 5px;
+}
+
+div.note {
+    background-color: #eee;
+    border: 1px solid #ccc;
+}
+
+div.seealso {
+    background-color: #ffc;
+    border: 1px solid #ff6;
+}
+
+div.topic {
+    background-color: #eee;
+}
+
+div.warning {
+    background-color: #ffe4e4;
+    border: 1px solid #f66;
+}
+
+p.admonition-title {
+    display: inline;
+}
+
+p.admonition-title:after {
+    content: ":";
+}
+
+pre {
+    padding: 10px;
+    background-color: #def;
+    color: #789;
+    line-height: 120%;
+    border: 1px solid #abc;
+}
+
+tt {
+    background-color: #ecf0f3;
+    padding: 0 1px 0 1px;
+    font-size: 0.95em;
+}
+
+.warning tt {
+    background: #efc2c2;
+}
+
+.note tt {
+    background: #d6d6d6;
+}
