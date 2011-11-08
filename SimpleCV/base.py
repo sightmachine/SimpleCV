@@ -12,6 +12,7 @@ import types
 import SocketServer
 import threading
 import tempfile
+import zipfile
 import pickle
 import glob #for directory scanning
 import abc #abstract base class
@@ -118,7 +119,34 @@ def find(f, seq):
             return True
     return False
 
+def download_and_extract(URL):
+    """
+    This function takes in a URL for a zip file, extracts it and returns
+    the temporary path it was extracted to
+    """
+    if URL == None:
+        warnings.warn("Please provide URL")
+        return None
 
+    tmpdir = tempfile.mkdtemp()
+    filename = os.path.basename(URL)
+    path = tmpdir + "/" + filename
+    zdata = urllib2.urlopen(URL)
+
+    print "Saving file to disk please wait...."
+    with open(path, "wb") as local_file:
+        local_file.write(zdata.read())
+
+    zfile = zipfile.ZipFile(path)    
+    print "Extracting zipfile"
+    try:
+        zfile.extractall(tmpdir)
+    except:
+        warnings.warn("Couldn't extract zip file")
+        return None
+
+    return tmpdir
+    
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """
     This function is a utility for converting numpy arrays to the cv.cvMat format.

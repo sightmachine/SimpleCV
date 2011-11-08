@@ -1,17 +1,23 @@
-from numpy import *
-from SimpleCV.base import *
-from SimpleCV.ImageClass import *
-from SimpleCV.Display import Display, pg
-from SimpleCV.Features import EdgeHistogramFeatureExtractor, HueHistogramFeatureExtractor, BOFFeatureExtractor, HaarLikeFeatureExtractor, MorphologyFeatureExtractor
-from SimpleCV.MachineLearning import SVMClassifier 
-from SimpleCV.MachineLearning import NaiveBayesClassifier 
-from SimpleCV.MachineLearning import KNNClassifier 
-from SimpleCV.MachineLearning import TreeClassifier
-import Orange
-import os
-import glob
-import pickle
+from SimpleCV import *
 
+print ""
+print "This program runs a list of test for machine learning on"
+print "the SimpleCV library. Not all scores will be high, this"
+print "is just to ensure that the libraries are functioning correctly"
+print "on your system"
+print ""
+print "***** WARNING *****"
+print "This program is about to download a large data set to run it's test"
+
+
+inp = raw_input("Do you want to continue [Y/n]")
+if not (inp == "" or inp.lower() == "y"):
+    print "Exiting the program"
+    sys.exit()
+
+
+machine_learning_data_set = "https://github.com/downloads/ingenuitas/SimpleCV/machine_learning_dataset.zip"
+data_path = download_and_extract(machine_learning_data_set)
 
 w = 800
 h = 600
@@ -26,8 +32,8 @@ bof.load('../Features/cbdata.txt')
 haar = HaarLikeFeatureExtractor(fname="../Features/haar.txt")
 morph = MorphologyFeatureExtractor()
 
-spath = "../sampleimages/data/structured/"
-upath = "../sampleimages/data/unstructured/"
+spath = data_path + "/data/structured/"
+upath = data_path + "/data/unstructured/"
 ball_path = spath+"ball/"
 basket_path = spath+"basket/"
 boat_path = spath+"boat/"
@@ -282,3 +288,5 @@ for i in range(10):
         print(files[i]+' -> '+cname)
 
 
+print ""
+print "All the machine learning test have ran correctly"
