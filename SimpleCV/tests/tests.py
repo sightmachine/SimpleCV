@@ -162,6 +162,11 @@ def test_image_smooth():
   img.smooth('blur', (3, 3))
   img.smooth('median', (3, 3))
   img.smooth('gaussian', (5,5), 0) 
+  img.smooth('bilateral', (3,3), 4, 1,grayscale=False)
+  img.smooth('blur', (3, 3),grayscale=True)
+  img.smooth('median', (3, 3),grayscale=True)
+  img.smooth('gaussian', (5,5), 0,grayscale=True) 
+
   pass
 
 def test_image_binarize():

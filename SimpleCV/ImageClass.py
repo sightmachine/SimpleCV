@@ -712,12 +712,14 @@ class Image:
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
 
-    def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0):
+    def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
         """
         Smooth the image, by default with the Gaussian blur.  If desired,
         additional algorithms and aperatures can be specified.  Optional parameters
         are passed directly to OpenCV's cv.Smooth() function.
 
+        If grayscale is true the smoothing operation is only performed on a single channel
+        otherwise the operation is performed on each channel of the image. 
 
         Returns: IMAGE
         """
@@ -746,9 +748,23 @@ class Image:
             win_y = win_x #aperature must be square
 
 
-        newimg = self.getEmpty(1) 
-        cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
-
+        
+        if( grayscale ):
+            newimg = self.getEmpty(1)
+            cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
+        else:
+            newimg = self.getEmpty(3)
+            r = self.getEmpty(1) 
+            g = self.getEmpty(1)
+            b = self.getEmpty(1)
+            ro = self.getEmpty(1) 
+            go = self.getEmpty(1)
+            bo = self.getEmpty(1)
+            cv.Split(self.getBitmap(), b, g, r, None)
+            cv.Smooth(r, ro, algorithm, win_x, win_y, sigma, spatial_sigma)            
+            cv.Smooth(g, go, algorithm, win_x, win_y, sigma, spatial_sigma)
+            cv.Smooth(b, bo, algorithm, win_x, win_y, sigma, spatial_sigma)
+            cv.Merge(ro,go,bo, None, newimg)
 
         return Image(newimg, colorSpace=self._colorSpace)
 
