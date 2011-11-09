@@ -4,6 +4,15 @@ from SimpleCV.Features.HaarLikeFeature import *
 from SimpleCV.Features.FeatureExtractorBase import *
 
 class HaarLikeFeatureExtractor(FeatureExtractorBase):
+    """
+    This is used generate Haar like features from an image.  These
+    Haar like features are used by a the classifiers of machine learning
+    to help identify objects or things in the picture by their features,
+    or in this case haar features.
+
+    For a more in-depth review of Haar Like features see:
+    http://en.wikipedia.org/wiki/Haar-like_features
+    """
 
     mFeatureSet = None
     mDo45 = True

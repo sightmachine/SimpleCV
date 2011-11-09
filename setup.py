@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys, os
 
 setup(name="SimpleCV",
-  version="1.1",
+  version="1.2",
   download_url='http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV-1.1.tar.gz',
   description="Make Computers See with SimpleCV, the Python Framework for Machine Vision",
   long_description="""Super-library for machine vision wrappers in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
