@@ -6,7 +6,7 @@ import warnings
 import zipfile
 import Tkinter
 import simplejson as json
-
+import time
 
 #Global Definitions
 output_status = ""
@@ -16,6 +16,7 @@ version_to_use = "1.2"
 operating_system = None
 app = None
 current_file = None
+update_time = 1.0
 
 def InstallButtonClick():
 	"""
@@ -56,6 +57,7 @@ def download(URL):
 	writeText("downloading")
 	writeText(URL)
 	filename = os.path.basename(URL)
+	file_extension = filename.split(".")[-1]
 	current_file = filename
 	filepath = tmpdir + "\\" + filename
 	if operating_system == "windows":
@@ -75,21 +77,6 @@ def download(URL):
 	return (filepath, filename)
 
 
-def extract(path):
-	"""
-	This extracts a zip file at the specfied system path
-	"""
-	tmpdir = cache_directory
-	zfile = zipfile.ZipFile(path)
-	writeText("Extracting zipfile")
-	try:
-		zfile.extractall(tmpdir)
-	except:
-		warnings.warn("Couldn't extract zip file")
-		return None
-
-	return tmpdir
-
 def chunk_report(bytes_so_far, chunk_size, total_size):
 	"""
 	This is the update callback for the download
@@ -97,6 +84,7 @@ def chunk_report(bytes_so_far, chunk_size, total_size):
 	global app
 	global output_status
 	global current_file
+	
 	
 	percent = float(bytes_so_far) / total_size
 	percent = round(percent*100, 2)
@@ -113,21 +101,41 @@ def chunk_read(response, chunk_size=8192, report_hook=None):
 	"""
 	This is for reading parts of the file in chunks for the download
 	"""
+	global update_time
 	total_size = response.info().getheader('Content-Length').strip()
 	total_size = int(total_size)
 	bytes_so_far = 0
+	start_time = time.time()
 
 	while 1:
+		current_time = time.time()
 		chunk = response.read(chunk_size)
 		bytes_so_far += len(chunk)
 
 		if not chunk:
 			break
-
+			
 		if report_hook:
-			report_hook(bytes_so_far, chunk_size, total_size)
+			if (current_time - start_time) > update_time:
+				start_time = time.time()
+				report_hook(bytes_so_far, chunk_size, total_size)
 
 	return bytes_so_far
+
+def extract(path):
+	"""
+	This extracts a zip file at the specfied system path
+	"""
+	tmpdir = cache_directory
+	zfile = zipfile.ZipFile(path)
+	writeText("Extracting zipfile")
+	try:
+		zfile.extractall(tmpdir)
+	except:
+		warnings.warn("Couldn't extract zip file")
+		return None
+
+	return tmpdir
 
 def run_install(path, name = "UNKNOWN"):
 	"""
