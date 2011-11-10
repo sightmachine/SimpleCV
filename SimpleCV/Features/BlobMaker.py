@@ -157,7 +157,7 @@ class BlobMaker:
         del chull
         
         moments = cv.Moments(seq)
-        retVal.m00 = moments.m00
+        retVal.m00 = area 
         retVal.m10 = moments.m10
         retVal.m01 = moments.m01
         retVal.m11 = moments.m11
