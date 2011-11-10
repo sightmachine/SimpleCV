@@ -17,13 +17,22 @@ operating_system = None
 app = None
 current_file = None
 
-def SaveButtonClick():
-    run()
+def InstallButtonClick():
+	"""
+	This is the callback for the Install Button
+	"""
+	run()
 
 def CancelButtonClick():
-    sys.exit()
+	"""
+	This is the callback for the Cancel Button
+	"""
+	sys.exit()
 
 def writeText(text):
+	"""
+	This is used to write to the UI console and terminal at the same time
+	"""
 	global output_status
 	
 	output_status.insert(Tkinter.END, text)
@@ -32,6 +41,9 @@ def writeText(text):
 	sys.stdout.write("\n")
 
 def download(URL):
+	"""
+	This downloads the file at the specified URL
+	"""
 	global cache_directory
 	global operating_system
 	global current_file
@@ -64,6 +76,9 @@ def download(URL):
 
 
 def extract(path):
+	"""
+	This extracts a zip file at the specfied system path
+	"""
 	tmpdir = cache_directory
 	zfile = zipfile.ZipFile(path)
 	writeText("Extracting zipfile")
@@ -76,6 +91,9 @@ def extract(path):
 	return tmpdir
 
 def chunk_report(bytes_so_far, chunk_size, total_size):
+	"""
+	This is the update callback for the download
+	"""
 	global app
 	global output_status
 	global current_file
@@ -92,6 +110,9 @@ def chunk_report(bytes_so_far, chunk_size, total_size):
 	
 	
 def chunk_read(response, chunk_size=8192, report_hook=None):
+	"""
+	This is for reading parts of the file in chunks for the download
+	"""
 	total_size = response.info().getheader('Content-Length').strip()
 	total_size = int(total_size)
 	bytes_so_far = 0
@@ -109,12 +130,18 @@ def chunk_read(response, chunk_size=8192, report_hook=None):
 	return bytes_so_far
 
 def run_install(path, name = "UNKNOWN"):
-    writeText("Running install for:" + name)
-    writeText("on path: " + path)
-    os.system(path)
+	"""
+	This is used to run the installer at the specified path
+	"""
+	writeText("Running install for:" + name)
+	writeText("on path: " + path)
+	os.system(path)
 
 
 def run():
+	"""
+	This runs the installation process
+	"""
 	writeText("Running the installer")
 	cache_directory = tempfile.mkdtemp()
 	filelist = json.load(open("manifest.json", "r"))
@@ -154,14 +181,14 @@ if __name__ == "__main__":
 	w.pack()
 	w = Tkinter.Label(app, text=website)
 	w.pack(pady=10)
-	w = Tkinter.Button(app, text="Install SimpleCV", command=SaveButtonClick)
+	w = Tkinter.Button(app, text="Install SimpleCV", command=InstallButtonClick)
 	w.pack(side=Tkinter.RIGHT, padx=10, pady=10)
 	w = Tkinter.Button(app, text="Cancel", command=CancelButtonClick)
 	w.pack(side=Tkinter.RIGHT, padx=10, pady=10)
 
 	scrollbar = Tkinter.Scrollbar(app)
 	scrollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
-	
+
 	output_status=Tkinter.Text(app,height=10,width=50,background='black', foreground='white', yscrollcommand=scrollbar.set)
 	output_status.pack(side=Tkinter.BOTTOM)
 	scrollbar.config(command=output_status.yview)
