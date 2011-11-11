@@ -60,6 +60,7 @@ def download(URL):
 	file_extension = filename.split(".")[-1]
 	current_file = filename
 	filepath = tmpdir + "\\" + filename
+	print "os" + operating_system
 	if operating_system == "windows":
 		path = tmpdir + "\\" + filename
 	else:
@@ -152,7 +153,17 @@ def run():
 	"""
 	writeText("Running the installer")
 	cache_directory = tempfile.mkdtemp()
-	filelist = json.load(open("manifest.json", "r"))
+	manifest_path, manifest_name = download("http://www.ingenuitas.com/installation/manifest.json")
+	print "mani:" + manifest_path
+	filelist = json.load(open(manifest_path, "r"))
+	if not filelist.has_key(version_to_use):
+		writeText("I'm sorry but the manifest file didn't include the version number you requested: " + version_to_use)
+		return
+
+	if not filelist.has_key(operating_system):
+		writeText("I'm sorry but the operating system you requested is not found in the manifest file: " + operating_system)
+		return
+
 	urllist = filelist[version_to_use][operating_system]
 
 	for url in urllist:
@@ -162,6 +173,14 @@ def run():
 
 
 if __name__ == "__main__":
+	global output_status
+	global cache_directory
+	global repo_url
+	global version_to_use
+	global operating_system
+	global app
+	global current_file
+	global update_time
 
 	if(len(sys.argv) > 1):
 		repo_url = sys.argv[1]
@@ -170,6 +189,8 @@ if __name__ == "__main__":
 
 	if(sys.platform.lower() == "linux2"):
 		operating_system = "linux"
+	elif(sys.platform.lower() == "win32"):
+		operating_system = "windows"
 	else:
 		operating_system = sys.platform.lower()
 		
