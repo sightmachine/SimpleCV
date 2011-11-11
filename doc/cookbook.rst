@@ -48,19 +48,20 @@ You can also assign using direct pixel addressing, and draw on the image using t
 Using a Camera, Kinect, or VirtualCamera
 --------------------------------------------
 
-Addressing your [OpenCV supported webcam](http://opencv.willowgarage.com/wiki/Welcome/OS) is extremely easy::
+Addressing your `OpenCV supported webcam <http://opencv.willowgarage.com/wiki/Welcome/OS>`_ is extremely easy::
 
     mycam = Camera()
     img = mycam.getImage()
 
-If you install the [OpenKinect](http://openkinect.org/wiki/Getting_Started) library and python wrapper, you can use your Xbox Kinect to get a depth map::
+If you install the `OpenKinect <http://openkinect.org/wiki/Getting_Started>`_ library and python wrapper, you can use your Xbox Kinect to get a depth map::
 
     k = Kinect()
     img = k.getImage() #normal, full color webcam
     depth = k.getDepth() #greyscale depth map
     depthdata = k.getDepthMatrix() #raw depth map, 0-2048
 
-###Multiple Cameras
+Multiple Cameras
+----------------
 And you can even use multiple cameras, at different resolutions::
 
     mylaptopcam = Camera(0, {"width": 640, "height": 480})  #you can also control brightness, hue, gain, etc 
@@ -93,7 +94,7 @@ You can also split channels, if you are interested in only processing a single c
     green.save("greencam.jpg")
     blue.save("bluecam.jpg")
 
-The Image class has a builtin [Histogram](http://en.wikipedia.org/wiki/Image_histogram) function, thanks to [Numpy](http://numpy.scipy.org/).  Histograms can show you the distribution of brightness or color in an image::
+The Image class has a builtin `Histogram <http://en.wikipedia.org/wiki/Image_histogram>`_ function, thanks to `Numpy <http://numpy.scipy.org/>`_.  Histograms can show you the distribution of brightness or color in an image::
 
     hist = Camera().getImage().histogram(20)
     brightpixels = 0
@@ -153,7 +154,7 @@ You can use SimpleCV to find connected components (blobs) of similarly-colored p
 Barcode Reading
 -------------------
 
-If you load the [python-zxing](https://github.com/oostendo/python-zxing) library, you can use [Zebra Crossing](http://code.google.com/p/zxing) to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
+If you load the `python-zxing <https://github.com/oostendo/python-zxing>`_ library, you can use `Zebra Crossing <http://code.google.com/p/zxing>`_ to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
 the location of the library either through the ZXING_LIBRARY %ENV variable, or
 as a parameter to findBarcode()::
 
@@ -168,7 +169,7 @@ as a parameter to findBarcode()::
 Haar Face Detection
 ---------------------
 
-You can do Haar Cascade face detection with SimpleCV, but you will need to find your own [Haar Cascade File](http://www.google.com/search?q=haarcascade_frontalface_alt.xml)::
+You can do Haar Cascade face detection with SimpleCV, but you will need to find your own `Haar Cascade File <http://www.google.com/search?q=haarcascade_frontalface_alt.xml>`_::
 
     i = Camera().getImage()
     faces = i.findHaarFeatures("/path/to/haarcascade_frontalface_alt.xml")
