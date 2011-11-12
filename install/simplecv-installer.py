@@ -11,12 +11,13 @@ import time
 #Global Definitions
 output_status = ""
 cache_directory = ""
-repo_url = ""
+repo_url = "http://www.ingenuitas.com/installation/manifest.json"
 version_to_use = "1.2"
 operating_system = None
 app = None
 current_file = None
-update_time = 1.0
+update_time = 0.5
+
 
 def InstallButtonClick():
 	"""
@@ -53,28 +54,27 @@ def download(URL):
 		warnings.warn("Please provide URL")
 		return None
 
+	print cache_directory
 	tmpdir = cache_directory
-	writeText("downloading")
+	writeText("downloading file from:")
 	writeText(URL)
 	filename = os.path.basename(URL)
 	file_extension = filename.split(".")[-1]
 	current_file = filename
 	filepath = tmpdir + "\\" + filename
-	print "os" + operating_system
 	if operating_system == "windows":
-		path = tmpdir + "\\" + filename
+		filepath = tmpdir + "\\" + filename
 	else:
-		path = tmpdir + "/" + filename
-		
+		filepath = tmpdir + "/" + filename
+
+	print "filepath"
+	print filepath
 	data = urllib2.urlopen(URL)
-	chunk_read(data, report_hook=chunk_report)
+	chunk_read(data, report_hook=chunk_report, filepath=filepath)
+	writeText(filename + " saved to disk")
 	writeText("The file path is:")
 	writeText(filepath)
-	writeText("Saving file to disk please wait....")
-	with open(filepath, "wb") as local_file:
-		local_file.write(data.read())
-
-	writeText(filename + " saved to disk")
+	
 	return (filepath, filename)
 
 
@@ -98,15 +98,23 @@ def chunk_report(bytes_so_far, chunk_size, total_size):
 	output_status.yview(Tkinter.END)
 	
 	
-def chunk_read(response, chunk_size=8192, report_hook=None):
+def chunk_read(response, chunk_size=1024, report_hook=None, filepath = None):
 	"""
 	This is for reading parts of the file in chunks for the download
 	"""
 	global update_time
+
+	if(filepath == None):
+		#todo: make it setup temp filepath
+		filepath = None
+
+	
 	total_size = response.info().getheader('Content-Length').strip()
 	total_size = int(total_size)
 	bytes_so_far = 0
 	start_time = time.time()
+	print filepath
+	file = open(filepath, 'wb')
 
 	while 1:
 		current_time = time.time()
@@ -115,7 +123,8 @@ def chunk_read(response, chunk_size=8192, report_hook=None):
 
 		if not chunk:
 			break
-			
+
+		file.write(chunk)	
 		if report_hook:
 			if (current_time - start_time) > update_time:
 				start_time = time.time()
@@ -151,36 +160,40 @@ def run():
 	"""
 	This runs the installation process
 	"""
+	global cache_directory
+	global repo_url
+	
 	writeText("Running the installer")
 	cache_directory = tempfile.mkdtemp()
-	manifest_path, manifest_name = download("http://www.ingenuitas.com/installation/manifest.json")
+	manifest_path, manifest_name = download(repo_url)
 	print "mani:" + manifest_path
 	filelist = json.load(open(manifest_path, "r"))
+	print "filelist:"
+	print filelist
 	if not filelist.has_key(version_to_use):
 		writeText("I'm sorry but the manifest file didn't include the version number you requested: " + version_to_use)
 		return
 
-	if not filelist.has_key(operating_system):
+	distro_list = filelist[version_to_use]
+	
+	if not distro_list.has_key(operating_system):
 		writeText("I'm sorry but the operating system you requested is not found in the manifest file: " + operating_system)
 		return
 
-	urllist = filelist[version_to_use][operating_system]
+	urllist = distro_list[operating_system]
 
 	for url in urllist:
 		path,name = download(url)
 		run_install(path, name)
 
 
+	writeText("")
+	writeText("SimpleCV should now be successfully installed")
+	writeText("visit http://www.simplecv.org if you run into problems")
+
+
 
 if __name__ == "__main__":
-	global output_status
-	global cache_directory
-	global repo_url
-	global version_to_use
-	global operating_system
-	global app
-	global current_file
-	global update_time
 
 	if(len(sys.argv) > 1):
 		repo_url = sys.argv[1]
