@@ -8,12 +8,17 @@ or on the youtube channel:
 <http://www.youtube.com/user/IngenuitasOfficial>
 
 
-Ubuntu (10.4 or above)
+Ubuntu (10.4 or 10.11)
 -------------------------------------
 
 You can now download a .deb file from SourceForge -- look at http://sourceforge.net/projects/simplecv/files for an easier install.  
-This is the manual method for installation
 
+Special note for Ubuntu 11.10 -- 11.10 ships with OpenCV 2.1, by default -- to get OpenCV 2.3 run the following command:
+   
+    sudo add-apt-repository ppa:gijzelaar/cuda && sudo add-apt-repository ppa:gijzelaar/opencv2.3 && sudo apt-get update
+
+
+This is the manual method for installation
 
 
 Steps:
