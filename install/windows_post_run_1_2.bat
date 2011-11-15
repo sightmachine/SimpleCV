@@ -1,5 +1,7 @@
 SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;%PATH%
 SETX PYTHONPATH C:/OpenCV2.2/Python2.7/Lib/site-packages;%PYTHONPATH%
+SET PATH=C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;%PATH%
+SET PYTHONPATH=C:/OpenCV2.2/Python2.7/Lib/site-packages;%PYTHONPATH%
 easy_install pyreadline
 easy_install PIL
 easy_install cython
