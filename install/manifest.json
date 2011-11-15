@@ -1,21 +1,18 @@
 {
+    "current" : "1.2",
     "1.2": {
         "windows": [
             "http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi",
             "http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe",
+            "http://pygame.org/ftp/pygame-1.9.2a0.win32-py2.7.msi",
             "http://downloads.sourceforge.net/project/scipy/scipy/0.10.0rc1/scipy-0.10.0rc1-win32-superpack-python2.7.exe",
             "http://downloads.sourceforge.net/project/numpy/NumPy/1.6.1/numpy-1.6.1-win32-superpack-python2.7.exe",
             "http://archive.ipython.org/release/0.11/ipython-0.11.win32-setup.exe",
-            "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.3.1/OpenCV-2.3.1-win-superpack.exe",
-            "http://www.ingenuitas.com/installation/windows_post_run.bat"
+            "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.2/OpenCV-2.2.0-win32-vs2010.exe",
+            "http://www.simplecv.org/installation/OpenKinect.zip",
+            "http://www.simplecv.org/installation/windows_post_run_1_2.bat"
         ],
-        "linux": [
-            "http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi",
-            "http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe",
-            "http://downloads.sourceforge.net/project/scipy/scipy/0.10.0rc1/scipy-0.10.0rc1-win32-superpack-python2.7.exe",
-            "http://downloads.sourceforge.net/project/numpy/NumPy/1.6.1/numpy-1.6.1-win32-superpack-python2.7.exe",
-            "http://archive.ipython.org/release/0.11/ipython-0.11.win32-setup.exe",
-            "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.3.1/OpenCV-2.3.1-win-superpack.exe"
-        ]
+        "linux": [],
+        "mac" : []
     }
 }

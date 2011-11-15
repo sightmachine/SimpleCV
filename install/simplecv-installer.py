@@ -11,7 +11,7 @@ import time
 #Global Definitions
 output_status = ""
 cache_directory = ""
-repo_url = "http://www.ingenuitas.com/installation/manifest.json"
+repo_url = "http://www.simplecv.org/installation/manifest.json"
 version_to_use = "1.2"
 operating_system = None
 app = None
@@ -54,7 +54,6 @@ def download(URL):
 		warnings.warn("Please provide URL")
 		return None
 
-	print cache_directory
 	tmpdir = cache_directory
 	writeText("downloading file from:")
 	writeText(URL)
@@ -67,15 +66,14 @@ def download(URL):
 	else:
 		filepath = tmpdir + "/" + filename
 
-	print "filepath"
-	print filepath
+
 	data = urllib2.urlopen(URL)
 	chunk_read(data, report_hook=chunk_report, filepath=filepath)
 	writeText(filename + " saved to disk")
 	writeText("The file path is:")
 	writeText(filepath)
 	
-	return (filepath, filename)
+	return (filepath, filename, file_extension)
 
 
 def chunk_report(bytes_so_far, chunk_size, total_size):
@@ -89,7 +87,7 @@ def chunk_report(bytes_so_far, chunk_size, total_size):
 	
 	percent = float(bytes_so_far) / total_size
 	percent = round(percent*100, 2)
-	writeText("Downloaded percent: " + str(percent) + "% of file: " + current_file)
+	writeText("Downloaded " + str(percent) + "% of: " + current_file)
 
 	if bytes_so_far >= total_size:
 		sys.stdout.write('\n')
@@ -113,7 +111,6 @@ def chunk_read(response, chunk_size=1024, report_hook=None, filepath = None):
 	total_size = int(total_size)
 	bytes_so_far = 0
 	start_time = time.time()
-	print filepath
 	file = open(filepath, 'wb')
 
 	while 1:
@@ -147,12 +144,17 @@ def extract(path):
 
 	return tmpdir
 
-def run_install(path, name = "UNKNOWN"):
+def run_install(path, name = "UNKNOWN", args = None):
 	"""
 	This is used to run the installer at the specified path
 	"""
 	writeText("Running install for:" + name)
 	writeText("on path: " + path)
+	if args:
+		path = path + " " + args
+		writeText("width args: " + str(args))
+	
+		
 	os.system(path)
 
 
@@ -162,14 +164,17 @@ def run():
 	"""
 	global cache_directory
 	global repo_url
+	global app
+	global output_status
 	
 	writeText("Running the installer")
 	cache_directory = tempfile.mkdtemp()
-	manifest_path, manifest_name = download(repo_url)
-	print "mani:" + manifest_path
+	manifest_path, manifest_name, extension = download(repo_url)
 	filelist = json.load(open(manifest_path, "r"))
-	print "filelist:"
-	print filelist
+	
+	if filelist.has_key("current"):
+		version_to_use = filelist['current']
+	
 	if not filelist.has_key(version_to_use):
 		writeText("I'm sorry but the manifest file didn't include the version number you requested: " + version_to_use)
 		return
@@ -181,15 +186,30 @@ def run():
 		return
 
 	urllist = distro_list[operating_system]
+	extracted_path = None
 
 	for url in urllist:
-		path,name = download(url)
-		run_install(path, name)
+		path,name,extension = download(url)
+		args = None
+		
+		if(extracted_path):
+			args = extracted_path
+		
+		if(extension.lower() == "zip"):
+			extracted_path = extract(path)
+		else:	
+			run_install(path, name, args)
+		
+		app.update()
+		output_status.yview(Tkinter.END)
 
 
 	writeText("")
+	writeText("")
+	writeText("---------------------------------------------------------")
 	writeText("SimpleCV should now be successfully installed")
 	writeText("visit http://www.simplecv.org if you run into problems")
+	writeText("You can now close this installer")
 
 
 
@@ -199,13 +219,23 @@ if __name__ == "__main__":
 		repo_url = sys.argv[1]
 	if(len(sys.argv) > 2):
 		version_to_use = sys.argv[2]
-
-	if(sys.platform.lower() == "linux2"):
+		
+	#These are name variations associated with what sys.platform returns
+	windows = ['win32', 'win64']
+	linux = ['linux2']
+	mac = ['darwin']
+	
+	temp_os = sys.platform.lower()
+	
+	if(any(x in temp_os for x in linux)):
 		operating_system = "linux"
-	elif(sys.platform.lower() == "win32"):
+	elif(any(x in temp_os for x in windows)):
 		operating_system = "windows"
+	elif(any(x in temp_os for x in mac)):
+		operating_system = "mac"
 	else:
-		operating_system = sys.platform.lower()
+		operating_system = temp_os
+
 		
 	header = "Welcome to the SimpleCV installer"
 	instructions = "This installer will try to download and install all the libraries you need"
@@ -224,9 +254,9 @@ if __name__ == "__main__":
 	w = Tkinter.Label(app, text=website)
 	w.pack(pady=10)
 	w = Tkinter.Button(app, text="Install SimpleCV", command=InstallButtonClick)
-	w.pack(side=Tkinter.RIGHT, padx=10, pady=10)
+	w.pack(side=Tkinter.LEFT, padx=10, pady=10)
 	w = Tkinter.Button(app, text="Cancel", command=CancelButtonClick)
-	w.pack(side=Tkinter.RIGHT, padx=10, pady=10)
+	w.pack(side=Tkinter.LEFT, padx=10, pady=10)
 
 	scrollbar = Tkinter.Scrollbar(app)
 	scrollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
