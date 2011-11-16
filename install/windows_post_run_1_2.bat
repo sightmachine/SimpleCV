@@ -7,7 +7,7 @@ easy_install PIL
 easy_install cython
 easy_install nose
 easy_install pip
-pip install simplecv 1.2
+pip install simplecv
 echo "The Download path is:"
 %1
 mkdir C:\Python27\Lib\site-packages\freenect
