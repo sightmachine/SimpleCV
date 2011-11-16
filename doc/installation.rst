@@ -8,12 +8,28 @@ or on the youtube channel:
 <http://www.youtube.com/user/IngenuitasOfficial>
 
 
-Ubuntu (10.4 or above)
+Ubuntu 10.4 or 10.11
 -------------------------------------
 
 You can now download a .deb file from SourceForge -- look at http://sourceforge.net/projects/simplecv/files for an easier install.  
-This is the manual method for installation
 
+Ubuntu 11.4
+------------------------------------
+You can upgrade your OpenCV from 2.1 to 2.2 with the following command::
+
+    sudo add-apt-repository https://launchpad.net/~gijzelaar/+archive/opencv2 && sudo apt-get update
+
+Then install the debian package
+
+Ubuntu 11.10 
+-------------------------------------
+To upgrade from OpenCV 2.1 to OpenCV 2.3 run the following command:
+   
+    sudo add-apt-repository ppa:gijzelaar/cuda && sudo add-apt-repository ppa:gijzelaar/opencv2.3 && sudo apt-get update
+
+Then install the debian package
+
+Here is the manual method for installation:
 
 
 Steps:

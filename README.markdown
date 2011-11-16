@@ -68,6 +68,15 @@ Barcode reading:
 * Zxing http://code.google.com/p/zxing/
 * python-zxing https://github.com/oostendo/python-zxing
 
+OCR:
+
+* Tesseract http://code.google.com/p/tesseract-ocr/
+* python-tesseract http://code.google.com/p/python-tesseract/
+
+Machine Learning:
+
+* Orange http://orange.biolab.si/ (with python bindings)
+
 ---------------------------    
 Videos - Tutorials and Demos
 ---------------------------
