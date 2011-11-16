@@ -15,3 +15,4 @@ echo "Copying freenect setup files"
 xcopy %1\OpenKinect\precompiled\*.py C:\Python27\Lib\site-packages\freenect /y
 xcopy %1\OpenKinect\precompiled\*.dll C:\Python27\DLLs /y
 xcopy %1\OpenKinect\precompiled\*.pyd C:\Python27\DLLs /y
+mklink c:%HOMEPATH%\Desktop\SimpleCV.py C:\Python27\Lib\site-packages\SimpleCV\__init__.py
