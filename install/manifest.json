@@ -7,7 +7,7 @@
             "http://pygame.org/ftp/pygame-1.9.2a0.win32-py2.7.msi",
             "http://downloads.sourceforge.net/project/scipy/scipy/0.10.0rc1/scipy-0.10.0rc1-win32-superpack-python2.7.exe",
             "http://downloads.sourceforge.net/project/numpy/NumPy/1.6.1/numpy-1.6.1-win32-superpack-python2.7.exe",
-            "http://archive.ipython.org/release/0.11/ipython-0.11.win32-setup.exe",
+            "http://archive.ipython.org/release/0.10.2/ipython-0.10.2.win32-setup.exe",
             "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.2/OpenCV-2.2.0-win32-vs2010.exe",
             "http://www.simplecv.org/installation/OpenKinect.zip",
             "http://www.simplecv.org/installation/windows_post_run_1_2.bat"
