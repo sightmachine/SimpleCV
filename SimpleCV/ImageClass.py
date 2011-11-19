@@ -2470,10 +2470,14 @@ class Image:
                 hscale=1.0-hscale
             if( wscale == 0 ): #if we can get away with not scaling do that
                 targetx = 0
-                targety = (self.resolution[1]-self.height)/2
+                targety = (resolution[1]-self.height)/2
+                targetw = img.width
+                targeth = img.height
             elif( hscale == 0 ): #if we can get away with not scaling do that
-                targetx = (self.resolution[0]-img.width)/2
+                targetx = (resolution[0]-img.width)/2
                 targety = 0
+                targetw = img.width
+                targeth = img.height
             elif(wscale < hscale): # the width has less distortion
                 sfactor = float(resolution[0])/float(self.width)
                 targetw = int(float(self.width)*sfactor)
