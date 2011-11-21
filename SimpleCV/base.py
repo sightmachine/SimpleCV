@@ -26,7 +26,14 @@ from cStringIO import StringIO
 
 
 # SimpleCV library includes
-import cv
+try:
+    import cv
+except ImportError:
+    try:
+        import cv2.cv as cv
+    except ImportError:
+        raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
+        
 import numpy as np
 import scipy.spatial.distance as spsd
 import scipy.cluster.vq as cluster #for kmeans
