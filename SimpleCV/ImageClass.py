@@ -167,6 +167,16 @@ class Image:
 
                 im = StringIO(LOGO_TRANSPARENT)
                 source = scvImg
+            
+            elif source.lower() == "lenna":
+                try:
+                    scvImg = pil.fromstring("RGB", (512, 512), LENNA)
+                except:
+                    warnings.warn("Couldn't Load Image")
+                    return None
+                    
+                im = StringIO(LENNA)
+                source = scvImg
         
         if (type(source) == tuple):
             source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
