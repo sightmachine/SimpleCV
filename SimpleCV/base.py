@@ -177,3 +177,5 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
 
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.dcx','*.eps','*.ps','*.gif','*.im','*.jpg','*.jpe','*.jpeg','*.pcd','*.pcx','*.png','*.pbm','*.pgm','*.ppm','*.psd','*.tif','*.tiff','*.xbm','*.xpm')
+#maximum image size - 
+MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.  

@@ -32,7 +32,7 @@ class Image:
     such as edge detection, etc can be cached and reused when appropriate.
 
 
-    Images are converted into 8-bit, 3-channel images in RGB colorspace.  It will
+    Image are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
     standard format.  If dimensions are passed, an empty image is created.
 
@@ -717,7 +717,11 @@ class Image:
         if height == -1:
           w = int(self.width * width)
           h = int(self.height * width)
-          
+          if( w > MAX_DIMENSION or h > MAX_DIMENSION or h < 1 or w < 1 ):
+              warnings.warn("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
+              return self
+           
+
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
@@ -2762,10 +2766,18 @@ class Image:
         the text would be the same way a document is read
 
         RETURNS: String
+
+        If you're having run-time problems I feel bad for your son,
+        I've got 99 problems but dependencies ain't one:
+
+        http://code.google.com/p/tesseract-ocr/
+        http://code.google.com/p/python-tesseract/
+
+
         """
 
         if(not OCR_ENABLED):
-            return "Please install the correct OCR library required"
+            return "Please install the correct OCR library required - http://code.google.com/p/tesseract-ocr/ http://code.google.com/p/python-tesseract/"
         
         api = tesseract.TessBaseAPI()
         api.SetOutputName("outputName")
