@@ -824,7 +824,7 @@ class Image:
     def flipHorizontal(self):
         """
         Horizontally mirror an image
-
+        Note that flip does not mean rotate 180 degrees! The two are different.
 
         Returns: IMAGE
         """
@@ -836,7 +836,7 @@ class Image:
     def flipVertical(self):
         """
         Vertically mirror an image
-
+        Note that flip does not mean rotate 180 degrees! The two are different.
 
         Returns: IMAGE
         """
@@ -1838,9 +1838,9 @@ class Image:
         return self._edgeMap
 
 
-    def rotate(self, angle, mode="fixed", point=[-1, -1], scale = 1.0):
+    def rotate(self, angle, fixed=True, point=[-1, -1], scale = 1.0):
         """
-        This rotates an image around a specific point by the given angle 
+        This function rotates an image around a specific point by the given angle 
         By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
         contents retain the original size, and the Image object will scale
         by default, the point is the center of the image. 
@@ -1848,10 +1848,10 @@ class Image:
 
 
         Parameters:
-            angle - Int
-            mode - String
-            point - list
-            scale - Int
+            angle - angle in degrees positive is clockwise, negative is counter clockwise 
+            fixed - if fixed is true,keep the original image dimensions, otherwise scale the image to fit the rotation 
+            point - the point about which we want to rotate, if none is defined we use the center.
+            scale - and optional floating point scale parameter. 
             
         Returns:
             IMAGE
@@ -1861,7 +1861,7 @@ class Image:
             point[1] = (self.height-1)/2
 
 
-        if (mode == "fixed"):
+        if (fixed):
             retVal = self.getEmpty()
             rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
             cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
@@ -1928,7 +1928,10 @@ class Image:
 
     def rotate90(self):
         """
-        Does a fast 90 degree rotation.
+        Does a fast 90 degree rotation to the right.
+        Note that subsequent calls to this function *WILL NOT* keep rotating it to the right!!!
+        This function just does a matrix transpose so following one transpose by another will 
+        just yield the original image.  
 
         Returns:
             Image
