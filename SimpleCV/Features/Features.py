@@ -29,7 +29,23 @@ class FeatureSet(list):
         for f in self:
             if(autocolor):
                 color = Color().getRandom()
-            f.draw(color) 
+            f.draw(color)
+    
+    def show(self, color = Color.GREEN, autocolor = False):
+        """
+        This function will automatically draw the features on the image and show it.
+        It is a basically a shortcut function for development and is the same as:
+        
+        >>> img = Image("logo")
+        >>> feat = img.findBlobs()
+        >>> if feat: feat.draw()
+        >>> img.show()
+
+        """
+
+        self.draw(color, autocolor)
+        self[-1].image.show()
+                
   
     def x(self):
         """
@@ -201,6 +217,20 @@ class Feature(object):
         With no dimension information, color the x,y point for the featuer 
         """
         self.image[self.x, self.y] = color
+    
+    def show(self, color = Color.GREEN):
+        """
+        This function will automatically draw the features on the image and show it.
+        It is a basically a shortcut function for development and is the same as:
+        
+        >>> img = Image("logo")
+        >>> feat = img.findBlobs()
+        >>> if feat: feat.draw()
+        >>> img.show()
+
+        """
+        self.draw(color)
+        self.image.show()
   
     def distanceFrom(self, point = (-1, -1)): 
         """
@@ -283,3 +313,5 @@ class Feature(object):
         """
     
         return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
+        
+
