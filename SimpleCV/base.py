@@ -32,7 +32,7 @@ except ImportError:
     try:
         import cv
     except ImportError:
-        print ImportError("Cannot load OpenCV library which is required by SimpleCV")
+        raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
         
 import numpy as np
 import scipy.spatial.distance as spsd
