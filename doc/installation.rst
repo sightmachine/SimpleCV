@@ -1,6 +1,6 @@
 Installation
 ================
-* Note: There are also video tutorials located online at:
+Note: There are also video tutorials located online at:
 <http://simplecv.org>
 
 
