@@ -50,7 +50,6 @@ if on_rtd:
                   'orngTest',
                   'orngStat',
                   'orngEnsemble',
-                  'IPython.Shell',                
                   ]
 
   for mod_name in MOCK_MODULES:

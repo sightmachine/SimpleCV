@@ -97,5 +97,5 @@ Subpackages
     SimpleCV.Features
     SimpleCV.MachineLearning
     SimpleCV.Segmentation
-    SimpleCV.Shell
+
 
