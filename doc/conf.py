@@ -11,7 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys,os
+
 
 #added for Readthedocs support, this is used to trick out imports
 #that depend on the C libraries.
@@ -22,9 +23,31 @@ class Mock(object):
     def __getattr__(self, name):
         return Mock
 
-MOCK_MODULES = ['cv2','cv', 'cv2.cv']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+  MOCK_MODULES = [
+                  'cv2',
+                  'cv',
+                  'cv2.cv',
+                  'numpy',
+                  'scipy',
+                  'pygame',
+                  'scipy.spatial.distance',
+                  'scipy.cluster.vq',
+                  'scipy.interpolate',
+                  'Image',
+                  'cvblob',
+                  'zxing',
+                  'freenect',
+                  'tesseract',
+                  'orange',
+                  'orngTest',
+                  'orngStat',
+                  'orngEnsemble'                
+                  ]
+
+  for mod_name in MOCK_MODULES:
+      sys.modules[mod_name] = Mock()
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
