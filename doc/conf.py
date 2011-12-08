@@ -21,7 +21,7 @@ class Mock(object):
         pass
 
     def __getattr__(self, name):
-        return Mock
+        return Mock()
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
