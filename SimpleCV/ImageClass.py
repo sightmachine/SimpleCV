@@ -1703,8 +1703,12 @@ class Image:
         You can clone python-zxing at http://github.com/oostendo/python-zxing
 
         Parameters:
+        
             zxing_path - String
-        Returns: BARCODE
+            
+        Returns:
+        
+            BARCODE
         """
         if not ZXING_ENABLED:
             return None
@@ -2633,7 +2637,8 @@ class Image:
         something like a dilate.  You pass it a kernel in the form of a list, np.array, or cvMat
 
 
-        example:
+        Example:
+        
         >>> img = Image("sampleimages/simplecv.png")
         >>> kernel = [[1,0,0],[0,1,0],[0,0,1]]
         >>> conv = img.convolve()
@@ -2691,9 +2696,9 @@ class Image:
         k-means approach to find the centroids.
         
         Example:
+        
         >>> image = Image("/path/to/img.png")
         >>> pattern_image = image.crop(100,100,100,100)
-
         >>> found_patterns = image.findTemplate(pattern_image)
         >>> found_patterns.draw()
         >>> image.show()

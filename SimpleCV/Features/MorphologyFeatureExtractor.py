@@ -31,9 +31,10 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         The threshold operation is a function of the form
         binaryimg = threshold(img)
         
-        the simplest example would be:
-        def binarize_wrap(img):
-            return img.binarize()
+        Example:
+
+        >>> def binarize_wrap(img):
+        >>>    return img.binarize()
         """
         self.mThresholdOperation = threshOp
 

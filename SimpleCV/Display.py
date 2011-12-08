@@ -11,55 +11,56 @@ class Display:
     WindowStream opens a window (Pygame Display Surface) to which you can write
     images.  The default resolution is 640, 480 -- but you can also specify 0,0
     which will maximize the display.  Flags are pygame constants, including:
-  
-  
+
+
     By default display will attempt to scale the input image to fit neatly on the
     screen with minimal distorition. This means that if the aspect ratio matches
     the screen it will scale cleanly. If your image does not match the screen aspect
     ratio we will scale it to fit nicely while maintining its natural aspect ratio.
-    
+
     Because SimpleCV performs this scaling there are two sets of input mouse coordinates,
     the (mousex,mousey) which scale to the image, and (mouseRawX, mouseRawY) which
     do are the actual screen coordinates. 
-    
-    pygame.FULLSCREEN    create a fullscreen display
-    pygame.DOUBLEBUF     recommended for HWSURFACE or OPENGL
-    pygame.HWSURFACE     hardware accelerated, only in FULLSCREEN
-    pygame.OPENGL        create an opengl renderable display
-    pygame.RESIZABLE     display window should be sizeable
-    pygame.NOFRAME       display window will have no border or controls
-   
+
+    * pygame.FULLSCREEN: create a fullscreen display.
+    * pygame.DOUBLEBUF: recommended for HWSURFACE or OPENGL.
+    * pygame.HWSURFACE: hardware accelerated, only in FULLSCREEN.
+    * pygame.OPENGL: create an opengl renderable display.
+    * pygame.RESIZABLE: display window should be sizeable.
+    * pygame.NOFRAME: display window will have no border or controls.
+
     Display should be used in a while loop with the isDone() method, which
     checks events and sets the following internal state controls:
-  
-    mouseX - the x position of the mouse cursor on the input image
-    mouseY - the y position of the mouse curson on the input image
-    mouseRawX - The position of the mouse on the screen
-    mouseRawY - The position of the mouse on the screen
-    
-    NOTE!!!!!!!!!!!!!!!!
+
+    * mouseX: the x position of the mouse cursor on the input image.
+    * mouseY: the y position of the mouse curson on the input image.
+    * mouseRawX: The position of the mouse on the screen.
+    * mouseRawY: The position of the mouse on the screen.
+
+    NOTE:
     The mouse position on the screen is not the mouse position on the image. If you
     are trying to draw on the image or take in coordinates use mousex and mousey
     as these values are scaled along with the image.
+
+    * mouseLeft: the state of the left button.
+    * mouseRight: the state of the right button.
+    * mouseMiddle: the state of the middle button.
+    * mouseWheelUp: scroll wheel has been moved up.
+    * mouseWheelDown: the wheel has been clicked towards the bottom of the mouse.
     
-    mouseLeft - the state of the left button
-    mouseRight - the state of the right button
-    mouseMiddle - the state of the middle button
-    mouseWheelUp - if the wheel has been clicked towards the top of the mouse
-    mouseWheelDown - if the wheel has been clicked towards the bottom of the mouse
     Example:
+    
     >>> display = Display(resolution = (800, 600)) #create a new display to draw images on
     >>> cam = Camera() #initialize the camera
     >>> done = False # setup boolean to stop the program
-    
-    # Loop until not needed
-    while not display.isDone():
-        cam.getImage().flipHorizontal().save(display) # get image, flip it so it looks mirrored, save to display
-        time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
-        if display.mouseLeft:
-            display.done = True
- 
+    >>> while not display.isDone():
+    >>>  cam.getImage().flipHorizontal().save(display) # get image, flip it so it looks mirrored, save to display
+    >>>  time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
+    >>>  if display.mouseLeft:
+    >>>      display.done = True
+
     """
+    
     resolution = ''
     sourceresolution = ''
     sourceoffset = ''

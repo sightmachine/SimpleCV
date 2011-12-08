@@ -98,5 +98,4 @@ Subpackages
     SimpleCV.MachineLearning
     SimpleCV.Segmentation
     SimpleCV.Shell
-    SimpleCV.tests
 

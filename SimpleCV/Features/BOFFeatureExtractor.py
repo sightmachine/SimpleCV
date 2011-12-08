@@ -33,20 +33,22 @@ class BOFFeatureExtractor(object):
         """
         This method builds the bag of features codebook from a list of directories
         with images in them. Each directory should be broken down by image class.
-        imgdirs = This list of directories.
-        patchsz = the dimensions of each codebook patch
-        numcodes = the number of different patches in the codebook.
-        imglayout = the shape of the resulting image in terms of patches
-        padding = the pixel padding of each patch in the resulting image.
-        imgs_per_dir = this method can use a specified number of images per directory
-                        i.e. min(#imgs_in_dir,imgs_per_dir)
-        verbose = print output
+        
+        * imgdirs: This list of directories.
+        * patchsz: the dimensions of each codebook patch
+        * numcodes: the number of different patches in the codebook.
+        * imglayout: the shape of the resulting image in terms of patches
+        * padding:the pixel padding of each patch in the resulting image.
+        * imgs_per_dir: this method can use a specified number of images per directory
+        * verbose: print output
                         
         Once the method has completed it will save the results to a local file
         using the file name codebook.png 
         
         
-        WARNING: THIS METHOD WILL TAKE FOREVER
+        WARNING:
+
+            THIS METHOD WILL TAKE FOREVER
         """
         self.mPadding = padding
         self.mLayout = img_layout
