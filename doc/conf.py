@@ -31,7 +31,10 @@ if on_rtd:
                   'cv2.cv',
                   'numpy',
                   'pygame',
+                  'scipy',
+                  'scipy.spatial',
                   'scipy.spatial.distance',
+                  'scipy.cluster',
                   'scipy.cluster.vq',
                   'scipy.interpolate',
                   'cluster.vq',
@@ -49,7 +52,7 @@ if on_rtd:
   for mod_name in MOCK_MODULES:
       sys.modules[mod_name] = Mock()
 
-
+w
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
