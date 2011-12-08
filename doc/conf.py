@@ -49,7 +49,8 @@ if on_rtd:
                   'orange',
                   'orngTest',
                   'orngStat',
-                  'orngEnsemble'                
+                  'orngEnsemble',
+                  'IPython.Shell',                
                   ]
 
   for mod_name in MOCK_MODULES:
