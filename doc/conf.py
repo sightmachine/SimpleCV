@@ -22,7 +22,7 @@ class Mock(object):
     def __getattr__(self, name):
         return Mock
 
-MOCK_MODULES = ['pygtk', 'gtk', 'gobject', 'argparse']
+MOCK_MODULES = ['cv2','cv', 'cv2.cv']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
