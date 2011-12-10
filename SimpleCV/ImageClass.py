@@ -2575,7 +2575,7 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
-    def blit(self, img, pos=(0,0),centered=False):
+    def blit(self, img, pos=(0,0),centered=False,mask=None,clear_color=None,clear_hue=None):
         """
         Take image and copy it into this image at the specified to image and return
         the result. If pos+img.sz exceeds the size of this image then img is cropped.
@@ -2585,7 +2585,14 @@ class Image:
             img - Image
             pos - Tuple
             centered - Boolean
-
+            mask - An optional alpha mask as a grayscale image.
+            clear_colors - a single rgb triplet, or list of rgb triplets 
+                           to use as a transparent color (i.e as a binary alpha )
+            clear_hues  -
+                        A list of 8bit hue colors to treat as the alpha mask when blitting. 
+                        more sophisticated than a single color treat one or more 
+                        hues as being transparent. Any pixel with these hue values 
+                        will be treated as transparent.
         """
         retVal = self
         w = img.width
@@ -2605,6 +2612,14 @@ class Image:
         cv.ResetImageROI(img.getBitmap())
         cv.ResetImageROI(retVal.getBitmap())
         return retVal
+    
+    def createMaskFromColor(self, color=None,hues=None):
+        """
+        This function generates an optional alpha mask given a list of either colors
+        or hues. Masks based on colors are binary (black and white) while hue based
+        masks have 8bits of grayscale depth. 
+        """
+        return self;
     
     def integralImage(self,tilted=False):
         """
