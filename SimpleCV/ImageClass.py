@@ -1844,8 +1844,9 @@ class Image:
         By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
         contents retain the original size, and the Image object will scale
         by default, the point is the center of the image. 
-        you can also specify a scaling pa   rameter
+        you can also specify a scaling parameter
 
+        Note that when fixed is set to false selecting a rotation point has no effect since the image is move to fit on the screen.
 
         Parameters:
             angle - angle in degrees positive is clockwise, negative is counter clockwise 
