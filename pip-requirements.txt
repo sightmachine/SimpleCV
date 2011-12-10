@@ -1,0 +1,8 @@
+PIL==1.1.7
+Pygments==1.4
+SciTools==0.8
+ScientificPython==2.8
+numpy==1.5.1
+pygame==1.9.1release
+scipy==0.10.0
+simplejson==2.1.2
