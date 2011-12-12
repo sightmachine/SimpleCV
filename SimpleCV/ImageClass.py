@@ -2575,7 +2575,7 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
-    def blit(self, img, pos=(0,0),centered=False):
+    def blit(self, img, pos=(0,0),maskImg=None,centered=False):
         """
         Take image and copy it into this image at the specified to image and return
         the result. If pos+img.sz exceeds the size of this image then img is cropped.
@@ -2586,26 +2586,118 @@ class Image:
             pos - Tuple
             centered - Boolean
 
+
+        -KAS - F&$^%!
+        Grrr second attempt - OpenCV does not support alpha blending
+        next solution is to use pygame surface
+        to do the full alpha channel blend (LAME!). 
+
+        So the new blit will support
+        -old school blit 
+        -blit with mask
+        -blit with alpha
+        -blit with alpha mask
+        -blit resize (i.e. if you set one image at some pos (positive or negative) the output
+        will be a combo of the two image sizes - e.g blit( pos=(width,0) will make two side by side images) -> I wonder if we can do a "stack" or concat function where you can put left/right/above/below images!!!!
+
         """
-        retVal = self
+        retVal = Image(self.getEmpty())
+        cv.Copy(self.getBitmap(),retVal.getBitmap())
+     
         w = img.width
         h = img.height
         if(centered):
             pos = (pos[0]-(w/2),pos[1]-(h/2))
-            
+        if( maskImg is not None and (maskImg.width != img.width or maskImg.height != img.height ) ):
+            warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit!")
+            return None
         if(pos[0] >= self.width or pos[1] >= self.height ):
             warnings.warn("Image.blit: specified position exceeds image dimensions")
             return None
         if(img.width+pos[0] > self.width or img.height+pos[1] > self.height):
             w = min(self.width-pos[0],img.width)
             h = min(self.height-pos[1],img.height)
+            
             cv.SetImageROI(img.getBitmap(),(0,0,w,h))
-        cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))
-        cv.Copy(img.getBitmap(),retVal.getBitmap())
+            if(maskImg is not None):
+                cv.SetImageROI(mask._getGrayscaleBitmap(),(0,0,w,h))
+        cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))        
+        if( maskImg is not None ):
+            r = img.getEmpty(1)
+            g = img.getEmpty(1)
+            b = img.getEmpty(1)
+            cv.Split(img.getBitmap(),b,g,r,None)
+   
+            imgAlpha = self.getEmpty(4)
+            cv.Merge(r,g,b,maskImg._getGrayscaleBitmap(),imgAlpha)
+            selfAlpha = self.getEmpty(4)
+            cv.CvtColor(self.getBitmap(),selfAlpha,cv.CV_RGB2RGBA);
+            cv.Add(imgAlpha,selfAlpha,selfAlpha)
+            cv.CvtColor(selfAlpha,retVal.getBitmap(),cv.CV_RGBA2RGB)
+            #need to get roi straight
+            #cv.Copy(img.getBitmap(),retVal.getBitmap(),mask=maskImg._getGrayscaleBitmap())
+            #cv.ResetImageROI(maskImg._getGrayscaleBitmap());
+        else:
+            cv.Copy(img.getBitmap(),retVal.getBitmap())
         cv.ResetImageROI(img.getBitmap())
         cv.ResetImageROI(retVal.getBitmap())
         return retVal
-    
+
+    def generateMask(self, hue=60, rgb_color=None, rgb_thresh=(0,0,0)):
+        """
+        Generate a grayscale or binary mask image based either on a hue or an RGB triplet that can be used
+        like an alpha channel. In the resulting mask, the hue/rgb_color will be treated as transparent (black). 
+
+        When a hue is used the mask is treated like an 8bit alpha channel.
+        When an RGB triplet is used the result is a binary mask. 
+        rgb_thresh is a distance measure between a given a pixel and the mask value that we will
+        add to the mask. For example, if rgb_color=(0,255,0) and rgb_thresh=5 then any pixel 
+        winthin five color values of the rgb_color will be added to the mask (e.g. (0,250,0),(5,255,0)....)
+
+        Invert flips the mask values.
+
+        Parameters:
+             hue = a hue used to generate the alpha mask.
+             rgb_color = an rgb triplet used to generate a mask
+             rgb_thresh = an integer distance from the rgb_color that will also be added to the mask. 
+        """
+        if( rgb_color is not None ):
+            #closure around the filter we're applying
+            def rgbToAlpha(rgb):
+                if( rgb[0] <= rgb_color[0]+rgb_thresh[0] and rgb[0] >= rgb_color[0]-rgb_thresh[0] and
+                    rgb[1] <= rgb_color[1]+rgb_thresh[1] and rgb[1] >= rgb_color[1]-rgb_thresh[0] and
+                    rgb[2] <= rgb_color[2]+rgb_thresh[2] and rgb[2] >= rgb_color[2]-rgb_thresh[0] ):
+                    return((0,0,0))
+                #else:
+                 #   return((255,255,155)
+            #end closure
+           # return(self._applyPixelFunction(rgbToAlpha))     
+        else:
+            if( hue<0 or hue > 255 ):
+                warnings.warn("Invalid hue color, valid range is 0 to 255.")
+            #closure around the filter we're applying
+            def hueToAlpha(hsv):
+                if(hsv[2]==hue):
+                    mI = hsv[0];
+                    return((255-mI,255-mI,255-mI))
+                else:
+                    return((255,255,255))
+            #end closure
+            return self.toHSV()._applyPixelFunction(hueToAlpha)
+                
+
+    def _applyPixelFunction(self, theFunc):
+        """
+        apply a function to every pixel and return the result
+        The function must be of the form int (r,g,b)=func((r,g,b))
+        """
+        #there should be a way to do this faster using numpy vectorize
+        #but I can get vectorize to work with the three channels together... have to split them
+        #TODO: benchmark this against vectorize 
+        pixels = np.array(self.getNumpy()).reshape(-1,3).tolist()
+        result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3) 
+        return Image(result) 
+
     def integralImage(self,tilted=False):
         """
         Calculate the integral image and return it as a numpy array.
