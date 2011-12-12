@@ -333,6 +333,12 @@ class Display:
         """
         self.checkEvents()
         return self.done
+
+    def isNotDone(self):
+        """
+        Checks the event queue and returns False as long as the quit event hasn't been issued.
+        """
+        return not self.isDone()
     
     def _clamp(self,x,y):
         """
