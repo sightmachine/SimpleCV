@@ -157,14 +157,26 @@ class BlobMaker:
         del chull
         
         moments = cv.Moments(seq)
-        retVal.m00 = area 
-        retVal.m10 = moments.m10
-        retVal.m01 = moments.m01
-        retVal.m11 = moments.m11
-        retVal.m20 = moments.m20
-        retVal.m02 = moments.m02
-        retVal.m21 = moments.m21
-        retVal.m12 = moments.m12
+
+        #This is a hack for a python wrapper bug that was missing
+        #the constants required from the ctype
+        try: 
+            retVal.m10 = moments.m10
+            retVal.m01 = moments.m01
+            retVal.m11 = moments.m11
+            retVal.m20 = moments.m20
+            retVal.m02 = moments.m02
+            retVal.m21 = moments.m21
+            retVal.m12 = moments.m12
+        except:
+            retVal.m10 = cv.GetSpatialMoment(moments,1,0)
+            retVal.m01 = cv.GetSpatialMoment(moments,0,1)
+            retVal.m11 = cv.GetSpatialMoment(moments,1,1)
+            retVal.m20 = cv.GetSpatialMoment(moments,2,0)
+            retVal.m02 = cv.GetSpatialMoment(moments,0,2)
+            retVal.m21 = cv.GetSpatialMoment(moments,2,1)
+            retVal.m12 = cv.GetSpatialMoment(moments,1,2)
+            
         retVal.mHu = cv.GetHuMoments(moments)
         retVal.mMask = self._getMask(seq,retVal.mBoundingBox)
         mask = retVal.mMask
