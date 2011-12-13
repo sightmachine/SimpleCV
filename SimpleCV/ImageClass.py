@@ -2575,7 +2575,7 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
-    def blit(self, img, pos=(0,0),maskImg=None,centered=False):
+    def blit(self, img, pos=(0,0),alpha=None,mask=None,alphaMask=None,centered=False):
         """
         Take image and copy it into this image at the specified to image and return
         the result. If pos+img.sz exceeds the size of this image then img is cropped.
@@ -2608,9 +2608,13 @@ class Image:
         h = img.height
         if(centered):
             pos = (pos[0]-(w/2),pos[1]-(h/2))
-        if( maskImg is not None and (maskImg.width != img.width or maskImg.height != img.height ) ):
-            warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit!")
+        if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
+            warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
             return None
+        if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
+            warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
+            return None
+
         if(pos[0] >= self.width or pos[1] >= self.height ):
             warnings.warn("Image.blit: specified position exceeds image dimensions")
             return None
@@ -2643,7 +2647,58 @@ class Image:
         cv.ResetImageROI(retVal.getBitmap())
         return retVal
 
-    def generateMask(self, hue=60, rgb_color=None, rgb_thresh=(0,0,0)):
+    def sideBySide(self, image, side="left", scale=True ):
+        """
+        Combine two images as a side by side. Great for before and after images.
+
+
+        side - what side of this image to place the other image on.
+               choices are (left/right/top/bottom). 
+               
+        scale - if true scale the smaller of the two sides to match the 
+                edge touching the other image. If false we center the smaller
+                of the two images on the edge touching the larger image. 
+
+        """
+    def embiggenCanvas(self, size=None, color=Colors.BLACK, pos=None):
+        """
+        Make the canvas larger but keep the image the same size. 
+
+        size - width and height tuple of the new canvas. 
+
+        color - the color of the canvas 
+
+        pos - the position of the top left corner of image on the new canvas, 
+              if none the image is centered.
+        """
+        return self
+
+    def createBinaryMask(self, rgb=None, rgb_span=(0,0,0)):
+        """
+        Generate a binary mask of the image based on either a hue or an rgb triplet.
+        A binary mask is a black and white image where the white area is kept and the
+        black area is removed. 
+
+        rgb - The central color to use to generate the mask.
+        rgb_span - The range of each channel to include on the mask. 
+       
+        """
+        return self    
+
+    def applyBinaryMask(self, mask,bg_color=Color.BLACK, fit=False):
+        """
+        Apply a binary mask to the image. The white areas of the mask will be kept,
+        and the black areas removed. The removed areas will be set to the color of 
+        bg_color. 
+
+        mask - the binary mask image. White areas are kept, black areas are removed.
+        bg_color - the color of the background on the mask.
+        fit - if fit is true we crop the image to the mask. If it is false we keep the 
+              original image size.
+        """
+        return self
+
+    def createAlphaMask(self, hue=60, rgb_color=None, rgb_thresh=(0,0,0)):
         """
         Generate a grayscale or binary mask image based either on a hue or an RGB triplet that can be used
         like an alpha channel. In the resulting mask, the hue/rgb_color will be treated as transparent (black). 
