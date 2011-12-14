@@ -1,0 +1,1234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Features Package &mdash; SimpleCV v1.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SimpleCV v1.2 documentation" href="index.html" />
+    <link rel="up" title="SimpleCV Package" href="SimpleCV.html" />
+    <link rel="next" title="MachineLearning Package" href="SimpleCV.MachineLearning.html" />
+    <link rel="prev" title="SimpleCV Package" href="SimpleCV.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="SimpleCV.MachineLearning.html" title="MachineLearning Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="SimpleCV.html" title="SimpleCV Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.2 documentation</a> &raquo;</li>
+          <li><a href="SimpleCV.html" accesskey="U">SimpleCV Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="features-package">
+<h1>Features Package<a class="headerlink" href="#features-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-SimpleCV.Features">
+<h2><tt class="xref docutils literal"><span class="pre">Features</span></tt> Package<a class="headerlink" href="#module-SimpleCV.Features" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-SimpleCV.Features.BOFFeatureExtractor">
+<h2><tt class="xref docutils literal"><span class="pre">BOFFeatureExtractor</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.BOFFeatureExtractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.BOFFeatureExtractor.</tt><tt class="descname">BOFFeatureExtractor</tt><big>(</big><em>patchsz=(11</em>, <em>11)</em>, <em>numcodes=128</em>, <em>imglayout=(8</em>, <em>16)</em>, <em>padding=0</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>For a discussion of bag of features please see:
+<a class="reference external" href="http://en.wikipedia.org/wiki/Bag_of_words_model_in_computer_vision">http://en.wikipedia.org/wiki/Bag_of_words_model_in_computer_vision</a></p>
+<p>Initialize the bag of features extractor. This assumes you don&#8217;t have
+the feature codebook pre-computed.
+patchsz = the dimensions of each codebook patch
+numcodes = the number of different patches in the codebook.
+imglayout = the shape of the resulting image in terms of patches
+padding = the pixel padding of each patch in the resulting image.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd>This method extracts a bag of features histogram for the input image using
+the provided codebook. The result are the bin counts for each codebook code.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.extractPatches">
+<tt class="descname">extractPatches</tt><big>(</big><em>img</em>, <em>sz=(11</em>, <em>11)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.extractPatches" title="Permalink to this definition">¶</a></dt>
+<dd>Get patches from a single images. This is an external access method. The
+user will need to maintain the list of features. See the generate method
+as a guide to doing this by hand. Sz is the image patch size.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.generate">
+<tt class="descname">generate</tt><big>(</big><em>imgdirs</em>, <em>numcodes=128</em>, <em>sz=(11</em>, <em>11)</em>, <em>imgs_per_dir=50</em>, <em>img_layout=(8</em>, <em>16)</em>, <em>padding=0</em>, <em>verbose=True</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method builds the bag of features codebook from a list of directories
+with images in them. Each directory should be broken down by image class.
+imgdirs = This list of directories.
+patchsz = the dimensions of each codebook patch
+numcodes = the number of different patches in the codebook.
+imglayout = the shape of the resulting image in terms of patches
+padding = the pixel padding of each patch in the resulting image.
+imgs_per_dir = this method can use a specified number of images per directory</p>
+<blockquote>
+i.e. min(#imgs_in_dir,imgs_per_dir)</blockquote>
+<p>verbose = print output</p>
+<p>Once the method has completed it will save the results to a local file
+using the file name codebook.png</p>
+<p>WARNING: THIS METHOD WILL TAKE FOREVER</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.getFieldNames">
+<tt class="descname">getFieldNames</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.getFieldNames" title="Permalink to this definition">¶</a></dt>
+<dd>This method gives the names of each field in the feature vector in the
+order in which they are returned. For example, &#8216;xpos&#8217; or &#8216;width&#8217;</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.getNumFields">
+<tt class="descname">getNumFields</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.getNumFields" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the total number of fields in the feature vector.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.load">
+<tt class="descname">load</tt><big>(</big><em>datafile</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.load" title="Permalink to this definition">¶</a></dt>
+<dd>Load a codebook from file using the datafile. The datafile
+should point to a local image for the source patch image.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.makeCodebook">
+<tt class="descname">makeCodebook</tt><big>(</big><em>featureStack</em>, <em>ncodes=128</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.makeCodebook" title="Permalink to this definition">¶</a></dt>
+<dd>This method will return the centroids of the k-means analysis of a large
+number of images. Ncodes is the number of centroids to find.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.reconstruct">
+<tt class="descname">reconstruct</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd>This is a &#8220;just for fun&#8221; method as a sanity check for the BOF codeook.
+The method takes in an image, extracts each codebook code, and replaces
+the image at the position with the code.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.save">
+<tt class="descname">save</tt><big>(</big><em>imgfname</em>, <em>datafname</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BOFFeatureExtractor.BOFFeatureExtractor.save" title="Permalink to this definition">¶</a></dt>
+<dd>Save the bag of features codebook and data set to a local file.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.Blob">
+<h2><tt class="xref docutils literal"><span class="pre">Blob</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.Blob" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.Blob.Blob">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Blob.</tt><tt class="descname">Blob</tt><a class="headerlink" href="#SimpleCV.Features.Blob.Blob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>A blob is a typicall a cluster of pixels that form a feature or unique
+shape that allows it to be distinguished from the rest of the image
+Blobs typically are computed very quickly so they are used often to
+find various items in a picture based on properties.  Typically these
+things like color, shape, size, etc.   Since blobs are computed quickly
+they are typically used to narrow down search regions in an image, where
+you quickly find a blob and then that blobs region is used for more
+computational intensive type image processing</p>
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.above">
+<tt class="descname">above</tt><big>(</big><em>blob</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.above" title="Permalink to this definition">¶</a></dt>
+<dd>Given a point or another blob determine if this blob is above the other blob</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.angle">
+<tt class="descname">angle</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.angle" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the angle between the horizontal and the minimum enclosing
+rectangle of the blob. The minimum enclosing rectangle IS NOT not the bounding box.
+Use the bounding box for situations where you need only an approximation of the objects
+dimensions. The minimum enclosing rectangle is slightly harder to maninpulate but
+gives much better information about the blobs dimensions.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.area">
+<tt class="descname">area</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.area" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the area of the blob in terms of the number of
+pixels inside the contour.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.aspectRatio">
+<tt class="descname">aspectRatio</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.aspectRatio" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the aspect ration (W/H) of the bounding box of the
+blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.below">
+<tt class="descname">below</tt><big>(</big><em>blob</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.below" title="Permalink to this definition">¶</a></dt>
+<dd>Given a point or another blob determine if this blob is below the other blob</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.bottomLeftCorner">
+<tt class="descname">bottomLeftCorner</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.bottomLeftCorner" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the bottom left corner of the bounding box of
+the blob as an (x,y) tuple.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.bottomRightCorner">
+<tt class="descname">bottomRightCorner</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.bottomRightCorner" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the bottom right corner of the bounding box of
+the blob as an (x,y) tuple.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.center">
+<tt class="descname">center</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.center" title="Permalink to this definition">¶</a></dt>
+<dd><p>This mehtod returns the center of the blob&#8217;s bounding box</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.centroid">
+<tt class="descname">centroid</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.centroid" title="Permalink to this definition">¶</a></dt>
+<dd>Return the centroid (mass-determined center) of the blob</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.circleDistance">
+<tt class="descname">circleDistance</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.circleDistance" title="Permalink to this definition">¶</a></dt>
+<dd>Compare the hull mask to an ideal circle and count the number of pixels
+that deviate as a fraction of total area of the ideal circle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.contains">
+<tt class="descname">contains</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.contains" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em>, <em>alpha=-1</em>, <em>width=-1</em>, <em>layer=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw the blob, in the given color, to the appropriate layer</p>
+<p>By default, this draws the entire blob filled in, with holes.  If you
+provide a width, an outline of the exterior and interior contours is drawn.</p>
+<p>color = The color to render the blob.
+alpha = The alpha value of the rendered blob.
+width = The width of the drawn blob in pixels, if -1 then filled then the polygon is filled.
+layer = if layer is not None, the blob is rendered to the layer versus the source image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color - Color object or Color tuple
+alpha - Int
+width - Int
+layer - DrawingLayer</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.drawHoles">
+<tt class="descname">drawHoles</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em>, <em>alpha=-1</em>, <em>width=-1</em>, <em>layer=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.drawHoles" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method renders all of the holes (if any) that are present in the blob</p>
+<p>color = The color to render the blob&#8217;s holes.
+alpha = The alpha value of the rendered blob hole.
+width = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
+layer = if layer is not None, the blob is rendered to the layer versus the source image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color - Color object or Color tuple
+alpha - Int
+width - Int
+layer - DrawingLayer</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.drawHull">
+<tt class="descname">drawHull</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em>, <em>alpha=-1</em>, <em>width=-1</em>, <em>layer=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.drawHull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw the blob&#8217;s convex hull to either the source image or to the
+specified layer given by layer.</p>
+<p>color = The color to render the blob&#8217;s convex hull.
+alpha = The alpha value of the rendered blob.
+width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
+layer = if layer is not None, the blob is rendered to the layer versus the source image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color - Color object or Color tuple
+alpha - Int
+width - Int
+layer - DrawingLayer</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.drawMaskToLayer">
+<tt class="descname">drawMaskToLayer</tt><big>(</big><em>layer=None</em>, <em>offset=(0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.drawMaskToLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw the actual pixels of the blob to another layer. This is handy if you
+want to examine just the pixels inside the contour.</p>
+<p>offset = The offset from the top left corner where we want to place the mask.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>layer - DrawingLayer
+offset - Tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.drawOutline">
+<tt class="descname">drawOutline</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em>, <em>alpha=-1</em>, <em>width=-1</em>, <em>layer=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.drawOutline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw the blob contour the given layer &#8211; if no layer is provided, draw
+to the source image</p>
+<p>color = The color to render the blob.
+alpha = The alpha value of the rendered blob.
+width = The width of the drawn blob in pixels, -1 then the polygon is filled.
+layer = if layer is not None, the blob is rendered to the layer versus the source image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color - Color object or Color tuple
+alpha - Int
+width - Int
+layer - DrawingLayer</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.height">
+<tt class="descname">height</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.height" title="Permalink to this definition">¶</a></dt>
+<dd>This method returs the height of the bounding box of the blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.hullRadius">
+<tt class="descname">hullRadius</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.hullRadius" title="Permalink to this definition">¶</a></dt>
+<dd>Return the radius of the convex hull contour from the centroid</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.isCircle">
+<tt class="descname">isCircle</tt><big>(</big><em>tolerance=0.050000000000000003</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.isCircle" title="Permalink to this definition">¶</a></dt>
+<dd>Test circlde distance against a tolerance to see if the blob is circlular</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.isRectangle">
+<tt class="descname">isRectangle</tt><big>(</big><em>tolerance=0.050000000000000003</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.isRectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a tolerance, test the blob against the rectangle distance to see if
+it is rectangular</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>tolerance - Float</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.isSquare">
+<tt class="descname">isSquare</tt><big>(</big><em>tolerance=0.050000000000000003</em>, <em>ratiotolerance=0.050000000000000003</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.isSquare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a tolerance, test if the blob is a rectangle, and how close its
+bounding rectangle&#8217;s aspect ratio is to 1.0</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>tolerance - Float
+ratiotolerance - Float</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.left">
+<tt class="descname">left</tt><big>(</big><em>blob</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.left" title="Permalink to this definition">¶</a></dt>
+<dd>Given a point or another blob determine if this blob is to the left of the other blob</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.length">
+<tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.length" title="Permalink to this definition">¶</a></dt>
+<dd>Length returns the longest dimension of the X/Y bounding box</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.match">
+<tt class="descname">match</tt><big>(</big><em>otherblob</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.match" title="Permalink to this definition">¶</a></dt>
+<dd>Compare the Hu moments between two blobs to see if they match.  Returns
+a comparison factor &#8211; lower numbers are a closer match</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.maxX">
+<tt class="descname">maxX</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.maxX" title="Permalink to this definition">¶</a></dt>
+<dd>This method return the maximum x value of the bounding box of the
+the blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.maxY">
+<tt class="descname">maxY</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.maxY" title="Permalink to this definition">¶</a></dt>
+<dd>This method return the maximum y value of the bounding box of the
+the blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.meanColor">
+<tt class="descname">meanColor</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.meanColor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a tuple representing the average color of the blob</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.minRectHeight">
+<tt class="descname">minRectHeight</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.minRectHeight" title="Permalink to this definition">¶</a></dt>
+<dd>This is the y coordinate of the centroid for the minimum bounding rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.minRectWidth">
+<tt class="descname">minRectWidth</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.minRectWidth" title="Permalink to this definition">¶</a></dt>
+<dd>This is the y coordinate of the centroid for the minimum bounding rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.minRectX">
+<tt class="descname">minRectX</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.minRectX" title="Permalink to this definition">¶</a></dt>
+<dd>This is the x coordinate of the centroid for the minimum bounding rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.minRectY">
+<tt class="descname">minRectY</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.minRectY" title="Permalink to this definition">¶</a></dt>
+<dd>This is the y coordinate of the centroid for the minimum bounding rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.minX">
+<tt class="descname">minX</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.minX" title="Permalink to this definition">¶</a></dt>
+<dd>This method return the minimum x value of the bounding box of the
+the blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.minY">
+<tt class="descname">minY</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.minY" title="Permalink to this definition">¶</a></dt>
+<dd>This method return the minimum y value of the bounding box of the
+the blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.overlaps">
+<tt class="descname">overlaps</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.overlaps" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true if this blob contains at least one point, part of a collection
+of points, or any part of a blob.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.radius">
+<tt class="descname">radius</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.radius" title="Permalink to this definition">¶</a></dt>
+<dd>Return the radius, the avg distance of each contour point from the centroid</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.rectangleDistance">
+<tt class="descname">rectangleDistance</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.rectangleDistance" title="Permalink to this definition">¶</a></dt>
+<dd>This compares the hull mask to the bounding rectangle.  Returns the area
+of the blob&#8217;s hull as a fraction of the bounding rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.rectifyMajorAxis">
+<tt class="descname">rectifyMajorAxis</tt><big>(</big><em>axis=0</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.rectifyMajorAxis" title="Permalink to this definition">¶</a></dt>
+<dd>Rectify the blob image and the contour such that the major
+axis is aligned to either vertical=0 or horizontal=1</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.right">
+<tt class="descname">right</tt><big>(</big><em>blob</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.right" title="Permalink to this definition">¶</a></dt>
+<dd>Given a point or another blob determine if this blob is to the right of the other blob</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.rotate">
+<tt class="descname">rotate</tt><big>(</big><em>angle</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate the blob given the angle in degrees most of the blob elements will
+be rotated, not however this will &#8220;break&#8221; drawing back to the original image.
+To draw the blob create a new layer and draw to that layer.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>angle - Int or Float</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.topLeftCorner">
+<tt class="descname">topLeftCorner</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.topLeftCorner" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the top left corner of the bounding box of
+the blob as an (x,y) tuple.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.topRightCorner">
+<tt class="descname">topRightCorner</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.topRightCorner" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the top right corner of the bounding box of
+the blob as an (x,y) tuple.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Blob.Blob.width">
+<tt class="descname">width</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Blob.Blob.width" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the width of the bounding box of the blob.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.BlobMaker">
+<h2><tt class="xref docutils literal"><span class="pre">BlobMaker</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.BlobMaker" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.BlobMaker.BlobMaker">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.BlobMaker.</tt><tt class="descname">BlobMaker</tt><a class="headerlink" href="#SimpleCV.Features.BlobMaker.BlobMaker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Blob maker encapsulates all of the contour extraction process and data, so
+it can be used inside the image class, or extended and used outside the image
+class. The general idea is that the blob maker provides the utilites that one
+would use for blob extraction. Later implementations may include tracking and
+other features.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.BlobMaker.BlobMaker.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em>, <em>threshval=127</em>, <em>minsize=10</em>, <em>maxsize=0</em>, <em>threshblocksize=3</em>, <em>threshconstant=5</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BlobMaker.BlobMaker.extract" title="Permalink to this definition">¶</a></dt>
+<dd>This method performs a threshold operation on the input image and then
+extracts and returns the blobs.
+img       - The input image (color or b&amp;w)
+threshval - The threshold value for the binarize operation. If threshval = -1 adaptive thresholding is used
+minsize   - The minimum blob size in pixels.
+maxsize   - The maximum blob size in pixels. 0=uses the default value.
+threshblocksize - The adaptive threhold block size.
+threshconstant  - The minimum to subtract off the adaptive threshold</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BlobMaker.BlobMaker.extractFromBinary">
+<tt class="descname">extractFromBinary</tt><big>(</big><em>binaryImg</em>, <em>colorImg</em>, <em>minsize=5</em>, <em>maxsize=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BlobMaker.BlobMaker.extractFromBinary" title="Permalink to this definition">¶</a></dt>
+<dd>This method performs blob extraction given a binary source image that is used
+to get the blob images, and a color source image.
+binaryImg- The binary image with the blobs.
+colorImg - The color image.
+minSize  - The minimum size of the blobs in pixels.
+maxSize  - The maximum blob size in pixels.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.BlobMaker.BlobMaker.extractUsingModel">
+<tt class="descname">extractUsingModel</tt><big>(</big><em>img</em>, <em>colormodel</em>, <em>minsize=10</em>, <em>maxsize=0</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.BlobMaker.BlobMaker.extractUsingModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract blobs using a color model
+img        - The input image
+colormodel - The color model to use.
+minsize    - The minimum size of the returned features.
+maxsize    - The maximum size of the returned features 0=uses the default value.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>img - Image
+colormodel - ColorModel object
+minsize - Int
+maxsize - Int</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.Detection">
+<h2><tt class="xref docutils literal"><span class="pre">Detection</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.Detection" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.Detection.Barcode">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Detection.</tt><tt class="descname">Barcode</tt><big>(</big><em>i</em>, <em>zxbc</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Barcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>The Barcode Feature wrappers the object returned by findBarcode(), a python-zxing object.</p>
+<ul class="simple">
+<li>The x,y coordinate is the center of the code</li>
+<li>points represents the four boundary points of the feature.  Note: for QR codes, these points are the reference rectangles, and are quadrangular, rather than rectangular with other datamatrix types.</li>
+<li>data is the parsed data of the code</li>
+</ul>
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Barcode.area">
+<tt class="descname">area</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Barcode.area" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the area defined by the quandrangle formed by the boundary points</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Barcode.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(255</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Barcode.draw" title="Permalink to this definition">¶</a></dt>
+<dd>Draws the bounding area of the barcode, given by points.  Note that for
+QR codes, these points are the reference boxes, and so may &#8220;stray&#8221; into 
+the actual code.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Barcode.length">
+<tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Barcode.length" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the longest side of the quandrangle formed by the boundary points</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Features.Detection.Chessboard">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Detection.</tt><tt class="descname">Chessboard</tt><big>(</big><em>i</em>, <em>dim</em>, <em>subpixelCorners</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Chessboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>This class is used for Calibration, it uses a chessboard
+to calibrate from pixels to real world measurements</p>
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Chessboard.area">
+<tt class="descname">area</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Chessboard.area" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the mean of the distance between corner points in the chessboard
+Given that the chessboard is of a known size, this can be used as a
+proxy for distance from the camera</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Chessboard.draw">
+<tt class="descname">draw</tt><big>(</big><em>no_needed_color=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Chessboard.draw" title="Permalink to this definition">¶</a></dt>
+<dd>Draws the chessboard corners.  We take a color param, but ignore it</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Features.Detection.Corner">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Detection.</tt><tt class="descname">Corner</tt><big>(</big><em>i</em>, <em>at_x</em>, <em>at_y</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Corner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>The Corner feature is a point returned by the FindCorners function
+Corners are used in machine vision as a very computationally low way
+to find unique features in an image.  These corners can be used in
+conjunction with many other algorithms.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Corner.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(255</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Corner.draw" title="Permalink to this definition">¶</a></dt>
+<dd>Draw a small circle around the corner.  Color tuple is single parameter, default Red</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Features.Detection.HaarFeature">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Detection.</tt><tt class="descname">HaarFeature</tt><big>(</big><em>i</em>, <em>haarobject</em>, <em>haarclassifier=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>The HaarFeature is a rectangle returned by the FindHaarFeature() function.</p>
+<ul class="simple">
+<li>The x,y coordinates are defined by the center of the bounding rectangle</li>
+<li>the classifier property refers to the cascade file used for detection</li>
+<li>points are the clockwise points of the bounding rectangle, starting in upper left</li>
+</ul>
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.angle">
+<tt class="descname">angle</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.angle" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the angle of the rectangle &#8211; horizontal if wide, vertical if tall</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.area">
+<tt class="descname">area</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.area" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the area contained within the HaarFeature&#8217;s bounding rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(0</em>, <em>255</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.draw" title="Permalink to this definition">¶</a></dt>
+<dd>Draw the bounding rectangle, default color green</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.height">
+<tt class="descname">height</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.height" title="Permalink to this definition">¶</a></dt>
+<dd>Get the height of the line</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.length">
+<tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.length" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the longest dimension of the HaarFeature, either width or height</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.meanColor">
+<tt class="descname">meanColor</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.meanColor" title="Permalink to this definition">¶</a></dt>
+<dd>Find the mean color of the boundary rectangle</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.HaarFeature.width">
+<tt class="descname">width</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.HaarFeature.width" title="Permalink to this definition">¶</a></dt>
+<dd>Get the width of the line.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Features.Detection.Line">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Detection.</tt><tt class="descname">Line</tt><big>(</big><em>i</em>, <em>line</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>The Line class is returned by the findLines function, but can also be initialized with any two points:</p>
+<p>l = Line(Image, point1, point2) 
+Where point1 and point2 are coordinate tuples</p>
+<p>l.points will be a tuple of the two points</p>
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Line.angle">
+<tt class="descname">angle</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Line.angle" title="Permalink to this definition">¶</a></dt>
+<dd>This is the angle of the line, from the leftmost point to the rightmost point
+Returns angle (theta) in radians, with 0 = horizontal, -pi/2 = vertical positive slope, pi/2 = vertical negative slope</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Line.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(0</em>, <em>0</em>, <em>255)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Line.draw" title="Permalink to this definition">¶</a></dt>
+<dd>Draw the line, default color is blue</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Line.length">
+<tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Line.length" title="Permalink to this definition">¶</a></dt>
+<dd>Compute the length of the line</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.Line.meanColor">
+<tt class="descname">meanColor</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.Line.meanColor" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the mean color of pixels under the line.  Note that when the line falls &#8220;between&#8221; pixels, each pixels color contributes to the weighted average.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Features.Detection.TemplateMatch">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Detection.</tt><tt class="descname">TemplateMatch</tt><big>(</big><em>image</em>, <em>template</em>, <em>location</em>, <em>quality</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.TemplateMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.Features.Feature" class="reference internal" href="#SimpleCV.Features.Features.Feature"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.Features.Feature</span></tt></a></p>
+<p>This class is used for template (pattern) matching in images
+The template matching cannot handle scale or rotation</p>
+<dl class="method">
+<dt id="SimpleCV.Features.Detection.TemplateMatch.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Detection.TemplateMatch.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.EdgeHistogramFeatureExtractor">
+<h2><tt class="xref docutils literal"><span class="pre">EdgeHistogramFeatureExtractor</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.EdgeHistogramFeatureExtractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.EdgeHistogramFeatureExtractor.</tt><tt class="descname">EdgeHistogramFeatureExtractor</tt><big>(</big><em>bins=10</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase" class="reference internal" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase</span></tt></a></p>
+<p>Create a 1D edge length histogram and 1D edge angle histogram.</p>
+<p>This method takes in an image, applies an edge detector, and calculates
+the length and direction of lines in the image.</p>
+<p>bins = the number of bins</p>
+<dl class="method">
+<dt id="SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd>Extract the line orientation and and length histogram.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor.getFieldNames">
+<tt class="descname">getFieldNames</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor.getFieldNames" title="Permalink to this definition">¶</a></dt>
+<dd>Return the names of all of the length and angle fields.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor.getNumFields">
+<tt class="descname">getNumFields</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.EdgeHistogramFeatureExtractor.EdgeHistogramFeatureExtractor.getNumFields" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the total number of fields in the feature vector.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.FeatureExtractorBase">
+<h2><tt class="xref docutils literal"><span class="pre">FeatureExtractorBase</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.FeatureExtractorBase" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.FeatureExtractorBase.</tt><tt class="descname">FeatureExtractorBase</tt><a class="headerlink" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>The featureExtractorBase class is a way of abstracting the process of collecting
+descriptive features within an image. A feature is some description of the image
+like the mean color, or the width of a center image, or a histogram of edge
+lengths. This feature vectors can then be composed together and used within
+a machine learning algorithm to descriminate between different classes of objects.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.extract" title="Permalink to this definition">¶</a></dt>
+<dd>Given an image extract the feature vector. The output should be a list
+object of all of the features. These features can be of any interal type
+(string, float, integer) but must contain no sub lists.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.getFieldNames">
+<tt class="descname">getFieldNames</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.getFieldNames" title="Permalink to this definition">¶</a></dt>
+<dd>This method gives the names of each field in the feature vector in the
+order in which they are returned. For example, &#8216;xpos&#8217; or &#8216;width&#8217;</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.getNumFields">
+<tt class="descname">getNumFields</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.getNumFields" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the total number of fields in the feature vector.</dd></dl>
+
+<dl class="classmethod">
+<dt id="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.load">
+<em class="property">classmethod </em><tt class="descname">load</tt><big>(</big><em>fname</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.load" title="Permalink to this definition">¶</a></dt>
+<dd>load segmentation settings to file.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.save">
+<tt class="descname">save</tt><big>(</big><em>fname</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase.save" title="Permalink to this definition">¶</a></dt>
+<dd>Save segmentation settings to file.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.Features">
+<h2><tt class="xref docutils literal"><span class="pre">Features</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.Features" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.Features.Feature">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Features.</tt><tt class="descname">Feature</tt><big>(</big><em>i</em>, <em>at_x</em>, <em>at_y</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<p>The Feature object is an abstract class which real features descend from.
+Each feature object has:</p>
+<ul class="simple">
+<li>a draw() method,</li>
+<li>an image property, referencing the originating Image object</li>
+<li>x and y coordinates</li>
+<li>default functions for determining angle, area, meanColor, etc for FeatureSets</li>
+<li>in the Feature class, these functions assume the feature is 1px</li>
+</ul>
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.angle">
+<tt class="descname">angle</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.angle" title="Permalink to this definition">¶</a></dt>
+<dd>Return the angle (theta) of the feature &#8211; default 0 (horizontal)</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.area">
+<tt class="descname">area</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.area" title="Permalink to this definition">¶</a></dt>
+<dd>Area covered by the feature &#8211; for a pixel, 1</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.colorDistance">
+<tt class="descname">colorDistance</tt><big>(</big><em>color=(0</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.colorDistance" title="Permalink to this definition">¶</a></dt>
+<dd>Return the euclidean color distance of the color tuple at x,y from a given color (default black)</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.coordinates">
+<tt class="descname">coordinates</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.coordinates" title="Permalink to this definition">¶</a></dt>
+<dd>Return a an array of x,y</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.crop">
+<tt class="descname">crop</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.crop" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the largest bounding box for an image.</p>
+<p>Returns Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.distanceFrom">
+<tt class="descname">distanceFrom</tt><big>(</big><em>point=(-1</em>, <em>-1)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.distanceFrom" title="Permalink to this definition">¶</a></dt>
+<dd>Given a point (default to center of the image), return the euclidean distance of x,y from this point</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.draw" title="Permalink to this definition">¶</a></dt>
+<dd>With no dimension information, color the x,y point for the featuer</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.height">
+<tt class="descname">height</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.height" title="Permalink to this definition">¶</a></dt>
+<dd>Height of the feature &#8211; defaults to 1</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.length">
+<tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.length" title="Permalink to this definition">¶</a></dt>
+<dd>Longest dimension of the feature &#8211; for a pixel, 1</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.meanColor">
+<tt class="descname">meanColor</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.meanColor" title="Permalink to this definition">¶</a></dt>
+<dd>Return the color tuple from x,y</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.show">
+<tt class="descname">show</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will automatically draw the features on the image and show it.
+It is a basically a shortcut function for development and is the same as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="s">&quot;logo&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feat</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">findBlobs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">feat</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.Feature.width">
+<tt class="descname">width</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.Feature.width" title="Permalink to this definition">¶</a></dt>
+<dd>Width of the feature &#8211; defaults to 1</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Features.Features.FeatureSet">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.Features.</tt><tt class="descname">FeatureSet</tt><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">list</span></tt></p>
+<p>FeatureSet is a class extended from Python&#8217;s list which has special functions so that it is useful for handling feature metadata on an image.</p>
+<p>In general, functions dealing with attributes will return numpy arrays, and functions dealing with sorting or filtering will return new FeatureSets.</p>
+<p>Example:
+&gt;&gt;&gt; image = Image(&#8220;/path/to/image.png&#8221;)
+&gt;&gt;&gt; lines = image.findLines()  #lines are the feature set
+&gt;&gt;&gt; lines.draw()
+&gt;&gt;&gt; lines.x()
+&gt;&gt;&gt; lines.crop()</p>
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.angle">
+<tt class="descname">angle</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.angle" title="Permalink to this definition">¶</a></dt>
+<dd>Return a numpy array of the angles (theta) of each feature.
+Note that theta is given in radians, with 0 being horizontal.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.area">
+<tt class="descname">area</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.area" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a numpy array of the area of each feature in pixels.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.colorDistance">
+<tt class="descname">colorDistance</tt><big>(</big><em>color=(0</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.colorDistance" title="Permalink to this definition">¶</a></dt>
+<dd>Return a numpy array of the distance each features average color is from
+a given color tuple (default black, so colorDistance() returns intensity)</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.coordinates">
+<tt class="descname">coordinates</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.coordinates" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a 2d numpy array of the x,y coordinates of each feature.  This 
+is particularly useful if you want to use Scipy&#8217;s Spatial Distance module</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.crop">
+<tt class="descname">crop</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.crop" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a nparray with the cropped features as Imges</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.distanceFrom">
+<tt class="descname">distanceFrom</tt><big>(</big><em>point=(-1</em>, <em>-1)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.distanceFrom" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a numpy array of the distance each Feature is from a given coordinate.
+Default is the center of the image.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.distancePairs">
+<tt class="descname">distancePairs</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.distancePairs" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the square-form of pairwise distances for the featureset.
+The resulting N x N array can be used to quickly look up distances
+between features.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.draw">
+<tt class="descname">draw</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em>, <em>autocolor=False</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.draw" title="Permalink to this definition">¶</a></dt>
+<dd>Call draw() on each feature in the FeatureSet.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.filter">
+<tt class="descname">filter</tt><big>(</big><em>filterarray</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a FeatureSet which is filtered on a numpy boolean array.  This
+will let you use the attribute functions to easily screen Features out
+of return FeatureSets.</p>
+<p>Some examples:</p>
+<p>Return all lines &lt; 200px
+&gt;&gt;&gt; my_lines.filter(my_lines.length() &lt; 200) # returns all lines &lt; 200px
+&gt;&gt;&gt; my_blobs.filter(my_blobs.area() &gt; 0.9 * my_blobs.length**2) # returns blobs that are nearly square    
+&gt;&gt;&gt; my_lines.filter(abs(my_lines.angle()) &lt; numpy.pi / 4) #any lines within 45 degrees of horizontal
+&gt;&gt;&gt; my_corners.filter(my_corners.x() - my_corners.y() &gt; 0) #only return corners in the upper diagonal of the image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.height">
+<tt class="descname">height</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.height" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a nparray which is the height of all the objects in the FeatureSet</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.length">
+<tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.length" title="Permalink to this definition">¶</a></dt>
+<dd>Return a numpy array of the length (longest dimension) of each feature.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.meanColor">
+<tt class="descname">meanColor</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.meanColor" title="Permalink to this definition">¶</a></dt>
+<dd>Return a numpy array of the average color of the area covered by each Feature.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.show">
+<tt class="descname">show</tt><big>(</big><em>color=(0</em>, <em>128</em>, <em>0)</em>, <em>autocolor=False</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will automatically draw the features on the image and show it.
+It is a basically a shortcut function for development and is the same as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="s">&quot;logo&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feat</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">findBlobs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">feat</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.sortAngle">
+<tt class="descname">sortAngle</tt><big>(</big><em>theta=0</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.sortAngle" title="Permalink to this definition">¶</a></dt>
+<dd>Return a sorted FeatureSet with the features closest to a given angle first.
+Note that theta is given in radians, with 0 being horizontal.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.sortArea">
+<tt class="descname">sortArea</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.sortArea" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a new FeatureSet, with the largest area features first.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.sortColorDistance">
+<tt class="descname">sortColorDistance</tt><big>(</big><em>color=(0</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.sortColorDistance" title="Permalink to this definition">¶</a></dt>
+<dd>Return a sorted FeatureSet with features closest to a given color first.
+Default is black, so sortColorDistance() will return darkest to brightest</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.sortDistance">
+<tt class="descname">sortDistance</tt><big>(</big><em>point=(-1</em>, <em>-1)</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.sortDistance" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a sorted FeatureSet with the features closest to a given coordinate first.
+Default is from the center of the image.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.sortLength">
+<tt class="descname">sortLength</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.sortLength" title="Permalink to this definition">¶</a></dt>
+<dd>Return a sorted FeatureSet with the longest features first.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.width">
+<tt class="descname">width</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.width" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a nparray which is the width of all the objects in the FeatureSet</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.x">
+<tt class="descname">x</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.x" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a numpy array of the x (horizontal) coordinate of each feature.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.Features.FeatureSet.y">
+<tt class="descname">y</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.Features.FeatureSet.y" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a numpy array of the y (vertical) coordinate of each feature.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.HaarLikeFeature">
+<h2><tt class="xref docutils literal"><span class="pre">HaarLikeFeature</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.HaarLikeFeature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.HaarLikeFeature.HaarLikeFeature">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.HaarLikeFeature.</tt><tt class="descname">HaarLikeFeature</tt><big>(</big><em>name=None</em>, <em>regions=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeature.HaarLikeFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a single Haar feature and optionally set the regions that define
+the Haar feature and its name. The formal of the feature is</p>
+<p>The format is [[[TL],[BR],SIGN],[[TL],[BR],SIGN].....]
+Where TR and BL are the unit coorinates for the top right and bottom
+left coodinates.</p>
+<p>For example
+[[[0,0],[0.5,0.5],1],[[0.5.0],[1.0,1.0],-1]]</p>
+<p>Takes the right side of the image and subtracts from the left hand side
+of the image.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.apply">
+<tt class="descname">apply</tt><big>(</big><em>intImg</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.apply" title="Permalink to this definition">¶</a></dt>
+<dd>This method takes in an integral image and applies the haar-cascade
+to the image, and returns the result.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.setName">
+<tt class="descname">setName</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.setName" title="Permalink to this definition">¶</a></dt>
+<dd>Set the name of this feature, the name must be unique.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.setRegions">
+<tt class="descname">setRegions</tt><big>(</big><em>regions</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.setRegions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the list of regions. The regions are square coordinates on a unit
+sized image followed by the sign of a region.</p>
+<p>The format is [[[TL],[BR],SIGN],[[TL],[BR],SIGN].....]
+Where TR and BL are the unit coorinates for the top right and bottom
+left coodinates.</p>
+<p>For example
+[[[0,0],[0.5,0.5],1],[[0.5.0],[1.0,1.0],-1]]</p>
+<p>Takes the right side of the image and subtracts from the left hand side
+of the image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.writeToFile">
+<tt class="descname">writeToFile</tt><big>(</big><em>file</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeature.HaarLikeFeature.writeToFile" title="Permalink to this definition">¶</a></dt>
+<dd>Write the Haar cascade to a human readable file. file is an open file pointer.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.HaarLikeFeatureExtractor">
+<h2><tt class="xref docutils literal"><span class="pre">HaarLikeFeatureExtractor</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.HaarLikeFeatureExtractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.HaarLikeFeatureExtractor.</tt><tt class="descname">HaarLikeFeatureExtractor</tt><big>(</big><em>fname=None</em>, <em>do45=True</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase" class="reference internal" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase</span></tt></a></p>
+<p>This is used generate Haar like features from an image.  These
+Haar like features are used by a the classifiers of machine learning
+to help identify objects or things in the picture by their features,
+or in this case haar features.</p>
+<p>For a more in-depth review of Haar Like features see:
+<a class="reference external" href="http://en.wikipedia.org/wiki/Haar-like_features">http://en.wikipedia.org/wiki/Haar-like_features</a></p>
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd>This extractor takes in an image, creates the integral image, applies
+the Haar cascades, and returns the result as a feature vector.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.getFieldNames">
+<tt class="descname">getFieldNames</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.getFieldNames" title="Permalink to this definition">¶</a></dt>
+<dd>This method gives the names of each field in the feature vector in the
+order in which they are returned. For example, &#8216;xpos&#8217; or &#8216;width&#8217;</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.getNumFields">
+<tt class="descname">getNumFields</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.getNumFields" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the total number of fields in the feature vector.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.readWavelets">
+<tt class="descname">readWavelets</tt><big>(</big><em>fname</em>, <em>nfeats=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.readWavelets" title="Permalink to this definition">¶</a></dt>
+<dd>fname = file name
+nfeats = number of features to load from file -1 -&gt; All features</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.saveWavelets">
+<tt class="descname">saveWavelets</tt><big>(</big><em>fname</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HaarLikeFeatureExtractor.HaarLikeFeatureExtractor.saveWavelets" title="Permalink to this definition">¶</a></dt>
+<dd>Save wavelets to file</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.HueHistogramFeatureExtractor">
+<h2><tt class="xref docutils literal"><span class="pre">HueHistogramFeatureExtractor</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.HueHistogramFeatureExtractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.HueHistogramFeatureExtractor.</tt><tt class="descname">HueHistogramFeatureExtractor</tt><big>(</big><em>mNBins=16</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase" class="reference internal" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase</span></tt></a></p>
+<p>Create a Hue Histogram feature extractor. This feature extractor
+takes in an image, gets the hue channel, bins the number of pixels
+with a particular Hue, and returns the results.</p>
+<p>mNBins - the number of Hue bins.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd>This feature extractor takes in a color image and returns a normalized color
+histogram of the pixel counts of each hue.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor.getFieldNames">
+<tt class="descname">getFieldNames</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor.getFieldNames" title="Permalink to this definition">¶</a></dt>
+<dd>This method gives the names of each field in the feature vector in the
+order in which they are returned. For example, &#8216;xpos&#8217; or &#8216;width&#8217;</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor.getNumFields">
+<tt class="descname">getNumFields</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.HueHistogramFeatureExtractor.HueHistogramFeatureExtractor.getNumFields" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the total number of fields in the feature vector.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Features.MorphologyFeatureExtractor">
+<h2><tt class="xref docutils literal"><span class="pre">MorphologyFeatureExtractor</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Features.MorphologyFeatureExtractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Features.MorphologyFeatureExtractor.</tt><tt class="descname">MorphologyFeatureExtractor</tt><big>(</big><em>thresholdOperation=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase" class="reference internal" href="#SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase"><tt class="xref docutils literal"><span class="pre">SimpleCV.Features.FeatureExtractorBase.FeatureExtractorBase</span></tt></a></p>
+<p>This feature extractor collects some basic morphology infromation about a given
+image. It is assumed that the object to be recognized is the largest object
+in the image. The user must provide a segmented white on black blob image.
+This operation then straightens the image and collects the data.</p>
+<dl class="method">
+<dt id="SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.extract">
+<tt class="descname">extract</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd>This method takes in a image and returns some basic morphology
+characteristics about the largest blob in the image. The
+if a color image is provided the threshold operation is applied.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.getFieldNames">
+<tt class="descname">getFieldNames</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.getFieldNames" title="Permalink to this definition">¶</a></dt>
+<dd>This method gives the names of each field in the feature vector in the
+order in which they are returned. For example, &#8216;xpos&#8217; or &#8216;width&#8217;</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.getNumFields">
+<tt class="descname">getNumFields</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.getNumFields" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns the total number of fields in the feature vector.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.setThresholdOperation">
+<tt class="descname">setThresholdOperation</tt><big>(</big><em>threshOp</em><big>)</big><a class="headerlink" href="#SimpleCV.Features.MorphologyFeatureExtractor.MorphologyFeatureExtractor.setThresholdOperation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The threshold operation is a function of the form
+binaryimg = threshold(img)</p>
+<p>the simplest example would be:
+def binarize_wrap(img):</p>
+<blockquote>
+return img.binarize()</blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/simplecv.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Features Package</a><ul>
+<li><a class="reference external" href="#module-SimpleCV.Features"><tt class="docutils literal"><span class="pre">Features</span></tt> Package</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.BOFFeatureExtractor"><tt class="docutils literal"><span class="pre">BOFFeatureExtractor</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.Blob"><tt class="docutils literal"><span class="pre">Blob</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.BlobMaker"><tt class="docutils literal"><span class="pre">BlobMaker</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.Detection"><tt class="docutils literal"><span class="pre">Detection</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.EdgeHistogramFeatureExtractor"><tt class="docutils literal"><span class="pre">EdgeHistogramFeatureExtractor</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.FeatureExtractorBase"><tt class="docutils literal"><span class="pre">FeatureExtractorBase</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.Features"><tt class="docutils literal"><span class="pre">Features</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.HaarLikeFeature"><tt class="docutils literal"><span class="pre">HaarLikeFeature</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.HaarLikeFeatureExtractor"><tt class="docutils literal"><span class="pre">HaarLikeFeatureExtractor</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.HueHistogramFeatureExtractor"><tt class="docutils literal"><span class="pre">HueHistogramFeatureExtractor</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Features.MorphologyFeatureExtractor"><tt class="docutils literal"><span class="pre">MorphologyFeatureExtractor</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="SimpleCV.html"
+                                  title="previous chapter">SimpleCV Package</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="SimpleCV.MachineLearning.html"
+                                  title="next chapter">MachineLearning Package</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/SimpleCV.Features.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SimpleCV.MachineLearning.html" title="MachineLearning Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="SimpleCV.html" title="SimpleCV Package"
+             >previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.2 documentation</a> &raquo;</li>
+          <li><a href="SimpleCV.html" >SimpleCV Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Ingeuitas.
+    </div>
+  </body>
+</html>

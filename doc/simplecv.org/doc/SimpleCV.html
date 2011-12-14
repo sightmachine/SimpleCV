@@ -1,0 +1,2226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SimpleCV Package &mdash; SimpleCV v1.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SimpleCV v1.2 documentation" href="index.html" />
+    <link rel="next" title="Features Package" href="SimpleCV.Features.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="SimpleCV.Features.html" title="Features Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simplecv-package">
+<h1>SimpleCV Package<a class="headerlink" href="#simplecv-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-SimpleCV.__init__">
+<h2><tt class="xref docutils literal"><span class="pre">SimpleCV</span></tt> Package<a class="headerlink" href="#module-SimpleCV.__init__" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-SimpleCV.Camera">
+<h2><tt class="xref docutils literal"><span class="pre">Camera</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Camera" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Camera.Camera">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">Camera</tt><big>(</big><em>camera_index=0</em>, <em>prop_set={}</em>, <em>threaded=True</em>, <em>calibrationfile=''</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Camera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Camera.FrameSource" class="reference internal" href="#SimpleCV.Camera.FrameSource"><tt class="xref docutils literal"><span class="pre">SimpleCV.Camera.FrameSource</span></tt></a></p>
+<p>The Camera class is the class for managing input from a basic camera.  Note
+that once the camera is initialized, it will be locked from being used 
+by other processes.  You can check manually if you have compatable devices
+on linux by looking for /dev/video* devices.</p>
+<p>This class wrappers OpenCV&#8217;s cvCapture class and associated methods.  
+Read up on OpenCV&#8217;s CaptureFromCAM method for more details if you need finer
+control than just basic frame retrieval</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.Camera.getAllProperties">
+<tt class="descname">getAllProperties</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Camera.getAllProperties" title="Permalink to this definition">¶</a></dt>
+<dd>Return all properties from the camera</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.Camera.getImage">
+<tt class="descname">getImage</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Camera.getImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve an Image-object from the camera.  If you experience problems
+with stale frames from the camera&#8217;s hardware buffer, increase the flushcache
+number to dequeue multiple frames before retrieval</p>
+<p>We&#8217;re working on how to solve this problem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.Camera.getProperty">
+<tt class="descname">getProperty</tt><big>(</big><em>prop</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Camera.getProperty" title="Permalink to this definition">¶</a></dt>
+<dd>Retrieve the value of a given property, wrapper for cv.GetCaptureProperty</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Camera.FrameBufferThread">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">FrameBufferThread</tt><big>(</big><em>group=None</em>, <em>target=None</em>, <em>name=None</em>, <em>args=()</em>, <em>kwargs=None</em>, <em>verbose=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameBufferThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">threading.Thread</span></tt></p>
+<p>This is a helper thread which continually debuffers the camera frames.  If
+you don&#8217;t do this, cameras may constantly give you a frame behind, which
+causes problems at low sample rates.  This makes sure the frames returned
+by your camera are fresh.</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameBufferThread.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameBufferThread.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Camera.FrameSource">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">FrameSource</tt><a class="headerlink" href="#SimpleCV.Camera.FrameSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>An abstract Camera-type class, for handling multiple types of video input.
+Any sources of images inheirit from it</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.calibrate">
+<tt class="descname">calibrate</tt><big>(</big><em>imageList</em>, <em>grid_sz=0.029999999999999999</em>, <em>dimensions=(8</em>, <em>5)</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Camera calibration will help remove distortion and fisheye effects
+It is agnostic of the imagery source, and can be used with any camera</p>
+<p>imageList is a list of images of color calibration images.</p>
+<p>grid_sz - is the actual grid size of the calibration grid, the unit used will be 
+the calibration unit value (i.e. if in doubt use meters, or U.S. standard)</p>
+<p>dimensions - is the the count of the <em>interior</em> corners in the calibration grid.
+So for a grid where there are 4x4 black grid squares has seven interior corners.</p>
+<p>The easiest way to run calibration is to run the
+calibrate.py file under the tools directory for SimpleCV.
+This will walk you through the calibration process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.getAllProperties">
+<tt class="descname">getAllProperties</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.getAllProperties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.getCameraMatrix">
+<tt class="descname">getCameraMatrix</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.getCameraMatrix" title="Permalink to this definition">¶</a></dt>
+<dd>This function returns a cvMat of the camera&#8217;s intrinsic matrix. 
+If there is no matrix defined the function returns None.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.getImage">
+<tt class="descname">getImage</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.getImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.getImageUndistort">
+<tt class="descname">getImageUndistort</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.getImageUndistort" title="Permalink to this definition">¶</a></dt>
+<dd>Using the overridden getImage method we retrieve the image and apply the undistortion
+operation.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.getPropery">
+<tt class="descname">getPropery</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.getPropery" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.loadCalibration">
+<tt class="descname">loadCalibration</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.loadCalibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a calibration matrix from file.
+The filename should be the stem of the calibration files names.
+e.g. If the calibration files are MyWebcamIntrinsic.xml and MyWebcamDistortion.xml
+then load the calibration file &#8220;MyWebcam&#8221;</p>
+<p>Returns true if the file was successful loaded, false otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.saveCalibration">
+<tt class="descname">saveCalibration</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.saveCalibration" title="Permalink to this definition">¶</a></dt>
+<dd>Save the calibration matrices to file. The file name should be without the extension.
+The default extension is .xml
+Returns true if the file was successful loaded, false otherwise.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.FrameSource.undistort">
+<tt class="descname">undistort</tt><big>(</big><em>image_or_2darray</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.FrameSource.undistort" title="Permalink to this definition">¶</a></dt>
+<dd><p>If given an image, apply the undistortion given my the camera&#8217;s matrix and return the result</p>
+<p>If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
+measurement and return them in the original coordinate system.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Camera.JpegStreamCamera">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">JpegStreamCamera</tt><big>(</big><em>url</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.JpegStreamCamera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Camera.FrameSource" class="reference internal" href="#SimpleCV.Camera.FrameSource"><tt class="xref docutils literal"><span class="pre">SimpleCV.Camera.FrameSource</span></tt></a></p>
+<p>The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage()</p>
+<p>Requires the [Python Imaging Library](<a class="reference external" href="http://www.pythonware.com/library/pil/handbook/index.htm">http://www.pythonware.com/library/pil/handbook/index.htm</a>)</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.JpegStreamCamera.getImage">
+<tt class="descname">getImage</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.JpegStreamCamera.getImage" title="Permalink to this definition">¶</a></dt>
+<dd>Return the current frame of the JpegStream being monitored</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Camera.JpegStreamReader">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">JpegStreamReader</tt><big>(</big><em>group=None</em>, <em>target=None</em>, <em>name=None</em>, <em>args=()</em>, <em>kwargs=None</em>, <em>verbose=None</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.JpegStreamReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">threading.Thread</span></tt></p>
+<p>Threaded class for pulling down JPEG streams and breaking up the images</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.JpegStreamReader.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.JpegStreamReader.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Camera.Kinect">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">Kinect</tt><a class="headerlink" href="#SimpleCV.Camera.Kinect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Camera.FrameSource" class="reference internal" href="#SimpleCV.Camera.FrameSource"><tt class="xref docutils literal"><span class="pre">SimpleCV.Camera.FrameSource</span></tt></a></p>
+<p>This is an experimental wrapper for the Freenect python libraries
+you can getImage() and getDepth() for separate channel images</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.Kinect.getDepth">
+<tt class="descname">getDepth</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Kinect.getDepth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.Kinect.getDepthMatrix">
+<tt class="descname">getDepthMatrix</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Kinect.getDepthMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Camera.Kinect.getImage">
+<tt class="descname">getImage</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.Kinect.getImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Camera.VirtualCamera">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Camera.</tt><tt class="descname">VirtualCamera</tt><big>(</big><em>s</em>, <em>st</em><big>)</big><a class="headerlink" href="#SimpleCV.Camera.VirtualCamera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="SimpleCV.Camera.FrameSource" class="reference internal" href="#SimpleCV.Camera.FrameSource"><tt class="xref docutils literal"><span class="pre">SimpleCV.Camera.FrameSource</span></tt></a></p>
+<p>The virtual camera lets you test algorithms or functions by providing 
+a Camera object which is not a physically connected device.</p>
+<p>Currently, VirtualCamera supports &#8220;image&#8221; and &#8220;video&#8221; source types.</p>
+<dl class="method">
+<dt id="SimpleCV.Camera.VirtualCamera.getImage">
+<tt class="descname">getImage</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Camera.VirtualCamera.getImage" title="Permalink to this definition">¶</a></dt>
+<dd>Retrieve the next frame of the video, or just a copy of the image</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Color">
+<h2><tt class="xref docutils literal"><span class="pre">Color</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Color" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Color.Color">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Color.</tt><tt class="descname">Color</tt><a class="headerlink" href="#SimpleCV.Color.Color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Color is a class that stores commonly used colors in a simple
+and easy to remember format, instead of requiring you to remember
+a colors specific RGB value.</p>
+<p>To use the color in your code you type:
+Color.RED</p>
+<p>To use Red, for instance if you want to do a line.draw(Color.RED)</p>
+<dl class="method">
+<dt id="SimpleCV.Color.Color.getRandom">
+<tt class="descname">getRandom</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Color.Color.getRandom" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a random color in tuple format</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Color.ColorCurve">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Color.</tt><tt class="descname">ColorCurve</tt><big>(</big><em>curve_vals</em><big>)</big><a class="headerlink" href="#SimpleCV.Color.ColorCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>ColorCurve is a color spline class for performing color correction.  
+It can takeas parameters a SciPy Univariate spline, or an array with at 
+least 4 point pairs.  Either of these must map in a 255x255 space.  The curve 
+can then be used in the applyRGBCurve, applyHSVCurve, and 
+applyInstensityCurve functions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">clr</span> <span class="o">=</span> <span class="n">ColorCurve</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">120</span><span class="p">],</span> <span class="p">[</span><span class="mi">180</span><span class="p">,</span> <span class="mi">230</span><span class="p">],</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">]])</span>
+<span class="n">image</span><span class="o">.</span><span class="n">applyIntensityCurve</span><span class="p">(</span><span class="n">clr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>the only property, mCurve is a linear array with 256 elements from 0 to 255</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Color.ColorMap">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Color.</tt><tt class="descname">ColorMap</tt><big>(</big><em>startcolor</em>, <em>endcolor</em>, <em>startmap</em>, <em>endmap</em><big>)</big><a class="headerlink" href="#SimpleCV.Color.ColorMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>A color map takes a start and end point in 3D space and lets you map a range
+of values to it.  Using the colormap like an array gives you the mapped color.</p>
+<p>This is useful for color coding elements by an attribute:</p>
+<div class="highlight-python"><pre>blobs = image.findBlobs()
+cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
+  startmap = min(blobs.area()) , endmap = max(blobs.area())
+  
+for b in blobs:
+  b.draw(cm[b.area()])</pre>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.ColorModel">
+<h2><tt class="xref docutils literal"><span class="pre">ColorModel</span></tt> Module<a class="headerlink" href="#module-SimpleCV.ColorModel" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.ColorModel.ColorModel">
+<em class="property">class </em><tt class="descclassname">SimpleCV.ColorModel.</tt><tt class="descname">ColorModel</tt><big>(</big><em>data=None</em>, <em>isBackground=True</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>The color model is used to model the color of foreground and background objects
+by using a a training set of images.</p>
+<p>You can create the color model with any number of &#8220;training&#8221; images, or
+add images to the model with add() and remove().  Then for your data images,
+you can useThresholdImage() to return a segmented picture.</p>
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.add">
+<tt class="descname">add</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.add" title="Permalink to this definition">¶</a></dt>
+<dd>Add an image, array, or tuple to the color model.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.contains">
+<tt class="descname">contains</tt><big>(</big><em>c</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.contains" title="Permalink to this definition">¶</a></dt>
+<dd>Return true if a particular color is in our color model.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.load">
+<tt class="descname">load</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.load" title="Permalink to this definition">¶</a></dt>
+<dd>Dump the color model to the specified file.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.remove">
+<tt class="descname">remove</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.remove" title="Permalink to this definition">¶</a></dt>
+<dd>Remove an image, array, or tuple from the model.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.save">
+<tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.save" title="Permalink to this definition">¶</a></dt>
+<dd>Read a dumped color model file.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.setIsBackground">
+<tt class="descname">setIsBackground</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.setIsBackground" title="Permalink to this definition">¶</a></dt>
+<dd>Set our model as being background imager.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.setIsForeground">
+<tt class="descname">setIsForeground</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.setIsForeground" title="Permalink to this definition">¶</a></dt>
+<dd>Set our model as being foreground imagery.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ColorModel.ColorModel.threshold">
+<tt class="descname">threshold</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.ColorModel.ColorModel.threshold" title="Permalink to this definition">¶</a></dt>
+<dd>Perform a threshold operation on the given image. This involves iterating
+over the image and comparing each pixel to the model. If the pixel is in the
+model it is set to be either the foreground (white) or background (black) based
+on the setting of mIsBackground.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Display">
+<h2><tt class="xref docutils literal"><span class="pre">Display</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Display" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Display.Display">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Display.</tt><tt class="descname">Display</tt><big>(</big><em>resolution=(640</em>, <em>480)</em>, <em>flags=0</em>, <em>title='SimpleCV'</em><big>)</big><a class="headerlink" href="#SimpleCV.Display.Display" title="Permalink to this definition">¶</a></dt>
+<dd><p>WindowStream opens a window (Pygame Display Surface) to which you can write
+images.  The default resolution is 640, 480 &#8211; but you can also specify 0,0
+which will maximize the display.  Flags are pygame constants, including:</p>
+<p>By default display will attempt to scale the input image to fit neatly on the
+screen with minimal distorition. This means that if the aspect ratio matches
+the screen it will scale cleanly. If your image does not match the screen aspect
+ratio we will scale it to fit nicely while maintining its natural aspect ratio.</p>
+<p>Because SimpleCV performs this scaling there are two sets of input mouse coordinates,
+the (mousex,mousey) which scale to the image, and (mouseRawX, mouseRawY) which
+do are the actual screen coordinates.</p>
+<p>pygame.FULLSCREEN    create a fullscreen display
+pygame.DOUBLEBUF     recommended for HWSURFACE or OPENGL
+pygame.HWSURFACE     hardware accelerated, only in FULLSCREEN
+pygame.OPENGL        create an opengl renderable display
+pygame.RESIZABLE     display window should be sizeable
+pygame.NOFRAME       display window will have no border or controls</p>
+<p>Display should be used in a while loop with the isDone() method, which
+checks events and sets the following internal state controls:</p>
+<p>mouseX - the x position of the mouse cursor on the input image
+mouseY - the y position of the mouse curson on the input image
+mouseRawX - The position of the mouse on the screen
+mouseRawY - The position of the mouse on the screen</p>
+<p>NOTE!!!!!!!!!!!!!!!!
+The mouse position on the screen is not the mouse position on the image. If you
+are trying to draw on the image or take in coordinates use mousex and mousey
+as these values are scaled along with the image.</p>
+<p>mouseLeft - the state of the left button
+mouseRight - the state of the right button
+mouseMiddle - the state of the middle button
+mouseWheelUp - if the wheel has been clicked towards the top of the mouse
+mouseWheelDown - if the wheel has been clicked towards the bottom of the mouse
+Example:
+&gt;&gt;&gt; display = Display(resolution = (800, 600)) #create a new display to draw images on
+&gt;&gt;&gt; cam = Camera() #initialize the camera
+&gt;&gt;&gt; done = False # setup boolean to stop the program</p>
+<p># Loop until not needed
+while not display.isDone():</p>
+<blockquote>
+<p>cam.getImage().flipHorizontal().save(display) # get image, flip it so it looks mirrored, save to display
+time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
+if display.mouseLeft:</p>
+<blockquote>
+display.done = True</blockquote>
+</blockquote>
+<dl class="method">
+<dt id="SimpleCV.Display.Display.checkEvents">
+<tt class="descname">checkEvents</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Display.Display.checkEvents" title="Permalink to this definition">¶</a></dt>
+<dd>checkEvents checks the pygame event queue and sets the internal display
+values based on any new generated events</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Display.Display.isDone">
+<tt class="descname">isDone</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Display.Display.isDone" title="Permalink to this definition">¶</a></dt>
+<dd>Checks the event queue and returns True if a quit event has been issued</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Display.Display.writeFrame">
+<tt class="descname">writeFrame</tt><big>(</big><em>img</em>, <em>fit=True</em><big>)</big><a class="headerlink" href="#SimpleCV.Display.Display.writeFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>writeFrame copies the given Image object to the display, you can also use
+Image.save()</p>
+<p>Write frame trys to fit the image to the display with the minimum ammount
+of distortion possible. When fit=True write frame will decide how to scale
+the image such that the aspect ratio is maintained and the smallest amount
+of distorition possible is completed. This means the axis that has the minimum
+scaling needed will be shrunk or enlarged to match the display.</p>
+<p>When fit=False write frame will crop and center the image as best it can.
+If the image is too big it is cropped and centered. If it is too small
+it is centered. If it is too big along one axis that axis is cropped and
+the other axis is centered if necessary.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>img - Image
+fit - Boolean</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.DrawingLayer">
+<h2><tt class="xref docutils literal"><span class="pre">DrawingLayer</span></tt> Module<a class="headerlink" href="#module-SimpleCV.DrawingLayer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer">
+<em class="property">class </em><tt class="descclassname">SimpleCV.DrawingLayer.</tt><tt class="descname">DrawingLayer</tt><big>(</big><em>(width</em>, <em>height)</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>DrawingLayer gives you a way to mark up Image classes without changing
+the image data itself. This class wraps pygame&#8217;s Surface class and
+provides basic drawing and text rendering functions</p>
+<p>Example:
+image = Image(&#8220;/path/to/image.png&#8221;)
+image2 = Image(&#8220;/path/to/image2.png&#8221;)
+image.dl().blit(image2) #write image 2 on top of image</p>
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.bezier">
+<tt class="descname">bezier</tt><big>(</big><em>points</em>, <em>steps</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.bezier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a bezier curve based on a control point and the a number of stapes</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent</dd>
+<dt>Parameters:</dt>
+<dd>points - list
+steps - Int
+color - Color object or Color Tuple
+alpha - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.blit">
+<tt class="descname">blit</tt><big>(</big><em>img</em>, <em>coordinates=(0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.blit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Blit one image onto the drawing layer at upper left coordinates</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>img - Image
+coordinates - Tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.centeredRectangle">
+<tt class="descname">centeredRectangle</tt><big>(</big><em>center</em>, <em>dimensions</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>filled=False</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.centeredRectangle" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<p>Draw a rectangle given the center (x,y) of the rectangle and dimensions (width, height)</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>w -     The line width in pixels. This does not work if antialiasing is enabled.</p>
+<p>filled -The rectangle is filled in</p>
+</blockquote>
+<dl class="docutils">
+<dt>rameters:</dt>
+<dd>center - Tuple
+dimenions - Tuple
+color - Color object or Color Tuple
+width - Int
+filled - Boolean
+alpha - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.circle">
+<tt class="descname">circle</tt><big>(</big><em>center</em>, <em>radius</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>filled=False</em>, <em>alpha=-1</em>, <em>antialias=True</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.circle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a circle given a location and a radius.</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>width - The line width in pixels. This does not work if antialiasing is enabled.</p>
+<p>filled -The object is filled in</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>center - Tuple
+radius - Int
+color - Color object or Color Tuple
+width - Int
+filled - Boolean
+alpha - Int
+antialias - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.clear" title="Permalink to this definition">¶</a></dt>
+<dd>This method removes all of the drawing on this layer (i.e. the layer is
+erased completely)</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.ellipse">
+<tt class="descname">ellipse</tt><big>(</big><em>center</em>, <em>dimensions</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>filled=False</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.ellipse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw an ellipse given a location and a dimensions.</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>width - The line width in pixels. This does not work if antialiasing is enabled.</p>
+<p>filled -The object is filled in</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>center - Tuple
+dimensions - Tuple
+color - Color object or Color tuple
+width - Int
+filled - Boolean
+alpha - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.ezViewText">
+<tt class="descname">ezViewText</tt><big>(</big><em>text</em>, <em>location</em>, <em>fgcolor=(255</em>, <em>255</em>, <em>255)</em>, <em>bgcolor=(0</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.ezViewText" title="Permalink to this definition">¶</a></dt>
+<dd><p>ezViewText works just like text but it sets both the foreground and background
+color and overwrites the image pixels. Use this method to make easily
+viewable text on a dynamic video stream.</p>
+<p>fgcolor - The color of the text.</p>
+<p>bgcolor - The background color for the text are.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.getDefaultAlpha">
+<tt class="descname">getDefaultAlpha</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.getDefaultAlpha" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the default alpha value.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.line">
+<tt class="descname">line</tt><big>(</big><em>start</em>, <em>stop</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>antialias=True</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a single line from the (x,y) tuple start to the (x,y) tuple stop.
+Optional parameters:</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>width - The line width in pixels.</p>
+<p>antialias - Draw an antialiased object of width one.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>start - Tuple
+stop - Tuple
+color - Color object or Color Tuple
+width - Int
+antialias - Boolean
+alpha - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.lines">
+<tt class="descname">lines</tt><big>(</big><em>points</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>antialias=True</em>, <em>alpha=-1</em>, <em>width=1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a set of lines from the list of (x,y) tuples points. Lines are draw
+between each successive pair of points.</p>
+<p>Optional parameters:</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>width - The line width in pixels.</p>
+<p>antialias - Draw an antialiased object of width one.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>points - Tuple
+color - Color object or Color Tuple
+antialias - Boolean
+alpha - Int
+width - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.listFonts">
+<tt class="descname">listFonts</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.listFonts" title="Permalink to this definition">¶</a></dt>
+<dd>This method returns a list of strings corresponding to the fonts available
+on the current system.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.polygon">
+<tt class="descname">polygon</tt><big>(</big><em>points</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>filled=False</em>, <em>antialias=True</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a polygon from a list of (x,y)</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>width - The 
+width in pixels. This does not work if antialiasing is enabled.</p>
+<p>filled -The object is filled in</p>
+<p>antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.rectangle">
+<tt class="descname">rectangle</tt><big>(</big><em>topLeft</em>, <em>dimensions</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>filled=False</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a rectangle given the topLeft the (x,y) coordinate of the top left
+corner and dimensions (w,h) tge width and height</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>w -     The line width in pixels. This does not work if antialiasing is enabled.</p>
+<p>filled -The rectangle is filled in</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.rectangle2pts">
+<tt class="descname">rectangle2pts</tt><big>(</big><em>pt0</em>, <em>pt1</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>width=1</em>, <em>filled=False</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.rectangle2pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a rectangle given two (x,y) points</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+</dl>
+<p>w -     The line width in pixels. This does not work if antialiasing is enabled.</p>
+<p>filled -The rectangle is filled in</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.renderToOtherLayer">
+<tt class="descname">renderToOtherLayer</tt><big>(</big><em>otherLayer</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.renderToOtherLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add this layer to another layer.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>otherLayer - Pygame Surface</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.renderToSurface">
+<tt class="descname">renderToSurface</tt><big>(</big><em>surf</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.renderToSurface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Blit this layer to another surface.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>surf - Pygame Surface</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.replaceOverlay">
+<tt class="descname">replaceOverlay</tt><big>(</big><em>overlay</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.replaceOverlay" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method allows you to set the surface manually.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>overlay - Pygame Surface</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.selectFont">
+<tt class="descname">selectFont</tt><big>(</big><em>fontName</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.selectFont" title="Permalink to this definition">¶</a></dt>
+<dd>This method attempts to set the font from a font file. It is advisable
+to use one of the fonts listed by the listFonts() method. The input
+is a string with the font name.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setDefaultAlpha">
+<tt class="descname">setDefaultAlpha</tt><big>(</big><em>alpha</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setDefaultAlpha" title="Permalink to this definition">¶</a></dt>
+<dd>This method sets the default alpha value for all methods called on this
+layer. The default value starts out at 255 which is completely transparent.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setDefaultColor">
+<tt class="descname">setDefaultColor</tt><big>(</big><em>color</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setDefaultColor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method sets the default rendering color.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color - Color object or Color Tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setFontBold">
+<tt class="descname">setFontBold</tt><big>(</big><em>doBold</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setFontBold" title="Permalink to this definition">¶</a></dt>
+<dd>This method sets and unsets the current font to be bold.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setFontItalic">
+<tt class="descname">setFontItalic</tt><big>(</big><em>doItalic</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setFontItalic" title="Permalink to this definition">¶</a></dt>
+<dd>This method sets and unsets the current font to be italic.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setFontSize">
+<tt class="descname">setFontSize</tt><big>(</big><em>sz</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setFontSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method sets the font size roughly in points. A size of 10 is almost
+too small to read. A size of 20 is roughly 10 pixels high and a good choice.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>sz = Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setFontUnderline">
+<tt class="descname">setFontUnderline</tt><big>(</big><em>doUnderline</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setFontUnderline" title="Permalink to this definition">¶</a></dt>
+<dd>This method sets and unsets the current font to be underlined</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.setLayerAlpha">
+<tt class="descname">setLayerAlpha</tt><big>(</big><em>alpha</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.setLayerAlpha" title="Permalink to this definition">¶</a></dt>
+<dd>This method sets the alpha value of the entire layer in a single
+pass. This is helpful for merging layers with transparency.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.sprite">
+<tt class="descname">sprite</tt><big>(</big><em>img</em>, <em>pos=(0</em>, <em>0)</em>, <em>scale=1.0</em>, <em>rot=0.0</em>, <em>alpha=255</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.sprite" title="Permalink to this definition">¶</a></dt>
+<dd><p>sprite draws a sprite (a second small image) onto the current layer.
+The sprite can be loaded directly from a supported image file like a
+gif, jpg, bmp, or png, or loaded as a surface or SCV image.</p>
+<p>pos - the (x,y) position of the upper left hand corner of the sprite</p>
+<p>scale - a scale multiplier as a float value. E.g. 1.1 makes the sprite 10% bigger</p>
+<p>rot = a rotation angle in degrees</p>
+<p>alpha = an alpha value 255=opaque 0=transparent.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.text">
+<tt class="descname">text</tt><big>(</big><em>text</em>, <em>location</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>alpha=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the a text string at a given location</p>
+<p>text -  A text string to print.</p>
+<p>location-The location to place the top right corner of the text</p>
+<dl class="docutils">
+<dt>color - The object&#8217;s color as a simple CVColor object, if no value  is sepcified</dt>
+<dd>the default is used.</dd>
+<dt>alpha - The alpha blending for the object. If this value is -1 then the</dt>
+<dd>layer default value is used. A value of 255 means opaque, while 0
+means transparent.</dd>
+<dt>Parameters:</dt>
+<dd>text - String
+location - Tuple
+color - Color object or Color tuple
+alpha - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.DrawingLayer.DrawingLayer.textDimensions">
+<tt class="descname">textDimensions</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#SimpleCV.DrawingLayer.DrawingLayer.textDimensions" title="Permalink to this definition">¶</a></dt>
+<dd>The textDimensions function takes a string and returns the dimensions (width, height)
+of this text being rendered on the screen.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Font">
+<h2><tt class="xref docutils literal"><span class="pre">Font</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Font" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Font.Font">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Font.</tt><tt class="descname">Font</tt><big>(</big><em>fontface='ubuntu'</em>, <em>fontsize=16</em><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Font class allows you to create a font object to be
+used in drawing or writing to images.
+There are some defaults available, to see them, just type
+Font.printFonts()</p>
+<dl class="method">
+<dt id="SimpleCV.Font.Font.getFont">
+<tt class="descname">getFont</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font.getFont" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the font from the object to be used in drawing</p>
+<p>Returns: PIL Image Font</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Font.Font.getFonts">
+<tt class="descname">getFonts</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font.getFonts" title="Permalink to this definition">¶</a></dt>
+<dd>This returns the list of fonts built into SimpleCV</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Font.Font.getSize">
+<tt class="descname">getSize</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font.getSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the size of the current font</p>
+<p>Returns: Integer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Font.Font.printFonts">
+<tt class="descname">printFonts</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font.printFonts" title="Permalink to this definition">¶</a></dt>
+<dd>This prints a list of fonts built into SimpleCV</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Font.Font.setFont">
+<tt class="descname">setFont</tt><big>(</big><em>new_font='ubuntu'</em><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font.setFont" title="Permalink to this definition">¶</a></dt>
+<dd>Set the name of the font listed in the font family
+if the font isn&#8217;t listed in the font family then pass it the absolute
+path of the truetype font file.
+Example: Font.setFont(&#8220;/home/simplecv/my_font.ttf&#8221;)</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Font.Font.setSize">
+<tt class="descname">setSize</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#SimpleCV.Font.Font.setSize" title="Permalink to this definition">¶</a></dt>
+<dd>Set the font point size. i.e. 16pt</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.ImageClass">
+<h2><tt class="xref docutils literal"><span class="pre">ImageClass</span></tt> Module<a class="headerlink" href="#module-SimpleCV.ImageClass" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.ImageClass.ColorSpace">
+<em class="property">class </em><tt class="descclassname">SimpleCV.ImageClass.</tt><tt class="descname">ColorSpace</tt><a class="headerlink" href="#SimpleCV.ImageClass.ColorSpace" title="Permalink to this definition">¶</a></dt>
+<dd>This class is used to encapsulates the color space of a given image.
+This class acts like C/C++ style enumerated type.
+See: <a class="reference external" href="http://stackoverflow.com/questions/2122706/detect-color-space-with-opencv">http://stackoverflow.com/questions/2122706/detect-color-space-with-opencv</a></dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.ImageClass.Image">
+<em class="property">class </em><tt class="descclassname">SimpleCV.ImageClass.</tt><tt class="descname">Image</tt><big>(</big><em>source=None</em>, <em>camera=None</em>, <em>colorSpace=0</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Image class is the heart of SimpleCV and allows you to convert to and 
+from a number of source types with ease.  It also has intelligent buffer
+management, so that modified copies of the Image required for algorithms
+such as edge detection, etc can be cached and reused when appropriate.</p>
+<p>Image are converted into 8-bit, 3-channel images in RGB colorspace.  It will
+automatically handle conversion from other representations into this
+standard format.  If dimensions are passed, an empty image is created.</p>
+<p>Examples:
+&gt;&gt;&gt; i = Image(&#8220;/path/to/image.png&#8221;)
+&gt;&gt;&gt; i = Camera().getImage()</p>
+<p>You can also just load the SimpleCV logo using:
+&gt;&gt;&gt; img = Image(&#8220;simplecv&#8221;)
+&gt;&gt;&gt; img = Image(&#8220;logo&#8221;)
+&gt;&gt;&gt; img = Image(&#8220;logo_inverted&#8221;)
+&gt;&gt;&gt; img = Image(&#8220;logo_transparent&#8221;)
+&gt;&gt;&gt; img = Image(&#8220;barcode&#8221;)</p>
+<p>Or you can load an image from a URL:
+&gt;&gt;&gt; img = Image(&#8220;<a class="reference external" href="http://www.simplecv.org/image.png">http://www.simplecv.org/image.png</a>&#8220;)</p>
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.adaptiveScale">
+<tt class="descname">adaptiveScale</tt><big>(</big><em>resolution</em>, <em>fit=True</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.adaptiveScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adapative Scale is used in the Display to automatically
+adjust image size to match the display size.</p>
+<p>This is typically used in this instance:
+&gt;&gt;&gt; d = Display((800,600))
+&gt;&gt;&gt; i = Image((640, 480))
+&gt;&gt;&gt; i.save(d)</p>
+<p>Where this would scale the image to match the display size of 800x600</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>resolution - Tuple
+fit - Boolean</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.addDrawingLayer">
+<tt class="descname">addDrawingLayer</tt><big>(</big><em>layer=''</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.addDrawingLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push a new drawing layer onto the back of the layer stack</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>layer - String</dd>
+<dt>Returns:</dt>
+<dd>Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.applyHLSCurve">
+<tt class="descname">applyHLSCurve</tt><big>(</big><em>hCurve</em>, <em>lCurve</em>, <em>sCurve</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.applyHLSCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply 3 ColorCurve corrections applied in HSL space
+Parameters are: 
+* Hue ColorCurve 
+* Lightness (brightness/value) ColorCurve
+* Saturation ColorCurve</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.applyIntensityCurve">
+<tt class="descname">applyIntensityCurve</tt><big>(</big><em>curve</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.applyIntensityCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intensity applied to all three color channels</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>curve - ColorCurve object</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.applyLayers">
+<tt class="descname">applyLayers</tt><big>(</big><em>indicies=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.applyLayers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render all of the layers onto the current image and return the result.
+Indicies can be a list of integers specifying the layers to be used.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>indicies - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.applyRGBCurve">
+<tt class="descname">applyRGBCurve</tt><big>(</big><em>rCurve</em>, <em>gCurve</em>, <em>bCurve</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.applyRGBCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply 3 ColorCurve corrections applied in rgb channels 
+Parameters are: 
+* Red ColorCurve 
+* Green ColorCurve
+* Blue ColorCurve</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.bilateralFilter">
+<tt class="descname">bilateralFilter</tt><big>(</big><em>window=''</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.bilateralFilter" title="Permalink to this definition">¶</a></dt>
+<dd>Perform a bilateral filtering operation to denoise/despeckle the image.
+The optional parameter is the window size.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.binarize">
+<tt class="descname">binarize</tt><big>(</big><em>thresh=-1</em>, <em>maxv=255</em>, <em>blocksize=0</em>, <em>p=5</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.binarize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do a binary threshold the image, changing all values above thresh to maxv
+and all below to black.  If a color tuple is provided, each color channel
+is thresholded separately.</p>
+<p>If threshold is -1 (default), an adaptive method (OTSU&#8217;s method) is used. 
+If then a blocksize is specified, a moving average over each region of block*block 
+pixels a threshold is applied where threshold = local_mean - p.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.blit">
+<tt class="descname">blit</tt><big>(</big><em>img</em>, <em>pos=(0</em>, <em>0)</em>, <em>centered=False</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.blit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take image and copy it into this image at the specified to image and return
+the result. If pos+img.sz exceeds the size of this image then img is cropped.
+Pos is the top left corner of the input image</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>img - Image
+pos - Tuple
+centered - Boolean</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.clear" title="Permalink to this definition">¶</a></dt>
+<dd>This is a slightly unsafe method that clears out the entire image state
+it is usually used in conjunction with the drawing blobs to fill in draw
+only a single large blob in the image.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.clearLayers">
+<tt class="descname">clearLayers</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.clearLayers" title="Permalink to this definition">¶</a></dt>
+<dd>Remove all of the drawing layers.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.colorDistance">
+<tt class="descname">colorDistance</tt><big>(</big><em>color=(0</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.colorDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an image representing the distance of each pixel from a given color
+tuple, scaled between 0 (the given color) and 255.  Pixels distant from the 
+given tuple will appear as brighter and pixels closest to the target color 
+will be darker.</p>
+<p>By default this will give image intensity (distance from pure black)</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color - Color object or Color Tuple</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.convolve">
+<tt class="descname">convolve</tt><big>(</big><em>kernel=</em><span class="optional">[</span><span class="optional">[</span>, <em>1</em>, <em>0</em>, <em>0</em><span class="optional">]</span><span class="optional">[</span>, <em>0</em>, <em>1</em>, <em>0</em><span class="optional">]</span><span class="optional">[</span>, <em>0</em>, <em>0</em>, <em>1</em><span class="optional">]</span><span class="optional">]</span>, <em>center=None</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.convolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convolution performs a shape change on an image.  It is similiar to
+something like a dilate.  You pass it a kernel in the form of a list, np.array, or cvMat</p>
+<p>example:
+&gt;&gt;&gt; img = Image(&#8220;sampleimages/simplecv.png&#8221;)
+&gt;&gt;&gt; kernel = [[1,0,0],[0,1,0],[0,0,1]]
+&gt;&gt;&gt; conv = img.convolve()</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>kernel - Array, Numpy Array, CvMat
+center - Boolean</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a full copy of the Image&#8217;s bitmap.  Note that this is different
+from using python&#8217;s implicit copy function in that only the bitmap itself
+is copied.</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.crop">
+<tt class="descname">crop</tt><big>(</big><em>x</em>, <em>y=None</em>, <em>w=None</em>, <em>h=None</em>, <em>centered=False</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.crop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Crop attempts to use the x and y position variables and the w and h width
+and height variables to crop the image. When centered is false, x and y
+define the top and left of the cropped rectangle. When centered is true
+the function uses x and y as the centroid of the cropped region.</p>
+<p>You can also pass a feature into crop and have it automatically return
+the cropped image within the bounding outside area of that feature</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>x - Int or Image
+y - Int
+w - Int
+h - Int
+centered - Boolean</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.dilate">
+<tt class="descname">dilate</tt><big>(</big><em>iterations=1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.dilate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a morphological dilation. An dilation has the effect of smoothing blobs while
+intensifying the amount of noise blobs. 
+This implementation uses the default openCV 3X3 square kernel 
+Erosion is effectively a local maxima detector, the kernel moves over the image and
+takes the maxima value inside the kernel.</p>
+<p>iterations - this parameters is the number of times to apply/reapply the operation</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Dilation_(morphology">http://en.wikipedia.org/wiki/Dilation_(morphology</a>)
+See: <a class="reference external" href="http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate">http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate</a>
+Example Use: A part&#8217;s blob needs to be smoother 
+Example Code: ./examples/MorphologyExample.py</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>iterations - Integer</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.dl">
+<tt class="descname">dl</tt><big>(</big><em>index=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.dl" title="Permalink to this definition">¶</a></dt>
+<dd>Alias for getDrawingLayer()</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.drawCircle">
+<tt class="descname">drawCircle</tt><big>(</big><em>ctr</em>, <em>rad</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>thickness=1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.drawCircle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a circle on the Image, parameters include:
+* the center of the circle
+* the radius in pixels
+* a color tuple (default black)
+* the thickness of the circle</p>
+<p>Note that this function is depricated, try to use DrawingLayer.circle() instead</p>
+<p>Returns: NONE - Inline Operation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.drawLine">
+<tt class="descname">drawLine</tt><big>(</big><em>pt1</em>, <em>pt2</em>, <em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>thickness=1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.drawLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a line on the Image, parameters include
+* pt1 - the first point for the line (tuple)
+* pt1 - the second point on the line (tuple)
+* a color tuple (default black)
+* thickness of the line</p>
+<p>Note that this modifies the image in-place and clears all buffers.</p>
+<p>Returns: NONE - Inline Operation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.drawText">
+<tt class="descname">drawText</tt><big>(</big><em>text=''</em>, <em>x=None</em>, <em>y=None</em>, <em>color=(0</em>, <em>0</em>, <em>255)</em>, <em>fontsize=16</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.drawText" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function draws the string that is passed on the screen at the specified coordinates</p>
+<p>The Default Color is blue but you can pass it various colors
+The text will default to the center of the screen if you don&#8217;t pass it a value</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>text - String
+x - Int
+y - Int
+color - Color object or Color Tuple
+fontsize - Int</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.edges">
+<tt class="descname">edges</tt><big>(</big><em>t1=50</em>, <em>t2=100</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds an edge map Image using the Canny edge detection method.  Edges will be brighter than the surrounding area.</p>
+<p>The t1 parameter is roughly the &#8220;strength&#8221; of the edge required, and the value between t1 and t2 is used for edge linking.  For more information:</p>
+<p>&lt;<a class="reference external" href="http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html">http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html</a>&gt;
+&lt;<a class="reference external" href="http://en.wikipedia.org/wiki/Canny_edge_detector">http://en.wikipedia.org/wiki/Canny_edge_detector</a>&gt;</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>t1 - Int
+t2 - Int</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.erode">
+<tt class="descname">erode</tt><big>(</big><em>iterations=1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.erode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a morphological erosion. An erosion has the effect of removing small bits of noise
+and smothing blobs. 
+This implementation uses the default openCV 3X3 square kernel 
+Erosion is effectively a local minima detector, the kernel moves over the image and
+takes the minimum value inside the kernel. 
+iterations - this parameters is the number of times to apply/reapply the operation
+See: <a class="reference external" href="http://en.wikipedia.org/wiki/Erosion_(morphology">http://en.wikipedia.org/wiki/Erosion_(morphology</a>).
+See: <a class="reference external" href="http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode">http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode</a> 
+Example Use: A threshold/blob image has &#8216;salt and pepper&#8217; noise. 
+Example Code: ./examples/MorphologyExample.py</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>iterations - Int</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findBarcode">
+<tt class="descname">findBarcode</tt><big>(</big><em>zxing_path=''</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findBarcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>If you have the python-zxing library installed, you can find 2d and 1d
+barcodes in your image.  These are returned as Barcode feature objects
+in a FeatureSet.  The single parameter is the ZXing_path, if you 
+don&#8217;t have the ZXING_LIBRARY env parameter set.</p>
+<p>You can clone python-zxing at <a class="reference external" href="http://github.com/oostendo/python-zxing">http://github.com/oostendo/python-zxing</a></p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>zxing_path - String</dd>
+</dl>
+<p>Returns: BARCODE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findBlobs">
+<tt class="descname">findBlobs</tt><big>(</big><em>threshval=-1</em>, <em>minsize=10</em>, <em>maxsize=0</em>, <em>threshblocksize=0</em>, <em>threshconstant=5</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findBlobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will look for continuous
+light regions and return them as Blob features in a FeatureSet.  Parameters
+specify the binarize filter threshold value, and minimum and maximum size for blobs.  
+If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+more information about thresholding.  The threshblocksize and threshconstant
+parameters are only used for adaptive threshold.</p>
+<p>Note that this previously used cvblob and the python-cvblob library, 
+which is no longer necessary</p>
+<p>Returns: FEATURESET</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findChessboard">
+<tt class="descname">findChessboard</tt><big>(</big><em>dimensions=(8</em>, <em>5)</em>, <em>subpixel=True</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findChessboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an image, finds a chessboard within that image.  Returns the Chessboard featureset.
+The Chessboard is typically used for calibration because of its evenly spaced corners.</p>
+<p>The single parameter is the dimensions of the chessboard, typical one can be found in SimpleCV oolsCalibGrid.png</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>dimensions - Tuple
+subpixel - Boolean</dd>
+<dt>Returns:</dt>
+<dd>FeatureSet</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findCorners">
+<tt class="descname">findCorners</tt><big>(</big><em>maxnum=50</em>, <em>minquality=0.040000000000000001</em>, <em>mindistance=1.0</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findCorners" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will find corner Feature objects and return them as a FeatureSet
+strongest corners first.  The parameters give the number of corners to look
+for, the minimum quality of the corner feature, and the minimum distance
+between corners.</p>
+<p>Returns: FEATURESET</p>
+<p>Standard Test:
+&gt;&gt;&gt; img = Image(&#8220;sampleimages/simplecv.png&#8221;)
+&gt;&gt;&gt; corners = img.findCorners()
+&gt;&gt;&gt; if corners: True
+True</p>
+<p>Validation Test:
+&gt;&gt;&gt; img = Image(&#8220;sampleimages/black.png&#8221;)
+&gt;&gt;&gt; corners = img.findCorners()
+&gt;&gt;&gt; if not corners: True
+True</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findHaarFeatures">
+<tt class="descname">findHaarFeatures</tt><big>(</big><em>cascade</em>, <em>scale_factor=1.2</em>, <em>min_neighbors=2</em>, <em>use_canny=1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findHaarFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>If you want to find Haar Features (useful for face detection among other
+purposes) this will return Haar feature objects in a FeatureSet.  The
+parameters are:
+* the scaling factor for subsequent rounds of the haar cascade (default 1.2)7
+* the minimum number of rectangles that makes up an object (default 2)
+* whether or not to use Canny pruning to reject areas with too many edges (default yes, set to 0 to disable)</p>
+<p>For more information, consult the cv.HaarDetectObjects documentation</p>
+<p>You will need to provide your own cascade file - these are usually found in
+/usr/local/share/opencv/haarcascades and specify a number of body parts.</p>
+<p>Note that the cascade parameter can be either a filename, or a HaarCascade
+loaded with cv.Load().</p>
+<p>Returns: FEATURESET</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findLines">
+<tt class="descname">findLines</tt><big>(</big><em>threshold=80</em>, <em>minlinelength=30</em>, <em>maxlinegap=10</em>, <em>cannyth1=50</em>, <em>cannyth2=100</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findLines" title="Permalink to this definition">¶</a></dt>
+<dd><p>findLines will find line segments in your image and returns Line feature 
+objects in a FeatureSet. The parameters are:
+* threshold, which determies the minimum &#8220;strength&#8221; of the line
+* min line length &#8211; how many pixels long the line must be to be returned
+* max line gap &#8211; how much gap is allowed between line segments to consider them the same line 
+* cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to _getEdgeMap() for details</p>
+<p>For more information, consult the cv.HoughLines2 documentation</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>threshold - Int
+minlinelength - Int
+maxlinegap - Int
+cannyth1 - Int
+cannyth2 - Int</dd>
+<dt>Returns:</dt>
+<dd>FEATURESET</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.findTemplate">
+<tt class="descname">findTemplate</tt><big>(</big><em>template_image=None</em>, <em>threshold=5</em>, <em>method='SQR_DIFF_NORM'</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.findTemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function searches an image for a template image.  The template
+image is a smaller image that is searched for in the bigger image.
+This is a basic pattern finder in an image.  This uses the standard
+OpenCV template (pattern) matching and cannot handle scaling or rotation</p>
+<p>Template matching returns a match score for every pixel in the image.
+Often pixels that are near to each other and a close match to the template
+are returned as a match. If the threshold is set too low expect to get
+a huge number of values. The threshold parameter is in terms of the
+number of standard deviations from the mean match value you are looking</p>
+<p>For example, matches that are above three standard deviations will return
+0.1% of the pixels. In a 800x600 image this means there will be
+800*600*0.001 = 480 matches.</p>
+<p>This method returns the locations of wherever it finds a match above a
+threshold. Because of how template matching works, very often multiple
+instances of the template overlap significantly. The best approach is to
+find the centroid of all of these values. We suggest using an iterative
+k-means approach to find the centroids.</p>
+<p>Example:
+&gt;&gt;&gt; image = Image(&#8220;/path/to/img.png&#8221;)
+&gt;&gt;&gt; pattern_image = image.crop(100,100,100,100)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">found_patterns</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">findTemplate</span><span class="p">(</span><span class="n">pattern_image</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">found_patterns</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>template_image - Image
+threshold - Int
+method - String</dd>
+<dt>RETURNS:</dt>
+<dd>FeatureSet</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.flipHorizontal">
+<tt class="descname">flipHorizontal</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.flipHorizontal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Horizontally mirror an image
+Note that flip does not mean rotate 180 degrees! The two are different.</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.flipVertical">
+<tt class="descname">flipVertical</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.flipVertical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vertically mirror an image
+Note that flip does not mean rotate 180 degrees! The two are different.</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getBitmap">
+<tt class="descname">getBitmap</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getBitmap" title="Permalink to this definition">¶</a></dt>
+<dd>Retrieve the bitmap (iplImage) of the Image.  This is useful if you want
+to use functions from OpenCV with SimpleCV&#8217;s image class</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getColorSpace">
+<tt class="descname">getColorSpace</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getColorSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value matched in the color space class
+so for instance you would use
+if(image.getColorSpace() == ColorSpace.RGB)</p>
+<p>RETURNS: Integer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getDrawingLayer">
+<tt class="descname">getDrawingLayer</tt><big>(</big><em>index=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getDrawingLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a drawing layer based on the provided index.  If not provided, will
+default to the top layer.  If no layers exist, one will be created</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>index - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getEmpty">
+<tt class="descname">getEmpty</tt><big>(</big><em>channels=3</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getEmpty" title="Permalink to this definition">¶</a></dt>
+<dd>Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getFPMatrix">
+<tt class="descname">getFPMatrix</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getFPMatrix" title="Permalink to this definition">¶</a></dt>
+<dd>Converts the standard int bitmap to a floating point bitmap.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getGrayPixel">
+<tt class="descname">getGrayPixel</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getGrayPixel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the Gray value for a particular image pixel given a specific row and column.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>x - Int
+y - Int</dd>
+<dt>Returns:</dt>
+<dd>Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getGrayscaleMatrix">
+<tt class="descname">getGrayscaleMatrix</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getGrayscaleMatrix" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the intensity grayscale matrix</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getHorzScanline">
+<tt class="descname">getHorzScanline</tt><big>(</big><em>row</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getHorzScanline" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a single row of RGB values from the image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>row - Int</dd>
+<dt>Returns:</dt>
+<dd>Numpy Array</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getHorzScanlineGray">
+<tt class="descname">getHorzScanlineGray</tt><big>(</big><em>row</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getHorzScanlineGray" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a single row of RGB values from the image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>row - Int</dd>
+<dt>Returns:</dt>
+<dd>Numpy Array</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getMatrix">
+<tt class="descname">getMatrix</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getMatrix" title="Permalink to this definition">¶</a></dt>
+<dd>Get the matrix (cvMat) version of the image, required for some OpenCV algorithms</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getNumpy">
+<tt class="descname">getNumpy</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getNumpy" title="Permalink to this definition">¶</a></dt>
+<dd>Get a Numpy array of the image in width x height x RGB dimensions</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getPGSurface">
+<tt class="descname">getPGSurface</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getPGSurface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the pygame surface.  This is used for rendering the display</p>
+<p>RETURNS: pgsurface</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getPIL">
+<tt class="descname">getPIL</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getPIL" title="Permalink to this definition">¶</a></dt>
+<dd>Get a PIL Image object for use with the Python Image Library</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getPixel">
+<tt class="descname">getPixel</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getPixel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the RGB value for a particular image pixel given a specific row and column.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>x - Int
+y - Int</dd>
+<dt>Returns:</dt>
+<dd>Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getVertScanline">
+<tt class="descname">getVertScanline</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getVertScanline" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a single column of RGB values from the image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>column - Int</dd>
+<dt>Returns:</dt>
+<dd>Numpy Array</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.getVertScanlineGray">
+<tt class="descname">getVertScanlineGray</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.getVertScanlineGray" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a single column of gray values from the image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>row - Int</dd>
+<dt>Return:</dt>
+<dd>Numpy Array</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.grayscale">
+<tt class="descname">grayscale</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.grayscale" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a gray scale version of the image</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.histogram">
+<tt class="descname">histogram</tt><big>(</big><em>numbins=50</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numpy array of the 1D histogram of intensity for pixels in the image
+Single parameter is how many &#8220;bins&#8221; to have.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>numbins - Integer</dd>
+<dt>Returns:</dt>
+<dd>LIST</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.hueDistance">
+<tt class="descname">hueDistance</tt><big>(</big><em>color=(0</em>, <em>0</em>, <em>0)</em>, <em>minsaturation=20</em>, <em>minvalue=20</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.hueDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an image representing the distance of each pixel from the given hue
+of a specific color.  The hue is &#8220;wrapped&#8221; at 180, so we have to take the shorter
+of the distances between them &#8211; this gives a hue distance of max 90, which we&#8217;ll 
+scale into a 0-255 grayscale image.</p>
+<p>The minsaturation and minvalue are optional parameters to weed out very weak hue
+signals in the picture, they will be pushed to max distance [255]</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>color = Color object or Color Tuple
+minsaturation - Integer
+minvalue - Integer</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.hueHistogram">
+<tt class="descname">hueHistogram</tt><big>(</big><em>bins=179</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.hueHistogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the histogram of the hue channel for the image</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>bins - Integer</dd>
+<dt>Returns:</dt>
+<dd>Numpy Histogram</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.huePeaks">
+<tt class="descname">huePeaks</tt><big>(</big><em>bins=179</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.huePeaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the histogram of hues, and returns the peak hue values, which
+can be useful for determining what the &#8220;main colors&#8221; in a picture now.</p>
+<p>The bins parameter can be used to lump hues together, by default it is 179
+(the full resolution in OpenCV&#8217;s HSV format)</p>
+<p>Peak detection code taken from <a class="reference external" href="https://gist.github.com/1178136">https://gist.github.com/1178136</a>
+Converted from/based on a MATLAB script at <a class="reference external" href="http://billauer.co.il/peakdet.html">http://billauer.co.il/peakdet.html</a></p>
+<p>Returns a list of tuples, each tuple contains the hue, and the fraction
+of the image that has it.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>bins - Integer</dd>
+<dt>Returns:</dt>
+<dd>list of tuples</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.insertDrawingLayer">
+<tt class="descname">insertDrawingLayer</tt><big>(</big><em>layer</em>, <em>index</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.insertDrawingLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a new layer into the layer stack at the specified index</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>layer - DrawingLayer
+index - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.integralImage">
+<tt class="descname">integralImage</tt><big>(</big><em>tilted=False</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.integralImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the integral image and return it as a numpy array.
+The integral image gives the sum of all of the pixels above and to the
+right of a given pixel location. It is useful for computing Haar cascades.
+The return type is a numpy array the same size of the image. The integral
+image requires 32Bit values which are not easily supported by the SimpleCV
+Image class.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>tilted - Boolean</dd>
+<dt>Returns:</dt>
+<dd>Numpy Array</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.invert">
+<tt class="descname">invert</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invert (negative) the image note that this can also be done with the
+unary minus (-) operator.</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.isBGR">
+<tt class="descname">isBGR</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.isBGR" title="Permalink to this definition">¶</a></dt>
+<dd>Returns Boolean</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.isGray">
+<tt class="descname">isGray</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.isGray" title="Permalink to this definition">¶</a></dt>
+<dd>Returns Boolean</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.isHLS">
+<tt class="descname">isHLS</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.isHLS" title="Permalink to this definition">¶</a></dt>
+<dd>Returns Boolean</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.isHSV">
+<tt class="descname">isHSV</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.isHSV" title="Permalink to this definition">¶</a></dt>
+<dd>Returns Boolean</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.isRGB">
+<tt class="descname">isRGB</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.isRGB" title="Permalink to this definition">¶</a></dt>
+<dd>Returns Boolean</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.isXYZ">
+<tt class="descname">isXYZ</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.isXYZ" title="Permalink to this definition">¶</a></dt>
+<dd>Returns Boolean</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.max">
+<tt class="descname">max</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum value of my image, and the other image, in each channel
+If other is a number, returns the maximum of that and the number</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>other - Image</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.meanColor">
+<tt class="descname">meanColor</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.meanColor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds average color of all the pixels in the image.</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.medianFilter">
+<tt class="descname">medianFilter</tt><big>(</big><em>window=''</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.medianFilter" title="Permalink to this definition">¶</a></dt>
+<dd>Perform a median filtering operation to denoise/despeckle the image.
+The optional parameter is the window size.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.mergedLayers">
+<tt class="descname">mergedLayers</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.mergedLayers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all DrawingLayer objects as a single DrawingLayer</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>DrawingLayer</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.min">
+<tt class="descname">min</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.min" title="Permalink to this definition">¶</a></dt>
+<dd><p>The minimum value of my image, and the other image, in each channel
+If other is a number, returns the minimum of that and the number</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>other - Image</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.morphClose">
+<tt class="descname">morphClose</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.morphClose" title="Permalink to this definition">¶</a></dt>
+<dd><p>morphologyClose applies a morphological close operation which is effectively
+a dilation operation followed by a morphological erosion. This operation
+helps to &#8216;bring together&#8217; or &#8216;close&#8217; binary regions which are close together.</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Closing_(morphology">http://en.wikipedia.org/wiki/Closing_(morphology</a>)
+See: <a class="reference external" href="http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex">http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex</a>
+Example Use: Use when a part, which should be one blob is really two blobs.   
+Example Code: ./examples/MorphologyExample.py</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.morphGradient">
+<tt class="descname">morphGradient</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.morphGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>The morphological gradient is the difference betwen the morphological
+dilation and the morphological gradient. This operation extracts the 
+edges of a blobs in the image.</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Morphological_Gradient">http://en.wikipedia.org/wiki/Morphological_Gradient</a>
+See: <a class="reference external" href="http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex">http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex</a>
+Example Use: Use when you have blobs but you really just want to know the blob edges.
+Example Code: ./examples/MorphologyExample.py</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.morphOpen">
+<tt class="descname">morphOpen</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.morphOpen" title="Permalink to this definition">¶</a></dt>
+<dd><p>morphologyOpen applies a morphological open operation which is effectively
+an erosion operation followed by a morphological dilation. This operation
+helps to &#8216;break apart&#8217; or &#8216;open&#8217; binary regions which are close together.</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Opening_(morphology">http://en.wikipedia.org/wiki/Opening_(morphology</a>)
+See: <a class="reference external" href="http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex">http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex</a>
+Example Use: two part blobs are &#8216;sticking&#8217; together.
+Example Code: ./examples/MorphologyExample.py</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.readText">
+<tt class="descname">readText</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.readText" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will return any text it can find using OCR on the
+image.</p>
+<p>Please note that it does not handle rotation well, so if you need
+it in your application try to rotate and/or crop the area so that
+the text would be the same way a document is read</p>
+<p>RETURNS: String</p>
+<p>If you&#8217;re having run-time problems I feel bad for your son,
+I&#8217;ve got 99 problems but dependencies ain&#8217;t one:</p>
+<p><a class="reference external" href="http://code.google.com/p/tesseract-ocr/">http://code.google.com/p/tesseract-ocr/</a>
+<a class="reference external" href="http://code.google.com/p/python-tesseract/">http://code.google.com/p/python-tesseract/</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.regionSelect">
+<tt class="descname">regionSelect</tt><big>(</big><em>x1</em>, <em>y1</em>, <em>x2</em>, <em>y2</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.regionSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Region select is similar to crop, but instead of taking a position and width
+and height values it simply takes to points on the image and returns the selected
+region. This is very helpful for creating interactive scripts that require
+the user to select a region.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>x1 - Int
+y1 - Int
+x2 - Int
+y2 - Int</dd>
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.removeDrawingLayer">
+<tt class="descname">removeDrawingLayer</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.removeDrawingLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a layer from the layer stack based on the layer&#8217;s index.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>index - Int</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.rotate">
+<tt class="descname">rotate</tt><big>(</big><em>angle</em>, <em>fixed=True</em>, <em>point=</em><span class="optional">[</span>, <em>-1</em>, <em>-1</em><span class="optional">]</span>, <em>scale=1.0</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function rotates an image around a specific point by the given angle 
+By default in &#8220;fixed&#8221; mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In &#8220;full&#8221; mode the
+contents retain the original size, and the Image object will scale
+by default, the point is the center of the image. 
+you can also specify a scaling pa   rameter</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>angle - angle in degrees positive is clockwise, negative is counter clockwise 
+fixed - if fixed is true,keep the original image dimensions, otherwise scale the image to fit the rotation 
+point - the point about which we want to rotate, if none is defined we use the center.
+scale - and optional floating point scale parameter.</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.rotate90">
+<tt class="descname">rotate90</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.rotate90" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a fast 90 degree rotation to the right.
+Note that subsequent calls to this function <em>WILL NOT</em> keep rotating it to the right!!!
+This function just does a matrix transpose so following one transpose by another will 
+just yield the original image.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Image</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.save">
+<tt class="descname">save</tt><big>(</big><em>filehandle_or_filename=''</em>, <em>mode=''</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the image to the specified filename.  If no filename is provided then
+then it will use the filename the Image was loaded from or the last
+place it was saved to.</p>
+<p>Save will implicitly render the image&#8217;s layers before saving, but the layers are 
+not applied to the Image itself.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.scale">
+<tt class="descname">scale</tt><big>(</big><em>width</em>, <em>height=-1</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale the image to a new width and height.</p>
+<p>If no height is provided, the width is considered a scaling value ie:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">img</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="c">#scales the image to 200px x 100px</span>
+<span class="n">img</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="c">#enlarges the image to 2x its current size</span>
+</pre></div>
+</div>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.shear">
+<tt class="descname">shear</tt><big>(</big><em>cornerpoints</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.shear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of new corner points in clockwise order, return a shear-ed Image
+that transforms the Image contents.  The returned image is the same
+dimensions.</p>
+<p>cornerpoints is a 2x4 array of point tuples</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.show">
+<tt class="descname">show</tt><big>(</big><em>type='window'</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function automatically pops up a window and shows the current image</p>
+<dl class="docutils">
+<dt>Types:</dt>
+<dd>window
+browser</dd>
+<dt>Parameters:</dt>
+<dd>type - String</dd>
+<dt>Return:</dt>
+<dd>Display</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.size">
+<tt class="descname">size</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets width and height</p>
+<p>Returns: TUPLE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.smooth">
+<tt class="descname">smooth</tt><big>(</big><em>algorithm_name='gaussian'</em>, <em>aperature=''</em>, <em>sigma=0</em>, <em>spatial_sigma=0</em>, <em>grayscale=False</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth the image, by default with the Gaussian blur.  If desired,
+additional algorithms and aperatures can be specified.  Optional parameters
+are passed directly to OpenCV&#8217;s cv.Smooth() function.</p>
+<p>If grayscale is true the smoothing operation is only performed on a single channel
+otherwise the operation is performed on each channel of the image.</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.split">
+<tt class="descname">split</tt><big>(</big><em>cols</em>, <em>rows</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given number of cols and rows, splits the image into a cols x rows 2d array 
+of cropped images</p>
+<p>quadrants = Image(&#8220;foo.jpg&#8221;).split(2,2) &lt;&#8211; returns a 2d array of 4 images</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.splitChannels">
+<tt class="descname">splitChannels</tt><big>(</big><em>grayscale=True</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.splitChannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split the channels of an image into RGB (not the default BGR)
+single parameter is whether to return the channels as grey images (default)
+or to return them as tinted color image</p>
+<p>Returns: TUPLE - of 3 image objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.stretch">
+<tt class="descname">stretch</tt><big>(</big><em>thresh_low=0</em>, <em>thresh_high=255</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.stretch" title="Permalink to this definition">¶</a></dt>
+<dd><p>The stretch filter works on a greyscale image, if the image
+is color, it returns a greyscale image.  The filter works by
+taking in a lower and upper threshold.  Anything below the lower
+threshold is pushed to black (0) and anything above the upper
+threshold is pushed to white (255)</p>
+<p>Returns: IMAGE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toBGR">
+<tt class="descname">toBGR</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toBGR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts image colorspace to BGR</p>
+<p>RETURNS: Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toGray">
+<tt class="descname">toGray</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toGray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts image to Grayscale colorspace</p>
+<p>RETURNS: Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toHLS">
+<tt class="descname">toHLS</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toHLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts image to HLS colorspace</p>
+<p>RETURNS: Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toHSV">
+<tt class="descname">toHSV</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toHSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts image to HSV colorspace</p>
+<p>RETURNS: Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toPygameSurface">
+<tt class="descname">toPygameSurface</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toPygameSurface" title="Permalink to this definition">¶</a></dt>
+<dd>Converts this image to a pygame surface. This is useful if you want
+to treat an image as a sprite to render onto an image. An example
+would be rendering blobs on to an image. THIS IS EXPERIMENTAL.</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toRGB">
+<tt class="descname">toRGB</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toRGB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts Image colorspace to RGB</p>
+<p>RETURNS: Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.toXYZ">
+<tt class="descname">toXYZ</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.toXYZ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts image to XYZ colorspace</p>
+<p>RETURNS: Image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.transformAffine">
+<tt class="descname">transformAffine</tt><big>(</big><em>rotMatrix</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.transformAffine" title="Permalink to this definition">¶</a></dt>
+<dd><p>This helper function for shear performs an affine rotation using the supplied matrix. 
+The matrix can be a either an openCV mat or an np.ndarray type. 
+The matrix should be a 2x3</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>rotMatrix - Numpy Array or CvMat</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.transformPerspective">
+<tt class="descname">transformPerspective</tt><big>(</big><em>rotMatrix</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.transformPerspective" title="Permalink to this definition">¶</a></dt>
+<dd><p>This helper function for warp performs an affine rotation using the supplied matrix. 
+The matrix can be a either an openCV mat or an np.ndarray type. 
+The matrix should be a 3x3</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>rotMatrix - Numpy Array or CvMat</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.ImageClass.Image.warp">
+<tt class="descname">warp</tt><big>(</big><em>cornerpoints</em><big>)</big><a class="headerlink" href="#SimpleCV.ImageClass.Image.warp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a new set of corner points in clockwise order, return an Image with 
+the images contents warped to the new coordinates.  The returned image
+will be the same size as the original image</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>cornerpoints - List of Tuples</dd>
+<dt>Returns:</dt>
+<dd>IMAGE</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.Images">
+<h2><tt class="xref docutils literal"><span class="pre">Images</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Images" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-SimpleCV.Stream">
+<h2><tt class="xref docutils literal"><span class="pre">Stream</span></tt> Module<a class="headerlink" href="#module-SimpleCV.Stream" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="SimpleCV.Stream.JpegStreamHandler">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Stream.</tt><tt class="descname">JpegStreamHandler</tt><big>(</big><em>request</em>, <em>client_address</em>, <em>server</em><big>)</big><a class="headerlink" href="#SimpleCV.Stream.JpegStreamHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">SimpleHTTPServer.SimpleHTTPRequestHandler</span></tt></p>
+<p>The JpegStreamHandler handles requests to the threaded HTTP server.
+Once initialized, any request to this port will receive a multipart/replace
+jpeg.</p>
+<dl class="method">
+<dt id="SimpleCV.Stream.JpegStreamHandler.do_GET">
+<tt class="descname">do_GET</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Stream.JpegStreamHandler.do_GET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Stream.JpegStreamer">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Stream.</tt><tt class="descname">JpegStreamer</tt><big>(</big><em>hostandport=8080</em>, <em>st=0.10000000000000001</em><big>)</big><a class="headerlink" href="#SimpleCV.Stream.JpegStreamer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The JpegStreamer class allows the user to stream a jpeg encoded file
+to a HTTP port.  Any updates to the jpg file will automatically be pushed
+to the browser via multipart/replace content type.</p>
+<p>To initialize:
+js = JpegStreamer()</p>
+<p>to update:
+img.save(js)</p>
+<p>to open a browser and display:
+import webbrowser
+webbrowser.open(js.url)</p>
+<p>Note 3 optional parameters on the constructor:
+- port (default 8080) which sets the TCP port you need to connect to
+- sleep time (default 0.1) how often to update.  Above 1 second seems to cause dropped connections in Google chrome</p>
+<p>Once initialized, the buffer and sleeptime can be modified and will function properly &#8211; port will not.</p>
+<dl class="method">
+<dt id="SimpleCV.Stream.JpegStreamer.streamUrl">
+<tt class="descname">streamUrl</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Stream.JpegStreamer.streamUrl" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the URL of the MJPEG stream. If host and port are not set in the constructor, defaults to &#8220;<a class="reference external" href="http://localhost:8080/stream/">http://localhost:8080/stream/</a>&#8220;</dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Stream.JpegStreamer.url">
+<tt class="descname">url</tt><big>(</big><big>)</big><a class="headerlink" href="#SimpleCV.Stream.JpegStreamer.url" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the JpegStreams Webbrowser-appropriate URL, if not provided in the constructor, it defaults to &#8220;<a class="reference external" href="http://localhost:8080">http://localhost:8080</a>&#8220;</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Stream.JpegTCPServer">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Stream.</tt><tt class="descname">JpegTCPServer</tt><big>(</big><em>server_address</em>, <em>RequestHandlerClass</em>, <em>bind_and_activate=True</em><big>)</big><a class="headerlink" href="#SimpleCV.Stream.JpegTCPServer" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">SocketServer.ThreadingMixIn</span></tt>, <tt class="xref docutils literal"><span class="pre">SocketServer.TCPServer</span></tt></dd></dl>
+
+<dl class="class">
+<dt id="SimpleCV.Stream.VideoStream">
+<em class="property">class </em><tt class="descclassname">SimpleCV.Stream.</tt><tt class="descname">VideoStream</tt><big>(</big><em>filename</em>, <em>fps=25</em>, <em>framefill=True</em><big>)</big><a class="headerlink" href="#SimpleCV.Stream.VideoStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>The VideoStream lets you save video files in a number of different formats.</p>
+<p>You can initialize it by specifying the file you want to output:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vs</span> <span class="o">=</span> <span class="n">VideoStream</span><span class="p">(</span><span class="s">&quot;hello.avi&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also specify a framerate, and if you want to &#8220;fill&#8221; in missed frames. 
+So if you want to record a realtime video you may want to do this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vs</span> <span class="o">=</span> <span class="n">VideoStream</span><span class="p">(</span><span class="s">&quot;myvideo.avi&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="c">#note these are default values</span>
+</pre></div>
+</div>
+<p>Where if you want to do a stop-motion animation, you would want to turn fill off:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vs_animation</span> <span class="o">=</span> <span class="n">VideoStream</span><span class="p">(</span><span class="s">&quot;cartoon.avi&quot;</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>If you select a fill, the VideoStream will do its best to stay close to &#8220;real time&#8221; by duplicating frames or dropping frames when the clock doesn&#8217;t sync up
+with the file writes.</p>
+<p>You can save a frame to the video by using the Image.save() function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_camera</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">vs</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="SimpleCV.Stream.VideoStream.initializeWriter">
+<tt class="descname">initializeWriter</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#SimpleCV.Stream.VideoStream.initializeWriter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SimpleCV.Stream.VideoStream.writeFrame">
+<tt class="descname">writeFrame</tt><big>(</big><em>img</em><big>)</big><a class="headerlink" href="#SimpleCV.Stream.VideoStream.writeFrame" title="Permalink to this definition">¶</a></dt>
+<dd>This writes a frame to the display object
+this is automatically called by image.save() but you can
+use this function to save just the bitmap as well so
+image markup is not implicit,typically you use image.save() but
+this allows for more finer control</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SimpleCV.base">
+<h2><tt class="xref docutils literal"><span class="pre">base</span></tt> Module<a class="headerlink" href="#module-SimpleCV.base" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="SimpleCV.base.download_and_extract">
+<tt class="descclassname">SimpleCV.base.</tt><tt class="descname">download_and_extract</tt><big>(</big><em>URL</em><big>)</big><a class="headerlink" href="#SimpleCV.base.download_and_extract" title="Permalink to this definition">¶</a></dt>
+<dd>This function takes in a URL for a zip file, extracts it and returns
+the temporary path it was extracted to</dd></dl>
+
+<dl class="function">
+<dt id="SimpleCV.base.find">
+<tt class="descclassname">SimpleCV.base.</tt><tt class="descname">find</tt><big>(</big><em>f</em>, <em>seq</em><big>)</big><a class="headerlink" href="#SimpleCV.base.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for item in a list</p>
+<p>Returns: Boolean</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SimpleCV.base.is_number">
+<tt class="descclassname">SimpleCV.base.</tt><tt class="descname">is_number</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#SimpleCV.base.is_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if it is a number or not</p>
+<p>Returns: Type</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SimpleCV.base.is_tuple">
+<tt class="descclassname">SimpleCV.base.</tt><tt class="descname">is_tuple</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#SimpleCV.base.is_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if it is a tuple or not</p>
+<p>Returns: Boolean</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SimpleCV.base.npArray2cvMat">
+<tt class="descclassname">SimpleCV.base.</tt><tt class="descname">npArray2cvMat</tt><big>(</big><em>inputMat</em>, <em>dataType=5</em><big>)</big><a class="headerlink" href="#SimpleCV.base.npArray2cvMat" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is a utility for converting numpy arrays to the cv.cvMat format.</p>
+<p>Returns: cvMatrix</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SimpleCV.base.reverse_tuple">
+<tt class="descclassname">SimpleCV.base.</tt><tt class="descname">reverse_tuple</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#SimpleCV.base.reverse_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverses a tuple</p>
+<p>Returns: Tuple</p>
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="SimpleCV.Features.html">Features Package</a><ul>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features"><tt class="docutils literal"><span class="pre">Features</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.BOFFeatureExtractor"><tt class="docutils literal"><span class="pre">BOFFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.Blob"><tt class="docutils literal"><span class="pre">Blob</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.BlobMaker"><tt class="docutils literal"><span class="pre">BlobMaker</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.Detection"><tt class="docutils literal"><span class="pre">Detection</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.EdgeHistogramFeatureExtractor"><tt class="docutils literal"><span class="pre">EdgeHistogramFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.FeatureExtractorBase"><tt class="docutils literal"><span class="pre">FeatureExtractorBase</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.Features"><tt class="docutils literal"><span class="pre">Features</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.HaarLikeFeature"><tt class="docutils literal"><span class="pre">HaarLikeFeature</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.HaarLikeFeatureExtractor"><tt class="docutils literal"><span class="pre">HaarLikeFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.HueHistogramFeatureExtractor"><tt class="docutils literal"><span class="pre">HueHistogramFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.MorphologyFeatureExtractor"><tt class="docutils literal"><span class="pre">MorphologyFeatureExtractor</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="SimpleCV.MachineLearning.html">MachineLearning Package</a><ul>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning"><tt class="docutils literal"><span class="pre">MachineLearning</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.KNNClassifier"><tt class="docutils literal"><span class="pre">KNNClassifier</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.NaiveBayesClassifier"><tt class="docutils literal"><span class="pre">NaiveBayesClassifier</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.SVMClassifier"><tt class="docutils literal"><span class="pre">SVMClassifier</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.TreeClassifier"><tt class="docutils literal"><span class="pre">TreeClassifier</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="SimpleCV.Segmentation.html">Segmentation Package</a><ul>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation"><tt class="docutils literal"><span class="pre">Segmentation</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.ColorSegmentation"><tt class="docutils literal"><span class="pre">ColorSegmentation</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.DiffSegmentation"><tt class="docutils literal"><span class="pre">DiffSegmentation</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.RunningSegmentation"><tt class="docutils literal"><span class="pre">RunningSegmentation</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.SegmentationBase"><tt class="docutils literal"><span class="pre">SegmentationBase</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="SimpleCV.Shell.html">Shell Package</a><ul>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell"><tt class="docutils literal"><span class="pre">Shell</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Cheatsheet"><tt class="docutils literal"><span class="pre">Cheatsheet</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Example"><tt class="docutils literal"><span class="pre">Example</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Help"><tt class="docutils literal"><span class="pre">Help</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Shell"><tt class="docutils literal"><span class="pre">Shell</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Tutorial"><tt class="docutils literal"><span class="pre">Tutorial</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/simplecv.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">SimpleCV Package</a><ul>
+<li><a class="reference external" href="#module-SimpleCV.__init__"><tt class="docutils literal"><span class="pre">SimpleCV</span></tt> Package</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Camera"><tt class="docutils literal"><span class="pre">Camera</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Color"><tt class="docutils literal"><span class="pre">Color</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.ColorModel"><tt class="docutils literal"><span class="pre">ColorModel</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Display"><tt class="docutils literal"><span class="pre">Display</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.DrawingLayer"><tt class="docutils literal"><span class="pre">DrawingLayer</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Font"><tt class="docutils literal"><span class="pre">Font</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.ImageClass"><tt class="docutils literal"><span class="pre">ImageClass</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Images"><tt class="docutils literal"><span class="pre">Images</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.Stream"><tt class="docutils literal"><span class="pre">Stream</span></tt> Module</a></li>
+<li><a class="reference external" href="#module-SimpleCV.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
+<li><a class="reference external" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="installation.html"
+                                  title="previous chapter">Installation</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="SimpleCV.Features.html"
+                                  title="next chapter">Features Package</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/SimpleCV.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SimpleCV.Features.html" title="Features Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">SimpleCV v1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Ingeuitas.
+    </div>
+  </body>
+</html>

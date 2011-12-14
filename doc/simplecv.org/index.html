@@ -6,7 +6,7 @@
         <meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport">
         <meta name="description" content="SimpleCV is a Computer Vision framework that gives you everything you need to process data from images, and supports the Xbox Kinect">
         <meta name="keywords" content="simplecv, opencv, computer vision, machine vision, kinect, video processing, face recognition">
-        <link href="http://fonts.googleapis.com/css?family=Play&amp;v1&amp;subset=latin&amp;effect=smoothing" rel="stylesheet" type="text/css"> 
+        <link href='http://fonts.googleapis.com/css?family=Play:400,700' rel='stylesheet' type='text/css'> 
         <link rel="stylesheet" href="http://simplecv.s3.amazonaws.com/one.css">
         <link rel="stylesheet" href="http://simplecv.s3.amazonaws.com/contactable.css" type="text/css">
         <!--[if lt IE 9]><script type="text/javascript" src="http://s3.amazonaws.com/speedyjs/modernizr2.js"></script><![endif]-->
@@ -14,16 +14,18 @@
     <body>
         <div id="contactable"></div>
         <div class="bg">
-            <div class="skin"></div>
+            <!-- <div class="skin"></div>  this was causing issues with new chrome - NJO -->
             <h1>SimpleCV</h1>
             <div class="pad">
                 <a href="http://github.com/ingenuitas/simplecv"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/71eeaab9d563c2b3c590319b398dd35683265e85/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub"></a>
-                <img src="http://simplecv.s3.amazonaws.com/simplecv_lg.png" class="glow">
+                <a href="/">
+                    <img src="http://simplecv.s3.amazonaws.com/simplecv_lg.png" class="glow">
+                </a>
                 <h2>Make computers see with SimpleCV<br>The Open Source Framework for Vision</h2>
-                <nav> 
+                <nav class="clearfix"> 
                     <a href="demos.html">Demos</a>
                     <a href="examples.html">Examples</a>
-                    <a href="http://sf.net/projects/simplecv/files/">Download</a>
+                    <a href="http://sourceforge.net/projects/simplecv/files/latest/download?source=files">Download</a>
                     <a href="https://github.com/ingenuitas/SimpleCV">Code</a>
                     <a href="http://simplecv.tumblr.com">Blog</a> 
                     <a href="/doc/">Docs</a> 
@@ -31,7 +33,7 @@
                 </nav>                  
             </div>
             <section class="clearfix">
-                <div class="col3">
+                <div class="col3 clearfix">
                     <h3>About SimpleCV</h3>
                     <p>
                         SimpleCV is a Python interface to several powerful open source computer vision libraries in a single convenient package. With it, your software can have access to high level algorithms in feature detection, filtering, and pattern recognition in a unified framework. Forget about bit depths, file formats, color spaces, buffer management, eigenvalues, and matrix vs bitmap storage.
@@ -39,12 +41,13 @@
                     <p>
                         We love clean, readable computer vision code and hope you'll love how easy SimpleCV is to work with:
                     </p>
-<output>
-from SimpleCV import Camera
-image = Camera().getImage()
-image.save("hello.jpg")
-
-</output>
+                    <p>  
+                      <i>
+                      from SimpleCV import Camera<br>
+                      image = Camera().getImage()<br>
+                      image.show()
+                      </i>
+                    </p>
                 </div>
                 <div class="col3">
                     <h3>Features</h3>
@@ -58,24 +61,35 @@ image.save("hello.jpg")
                     </ul>
                 </div>
                 <div class="col3">
-                    <h3>Get Started</h3>
-                    <p>
-                        To Install, you need <a href="http://python.org">Python 2</a>, <a href="http://opencv.willowgarage.com">OpenCV</a> and <a href="http://scipy.org">SciPY</a>, then you can:
-                        <blockquote><i>easy_install&nbsp;simplecv</i></blockquote>
-                        Installation instructions and all-in-one superpacks:
-                    </p>
-                    <ul class="clean">
-                        <li><a href="/doc/installation.html#windows-7-vista">Windows 7/Vista/XP instructions</a>/<a href="http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV-Superpack-1.1.exe/download">superpack</a></li>
-                        <li><a href="/doc/installation.html#mac-os-x-10-5-8-and-above">Mac 10.6+ instructions</a>/<a href="http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV%20Superpack%201.1.pkg/download">superpack</a></li>
-                        <li><a href="/doc/installation.html">Ubuntu Linux instructions</a>/<a href="http://sourceforge.net/projects/simplecv/files/1.1/SimpleCV_1.1_linux_all.deb/download">package</a></li>
-                    </ul>
+                    <h3>Install</h3>
+                      <p>
+                        <a href = "http://sourceforge.net/projects/simplecv/files/latest/download?source=files">
+                        <img src="img/windows-logo.png">
+                        <img src="img/apple-logo.png">
+                        <img src="img/ubuntu-logo.png">
+                        </a>
+                      </p>
+                      <p>
+                        Once you have everything installed, visit:
+                        <a href="http://simplecv.org/examples.html">http://simplecv.org/examples.html</a>
+                      </p>
+                      <hr>
+                      <h3>Development</h3>
+                      <p>
+                        If you want to run the "cutting edge" version or just want to build
+                        SimpleCV manually then follow the instructions in the documentation:
+                        <a href="http://www.simplecv.org/doc/installation.html">http://www.simplecv.org/doc/installation.html</a>
+                        <br>
+                        <br>
+                        You can also get the latest code from:
+                        <a href="http://github.com/ingenuitas/SimpleCV">http://github.com/ingenuitas/SimpleCV</a>
+                      </p>
                 </div>
             </section>
             <footer>
                &copy; 2011 <a href="http://ingenuitas.com">Ingenuitas</a>, All Rights Reserved
             </footer>
         </div>
-        <!--[if lt IE 9]><script type="text/javascript" src="http://s3.amazonaws.com/speedyjs/modernizr2.js"></script><![endif]-->        
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
         <script type="text/javascript" src="http://simplecv.s3.amazonaws.com/jquery.validate.pack.js"></script> 
         <script type="text/javascript" src="http://simplecv.s3.amazonaws.com/jquery.contactable.min.js"></script> 

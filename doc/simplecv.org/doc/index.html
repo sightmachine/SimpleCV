@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>SimpleCV: a kinder, gentler machine vision library &mdash; SimpleCV v1.0.0 documentation</title>
+    <title>Welcome to SimpleCV’s documentation! &mdash; SimpleCV v1.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0.0',
+        VERSION:     '1.2',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,20 +19,23 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="SimpleCV v1.0.0 documentation" href="#" />
-    <link rel="next" title="SimpleCV module" href="api.html" /> 
+    <link rel="top" title="SimpleCV v1.2 documentation" href="#" />
+    <link rel="next" title="SimpleCV Cookbook" href="cookbook.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index" accesskey="I">index</a></li>
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> &nbsp;| </li>
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
         <li class="right" >
-          <a href="api.html" title="SimpleCV module" accesskey="N">next</a> &nbsp;| </li>
-        <li><a href="index.html"><strong>SimpleCV</strong> v1.0.0 documentation</a> &raquo;</li>
+          <a href="cookbook.html" title="SimpleCV Cookbook"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">SimpleCV v1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -41,89 +44,15 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="simplecv-a-kinder-gentler-machine-vision-library">
-<h1>SimpleCV: a kinder, gentler machine vision library<a class="headerlink" href="#simplecv-a-kinder-gentler-machine-vision-library" title="Permalink to this headline">¶</a></h1>
-<p>a kinder, gentler machine vision python library</p>
-<p>SimpleCV is an interface for Open Source machine vision libraries in Python.
-It provides a consise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.</p>
-<p>Download from SourceForge: &lt;<a class="reference external" href="http://sourceforge.net/projects/simplecv/files">http://sourceforge.net/projects/simplecv/files</a>&gt;</p>
-<p>SourceForge Project Page: &lt;<a class="reference external" href="http://sf.net/p/simplecv">http://sf.net/p/simplecv</a>&gt;</p>
-<p>We like SimpleCV because:</p>
-<blockquote>
-<ul class="simple">
-<li>Even beginning programmers can write simple machine vision tests</li>
-<li>Cameras, video files, images, and video streams are all interoperable</li>
-<li>Information on image features can be extracted, sorted and filtered easily</li>
-<li>Manipulations are fast, with easy to remember names</li>
-<li>Linear algebra is strictly optional</li>
-</ul>
-</blockquote>
-<p>Here is the simplecv &#8220;hello world&#8221;:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">SimpleCV</span>
-
-<span class="n">c</span> <span class="o">=</span> <span class="n">SimpleCV</span><span class="o">.</span><span class="n">Camera</span><span class="p">()</span>
-<span class="n">c</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;picture.jpg&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>For more code snippets, look at the cookbook, or the example scripts.</p>
-<div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>You will absolutely need:</p>
-<blockquote>
-<ul class="simple">
-<li>OpenCV installed for your platform <a class="reference external" href="http://opencv.willowgarage.com/wiki/InstallGuide">http://opencv.willowgarage.com/wiki/InstallGuide</a></li>
-<li>SciPY/Numpy installed for your platform <a class="reference external" href="http://www.scipy.org/Download">http://www.scipy.org/Download</a></li>
-</ul>
-</blockquote>
-<p>Once you have all the required libraries installed:</p>
-<div class="highlight-python"><pre>easy_install simplecv</pre>
-</div>
-<p>If you need more help, look at the <a href="#id1"><span class="problematic" id="id2">`</span></a>installation docs`&lt;installation.html&gt;</p>
-</div>
-<div class="section" id="required-libraries">
-<h2>Required Libraries<a class="headerlink" href="#required-libraries" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>OpenCV 2.2 with Python bindings <a class="reference external" href="http://opencv.willowgarage.com/wiki/">http://opencv.willowgarage.com/wiki/</a></li>
-<li>SciPY <a class="reference external" href="http://www.scipy.org/">http://www.scipy.org/</a></li>
-</ul>
-</div>
-<div class="section" id="optional-libraries">
-<h2>Optional Libraries<a class="headerlink" href="#optional-libraries" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Python Image Library <a class="reference external" href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a></li>
-<li>OpenKinect/freenect <a class="reference external" href="http://openkinect.org/wiki/Main_Page">http://openkinect.org/wiki/Main_Page</a></li>
-</ul>
-<p>Blob detection:</p>
-<ul class="simple">
-<li>CvBlob <a class="reference external" href="http://code.google.com/p/cvblob/">http://code.google.com/p/cvblob/</a></li>
-<li>cvblob-python <a class="reference external" href="https://github.com/oostendo/cvblob-python">https://github.com/oostendo/cvblob-python</a></li>
-</ul>
-<p>Barcode reading:</p>
-<ul class="simple">
-<li>Zxing <a class="reference external" href="http://code.google.com/p/zxing/">http://code.google.com/p/zxing/</a></li>
-<li>python-zxing <a class="reference external" href="https://github.com/oostendo/python-zxing">https://github.com/oostendo/python-zxing</a></li>
-</ul>
-</div>
-<div class="section" id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="welcome-to-simplecv-s-documentation">
+<h1>Welcome to SimpleCV&#8217;s documentation!<a class="headerlink" href="#welcome-to-simplecv-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="api.html"><tt class="docutils literal"><span class="pre">SimpleCV</span></tt> module</a><ul>
-<li class="toctree-l2"><a class="reference external" href="api.html#image">Image</a></li>
-<li class="toctree-l2"><a class="reference external" href="api.html#features">Features</a></li>
-<li class="toctree-l2"><a class="reference external" href="api.html#cameras">Cameras</a></li>
-<li class="toctree-l2"><a class="reference external" href="api.html#streams">Streams</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference external" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference external" href="installation.html#ubuntu-10-4-or-above">Ubuntu (10.4 or above)</a></li>
-<li class="toctree-l2"><a class="reference external" href="installation.html#mac-os-x-10-6-and-above">Mac OS X (10.6 and above)</a></li>
-<li class="toctree-l2"><a class="reference external" href="installation.html#windows-7-vista">Windows 7/Vista</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference external" href="cookbook.html">SimpleCV Cookbook</a><ul>
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#loading-and-saving-images">Loading and Saving Images</a></li>
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#image-manipulation">Image Manipulation</a></li>
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#using-a-camera-kinect-or-virtualcamera">Using a Camera, Kinect, or VirtualCamera</a></li>
+<li class="toctree-l2"><a class="reference external" href="cookbook.html#multiple-cameras">Multiple Cameras</a></li>
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#colors-and-levels">Colors and Levels</a></li>
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#features-and-featuresets">Features and FeatureSets</a></li>
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#blob-detection">Blob Detection</a></li>
@@ -132,17 +61,73 @@ It provides a consise, readable interface for cameras, image manipulation, featu
 <li class="toctree-l2"><a class="reference external" href="cookbook.html#output-streams">Output Streams</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference external" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference external" href="installation.html#ubuntu-10-4-or-10-11">Ubuntu 10.4 or 10.11</a></li>
+<li class="toctree-l2"><a class="reference external" href="installation.html#ubuntu-11-4">Ubuntu 11.4</a></li>
+<li class="toctree-l2"><a class="reference external" href="installation.html#ubuntu-11-10">Ubuntu 11.10</a></li>
+<li class="toctree-l2"><a class="reference external" href="installation.html#mac-os-x-10-6-and-above">Mac OS X (10.6 and above)</a></li>
+<li class="toctree-l2"><a class="reference external" href="installation.html#windows-7-vista">Windows 7/Vista</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="SimpleCV.html">SimpleCV Package</a><ul>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.__init__"><tt class="docutils literal"><span class="pre">SimpleCV</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.Camera"><tt class="docutils literal"><span class="pre">Camera</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.Color"><tt class="docutils literal"><span class="pre">Color</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.ColorModel"><tt class="docutils literal"><span class="pre">ColorModel</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.Display"><tt class="docutils literal"><span class="pre">Display</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.DrawingLayer"><tt class="docutils literal"><span class="pre">DrawingLayer</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.Font"><tt class="docutils literal"><span class="pre">Font</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.ImageClass"><tt class="docutils literal"><span class="pre">ImageClass</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.Images"><tt class="docutils literal"><span class="pre">Images</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.Stream"><tt class="docutils literal"><span class="pre">Stream</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#module-SimpleCV.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference external" href="SimpleCV.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference external" href="SimpleCV.Features.html">Features Package</a><ul>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features"><tt class="docutils literal"><span class="pre">Features</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.BOFFeatureExtractor"><tt class="docutils literal"><span class="pre">BOFFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.Blob"><tt class="docutils literal"><span class="pre">Blob</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.BlobMaker"><tt class="docutils literal"><span class="pre">BlobMaker</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.Detection"><tt class="docutils literal"><span class="pre">Detection</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.EdgeHistogramFeatureExtractor"><tt class="docutils literal"><span class="pre">EdgeHistogramFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.FeatureExtractorBase"><tt class="docutils literal"><span class="pre">FeatureExtractorBase</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.Features"><tt class="docutils literal"><span class="pre">Features</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.HaarLikeFeature"><tt class="docutils literal"><span class="pre">HaarLikeFeature</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.HaarLikeFeatureExtractor"><tt class="docutils literal"><span class="pre">HaarLikeFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.HueHistogramFeatureExtractor"><tt class="docutils literal"><span class="pre">HueHistogramFeatureExtractor</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Features.html#module-SimpleCV.Features.MorphologyFeatureExtractor"><tt class="docutils literal"><span class="pre">MorphologyFeatureExtractor</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference external" href="SimpleCV.MachineLearning.html">MachineLearning Package</a><ul>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning"><tt class="docutils literal"><span class="pre">MachineLearning</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.KNNClassifier"><tt class="docutils literal"><span class="pre">KNNClassifier</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.NaiveBayesClassifier"><tt class="docutils literal"><span class="pre">NaiveBayesClassifier</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.SVMClassifier"><tt class="docutils literal"><span class="pre">SVMClassifier</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.MachineLearning.html#module-SimpleCV.MachineLearning.TreeClassifier"><tt class="docutils literal"><span class="pre">TreeClassifier</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference external" href="SimpleCV.Segmentation.html">Segmentation Package</a><ul>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation"><tt class="docutils literal"><span class="pre">Segmentation</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.ColorSegmentation"><tt class="docutils literal"><span class="pre">ColorSegmentation</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.DiffSegmentation"><tt class="docutils literal"><span class="pre">DiffSegmentation</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.RunningSegmentation"><tt class="docutils literal"><span class="pre">RunningSegmentation</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Segmentation.html#module-SimpleCV.Segmentation.SegmentationBase"><tt class="docutils literal"><span class="pre">SegmentationBase</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference external" href="SimpleCV.Shell.html">Shell Package</a><ul>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell"><tt class="docutils literal"><span class="pre">Shell</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Cheatsheet"><tt class="docutils literal"><span class="pre">Cheatsheet</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Example"><tt class="docutils literal"><span class="pre">Example</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Help"><tt class="docutils literal"><span class="pre">Help</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Shell"><tt class="docutils literal"><span class="pre">Shell</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference external" href="SimpleCV.Shell.html#module-SimpleCV.Shell.Tutorial"><tt class="docutils literal"><span class="pre">Tutorial</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
-</div>
-<div class="section" id="videos">
-<h1>Videos<a class="headerlink" href="#videos" title="Permalink to this headline">¶</a></h1>
-<p>Our <a href="#id3"><span class="problematic" id="id4">`</span></a>installation docs`&lt;installation.html&gt; contain videos for installing on each platform.</p>
-<p><cite>Anthony shows off the SimpleCV interactive shell &lt;http://youtu.be/oKyPHtcujyE&gt;</cite></p>
-<iframe width="425" height="349" src="http://www.youtube.com/embed/oKyPHtcujyE" frameborder="0" allowfullscreen></iframe><p><a class="reference external" href="http://youtu.be/cLD4Hk1oNlw">Nate demonstrating the Kinect Coloring Example</a></p>
-<iframe width="425" height="349" src="http://www.youtube.com/embed/cLD4Hk1oNlw" frameborder="0" allowfullscreen></iframe><p><cite>Anthony shows off the simplecam example</cite></p>
-<iframe width="425" height="349" src="http://www.youtube.com/embed/Drz99oldq-0" frameborder="0" allowfullscreen></iframe><p><a class="reference external" href="http://www.youtube.com/watch?v=i5j3ORmaLTo">Nate demonstrating the Cookie Jar Alarm Example</a></p>
-<iframe width="560" height="349" src="http://www.youtube.com/embed/i5j3ORmaLTo" frameborder="0" allowfullscreen></iframe></div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
@@ -158,24 +143,20 @@ It provides a consise, readable interface for cameras, image manipulation, featu
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/simplecv.png" alt="Logo"/>
+            </a></p>
             <h3><a href="#">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="#">SimpleCV: a kinder, gentler machine vision library</a><ul>
-<li><a class="reference external" href="#installation">Installation</a></li>
-<li><a class="reference external" href="#required-libraries">Required Libraries</a></li>
-<li><a class="reference external" href="#optional-libraries">Optional Libraries</a></li>
-<li><a class="reference external" href="#contents">Contents</a><ul>
+<li><a class="reference external" href="#">Welcome to SimpleCV&#8217;s documentation!</a><ul>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference external" href="#videos">Videos</a></li>
 <li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
             <h4>Next topic</h4>
-            <p class="topless"><a href="api.html"
-                                  title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">SimpleCV</span></tt> module</a></p>
+            <p class="topless"><a href="cookbook.html"
+                                  title="next chapter">SimpleCV Cookbook</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
               <li><a href="_sources/index.txt"
@@ -198,9 +179,23 @@ It provides a consise, readable interface for cameras, image manipulation, featu
       </div>
       <div class="clearer"></div>
     </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cookbook.html" title="SimpleCV Cookbook"
+             >next</a> |</li>
+        <li><a href="#">SimpleCV v1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
     <div class="footer">
-      &copy; Copyright 2011, Ingenuitas Inc.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+      &copy; Copyright 2011, Ingeuitas.
     </div>
   </body>
 </html>
