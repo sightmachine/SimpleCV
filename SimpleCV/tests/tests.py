@@ -999,3 +999,92 @@ def test_segmentation_color():
     else:
         pass
 
+def test_embiggen():
+  img = Image(logo)
+  img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(30,30)).save("embiggen_centered2.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(150,150)) #should warn
+
+  img.embiggen(size=(100,100),color=Color.RED,pos=(-20,-20)).save("embiggen_tlcorner.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(30,-20)).save("embiggen_tcenter.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(60,-20)).save("embiggen_trcorner.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(60,30)).save("embiggen_right.png")
+
+  img.embiggen(size=(100,100),color=Color.RED,pos=(80,80)).save("embiggen_brcorner.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(30,80)).save("embiggen_bottom.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(-20,80)).save("embiggen_blcorner.png")
+  img.embiggen(size=(100,100),color=Color.RED,pos=(-20,30)).save("embiggen_left.png")
+  pass
+
+def test_createBinaryMask():
+  img = Image(logo)
+  img.createBinaryMask(rgb_color=(0,0,0)).save('BinaryMask1.png')
+  img.createBinaryMask(rgb_color=(50,50,50)).save('BinaryMask2.png')
+  pass
+
+def test_applyBinaryMask():
+  img = Image(logo)
+  mask = img.createBinaryMask(rgb_color=(0,0,0))
+  img.applyBinaryMask(mask).save("appliedMask1.png")
+  img.applyBinaryMask(mask,bg_color=Color.RED).save("appliedMask2.png")
+  pass
+
+def test_applyPixelFunc():
+  img = Image(logo)
+  def myFunc((r,g,b)):
+    return( (b,g,r) )
+  img.applyPixelFunction(myFunc).save("pixelfunc.png")
+  pass
+
+def test_applySideBySide():
+  img = Image(logo)
+  img3 = Image(testimage2)
+
+  #LB = little image big image
+  #BL = big image little image  -> this is important to test all the possible cases.
+  img3.sideBySide(img,side='right',scale=False).save('SideBySideRightBL.png')
+  img3.sideBySide(img,side='left',scale=False).save('SideBySideLeftBL.png')
+  img3.sideBySide(img,side='top',scale=False).save('SideBySideTopBL.png')
+  img3.sideBySide(img,side='bottom',scale=False).save('SideBySideBottomBL.png')
+
+  img.sideBySide(img3,side='right',scale=False).save('SideBySideRightLB.png')
+  img.sideBySide(img3,side='left',scale=False).save('SideBySideLeftLB.png')
+  img.sideBySide(img3,side='top',scale=False).save('SideBySideTopLB.png')
+  img.sideBySide(img3,side='bottom',scale=False).save('SideBySideBottomLB.png')
+
+  img3.sideBySide(img,side='right',scale=True).save('SideBySideRightScaledBL.png')
+  img3.sideBySide(img,side='left',scale=True).save('SideBySideLeftScaledBL.png')
+  img3.sideBySide(img,side='top',scale=True).save('SideBySideTopScaledBL.png')
+  img3.sideBySide(img,side='bottom',scale=True).save('SideBySideBottomScaledBL.png')
+
+  img.sideBySide(img3,side='right',scale=True).save('SideBySideRightScaledLB.png')
+  img.sideBySide(img3,side='left',scale=True).save('SideBySideLeftScaledLB.png')
+  img.sideBySide(img3,side='top',scale=True).save('SideBySideTopScaledLB.png')
+  img.sideBySide(img3,side='bottom',scale=True).save('SideBySideBottomScaledLB.png')
+  pass
+
+def test_resize():
+  img = Image(logo)
+  w = img.width
+  h = img.height
+  img2 = img.resize(w*2,None)
+  if( img2.width != w*2 or img2.height != h*2):
+    assert False
+    
+  img3 = img.resize(h=h*2)
+  
+  if( img3.width != w*2 or img3.height != h*2):
+    assert False
+    
+  img4 = img.resize(h=h*2,w=w*2)
+  
+  if( img4.width != w*2 or img4.height != h*2):
+    assert False
+    
+    pass
+
+
+
+
+
+
