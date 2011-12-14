@@ -2815,7 +2815,7 @@ class Image:
         """
         Make the canvas larger but keep the image the same size. 
 
-        size - width and height tuple of the new canvas. 
+        size - width and heigt tuple of the new canvas. 
 
         color - the color of the canvas 
 
@@ -2829,11 +2829,10 @@ class Image:
 
         newCanvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         cv.SetZero(newCanvas)
-        print("WHAT THE FUCKKKK!!!!!!!!!!!!!!!!!!!!!!!")
         print(color)
-        newColor = (color[1],color[2],color[0])
+        newColor = cv.RGB(color[0],color[1],color[2])
         print(newColor)
-        cv.AddS(newCanvas,color,newCanvas)
+        cv.AddS(newCanvas,newColor,newCanvas)
         topROI = None
         bottomROI = None
         if( pos is None ):
@@ -2939,9 +2938,9 @@ class Image:
                 if( rgb[0] <= rgb_color[0]+rgb_thresh[0] and rgb[0] >= rgb_color[0]-rgb_thresh[0] and
                     rgb[1] <= rgb_color[1]+rgb_thresh[1] and rgb[1] >= rgb_color[1]-rgb_thresh[1] and
                     rgb[2] <= rgb_color[2]+rgb_thresh[2] and rgb[2] >= rgb_color[2]-rgb_thresh[2] ):
-                    return((0,0,0))
-                else:
                     return((255,255,255))
+                else:
+                    return((0,0,0))
             #end closure
         return self.applyPixelFunction(rgbToAlpha)
 
@@ -2956,7 +2955,8 @@ class Image:
         """
         newCanvas = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_8U, 3)
         cv.SetZero(newCanvas)
-        cv.AddS(newCanvas,bg_color,newCanvas)
+        newBG = cv.RGB(bg_color[0],bg_color[1],bg_color[2])
+        cv.AddS(newCanvas,newBG,newCanvas)
         if( mask.width != self.width or mask.height != self.height ):
             warnings.warn("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
             return None
@@ -3005,7 +3005,7 @@ class Image:
         #TODO: benchmark this against vectorize 
         pixels = np.array(self.getNumpy()).reshape(-1,3).tolist()
         result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3) 
-        return Image(result,colorSpace=self._colorSpace) 
+        return Image(result) 
 
     def integralImage(self,tilted=False):
         """

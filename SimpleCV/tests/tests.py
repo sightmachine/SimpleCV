@@ -1019,7 +1019,7 @@ def test_embiggen():
 def test_createBinaryMask():
   img = Image(logo)
   img.createBinaryMask(rgb_color=(0,0,0)).save('BinaryMask1.png')
-  img.createBinaryMask(rgb_color=(50,50,50)).save('BinaryMask2.png')
+  img.createBinaryMask(rgb_color=(0,0,0),rgb_thresh=(10,10,10)).save('BinaryMask2.png')
   pass
 
 def test_applyBinaryMask():
