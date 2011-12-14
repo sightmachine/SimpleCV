@@ -48,18 +48,20 @@ You can also assign using direct pixel addressing, and draw on the image using t
 Using a Camera, Kinect, or VirtualCamera
 --------------------------------------------
 
-Addressing your [OpenCV supported webcam](http://opencv.willowgarage.com/wiki/Welcome/OS) is extremely easy::
+Addressing your `OpenCV supported webcam <http://opencv.willowgarage.com/wiki/Welcome/OS>`_ is extremely easy::
 
     mycam = Camera()
     img = mycam.getImage()
 
-If you install the [OpenKinect](http://openkinect.org/wiki/Getting_Started) library and python wrapper, you can use your Xbox Kinect to get a depth map::
+If you install the `OpenKinect <http://openkinect.org/wiki/Getting_Started>`_ library and python wrapper, you can use your Xbox Kinect to get a depth map::
 
     k = Kinect()
     img = k.getImage() #normal, full color webcam
     depth = k.getDepth() #greyscale depth map
+    depthdata = k.getDepthMatrix() #raw depth map, 0-2048
 
-###Multiple Cameras
+Multiple Cameras
+----------------
 And you can even use multiple cameras, at different resolutions::
 
     mylaptopcam = Camera(0, {"width": 640, "height": 480})  #you can also control brightness, hue, gain, etc 
@@ -76,6 +78,12 @@ You can also initialize VirtualCameras from static data files::
     imgcam.getImage().save("copy_of_apples.jpg")
     imgcam.getImage().save("frame_1_of_bananas.jpg")
 
+You can also use a JpegStreamCamera to grab frames from an MJPG source (such as an IP Cam, the "IP Webcam" android application, or another SimpleCV JpegStream::   
+
+    jc = JpegStreamCamera("http://myname:mypasswd@ipcamera_host/stream.mjpg")
+    jc.getImage().save("seeyou.jpg")
+
+
 Colors and Levels 
 -----------------
 
@@ -86,7 +94,7 @@ You can also split channels, if you are interested in only processing a single c
     green.save("greencam.jpg")
     blue.save("bluecam.jpg")
 
-The Image class has a builtin [Histogram](http://en.wikipedia.org/wiki/Image_histogram) function, thanks to [Numpy](http://numpy.scipy.org/).  Histograms can show you the distribution of brightness or color in an image::
+The Image class has a builtin `Histogram <http://en.wikipedia.org/wiki/Image_histogram>`_ function, thanks to `Numpy <http://numpy.scipy.org/>`_.  Histograms can show you the distribution of brightness or color in an image::
 
     hist = Camera().getImage().histogram(20)
     brightpixels = 0
@@ -119,8 +127,8 @@ be addressed as a group, or filtered::
 
     corners = img.findCorners()
 
-    lines.draw((255,0,0)) #outline the line segments in red
-    corners.draw((0,0,255)) #outline corners detected in blue
+    lines.draw(Color.RED) #outline the line segments in red
+    corners.draw(Color.BLUE) #outline corners detected in blue
 
     left_side_corners = corners.filter(corners.x() < img.width / 2)
     #only look at corners on the left half of the image
@@ -132,28 +140,28 @@ be addressed as a group, or filtered::
 Blob Detection
 -------------------
 
-If you load the experimental [cvblob-python](https://github.com/oostendo/cvblob-python) library, you can also use SimpleCV to detect blobs::
+You can use SimpleCV to find connected components (blobs) of similarly-colored pixels:: 
 
     #find the green ball
-    green_channel = Camera().getImage().splitChannels[1]
+    green_stuff = Camera().getImage().colorDistance(Color.GREEN)
 
     green_blobs = green_channel.findBlobs()
-    #blobs are returned in order of area, largest first
+    #blobs are returned in order of area, smallest first
 
-    print "largest green blob at " + str(green_blobs[0].x) + ", " + str( green_blobs[0].y)
+    print "largest green blob at " + str(green_blobs[-1].x) + ", " + str( green_blobs[-1].y)
 
 
 Barcode Reading
 -------------------
 
-If you load the [python-zxing](https://github.com/oostendo/python-zxing) library, you can use [Zebra Crossing](http://code.google.com/p/zxing) to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
+If you load the `python-zxing <https://github.com/oostendo/python-zxing>`_ library, you can use `Zebra Crossing <http://code.google.com/p/zxing>`_ to detect 2D and 1D barcodes in a number of various formats.  Note that you will need to specify
 the location of the library either through the ZXING_LIBRARY %ENV variable, or
 as a parameter to findBarcode()::
 
     i = Camera().getImage()
     barcode = i.findBarcode("/var/opt/zxing")
 
-    barcode.draw((0, 255, 0)) #draw the outline of the barcode in green
+    barcode.draw(Color.GREEN) #draw the outline of the barcode in green
 
     i.save("barcode_found.png")
     print barcode.data
@@ -161,7 +169,7 @@ as a parameter to findBarcode()::
 Haar Face Detection
 ---------------------
 
-You can do Haar Cascade face detection with SimpleCV, but you will need to find your own [Haar Cascade File](http://www.google.com/search?q=haarcascade_frontalface_alt.xml)::
+You can do Haar Cascade face detection with SimpleCV, but you will need to find your own `Haar Cascade File <http://www.google.com/search?q=haarcascade_frontalface_alt.xml>`_::
 
     i = Camera().getImage()
     faces = i.findHaarFeatures("/path/to/haarcascade_frontalface_alt.xml")
@@ -170,17 +178,26 @@ You can do Haar Cascade face detection with SimpleCV, but you will need to find 
     for f in faces:
       print "I found a face at " + str(f.coordinates())
     
-    green = (0, 255, 0)
     #outline who was drinking last night (or at least has the greenest pallor)
-    faces.sortColorDistance(green)[0].draw(green)
+    faces.sortColorDistance(Color.GREEN)[0].draw(Color.GREEN)
     i.save("greenest_face_detected.png")
 
 
 Output Streams
 -----------------
 
-Rather than use GUI-based display of processed images, SimpleCV has an
-integrated HTTP-based JPEG streamer.  It will use the old-school
+SimpleCV uses PyGame as an interface to the Simple Directmedia Layer (SDL).
+This makes it easy to create interfaces using SimpleCV's Display module::
+
+    from SimpleCV.Display import Display
+    
+    c = Camera()
+    d = Display()
+    while not d.isDone():
+        c.getImage().save(d)
+
+
+SimpleCV has an integrated HTTP-based JPEG streamer.  It will use the old-school
 multipart/replace content type to continuously feed jpgs to your browser.  
 To send the data, you just save the image to the js.framebuffer location::
 
@@ -189,13 +206,21 @@ To send the data, you just save the image to the js.framebuffer location::
     js = JpegStreamer()  #starts up an http server (defaults to port 8080)
 
     while(1)
-      c.getImage().save(js.framebuffer)
+      c.getImage().save(js)
       time.sleep(0.1)
       
 
-You can also use a JpegStreamCamera to grab frames from an external source (such as an IP Cam, the "IP Webcam" android application, or another SimpleCV JpegStream.   
+You can also write frames directly to video, using OpenCV's VideoWriter.  Note 
+that your available formats may be dependent on your platform::
 
-    jc = JpegStreamCamera("http://localhost:8080/")
-    jc.getImage().save("seeyou.jpg")
+    import time
+    c = Camera
+    vs = VideoStream("out.avi", fps=15)
+
+    framecount = 0
+    while(framecount < 15 * 600): #record for 5 minutes @ 15fps
+        c.getImage().save(vs)
+        time.sleep(0.1)
+
 
 
