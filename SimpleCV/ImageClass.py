@@ -2648,10 +2648,26 @@ class Image:
                 warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
             # use pygame.image.tostring to convert the RGBA image to a surface! 
-            imgSurf = img.crop(topROI[0],topROI[1],topROI[2],topROI[3]).toPygameSurface()
-            srcSurf = retVal.toPygameSurface().convert_alpha()
-            imgSurf.setAlpha(alpha)
-            srcSurf.blit(imgSurf,(bottomROI[0],bottomROI[1])) 
+            cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
+            cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
+            withAlpha = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 4);
+            r = cImg.getEmpty(1) 
+            g = cImg.getEmpty(1) 
+            b = cImg.getEmpty(1) 
+            cv.Split(cImg.getBitmap(), b, g, r, None)
+            #create the RGBA image
+            cv.Merge(r, g, b, mask._getGrayscaleBitmap(), withAlpha) 
+            #Get the image as an RGBA image as a pil string
+            if (not PIL_ENABLED):
+                return None
+            pilRGBA= pil.fromstring("RGBA", cImg.size(), withAlpha.tostring())           
+            #now, to get to your elbow through your ass, turn the pil image to a pygame surface with alpha
+            topSurface = pg.image.fromstring(pilRGBA.tostring(),cImage.size(), "RGBA")  
+            #get the bottom surface
+            bottomSurface = self.toPygameSurface();
+            #do the blit in pygame land
+            topSurface.blit(bottomSurface,(bottomROI[0],bottomROI[1]))
+            #return the result as an image. 
             retVal = self._surface2Image(srcSurf)
         elif( mask is not None):
             if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
