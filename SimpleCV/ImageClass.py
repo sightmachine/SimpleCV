@@ -2638,19 +2638,30 @@ class Image:
         (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
 
         if( alpha is not None ):
-            imgSurf = img.crop(topROI[0],topROI[1],topROI[2],topROI[3]).toPygameSurface()
-            srcSurf = retVal.toPygameSurface().convert_alpha()
-            imgSurf.setAlpha(alpha)
-            srcSurf.blit(imgSurf,(bottomROI[0],bottomROI[1])) 
-            retVal = self._surface2Image(srcSurf)
+            #imgSurf = img.crop(topROI[0],topROI[1],topROI[2],topROI[3]).toPygameSurface()
+            #srcSurf = retVal.toPygameSurface().convert_alpha()
+            #imgSurf.setAlpha(alpha)
+            #srcSurf.blit(imgSurf,(bottomROI[0],bottomROI[1])) 
+            #retVal = self._surface2Image(srcSurf)
+            cv.SetImageROI(img.getBitmap(),topROI);
+            cv.SetImageROI(retVal.getBitmap(),bottomROI);
+            a = float(alpha)
+            b = float(1.00-a)
+            g = float(0.00)
+            print(a)
+            print(b)
+            print(g)
+            cv.AddWeighted(img.getBitmap(),a,retVal.getBitmap(),b,g,retVal.getBitmap())
+            
         elif( alphaMask is not None ):
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
                 warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
+
             # use pygame.image.tostring to convert the RGBA image to a surface! 
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
-            withAlpha = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 4);
+            withAlpha = cv.CreateImage(cImage.size(), cv.IPL_DEPTH_8U, 4);
             r = cImg.getEmpty(1) 
             g = cImg.getEmpty(1) 
             b = cImg.getEmpty(1) 
@@ -2662,7 +2673,7 @@ class Image:
                 return None
             pilRGBA= pil.fromstring("RGBA", cImg.size(), withAlpha.tostring())           
             #now, to get to your elbow through your ass, turn the pil image to a pygame surface with alpha
-            topSurface = pg.image.fromstring(pilRGBA.tostring(),cImage.size(), "RGBA")  
+            topSurface =pg.image.fromstring(pilRGBA.tostring(),cImage.size(), "RGBA")  
             #get the bottom surface
             bottomSurface = self.toPygameSurface();
             #do the blit in pygame land
@@ -2674,15 +2685,15 @@ class Image:
                 warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
                 return None            
             cv.SetImageROI(img.getBitmap(),topROI)
-            cv.SetImageROI(mask.GetBitmap(),topROI)
+            cv.SetImageROI(mask.getBitmap(),topROI)
             cv.SetImageROI(retVal.getBitmap(),bottomROI)
             cv.Copy(img.getBitmap(),retVal.getBitmap(),mask.getBitmap())
             cv.ResetImageROI(img.getBitmap())
-            cv.ResetImageROI(mask.GetBitmap())
+            cv.ResetImageROI(mask.getBitmap())
             cv.ResetImageROI(retVal.getBitmap())       
         else:  #vanilla blit
             cv.SetImageROI(img.getBitmap(),topROI)
-            cv.SetImageROI(retVal.getBitmap,bottomROI)
+            cv.SetImageROI(retVal.getBitmap(),bottomROI)
             cv.Copy(img.getBitmap(),retVal.getBitmap())
             cv.ResetImageROI(img.getBitmap())
             cv.ResetImageROI(retVal.getBitmap())

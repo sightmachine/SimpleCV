@@ -36,6 +36,14 @@ logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 
+#alpha masking images
+topImg = "../sampleimages/RatTop.png"
+bottomImg = "../sampleimages/RatBottom.png"
+maskImg = "../sampleimages/RatMask.png"
+alphaMaskImg = "../sampleimages/RatAlphaMask.png"
+alphaSrcImg = "../sampleimages/GreenMaskSource.png"
+
+
 #These function names are required by nose test, please leave them as is
 def setup_context():
   img = Image(testimage)
@@ -1083,8 +1091,56 @@ def test_resize():
     
     pass
 
+def test_createAlphaMask():
+  pass
+
+def test_blit_regular(): 
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  bottom.blit(top).save("BlitNormal.png")
+  bottom.blit(top,pos=(-10,-10)).save("BlitTL.png")
+  bottom.blit(top,pos=(-10,10)).save("BlitBL.png")
+  bottom.blit(top,pos=(10,-10)).save("BlitTR.png")
+  bottom.blit(top,pos=(10,10)).save("BlitBR.png")
+  pass
+
+def test_blit_mask():
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  mask = Image(maskImg)
+  bottom.blit(top,mask=mask).save("BlitMaskNormal.png")
+  bottom.blit(top,mask=mask,pos=(-50,-50)).save("BlitMaskTL.png")
+  bottom.blit(top,mask=mask,pos=(-50,50)).save("BlitMaskBL.png")
+  bottom.blit(top,mask=mask,pos=(50,-50)).save("BlitMaskTR.png")
+  bottom.blit(top,mask=mask,pos=(50,50)).save("BlitMaskBR.png")
+  pass
 
 
+def test_blit_alpha():
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  a = 0.5
+  disp = Display()
+  bottom.blit(top,alpha=a).save("BlitAlphaNormal.png")
+  bottom.blit(top,alpha=a,pos=(-50,-50)).save("BlitAlphaTL.png")
+  bottom.blit(top,alpha=a,pos=(-50,50)).save("BlitAlphaBL.png")
+  bottom.blit(top,alpha=a,pos=(50,-50)).save("BlitAlphaTR.png")
+  bottom.blit(top,alpha=a,pos=(50,50)).save("BlitAlphaBR.png")
+  pass
 
+
+def test_blit_alpha_mask():
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  aMask = Image(alphaMaskImg)
+  disp = Display()
+  bottom.blit(top,alphaMask=aMask).save("BlitAlphaMaskNormal.png")
+  bottom.blit(top,alphaMask=aMask,pos=(-10,-10)).save("BlitAlphaMaskTL.png")
+  bottom.blit(top,alphaMask=aMask,pos=(-10,10)).save("BlitAlphaMaskBL.png")
+  bottom.blit(top,alphaMask=aMask,pos=(10,-10)).save("BlitAlphaMaskTR.png")
+  bottom.blit(top,alphaMask=aMask,pos=(10,10)).save("BlitAlphaMaskBR.png")
+  pass
+
+  
 
 
