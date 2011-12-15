@@ -2601,7 +2601,7 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
-    def blit(self, img, pos=(0,0),alpha=None,mask=None,alphaMask=None,centered=False):
+    def blit(self, img, pos=None,alpha=None,mask=None,alphaMask=None):
         """
         Take image and copy it into this image at the specified to image and return
         the result. If pos+img.sz exceeds the size of this image then img is cropped.
@@ -2629,48 +2629,48 @@ class Image:
         """
         retVal = Image(self.getEmpty())
         cv.Copy(self.getBitmap(),retVal.getBitmap())
-     
         w = img.width
         h = img.height
-        if(centered):
-            pos = (pos[0]-(w/2),pos[1]-(h/2))
-        if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
-            warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
-            return None
-        if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
-            warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
-            return None
 
-        if(pos[0] >= self.width or pos[1] >= self.height ):
-            warnings.warn("Image.blit: specified position exceeds image dimensions")
-            return None
-        if(img.width+pos[0] > self.width or img.height+pos[1] > self.height):
-            w = min(self.width-pos[0],img.width)
-            h = min(self.height-pos[1],img.height)
-            
-            cv.SetImageROI(img.getBitmap(),(0,0,w,h))
-            if(maskImg is not None):
-                cv.SetImageROI(mask._getGrayscaleBitmap(),(0,0,w,h))
-        cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))        
-        if( maskImg is not None ):
-            r = img.getEmpty(1)
-            g = img.getEmpty(1)
-            b = img.getEmpty(1)
-            cv.Split(img.getBitmap(),b,g,r,None)
-   
-            imgAlpha = self.getEmpty(4)
-            cv.Merge(r,g,b,maskImg._getGrayscaleBitmap(),imgAlpha)
-            selfAlpha = self.getEmpty(4)
-            cv.CvtColor(self.getBitmap(),selfAlpha,cv.CV_RGB2RGBA);
-            cv.Add(imgAlpha,selfAlpha,selfAlpha)
-            cv.CvtColor(selfAlpha,retVal.getBitmap(),cv.CV_RGBA2RGB)
-            #need to get roi straight
-            #cv.Copy(img.getBitmap(),retVal.getBitmap(),mask=maskImg._getGrayscaleBitmap())
-            #cv.ResetImageROI(maskImg._getGrayscaleBitmap());
-        else:
+        if( pos is None ):
+            pos = (0,0) 
+
+        (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
+
+        if( alpha is not None ):
+            imgSurf = img.crop(topROI[0],topROI[1],topROI[2],topROI[3]).toPygameSurface()
+            srcSurf = retVal.toPygameSurface().convert_alpha()
+            imgSurf.setAlpha(alpha)
+            srcSurf.blit(imgSurf,(bottomROI[0],bottomROI[1])) 
+            retVal = self._surface2Image(srcSurf)
+        elif( alphaMask is not None ):
+            if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
+                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
+                return None
+            # use pygame.image.tostring to convert the RGBA image to a surface! 
+            imgSurf = img.crop(topROI[0],topROI[1],topROI[2],topROI[3]).toPygameSurface()
+            srcSurf = retVal.toPygameSurface().convert_alpha()
+            imgSurf.setAlpha(alpha)
+            srcSurf.blit(imgSurf,(bottomROI[0],bottomROI[1])) 
+            retVal = self._surface2Image(srcSurf)
+        elif( mask is not None):
+            if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
+                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
+                return None            
+            cv.SetImageROI(img.getBitmap(),topROI)
+            cv.SetImageROI(mask.GetBitmap(),topROI)
+            cv.SetImageROI(retVal.getBitmap(),bottomROI)
+            cv.Copy(img.getBitmap(),retVal.getBitmap(),mask.getBitmap())
+            cv.ResetImageROI(img.getBitmap())
+            cv.ResetImageROI(mask.GetBitmap())
+            cv.ResetImageROI(retVal.getBitmap())       
+        else:  #vanilla blit
+            cv.SetImageROI(img.getBitmap(),topROI)
+            cv.SetImageROI(retVal.getBitmap,bottomROI)
             cv.Copy(img.getBitmap(),retVal.getBitmap())
-        cv.ResetImageROI(img.getBitmap())
-        cv.ResetImageROI(retVal.getBitmap())
+            cv.ResetImageROI(img.getBitmap())
+            cv.ResetImageROI(retVal.getBitmap())
+
         return retVal
 
     def sideBySide(self, image, side="right", scale=True ):
@@ -2829,9 +2829,7 @@ class Image:
 
         newCanvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         cv.SetZero(newCanvas)
-        print(color)
         newColor = cv.RGB(color[0],color[1],color[2])
-        print(newColor)
         cv.AddS(newCanvas,newColor,newCanvas)
         topROI = None
         bottomROI = None
