@@ -2648,11 +2648,9 @@ class Image:
             a = float(alpha)
             b = float(1.00-a)
             g = float(0.00)
-            print(a)
-            print(b)
-            print(g)
             cv.AddWeighted(img.getBitmap(),a,retVal.getBitmap(),b,g,retVal.getBitmap())
-            
+            cv.ResetImageROI(img.getBitmap());
+            cv.ResetImageROI(retVal.getBitmap());
         elif( alphaMask is not None ):
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
                 warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
@@ -2661,25 +2659,93 @@ class Image:
             # use pygame.image.tostring to convert the RGBA image to a surface! 
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
-            withAlpha = cv.CreateImage(cImage.size(), cv.IPL_DEPTH_8U, 4);
+            retVal = retVal.crop(bottomROI[0],bottomROI[1],bottomROI[2],bottomROI[3])
+            #withAlpha = cv.CreateImage(cImg.size(), cv.IPL_DEPTH_8U, 4);
             r = cImg.getEmpty(1) 
             g = cImg.getEmpty(1) 
             b = cImg.getEmpty(1) 
             cv.Split(cImg.getBitmap(), b, g, r, None)
+            rf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            gf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            bf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            af=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            cv.ConvertScale(r,rf)
+            cv.ConvertScale(g,gf)
+            cv.ConvertScale(b,bf)
+            cv.ConvertScale(cMask._getGrayscaleBitmap(),af)
+            cv.ConvertScale(af,af,scale=(1.0/255.0))
+            cv.SaveImage("a.png",af)
+            cv.Mul(rf,af,rf)
+            cv.Mul(gf,af,gf)
+            cv.Mul(bf,af,bf)
+            cv.SaveImage("r.png",rf)
+            cv.SaveImage("g.png",gf)
+            cv.SaveImage("b.png",bf)
+            
+            dr = retVal.getEmpty(1) 
+            dg = retVal.getEmpty(1) 
+            db = retVal.getEmpty(1) 
+            cv.Split(retVal.getBitmap(), db, dg, dr, None)
+            drf=cv.CreateImage((retVal.width,retVal.height),cv.IPL_DEPTH_32F,1)
+            dgf=cv.CreateImage((retVal.width,retVal.height),cv.IPL_DEPTH_32F,1)
+            dbf=cv.CreateImage((retVal.width,retVal.height),cv.IPL_DEPTH_32F,1)
+            daf=cv.CreateImage((retVal.width,retVal.height),cv.IPL_DEPTH_32F,1)
+            cv.ConvertScale(dr,drf)
+            cv.ConvertScale(dg,dgf)
+            cv.ConvertScale(db,dbf)
+            cv.ConvertScale(cMask.invert()._getGrayscaleBitmap(),daf)
+            cv.ConvertScale(daf,daf,scale=(1.0/255.0))
+            cv.Mul(drf,daf,drf)
+            cv.Mul(dgf,daf,dgf)
+            cv.Mul(dbf,daf,dbf)
+            cv.SaveImage("r2.png",drf)
+            cv.SaveImage("g2.png",dgf)
+            cv.SaveImage("b2.png",dbf)
+            
+            cv.Add(rf,drf,rf)
+            cv.Add(gf,dgf,gf)
+            cv.Add(bf,dbf,bf)
+ 
+            cv.ConvertScaleAbs(rf,r)
+            cv.ConvertScaleAbs(gf,g)
+            cv.ConvertScaleAbs(bf,b)
+
+            cv.Merge(b,g,r,None,retVal.getBitmap())
+            
+
             #create the RGBA image
-            cv.Merge(r, g, b, mask._getGrayscaleBitmap(), withAlpha) 
+            #cv.Merge(r, g, b, cMask._getGrayscaleBitmap(), withAlpha) 
             #Get the image as an RGBA image as a pil string
-            if (not PIL_ENABLED):
-                return None
-            pilRGBA= pil.fromstring("RGBA", cImg.size(), withAlpha.tostring())           
+#            if (not PIL_ENABLED):
+ #               return None
+            #pilRGBA= pil.fromstring("RGBA", cImg.size(), withAlpha.tostring())           
             #now, to get to your elbow through your ass, turn the pil image to a pygame surface with alpha
-            topSurface =pg.image.fromstring(pilRGBA.tostring(),cImage.size(), "RGBA")  
+            #topSurface =pg.image.fromstring(pilRGBA.tostring(),cImg.size(), "RGBA")
+         #   topSurface = pg.Surface((cImg.width,cImg.height),pg.SRCALPHA,32)            
+         #   topSurface = cImg.toPygameSurface().convert_alpha(topSurface);
+         #   bottomSurface = pg.Surface((retVal.width,retVal.height),pg.SRCALPHA,32)
+         #   bottomSurface = retVal.toPygameSurface().convert_alpha(bottomSurface)
             #get the bottom surface
-            bottomSurface = self.toPygameSurface();
-            #do the blit in pygame land
-            topSurface.blit(bottomSurface,(bottomROI[0],bottomROI[1]))
+            #bottomSurface = self.toPygameSurface()
+            
+            #topSurface = topSurface.convert_alpha()
+            #bottomSurface = bottomSurface.convert_alpha()
+             #image = image.convert(self._mSurface)
+        #if(rot != 0.00):    
+        #    image = pg.transform.rotate(image,rot)
+        #if(scale != 1.0):
+        #    image = pg.transform.scale(image,(int(image.get_width()*scale),int(image.get_height()*scale)))
+        #    pixels_alpha = pg.surfarray.pixels_alpha(topSurface)
+        #    pixels_alpha[...] = np.array(cv.GetMat(cMask.rotate90()._getGrayscaleBitmap()))
+        #    del pixels_alpha
+        #    pixels_alpha = pg.surfarray.pixels_alpha(bottomSurface)
+        #    pixels_alpha[...] = np.array(cv.GetMat(cMask.rotate90()._getGrayscaleBitmap()))
+        #    del pixels_alpha
+           #do the blit in pygame land
+        #    bottomSurface.blit(topSurface,(0,0))
             #return the result as an image. 
-            retVal = self._surface2Image(srcSurf)
+        #    retVal = self._surface2Image(bottomSurface)
+        #    retVal = retVal.rotate90().toRGB()
         elif( mask is not None):
             if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
                 warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
