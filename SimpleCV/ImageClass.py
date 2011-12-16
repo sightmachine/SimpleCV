@@ -120,6 +120,42 @@ class ImageSet(list):
 
       for i in self:
         print i.filename
+
+    def load(self, directory = None, extension = None):
+      """
+      This function loads up files automatically from the directory you pass
+      it.  If you give it an extension it will only load that extension
+      otherwise it will try to load all know file types in that directory.
+
+      extension should be in the format:
+      extension = 'png'
+
+      Example:
+
+      >>> imgs = ImageSet()
+      >>> imgs.load("images/faces")
+
+      """
+
+      if not directory:
+        print "You need to give a directory to load from"
+        return
+        
+      if extension:
+        extension = "*." + extension
+        formats = [os.path.join(directory, extension)]
+        
+      else:
+        formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
+        
+      file_set = [glob.glob(p) for p in formats]
+
+      for f in file_set:
+        for i in f:
+          self.append(Image(i))
+
+
+      
   
 class Image:
     """
