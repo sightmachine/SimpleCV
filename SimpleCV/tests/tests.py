@@ -999,3 +999,12 @@ def test_segmentation_color():
     else:
         pass
 
+
+def test_imageset():
+    imgs = ImageSet()
+
+    if(isinstance(imgs, ImageSet)):
+      pass
+    else:
+      assert False
+
