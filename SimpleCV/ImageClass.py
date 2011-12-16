@@ -23,6 +23,70 @@ class ColorSpace:
     HSV = 5
     XYZ  = 6
   
+class ImageSet(list):
+    """
+    This is an abstract class for keeping a list of images.  It has a few
+    advantages in that you can use it to auto load data sets from a directory
+    or the net.
+
+    Keep in mind it inherits from a list too, so all the functionality a
+    normal python list has this will too.
+
+    """
+
+    def download(self, tag=None, number=10):
+      """
+      This function downloads images from Google Image search based
+      on the tag you provide.  The number is the number of images you
+      want to have in the list.
+
+      note: This requires the python library Beautiful Soup to be installed
+      http://www.crummy.com/software/BeautifulSoup/
+      """
+
+      try:
+        from BeautifulSoup import BeautifulSoup
+
+      except:
+        print "You need to install Beatutiul Soup to use this function"
+        print "to install you can use:"
+        print "easy_install beautifulsoup"
+
+        return
+
+      opener = urllib2.build_opener()
+      opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+      url = "http://www.google.com/search?tbm=isch&q=" + str(tag)
+      page = opener.open(url)
+      soup = BeautifulSoup(page)
+      imgs = soup.findAll('img')
+
+      for img in imgs:
+        dl_url = str(dict(img.attrs)['src'])
+
+        try:
+          add_img = Image(dl_url)
+          self.append(add_img)
+
+        except:
+          #do nothing
+          None
+        
+
+
+    def show(self, showtime = 1):
+      """
+      This is a quick way to show all the items in a ImageSet.
+      The time is in seconds. You can also provide a decimal value, so
+      showtime can be 1.5, 0.02, etc.
+      to show each image.
+      """
+
+      for i in self:
+        print i
+        i.show()
+        time.sleep(showtime)
+
   
 class Image:
     """
