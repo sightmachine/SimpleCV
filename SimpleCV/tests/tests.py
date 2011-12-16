@@ -1092,6 +1092,9 @@ def test_resize():
     pass
 
 def test_createAlphaMask():
+  alphaMask = Image(alphaSrcImg)
+  mask = alphaMask.createAlphaMask(hue=60)
+  mask.save("AlphaMask.png")
   pass
 
 def test_blit_regular(): 
@@ -1120,7 +1123,6 @@ def test_blit_alpha():
   top = Image(topImg)
   bottom = Image(bottomImg)
   a = 0.5
-  disp = Display()
   bottom.blit(top,alpha=a).save("BlitAlphaNormal.png")
   bottom.blit(top,alpha=a,pos=(-50,-50)).save("BlitAlphaTL.png")
   bottom.blit(top,alpha=a,pos=(-50,50)).save("BlitAlphaBL.png")
@@ -1133,7 +1135,6 @@ def test_blit_alpha_mask():
   top = Image(topImg)
   bottom = Image(bottomImg)
   aMask = Image(alphaMaskImg)
-  disp = Display()
   bottom.blit(top,alphaMask=aMask).save("BlitAlphaMaskNormal.png")
   bottom.blit(top,alphaMask=aMask,pos=(-10,-10)).save("BlitAlphaMaskTL.png")
   bottom.blit(top,alphaMask=aMask,pos=(-10,10)).save("BlitAlphaMaskBL.png")
