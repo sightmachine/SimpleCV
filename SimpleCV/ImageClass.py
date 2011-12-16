@@ -32,6 +32,18 @@ class ImageSet(list):
     Keep in mind it inherits from a list too, so all the functionality a
     normal python list has this will too.
 
+    Example:
+    
+    >>> imgs = ImageSet()
+    >>> imgs.download("ninjas")
+    >>> imgs.show(ninjas)
+    
+    This will download and show a bunch of random ninjas.  If you want to
+    save all those images locally then just use:
+
+    >>> imgs.save()
+
+    
     """
 
     def download(self, tag=None, number=10):
@@ -83,10 +95,31 @@ class ImageSet(list):
       """
 
       for i in self:
-        print i
         i.show()
         time.sleep(showtime)
 
+    def save(self, verbose = False):
+      """
+      This is a quick way to save all the images in a data set.
+
+      If you didn't specify a path one will randomly be generated.
+      To see the location the files are being saved to then pass
+      verbose = True
+      """
+
+      for i in self:
+        i.save(verbose=verbose)
+      
+    def showPaths(self):
+      """
+      This shows the file paths of all the images in the set
+
+      if they haven't been saved to disk then they will not have a filepath
+      
+      """
+
+      for i in self:
+        print i.filename
   
 class Image:
     """
@@ -668,7 +701,7 @@ class Image:
             return self._pgsurface
     
     
-    def save(self, filehandle_or_filename="", mode=""):
+    def save(self, filehandle_or_filename="", mode="", verbose = False):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
@@ -678,6 +711,7 @@ class Image:
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
         """
+       
         if (not filehandle_or_filename):
             if (self.filename):
                 filehandle_or_filename = self.filename
@@ -691,13 +725,8 @@ class Image:
             saveimg = self
 
 
-
-
         if (type(filehandle_or_filename) != str):
             fh = filehandle_or_filename
-
-
-
 
             if (not PIL_ENABLED):
                 warnings.warn("You need the python image library to save by filehandle")
@@ -705,6 +734,7 @@ class Image:
 
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
+                print "jepgstream"
                 fh.jpgdata = StringIO() 
                 saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
@@ -719,25 +749,32 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
+                print "display"
                 self.filename = "" 
                 self.filehandle = fh
                 fh.writeFrame(saveimg)
 
 
-            else:      
+            else:
+                print "other"
                 if (not mode):
                     mode = "jpeg"
-      
       
                 saveung.getPIL().save(fh, mode)
                 self.filehandle = fh #set the filename for future save operations
                 self.filename = ""
-        
-        
+                
+            if verbose:
+              print self.filename
+              
             return 1
 
-
-        filename = filehandle_or_filename
+        #make a temporary file location is there isn't one
+        if not filehandle_or_filename:
+          filename = tempfile.mkstemp(suffix=".png")[-1]
+        else:  
+          filename = filehandle_or_filename
+          
         if (filename):
             cv.SaveImage(filename, saveimg.getBitmap())  
             self.filename = filename #set the filename for future save operations
@@ -747,7 +784,9 @@ class Image:
         else:
             return 0
 
-
+        if verbose:
+          print self.filename
+          
         return 1
 
 
