@@ -1388,9 +1388,7 @@ class Image:
         if isinstance(color,  (float,int,long,complex)):
             color_hue = color
         else:
-            color_px = Image((1,1))
-            color_px[0,0] = color
-            color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
+            color_hue = Color.hsv(color)[0]
         
         vsh_matrix = self.toHSV().getNumpy().reshape(-1,3) #again, gets transposed to vsh
         hue_channel = np.cast['int'](vsh_matrix[:,2])
@@ -1710,7 +1708,11 @@ class Image:
             #if you don't copy the matrix slice, when you convert to bmp you get
             #a slice-sized hunk starting at 0, 0
             return Image(newmat)
-        return tuple(reversed(ret))
+            
+        if self.isBGR():
+            return tuple(reversed(ret))
+        else:
+            return tuple(ret)
 
 
     def __setitem__(self, coord, value):

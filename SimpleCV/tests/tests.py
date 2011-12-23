@@ -1008,3 +1008,11 @@ def test_imageset():
     else:
       assert False
 
+def test_hsv_conversion():
+    px = Image((1,1))
+    px[0,0] = Color.GREEN
+    if (Color.hsv(Color.GREEN) == px.toHSV()[0,0]):
+      pass
+    else:
+      assert False
+

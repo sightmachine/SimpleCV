@@ -109,6 +109,14 @@ class Color:
         """
         r = random.randint(1, (len(self.colorlist) - 1))
         return self.colorlist[r]
+        
+    @classmethod    
+    def hsv(cls, tuple):
+        """
+        Convert any color to HSV, OpenCV style (0-180 for hue)
+        """
+        hsv_float = colorsys.rgb_to_hsv(*tuple)
+        return (hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2])
          
 
 class ColorCurve:
