@@ -1305,6 +1305,43 @@ class Image:
 
         return (Image(red), Image(green), Image(blue)) 
 
+    def mergeChannels(self,r=None,b=None,g=None):
+        """
+        Merge channels is the oposite of splitChannels. The image takes one image for each
+        of the R,G,B channels and then recombines them into a single image. 
+        """
+        if( r is None and g is None and b is None ):
+            warnings.warn("ImageClass.mergeChannels - we need at least one valid channel")
+            return None
+        if( r is None ):
+            r = self.getEmpty(1)
+            cv.Zero(r);
+        else:
+            rt = r.getEmpty(1)
+            cv.Split(r.getBitmap(),rt,rt,rt,None)
+            r = rt
+        if( g is None ):
+            g = self.getEmpty(1)
+            cv.Zero(g);
+        else:
+            gt = g.getEmpty(1)
+            cv.Split(g.getBitmap(),gt,gt,gt,None)
+            g = gt
+        if( b is None ):
+            b = self.getEmpty(1)
+            cv.Zero(b);
+        else:
+            bt = b.getEmpty(1)
+            cv.Split(b.getBitmap(),bt,bt,bt,None)
+            b = bt
+
+        retVal = self.getEmpty()
+        cv.Merge(b,g,r,None,retVal)
+        return Image(retVal);
+
+
+
+        
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
         """
@@ -2998,7 +3035,7 @@ class Image:
               if none the image is centered.
         """
         
-        if( size == None or size[0] <= self.width or size[1] <= self.height ):
+        if( size == None or size[0] < self.width or size[1] < self.height ):
             warnings.warn("image.embiggenCanvas: the size provided is invalid")
             return None
 

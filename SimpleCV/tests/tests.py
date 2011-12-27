@@ -1007,7 +1007,6 @@ def test_segmentation_color():
     else:
         pass
 
-<<<<<<< HEAD
 def test_embiggen():
   img = Image(logo)
   img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
