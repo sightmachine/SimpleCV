@@ -16,6 +16,7 @@ import zipfile
 import pickle
 import glob #for directory scanning
 import abc #abstract base class
+import colorsys
 
 from copy import copy
 from math import sqrt, atan2

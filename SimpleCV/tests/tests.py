@@ -1007,6 +1007,7 @@ def test_segmentation_color():
     else:
         pass
 
+<<<<<<< HEAD
 def test_embiggen():
   img = Image(logo)
   img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
@@ -1142,6 +1143,19 @@ def test_blit_alpha_mask():
   bottom.blit(top,alphaMask=aMask,pos=(10,10)).save("BlitAlphaMaskBR.png")
   pass
 
-  
+def test_imageset():
+    imgs = ImageSet()
 
+    if(isinstance(imgs, ImageSet)):
+      pass
+    else:
+      assert False
+
+def test_hsv_conversion():
+    px = Image((1,1))
+    px[0,0] = Color.GREEN
+    if (Color.hsv(Color.GREEN) == px.toHSV()[0,0]):
+      pass
+    else:
+      assert False
 

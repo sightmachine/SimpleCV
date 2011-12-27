@@ -23,6 +23,139 @@ class ColorSpace:
     HSV = 5
     XYZ  = 6
   
+class ImageSet(list):
+    """
+    This is an abstract class for keeping a list of images.  It has a few
+    advantages in that you can use it to auto load data sets from a directory
+    or the net.
+
+    Keep in mind it inherits from a list too, so all the functionality a
+    normal python list has this will too.
+
+    Example:
+    
+    >>> imgs = ImageSet()
+    >>> imgs.download("ninjas")
+    >>> imgs.show(ninjas)
+    
+    This will download and show a bunch of random ninjas.  If you want to
+    save all those images locally then just use:
+
+    >>> imgs.save()
+
+    
+    """
+
+    def download(self, tag=None, number=10):
+      """
+      This function downloads images from Google Image search based
+      on the tag you provide.  The number is the number of images you
+      want to have in the list.
+
+      note: This requires the python library Beautiful Soup to be installed
+      http://www.crummy.com/software/BeautifulSoup/
+      """
+
+      try:
+        from BeautifulSoup import BeautifulSoup
+
+      except:
+        print "You need to install Beatutiul Soup to use this function"
+        print "to install you can use:"
+        print "easy_install beautifulsoup"
+
+        return
+
+      opener = urllib2.build_opener()
+      opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+      url = "http://www.google.com/search?tbm=isch&q=" + str(tag)
+      page = opener.open(url)
+      soup = BeautifulSoup(page)
+      imgs = soup.findAll('img')
+
+      for img in imgs:
+        dl_url = str(dict(img.attrs)['src'])
+
+        try:
+          add_img = Image(dl_url)
+          self.append(add_img)
+
+        except:
+          #do nothing
+          None
+        
+
+
+    def show(self, showtime = 1):
+      """
+      This is a quick way to show all the items in a ImageSet.
+      The time is in seconds. You can also provide a decimal value, so
+      showtime can be 1.5, 0.02, etc.
+      to show each image.
+      """
+
+      for i in self:
+        i.show()
+        time.sleep(showtime)
+
+    def save(self, verbose = False):
+      """
+      This is a quick way to save all the images in a data set.
+
+      If you didn't specify a path one will randomly be generated.
+      To see the location the files are being saved to then pass
+      verbose = True
+      """
+
+      for i in self:
+        i.save(verbose=verbose)
+      
+    def showPaths(self):
+      """
+      This shows the file paths of all the images in the set
+
+      if they haven't been saved to disk then they will not have a filepath
+      
+      """
+
+      for i in self:
+        print i.filename
+
+    def load(self, directory = None, extension = None):
+      """
+      This function loads up files automatically from the directory you pass
+      it.  If you give it an extension it will only load that extension
+      otherwise it will try to load all know file types in that directory.
+
+      extension should be in the format:
+      extension = 'png'
+
+      Example:
+
+      >>> imgs = ImageSet()
+      >>> imgs.load("images/faces")
+
+      """
+
+      if not directory:
+        print "You need to give a directory to load from"
+        return
+        
+      if extension:
+        extension = "*." + extension
+        formats = [os.path.join(directory, extension)]
+        
+      else:
+        formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
+        
+      file_set = [glob.glob(p) for p in formats]
+
+      for f in file_set:
+        for i in f:
+          self.append(Image(i))
+
+
+      
   
 class Image:
     """
@@ -604,7 +737,7 @@ class Image:
             return self._pgsurface
     
     
-    def save(self, filehandle_or_filename="", mode=""):
+    def save(self, filehandle_or_filename="", mode="", verbose = False):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
@@ -614,6 +747,7 @@ class Image:
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
         """
+       
         if (not filehandle_or_filename):
             if (self.filename):
                 filehandle_or_filename = self.filename
@@ -627,13 +761,8 @@ class Image:
             saveimg = self
 
 
-
-
         if (type(filehandle_or_filename) != str):
             fh = filehandle_or_filename
-
-
-
 
             if (not PIL_ENABLED):
                 warnings.warn("You need the python image library to save by filehandle")
@@ -641,6 +770,7 @@ class Image:
 
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
+                print "jepgstream"
                 fh.jpgdata = StringIO() 
                 saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
@@ -655,25 +785,32 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
+                print "display"
                 self.filename = "" 
                 self.filehandle = fh
                 fh.writeFrame(saveimg)
 
 
-            else:      
+            else:
+                print "other"
                 if (not mode):
                     mode = "jpeg"
-      
       
                 saveung.getPIL().save(fh, mode)
                 self.filehandle = fh #set the filename for future save operations
                 self.filename = ""
-        
-        
+                
+            if verbose:
+              print self.filename
+              
             return 1
 
-
-        filename = filehandle_or_filename
+        #make a temporary file location is there isn't one
+        if not filehandle_or_filename:
+          filename = tempfile.mkstemp(suffix=".png")[-1]
+        else:  
+          filename = filehandle_or_filename
+          
         if (filename):
             cv.SaveImage(filename, saveimg.getBitmap())  
             self.filename = filename #set the filename for future save operations
@@ -683,7 +820,9 @@ class Image:
         else:
             return 0
 
-
+        if verbose:
+          print self.filename
+          
         return 1
 
 
@@ -1275,9 +1414,7 @@ class Image:
         if isinstance(color,  (float,int,long,complex)):
             color_hue = color
         else:
-            color_px = Image((1,1))
-            color_px[0,0] = color
-            color_hue = color_px.toHSV()[0,0][2] #we're doing BGR->RGB stuff somewhere
+            color_hue = Color.hsv(color)[0]
         
         vsh_matrix = self.toHSV().getNumpy().reshape(-1,3) #again, gets transposed to vsh
         hue_channel = np.cast['int'](vsh_matrix[:,2])
@@ -1597,7 +1734,11 @@ class Image:
             #if you don't copy the matrix slice, when you convert to bmp you get
             #a slice-sized hunk starting at 0, 0
             return Image(newmat)
-        return tuple(reversed(ret))
+            
+        if self.isBGR():
+            return tuple(reversed(ret))
+        else:
+            return tuple(ret)
 
 
     def __setitem__(self, coord, value):
