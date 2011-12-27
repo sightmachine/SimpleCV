@@ -2607,25 +2607,11 @@ class Image:
         the result. If pos+img.sz exceeds the size of this image then img is cropped.
         Pos is the top left corner of the input image
 
-        Parameters:
-            img - Image
-            pos - Tuple
-            centered - Boolean
-
-
-        -KAS - F&$^%!
-        Grrr second attempt - OpenCV does not support alpha blending
-        next solution is to use pygame surface
-        to do the full alpha channel blend (LAME!). 
-
-        So the new blit will support
-        -old school blit 
-        -blit with mask
-        -blit with alpha
-        -blit with alpha mask
-        -blit resize (i.e. if you set one image at some pos (positive or negative) the output
-        will be a combo of the two image sizes - e.g blit( pos=(width,0) will make two side by side images) -> I wonder if we can do a "stack" or concat function where you can put left/right/above/below images!!!!
-
+        img - an image to place ontop of this image.
+        pos - an xy position tuple of the top left corner of img on this image.
+        alpha - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
+        mask - a binary mask the same size as the input image. White areas are blitted, black areas are not blitted.
+        alphaMask - an alpha mask where each grayscale value maps how much of each image is shown.
         """
         retVal = Image(self.getEmpty())
         cv.Copy(self.getBitmap(),retVal.getBitmap())
