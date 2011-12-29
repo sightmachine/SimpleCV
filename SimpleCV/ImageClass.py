@@ -3413,6 +3413,61 @@ class Image:
         return result
 
 
+    def whiteBalance(self,method="GrayWorld"):
+        """
+        see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
+        """
+        #CHECK COLOR SPACE!!!
+        if(method=="GrayWorld"):           
+            avg = cv.Avg(self.getBitmap());
+            bf = float(avg[0])
+            gf = float(avg[1])
+            rf = float(avg[2])
+            af = (bf+gf+rf)/3.0
+            if( bf == 0.00 ):
+                b_factor = 1.00
+            else:
+                b_factor = af/bf
+
+            if( gf == 0.00 ):
+                g_factor = 1.00
+            else:
+                g_factor = af/gf
+
+            if( rf == 0.00 ):
+                r_factor = 1.00
+            else:
+                r_factor = af/rf
+            
+            b = self.getEmpty(1) 
+            g = self.getEmpty(1) 
+            r = self.getEmpty(1) 
+            cv.Split(self.getBitmap(), b, g, r, None)
+            bfloat = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            gfloat = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            rfloat = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            
+            cv.ConvertScale(b,bfloat,b_factor)
+            cv.ConvertScale(g,gfloat,g_factor)
+            cv.ConvertScale(r,rfloat,r_factor)
+           
+            (minB,maxB,minBLoc,maxBLoc) = cv.MinMaxLoc(bfloat)
+            (minG,maxG,minGLoc,maxGLoc) = cv.MinMaxLoc(gfloat)
+            (minR,maxR,minRLoc,maxRLoc) = cv.MinMaxLoc(rfloat)
+            scale = max([maxR,maxG,maxB])
+            sfactor = 1.00
+            if(scale > 255 ):
+                sfactor = 255.00/float(scale)
+
+            cv.ConvertScale(bfloat,b,sfactor);
+            cv.ConvertScale(gfloat,g,sfactor);
+            cv.ConvertScale(rfloat,r,sfactor);
+            
+            retVal = self.getEmpty()
+            cv.Merge(b,g,r,None,retVal);
+            return Image(retVal)
+        
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         

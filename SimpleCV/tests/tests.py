@@ -1158,3 +1158,8 @@ def test_hsv_conversion():
     else:
       assert False
 
+def test_whiteBalance():
+  img = Image("../sampleimages/BADWB.jpg")
+  output = img.whiteBalance()
+  output.save("white_balanced.png")
+  pass
