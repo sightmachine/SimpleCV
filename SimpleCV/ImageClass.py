@@ -7,7 +7,7 @@ from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
 import pygame as pg
-    
+import scipy.stats.stats as sss  #for auto white balance
      
 class ColorSpace:
     """
@@ -22,6 +22,7 @@ class ColorSpace:
     HLS = 4
     HSV = 5
     XYZ  = 6
+
   
 class ImageSet(list):
     """
@@ -450,7 +451,6 @@ class Image:
         Returns Boolean
         """
         return(self._colorSpace==ColorSpace.GRAY)    
-
 
     def toRGB(self):
         """
@@ -3415,11 +3415,20 @@ class Image:
 
     def whiteBalance(self,method="GrayWorld"):
         """
-        see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
+        Attempts to perform automatic white balancing. 
+        Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
+        Robust AWB: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html
+        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/Papers/Robust%20Automatic%20White%20Balance%20Algorithm%20using%20Gray%20Color%20Points%20in%20Images.pdf
+        Simple AWB:
+        http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
+        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
         """
-        #CHECK COLOR SPACE!!!
+        if(self._colorSpace != ColorSpace.RGB ):
+            img = self.toRGB()
+        else:
+            img = self
         if(method=="GrayWorld"):           
-            avg = cv.Avg(self.getBitmap());
+            avg = cv.Avg(img.getBitmap());
             bf = float(avg[0])
             gf = float(avg[1])
             rf = float(avg[2])
@@ -3439,13 +3448,13 @@ class Image:
             else:
                 r_factor = af/rf
             
-            b = self.getEmpty(1) 
-            g = self.getEmpty(1) 
-            r = self.getEmpty(1) 
+            b = img.getEmpty(1) 
+            g = img.getEmpty(1) 
+            r = img.getEmpty(1) 
             cv.Split(self.getBitmap(), b, g, r, None)
-            bfloat = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
-            gfloat = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
-            rfloat = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            bfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1) 
+            gfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1) 
+            rfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1) 
             
             cv.ConvertScale(b,bfloat,b_factor)
             cv.ConvertScale(g,gfloat,g_factor)
@@ -3463,9 +3472,104 @@ class Image:
             cv.ConvertScale(gfloat,g,sfactor);
             cv.ConvertScale(rfloat,r,sfactor);
             
-            retVal = self.getEmpty()
+            retVal = img.getEmpty()
             cv.Merge(b,g,r,None,retVal);
-            return Image(retVal)
+            retVal = Image(retVal)
+        elif( method == "Robust" ):
+            yuvImg = img.getEmpty()
+            cv.CvtColor(self.getBitmap(), yuvImg, cv.CV_RGB2YUV)
+            y = img.getEmpty(1);
+            u = img.getEmpty(1);
+            v = img.getEmpty(1);
+            uabs = img.getEmpty(1);
+            vabs = img.getEmpty(1);
+            y = img.getEmpty(1);
+            
+        elif( method == "Simple" ):
+            thresh = 0.003
+
+            tempMat = np.array(img.getMatrix()).copy()
+            bcf = sss.cumfreq(tempMat[:,:,0], numbins=256)
+            bcf = bcf[0] # get our cumulative histogram of values for this color
+
+            blb = -1 #our upper bound
+            bub = 256 # our lower bound
+            lower_thresh = 0.00
+            upper_thresh = 0.00
+            #now find the upper and lower thresh% of our values live
+            while( lower_thresh < thresh ):
+                blb = blb+1
+                lower_thresh = bcf[blb]/tempMat[:,:,0].size
+            while( upper_thresh < thresh ):
+                bub = bub-1
+                upper_thresh = (tempMat[:,:,0].size-bcf[bub])/tempMat[:,:,0].size
+
+
+            gcf = sss.cumfreq(tempMat[:,:,1], numbins=256)
+            gcf = gcf[0]
+            glb = -1 #our upper bound
+            gub = 256 # our lower bound
+            lower_thresh = 0.00
+            upper_thresh = 0.00
+            #now find the upper and lower thresh% of our values live
+            while( lower_thresh < thresh ):
+                glb = glb+1
+                lower_thresh = gcf[glb]/tempMat[:,:,1].size
+            while( upper_thresh < thresh ):
+                gub = gub-1
+                upper_thresh = (tempMat[:,:,1].size-gcf[gub])/tempMat[:,:,1].size
+
+
+            rcf = sss.cumfreq(tempMat[:,:,2], numbins=256)
+            rcf = rcf[0]
+            rlb = -1 #our upper bound
+            rub = 256 # our lower bound
+            lower_thresh = 0.00
+            upper_thresh = 0.00
+            #now find the upper and lower thresh% of our values live
+            while( lower_thresh < thresh ):
+                rlb = rlb+1
+                lower_thresh = rcf[rlb]/tempMat[:,:,2].size
+            while( upper_thresh < thresh ):
+                rub = rub-1
+                upper_thresh = (tempMat[:,:,2].size-rcf[rub])/tempMat[:,:,2].size
+            #now we create the scale factors for the remaining pixels
+            rlbf = float(rlb)
+            rubf = float(rub)
+            glbf = float(glb)
+            gubf = float(gub)
+            blbf = float(blb)
+            bubf = float(bub)
+            def transformClosure((r,g,b)):
+                if(r <= rlb):
+                    r = 0
+                elif( r >= rub):
+                    r = 255
+                else:
+                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
+                    rf = ((float(r)-rlbf)*255.00/(rubf-rlbf))
+                    r = int(rf)
+                if(g <= glb):
+                    g = 0
+                elif( g >= gub):
+                    g = 255
+                else:
+                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
+                    gf = ((float(g)-glbf)*255.00/(gubf-glbf))
+                    g = int(gf)
+                if(b <= blb):
+                    b = 0
+                elif( b >= bub):
+                    b = 255
+                else:
+                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
+                    bf = ((float(b)-blbf)*255.00/(bubf-blbf))
+                    b = int(bf)
+                return((r,g,b))
+
+            retVal = self.applyPixelFunction(transformClosure)
+
+        return retVal 
         
 
     def __getstate__(self):

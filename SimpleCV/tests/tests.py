@@ -1161,5 +1161,7 @@ def test_hsv_conversion():
 def test_whiteBalance():
   img = Image("../sampleimages/BADWB.jpg")
   output = img.whiteBalance()
-  output.save("white_balanced.png")
+  output.save("white_balanced_grayWorld.png")
+  output = img.whiteBalance(method="Simple")
+  output.save("white_balanced_Simple.png")
   pass
