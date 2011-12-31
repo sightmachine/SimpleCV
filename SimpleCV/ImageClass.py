@@ -3546,7 +3546,6 @@ class Image:
                 elif( r >= rub):
                     r = 255
                 else:
-                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
                     rf = ((float(r)-rlbf)*255.00/(rubf-rlbf))
                     r = int(rf)
                 if(g <= glb):
@@ -3554,7 +3553,6 @@ class Image:
                 elif( g >= gub):
                     g = 255
                 else:
-                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
                     gf = ((float(g)-glbf)*255.00/(gubf-glbf))
                     g = int(gf)
                 if(b <= blb):
@@ -3562,7 +3560,6 @@ class Image:
                 elif( b >= bub):
                     b = 255
                 else:
-                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
                     bf = ((float(b)-blbf)*255.00/(bubf-blbf))
                     b = int(bf)
                 return((r,g,b))
@@ -3579,6 +3576,8 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker
 from SimpleCV.Stream import JpegStreamer
