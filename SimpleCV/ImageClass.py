@@ -843,6 +843,9 @@ class Image:
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
+        WARNING: the two value scale command is deprecated. To set width and height
+        use the resize function. 
+
         Scale the image to a new width and height.
 
         If no height is provided, the width is considered a scaling value ie::
@@ -3074,10 +3077,15 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        trc = self._inBounds(bottom,tr) 
-        tlc = self._inBounds(bottom,tl) 
-        brc = self._inBounds(bottom,br) 
-        blc = self._inBounds(bottom,bl) 
+        def inBounds(self,(w,h), (x,y)):
+            if( x < 0 or  y < 0 or x > w or y > h):
+                return True
+            return False
+
+        trc = inBounds(bottom,tr) 
+        tlc = inBounds(bottom,tl) 
+        brc = inBounds(bottom,br) 
+        blc = inBounds(bottom,bl) 
         if( not trc and not tlc and not brc and not blc ): # no overlap
             return None,None
         elif( trc and tlc and brc and blc ): # easy case top is fully inside bottom 
@@ -3087,8 +3095,8 @@ class Image:
         # let's figure out where the top rectangle sits on the bottom
         # we clamp the corners of the top rectangle to live inside
         # the bottom rectangle and from that get the x,y,w,h
-        tl = (self._clamp(0,bottom[0],tl[0]),self._clamp(0,bottom[1],tl[1]))
-        br = (self._clamp(0,bottom[0],br[0]),self._clamp(0,bottom[1],br[1]))
+        tl = (np.clip(0,bottom[0],tl[0]),np.clip(0,bottom[1],tl[1]))
+        br = (np.clip(0,bottom[0],br[0]),np.clip(0,bottom[1],br[1]))
 
         bx = tl[0]
         by = tl[1] 
@@ -3102,36 +3110,14 @@ class Image:
         tl = pos 
         br = (pos[0]+bottom[0],pos[1]+bottom[1])
         bl = (pos[0],pos[1]+bottom[1])
-        tl = (self._clamp(0,top[0],tl[0]),self._clamp(0,top[1],tl[1]))
-        br = (self._clamp(0,top[0],br[0]), self._clamp(0,top[1],br[1]))
+        tl = (np.clip(0,top[0],tl[0]), np.clip(0,top[1],tl[1]))
+        br = (np.clip(0,top[0],br[0]), np.clip(0,top[1],br[1]))
         tx = tl[0]
         ty = tl[1] 
         tw = abs(br[0]-tl[0])
         th = abs(br[1]-tl[1])
         return (tx,ty,tw,th),(bx,by,bw,bh)
 
-    def _clamp( self, min, max, value):
-        """
-        Clamp, return min, max, or a value in between
-        """
-        if( value > max ):
-            return max
-        elif( value < min ):
-            return min
-        else:
-            return value
-
-    def _inBounds(self,(w,h), (x,y)):
-        """
-        check if (x,y) is in the range of (0,0)->(w,h)
-        """
-        retVal = True
-        if( x < 0 or  y < 0 or x > w or y > h):
-            retVal = False
-            
-        return retVal
-
-        
     def createBinaryMask(self, rgb_color=(0,255,0), rgb_thresh=(0,0,0)):
         """
         Generate a binary mask of the image based on either a hue or an rgb triplet.
@@ -3413,7 +3399,7 @@ class Image:
         return result
 
 
-    def whiteBalance(self,method="GrayWorld"):
+    def whiteBalance(self,method="Simple"):
         """
         Attempts to perform automatic white balancing. 
         Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
@@ -3475,20 +3461,10 @@ class Image:
             retVal = img.getEmpty()
             cv.Merge(b,g,r,None,retVal);
             retVal = Image(retVal)
-        elif( method == "Robust" ):
-            yuvImg = img.getEmpty()
-            cv.CvtColor(self.getBitmap(), yuvImg, cv.CV_RGB2YUV)
-            y = img.getEmpty(1);
-            u = img.getEmpty(1);
-            v = img.getEmpty(1);
-            uabs = img.getEmpty(1);
-            vabs = img.getEmpty(1);
-            y = img.getEmpty(1);
-            
         elif( method == "Simple" ):
             thresh = 0.003
-
-            tempMat = np.array(img.getMatrix()).copy()
+            sz = img.width*img.height
+            tempMat = img.getNumpy() 
             bcf = sss.cumfreq(tempMat[:,:,0], numbins=256)
             bcf = bcf[0] # get our cumulative histogram of values for this color
 
@@ -3499,10 +3475,10 @@ class Image:
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
                 blb = blb+1
-                lower_thresh = bcf[blb]/tempMat[:,:,0].size
+                lower_thresh = bcf[blb]/sz
             while( upper_thresh < thresh ):
                 bub = bub-1
-                upper_thresh = (tempMat[:,:,0].size-bcf[bub])/tempMat[:,:,0].size
+                upper_thresh = (sz-bcf[bub])/sz
 
 
             gcf = sss.cumfreq(tempMat[:,:,1], numbins=256)
@@ -3514,10 +3490,10 @@ class Image:
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
                 glb = glb+1
-                lower_thresh = gcf[glb]/tempMat[:,:,1].size
+                lower_thresh = gcf[glb]/sz
             while( upper_thresh < thresh ):
                 gub = gub-1
-                upper_thresh = (tempMat[:,:,1].size-gcf[gub])/tempMat[:,:,1].size
+                upper_thresh = (sz-gcf[gub])/sz
 
 
             rcf = sss.cumfreq(tempMat[:,:,2], numbins=256)
@@ -3529,10 +3505,10 @@ class Image:
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
                 rlb = rlb+1
-                lower_thresh = rcf[rlb]/tempMat[:,:,2].size
+                lower_thresh = rcf[rlb]/sz
             while( upper_thresh < thresh ):
                 rub = rub-1
-                upper_thresh = (tempMat[:,:,2].size-rcf[rub])/tempMat[:,:,2].size
+                upper_thresh = (sz-rcf[rub])/sz
             #now we create the scale factors for the remaining pixels
             rlbf = float(rlb)
             rubf = float(rub)
@@ -3540,31 +3516,43 @@ class Image:
             gubf = float(gub)
             blbf = float(blb)
             bubf = float(bub)
-            def transformClosure((r,g,b)):
-                if(r <= rlb):
-                    r = 0
-                elif( r >= rub):
-                    r = 255
-                else:
-                    rf = ((float(r)-rlbf)*255.00/(rubf-rlbf))
-                    r = int(rf)
-                if(g <= glb):
-                    g = 0
-                elif( g >= gub):
-                    g = 255
-                else:
-                    gf = ((float(g)-glbf)*255.00/(gubf-glbf))
-                    g = int(gf)
-                if(b <= blb):
-                    b = 0
-                elif( b >= bub):
-                    b = 255
-                else:
-                    bf = ((float(b)-blbf)*255.00/(bubf-blbf))
-                    b = int(bf)
-                return((r,g,b))
+            r = img.getEmpty(1)
+            g = img.getEmpty(1)
+            b = img.getEmpty(1)
+            cv.Split(img.getBitmap(),b,g,r,None);
+            rLUT = np.ones((255,1),dtype=uint8)
+            gLUT = np.ones((255,1),dtype=uint8)
+            bLUT = np.ones((255,1),dtype=uint8)
 
-            retVal = self.applyPixelFunction(transformClosure)
+            #cv.fromarray(rLUT)
+#             for i in range(255):
+#                 if(i <= rlb):
+#                     rLUT[0][i] = 0
+#                 elif( i >= rub):
+#                     rLUT[0][i] = 255
+#                 else:
+#                     rf = ((float(i)-rlbf)*255.00/(rubf-rlbf))
+#                     rLUT[0][i] = int(rf)
+#                 if( i <= glb):
+#                     gLUT[0][i] = 0
+#                 elif( i >= gub):
+#                     gLUT[0][i] = 255
+#                 else:
+#                     gf = ((float(i)-glbf)*255.00/(gubf-glbf))
+#                     gLUT[0][i] = int(gf)
+#                 if( i <= blb):
+#                     bLUT[0][i] = 0
+#                 elif( i >= bub):
+#                     bLUT[0][i] = 255
+#                 else:
+#                     bf = ((float(i)-blbf)*255.00/(bubf-blbf))
+#                     bLUT[0][i] = int(bf)
+            cv.LUT(r,cv.fromarray(rLUT),r)
+            cv.LUT(g,cv.fromarray(gLUT),g)
+            cv.LUT(b,cv.fromarray(bLUT),b)
+            temp = img.getEmpty()
+            cv.Merge(b,g,r,None,temp.getBitmap())
+            retVal = Image(temp)
 
         return retVal 
         
