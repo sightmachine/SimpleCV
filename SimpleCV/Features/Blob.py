@@ -74,6 +74,35 @@ class Blob(Feature):
         self.mVertEdgeHist = [] #vertical edge histogram
         self.mHortEdgeHist = [] #horizontal edge histgram
         self.points = []
+    
+    _iplimage_fields = ("mHullMask", "mMask")
+        
+    def __getstate__(self):
+        newdict = {}
+        for k in self.__dict__.keys():
+            if k == "image":
+                continue
+            elif k in self._iplimage_fields:
+                newdict[k + "__string"] = self.__dict__[k].tostring()
+            else:
+                newdict[k] = self.__dict__[k]
+        return newdict
+        
+        
+    def __setstate__(self, mydict):
+        iplkeys = []
+        for k in mydict:
+            if re.search("__string", k):
+                iplkeys.append(k)
+            else:
+                self.__dict__[k] = mydict[k]
+        
+        #once we get all the metadata loaded, go for the bitmaps
+        for k in iplkeys:
+            realkey = k[:-len("__string")]
+            self.__dict__[realkey] = cv.CreateImageHeader((self.width(), self.height()), cv.IPL_DEPTH_8U, 1)
+            cv.SetData(self.__dict__[realkey], mydict[k])
+        
 
     def meanColor(self):
         """
