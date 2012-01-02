@@ -2816,22 +2816,33 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
-    def findCircles(self):
-        retVal = self
-        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
-        distance = max(self.width,self.height)/33
-        cv.HoughCircles(retVal._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,50,100)
-        points = np.asarray(storage)
-        sz = points.shape
-        # (300,200,180)
-        # (510,75, 70)
-        # (460, 345,80)
-        # (110,250,100)
-        for i in range(sz[0]):
-            print (points[i][0][0],points[i][0][1],points[i][0][2])
-            retVal.drawCircle( (points[i][0][0],points[i][0][1]),int(points[i][0][2]),color=Color.RED)
-        return (retVal,points)
+    def circles(self,canny=100,thresh=350,distance=-1):
+        """
+        Perform the Hough Circle transform to extract _perfect_ circles from the image
+        canny - the upper bound on a canny edge detector used to find circle edges.
 
+        thresh - the threshold at which to count a circle. Small parts of a circle get
+        added to the accumulator array used internally to the array. This value is the
+        minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
+        WARNING: if this threshold is too high, and no circles are found the underlying OpenCV
+        routine fails and causes a segfault. 
+        
+        distance - the minimum distance between each successive circle in pixels. 10 is a good
+        starting value.
+
+        returns: a circle feature set. 
+        """
+        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
+        #a distnace metric for how apart our circles should be - this is a good bench mark
+        if(distance < 0 ):
+            distance = max(self.width,self.height)/50
+        cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
+        circs = np.asarray(storage)
+        sz = circs.shape
+        circleFS = FeatureSet()
+        for i in range(sz[0]):
+            circleFS.append(Circle(self,int(circs[i][0][0]),int(circs[i][0][1]),int(circs[i][0][2])))  
+        return circleFS
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -2841,7 +2852,7 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
