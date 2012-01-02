@@ -55,6 +55,20 @@ def shellclear():
     return
   call("clear")
 
+def plot(arg):
+  try:
+    import matplotlib.pyplot as plt
+  except:
+    warnings.warn("Matplotlib is not installed and required")
+    return
+
+
+  print "args", arg
+  print "type", type(arg)
+  plt.plot(arg)
+  plt.show()
+
+
 def magic_clear(self, arg):
   shellclear()
 
