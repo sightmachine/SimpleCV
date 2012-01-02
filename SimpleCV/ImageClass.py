@@ -2816,6 +2816,22 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
+    def findCircles(self):
+        retVal = self
+        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
+        distance = max(self.width,self.height)/33
+        cv.HoughCircles(retVal._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,50,100)
+        points = np.asarray(storage)
+        sz = points.shape
+        # (300,200,180)
+        # (510,75, 70)
+        # (460, 345,80)
+        # (110,250,100)
+        for i in range(sz[0]):
+            print (points[i][0][0],points[i][0][1],points[i][0][2])
+            retVal.drawCircle( (points[i][0][0],points[i][0][1]),int(points[i][0][2]),color=Color.RED)
+        return (retVal,points)
+
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
