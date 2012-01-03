@@ -694,7 +694,9 @@ class Image:
             cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)  
+            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.GRAY):
+            cv.Split(self.getBitmap(), self._graybitmap, self._graybitmap, self._graybitmap, None)
         else:
             warnings.warn("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
             return None    
