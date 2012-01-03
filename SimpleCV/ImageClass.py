@@ -243,7 +243,7 @@ class Image:
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
-        print "colorspace", colorSpace
+
 
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -356,7 +356,6 @@ class Image:
                 cv.Merge(source, source, source, None, self._bitmap)
                 self._colorSpace = ColorSpace.BGR
             else:
-                print "wow"
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
         elif (type(source) == type(str())):
@@ -391,7 +390,6 @@ class Image:
         else:
             return None
 
-        print "colorspace", colorSpace
         #if the caller passes in a colorspace we overide it 
         if(colorSpace != ColorSpace.UNKNOWN):
             self._colorSpace = colorSpace
