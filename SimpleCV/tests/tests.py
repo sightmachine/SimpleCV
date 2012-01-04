@@ -35,6 +35,7 @@ greyscaleimage = "../sampleimages/greyscale.jpg"
 logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
+circles = "../sampleimages/circles.png"
 
 #These function names are required by nose test, please leave them as is
 def setup_context():
@@ -999,7 +1000,6 @@ def test_segmentation_color():
     else:
         pass
 
-
 def test_imageset():
     imgs = ImageSet()
 
@@ -1016,3 +1016,25 @@ def test_hsv_conversion():
     else:
       assert False
 
+def test_hough_circles():
+  img = Image(circles)
+  circs = img.findCircle(thresh=100)
+  if( circs[0] < 1 ):
+    assert False
+  circs[0].coordinates()
+  circs[0].width()
+  circs[0].area()
+  circs[0].perimeter()
+  circs[0].height()
+  circs[0].radius()
+  circs[0].diameter()
+  circs[0].colorDistance()
+  circs[0].meanColor()
+  circs[0].distanceFrom(point=(0,0))
+  circs[0].draw()
+  img2 = circs[0].crop()
+  img3 = circs[0].crop(noMask=True)
+  if( img2 is not None and img3 is not None ):
+    pass
+  else:
+    assert False
