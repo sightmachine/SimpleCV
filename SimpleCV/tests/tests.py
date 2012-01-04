@@ -1002,7 +1002,7 @@ def test_segmentation_color():
 
 def test_hough_circles():
   img = Image(circles)
-  circs = img.circles(thresh=100)
+  circs = img.findCircle(thresh=100)
   if( circs[0] < 1 ):
     assert False
   circs[0].coordinates()

@@ -2613,14 +2613,7 @@ class Image:
         cv.ResetImageROI(retVal.getBitmap())
         return retVal
     
-    def createMaskFromColor(self, color=None,hues=None):
-        """
-        This function generates an optional alpha mask given a list of either colors
-        or hues. Masks based on colors are binary (black and white) while hue based
-        masks have 8bits of grayscale depth. 
-        """
-        return self;
-    
+       
     def integralImage(self,tilted=False):
         """
         Calculate the integral image and return it as a numpy array.
@@ -2816,7 +2809,7 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
-    def circles(self,canny=100,thresh=350,distance=-1):
+    def findCircle(self,canny=100,thresh=350,distance=-1):
         """
         Perform the Hough Circle transform to extract _perfect_ circles from the image
         canny - the upper bound on a canny edge detector used to find circle edges.
