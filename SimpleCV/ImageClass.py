@@ -2804,6 +2804,9 @@ class Image:
 
         (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
 
+        print topROI
+        print bottomROI
+
         if( alpha is not None ):
             cv.SetImageROI(img.getBitmap(),topROI);
             cv.SetImageROI(retVal.getBitmap(),bottomROI);
@@ -3063,6 +3066,8 @@ class Image:
         cv.ResetImageROI(self.getBitmap())
         return Image(newCanvas)
 
+
+
     def _rectOverlapROIs(self,top, bottom, pos):
         """
         top is a rectangle (w,h)
@@ -3077,10 +3082,11 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        def inBounds(self,(w,h), (x,y)):
+        def inBounds((w,h), (x,y)):
+            retVal = True
             if( x < 0 or  y < 0 or x > w or y > h):
-                return True
-            return False
+                retVal = False
+            return retVal
 
         trc = inBounds(bottom,tr) 
         tlc = inBounds(bottom,tl) 
@@ -3095,8 +3101,8 @@ class Image:
         # let's figure out where the top rectangle sits on the bottom
         # we clamp the corners of the top rectangle to live inside
         # the bottom rectangle and from that get the x,y,w,h
-        tl = (np.clip(0,bottom[0],tl[0]),np.clip(0,bottom[1],tl[1]))
-        br = (np.clip(0,bottom[0],br[0]),np.clip(0,bottom[1],br[1]))
+        tl = (np.clip(tl[0],0,bottom[0]),np.clip(tl[1],0,bottom[1]))
+        br = (np.clip(br[0],0,bottom[0]),np.clip(br[1],0,bottom[1]))
 
         bx = tl[0]
         by = tl[1] 
@@ -3110,8 +3116,8 @@ class Image:
         tl = pos 
         br = (pos[0]+bottom[0],pos[1]+bottom[1])
         bl = (pos[0],pos[1]+bottom[1])
-        tl = (np.clip(0,top[0],tl[0]), np.clip(0,top[1],tl[1]))
-        br = (np.clip(0,top[0],br[0]), np.clip(0,top[1],br[1]))
+        tl = (np.clip(tl[0],0,top[0]), np.clip(tl[1],0,top[1]))
+        br = (np.clip(br[0],0,top[0]), np.clip(br[1],0,top[1]))
         tx = tl[0]
         ty = tl[1] 
         tw = abs(br[0]-tl[0])
@@ -3128,17 +3134,19 @@ class Image:
         rgb_thresh - The range of each channel to include in the mask. 
        
         """
-        if( rgb_color is not None ):
-            #closure around the filter we're applying
-            def rgbToAlpha(rgb):
-                if( rgb[0] <= rgb_color[0]+rgb_thresh[0] and rgb[0] >= rgb_color[0]-rgb_thresh[0] and
-                    rgb[1] <= rgb_color[1]+rgb_thresh[1] and rgb[1] >= rgb_color[1]-rgb_thresh[1] and
-                    rgb[2] <= rgb_color[2]+rgb_thresh[2] and rgb[2] >= rgb_color[2]-rgb_thresh[2] ):
-                    return((255,255,255))
-                else:
-                    return((0,0,0))
-            #end closure
-        return self.applyPixelFunction(rgbToAlpha)
+        rLUT = np.zeros(256,1)
+        gLUT = np.zeros(256,1)
+        bLUT = np.zeros(256,1)
+        low = rgb_color[0]-rgb_thresh[0]
+        high = rgb_color[0]+rgb_thresh[0]
+        rLUT[low:high] = 255
+        low = rgb_color[1]-rgb_thresh[1]
+        high = rgb_color[1]+rgb_thresh[1]
+        gLUT[low:high] = 255
+        low = rgb_color[2]-rgb_thresh[2]
+        high = rgb_color[2]+rgb_thresh[2]
+        bLUT[low:high] = 255
+        return self.applyLUT(rLUT,bLUT,gLUT)
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
         """
@@ -3500,7 +3508,7 @@ class Image:
             rcf = rcf[0]
             rlb = -1 #our upper bound
             rub = 256 # our lower bound
-            lower_thresh = 0.00
+            lower_thresh = 0.00 
             upper_thresh = 0.00
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
@@ -3516,47 +3524,52 @@ class Image:
             gubf = float(gub)
             blbf = float(blb)
             bubf = float(bub)
-            r = img.getEmpty(1)
-            g = img.getEmpty(1)
-            b = img.getEmpty(1)
-            cv.Split(img.getBitmap(),b,g,r,None);
-            rLUT = np.ones((255,1),dtype=uint8)
-            gLUT = np.ones((255,1),dtype=uint8)
-            bLUT = np.ones((255,1),dtype=uint8)
 
             #cv.fromarray(rLUT)
-#             for i in range(255):
-#                 if(i <= rlb):
-#                     rLUT[0][i] = 0
-#                 elif( i >= rub):
-#                     rLUT[0][i] = 255
-#                 else:
-#                     rf = ((float(i)-rlbf)*255.00/(rubf-rlbf))
-#                     rLUT[0][i] = int(rf)
-#                 if( i <= glb):
-#                     gLUT[0][i] = 0
-#                 elif( i >= gub):
-#                     gLUT[0][i] = 255
-#                 else:
-#                     gf = ((float(i)-glbf)*255.00/(gubf-glbf))
-#                     gLUT[0][i] = int(gf)
-#                 if( i <= blb):
-#                     bLUT[0][i] = 0
-#                 elif( i >= bub):
-#                     bLUT[0][i] = 255
-#                 else:
-#                     bf = ((float(i)-blbf)*255.00/(bubf-blbf))
-#                     bLUT[0][i] = int(bf)
-            cv.LUT(r,cv.fromarray(rLUT),r)
-            cv.LUT(g,cv.fromarray(gLUT),g)
-            cv.LUT(b,cv.fromarray(bLUT),b)
-            temp = img.getEmpty()
-            cv.Merge(b,g,r,None,temp.getBitmap())
-            retVal = Image(temp)
-
+            for i in range(256):
+                if(i <= rlb):
+                    rLUT[i][0] = 0
+                elif( i >= rub):
+                    rLUT[i][0] = 255
+                else:
+                    rf = ((float(i)-rlbf)*255.00/(rubf-rlbf))
+                    rLUT[i][0] = int(rf)
+                if( i <= glb):
+                    gLUT[i][0] = 0
+                elif( i >= gub):
+                    gLUT[i][0] = 255
+                else:
+                    gf = ((float(i)-glbf)*255.00/(gubf-glbf))
+                    gLUT[i][0] = int(gf)
+                if( i <= blb):
+                    bLUT[i][0] = 0
+                elif( i >= bub):
+                    bLUT[i][0] = 255
+                else:
+                    bf = ((float(i)-blbf)*255.00/(bubf-blbf))
+                    bLUT[i][0] = int(bf)
+            # LUT IS THE RIGHT PARAM-->
+            img.applyLUT(rLUT,bLUT,gLUT)
+            retVal = img
         return retVal 
         
-
+    def applyLUT(self,rLUT,bLUT,gLUT):
+        if(rLUT.shape != (256,1) or
+           gLUT.shape != (256,1) or
+           bLUT.shape != (256,1) ):
+            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+            return None
+        r = self.getEmpty(1)
+        g = self.getEmpty(1)
+        b = self.getEmpty(1)
+        cv.Split(self.getBitmap(),b,g,r,None);
+        cv.LUT(r,r,cv.fromarray(rLUT))
+        cv.LUT(g,g,cv.fromarray(gLUT))
+        cv.LUT(b,b,cv.fromarray(bLUT))
+        temp = self.getEmpty()
+        cv.Merge(b,g,r,None,temp)
+        return Image(temp)
+        
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
