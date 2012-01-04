@@ -1120,8 +1120,6 @@ class Image:
         more information about thresholding.  The threshblocksize and threshconstant
         parameters are only used for adaptive threshold.
  
-        Note that this previously used cvblob and the python-cvblob library, 
-        which is no longer necessary
     
         Returns: FEATURESET
         """

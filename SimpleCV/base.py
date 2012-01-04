@@ -56,12 +56,6 @@ except ImportError:
     except ImportError:
         PIL_ENABLED = False 
 
-BLOBS_ENABLED = True
-try:
-    import cvblob as cvb
-except ImportError:
-    BLOBS_ENABLED = False 
-
 ZXING_ENABLED = True
 try:
     import zxing

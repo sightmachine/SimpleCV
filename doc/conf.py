@@ -42,7 +42,6 @@ if on_rtd:
                   'scipy.interpolate',
                   'interpolate',
                   'Image',
-                  'cvblob',
                   'zxing',
                   'freenect',
                   'tesseract',

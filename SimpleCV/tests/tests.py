@@ -244,7 +244,6 @@ def test_detection_feature_measures():
     fs.append(Corner(img, 5, 5))
     fs.append(Line(img, ((2, 2), (3,3))))
     print(fs)
-    #if BLOBS_ENABLED:
     bm = BlobMaker()
     result = bm.extract(img)
     fs.extend(result)
@@ -284,8 +283,6 @@ def test_detection_feature_measures():
     fs1 = fs.sortDistance() 
 
 def test_detection_blobs():
-    if not BLOBS_ENABLED:
-      return None 
     img = Image(testbarcode)
     blobs = img.findBlobs()
     if blobs == None:
@@ -293,8 +290,6 @@ def test_detection_blobs():
         
 
 def test_detection_blobs_adaptive():
-    if not BLOBS_ENABLED:
-        return None
     img = Image(testimage)
     blobs = img.findBlobs(-1, threshblocksize=99)
     if blobs == None:
