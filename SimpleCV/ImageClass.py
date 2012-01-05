@@ -245,6 +245,7 @@ class Image:
         self.camera = camera
         self._colorSpace = colorSpace
 
+
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
             try:
@@ -388,7 +389,8 @@ class Image:
 
 
         else:
-            return None 
+            return None
+
         #if the caller passes in a colorspace we overide it 
         if(colorSpace != ColorSpace.UNKNOWN):
             self._colorSpace = colorSpace
@@ -694,7 +696,9 @@ class Image:
             cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)  
+            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.GRAY):
+            cv.Split(self.getBitmap(), self._graybitmap, self._graybitmap, self._graybitmap, None)
         else:
             warnings.warn("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
             return None    
@@ -733,7 +737,7 @@ class Image:
         if (self._pgsurface):
             return self._pgsurface
         else:
-            self._pgsurface = pg.image.fromstring(self.getPIL().tostring(), self.size(), "RGB")
+            self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
     
@@ -770,7 +774,6 @@ class Image:
 
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
-                print "jepgstream"
                 fh.jpgdata = StringIO() 
                 saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
@@ -785,7 +788,6 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
-                print "display"
                 self.filename = "" 
                 self.filehandle = fh
                 fh.writeFrame(saveimg)
@@ -2782,14 +2784,11 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
+
     def blit(self, img, pos=None,alpha=None,mask=None,alphaMask=None):
         """
-        Take image and copy it into this image at the specified to image and return
-        the result. If pos+img.sz exceeds the size of this image then img is cropped.
-        Pos is the top left corner of the input image
-
         img - an image to place ontop of this image.
-        pos - an xy position tuple of the top left corner of img on this image.
+v        pos - an xy position tuple of the top left corner of img on this image.
         alpha - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
         mask - a binary mask the same size as the input image. White areas are blitted, black areas are not blitted.
         alphaMask - an alpha mask where each grayscale value maps how much of each image is shown.
@@ -3211,6 +3210,7 @@ class Image:
         result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3) 
         return Image(result) 
 
+
     def integralImage(self,tilted=False):
         """
         Calculate the integral image and return it as a numpy array.
@@ -3406,6 +3406,33 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
+    def findCircle(self,canny=100,thresh=350,distance=-1):
+        """
+        Perform the Hough Circle transform to extract _perfect_ circles from the image
+        canny - the upper bound on a canny edge detector used to find circle edges.
+
+        thresh - the threshold at which to count a circle. Small parts of a circle get
+        added to the accumulator array used internally to the array. This value is the
+        minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
+        WARNING: if this threshold is too high, and no circles are found the underlying OpenCV
+        routine fails and causes a segfault. 
+        
+        distance - the minimum distance between each successive circle in pixels. 10 is a good
+        starting value.
+
+        returns: a circle feature set. 
+        """
+        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
+        #a distnace metric for how apart our circles should be - this is a good bench mark
+        if(distance < 0 ):
+            distance = max(self.width,self.height)/50
+        cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
+        circs = np.asarray(storage)
+        sz = circs.shape
+        circleFS = FeatureSet()
+        for i in range(sz[0]):
+            circleFS.append(Circle(self,int(circs[i][0][0]),int(circs[i][0][1]),int(circs[i][0][2])))  
+        return circleFS
 
     def whiteBalance(self,method="Simple"):
         """
@@ -3579,8 +3606,8 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *

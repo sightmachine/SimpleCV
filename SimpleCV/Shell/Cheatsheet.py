@@ -6,14 +6,14 @@ import platform
 lb = "\n" #linebreak
 tb = "\t" #tab
 
-def clear():
+def shellclear():
   if platform.system() == "Windows":
     return
   call("clear")
 
 def magic_cheatsheet(self,arg):
   if(arg == ""):
-    clear()
+    shellclear()
     print "+///////////////    SimpleCV Cheatsheet   ///////////////////+"
     print "-------------------------------------------------------------"
     print "Variables"

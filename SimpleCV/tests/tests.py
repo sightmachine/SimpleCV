@@ -35,6 +35,7 @@ greyscaleimage = "../sampleimages/greyscale.jpg"
 logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
+circles = "../sampleimages/circles.png"
 
 #alpha masking images
 topImg = "../sampleimages/RatTop.png"
@@ -1007,6 +1008,7 @@ def test_segmentation_color():
     else:
         pass
 
+<<<<<<< HEAD
 def test_embiggen():
   img = Image(logo)
   img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
@@ -1142,6 +1144,8 @@ def test_blit_alpha_mask():
   bottom.blit(top,alphaMask=aMask,pos=(10,10)).save("BlitAlphaMaskBR.png")
   pass
 
+=======
+>>>>>>> e1b26445d26756dd43ffacffadf85f59fb22f5b5
 def test_imageset():
     imgs = ImageSet()
 
@@ -1158,6 +1162,7 @@ def test_hsv_conversion():
     else:
       assert False
 
+<<<<<<< HEAD
 def test_whiteBalance():
   img = Image("../sampleimages/BADWB.jpg")
   output = img.whiteBalance()
@@ -1165,3 +1170,27 @@ def test_whiteBalance():
   output = img.whiteBalance(method="Simple")
   output.save("white_balanced_Simple.png")
   pass
+=======
+def test_hough_circles():
+  img = Image(circles)
+  circs = img.findCircle(thresh=100)
+  if( circs[0] < 1 ):
+    assert False
+  circs[0].coordinates()
+  circs[0].width()
+  circs[0].area()
+  circs[0].perimeter()
+  circs[0].height()
+  circs[0].radius()
+  circs[0].diameter()
+  circs[0].colorDistance()
+  circs[0].meanColor()
+  circs[0].distanceFrom(point=(0,0))
+  circs[0].draw()
+  img2 = circs[0].crop()
+  img3 = circs[0].crop(noMask=True)
+  if( img2 is not None and img3 is not None ):
+    pass
+  else:
+    assert False
+>>>>>>> e1b26445d26756dd43ffacffadf85f59fb22f5b5
