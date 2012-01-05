@@ -2969,7 +2969,7 @@ class Image:
         storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
         #a distnace metric for how apart our circles should be - this is a good bench mark
         if(distance < 0 ):
-            distance = max(self.width,self.height)/50
+            distance = 1 + max(self.width,self.height)/50
         cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
         circs = np.asarray(storage)
         sz = circs.shape
