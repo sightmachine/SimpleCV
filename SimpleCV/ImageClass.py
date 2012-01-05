@@ -2971,6 +2971,8 @@ class Image:
         if(distance < 0 ):
             distance = 1 + max(self.width,self.height)/50
         cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
+        if storage.rows == 0:
+            return None
         circs = np.asarray(storage)
         sz = circs.shape
         circleFS = FeatureSet()
