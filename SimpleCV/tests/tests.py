@@ -1003,7 +1003,6 @@ def test_segmentation_color():
     else:
         pass
 
-<<<<<<< HEAD
 def test_embiggen():
   img = Image(logo)
   img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
@@ -1139,8 +1138,7 @@ def test_blit_alpha_mask():
   bottom.blit(top,alphaMask=aMask,pos=(10,10)).save("BlitAlphaMaskBR.png")
   pass
 
-=======
->>>>>>> e1b26445d26756dd43ffacffadf85f59fb22f5b5
+
 def test_imageset():
     imgs = ImageSet()
 
@@ -1157,15 +1155,15 @@ def test_hsv_conversion():
     else:
       assert False
 
-<<<<<<< HEAD
+
 def test_whiteBalance():
-  img = Image("../sampleimages/BADWB.jpg")
+  img = Image("../sampleimages/BADWB2.png")
   output = img.whiteBalance()
-  output.save("white_balanced_grayWorld.png")
-  output = img.whiteBalance(method="Simple")
-  output.save("white_balanced_Simple.png")
-  pass
-=======
+  output.save("white_balanced_simple.png")
+  output = img.whiteBalance(method="GrayWorld")
+  output.save("white_balanced_grayworld.png")
+  assert False
+
 def test_hough_circles():
   img = Image(circles)
   circs = img.findCircle(thresh=100)
@@ -1188,4 +1186,4 @@ def test_hough_circles():
     pass
   else:
     assert False
->>>>>>> e1b26445d26756dd43ffacffadf85f59fb22f5b5
+

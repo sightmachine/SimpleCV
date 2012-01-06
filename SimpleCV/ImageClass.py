@@ -3131,9 +3131,9 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         rgb_thresh - The range of each channel to include in the mask. 
        
         """
-        rLUT = np.zeros(256,1)
-        gLUT = np.zeros(256,1)
-        bLUT = np.zeros(256,1)
+        rLUT = np.zeros((256,1),dtype=uint8)
+        gLUT = np.zeros((256,1),dtype=uint8)
+        bLUT = np.zeros((256,1),dtype=uint8)
         low = rgb_color[0]-rgb_thresh[0]
         high = rgb_color[0]+rgb_thresh[0]
         rLUT[low:high] = 255
@@ -3412,7 +3412,8 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         thresh - the threshold at which to count a circle. Small parts of a circle get
         added to the accumulator array used internally to the array. This value is the
         minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
-        WARNING: if this threshold is too high, and no circles are found the underlying OpenCV
+
+        Warning: if this threshold is too high, and no circles are found the underlying OpenCV
         routine fails and causes a segfault. 
         
         distance - the minimum distance between each successive circle in pixels. 10 is a good
@@ -3423,7 +3424,7 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
         #a distnace metric for how apart our circles should be - this is a good bench mark
         if(distance < 0 ):
-            distance = max(self.width,self.height)/50
+            distance = 1+max(self.width,self.height)/50
         cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
         circs = np.asarray(storage)
         sz = circs.shape
@@ -3442,10 +3443,7 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
         http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
         """
-        if(self._colorSpace != ColorSpace.RGB ):
-            img = self.toRGB()
-        else:
-            img = self
+        img = self
         if(method=="GrayWorld"):           
             avg = cv.Avg(img.getBitmap());
             bf = float(avg[0])
@@ -3550,8 +3548,12 @@ v        pos - an xy position tuple of the top left corner of img on this image.
             blbf = float(blb)
             bubf = float(bub)
 
+            rLUT = np.ones((256,1),dtype=uint8)
+            gLUT = np.ones((256,1),dtype=uint8)
+            bLUT = np.ones((256,1),dtype=uint8)
             #cv.fromarray(rLUT)
             for i in range(256):
+                #print i
                 if(i <= rlb):
                     rLUT[i][0] = 0
                 elif( i >= rub):
@@ -3573,24 +3575,69 @@ v        pos - an xy position tuple of the top left corner of img on this image.
                 else:
                     bf = ((float(i)-blbf)*255.00/(bubf-blbf))
                     bLUT[i][0] = int(bf)
+                #print((rLUT[i][0],gLUT[i][0],bLUT[i][0]))
             # LUT IS THE RIGHT PARAM-->
-            img.applyLUT(rLUT,bLUT,gLUT)
-            retVal = img
+            retVal = img.applyLUT(bLUT,gLUT,rLUT)
+            img.applyLUT(bLUT,gLUT,rLUT).save("thismakesbabykatcry1.png")
+            img.applyLUT(bLUT,rLUT,gLUT).save("thismakesbabykatcry2.png")
+            img.applyLUT(gLUT,bLUT,rLUT).save("thismakesbabykatcry3.png")
+            img.applyLUT(gLUT,rLUT,bLUT).save("thismakesbabykatcry4.png")
+            img.applyLUT(rLUT,gLUT,bLUT).save("thismakesbabykatcry5.png")
+            img.applyLUT(rLUT,bLUT,gLUT).save("thismakesbabykatcry6.png")
+
+            
+
         return retVal 
         
-    def applyLUT(self,rLUT,bLUT,gLUT):
-        if(rLUT.shape != (256,1) or
-           gLUT.shape != (256,1) or
-           bLUT.shape != (256,1) ):
-            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-            return None
+    def applyLUT(self,rLUT=None,bLUT=None,gLUT=None):
+        """
+        Apply LUT allows you to apply a LUT (look up table) to the pixels in a image. Each LUT is just 
+        an array where each index in the array points to its value in the result image. For example 
+        rLUT[0]=255 would change all pixels where the red channel is zero to the value 255.
+        
+        params:
+        rLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        gLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        bLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        
+        returns:
+        The image remapped using the LUT.
+        
+        example:
+        This example saturates the red channel
+        >>>> rlut = np.ones((256,1))*255
+        >>>> img=img.applyLUT(rLUT=rlut)
+       
+        """
+#         if(type(rLUT)==tuple):
+#             rLUT = np.array(rLUT)
+#         if(type(gLUT)==tuple):
+#             gLUT = np.array(gLUT)
+#         if(type(bLUT)==tuple):
+#             bLUT = np.array(bLUT)
+
+#         if(rLUT is not None and rLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
+
+#         if(bLUT is not None and bLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
+
+#         if(gLUT is not None and gLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
+
         r = self.getEmpty(1)
         g = self.getEmpty(1)
         b = self.getEmpty(1)
         cv.Split(self.getBitmap(),b,g,r,None);
-        cv.LUT(r,r,cv.fromarray(rLUT))
-        cv.LUT(g,g,cv.fromarray(gLUT))
-        cv.LUT(b,b,cv.fromarray(bLUT))
+        if(rLUT is not None):
+            cv.LUT(r,r,cv.fromarray(rLUT))
+        if(gLUT is not None):
+            cv.LUT(g,g,cv.fromarray(gLUT))
+        if(bLUT is not None):
+            cv.LUT(b,b,cv.fromarray(bLUT))
         temp = self.getEmpty()
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
