@@ -3579,16 +3579,7 @@ v        pos - an xy position tuple of the top left corner of img on this image.
                     bLUT[i][0] = int(bf)
                 #print((rLUT[i][0],gLUT[i][0],bLUT[i][0]))
             # LUT IS THE RIGHT PARAM-->
-            retVal = img.applyLUT(bLUT,gLUT,rLUT)
-            img.applyLUT(bLUT,gLUT,rLUT).save("thismakesbabykatcry1.png")
-            img.applyLUT(bLUT,rLUT,gLUT).save("thismakesbabykatcry2.png")
-            img.applyLUT(gLUT,bLUT,rLUT).save("thismakesbabykatcry3.png")
-            img.applyLUT(gLUT,rLUT,bLUT).save("thismakesbabykatcry4.png")
-            img.applyLUT(rLUT,gLUT,bLUT).save("thismakesbabykatcry5.png")
-            img.applyLUT(rLUT,bLUT,gLUT).save("thismakesbabykatcry6.png")
-
-            
-
+            retVal = img.applyLUT(bLUT,rLUT,gLUT)
         return retVal 
         
     def applyLUT(self,rLUT=None,bLUT=None,gLUT=None):
@@ -3611,24 +3602,24 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         >>>> img=img.applyLUT(rLUT=rlut)
        
         """
-#         if(type(rLUT)==tuple):
-#             rLUT = np.array(rLUT)
-#         if(type(gLUT)==tuple):
-#             gLUT = np.array(gLUT)
-#         if(type(bLUT)==tuple):
-#             bLUT = np.array(bLUT)
+        if(type(rLUT)==tuple):
+            rLUT = np.array(rLUT)
+        if(type(gLUT)==tuple):
+            gLUT = np.array(gLUT)
+        if(type(bLUT)==tuple):
+            bLUT = np.array(bLUT)
 
-#         if(rLUT is not None and rLUT.shape != (256,1)):
-#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-#             return None
+        if(rLUT is not None and rLUT.shape != (256,1)):
+            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+            return None
 
-#         if(bLUT is not None and bLUT.shape != (256,1)):
-#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-#             return None
+        if(bLUT is not None and bLUT.shape != (256,1)):
+            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+            return None
 
-#         if(gLUT is not None and gLUT.shape != (256,1)):
-#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-#             return None
+        if(gLUT is not None and gLUT.shape != (256,1)):
+            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+            return None
 
         r = self.getEmpty(1)
         g = self.getEmpty(1)

@@ -1157,12 +1157,12 @@ def test_hsv_conversion():
 
 
 def test_whiteBalance():
-  img = Image("../sampleimages/BADWB2.png")
+  img = Image("../sampleimages/BadWB2.jpg")
   output = img.whiteBalance()
   output.save("white_balanced_simple.png")
   output = img.whiteBalance(method="GrayWorld")
   output.save("white_balanced_grayworld.png")
-  assert False
+
 
 def test_hough_circles():
   img = Image(circles)
