@@ -25,6 +25,7 @@ class FrameBufferThread(threading.Thread):
                     cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
                 else:
                     cv.GrabFrame(cam.capture)
+                cam.capturetime = time.time()
             time.sleep(0.04)    #max 25 fps, if you're lucky
 
 
@@ -36,6 +37,8 @@ class FrameSource:
     """
     _calibMat = "" #Intrinsic calibration matrix 
     _distCoeff = "" #Distortion matrix
+    capturetime = ''
+    
     def __init__(self):
         return
     
@@ -359,6 +362,7 @@ class Camera(FrameSource):
         
         if (not self.threaded):
             cv.GrabFrame(self.capture)
+            self.capturetime = time.time()
 
         frame = cv.RetrieveFrame(self.capture)
         newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
@@ -409,12 +413,14 @@ class Kinect(FrameSource):
     #https://github.com/amiller/libfreenect-goodies
     def getImage(self):
         video = freenect.sync_get_video()[0]
+        self.capturetime = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
         return Image(video.transpose([1,0,2]), self)
   
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def getDepth(self):
         depth = freenect.sync_get_depth()[0]
+        self.capturetime = time.time()
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
         depth = depth.astype(np.uint8).transpose()
@@ -424,6 +430,7 @@ class Kinect(FrameSource):
     #we're going to also support a higher-resolution (11-bit) depth matrix
     #if you want to actually do computations with the depth
     def getDepthMatrix(self):
+        self.capturetime = time.time()
         return freenect.sync_get_depth()[0]
   
 
@@ -481,6 +488,7 @@ class JpegStreamReader(threading.Thread):
                 #we have a full jpeg in buffer.  Convert to an image
                 if contenttype == "jpeg":
                     self.currentframe = buff 
+                    self.capturetime = time.time()
                 buff = ''
       
             if (re.match("Content-Type", data, re.I)):
@@ -500,6 +508,7 @@ class JpegStreamReader(threading.Thread):
                     buff += data + f.read(length - len(data)) #read the remainder of the image
                     if contenttype == "jpeg":
                         self.currentframe = buff
+                        self.capturetime = time.time()
                 else:
                     while (not re.search(boundary, data)):
                         buff += data 
