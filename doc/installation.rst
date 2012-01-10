@@ -59,6 +59,8 @@ Mac OS X (10.6 and above)
 
 Note: While not required, it is strongly recommended that you install XCode from Apple: http://itunes.apple.com/us/app/xcode/
 
+Also please note the instructions tell you to use wget but it may not be included in your Mac install.
+
 If you want to keep control of your usr/local or are adept at building for Unix, you may want to use the directions below.  Otherwise, we recommend using our Superpack, which contains everything you need in a single package:  http://sourceforge.net/projects/simplecv/files/ 
 
 Steps:
