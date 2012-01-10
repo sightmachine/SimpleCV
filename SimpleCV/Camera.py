@@ -25,7 +25,7 @@ class FrameBufferThread(threading.Thread):
                     cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
                 else:
                     cv.GrabFrame(cam.capture)
-                cam.capturetime = time.time()
+                cam._threadcapturetime = time.time()
             time.sleep(0.04)    #max 25 fps, if you're lucky
 
 
@@ -37,7 +37,8 @@ class FrameSource:
     """
     _calibMat = "" #Intrinsic calibration matrix 
     _distCoeff = "" #Distortion matrix
-    capturetime = ''
+    _threadcapturetime = '' #when the last picture was taken
+    capturetime = '' #timestamp of the last aquired image
     
     def __init__(self):
         return
@@ -363,6 +364,8 @@ class Camera(FrameSource):
         if (not self.threaded):
             cv.GrabFrame(self.capture)
             self.capturetime = time.time()
+        else:
+            self.capturetime = self._threadcapturetime
 
         frame = cv.RetrieveFrame(self.capture)
         newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
@@ -488,7 +491,7 @@ class JpegStreamReader(threading.Thread):
                 #we have a full jpeg in buffer.  Convert to an image
                 if contenttype == "jpeg":
                     self.currentframe = buff 
-                    self.capturetime = time.time()
+                    self._threadcapturetime = time.time()
                 buff = ''
       
             if (re.match("Content-Type", data, re.I)):
@@ -508,7 +511,7 @@ class JpegStreamReader(threading.Thread):
                     buff += data + f.read(length - len(data)) #read the remainder of the image
                     if contenttype == "jpeg":
                         self.currentframe = buff
-                        self.capturetime = time.time()
+                        self._threadcapturetime = time.time()
                 else:
                     while (not re.search(boundary, data)):
                         buff += data 
@@ -546,5 +549,6 @@ class JpegStreamCamera(FrameSource):
         """
         Return the current frame of the JpegStream being monitored
         """
+        self.capturetime = self._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
 
