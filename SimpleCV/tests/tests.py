@@ -1022,9 +1022,9 @@ def test_embiggen():
 
 def test_createBinaryMask():
   img = Image(logo)
-  img.createBinaryMask(rgb_color=(0,0,0)).save('BinaryMask1.png')
-  img.createBinaryMask(rgb_color=(0,0,0),rgb_thresh=(10,10,10)).save('BinaryMask2.png')
-  pass
+  img.createBinaryMask(rgb_color=(128,128,128),low=(0,0,0),high=(255,255,255)).save('BinaryMask1.png')
+  #img.createBinaryMask(rgb_color=(0,0,0),low=(10,10,10),high=(255,255,255)).save('BinaryMask2.png')
+  assert False
 
 def test_applyBinaryMask():
   img = Image(logo)
@@ -1091,6 +1091,13 @@ def test_createAlphaMask():
   alphaMask = Image(alphaSrcImg)
   mask = alphaMask.createAlphaMask(hue=60)
   mask.save("AlphaMask.png")
+
+  mask = alphaMask.createAlphaMask(hue_lb=59,hue_ub=61)
+  mask.save("AlphaMask2.png")
+
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  bottom.blit(top,alphaMask=mask).save("AlphaMask3.png")  
   pass
 
 def test_blit_regular(): 

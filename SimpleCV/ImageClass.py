@@ -3121,7 +3121,7 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         th = abs(br[1]-tl[1])
         return (tx,ty,tw,th),(bx,by,bw,bh)
 
-    def createBinaryMask(self, rgb_color=(0,255,0), rgb_thresh=(0,0,0)):
+    def createBinaryMask(self, rgb_color=(0,255,0),low=(0,0,0),high=(0,0,0)):
         """
         Generate a binary mask of the image based on either a hue or an rgb triplet.
         A binary mask is a black and white image where the white area is kept and the
@@ -3131,19 +3131,63 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         rgb_thresh - The range of each channel to include in the mask. 
        
         """
-        rLUT = np.zeros((256,1),dtype=uint8)
-        gLUT = np.zeros((256,1),dtype=uint8)
-        bLUT = np.zeros((256,1),dtype=uint8)
-        low = rgb_color[0]-rgb_thresh[0]
-        high = rgb_color[0]+rgb_thresh[0]
-        rLUT[low:high] = 255
-        low = rgb_color[1]-rgb_thresh[1]
-        high = rgb_color[1]+rgb_thresh[1]
-        gLUT[low:high] = 255
-        low = rgb_color[2]-rgb_thresh[2]
-        high = rgb_color[2]+rgb_thresh[2]
-        bLUT[low:high] = 255
-        return self.applyLUT(rLUT,bLUT,gLUT)
+        r = self.getEmpty(1)
+        g = self.getEmpty(1)
+        b = self.getEmpty(1)
+
+        cv.Split(self.getBitmap(),b,g,r,None);
+        lowT = np.clip( rgb_color[0]-low[0],0,255)
+        highT = np.clip(rgb_color[0]+high[0],0,255)
+        print (lowT,highT)
+        cv.Threshold(r,r,float(lowT),float(highT),cv.CV_THRESH_BINARY_INV)
+
+        lowT = np.clip( rgb_color[1]-low[1],0,255)
+        highT = np.clip(rgb_color[1]+high[1],0,255)
+        print (lowT,highT)
+        cv.Threshold(g,g,float(lowT),float(highT),cv.CV_THRESH_BINARY_INV)
+
+        lowT = np.clip( rgb_color[2]-low[2],0,255)
+        highT = np.clip(rgb_color[2]+high[2],0,255)
+        print (lowT,highT)
+        cv.Threshold(b,b,float(lowT),float(highT),cv.CV_THRESH_BINARY_INV)
+        
+        derp = Image(r)
+        derp.save("derp.png")
+
+        herp = Image(g)
+        herp.save("herp.png")
+
+        gerp = Image(b)
+        gerp.save("gerp.png")
+
+
+        cv.And(r,g,r)
+        cv.And(r,b,r)
+        return Image(r)
+
+#         rLUT = np.zeros((256,1),dtype=uint8)
+#         gLUT = np.zeros((256,1),dtype=uint8)
+#         bLUT = np.zeros((256,1),dtype=uint8)
+
+#         low = rgb_color[0]-rgb_thresh[0]
+#         high = rgb_color[0]+rgb_thresh[0]
+#         low = np.clip(low,0,255)
+#         high = np.clip(high,0,255)
+#         rLUT[low:high] = 255
+#         print low
+#         print high
+#         print rLUT
+#         low = rgb_color[1]-rgb_thresh[1]
+#         high = rgb_color[1]+rgb_thresh[1]
+#         low = np.clip(low,0,255)
+#         high = np.clip(high,0,255)
+#         gLUT[low:high] = 255
+#         low = rgb_color[2]-rgb_thresh[2]
+#         high = rgb_color[2]+rgb_thresh[2]
+#         low = np.clip(low,0,255)
+#         high = np.clip(high,0,255)
+#         bLUT[low:high] = 255
+#         return self.applyLUT(rLUT,bLUT,gLUT)
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
         """
@@ -3164,7 +3208,7 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         cv.Copy(self.getBitmap(),newCanvas,mask.getBitmap());
         return Image(newCanvas,colorSpace=self._colorSpace);
 
-    def createAlphaMask(self, hue=60):
+    def createAlphaMask(self, hue=60, hue_lb=None,hue_ub=None):
         """
         Generate a grayscale or binary mask image based either on a hue or an RGB triplet that can be used
         like an alpha channel. In the resulting mask, the hue/rgb_color will be treated as transparent (black). 
@@ -3183,18 +3227,26 @@ v        pos - an xy position tuple of the top left corner of img on this image.
              rgb_thresh = an integer distance from the rgb_color that will also be added to the mask. 
         """
 
-        if( hue<0 or hue > 255 ):
-            warnings.warn("Invalid hue color, valid range is 0 to 255.")
-            #closure around the filter we're applying
-        def hueToAlpha(hsv):
-            if(hsv[2]==hue):
-                mI = hsv[0];
-                return((255-mI,255-mI,255-mI))
-            else:
-                return((255,255,255))
-        #end closure
-        return self.toHSV().applyPixelFunction(hueToAlpha)
-                
+        if( hue<0 or hue > 180 ):
+            warnings.warn("Invalid hue color, valid hue range is 0 to 180.")
+
+        if( self._colorSpace != ColorSpace.HSV ):
+            hsv = self.toHSV()
+        else:
+            hsv = self
+        h = hsv.getEmpty(1)
+        s = hsv.getEmpty(1)
+        mask = hsv.getEmpty(1)
+        cv.Split(hsv.getBitmap(),None,s,h,None)
+        hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation 
+        if(hue_lb is not None and hue_ub is not None):
+            hlut[hue_lb:hue_ub]=255
+        else:
+            hlut[hue] = 255
+        cv.LUT(h,mask,cv.fromarray(hlut))
+        cv.Copy(s,h,mask) #we'll save memory using hue
+        return Image(h).invert() 
+
 
     def applyPixelFunction(self, theFunc):
         """
@@ -3553,9 +3605,7 @@ v        pos - an xy position tuple of the top left corner of img on this image.
             rLUT = np.ones((256,1),dtype=uint8)
             gLUT = np.ones((256,1),dtype=uint8)
             bLUT = np.ones((256,1),dtype=uint8)
-            #cv.fromarray(rLUT)
             for i in range(256):
-                #print i
                 if(i <= rlb):
                     rLUT[i][0] = 0
                 elif( i >= rub):
@@ -3577,8 +3627,6 @@ v        pos - an xy position tuple of the top left corner of img on this image.
                 else:
                     bf = ((float(i)-blbf)*255.00/(bubf-blbf))
                     bLUT[i][0] = int(bf)
-                #print((rLUT[i][0],gLUT[i][0],bLUT[i][0]))
-            # LUT IS THE RIGHT PARAM-->
             retVal = img.applyLUT(bLUT,rLUT,gLUT)
         return retVal 
         
@@ -3592,34 +3640,38 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         rLUT = a tuple or np.array of size (256x1) with dtype=uint8
         gLUT = a tuple or np.array of size (256x1) with dtype=uint8
         bLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        !The dtype is very important. Will throw the following error without it:
+        
+        error: dst.size() == src.size() && dst.type() == CV_MAKETYPE(lut.depth(), src.channels())
+        
         
         returns:
         The image remapped using the LUT.
         
         example:
         This example saturates the red channel
-        >>>> rlut = np.ones((256,1))*255
+        >>>> rlut = np.ones((256,1),dtype=uint8)*255
         >>>> img=img.applyLUT(rLUT=rlut)
        
         """
-        if(type(rLUT)==tuple):
-            rLUT = np.array(rLUT)
-        if(type(gLUT)==tuple):
-            gLUT = np.array(gLUT)
-        if(type(bLUT)==tuple):
-            bLUT = np.array(bLUT)
+#         if(type(rLUT)==tuple):
+#             rLUT = np.array(rLUT)
+#         if(type(gLUT)==tuple):
+#             gLUT = np.array(gLUT)
+#         if(type(bLUT)==tuple):
+#             bLUT = np.array(bLUT)
 
-        if(rLUT is not None and rLUT.shape != (256,1)):
-            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-            return None
+#         if(rLUT is not None and rLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
 
-        if(bLUT is not None and bLUT.shape != (256,1)):
-            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-            return None
+#         if(bLUT is not None and bLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
 
-        if(gLUT is not None and gLUT.shape != (256,1)):
-            warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-            return None
+#         if(gLUT is not None and gLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
 
         r = self.getEmpty(1)
         g = self.getEmpty(1)
