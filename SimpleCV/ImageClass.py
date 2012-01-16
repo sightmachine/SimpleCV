@@ -2470,7 +2470,7 @@ class Image:
         return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB") 
     
         
-    def addDrawingLayer(self, layer = ""):
+    def addDrawingLayer(self, layer = None):
         """
         Push a new drawing layer onto the back of the layer stack
 
@@ -2480,6 +2480,10 @@ class Image:
         Returns:
             Int
         """
+
+        if not isinstance(layer, DrawingLayer):
+          return "Please pass a DrawingLayer object"
+        
         if not layer:
             layer = DrawingLayer(self.size())
         self._mLayers.append(layer)
