@@ -1014,8 +1014,8 @@ class Image:
       
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
-        Do a binary threshold the image, changing all values above thresh to maxv
-        and all below to black.  If a color tuple is provided, each color channel
+        Do a binary threshold the image, changing all values below thresh to maxv
+        and all above to black.  If a color tuple is provided, each color channel
         is thresholded separately.
     
 
