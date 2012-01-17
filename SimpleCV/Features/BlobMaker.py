@@ -160,6 +160,7 @@ class BlobMaker:
 
         #This is a hack for a python wrapper bug that was missing
         #the constants required from the ctype
+        retVal.m00 = area
         try: 
             retVal.m10 = moments.m10
             retVal.m01 = moments.m01

@@ -2470,7 +2470,7 @@ class Image:
         return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB") 
     
         
-    def addDrawingLayer(self, layer = ""):
+    def addDrawingLayer(self, layer = None):
         """
         Push a new drawing layer onto the back of the layer stack
 
@@ -2480,6 +2480,10 @@ class Image:
         Returns:
             Int
         """
+
+        if not isinstance(layer, DrawingLayer):
+          return "Please pass a DrawingLayer object"
+        
         if not layer:
             layer = DrawingLayer(self.size())
         self._mLayers.append(layer)
@@ -2518,7 +2522,8 @@ class Image:
             index - Int
         """
         if not len(self._mLayers):
-            self.addDrawingLayer()
+            layer = DrawingLayer(self.size())
+            self.addDrawingLayer(layer)
       
       
         return self._mLayers[index]
@@ -2724,16 +2729,21 @@ class Image:
 
         Parameters:
             img - Image
+            
             pos - Tuple
+            
             centered - Boolean
+            
             mask - An optional alpha mask as a grayscale image.
-            clear_colors - a single rgb triplet, or list of rgb triplets 
-                           to use as a transparent color (i.e as a binary alpha )
-            clear_hues  -
-                        A list of 8bit hue colors to treat as the alpha mask when blitting. 
-                        more sophisticated than a single color treat one or more 
-                        hues as being transparent. Any pixel with these hue values 
-                        will be treated as transparent.
+            
+            clear_colors: a single rgb triplet, or list of rgb triplets 
+            to use as a transparent color (i.e as a binary alpha )
+            
+            clear_hues:
+            A list of 8bit hue colors to treat as the alpha mask when blitting. 
+            more sophisticated than a single color treat one or more 
+            hues as being transparent. Any pixel with these hue values 
+            will be treated as transparent.
         """
         retVal = self
         w = img.width
