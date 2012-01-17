@@ -2522,7 +2522,8 @@ class Image:
             index - Int
         """
         if not len(self._mLayers):
-            self.addDrawingLayer()
+            layer = DrawingLayer(self.size())
+            self.addDrawingLayer(layer)
       
       
         return self._mLayers[index]
