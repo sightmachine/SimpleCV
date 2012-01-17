@@ -1043,8 +1043,8 @@ class Image:
       
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
-        Do a binary threshold the image, changing all values above thresh to maxv
-        and all below to black.  If a color tuple is provided, each color channel
+        Do a binary threshold the image, changing all values below thresh to maxv
+        and all above to black.  If a color tuple is provided, each color channel
         is thresholded separately.
     
 
@@ -1059,9 +1059,9 @@ class Image:
             cv.Split(self.getBitmap(), b, g, r, None)
     
     
-            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
-            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
-            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
+            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
+            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
     
     
             cv.Add(r, g, r)
@@ -2536,7 +2536,7 @@ class Image:
         return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB") 
     
         
-    def addDrawingLayer(self, layer = ""):
+    def addDrawingLayer(self, layer = None):
         """
         Push a new drawing layer onto the back of the layer stack
 
@@ -2546,6 +2546,10 @@ class Image:
         Returns:
             Int
         """
+
+        if not isinstance(layer, DrawingLayer):
+          return "Please pass a DrawingLayer object"
+        
         if not layer:
             layer = DrawingLayer(self.size())
         self._mLayers.append(layer)
@@ -2584,7 +2588,8 @@ class Image:
             index - Int
         """
         if not len(self._mLayers):
-            self.addDrawingLayer()
+            layer = DrawingLayer(self.size())
+            self.addDrawingLayer(layer)
       
       
         return self._mLayers[index]
