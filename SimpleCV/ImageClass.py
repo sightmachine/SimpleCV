@@ -2786,13 +2786,14 @@ class Image:
     def blit(self, img, pos=None,alpha=None,mask=None,alphaMask=None):
         """
         img - an image to place ontop of this image.
-v        pos - an xy position tuple of the top left corner of img on this image.
+        pos - an xy position tuple of the top left corner of img on this image.
         alpha - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
         mask - a binary mask the same size as the input image. White areas are blitted, black areas are not blitted.
         alphaMask - an alpha mask where each grayscale value maps how much of each image is shown.
         """
         retVal = Image(self.getEmpty())
         cv.Copy(self.getBitmap(),retVal.getBitmap())
+
         w = img.width
         h = img.height
 
@@ -2800,9 +2801,6 @@ v        pos - an xy position tuple of the top left corner of img on this image.
             pos = (0,0) 
 
         (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
-
-        print topROI
-        print bottomROI
 
         if( alpha is not None ):
             cv.SetImageROI(img.getBitmap(),topROI);
@@ -3121,39 +3119,32 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         th = abs(br[1]-tl[1])
         return (tx,ty,tw,th),(bx,by,bw,bh)
 
-    def createBinaryMask(self, rgb_color=(128,128,128),color1=None,color2=None):
+    def createBinaryMask(self,color1=(0,0,0),color2=(255,255,255)):
         """
-        Generate a binary mask of the image based on either a hue or an rgb triplet.
+        Generate a binary mask of the image based on a range of rgb values.
         A binary mask is a black and white image where the white area is kept and the
         black area is removed. 
 
-        We have two modes of operation, one where you can select a single color
-        by specifying it as 
-        rgb_color - a single color mask.
+        This method is used by specifying two colors as the range between the minimum and maximum
+        values that will be masked white.
 
-        The other way you can use the function is to specifying two colors 
-        and this method will use  all of the values in between as the mask.
-        These two colors are given by color1 and color2. This method looks at each 
-        channel (r,g,b) and gets everything between minimum and maximum of each channel. 
-
+        example:
+        >>>> img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
        
         """
-        low = np.array([0.00,0.00,0.00])
-        high = np.array([0.00,0.00,0.00])
-        if( color1 is None and color2 is None):
-            low[0] = float(np.clip(rgb_color[0],0,255))
-            low[1] = float(np.clip(rgb_color[1],0,255))
-            low[2] = float(np.clip(rgb_color[2],0,255))
-            high[0] = float(np.clip(rgb_color[0]+1,0,255))
-            high[1] = float(np.clip(rgb_color[1]+1,0,255))
-            high[2] = float(np.clip(rgb_color[2]+1,0,255))
-        else:
-            low[0] = float(np.clip(np.min((color1[0],color2[0])),0,255))
-            low[1] = float(np.clip(np.min((color1[1],color2[1])),0,255))
-            low[2] = float(np.clip(np.min((color1[2],color2[2])),0,255))
-            high[0] = float(np.clip(np.max((color1[0],color2[0])),0,255))
-            high[1] = float(np.clip(np.max((color1[1],color2[1])),0,255))
-            high[2] = float(np.clip(np.max((color1[2],color2[2])),0,255))
+        if( color1[0]-color2[0] == 0 or 
+            color1[1]-color2[1] == 0 or
+            color1[2]-color2[2] == 0 ):
+            warnings.warn("No color range selected, the result will be black, returning None instead.")
+            return None
+        if( color1[0] > 255 or color1[0] < 0 or
+            color1[1] > 255 or color1[1] < 0 or
+            color1[2] > 255 or color1[2] < 0 or
+            color2[0] > 255 or color2[0] < 0 or
+            color2[1] > 255 or color2[1] < 0 or
+            color2[2] > 255 or color2[2] < 0 ):
+            warnings.warn("One of the tuple values falls outside of the range of 0 to 255")
+            return None 
 
         r = self.getEmpty(1)
         g = self.getEmpty(1)
@@ -3167,65 +3158,54 @@ v        pos - an xy position tuple of the top left corner of img on this image.
         gh = self.getEmpty(1)
         bh = self.getEmpty(1)
 
-        rf = self.getEmpty(1)
-        gf = self.getEmpty(1)
-        bf = self.getEmpty(1)
-         
-        maxval = 255.00
-        print(low)
-        print(high)
         cv.Split(self.getBitmap(),b,g,r,None);
-        redImg = Image(r)
-        redImg.save("red.png")
-        blueImg = Image(b)
-        blueImg.save("blue.png")
-        greenImg = Image(g)
-        greenImg.save("green.png")
-        # Here we get the lower threshold image - x
-        # and the inverse of the higher threshold image - !y 
-        # then we do x&!y
-        # so we get everything above lowT and everything not above high T
-        cv.Threshold(r,rl,49,255,cv.CV_THRESH_BINARY)
-        cv.Threshold(r,rh,250,255,cv.CV_THRESH_BINARY)
-        rhi = Image(rh)
-        rhi.save("rhout.png")
-        rli = Image(rl)
-        rli.save("rlout.png")
-        cv.Sub(rl,rh,rf)
-        rfi = Image(rf)
-        rfi.save("rfout.png")
-        derp = redImg.sideBySide(rli.sideBySide(rhi.sideBySide(rfi)))
-        derp.save("RedChain.png")
+        #the difference == 255 case is where open CV
+        #kinda screws up, this should just be a white image
+        if( abs(color1[0]-color2[0]) == 255 ):
+            cv.Zero(rl)
+            cv.AddS(rl,255,rl)
+        #there is a corner case here where difference == 0
+        #right now we throw an error on this case. 
+        #also we use the triplets directly as OpenCV is 
+        # SUPER FINICKY about the type of the threshold. 
+        elif( color1[0] < color2[0] ):
+            cv.Threshold(r,rl,color1[0],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(r,rh,color2[0],255,cv.CV_THRESH_BINARY)
+            cv.Sub(rl,rh,rl)
+        else:
+            cv.Threshold(r,rl,color2[0],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(r,rh,color1[0],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(rl,rh,rl)
 
-        cv.Threshold(g,gl,int(low[1]),255,cv.CV_THRESH_BINARY)
-        cv.Threshold(g,gh,int(high[1]),255,cv.CV_THRESH_BINARY)
-        ghi =  Image(gh)
-        ghi.save("ghout.png")
-        gli = Image(gl)
-        gli.save("glout.png")
 
-        cv.Sub(gl,gh,gf)
-        gfi = Image(gf)
-        gfi.save("gfout.png")
-        derp = greenImg.sideBySide(gli.sideBySide(ghi.sideBySide(gfi)))
-        derp.save("GreenChain.png")
+        if( abs(color1[1]-color2[1]) == 255 ):
+            cv.Zero(gl)
+            cv.AddS(gl,255,gl)
+        elif( color1[1] < color2[1] ):
+            cv.Threshold(g,gl,color1[1],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(g,gh,color2[1],255,cv.CV_THRESH_BINARY)
+            cv.Sub(gl,gh,gl)
+        else:
+            cv.Threshold(g,gl,color2[1],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(g,gh,color1[1],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(gl,gh,gl)
 
-        cv.Threshold(b,bl,low[2] ,maxval,cv.CV_THRESH_BINARY)
-        cv.Threshold(b,bh,high[2],maxval,cv.CV_THRESH_BINARY)
-        bhi = Image(bh)
-        bhi.save("bhout.png")
-        bli = Image(bl)
-        bli.save("blout.png")
-        cv.Sub(bl,bh,bf)
-        bfi = Image(bf)
-        bfi.save("bfout.png")
-        derp = blueImg.sideBySide(bli.sideBySide(bhi.sideBySide(bfi)))
-        derp.save("BlueChain.png")
+        if( abs(color1[2]-color2[2]) == 255 ):
+            cv.Zero(bl)
+            cv.AddS(bl,255,bl)
+        elif( color1[2] < color2[2] ):
+            cv.Threshold(b,bl,color1[2],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(b,bh,color2[2],255,cv.CV_THRESH_BINARY)
+            cv.Sub(bl,bh,bl)
+        else:
+            cv.Threshold(b,bl,color2[2],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(b,bh,color1[2],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(bl,bh,bl)
 
-        
-        cv.And(rf,gf,rf)
-        cv.And(rf,bf,rf)
-        return Image(rf)
+
+        cv.And(rl,gl,rl)
+        cv.And(rl,bl,rl)
+        return Image(rl)
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
         """
