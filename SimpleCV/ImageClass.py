@@ -1030,9 +1030,9 @@ class Image:
             cv.Split(self.getBitmap(), b, g, r, None)
     
     
-            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
-            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
-            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
+            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
+            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
     
     
             cv.Add(r, g, r)
