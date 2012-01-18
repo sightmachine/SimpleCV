@@ -3677,25 +3677,6 @@ class Image:
         >>>> img=img.applyLUT(rLUT=rlut)
        
         """
-#         if(type(rLUT)==tuple):
-#             rLUT = np.array(rLUT)
-#         if(type(gLUT)==tuple):
-#             gLUT = np.array(gLUT)
-#         if(type(bLUT)==tuple):
-#             bLUT = np.array(bLUT)
-
-#         if(rLUT is not None and rLUT.shape != (256,1)):
-#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-#             return None
-
-#         if(bLUT is not None and bLUT.shape != (256,1)):
-#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-#             return None
-
-#         if(gLUT is not None and gLUT.shape != (256,1)):
-#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
-#             return None
-
         r = self.getEmpty(1)
         g = self.getEmpty(1)
         b = self.getEmpty(1)
