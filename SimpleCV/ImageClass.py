@@ -7,7 +7,7 @@ from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
 import pygame as pg
-    
+import scipy.stats.stats as sss  #for auto white balance
      
 class ColorSpace:
     """
@@ -22,6 +22,7 @@ class ColorSpace:
     HLS = 4
     HSV = 5
     XYZ  = 6
+
   
 class ImageSet(list):
     """
@@ -453,7 +454,6 @@ class Image:
         """
         return(self._colorSpace==ColorSpace.GRAY)    
 
-
     def toRGB(self):
         """
         Converts Image colorspace to RGB
@@ -845,6 +845,9 @@ class Image:
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
+        WARNING: the two value scale command is deprecated. To set width and height
+        use the resize function. 
+
         Scale the image to a new width and height.
 
         If no height is provided, the width is considered a scaling value ie::
@@ -867,6 +870,32 @@ class Image:
         cv.Resize(self.getBitmap(), scaled_bitmap)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
+    
+    def resize(self, w=None,h=None):
+        """
+        Resize image based on a width, a height, or both. 
+        If width or height is not provided the value is inferred by keeping the aspect ratio. 
+        If both values are provided then the image is resized accordingly.
+
+        Returns: IMAGE
+        """
+        retVal = None
+        if( w is None and h is None ):
+            warnings.warn("Image.resize has no parameters. No operation is performed")
+            return None
+        elif( w is not None and h is None):
+            sfactor = float(w)/float(self.width)
+            h = int( sfactor*float(self.height) )
+        elif( w is None and h is not None):
+            sfactor = float(h)/float(self.height)
+            w = int( sfactor*float(self.width) )
+        if( w > MAX_DIMENSION or h > MAX_DIMENSION ):
+            warnings.warn("Image.resize Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
+            return retVal           
+        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
+        cv.Resize(self.getBitmap(), scaled_bitmap)
+        return Image(scaled_bitmap, colorSpace=self._colorSpace)
+        
 
     def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
         """
@@ -1279,6 +1308,43 @@ class Image:
 
         return (Image(red), Image(green), Image(blue)) 
 
+    def mergeChannels(self,r=None,b=None,g=None):
+        """
+        Merge channels is the oposite of splitChannels. The image takes one image for each
+        of the R,G,B channels and then recombines them into a single image. 
+        """
+        if( r is None and g is None and b is None ):
+            warnings.warn("ImageClass.mergeChannels - we need at least one valid channel")
+            return None
+        if( r is None ):
+            r = self.getEmpty(1)
+            cv.Zero(r);
+        else:
+            rt = r.getEmpty(1)
+            cv.Split(r.getBitmap(),rt,rt,rt,None)
+            r = rt
+        if( g is None ):
+            g = self.getEmpty(1)
+            cv.Zero(g);
+        else:
+            gt = g.getEmpty(1)
+            cv.Split(g.getBitmap(),gt,gt,gt,None)
+            g = gt
+        if( b is None ):
+            b = self.getEmpty(1)
+            cv.Zero(b);
+        else:
+            bt = b.getEmpty(1)
+            cv.Split(b.getBitmap(),bt,bt,bt,None)
+            b = bt
+
+        retVal = self.getEmpty()
+        cv.Merge(b,g,r,None,retVal)
+        return Image(retVal);
+
+
+
+        
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
         """
@@ -2721,50 +2787,503 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
-    def blit(self, img, pos=(0,0),centered=False,mask=None,clear_color=None,clear_hue=None):
-        """
-        Take image and copy it into this image at the specified to image and return
-        the result. If pos+img.sz exceeds the size of this image then img is cropped.
-        Pos is the top left corner of the input image
 
-        Parameters:
-            img - Image
-            
-            pos - Tuple
-            
-            centered - Boolean
-            
-            mask - An optional alpha mask as a grayscale image.
-            
-            clear_colors: a single rgb triplet, or list of rgb triplets 
-            to use as a transparent color (i.e as a binary alpha )
-            
-            clear_hues:
-            A list of 8bit hue colors to treat as the alpha mask when blitting. 
-            more sophisticated than a single color treat one or more 
-            hues as being transparent. Any pixel with these hue values 
-            will be treated as transparent.
+    def blit(self, img, pos=None,alpha=None,mask=None,alphaMask=None):
         """
-        retVal = self
+        img - an image to place ontop of this image.
+        pos - an xy position tuple of the top left corner of img on this image.
+        alpha - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
+        mask - a binary mask the same size as the input image. White areas are blitted, black areas are not blitted.
+        alphaMask - an alpha mask where each grayscale value maps how much of each image is shown.
+        """
+        retVal = Image(self.getEmpty())
+        cv.Copy(self.getBitmap(),retVal.getBitmap())
+
         w = img.width
         h = img.height
-        if(centered):
-            pos = (pos[0]-(w/2),pos[1]-(h/2))
+
+        if( pos is None ):
+            pos = (0,0) 
+
+        (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
+
+        if( alpha is not None ):
+            cv.SetImageROI(img.getBitmap(),topROI);
+            cv.SetImageROI(retVal.getBitmap(),bottomROI);
+            a = float(alpha)
+            b = float(1.00-a)
+            g = float(0.00)
+            cv.AddWeighted(img.getBitmap(),a,retVal.getBitmap(),b,g,retVal.getBitmap())
+            cv.ResetImageROI(img.getBitmap());
+            cv.ResetImageROI(retVal.getBitmap());
+        elif( alphaMask is not None ):
+            if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
+                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
+                return None
+
+            cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
+            cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
+            retValC = retVal.crop(bottomROI[0],bottomROI[1],bottomROI[2],bottomROI[3])
+            r = cImg.getEmpty(1) 
+            g = cImg.getEmpty(1) 
+            b = cImg.getEmpty(1) 
+            cv.Split(cImg.getBitmap(), b, g, r, None)
+            rf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            gf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            bf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            af=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
+            cv.ConvertScale(r,rf)
+            cv.ConvertScale(g,gf)
+            cv.ConvertScale(b,bf)
+            cv.ConvertScale(cMask._getGrayscaleBitmap(),af)
+            cv.ConvertScale(af,af,scale=(1.0/255.0))
+            cv.Mul(rf,af,rf)
+            cv.Mul(gf,af,gf)
+            cv.Mul(bf,af,bf)
+
+            dr = retValC.getEmpty(1) 
+            dg = retValC.getEmpty(1) 
+            db = retValC.getEmpty(1) 
+            cv.Split(retValC.getBitmap(), db, dg, dr, None)
+            drf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
+            dgf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
+            dbf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
+            daf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
+            cv.ConvertScale(dr,drf)
+            cv.ConvertScale(dg,dgf)
+            cv.ConvertScale(db,dbf)
+            cv.ConvertScale(cMask.invert()._getGrayscaleBitmap(),daf)
+            cv.ConvertScale(daf,daf,scale=(1.0/255.0))
+            cv.Mul(drf,daf,drf)
+            cv.Mul(dgf,daf,dgf)
+            cv.Mul(dbf,daf,dbf)
             
-        if(pos[0] >= self.width or pos[1] >= self.height ):
-            warnings.warn("Image.blit: specified position exceeds image dimensions")
-            return None
-        if(img.width+pos[0] > self.width or img.height+pos[1] > self.height):
-            w = min(self.width-pos[0],img.width)
-            h = min(self.height-pos[1],img.height)
-            cv.SetImageROI(img.getBitmap(),(0,0,w,h))
-        cv.SetImageROI(retVal.getBitmap(),(pos[0],pos[1],w,h))
-        cv.Copy(img.getBitmap(),retVal.getBitmap())
-        cv.ResetImageROI(img.getBitmap())
-        cv.ResetImageROI(retVal.getBitmap())
+            cv.Add(rf,drf,rf)
+            cv.Add(gf,dgf,gf)
+            cv.Add(bf,dbf,bf)
+ 
+            cv.ConvertScaleAbs(rf,r)
+            cv.ConvertScaleAbs(gf,g)
+            cv.ConvertScaleAbs(bf,b)
+
+            cv.Merge(b,g,r,None,retValC.getBitmap())
+            cv.SetImageROI(retVal.getBitmap(),bottomROI)
+            cv.Copy(retValC.getBitmap(),retVal.getBitmap())
+            cv.ResetImageROI(retVal.getBitmap())
+
+        elif( mask is not None):
+            if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
+                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
+                return None            
+            cv.SetImageROI(img.getBitmap(),topROI)
+            cv.SetImageROI(mask.getBitmap(),topROI)
+            cv.SetImageROI(retVal.getBitmap(),bottomROI)
+            cv.Copy(img.getBitmap(),retVal.getBitmap(),mask.getBitmap())
+            cv.ResetImageROI(img.getBitmap())
+            cv.ResetImageROI(mask.getBitmap())
+            cv.ResetImageROI(retVal.getBitmap())       
+        else:  #vanilla blit
+            cv.SetImageROI(img.getBitmap(),topROI)
+            cv.SetImageROI(retVal.getBitmap(),bottomROI)
+            cv.Copy(img.getBitmap(),retVal.getBitmap())
+            cv.ResetImageROI(img.getBitmap())
+            cv.ResetImageROI(retVal.getBitmap())
+
         return retVal
-    
+
+    def sideBySide(self, image, side="right", scale=True ):
+        """
+        Combine two images as a side by side. Great for before and after images.
+
+
+        side - what side of this image to place the other image on.
+               choices are (left/right/top/bottom). 
+               
+        scale - if true scale the smaller of the two sides to match the 
+                edge touching the other image. If false we center the smaller
+                of the two images on the edge touching the larger image. 
+
+        """
+        #there is probably a cleaner way to do this, but I know I hit every case when they are enumerated
+        retVal = None
+        if( side == "top" ):
+            #clever
+            retVal = image.sideBySide(self,"bottom",scale)
+        elif( side == "bottom" ):
+            if( self.width > image.width ):
+                if( scale ):
+                    #scale the other image width to fit
+                    resized = image.resize(w=self.width)
+                    nW = self.width
+                    nH = self.height + resized.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,0,nW,self.height))
+                    cv.Copy(self.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,self.height,resized.width,resized.height))
+                    cv.Copy(resized.getBitmap(),newCanvas) 
+                    cv.ResetImageROI(newCanvas)
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                else:
+                    nW = self.width
+                    nH = self.height + image.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,0,nW,self.height))
+                    cv.Copy(self.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    xc = (self.width-image.width)/2
+                    cv.SetImageROI(newCanvas,(xc,self.height,image.width,image.height))
+                    cv.Copy(image.getBitmap(),newCanvas) 
+                    cv.ResetImageROI(newCanvas)
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+            else: #our width is smaller than the other image
+                if( scale ):
+                    #scale the other image width to fit
+                    resized = self.resize(w=image.width)
+                    nW = image.width
+                    nH = resized.height + image.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,0,resized.width,resized.height))
+                    cv.Copy(resized.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,resized.height,nW,image.height))
+                    cv.Copy(image.getBitmap(),newCanvas) 
+                    cv.ResetImageROI(newCanvas)
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                else:
+                    nW = image.width
+                    nH = self.height + image.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    xc = (image.width - self.width)/2
+                    cv.SetImageROI(newCanvas,(xc,0,self.width,self.height))
+                    cv.Copy(self.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,self.height,image.width,image.height))
+                    cv.Copy(image.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas) 
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+
+        elif( side == "right" ):
+            retVal = image.sideBySide(self,"left",scale)
+        else: #default to left
+            if( self.height > image.height ):
+                if( scale ):
+                    #scale the other image height to fit
+                    resized = image.resize(h=self.height)
+                    nW = self.width + resized.height
+                    nH = self.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,0,resized.width,resized.height))
+                    cv.Copy(resized.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    cv.SetImageROI(newCanvas,(resized.width,0,self.width,self.height))
+                    cv.Copy(self.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas) 
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                else:
+                    nW = self.width+image.width
+                    nH = self.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    yc = (self.height-image.height)/2
+                    cv.SetImageROI(newCanvas,(0,yc,image.width,image.height))
+                    cv.Copy(image.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    cv.SetImageROI(newCanvas,(image.width,0,self.width,self.height))
+                    cv.Copy(self.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas) 
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+            else: #our height is smaller than the other image
+                if( scale ):
+                    #scale our height to fit
+                    resized = self.resize(h=image.height)
+                    nW = image.width + resized.width
+                    nH = image.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,0,image.width,image.height))
+                    cv.Copy(image.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    cv.SetImageROI(newCanvas,(image.width,0,resized.width,resized.height))
+                    cv.Copy(resized.getBitmap(),newCanvas) 
+                    cv.ResetImageROI(newCanvas)
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                else:
+                    nW = image.width + self.width
+                    nH = image.height
+                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
+                    cv.SetZero(newCanvas)
+                    cv.SetImageROI(newCanvas,(0,0,image.width,image.height))
+                    cv.Copy(image.getBitmap(),newCanvas)
+                    cv.ResetImageROI(newCanvas)
+                    yc = (image.height-self.height)/2
+                    cv.SetImageROI(newCanvas,(image.width,yc,self.width,self.height))
+                    cv.Copy(self.getBitmap(),newCanvas) 
+                    cv.ResetImageROI(newCanvas)
+                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+        return retVal
+
+
+    def embiggen(self, size=None, color=Color.BLACK, pos=None):
+        """
+        Make the canvas larger but keep the image the same size. 
+
+        size - width and heigt tuple of the new canvas. 
+
+        color - the color of the canvas 
+
+        pos - the position of the top left corner of image on the new canvas, 
+              if none the image is centered.
+        """
+        
+        if( size == None or size[0] < self.width or size[1] < self.height ):
+            warnings.warn("image.embiggenCanvas: the size provided is invalid")
+            return None
+
+        newCanvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        cv.SetZero(newCanvas)
+        newColor = cv.RGB(color[0],color[1],color[2])
+        cv.AddS(newCanvas,newColor,newCanvas)
+        topROI = None
+        bottomROI = None
+        if( pos is None ):
+            pos = (((size[0]-self.width)/2),((size[1]-self.height)/2))
+
+        (topROI, bottomROI) = self._rectOverlapROIs((self.width,self.height),size,pos)
+        if( topROI is None or bottomROI is None):
+            warnings.warn("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
+            return None
+
+        cv.SetImageROI(newCanvas, bottomROI)
+        cv.SetImageROI(self.getBitmap(),topROI)
+        cv.Copy(self.getBitmap(),newCanvas)
+        cv.ResetImageROI(newCanvas)
+        cv.ResetImageROI(self.getBitmap())
+        return Image(newCanvas)
+
+
+
+    def _rectOverlapROIs(self,top, bottom, pos):
+        """
+        top is a rectangle (w,h)
+        bottom is a rectangle (w,h)
+        pos is the top left corner of the top rectangle with respect to the bottom rectangle's top left corner
+        method returns none if the two rectangles do not overlap. Otherwise returns the top rectangle's ROI (x,y,w,h)
+        and the bottom rectangle's ROI (x,y,w,h) 
+        """  
+        # the position of the top rect coordinates give bottom top right = (0,0) 
+        tr = (pos[0]+top[0],pos[1]) 
+        tl = pos 
+        br = (pos[0]+top[0],pos[1]+top[1])
+        bl = (pos[0],pos[1]+top[1])
+        # do an overlap test to weed out corner cases and errors
+        def inBounds((w,h), (x,y)):
+            retVal = True
+            if( x < 0 or  y < 0 or x > w or y > h):
+                retVal = False
+            return retVal
+
+        trc = inBounds(bottom,tr) 
+        tlc = inBounds(bottom,tl) 
+        brc = inBounds(bottom,br) 
+        blc = inBounds(bottom,bl) 
+        if( not trc and not tlc and not brc and not blc ): # no overlap
+            return None,None
+        elif( trc and tlc and brc and blc ): # easy case top is fully inside bottom 
+            tRet = (0,0,top[0],top[1])
+            bRet = (pos[0],pos[1],top[0],top[1])
+            return tRet,bRet
+        # let's figure out where the top rectangle sits on the bottom
+        # we clamp the corners of the top rectangle to live inside
+        # the bottom rectangle and from that get the x,y,w,h
+        tl = (np.clip(tl[0],0,bottom[0]),np.clip(tl[1],0,bottom[1]))
+        br = (np.clip(br[0],0,bottom[0]),np.clip(br[1],0,bottom[1]))
+
+        bx = tl[0]
+        by = tl[1] 
+        bw = abs(tl[0]-br[0])
+        bh = abs(tl[1]-br[1])
+        # now let's figure where the bottom rectangle is in the top rectangle 
+        # we do the same thing with different coordinates
+        pos = (-1*pos[0], -1*pos[1])
+        #recalculate the bottoms's corners with respect to the top. 
+        tr = (pos[0]+bottom[0],pos[1])
+        tl = pos 
+        br = (pos[0]+bottom[0],pos[1]+bottom[1])
+        bl = (pos[0],pos[1]+bottom[1])
+        tl = (np.clip(tl[0],0,top[0]), np.clip(tl[1],0,top[1]))
+        br = (np.clip(br[0],0,top[0]), np.clip(br[1],0,top[1]))
+        tx = tl[0]
+        ty = tl[1] 
+        tw = abs(br[0]-tl[0])
+        th = abs(br[1]-tl[1])
+        return (tx,ty,tw,th),(bx,by,bw,bh)
+
+    def createBinaryMask(self,color1=(0,0,0),color2=(255,255,255)):
+        """
+        Generate a binary mask of the image based on a range of rgb values.
+        A binary mask is a black and white image where the white area is kept and the
+        black area is removed. 
+
+        This method is used by specifying two colors as the range between the minimum and maximum
+        values that will be masked white.
+
+        example:
+        >>>> img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
        
+        """
+        if( color1[0]-color2[0] == 0 or 
+            color1[1]-color2[1] == 0 or
+            color1[2]-color2[2] == 0 ):
+            warnings.warn("No color range selected, the result will be black, returning None instead.")
+            return None
+        if( color1[0] > 255 or color1[0] < 0 or
+            color1[1] > 255 or color1[1] < 0 or
+            color1[2] > 255 or color1[2] < 0 or
+            color2[0] > 255 or color2[0] < 0 or
+            color2[1] > 255 or color2[1] < 0 or
+            color2[2] > 255 or color2[2] < 0 ):
+            warnings.warn("One of the tuple values falls outside of the range of 0 to 255")
+            return None 
+
+        r = self.getEmpty(1)
+        g = self.getEmpty(1)
+        b = self.getEmpty(1)
+        
+        rl = self.getEmpty(1)
+        gl = self.getEmpty(1)
+        bl = self.getEmpty(1)
+ 
+        rh = self.getEmpty(1)
+        gh = self.getEmpty(1)
+        bh = self.getEmpty(1)
+
+        cv.Split(self.getBitmap(),b,g,r,None);
+        #the difference == 255 case is where open CV
+        #kinda screws up, this should just be a white image
+        if( abs(color1[0]-color2[0]) == 255 ):
+            cv.Zero(rl)
+            cv.AddS(rl,255,rl)
+        #there is a corner case here where difference == 0
+        #right now we throw an error on this case. 
+        #also we use the triplets directly as OpenCV is 
+        # SUPER FINICKY about the type of the threshold. 
+        elif( color1[0] < color2[0] ):
+            cv.Threshold(r,rl,color1[0],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(r,rh,color2[0],255,cv.CV_THRESH_BINARY)
+            cv.Sub(rl,rh,rl)
+        else:
+            cv.Threshold(r,rl,color2[0],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(r,rh,color1[0],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(rl,rh,rl)
+
+
+        if( abs(color1[1]-color2[1]) == 255 ):
+            cv.Zero(gl)
+            cv.AddS(gl,255,gl)
+        elif( color1[1] < color2[1] ):
+            cv.Threshold(g,gl,color1[1],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(g,gh,color2[1],255,cv.CV_THRESH_BINARY)
+            cv.Sub(gl,gh,gl)
+        else:
+            cv.Threshold(g,gl,color2[1],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(g,gh,color1[1],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(gl,gh,gl)
+
+        if( abs(color1[2]-color2[2]) == 255 ):
+            cv.Zero(bl)
+            cv.AddS(bl,255,bl)
+        elif( color1[2] < color2[2] ):
+            cv.Threshold(b,bl,color1[2],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(b,bh,color2[2],255,cv.CV_THRESH_BINARY)
+            cv.Sub(bl,bh,bl)
+        else:
+            cv.Threshold(b,bl,color2[2],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(b,bh,color1[2],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(bl,bh,bl)
+
+
+        cv.And(rl,gl,rl)
+        cv.And(rl,bl,rl)
+        return Image(rl)
+
+    def applyBinaryMask(self, mask,bg_color=Color.BLACK):
+        """
+        Apply a binary mask to the image. The white areas of the mask will be kept,
+        and the black areas removed. The removed areas will be set to the color of 
+        bg_color. 
+
+        mask - the binary mask image. White areas are kept, black areas are removed.
+        bg_color - the color of the background on the mask.
+        """
+        newCanvas = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_8U, 3)
+        cv.SetZero(newCanvas)
+        newBG = cv.RGB(bg_color[0],bg_color[1],bg_color[2])
+        cv.AddS(newCanvas,newBG,newCanvas)
+        if( mask.width != self.width or mask.height != self.height ):
+            warnings.warn("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
+            return None
+        cv.Copy(self.getBitmap(),newCanvas,mask.getBitmap());
+        return Image(newCanvas,colorSpace=self._colorSpace);
+
+    def createAlphaMask(self, hue=60, hue_lb=None,hue_ub=None):
+        """
+        Generate a grayscale or binary mask image based either on a hue or an RGB triplet that can be used
+        like an alpha channel. In the resulting mask, the hue/rgb_color will be treated as transparent (black). 
+
+        When a hue is used the mask is treated like an 8bit alpha channel.
+        When an RGB triplet is used the result is a binary mask. 
+        rgb_thresh is a distance measure between a given a pixel and the mask value that we will
+        add to the mask. For example, if rgb_color=(0,255,0) and rgb_thresh=5 then any pixel 
+        winthin five color values of the rgb_color will be added to the mask (e.g. (0,250,0),(5,255,0)....)
+
+        Invert flips the mask values.
+
+        Parameters:
+             hue = a hue used to generate the alpha mask.
+             rgb_color = an rgb triplet used to generate a mask
+             rgb_thresh = an integer distance from the rgb_color that will also be added to the mask. 
+        """
+
+        if( hue<0 or hue > 180 ):
+            warnings.warn("Invalid hue color, valid hue range is 0 to 180.")
+
+        if( self._colorSpace != ColorSpace.HSV ):
+            hsv = self.toHSV()
+        else:
+            hsv = self
+        h = hsv.getEmpty(1)
+        s = hsv.getEmpty(1)
+        mask = hsv.getEmpty(1)
+        cv.Split(hsv.getBitmap(),None,s,h,None)
+        hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation 
+        if(hue_lb is not None and hue_ub is not None):
+            hlut[hue_lb:hue_ub]=255
+        else:
+            hlut[hue] = 255
+        cv.LUT(h,mask,cv.fromarray(hlut))
+        cv.Copy(s,h,mask) #we'll save memory using hue
+        return Image(h).invert() 
+
+
+    def applyPixelFunction(self, theFunc):
+        """
+        apply a function to every pixel and return the result
+        The function must be of the form int (r,g,b)=func((r,g,b))
+        """
+        #there should be a way to do this faster using numpy vectorize
+        #but I can get vectorize to work with the three channels together... have to split them
+        #TODO: benchmark this against vectorize 
+        pixels = np.array(self.getNumpy()).reshape(-1,3).tolist()
+        result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3) 
+        return Image(result) 
+
+
     def integralImage(self,tilted=False):
         """
         Calculate the integral image and return it as a numpy array.
@@ -2968,7 +3487,8 @@ class Image:
         thresh - the threshold at which to count a circle. Small parts of a circle get
         added to the accumulator array used internally to the array. This value is the
         minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
-        WARNING: if this threshold is too high, and no circles are found the underlying OpenCV
+
+        Warning: if this threshold is too high, and no circles are found the underlying OpenCV
         routine fails and causes a segfault. 
         
         distance - the minimum distance between each successive circle in pixels. 10 is a good
@@ -2990,6 +3510,206 @@ class Image:
             circleFS.append(Circle(self,int(circs[i][0][0]),int(circs[i][0][1]),int(circs[i][0][2])))  
         return circleFS
 
+    def whiteBalance(self,method="Simple"):
+        """
+        Attempts to perform automatic white balancing. 
+        Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
+        Robust AWB: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html
+        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/Papers/Robust%20Automatic%20White%20Balance%20Algorithm%20using%20Gray%20Color%20Points%20in%20Images.pdf
+        Simple AWB:
+        http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
+        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
+        """
+        img = self
+        if(method=="GrayWorld"):           
+            avg = cv.Avg(img.getBitmap());
+            bf = float(avg[0])
+            gf = float(avg[1])
+            rf = float(avg[2])
+            af = (bf+gf+rf)/3.0
+            if( bf == 0.00 ):
+                b_factor = 1.00
+            else:
+                b_factor = af/bf
+
+            if( gf == 0.00 ):
+                g_factor = 1.00
+            else:
+                g_factor = af/gf
+
+            if( rf == 0.00 ):
+                r_factor = 1.00
+            else:
+                r_factor = af/rf
+            
+            b = img.getEmpty(1) 
+            g = img.getEmpty(1) 
+            r = img.getEmpty(1) 
+            cv.Split(self.getBitmap(), b, g, r, None)
+            bfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1) 
+            gfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1) 
+            rfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1) 
+            
+            cv.ConvertScale(b,bfloat,b_factor)
+            cv.ConvertScale(g,gfloat,g_factor)
+            cv.ConvertScale(r,rfloat,r_factor)
+           
+            (minB,maxB,minBLoc,maxBLoc) = cv.MinMaxLoc(bfloat)
+            (minG,maxG,minGLoc,maxGLoc) = cv.MinMaxLoc(gfloat)
+            (minR,maxR,minRLoc,maxRLoc) = cv.MinMaxLoc(rfloat)
+            scale = max([maxR,maxG,maxB])
+            sfactor = 1.00
+            if(scale > 255 ):
+                sfactor = 255.00/float(scale)
+
+            cv.ConvertScale(bfloat,b,sfactor);
+            cv.ConvertScale(gfloat,g,sfactor);
+            cv.ConvertScale(rfloat,r,sfactor);
+            
+            retVal = img.getEmpty()
+            cv.Merge(b,g,r,None,retVal);
+            retVal = Image(retVal)
+        elif( method == "Simple" ):
+            thresh = 0.003
+            sz = img.width*img.height
+            tempMat = img.getNumpy() 
+            bcf = sss.cumfreq(tempMat[:,:,0], numbins=256)
+            bcf = bcf[0] # get our cumulative histogram of values for this color
+
+            blb = -1 #our upper bound
+            bub = 256 # our lower bound
+            lower_thresh = 0.00
+            upper_thresh = 0.00
+            #now find the upper and lower thresh% of our values live
+            while( lower_thresh < thresh ):
+                blb = blb+1
+                lower_thresh = bcf[blb]/sz
+            while( upper_thresh < thresh ):
+                bub = bub-1
+                upper_thresh = (sz-bcf[bub])/sz
+
+
+            gcf = sss.cumfreq(tempMat[:,:,1], numbins=256)
+            gcf = gcf[0]
+            glb = -1 #our upper bound
+            gub = 256 # our lower bound
+            lower_thresh = 0.00
+            upper_thresh = 0.00
+            #now find the upper and lower thresh% of our values live
+            while( lower_thresh < thresh ):
+                glb = glb+1
+                lower_thresh = gcf[glb]/sz
+            while( upper_thresh < thresh ):
+                gub = gub-1
+                upper_thresh = (sz-gcf[gub])/sz
+
+
+            rcf = sss.cumfreq(tempMat[:,:,2], numbins=256)
+            rcf = rcf[0]
+            rlb = -1 #our upper bound
+            rub = 256 # our lower bound
+            lower_thresh = 0.00 
+            upper_thresh = 0.00
+            #now find the upper and lower thresh% of our values live
+            while( lower_thresh < thresh ):
+                rlb = rlb+1
+                lower_thresh = rcf[rlb]/sz
+            while( upper_thresh < thresh ):
+                rub = rub-1
+                upper_thresh = (sz-rcf[rub])/sz
+            #now we create the scale factors for the remaining pixels
+            rlbf = float(rlb)
+            rubf = float(rub)
+            glbf = float(glb)
+            gubf = float(gub)
+            blbf = float(blb)
+            bubf = float(bub)
+
+            rLUT = np.ones((256,1),dtype=uint8)
+            gLUT = np.ones((256,1),dtype=uint8)
+            bLUT = np.ones((256,1),dtype=uint8)
+            for i in range(256):
+                if(i <= rlb):
+                    rLUT[i][0] = 0
+                elif( i >= rub):
+                    rLUT[i][0] = 255
+                else:
+                    rf = ((float(i)-rlbf)*255.00/(rubf-rlbf))
+                    rLUT[i][0] = int(rf)
+                if( i <= glb):
+                    gLUT[i][0] = 0
+                elif( i >= gub):
+                    gLUT[i][0] = 255
+                else:
+                    gf = ((float(i)-glbf)*255.00/(gubf-glbf))
+                    gLUT[i][0] = int(gf)
+                if( i <= blb):
+                    bLUT[i][0] = 0
+                elif( i >= bub):
+                    bLUT[i][0] = 255
+                else:
+                    bf = ((float(i)-blbf)*255.00/(bubf-blbf))
+                    bLUT[i][0] = int(bf)
+            retVal = img.applyLUT(bLUT,rLUT,gLUT)
+        return retVal 
+        
+    def applyLUT(self,rLUT=None,bLUT=None,gLUT=None):
+        """
+        Apply LUT allows you to apply a LUT (look up table) to the pixels in a image. Each LUT is just 
+        an array where each index in the array points to its value in the result image. For example 
+        rLUT[0]=255 would change all pixels where the red channel is zero to the value 255.
+        
+        params:
+        rLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        gLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        bLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        !The dtype is very important. Will throw the following error without it:
+        
+        error: dst.size() == src.size() && dst.type() == CV_MAKETYPE(lut.depth(), src.channels())
+        
+        
+        returns:
+        The image remapped using the LUT.
+        
+        example:
+        This example saturates the red channel
+        >>>> rlut = np.ones((256,1),dtype=uint8)*255
+        >>>> img=img.applyLUT(rLUT=rlut)
+       
+        """
+#         if(type(rLUT)==tuple):
+#             rLUT = np.array(rLUT)
+#         if(type(gLUT)==tuple):
+#             gLUT = np.array(gLUT)
+#         if(type(bLUT)==tuple):
+#             bLUT = np.array(bLUT)
+
+#         if(rLUT is not None and rLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
+
+#         if(bLUT is not None and bLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
+
+#         if(gLUT is not None and gLUT.shape != (256,1)):
+#             warnings.warn("LUT must be an np.array of size (256,1) with type uint8")
+#             return None
+
+        r = self.getEmpty(1)
+        g = self.getEmpty(1)
+        b = self.getEmpty(1)
+        cv.Split(self.getBitmap(),b,g,r,None);
+        if(rLUT is not None):
+            cv.LUT(r,r,cv.fromarray(rLUT))
+        if(gLUT is not None):
+            cv.LUT(g,g,cv.fromarray(gLUT))
+        if(bLUT is not None):
+            cv.LUT(b,b,cv.fromarray(bLUT))
+        temp = self.getEmpty()
+        cv.Merge(b,g,r,None,temp)
+        return Image(temp)
+        
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
@@ -2998,7 +3718,9 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
 
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle
+
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
