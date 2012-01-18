@@ -268,7 +268,7 @@ class Feature(object):
         """
         Area covered by the feature -- for a pixel, 1
         """
-        return 1
+        return self.width() * self.height()
   
     def width(self):
         """
