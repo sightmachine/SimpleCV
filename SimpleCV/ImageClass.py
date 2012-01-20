@@ -2489,6 +2489,28 @@ class Image:
         self.getDrawingLayer().text(text, (x, y), color)
     
     
+    def drawRectangle(self,x,y,w,h,color=Color.RED,width=1,alpha=255):
+        """
+        Draw a rectangle on the screen given the upper left corner of the rectangle
+        and the width and height. 
+        
+        x - the x position
+        y - the y position
+        w - the width of the rectangle
+        h - the height of the rectangle
+        color - an RGB tuple indicating the desired color.
+        width - the width of the rectangle, a value less than or equal to zero means filled in completely.
+        alpha - the alpha value on the interval from 255 to 0, 255 is opaque, 0 is completely transparent. 
+
+        returns:
+        None - this operation is in place. 
+        """
+        if( width < 1 ):
+            self.getDrawingLayer().rectangle((x,y),(w,h),color,filled=True,alpha=alpha)
+        else:
+            self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
+            
+
     def show(self, type = 'window'):
         """
         This function automatically pops up a window and shows the current image

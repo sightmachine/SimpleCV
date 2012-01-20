@@ -1288,3 +1288,14 @@ def test_hough_circles():
   else:
     assert False
 
+def test_drawRectangle():
+  img = Image(testimage2)
+  img.drawRectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
+  img.drawRectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
+  img.drawRectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
+  img.drawRectangle(2,2,100,100,color=Color.BLUE,width=1,alpha=255)
+  img.drawRectangle(3,3,100,100,color=Color.BLUE)
+  img.drawRectangle(4,4,100,100,color=Color.BLUE,width=12)
+  img.drawRectangle(5,5,100,100,color=Color.BLUE,width=-1)
+  pass
+
