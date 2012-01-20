@@ -1299,3 +1299,13 @@ def test_drawRectangle():
   img.drawRectangle(5,5,100,100,color=Color.BLUE,width=-1)
   pass
 
+
+def test_minRect():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    b.drawMinRect(color=Color.BLUE,width=3,alpha=123)
+  if VISUAL_TEST:
+    img.save("minrect.png")
+   
+  pass

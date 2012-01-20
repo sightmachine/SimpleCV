@@ -2,7 +2,7 @@ from SimpleCV.base import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
-
+from math import sin, cos, pi
 
 class Blob(Feature):
     """
@@ -204,6 +204,49 @@ class Blob(Feature):
         Length returns the longest dimension of the X/Y bounding box 
         """
         return max(self.mBoundingBox[2],self.mBoundingBox[3])
+
+
+    def getMinRectPoints(self):
+        """
+        Returns the corners for the smallest rotated rectangle to enclose the blob. 
+        The points are returned as a list of  (x,y) tupples.
+        """
+        ang = 2*pi*(float(self.angle())/360.00)
+        tx = self.minRectX()
+        ty = self.minRectY()
+        w = self.minRectWidth()/2.0
+        h = self.minRectHeight()/2.0
+        derp = np.matrix([[cos(ang),-1*sin(ang),tx],[sin(ang),cos(ang),ty],[0,0,1]])
+        # [ cos a , -sin a, tx ]
+        # [ sin a , cos a , ty ]
+        # [ 0     , 0     ,  1 ]
+        tl = np.matrix([-1.0*w,h,1.0]) #Kat gladly supports homo. coordinates. 
+        tr = np.matrix([w,h,1.0])
+        bl = np.matrix([-1.0*w,-1.0*h,1.0])
+        br = np.matrix([w,-1.0*h,1.0])
+        tlp = derp*tl.transpose()
+        trp = derp*tr.transpose()
+        blp = derp*bl.transpose()
+        brp = derp*br.transpose()
+        return( (tlp[0,0],tlp[1,0]),(trp[0,0],trp[1,0]),(blp[0,0],blp[1,0]),(brp[0,0],brp[1,0]) )
+    
+    def drawMinRect(self,layer=None,color=Color.RED,width=1,alpha=128):
+        """
+        Draws the minimum bounding rectangle for the blob. 
+        color = The color to render the blob's box.
+        alpha = The alpha value of the rendered blob 0 = transparent 255 = opaque.
+        width = The width of the drawn blob in pixels
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Returns none, this operation works on the supplied layer or the source image. 
+        """
+        if( layer is None ):
+            layer = self.image.dl()
+        (tl,tr,bl,br) = self.getMinRectPoints()
+        layer.line(tl,tr,color,width=width,alpha=alpha,antialias = False)
+        layer.line(bl,br,color,width=width,alpha=alpha,antialias = False)
+        layer.line(tl,bl,color,width=width,alpha=alpha,antialias = False)
+        layer.line(tr,br,color,width=width,alpha=alpha,antialias = False)
 
     def angle(self):
         """

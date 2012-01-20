@@ -2510,6 +2510,9 @@ class Image:
         else:
             self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
             
+    def drawRotatedRectangle(self,boundingbox,color=Color.RED,width=1):
+        cv.EllipseBox(self.getBitmap(),boundingbox,color,width)
+
 
     def show(self, type = 'window'):
         """
