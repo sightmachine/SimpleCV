@@ -230,7 +230,26 @@ class Blob(Feature):
         brp = derp*br.transpose()
         return( (tlp[0,0],tlp[1,0]),(trp[0,0],trp[1,0]),(blp[0,0],blp[1,0]),(brp[0,0],brp[1,0]) )
     
-    def drawMinRect(self,layer=None,color=Color.RED,width=1,alpha=128):
+    def drawRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
+        """
+        Draws the bounding rectangle for the blob. 
+        color = The color to render the blob's box.
+        alpha = The alpha value of the rendered blob 0 = transparent 255 = opaque.
+        width = The width of the drawn blob in pixels
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Returns none, this operation works on the supplied layer or the source image. 
+        """
+        if( layer is None ):
+            layer = self.image.dl()
+
+        if( width < 1 ):
+            layer.rectangle(self.topLeftCorner(),(self.width(),self.height()),color,width,filled=True,alpha=alpha)
+        else:
+            layer.rectangle(self.topLeftCorner(),(self.width(),self.height()),color,width,filled=False,alpha=alpha)
+            
+
+    def drawMinRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
         """
         Draws the minimum bounding rectangle for the blob. 
         color = The color to render the blob's box.
