@@ -40,6 +40,7 @@ class Blob(Feature):
     mLabelColor = [] # what color to draw the label
     mAvgColor = []#The average color of the blob's area. 
     mImg =  '' #Image()# the segmented image of the blob
+    mHullImg = '' # Image() the image from the hull.
     mMask = '' #Image()# A mask of the blob area
     mHullMask = '' #Image()#A mask of the hull area ... we may want to use this for the image mask. 
     mHoleContour = []  # list of hole contours
@@ -68,13 +69,18 @@ class Blob(Feature):
         self.mAvgColor = [-1,-1,-1]
         self.mImg = None
         self.mMask = None
+        self.mHullImg = None
         self.image = None
         self.mHullMask = None
         self.mHoleContour = [] 
         self.mVertEdgeHist = [] #vertical edge histogram
         self.mHortEdgeHist = [] #horizontal edge histgram
         self.points = []
-    
+        #TODO 
+        # I would like to clean up the Hull mask parameters
+        # it seems to me that we may want the convex hull to be
+        # the default way we calculate for area. 
+
     _iplimage_fields = ("mHullMask", "mMask")
         
     def __getstate__(self):
@@ -344,16 +350,10 @@ class Blob(Feature):
         mode = ""
         point =(self.x,self.y)
         self.mImg = self.mImg.rotate(angle,mode,point)
-        #this is a bit of a hack, but it saves a lot of code
-        #I left masks as bitmaps grrrr
-        tempMask = Image(self.mMask)
-        self.mMask = tempMask.rotate(angle,mode,point).getBitmap()
-        
-        tempMask = Image(self.mHullMask)
-        self.mHullMask = tempMask.rotate(angle,mode,point).getBitmap()
-        
-        #self.mMask.rotate(theta,"",(self.x,self.y))
-        #self.mHullMask.rotate(theta,"",(self.x,self.y))
+        self.mHullImg = self.mHullImg.rotate(angle,mode,point)
+        self.mMask = self.mMask.rotate(angle,mode,point)
+        self.mHullMask = self.mHullMask.rotate(angle,mode,point)
+
         self.mContour = map(lambda x:
                             (x[0]*np.cos(theta)-x[1]*np.sin(theta),
                              x[0]*np.sin(theta)+x[1]*np.cos(theta)),
@@ -479,15 +479,15 @@ class Blob(Feature):
             
         if width == -1:
             #copy the mask into 3 channels and multiply by the appropriate color
-            maskred = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
-            maskgrn = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
-            maskblu = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
+            maskred = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
+            maskgrn = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
+            maskblu = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
             
-            maskbit = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 3) 
+            maskbit = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 3) 
 
-            cv.ConvertScale(self.mMask, maskred, color[0] / 255.0)
-            cv.ConvertScale(self.mMask, maskgrn, color[1] / 255.0)
-            cv.ConvertScale(self.mMask, maskblu, color[2] / 255.0)
+            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskred, color[0] / 255.0)
+            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskgrn, color[1] / 255.0)
+            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskblu, color[2] / 255.0)
             
             cv.Merge(maskblu, maskgrn, maskred, None, maskbit)    
             
@@ -501,7 +501,7 @@ class Blob(Feature):
             self.drawHoles(color, alpha, width, layer)
             
                    
-    def drawOutline(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
+    def drawOutline(self, color=Color.GREEN, alpha=128, width=1, layer=None):
         """
         Draw the blob contour the given layer -- if no layer is provided, draw
         to the source image
@@ -690,7 +690,49 @@ class Blob(Feature):
         Return the radius of the convex hull contour from the centroid
         """
         return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
+
+    def getHullImg(self):
+        """
+        The convex hull of a blob is the shape that would result if you snapped a rubber band around
+        the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
+        This method returns an image where the source image around the convex hull of the blob is copied 
+        ontop a black background.
+
+        Returns an image of the convex hull. 
+        """
+        return self.mHullImg
+
+    def getHullMaskImg(self):
+        """
+        The convex hull of a blob is the shape that would result if you snapped a rubber band around
+        the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
+        This method returns an image where the area of the convex hull is white and the rest of the image 
+        is black. This image is cropped to the size of the blob.
+
+        Returns an image of the convex hull mask. 
+        """
+        return self.mHullMask
         
+    def getMaskedImage(self):
+        """
+        This method automatically copies all of the image data around the blob and puts it in a new 
+        image. The resulting image has the size of the blob, with the blob data copied in place. 
+        Where the blob is not present the background is black.
+
+        Returns and image of blob.
+        """
+        return self.mImg
+
+    def getImageMask(self):
+        """
+        This method returns an image of the blob's mask. Areas where the blob are present are white
+        while all other areas are black. The image is cropped to match the blob area.
+        
+        Returns an image of the mask blob. 
+
+        """
+        return self.mMask
+
     def match(self, otherblob):
         """
         Compare the Hu moments between two blobs to see if they match.  Returns

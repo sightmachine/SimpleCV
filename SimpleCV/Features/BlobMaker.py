@@ -151,9 +151,12 @@ class BlobMaker:
         
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
+
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
-        retVal.mHullMask = self._getHullMask(chull,retVal.mBoundingBox)
+        hullMask = self._getHullMask(chull,retVal.mBoundingBox)
+        retVal.mHullImg = self._getBlobAsImage(chull,retVal.mBoundingBox,color.getBitmap(),hullMask)
+        retVal.mHullMask = Image(hullMask)
         del chull
         
         moments = cv.Moments(seq)
@@ -179,13 +182,15 @@ class BlobMaker:
             retVal.m12 = cv.GetSpatialMoment(moments,1,2)
             
         retVal.mHu = cv.GetHuMoments(moments)
-        retVal.mMask = self._getMask(seq,retVal.mBoundingBox)
-        mask = retVal.mMask
+        mask = self._getMask(seq,retVal.mBoundingBox)
+        retVal.mMask = Image(mask)
+
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
+
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
         bb = retVal.mBoundingBox

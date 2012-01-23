@@ -909,7 +909,16 @@ def test_blob_methods():
         b.minRectHeight()
         b.minRectX()
         b.minRectY()
-        b.aspectRatio()
+        b.aspectRatio() 
+        b.getImageMask()
+        b.getMaskedImage()
+        b.getHullImg()
+        b.getHullMaskImg()
+        b.rectifyMajorAxis()
+        b.getImageMask()
+        b.getMaskedImage()
+        b.getHullImg()
+        b.getHullMaskImg()
         b.angle()
         if(not b.contains((b.x,b.y))):
            assert False
@@ -1319,3 +1328,4 @@ def test_BlobRect():
     img.save("blobRect.png")
    
   pass
+
