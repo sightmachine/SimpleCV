@@ -18,7 +18,7 @@ VISUAL_TEST = False
 #colors
 black = Color.BLACK
 white = Color.WHITE
-red = Color.RED
+ed = Color.RED
 green = Color.GREEN
 blue = Color.BLUE
 
@@ -910,15 +910,15 @@ def test_blob_methods():
         b.minRectX()
         b.minRectY()
         b.aspectRatio() 
-        b.getImageMask()
-        b.getMaskedImage()
-        b.getHullImg()
-        b.getHullMaskImg()
+        b.getBlobImage()
+        b.getBlobMask()
+        b.getHullImage()
+        b.getHullMask()
         b.rectifyMajorAxis()
-        b.getImageMask()
-        b.getMaskedImage()
-        b.getHullImg()
-        b.getHullMaskImg()
+        b.getBlobImage()
+        b.getBlobMask()
+        b.getHullImage()
+        b.getHullMask()
         b.angle()
         if(not b.contains((b.x,b.y))):
            assert False

@@ -691,7 +691,7 @@ class Blob(Feature):
         """
         return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
 
-    def getHullImg(self):
+    def getHullImage(self):
         """
         The convex hull of a blob is the shape that would result if you snapped a rubber band around
         the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
@@ -702,7 +702,7 @@ class Blob(Feature):
         """
         return self.mHullImg
 
-    def getHullMaskImg(self):
+    def getHullMask(self):
         """
         The convex hull of a blob is the shape that would result if you snapped a rubber band around
         the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
@@ -713,7 +713,7 @@ class Blob(Feature):
         """
         return self.mHullMask
         
-    def getMaskedImage(self):
+    def getBlobImage(self):
         """
         This method automatically copies all of the image data around the blob and puts it in a new 
         image. The resulting image has the size of the blob, with the blob data copied in place. 
@@ -723,7 +723,7 @@ class Blob(Feature):
         """
         return self.mImg
 
-    def getImageMask(self):
+    def getBlobMask(self):
         """
         This method returns an image of the blob's mask. Areas where the blob are present are white
         while all other areas are black. The image is cropped to match the blob area.
