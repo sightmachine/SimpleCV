@@ -1329,3 +1329,48 @@ def test_BlobRect():
    
   pass
 
+def test_blob_spatial_relationships():
+  img = Image("../sampleimages/blockhead.png")
+  blobs = img.findBlobs()
+  blobs = blobs.sortArea()
+  t1 = blobs[-2].above(blobs[-1])
+  f1 = blobs[-1].above(blobs[-2])
+  t2 = blobs[-1].below(blobs[-2])
+  f2 = blobs[-2].below(blobs[-1])
+  t3 = blobs[-2].contains(blobs[-3])
+  f3 = blobs[-3].contains(blobs[-2])
+  t4 = blobs[-2].overlaps(blobs[-3])
+  f4 = blobs[-3].overlaps(blobs[-2])
+  f5 = blobs[-3].overlaps(blobs[-1])
+  t5 = blobs[-2].overlaps(blobs[-3])
+  #-4 right -5 left
+  f6 = blobs[-4].right(blobs[-5])
+  t6 = blobs[-5].right(blobs[-4])  
+  f7 = blobs[-5].left(blobs[-4]) 
+  t7 = blobs[-4].left(blobs[-5])
+  
+  myTuple = (0,0)
+  t8 = blobs[-1].above(myTuple)
+  f8 = blobs[-1].below(myTuple)
+  t9 = blobs[-1].left(myTuple)
+  f9 = blobs[-1].right(myTuple)
+  f10 = blobs[-1].contains(myTuple)
+  f11 = blobs[-1].contains(myTuple)
+
+  myNPA = np.array([0,0])
+  t10 = blobs[-1].above(myNPA)
+  f12 = blobs[-1].below(myNPA)
+  t11 = blobs[-1].left(myNPA)
+  f13 = blobs[-1].right(myNPA)
+  f14 = blobs[-1].contains(myNPA)
+
+  myTrue = ( t1 and t2 and t3 and t4 and t5 and t6 and t7 and t8 and t9 and t10 and t11 )
+  myFalse = (f1 or f2 or f3 or f4 or f5 or f6 or f7 or f8 or f9 or f10 or f11 or f12 or f13 or f14)
+
+  if( myTrue and not myFalse ):
+    pass
+  else:
+    assert False
+  
+
+  
