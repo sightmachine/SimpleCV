@@ -1383,3 +1383,17 @@ def test_BlobPickle():
       assert False 
    
   pass
+
+def test_blob_isa_methods():
+  img1 = Image(circles)
+  img2 = Image("../sampleimages/blockhead.png")
+  blobs = img1.findBlobs().sortArea()
+  t1 = blobs[-1].isCircle()
+  f1 = blobs[-1].isRectangle()
+  blobs = img2.findBlobs().sortArea()
+  f2 = blobs[-1].isCircle()
+  t2 = blobs[-1].isRectangle()
+  if( t1 and t2 and not f1 and not f2):
+    pass
+  else:
+    assert False
