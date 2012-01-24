@@ -9,7 +9,7 @@
 # test_detection_lines().  This makes it easier to verify visually
 # that all the correct test per operation exist
 
-import os, sys
+import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
@@ -1326,6 +1326,17 @@ def test_BlobRect():
     b.drawRect(color=Color.BLUE,width=3,alpha=123)
   if VISUAL_TEST:
     img.save("blobRect.png")
+   
+  pass
+
+def test_BlobPickle():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    p = pickle.dumps(b)
+    ub = pickle.loads(p)
+    if (ub.mMask - b.mMask).meanColor() != Color.BLACK:
+      assert False 
    
   pass
 
