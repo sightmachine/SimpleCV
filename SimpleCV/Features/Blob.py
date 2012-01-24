@@ -80,16 +80,12 @@ class Blob(Feature):
         # I would like to clean up the Hull mask parameters
         # it seems to me that we may want the convex hull to be
         # the default way we calculate for area. 
-
-    _iplimage_fields = ("mHullMask", "mMask")
         
     def __getstate__(self):
         newdict = {}
         for k in self.__dict__.keys():
             if k == "image":
                 continue
-            elif k in self._iplimage_fields:
-                newdict[k + "__string"] = self.__dict__[k].tostring()
             else:
                 newdict[k] = self.__dict__[k]
         return newdict

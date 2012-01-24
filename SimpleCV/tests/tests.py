@@ -9,7 +9,7 @@
 # test_detection_lines().  This makes it easier to verify visually
 # that all the correct test per operation exist
 
-import os, sys
+import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
@@ -1331,6 +1331,7 @@ def test_BlobRect():
 
 def test_blob_spatial_relationships():
   img = Image("../sampleimages/blockhead.png")
+  #please see the image
   blobs = img.findBlobs()
   blobs = blobs.sortArea()
   t1 = blobs[-2].above(blobs[-1])
@@ -1372,5 +1373,13 @@ def test_blob_spatial_relationships():
   else:
     assert False
   
-
-  
+def test_BlobPickle():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    p = pickle.dumps(b)
+    ub = pickle.loads(p)
+    if (ub.mMask - b.mMask).meanColor() != Color.BLACK:
+      assert False 
+   
+  pass
