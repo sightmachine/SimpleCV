@@ -83,7 +83,7 @@ class DrawingLayer:
         pixels_alpha = pg.surfarray.pixels_alpha(self._mSurface)
         # Do a floating point multiply, by alpha 100, on each alpha value.
         # Then truncate the values (convert to integer) and copy back into the surface.
-        pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
+        pixels_alpha[...] = (np.ones(pixels_alpha.shape)*(alpha)).astype(np.uint8)
         # Unlock the surface.
         
         del pixels_alpha        
