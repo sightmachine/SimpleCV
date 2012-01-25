@@ -88,6 +88,7 @@ class BlobMaker:
         if( test[0]<ptest and test[1]<ptest and test[2]<ptest):
             return retVal 
         
+        print "ok"
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         
         try:
