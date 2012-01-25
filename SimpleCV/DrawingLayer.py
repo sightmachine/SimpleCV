@@ -36,7 +36,7 @@ class DrawingLayer:
     _mFontName = ""
     _mFontSize = 0
     _mDefaultAlpha = 255
-    _mAlphaDelta = 1
+    _mAlphaDelta = 1 #This is used to track the changed value in alpha
     width = 0
     height = 0
 
@@ -85,11 +85,10 @@ class DrawingLayer:
         pixels_alpha = pg.surfarray.pixels_alpha(self._mSurface)
         # Do a floating point multiply, by alpha 100, on each alpha value.
         # Then truncate the values (convert to integer) and copy back into the surface.
-        #~ pixels_alpha[...] = (pixels_alpha * (alpha / alphachange)).astype(np.uint8)
         pixels_alpha[...] = (pixels_alpha * (1 / self._mAlphaDelta) * (alpha / 255.0)).astype(np.uint8)
         # Unlock the surface.
 
-        self._mAlphaDelta = alpha / 255.0
+        self._mAlphaDelta = alpha / 255.0 #update the changed state
         
         del pixels_alpha        
         return None
