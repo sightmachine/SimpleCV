@@ -9,14 +9,16 @@
 # test_detection_lines().  This makes it easier to verify visually
 # that all the correct test per operation exist
 
-import os, sys
+import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
+
+VISUAL_TEST = False
 
 #colors
 black = Color.BLACK
 white = Color.WHITE
-red = Color.RED
+ed = Color.RED
 green = Color.GREEN
 blue = Color.BLUE
 
@@ -36,6 +38,14 @@ logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 circles = "../sampleimages/circles.png"
+
+#alpha masking images
+topImg = "../sampleimages/RatTop.png"
+bottomImg = "../sampleimages/RatBottom.png"
+maskImg = "../sampleimages/RatMask.png"
+alphaMaskImg = "../sampleimages/RatAlphaMask.png"
+alphaSrcImg = "../sampleimages/GreenMaskSource.png"
+
 
 #These function names are required by nose test, please leave them as is
 def setup_context():
@@ -899,7 +909,16 @@ def test_blob_methods():
         b.minRectHeight()
         b.minRectX()
         b.minRectY()
-        b.aspectRatio()
+        b.aspectRatio() 
+        b.getBlobImage()
+        b.getBlobMask()
+        b.getHullImage()
+        b.getHullMask()
+        b.rectifyMajorAxis()
+        b.getBlobImage()
+        b.getBlobMask()
+        b.getHullImage()
+        b.getHullMask()
         b.angle()
         if(not b.contains((b.x,b.y))):
            assert False
@@ -995,6 +1014,240 @@ def test_segmentation_color():
     else:
         pass
 
+def test_embiggen():
+  img = Image(logo)
+  if VISUAL_TEST:
+    img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(30,30)).save("embiggen_centered2.png")
+    #~ img.embiggen(size=(100,100),color=Color.RED,pos=(150,150)) #should warn
+
+    img.embiggen(size=(100,100),color=Color.RED,pos=(-20,-20)).save("embiggen_tlcorner.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(30,-20)).save("embiggen_tcenter.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(60,-20)).save("embiggen_trcorner.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(60,30)).save("embiggen_right.png")
+
+    img.embiggen(size=(100,100),color=Color.RED,pos=(80,80)).save("embiggen_brcorner.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(30,80)).save("embiggen_bottom.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(-20,80)).save("embiggen_blcorner.png")
+    img.embiggen(size=(100,100),color=Color.RED,pos=(-20,30)).save("embiggen_left.png")
+  else:
+    img.embiggen(size=(100,100),color=Color.RED)
+    img.embiggen(size=(100,100),color=Color.RED,pos=(30,30))
+    #~ img.embiggen(size=(100,100),color=Color.RED,pos=(150,150)) #should warn
+
+    img.embiggen(size=(100,100),color=Color.RED,pos=(-20,-20))
+    img.embiggen(size=(100,100),color=Color.RED,pos=(30,-20))
+    img.embiggen(size=(100,100),color=Color.RED,pos=(60,-20))
+    img.embiggen(size=(100,100),color=Color.RED,pos=(60,30))
+
+    img.embiggen(size=(100,100),color=Color.RED,pos=(80,80))
+    img.embiggen(size=(100,100),color=Color.RED,pos=(30,80))
+    img.embiggen(size=(100,100),color=Color.RED,pos=(-20,80))
+    img.embiggen(size=(100,100),color=Color.RED,pos=(-20,30))
+    
+  pass
+
+def test_createBinaryMask():
+  img2 = Image(logo)
+  if VISUAL_TEST:
+    img2.createBinaryMask(color1=(0,100,100),color2=(255,200,200)).save("BinaryMask1.png")
+    img2.createBinaryMask(color1=(0,0,0),color2=(128,128,128)).save('BinaryMask2.png')
+    img2.createBinaryMask(color1=(0,0,128),color2=(255,255,255)).save('BinaryMask3.png')
+  
+  else:
+    img2.createBinaryMask(color1=(0,100,100),color2=(255,200,200))
+    img2.createBinaryMask(color1=(0,0,0),color2=(128,128,128))
+    img2.createBinaryMask(color1=(0,0,128),color2=(255,255,255))
+        
+  pass
+
+def test_applyBinaryMask():
+  img = Image(logo)
+  mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255))
+  if VISUAL_TEST:
+    img.applyBinaryMask(mask).save("appliedMask1.png")
+    img.applyBinaryMask(mask,bg_color=Color.RED).save("appliedMask2.png")
+
+  else:
+    img.applyBinaryMask(mask)
+    img.applyBinaryMask(mask,bg_color=Color.RED)
+    
+  pass
+
+def test_applyPixelFunc():
+  img = Image(logo)
+  def myFunc((r,g,b)):
+    return( (b,g,r) )
+
+  if VISUAL_TEST:
+    img.applyPixelFunction(myFunc).save("pixelfunc.png")
+  else:
+    img.applyPixelFunction(myFunc)
+    
+  pass
+
+def test_applySideBySide():
+  img = Image(logo)
+  img3 = Image(testimage2)
+
+  #LB = little image big image
+  #BL = big image little image  -> this is important to test all the possible cases.
+  if VISUAL_TEST:
+    img3.sideBySide(img,side='right',scale=False).save('SideBySideRightBL.png')
+    img3.sideBySide(img,side='left',scale=False).save('SideBySideLeftBL.png')
+    img3.sideBySide(img,side='top',scale=False).save('SideBySideTopBL.png')
+    img3.sideBySide(img,side='bottom',scale=False).save('SideBySideBottomBL.png')
+
+    img.sideBySide(img3,side='right',scale=False).save('SideBySideRightLB.png')
+    img.sideBySide(img3,side='left',scale=False).save('SideBySideLeftLB.png')
+    img.sideBySide(img3,side='top',scale=False).save('SideBySideTopLB.png')
+    img.sideBySide(img3,side='bottom',scale=False).save('SideBySideBottomLB.png')
+
+    img3.sideBySide(img,side='right',scale=True).save('SideBySideRightScaledBL.png')
+    img3.sideBySide(img,side='left',scale=True).save('SideBySideLeftScaledBL.png')
+    img3.sideBySide(img,side='top',scale=True).save('SideBySideTopScaledBL.png')
+    img3.sideBySide(img,side='bottom',scale=True).save('SideBySideBottomScaledBL.png')
+
+    img.sideBySide(img3,side='right',scale=True).save('SideBySideRightScaledLB.png')
+    img.sideBySide(img3,side='left',scale=True).save('SideBySideLeftScaledLB.png')
+    img.sideBySide(img3,side='top',scale=True).save('SideBySideTopScaledLB.png')
+    img.sideBySide(img3,side='bottom',scale=True).save('SideBySideBottomScaledLB.png')
+  else:
+    img3.sideBySide(img,side='right',scale=False)
+    img3.sideBySide(img,side='left',scale=False)
+    img3.sideBySide(img,side='top',scale=False)
+    img3.sideBySide(img,side='bottom',scale=False)
+
+    img.sideBySide(img3,side='right',scale=False)
+    img.sideBySide(img3,side='left',scale=False)
+    img.sideBySide(img3,side='top',scale=False)
+    img.sideBySide(img3,side='bottom',scale=False)
+
+    img3.sideBySide(img,side='right',scale=True)
+    img3.sideBySide(img,side='left',scale=True)
+    img3.sideBySide(img,side='top',scale=True)
+    img3.sideBySide(img,side='bottom',scale=True)
+
+    img.sideBySide(img3,side='right',scale=True)
+    img.sideBySide(img3,side='left',scale=True)
+    img.sideBySide(img3,side='top',scale=True)
+    img.sideBySide(img3,side='bottom',scale=True)
+  pass
+
+def test_resize():
+  img = Image(logo)
+  w = img.width
+  h = img.height
+  img2 = img.resize(w*2,None)
+  if( img2.width != w*2 or img2.height != h*2):
+    assert False
+    
+  img3 = img.resize(h=h*2)
+  
+  if( img3.width != w*2 or img3.height != h*2):
+    assert False
+    
+  img4 = img.resize(h=h*2,w=w*2)
+  
+  if( img4.width != w*2 or img4.height != h*2):
+    assert False
+    
+    pass
+
+def test_createAlphaMask():
+  alphaMask = Image(alphaSrcImg)
+  mask = alphaMask.createAlphaMask(hue=60)
+  if VISUAL_TEST: mask.save("AlphaMask.png")
+
+  mask = alphaMask.createAlphaMask(hue_lb=59,hue_ub=61)
+  if VISUAL_TEST: mask.save("AlphaMask2.png")
+
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  if VISUAL_TEST:
+    bottom.blit(top,alphaMask=mask).save("AlphaMask3.png")
+
+  else:
+    bottom.blit(top,alphaMask=mask)
+  pass
+
+def test_blit_regular(): 
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+
+  if VISUAL_TEST:
+    bottom.blit(top).save("BlitNormal.png")
+    bottom.blit(top,pos=(-10,-10)).save("BlitTL.png")
+    bottom.blit(top,pos=(-10,10)).save("BlitBL.png")
+    bottom.blit(top,pos=(10,-10)).save("BlitTR.png")
+    bottom.blit(top,pos=(10,10)).save("BlitBR.png")
+  else:
+    bottom.blit(top)
+    bottom.blit(top,pos=(-10,-10))
+    bottom.blit(top,pos=(-10,10))
+    bottom.blit(top,pos=(10,-10))
+    bottom.blit(top,pos=(10,10))
+    
+  pass
+
+def test_blit_mask():
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  mask = Image(maskImg)
+  if VISUAL_TEST:
+    bottom.blit(top,mask=mask).save("BlitMaskNormal.png")
+    bottom.blit(top,mask=mask,pos=(-50,-50)).save("BlitMaskTL.png")
+    bottom.blit(top,mask=mask,pos=(-50,50)).save("BlitMaskBL.png")
+    bottom.blit(top,mask=mask,pos=(50,-50)).save("BlitMaskTR.png")
+    bottom.blit(top,mask=mask,pos=(50,50)).save("BlitMaskBR.png")
+  else:
+    bottom.blit(top,mask=mask)
+    bottom.blit(top,mask=mask,pos=(-50,-50))
+    bottom.blit(top,mask=mask,pos=(-50,50))
+    bottom.blit(top,mask=mask,pos=(50,-50))
+    bottom.blit(top,mask=mask,pos=(50,50))
+  pass
+
+
+def test_blit_alpha():
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  a = 0.5
+  if VISUAL_TEST:
+    bottom.blit(top,alpha=a).save("BlitAlphaNormal.png")
+    bottom.blit(top,alpha=a,pos=(-50,-50)).save("BlitAlphaTL.png")
+    bottom.blit(top,alpha=a,pos=(-50,50)).save("BlitAlphaBL.png")
+    bottom.blit(top,alpha=a,pos=(50,-50)).save("BlitAlphaTR.png")
+    bottom.blit(top,alpha=a,pos=(50,50)).save("BlitAlphaBR.png")
+  else:
+    bottom.blit(top,alpha=a)
+    bottom.blit(top,alpha=a,pos=(-50,-50))
+    bottom.blit(top,alpha=a,pos=(-50,50))
+    bottom.blit(top,alpha=a,pos=(50,-50))
+    bottom.blit(top,alpha=a,pos=(50,50))
+
+  pass
+
+
+def test_blit_alpha_mask():
+  top = Image(topImg)
+  bottom = Image(bottomImg)
+  aMask = Image(alphaMaskImg)
+  if VISUAL_TEST:
+    bottom.blit(top,alphaMask=aMask).save("BlitAlphaMaskNormal.png")
+    bottom.blit(top,alphaMask=aMask,pos=(-10,-10)).save("BlitAlphaMaskTL.png")
+    bottom.blit(top,alphaMask=aMask,pos=(-10,10)).save("BlitAlphaMaskBL.png")
+    bottom.blit(top,alphaMask=aMask,pos=(10,-10)).save("BlitAlphaMaskTR.png")
+    bottom.blit(top,alphaMask=aMask,pos=(10,10)).save("BlitAlphaMaskBR.png")
+  else:
+    bottom.blit(top,alphaMask=aMask)
+    bottom.blit(top,alphaMask=aMask,pos=(-10,-10))
+    bottom.blit(top,alphaMask=aMask,pos=(-10,10))
+    bottom.blit(top,alphaMask=aMask,pos=(10,-10))
+    bottom.blit(top,alphaMask=aMask,pos=(10,10))
+  pass
+
+
 def test_imageset():
     imgs = ImageSet()
 
@@ -1010,6 +1263,16 @@ def test_hsv_conversion():
       pass
     else:
       assert False
+
+
+def test_whiteBalance():
+  img = Image("../sampleimages/BadWB2.jpg")
+  output = img.whiteBalance()
+  output2 = img.whiteBalance(method="GrayWorld")
+  if VISUAL_TEST:
+    output.save("white_balanced_simple.png")
+    output2.save("white_balanced_grayworld.png")
+
 
 def test_hough_circles():
   img = Image(circles)
@@ -1030,6 +1293,107 @@ def test_hough_circles():
   img2 = circs[0].crop()
   img3 = circs[0].crop(noMask=True)
   if( img2 is not None and img3 is not None ):
+    pass
+  else:
+    assert False
+
+def test_drawRectangle():
+  img = Image(testimage2)
+  img.drawRectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
+  img.drawRectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
+  img.drawRectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
+  img.drawRectangle(2,2,100,100,color=Color.BLUE,width=1,alpha=255)
+  img.drawRectangle(3,3,100,100,color=Color.BLUE)
+  img.drawRectangle(4,4,100,100,color=Color.BLUE,width=12)
+  img.drawRectangle(5,5,100,100,color=Color.BLUE,width=-1)
+  pass
+
+
+def test_BlobMinRect():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    b.drawMinRect(color=Color.BLUE,width=3,alpha=123)
+  if VISUAL_TEST:
+    img.save("blobMinRect.png")
+   
+  pass
+
+def test_BlobRect():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    b.drawRect(color=Color.BLUE,width=3,alpha=123)
+  if VISUAL_TEST:
+    img.save("blobRect.png")
+   
+  pass
+
+def test_blob_spatial_relationships():
+  img = Image("../sampleimages/blockhead.png")
+  #please see the image
+  blobs = img.findBlobs()
+  blobs = blobs.sortArea()
+  t1 = blobs[-2].above(blobs[-1])
+  f1 = blobs[-1].above(blobs[-2])
+  t2 = blobs[-1].below(blobs[-2])
+  f2 = blobs[-2].below(blobs[-1])
+  t3 = blobs[-2].contains(blobs[-3])
+  f3 = blobs[-3].contains(blobs[-2])
+  t4 = blobs[-2].overlaps(blobs[-3])
+  f4 = blobs[-3].overlaps(blobs[-2])
+  f5 = blobs[-3].overlaps(blobs[-1])
+  t5 = blobs[-2].overlaps(blobs[-3])
+  #-4 right -5 left
+  f6 = blobs[-4].right(blobs[-5])
+  t6 = blobs[-5].right(blobs[-4])  
+  f7 = blobs[-5].left(blobs[-4]) 
+  t7 = blobs[-4].left(blobs[-5])
+  
+  myTuple = (0,0)
+  t8 = blobs[-1].above(myTuple)
+  f8 = blobs[-1].below(myTuple)
+  t9 = blobs[-1].left(myTuple)
+  f9 = blobs[-1].right(myTuple)
+  f10 = blobs[-1].contains(myTuple)
+  f11 = blobs[-1].contains(myTuple)
+
+  myNPA = np.array([0,0])
+  t10 = blobs[-1].above(myNPA)
+  f12 = blobs[-1].below(myNPA)
+  t11 = blobs[-1].left(myNPA)
+  f13 = blobs[-1].right(myNPA)
+  f14 = blobs[-1].contains(myNPA)
+
+  myTrue = ( t1 and t2 and t3 and t4 and t5 and t6 and t7 and t8 and t9 and t10 and t11 )
+  myFalse = (f1 or f2 or f3 or f4 or f5 or f6 or f7 or f8 or f9 or f10 or f11 or f12 or f13 or f14)
+
+  if( myTrue and not myFalse ):
+    pass
+  else:
+    assert False
+  
+def test_BlobPickle():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    p = pickle.dumps(b)
+    ub = pickle.loads(p)
+    if (ub.mMask - b.mMask).meanColor() != Color.BLACK:
+      assert False 
+   
+  pass
+
+def test_blob_isa_methods():
+  img1 = Image(circles)
+  img2 = Image("../sampleimages/blockhead.png")
+  blobs = img1.findBlobs().sortArea()
+  t1 = blobs[-1].isCircle()
+  f1 = blobs[-1].isRectangle()
+  blobs = img2.findBlobs().sortArea()
+  f2 = blobs[-1].isCircle()
+  t2 = blobs[-1].isRectangle()
+  if( t1 and t2 and not f1 and not f2):
     pass
   else:
     assert False
