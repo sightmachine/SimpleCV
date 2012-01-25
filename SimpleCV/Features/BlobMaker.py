@@ -88,9 +88,7 @@ class BlobMaker:
         if( test[0]<ptest and test[1]<ptest and test[2]<ptest):
             return retVal 
         
-        print "ok"
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
-        
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
@@ -108,25 +106,28 @@ class BlobMaker:
         as a tree and we traverse up and across the tree. 
         """
         retVal = []
-
+        
         if( seq is None ):
             return retVal
-        
-        if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
-            temp =  self._extractData(seq,colorImg,minsize,maxsize)
-            if( temp is not None ):
-                retVal.append(temp)
-
-        #get the current feature
-        nextBlob = seq.h_next() # move to the next feature on our level
-       
-        
-        if( nextBlob is not None ):
-            #the next object is whatever this object is, add its list to ours
-            retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, minsize,maxsize)
+                
+        nextLayerDown = []
+        while True:
+            if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress
+                temp =  self._extractData(seq,colorImg,minsize,maxsize)
+                if( temp is not None ):
+                    retVal.append(temp)
             
-        nextLayer = seq.v_next() # move down a layer    
-        if(nextLayer is not None): #the next object, since it is down a layer is different
+            nextLayer = seq.v_next()
+            
+            if nextLayer is not None:
+                nextLayerDown.append(nextLayer)
+                
+            seq = seq.h_next()
+            
+            if seq is None:
+                break
+        
+        for nextLayer in nextLayerDown:
             retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize)
         
         return retVal
@@ -141,6 +142,7 @@ class BlobMaker:
         area = cv.ContourArea(seq)
         if( area < minsize or area > maxsize):
             return None
+
         retVal = Blob()
         retVal.image = color 
         retVal.mArea = area
