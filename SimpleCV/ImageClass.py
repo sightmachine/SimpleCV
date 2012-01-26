@@ -8,7 +8,7 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
-     
+import scipy.cluster.vq as scv     
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -1194,6 +1194,7 @@ class Image:
 
         #lovely.  This segfaults if not present
         if type(cascade) == str:
+            
           if (not os.path.exists(cascade)):
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
@@ -3399,6 +3400,14 @@ class Image:
         find the centroid of all of these values. We suggest using an iterative
         k-means approach to find the centroids.
         
+        methods:
+        SQR_DIFF_NORM - Normalized square difference
+        SQR_DIFF      - Square difference
+        CCOEFF        -
+        CCOEFF_NORM   -
+        CCORR         - Cross correlation
+        CCORR_NORM    - Normalize cross correlation
+
         Example:
         
         >>> image = Image("/path/to/img.png")
@@ -3465,8 +3474,24 @@ class Image:
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
-            
-        return fs
+
+        #cluster overlapping template matches 
+        finalfs = FeatureSet()
+        finalfs.append(fs[0])
+        for f in fs:
+            match = False
+            for f2 in finalfs:
+                if( f2.overlaps(f) ): #if they overlap
+                    f2.consume(f) #merge them
+                    match = True
+                    break
+            if( not match ):
+                finalfs.append(f)
+        for f in finalfs: #rescale the resulting clusters to fit the template size
+            f.rescale(template_image.width,template_image.height)
+        fs = finalfs
+        return fs                           
+         
 
     def readText(self):
         """
@@ -3522,7 +3547,7 @@ class Image:
         returns: a circle feature set. 
         """
         storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
-        #a distnace metric for how apart our circles should be - this is a good bench mark
+        #a distnace metric for how apart our circles should be - this is sa good bench mark
         if(distance < 0 ):
             distance = 1 + max(self.width,self.height)/50
         cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
