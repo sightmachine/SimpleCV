@@ -45,7 +45,8 @@ class Line(Feature):
   
     l.points will be a tuple of the two points
     """
- 
+    #TODO - A nice feature would be to calculate the endpoints of the line.
+
     def __init__(self, i, line):
         self.image = i
         #coordinate of the line object is the midpoint
@@ -368,6 +369,8 @@ class TemplateMatch(Feature):
 
     template_image = None
     quality = 0
+    w = 0
+    h = 0 
 
     def __init__(self, image, template, location, quality):
         self.template_image = template
@@ -379,7 +382,63 @@ class TemplateMatch(Feature):
                         (location[0] + template.width, location[1]),
                         (location[0] + template.width, location[1] + template.height),
                         (location[0], location[1] + template.height)]
-                        
+
+
+    def getExtents(self):
+        """
+        Returns max x, max y, min x, min y
+        """
+        w = self.width()
+        h = self.height()
+        return (self.x+w, 
+                self.x,
+                self.y+h,
+                self.y)
+
+    def overlaps(self,other):
+        """
+        Returns true if this feature overlaps another template feature.
+        """
+        (maxx,minx,maxy,miny) = self.getExtents()
+        overlap = False
+        for p in other.points:
+            if( p[0] <= maxx and p[0] >= minx and p[1] <= maxy and p[1] >= miny ):
+               overlap = True 
+               break 
+
+        return overlap
+    
+
+    def consume(self, other):
+        """
+        Given another template feature, make this feature the size of the two features combined.
+        """
+        (maxx,minx,maxy,miny) = self.getExtents()
+        (maxx0,minx0,maxy0,miny0) = other.getExtents()
+        maxx = max(maxx,maxx0)
+        minx = min(minx,minx0)
+        maxy = max(maxy,maxy0)
+        miny = min(miny,miny0)
+        self.x = minx
+        self.y = miny
+        self.points = ((minx,miny),(minx,maxy),(maxx,maxy),(maxx,miny))
+    
+
+    def rescale(self,w,h):
+        """
+        This method keeps the feature's center the same but sets a new width and height
+        """
+        (maxx,minx,maxy,miny) = self.getExtents()
+        xc = minx+((maxx-minx)/2)
+        yc = miny+((maxy-miny)/2)
+        x = xc-(w/2)
+        y = yc-(h/2)
+        self.x = x
+        self.y = y
+        self.points = ((x,y),
+                       (x+w,y),
+                       (x+w,y+h),
+                       (x,y+h))
 
     def draw(self, color = Color.GREEN):
         self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color)
