@@ -1907,8 +1907,38 @@ class Image:
         in a FeatureSet.  The single parameter is the ZXing_path, if you 
         don't have the ZXING_LIBRARY env parameter set.
 
-
         You can clone python-zxing at http://github.com/oostendo/python-zxing
+
+        INSTALLING ZEBRA CROSSING
+        1) Download zebra crossing 1.6 from: http://code.google.com/p/zxing/
+        2) unpack the zip file where ever you see fit
+              cd zxing-1.6 
+              ant -f core/build.xml
+              ant -f javase/build.xml 
+            This should build the library, but double check the readme
+        3) Get our helper library 
+           git clone git://github.com/oostendo/python-zxing.git
+           cd python-zxing
+           nosetests tests.py
+        4) Our library does not have a setup file. You will need to add
+           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
+        
+           export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+           export PYTHONPATH=$PYTHONPATH:<FULL PATH OF ZXING PYTHON PLUG-IN - (i.e. step 3)>
+           
+           On windows you will need to add these same variables to the system variable, e.g.
+           http://www.computerhope.com/issues/ch000549.htm
+        
+        5) On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        6) Go grab some barcodes!
+
+        WARNING:
+        Users on OSX may see the following error:
+
+        RuntimeWarning: tmpnam is a potential security risk to your program        
+        
+        We are working to resolve this issue. For normal use this should not be a problem.
 
         Parameters:
         
@@ -1919,6 +1949,7 @@ class Image:
             BARCODE
         """
         if not ZXING_ENABLED:
+            warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
             return None
 
 
