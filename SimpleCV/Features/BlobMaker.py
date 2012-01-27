@@ -190,8 +190,8 @@ class BlobMaker:
 
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
-        retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
-        retVal.mAvgColor = retVal.mAvgColor[0:3]
+        #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
+        #retVal.mAvgColor = retVal.mAvgColor[0:3]
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
 
         retVal.mHoleContour = self._getHoles(seq)
