@@ -188,7 +188,7 @@ class Barcode(Feature):
         self.y = 0
     
         for p in self.points:
-            self.x += p[0]b
+            self.x += p[0]
             self.y += p[1]
       
         if (numpoints):

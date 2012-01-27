@@ -964,10 +964,8 @@ def test_detection_ocr():
 def test_template_match():
     source = Image("../sampleimages/templatetest.png")
     template = Image("../sampleimages/template.png")
-    t = 5
-    methods = ["SQR_DIFF","SQR_DIFF_NORM","CCOEFF","CCOEFF_NORM","CCORR","CCORR_NORM"]
-    for m in methods:
-        fs = source.findTemplate(template,threshold=t,method=m)
+    t = 4
+    fs = source.findTemplate(template,threshold=t)
     pass
 
 
