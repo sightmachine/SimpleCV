@@ -4,7 +4,7 @@ import csv
 from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
 from SimpleCV.Display import Display
 
-cam = Camera(1)
+cam = Camera(0)
 time.sleep(.1) # uhg
 display = Display((800,600))
 data = "None"
@@ -13,7 +13,7 @@ myfile = "mystuff.csv"
 while( display.isNotDone() ):
     display.checkEvents()#check for mouse clicks
     img = cam.getImage()
-    img = img.scale(.5) #use a smaller image
+    #img = img.scale(1) #use a smaller image
     img.drawRectangle(img.width/4,img.height/4,img.width/2,img.height/2,color=Color.RED,width=3)
     if( display.mouseLeft > 0 ): # click the mouse to read
         img.drawText("reading barcode... wait",10,10)

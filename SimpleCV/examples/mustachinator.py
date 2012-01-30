@@ -5,7 +5,7 @@ from operator import add
 from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
 from SimpleCV.Display import Display
 
-cam = Camera(1)
+cam = Camera(0)
 time.sleep(.1) # uhg
 display = Display((800,600))
 counter = 0

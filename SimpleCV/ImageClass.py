@@ -9,6 +9,7 @@ from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv     
+import math # math... who does that
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -3777,6 +3778,46 @@ class Image:
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
         
+ 
+
+    def findMotion(self, previous_frame, window=11):
+        if( self.width != previous_frame.width or self.height != previous_frame.height):
+            warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
+            return None
+        
+        xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+        yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)         
+        win = (window,window)
+        cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
+        w = math.ceil((float(window))/2.0) 
+        cx = (self.width-window)/window
+        cy = (self.height-window)/window
+        #not sure if we should sample the motion or aggregate it over the window. 
+        fs = FeatureSet()
+        #print(self.width)
+        #print(self.height)
+        #print(xf.width)
+        #print(xf.height)
+        #print((cx,cy))
+        max_mag = 0.00
+        for x in range(0,int(cx)):
+            for y in range(0,int(cy)):
+                xi = (x*window)+w
+                yi = (y*window)+w
+                #print((xi,yi))
+                vx = xf[yi,xi]
+                vy = yf[yi,xi]
+                mag = (vx*vx)+(vy*vy)
+                if(mag > max_mag):
+                    max_mag = mag
+                fs.append(Motion(self,xi,yi,vx,vy,window))
+        
+        max_mag = math.sqrt(max_mag)
+        for f in fs:
+            f.normalizeTo(max_mag)
+        return fs
+        
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
@@ -3786,7 +3827,7 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, Motion
 
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
