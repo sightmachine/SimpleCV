@@ -14,6 +14,7 @@ from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
 from math import pi
+import math
 
 
 ######################################################################
@@ -600,13 +601,18 @@ class Motion(Feature):
         self.dy = dy
         self.image = i
         self.window = wndw
+        sz = wndw/2
+        self.points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y-sz),(at_x-sz,at_y-sz)]
         
     def draw(self, color = Color.GREEN):
         """
         With no dimension information, color the x,y point for the featuer 
         """
-        new_x = (self.norm_dx*self.window) + self.x
-        new_y = (self.norm_dy*self.window) + self.y
+        w = math.sqrt((self.window*self.window)*2)
+        new_x = (self.norm_dx*w) + self.x
+        new_y = (self.norm_dy*w) + self.y
+        #new_x = self.x + self.dx
+        #new_y = self.y + self.dy
         self.image.drawLine((self.x,self.y),(new_x,new_y),color)
 
     
@@ -628,7 +634,7 @@ class Motion(Feature):
             return (0.00,0.00)
 
     def vector(self):
-        return ((dx,dy))
+        return (self.dx,self.dy)
     
     def windowSz(self):
         return self.window
@@ -637,8 +643,10 @@ class Motion(Feature):
         """
         Return the color tuple from x,y
         """
-        return self.image[self.x, self.y]
-    
+        x = int(self.x-(self.window/2))
+        y = int(self.y-(self.window/2))
+        self.image.crop(x,y,int(self.window),int(self.window)).meanColor()
+
     
     def crop(self):
         """
@@ -646,5 +654,10 @@ class Motion(Feature):
         
         Returns Image
         """
-    
-        return self.image.crop(self.x, self.y, self.window, self.window, centered = True)
+        x = int(self.x-(self.window/2))
+        y = int(self.y-(self.window/2))
+        
+        return self.image.crop(x,y,int(self.window),int(self.window))
+
+
+

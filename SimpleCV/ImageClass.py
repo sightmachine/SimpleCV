@@ -3780,41 +3780,73 @@ class Image:
         
  
 
-    def findMotion(self, previous_frame, window=11):
+    def findMotion(self, previous_frame, window=11, method='BM'):
         if( self.width != previous_frame.width or self.height != previous_frame.height):
             warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
             return None
-        
-        xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
-        yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)         
-        win = (window,window)
-        cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
-        w = math.ceil((float(window))/2.0) 
-        cx = (self.width-window)/window
-        cy = (self.height-window)/window
-        #not sure if we should sample the motion or aggregate it over the window. 
-        fs = FeatureSet()
-        #print(self.width)
-        #print(self.height)
-        #print(xf.width)
-        #print(xf.height)
-        #print((cx,cy))
-        max_mag = 0.00
-        for x in range(0,int(cx)):
-            for y in range(0,int(cy)):
-                xi = (x*window)+w
-                yi = (y*window)+w
-                #print((xi,yi))
-                vx = xf[yi,xi]
-                vy = yf[yi,xi]
-                mag = (vx*vx)+(vy*vy)
-                if(mag > max_mag):
-                    max_mag = mag
-                fs.append(Motion(self,xi,yi,vx,vy,window))
-        
-        max_mag = math.sqrt(max_mag)
-        for f in fs:
-            f.normalizeTo(max_mag)
+
+        if( method == "LK" or method == "HS" ):
+            xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)         
+            win = (window,window)
+            if( method == "LK" ):
+                cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
+            else:
+                cv.CalcOpticalFlowHS(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),0,xf,yf,1.0,(cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                
+            w = math.floor((float(window))/2.0) 
+            cx = ((self.width-window)/window)+1
+            cy = ((self.height-window)/window)+1
+#not sure if we should sample the motion or aggregate it over the window. 
+            fs = FeatureSet()
+            max_mag = 0.00
+            for x in range(0,int(cx)):
+                for y in range(0,int(cy)):
+                    xi = (x*window)+w
+                    yi = (y*window)+w
+                    lowx = int(xi-w)
+                    highx = int(xi+w)
+                    lowy = int(yi-w)
+                    highy = int(yi+w)
+                    xderp = xf[lowy:highy,lowx:highx]
+                    yderp = yf[lowy:highy,lowx:highx]
+                    vx = np.average(xderp)
+                    vy = np.average(yderp)
+                    mag = (vx*vx)+(vy*vy)
+                    if(mag > max_mag):
+                        max_mag = mag
+                    fs.append(Motion(self,xi,yi,vx,vy,window))
+	
+                    max_mag = math.sqrt(max_mag)
+                    for f in fs:
+                        f.normalizeTo(max_mag)
+
+        elif( method == "BM"):
+            block = (6,6)
+            shift = (8,8)
+            spread = (32,32)
+            wv = (self.width - block[0]) / shift[0]
+            hv = (self.height - block[1]) / shift[1]
+            xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            fs = FeatureSet()
+            max_mag = 0.00
+            for x in range(0,int(wv)):
+                for y in range(0,int(hv)):
+                    xi = (shift[0]*(x))+block[0]
+                    yi = (shift[1]*(y))+block[1]
+                    vx = xf[y,x]
+                    vy = yf[y,x]
+                    fs.append(Motion(self,xi,yi,vx,vy,window))
+                    mag = (vx*vx)+(vy*vy)
+                    if(mag > max_mag):
+                        max_mag = mag
+    
+            max_mag = math.sqrt(max_mag)
+            for f in fs:
+                f.normalizeTo(max_mag)
+
         return fs
         
 

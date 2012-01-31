@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = False
+VISUAL_TEST = True
 
 #colors
 black = Color.BLACK
@@ -1393,5 +1393,26 @@ def test_blob_isa_methods():
   t2 = blobs[-1].isRectangle()
   if( t1 and t2 and not f1 and not f2):
     pass
+  else:
+    assert False
+
+def test_movement_feature():
+  current = Image("../sampleimages/flow1.png")
+  prev = Image("../sampleimages/flow2.png")
+  fs = current.findMotion(prev, window=7)
+  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOut.png")
+      
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+      assert False
+
   else:
     assert False
