@@ -8,7 +8,7 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
-     
+import scipy.cluster.vq as scv     
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -1194,6 +1194,7 @@ class Image:
 
         #lovely.  This segfaults if not present
         if type(cascade) == str:
+            
           if (not os.path.exists(cascade)):
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
@@ -1906,8 +1907,38 @@ class Image:
         in a FeatureSet.  The single parameter is the ZXing_path, if you 
         don't have the ZXING_LIBRARY env parameter set.
 
-
         You can clone python-zxing at http://github.com/oostendo/python-zxing
+
+        INSTALLING ZEBRA CROSSING
+        1) Download zebra crossing 1.6 from: http://code.google.com/p/zxing/
+        2) unpack the zip file where ever you see fit
+              cd zxing-1.6 
+              ant -f core/build.xml
+              ant -f javase/build.xml 
+            This should build the library, but double check the readme
+        3) Get our helper library 
+           git clone git://github.com/oostendo/python-zxing.git
+           cd python-zxing
+           nosetests tests.py
+        4) Our library does not have a setup file. You will need to add
+           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
+        
+           export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+           export PYTHONPATH=$PYTHONPATH:<FULL PATH OF ZXING PYTHON PLUG-IN - (i.e. step 3)>
+           
+           On windows you will need to add these same variables to the system variable, e.g.
+           http://www.computerhope.com/issues/ch000549.htm
+        
+        5) On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        6) Go grab some barcodes!
+
+        WARNING:
+        Users on OSX may see the following error:
+
+        RuntimeWarning: tmpnam is a potential security risk to your program        
+        
+        We are working to resolve this issue. For normal use this should not be a problem.
 
         Parameters:
         
@@ -1918,6 +1949,7 @@ class Image:
             BARCODE
         """
         if not ZXING_ENABLED:
+            warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
             return None
 
 
@@ -3399,6 +3431,14 @@ class Image:
         find the centroid of all of these values. We suggest using an iterative
         k-means approach to find the centroids.
         
+        methods:
+        SQR_DIFF_NORM - Normalized square difference
+        SQR_DIFF      - Square difference
+        CCOEFF        -
+        CCOEFF_NORM   -
+        CCORR         - Cross correlation
+        CCORR_NORM    - Normalize cross correlation
+
         Example:
         
         >>> image = Image("/path/to/img.png")
@@ -3465,8 +3505,29 @@ class Image:
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+
+        #cluster overlapping template matches 
+        finalfs = FeatureSet()
+        if( len(fs) > 0 ):
+            print(str(len(fs)))
+            finalfs.append(fs[0])
+            for f in fs:
+                match = False
+                for f2 in finalfs:
+                    if( f2.overlaps(f) ): #if they overlap
+                        f2.consume(f) #merge them
+                        match = True
+                        break
+                    if( not match ):
+                        finalfs.append(f)
+        
+            for f in finalfs: #rescale the resulting clusters to fit the template size
+                f.rescale(template_image.width,template_image.height)
             
-        return fs
+            fs = finalfs
+        
+        return fs                           
+         
 
     def readText(self):
         """
@@ -3522,7 +3583,7 @@ class Image:
         returns: a circle feature set. 
         """
         storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
-        #a distnace metric for how apart our circles should be - this is a good bench mark
+        #a distnace metric for how apart our circles should be - this is sa good bench mark
         if(distance < 0 ):
             distance = 1 + max(self.width,self.height)/50
         cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)

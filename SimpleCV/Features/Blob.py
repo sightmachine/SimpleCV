@@ -113,7 +113,12 @@ class Blob(Feature):
         Returns:
             Tuple
         """
-        return (self.mAvgColor[0],self.mAvgColor[1],self.mAvgColor[2])
+        cv.SetImageROI(self.image.getBitmap(),self.mBoundingBox)
+        #may need the offset paramete
+        avg = cv.Avg(self.image.getBitmap(),self.mMask._getGrayscaleBitmap())
+        cv.ResetImageROI(self.image.getBitmap())
+        
+        return tuple(reversed(avg[0:3]))
 
     def minX(self):
         """
