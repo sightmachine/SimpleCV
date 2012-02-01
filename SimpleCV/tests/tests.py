@@ -1399,20 +1399,47 @@ def test_blob_isa_methods():
 def test_movement_feature():
   current = Image("../sampleimages/flow1.png")
   prev = Image("../sampleimages/flow2.png")
-  fs = current.findMotion(prev, window=7)
   
+  fs = current.findMotion(prev, window=7)  
   if( len(fs) > 0 ):
     fs.draw(color=Color.RED)
     if VISUAL_TEST:
-      current.save("flowOut.png")
-      
+      current.save("flowOutBM.png")
     img = fs[0].crop()
     color = fs[1].meanColor()
     wndw = fs[1].windowSz()
     for f in fs:
       f.vector()
       f.magnitude()
-      assert False
-
   else:
     assert False
+  
+  fs = current.findMotion(prev, window=7,method='HS')  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutHS.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+  
+  fs = current.findMotion(prev, window=7,method='LK',aggregate=False)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutLK.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+
+  pass 

@@ -572,17 +572,12 @@ class Circle(Feature):
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
             return retVal
+
 ######################################################################    
 class Motion(Feature):
     """
-    The Feature object is an abstract class which real features descend from.
-    Each feature object has:
-    
-    * a draw() method, 
-    * an image property, referencing the originating Image object 
-    * x and y coordinates
-    * default functions for determining angle, area, meanColor, etc for FeatureSets
-    * in the Feature class, these functions assume the feature is 1px  
+    The motion feature is used to encapsulate optical flow vectors. The feature
+    holds the length and direction of the vector.
     """
     x = 0.0
     y = 0.0 
@@ -595,28 +590,52 @@ class Motion(Feature):
     window = 7 
 
     def __init__(self, i, at_x, at_y,dx,dy,wndw):
-        self.x = at_x
+        """
+        i    - the source image.
+        at_x - the sample x pixel position on the image.
+        at_y - the sample y pixel position on the image.
+        dx   - the x component of the optical flow vector.
+        dy   - the y component of the optical flow vector.
+        wndw - the size of the sample window (we assume it is square).
+        """
+        self.x = at_x # the sample point of the flow vector
         self.y = at_y
-        self.dx = dx 
-        self.dy = dy
-        self.image = i
-        self.window = wndw
+        self.dx = dx  # the direction of the vector
+        self.dy = dy 
+        self.image = i # the source image
+        self.window = wndw # the size of the sample window
         sz = wndw/2
+        # so we center at the flow vector
         self.points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y-sz),(at_x-sz,at_y-sz)]
         
-    def draw(self, color = Color.GREEN):
+    def draw(self, color = Color.GREEN, normalize=True):
         """
-        With no dimension information, color the x,y point for the featuer 
+        Draw the optical flow vector going from the sample point along the length of the motion vector
+        
+        normalize - normalize the vector size to the size of the block (i.e. the biggest optical flow
+                    vector is scaled to the size of the block, all other vectors are scaled relative to
+                    the longest vector. 
+
         """
-        w = math.sqrt((self.window*self.window)*2)
-        new_x = (self.norm_dx*w) + self.x
-        new_y = (self.norm_dy*w) + self.y
-        #new_x = self.x + self.dx
-        #new_y = self.y + self.dy
+        new_x = 0
+        new_y = 0
+        if( normalize ):
+            win = self.window/2
+            w = math.sqrt((win*win)*2)
+            new_x = (self.norm_dx*w) + self.x
+            new_y = (self.norm_dy*w) + self.y
+        else:
+            new_x = self.x + self.dx
+            new_y = self.y + self.dy
+
         self.image.drawLine((self.x,self.y),(new_x,new_y),color)
 
     
     def normalizeTo(self, max_mag):
+        """
+        This helper method normalizes the vector give an input magnitude. 
+        This is helpful for keeping the flow vector inside the sample window.
+        """
         mag = self.magnitude()
         new_mag = mag/max_mag
         unit = self.unitVector()
@@ -624,9 +643,15 @@ class Motion(Feature):
         self.norm_dy = unit[1]*new_mag
     
     def magnitude(self):
+        """
+        Returns the magnitude of the optical flow vector. 
+        """
         return sqrt((self.dx*self.dx)+(self.dy*self.dy))
 
     def unitVector(self):
+        """
+        Returns the unit vector direction of the flow vector as an (x,y) tuple.
+        """
         mag = self.magnitude()
         if( mag != 0.00 ):
             return (float(self.dx)/mag,float(self.dy)/mag) 
@@ -634,9 +659,15 @@ class Motion(Feature):
             return (0.00,0.00)
 
     def vector(self):
+        """
+        Returns the raw direction vector as an (x,y) tuple.
+        """
         return (self.dx,self.dy)
     
     def windowSz(self):
+        """
+        Return the window size that we sampled over. 
+        """
         return self.window
 
     def meanColor(self):
@@ -650,7 +681,7 @@ class Motion(Feature):
     
     def crop(self):
         """
-        This function returns the largest bounding box for an image.
+        This function returns the image in the sample window around the flow vector.
         
         Returns Image
         """
@@ -660,4 +691,4 @@ class Motion(Feature):
         return self.image.crop(x,y,int(self.window),int(self.window))
 
 
-
+######################################################################    
