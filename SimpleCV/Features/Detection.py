@@ -271,6 +271,11 @@ class HaarFeature(Feature):
         self.image.drawLine(self.points[2], self.points[3], color)
         self.image.drawLine(self.points[3], self.points[0], color)
       
+    def __getstate__(self):
+        dict = self.__dict__.copy()
+        del dict["classifier"]
+              
+      
     def meanColor(self):
         """
         Find the mean color of the boundary rectangle 
