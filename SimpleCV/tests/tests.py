@@ -602,6 +602,7 @@ def test_image_vert_scanline_gray():
 def test_image_get_pixel():
     img = Image(logo)
     px = img.getPixel(0,0)
+    print(px)
     if(px[0] != 0 or px[1] != 0 or px[2] != 0 ):
       assert False
       
