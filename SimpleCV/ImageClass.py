@@ -8,7 +8,9 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
-import scipy.cluster.vq as scv     
+import scipy.cluster.vq as scv    
+import cv2 
+ 
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -208,6 +210,7 @@ class Image:
     _cannyparam = (0, 0) #parameters that created _edgeMap
     _pil = "" #holds a PIL object in buffer
     _numpy = "" #numpy form buffer
+    _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
@@ -224,6 +227,7 @@ class Image:
         "_cannyparam": (0, 0), 
         "_pil": "",
         "_numpy": "",
+        "_grayNumpy":"",
         "_pgsurface": ""}  
     
     
@@ -611,8 +615,6 @@ class Image:
         """
         Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
         """
-
-
         bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
         cv.SetZero(bitmap)
         return bitmap
@@ -627,8 +629,6 @@ class Image:
             return self._bitmap
         elif (self._matrix):
             self._bitmap = cv.GetImage(self._matrix)
-
-
         return self._bitmap
 
 
@@ -664,6 +664,17 @@ class Image:
         return self._pil
   
   
+    def getGrayNumpy(self):
+        """
+        Return a grayscale Numpy array. This is handy for keypoint detection. 
+        """
+        if( self._grayNumpy != "" ):
+            return self._grayNumpy
+        else:
+            self._grayNumpy = uint8(np.array(cv.GetMat(self._getGrayscaleBitmap())).transpose())
+
+        return self._grayNumpy
+
     def getNumpy(self):
         """
         Get a Numpy array of the image in width x height x RGB dimensions
@@ -2429,11 +2440,11 @@ class Image:
             warnings.warn("Can't do a negative crop!")
             return None
         
-        retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
+        retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
         if( centered ):
-            rectangle = (x-(w/2), y-(h/2), w, h)
+            rectangle = (int(x-(w/2)), int(y-(h/2)), int(w), int(h))
         else:
-            rectangle = (x, y, w, h)
+            rectangle = (int(x), int(y), int(w), int(h))
     
     
         cv.SetImageROI(self.getBitmap(), rectangle)
@@ -3777,6 +3788,37 @@ class Image:
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
         
+
+    def findKeypoints(self,min_quality=300.00, highQuality=False, getAngle=True,flavor="SURF"):
+        """
+        """#Need cv2 check
+        extended = 0
+        if(highQuality):
+            extended = 1
+        
+        upright = 0
+        if(getAngle):
+            unright = 1
+        
+        if( flavor == "SURF" ):
+            surfer = cv2.SURF(_hessianThreshold=min_quality,_upright=upright,_extended=extended)
+            kp,d = surfer.detect(self.getGrayNumpy(),None,False)
+            if( highQuality ):
+                d = d.reshape((-1,128))
+            else:
+                d = d.reshape((-1,64))
+
+            fs = FeatureSet()
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],d[i],"SURF"))
+            
+            return fs
+
+        else:
+            warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+            return None
+
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
@@ -3786,7 +3828,7 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint
 
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *

@@ -1395,3 +1395,25 @@ def test_blob_isa_methods():
     pass
   else:
     assert False
+
+def test_findKeypoints():
+  img = Image(testimage2)
+  kp = img.findKeypoints()
+  for k in kp:
+    k.getObject()
+    k.descriptor()
+    k.quality()
+    k.octave()
+    k.flavor()
+    k.angle()
+    k.coordinates()
+    k.draw()
+    k.distanceFrom()
+    k.meanColor()
+    k.area()
+    k.perimeter()
+    k.width()
+    k.height()
+    k.radius()
+    k.crop()
+  pass
