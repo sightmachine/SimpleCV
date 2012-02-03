@@ -252,6 +252,7 @@ class HaarFeature(Feature):
     classifier = "" 
     _width = ""
     _height = ""
+    neighbors = ''
     
     def __init__(self, i, haarobject, haarclassifier = None):
         self.image = i
