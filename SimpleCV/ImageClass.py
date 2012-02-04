@@ -3792,6 +3792,10 @@ class Image:
     def findKeypoints(self,min_quality=300.00, highQuality=False, getAngle=True,flavor="SURF"):
         """
         """#Need cv2 check
+        # cv2.FastFeatureDetector
+        # cv2.StarDetector
+        # cv2.MSER
+
         extended = 0
         if(highQuality):
             extended = 1
@@ -3799,7 +3803,8 @@ class Image:
         upright = 0
         if(getAngle):
             unright = 1
-        
+
+        fs = FeatureSet()
         if( flavor == "SURF" ):
             surfer = cv2.SURF(_hessianThreshold=min_quality,_upright=upright,_extended=extended)
             kp,d = surfer.detect(self.getGrayNumpy(),None,False)
@@ -3807,17 +3812,32 @@ class Image:
                 d = d.reshape((-1,128))
             else:
                 d = d.reshape((-1,64))
-
-            fs = FeatureSet()
+      
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],"SURF"))
-            
-            return fs
+        elif( flavor == "FAST" ):
+            faster = cv2.FastFeatureDetector(threshold=min_quality,nonmaxSuppression=True)
+            kp = faster.detect(self.getGrayNumpy())
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],None,"FAST"))
 
+#        elif( flavor == "MSER"):
+#            mserer = cv2.MSER()
+#            kp = mserer.detect(self.getGrayNumpy(),None)
+#            for i in range(0,len(kp)):
+#                fs.append(KeyPoint(self,kp[i],None,"MSER"))
+
+        elif( flavor == "STAR"):
+            starer = cv2.StarDetector()
+            kp = starer.detect(self.getGrayNumpy())
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],None,"STAR"))
+                
         else:
             warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
             return None
 
+        return fs
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
