@@ -43,7 +43,7 @@ class FrameSource:
     def __init__(self):
         return
     
-    def getPropery(self, p):
+    def getProperty(self, p):
         return None
   
     def getAllProperties(self):

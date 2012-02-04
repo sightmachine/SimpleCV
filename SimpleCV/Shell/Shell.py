@@ -45,8 +45,8 @@ except:
     from IPython.config.loader import Config
     from IPython.frontend.terminal.embed import InteractiveShellEmbed
     IPVER = 11
-  except:
-    raise("IPython is required to use the shell")
+  except Exception as e:
+    raise(e)
 
 
 #Command to clear the shell screen

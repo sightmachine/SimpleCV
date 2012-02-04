@@ -2291,13 +2291,16 @@ class Image:
         Returns:
             Int
         """
+        c = None
         retVal = None
         if( x < 0 or x >= self.width ):
             warnings.warn("getRGBPixel: X value is not valid.")
         elif( y < 0 or y >= self.height ):
             warnings.warn("getRGBPixel: Y value is not valid.")
         else:
-            retVal = cv.Get2D(self.getBitmap(), y, x)
+            c = cv.Get2D(self.getBitmap(), y, x)
+            retVal = (c[2],c[1],c[0])
+        
         return retVal
   
   
