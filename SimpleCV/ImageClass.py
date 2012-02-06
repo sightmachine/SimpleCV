@@ -3792,12 +3792,37 @@ class Image:
         return Image(temp)
         
 
+
+    def keypointMatch(self,template,thresh=0.6):
+        surfer = cv2.SURF(300.00,1,1)
+        skp,sd = surfer.detect(self.getGrayNumpy(),None,False)
+        tkp,td = surfer.detect(template.getGrayNumpy(),None,False)
+        td = td.reshape((-1,128))
+        sd = sd.reshape((-1,128))
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 1)
+        
+        flann = cv2.flann_Index(td, flann_params)
+        print "MADE FLANN"
+        print sd.shape
+        print type(sd)
+        idx2, dist = flann.knnSearch(sd, 1, params = {}) # bug: need to provide empty dict
+        #mask = dist[:,0] / dist[:,1] < thresh 
+        #del surfer
+        #del flann
+        return (idx2,dist)
+        #idx1 = np.arange(len(sd))
+        #pairs = np.int32( zip(idx1, idx2[:,0]) )
+        #return pairs[mask]
+
+    def quickAndDirtyKeypoints(self, thresh=300.00):
+        surfer = cv2.SURF(thresh,1,1)
+        kp,d = surfer.detect(self.getGrayNumpy(),None,False)
+        return kp,d.reshape((-1,128))
+
     def findKeypoints(self,min_quality=300.00, highQuality=False, getAngle=True,flavor="SURF"):
         """
-        """#Need cv2 check
-        # cv2.FastFeatureDetector
-        # cv2.StarDetector
-        # cv2.MSER
+        """
 
         extended = 0
         if(highQuality):
