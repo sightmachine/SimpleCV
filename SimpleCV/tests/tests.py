@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = True
+VISUAL_TEST = False
 
 #colors
 black = Color.BLACK
@@ -1398,8 +1398,10 @@ def test_blob_isa_methods():
     assert False
 
 def test_movement_feature():
-  current = Image("../sampleimages/flow1.png")
-  prev = Image("../sampleimages/flow2.png")
+  #~ current = Image("../sampleimages/flow1.png")
+  #~ prev = Image("../sampleimages/flow2.png")
+  current = Image("../sampleimages/flow_simple1.png")
+  prev = Image("../sampleimages/flow_simple2.png")
   
   fs = current.findMotion(prev, window=7)  
   if( len(fs) > 0 ):
