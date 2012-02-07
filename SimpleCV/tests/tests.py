@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = False
+VISUAL_TEST = True
 
 #colors
 black = Color.BLACK
@@ -1396,3 +1396,51 @@ def test_blob_isa_methods():
     pass
   else:
     assert False
+
+def test_movement_feature():
+  current = Image("../sampleimages/flow1.png")
+  prev = Image("../sampleimages/flow2.png")
+  
+  fs = current.findMotion(prev, window=7)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutBM.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+  
+  fs = current.findMotion(prev, window=7,method='HS')  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutHS.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+  
+  fs = current.findMotion(prev, window=7,method='LK',aggregate=False)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutLK.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+
+  pass 
