@@ -3793,30 +3793,114 @@ class Image:
         
 
 
-    def keypointMatch(self,template,thresh=0.6):
-        surfer = cv2.SURF(300.00,1,1)
+    def drawKeypointMatches(self,template,thresh1=0.25):
+        resultImg = template.sideBySide(self,scale=False)
+        hdif = (self.height-template.height)/2
+        w = template.width
+        h = template.height
+        tkp,td = template.quickAndDirtyKeypoints()
+        skp,sd = self.quickAndDirtyKeypoints()
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
+
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
+        flann = cv2.flann_Index(sd, flann_params)
+        idx2, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        p = dist[:,0]
+        #print p.shape
+        result = p*magic_ratio < thresh1 
+        for i in range(0,len(idx2)):
+            if( result[i] ):
+                pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
+                pt_b = (skp[idx2[i]].pt[1]+w,skp[idx2[i]].pt[0])
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=2)
+        return resultImg
+                  
+
+    def hackKeypointMatch(self,template,threshold=0.01):
+        surfer = cv2.SURF()#550.00,1,1)
         skp,sd = surfer.detect(self.getGrayNumpy(),None,False)
         tkp,td = surfer.detect(template.getGrayNumpy(),None,False)
         td = td.reshape((-1,128))
         sd = sd.reshape((-1,128))
-        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 1)
         
-        flann = cv2.flann_Index(td, flann_params)
-        print "MADE FLANN"
-        print sd.shape
-        print type(sd)
-        idx2, dist = flann.knnSearch(sd, 1, params = {}) # bug: need to provide empty dict
-        #mask = dist[:,0] / dist[:,1] < thresh 
-        #del surfer
-        #del flann
-        return (idx2,dist)
-        #idx1 = np.arange(len(sd))
-        #pairs = np.int32( zip(idx1, idx2[:,0]) )
-        #return pairs[mask]
+        matches = []
+        match_val = []
+        for f in td:
+            temp = sd - f 
+            temp = np.square(temp)
+            temp = np.sum(temp,axis=1)
+            #print temp.shape
+            match_index = np.argmin(temp)
+            match_value = np.min(temp)
+            #print str(match_value),str(match_index)
+            matches.append(match_index)
+            match_val.append(match_value)
+
+        matches = np.array(matches)
+        match_val = np.array(match_val)
+        skp = np.array(skp)
+        tkp = np.array(tkp)
+
+        mask = match_val<threshold
+        lhs = tkp[mask]       
+        rhs = skp[matches[mask]]
+        lhs_pt = []
+        for l in lhs:
+            lhs_pt.append(l.pt)
+        lhs_pt = np.array(lhs_pt)
+        rhs_pt = []
+        for r in rhs:
+            rhs_pt.append(r.pt)
+        rhs_pt = np.array(rhs_pt)
+        
+        transform = []
+        print(lhs_pt[0:4,:])
+        if(lhs.shape[0] > 3 and rhs.shape[0] > 3 ):
+
+            transform = cv.CreateMat(2, 3, cv.CV_32FC1)
+            a = ((lhs_pt[0][0],lhs_pt[0][1]),(lhs_pt[1][0],lhs_pt[1][1]),(lhs_pt[2][0],lhs_pt[2][1]))
+            b = ((rhs_pt[0][0],rhs_pt[0][1]),(rhs_pt[1][0],rhs_pt[1][1]),(rhs_pt[2][0],rhs_pt[2][1]))
+            #b = (rhs_pt[0],rhs_pt[1],rhs_pt[2])
+            print(a)
+            print(b)
+            transform = cv.GetAffineTransform(a,b,transform)
+            #transform = cv2.getPerspectiveTransform(np.transpose(lhs_pt[0:4,:]),np.transpose(rhs_pt[0:4,:]))
+
+        return (lhs,rhs ,transform)
+        
+
+    def keypointMatch(self,template,thresh1=0.2,thresh2=0.4):
+        surfer = cv2.SURF()#550.00,1,1)
+        skp,sd = surfer.detect(self.getGrayNumpy(),None,False)
+        tkp,td = surfer.detect(template.getGrayNumpy(),None,False)
+        td = td.reshape((-1,128))
+        sd = sd.reshape((-1,128))
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
+
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
+        flann = cv2.flann_Index(sd, flann_params)
+        idx2, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        #print dist
+        p = dist[:,0]
+        #print p.shape
+        result, = np.where( p*magic_ratio < thresh1 )
+        pr = result.shape[0]/float(dist.shape[0])
+        #if( pr > thresh2 ): # we'll call this a match
+        return pr
+
 
     def quickAndDirtyKeypoints(self, thresh=300.00):
-        surfer = cv2.SURF(thresh,1,1)
+        surfer = cv2.SURF()#thresh,1,1)
         kp,d = surfer.detect(self.getGrayNumpy(),None,False)
         return kp,d.reshape((-1,128))
 
@@ -3830,7 +3914,7 @@ class Image:
         
         upright = 0
         if(getAngle):
-            unright = 1
+            upright = 1
 
         fs = FeatureSet()
         if( flavor == "SURF" ):
