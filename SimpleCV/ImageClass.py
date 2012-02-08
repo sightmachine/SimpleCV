@@ -8,9 +8,14 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
+<<<<<<< HEAD
 import scipy.cluster.vq as scv    
 import cv2 
  
+=======
+import scipy.cluster.vq as scv     
+import math # math... who does that
+>>>>>>> a3de7b6376010a2f39ce30c8fffbfaf0a060a1c1
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -3791,6 +3796,7 @@ class Image:
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
         
+<<<<<<< HEAD
 
 
     def drawKeypointMatches(self,template,thresh1=0.25):
@@ -3950,6 +3956,108 @@ class Image:
             return None
 
         return fs
+=======
+ 
+
+    def findMotion(self, previous_frame, window=11, method='BM', aggregate=True):
+        """
+        findMotion - perform an optical flow calculation. This method attempts to find 
+                     motion between two subsequent frames of an image. You provide it 
+                     with the previous frame image and it returns a feature set of motion
+                     fetures that are vectors in the direction of motion.
+
+        previous_frame - The last frame as an Image. 
+
+        window         - The block size for the algorithm. For the the HS and LK methods 
+                         this is the regular sample grid at which we return motion samples.
+                         For the block matching method this is the matching window size.
+
+        method         - The algorithm to use as a string. Your choices are:
+                         'BM' - default block matching robust but slow - if you are unsure use this.
+                         'LK' - Lucas-Kanade method - http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method 
+                         'HS' - Horn-Schunck method - http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method
+
+
+        aggregate      - If aggregate is true, each of our motion features is the average of
+                         motion around the sample grid defined by window. If aggregate is false
+                         we just return the the value as sampled at the window grid interval. For 
+                         block matching this flag is ignored.
+        """
+        if( self.width != previous_frame.width or self.height != previous_frame.height):
+            warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
+            return None
+        fs = FeatureSet()
+        max_mag = 0.00
+
+        if( method == "LK" or method == "HS" ):
+            # create the result images. 
+            xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)         
+            win = (window,window)
+            if( method == "LK" ):
+                cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
+            else:
+                cv.CalcOpticalFlowHS(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),0,xf,yf,1.0,(cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                
+            w = math.floor((float(window))/2.0) 
+            cx = ((self.width-window)/window)+1 #our sample rate
+            cy = ((self.height-window)/window)+1
+            vx = 0.00
+            vy = 0.00
+            for x in range(0,int(cx)): # go through our sample grid
+                for y in range(0,int(cy)): 
+                    xi = (x*window)+w # calculate the sample point
+                    yi = (y*window)+w
+                    if( aggregate ):
+                        lowx = int(xi-w)
+                        highx = int(xi+w)
+                        lowy = int(yi-w)
+                        highy = int(yi+w)
+                        xderp = xf[lowy:highy,lowx:highx] # get the average x/y components in the output
+                        yderp = yf[lowy:highy,lowx:highx]
+                        vx = np.average(xderp)
+                        vy = np.average(yderp)
+                    else: # other wise just sample
+                        vx = xf[yi,xi]
+                        vy = yf[yi,xi]
+ 
+                    mag = (vx*vx)+(vy*vy)
+                    if(mag > max_mag): # calculate the max magnitude for normalizing our vectors
+                        max_mag = mag
+                    fs.append(Motion(self,xi,yi,vx,vy,window)) # add the sample to the feature set
+
+        elif( method == "BM"):
+            # In the interest of keep the parameter list short
+            # I am pegging these to the window size. 
+            block = (window,window) # block size
+            shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
+            spread = (window*4,window*4) # the search windows.
+            wv = (self.width - block[0]) / shift[0] # the result image size
+            hv = (self.height - block[1]) / shift[1]
+            xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            for x in range(0,int(wv)): # go through the sample grid
+                for y in range(0,int(hv)):
+                    xi = (shift[0]*(x))+block[0] #where on the input image the samples live
+                    yi = (shift[1]*(y))+block[1]
+                    vx = xf[y,x] # the result image values
+                    vy = yf[y,x]
+                    fs.append(Motion(self,xi,yi,vx,vy,window)) # add the feature
+                    mag = (vx*vx)+(vy*vy) # same the magnitude
+                    if(mag > max_mag):
+                        max_mag = mag
+        else:
+            warnings.warn("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ") 
+            return None
+	
+        max_mag = math.sqrt(max_mag) # do the normalization
+        for f in fs:
+            f.normalizeTo(max_mag)
+
+        return fs
+        
+>>>>>>> a3de7b6376010a2f39ce30c8fffbfaf0a060a1c1
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -3960,7 +4068,11 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
+<<<<<<< HEAD
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint
+=======
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, Motion
+>>>>>>> a3de7b6376010a2f39ce30c8fffbfaf0a060a1c1
 
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *

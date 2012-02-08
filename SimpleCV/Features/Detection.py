@@ -14,9 +14,10 @@ from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
 from math import *
+from math import pi
 
 
-
+######################################################################
 class Corner(Feature):
     """
     The Corner feature is a point returned by the FindCorners function
@@ -34,8 +35,7 @@ class Corner(Feature):
         """
         self.image.drawCircle((self.x, self.y), 4, color)
 
-
-    
+######################################################################
 class Line(Feature):
     """
     The Line class is returned by the findLines function, but can also be initialized with any two points:
@@ -168,6 +168,7 @@ class Line(Feature):
         #our internal standard is degrees
         return (360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
   
+######################################################################
 class Barcode(Feature):
     """
     The Barcode Feature wrappers the object returned by findBarcode(), a python-zxing object.
@@ -240,7 +241,7 @@ class Barcode(Feature):
         #http://www.wikihow.com/Find-the-Area-of-a-Quadrilateral
         return sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
     
- 
+###################################################################### 
 class HaarFeature(Feature):
     """
     The HaarFeature is a rectangle returned by the FindHaarFeature() function.
@@ -318,7 +319,7 @@ class HaarFeature(Feature):
         Get the height of the line
         """    
         return self._height
-  
+######################################################################  
 class Chessboard(Feature):
     """
     This class is used for Calibration, it uses a chessboard
@@ -366,7 +367,7 @@ class Chessboard(Feature):
         s = (a + b + c + d)/2.0 
         return 2 * sqrt((s - a) * (s - b) * (s - c) * (s - d) - (a * c + b * d + p * q) * (a * c + b * d - p * q) / 4)
  
-
+######################################################################
 class TemplateMatch(Feature):
     """
     This class is used for template (pattern) matching in images
@@ -448,7 +449,7 @@ class TemplateMatch(Feature):
 
     def draw(self, color = Color.GREEN):
         self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color)
-
+######################################################################
 class Circle(Feature):
     """
     Class for a general circle feature with a center at (x,y) and a radius r
@@ -745,3 +746,124 @@ class KeyPoint(Feature):
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
             return retVal
+=======
+######################################################################    
+class Motion(Feature):
+    """
+    The motion feature is used to encapsulate optical flow vectors. The feature
+    holds the length and direction of the vector.
+    """
+    x = 0.0
+    y = 0.0 
+    image = "" #parent image
+    points = []
+    dx = 0.00
+    dy = 0.00
+    norm_dy = 0.00
+    norm_dx = 0.00
+    window = 7 
+
+    def __init__(self, i, at_x, at_y,dx,dy,wndw):
+        """
+        i    - the source image.
+        at_x - the sample x pixel position on the image.
+        at_y - the sample y pixel position on the image.
+        dx   - the x component of the optical flow vector.
+        dy   - the y component of the optical flow vector.
+        wndw - the size of the sample window (we assume it is square).
+        """
+        self.x = at_x # the sample point of the flow vector
+        self.y = at_y
+        self.dx = dx  # the direction of the vector
+        self.dy = dy 
+        self.image = i # the source image
+        self.window = wndw # the size of the sample window
+        sz = wndw/2
+        # so we center at the flow vector
+        self.points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y-sz),(at_x-sz,at_y-sz)]
+        
+    def draw(self, color = Color.GREEN, normalize=True):
+        """
+        Draw the optical flow vector going from the sample point along the length of the motion vector
+        
+        normalize - normalize the vector size to the size of the block (i.e. the biggest optical flow
+                    vector is scaled to the size of the block, all other vectors are scaled relative to
+                    the longest vector. 
+
+        """
+        new_x = 0
+        new_y = 0
+        if( normalize ):
+            win = self.window/2
+            w = math.sqrt((win*win)*2)
+            new_x = (self.norm_dx*w) + self.x
+            new_y = (self.norm_dy*w) + self.y
+        else:
+            new_x = self.x + self.dx
+            new_y = self.y + self.dy
+
+        self.image.drawLine((self.x,self.y),(new_x,new_y),color)
+
+    
+    def normalizeTo(self, max_mag):
+        """
+        This helper method normalizes the vector give an input magnitude. 
+        This is helpful for keeping the flow vector inside the sample window.
+        """
+        mag = self.magnitude()
+        new_mag = mag/max_mag
+        unit = self.unitVector()
+        self.norm_dx = unit[0]*new_mag
+        self.norm_dy = unit[1]*new_mag
+    
+    def magnitude(self):
+        """
+        Returns the magnitude of the optical flow vector. 
+        """
+        return sqrt((self.dx*self.dx)+(self.dy*self.dy))
+
+    def unitVector(self):
+        """
+        Returns the unit vector direction of the flow vector as an (x,y) tuple.
+        """
+        mag = self.magnitude()
+        if( mag != 0.00 ):
+            return (float(self.dx)/mag,float(self.dy)/mag) 
+        else:
+            return (0.00,0.00)
+
+    def vector(self):
+        """
+        Returns the raw direction vector as an (x,y) tuple.
+        """
+        return (self.dx,self.dy)
+    
+    def windowSz(self):
+        """
+        Return the window size that we sampled over. 
+        """
+        return self.window
+
+    def meanColor(self):
+        """
+        Return the color tuple from x,y
+        """
+        x = int(self.x-(self.window/2))
+        y = int(self.y-(self.window/2))
+        self.image.crop(x,y,int(self.window),int(self.window)).meanColor()
+
+    
+    def crop(self):
+        """
+        This function returns the image in the sample window around the flow vector.
+        
+        Returns Image
+        """
+        x = int(self.x-(self.window/2))
+        y = int(self.y-(self.window/2))
+        
+        return self.image.crop(x,y,int(self.window),int(self.window))
+
+
+######################################################################    
+

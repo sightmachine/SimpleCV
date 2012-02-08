@@ -1397,6 +1397,7 @@ def test_blob_isa_methods():
   else:
     assert False
 
+<<<<<<< HEAD
 def test_findKeypoints():
   img = Image(testimage2)
   kp = img.findKeypoints()
@@ -1418,3 +1419,54 @@ def test_findKeypoints():
     k.radius()
     k.crop()
   pass
+
+def test_movement_feature():
+  #~ current = Image("../sampleimages/flow1.png")
+  #~ prev = Image("../sampleimages/flow2.png")
+  current = Image("../sampleimages/flow_simple1.png")
+  prev = Image("../sampleimages/flow_simple2.png")
+  
+  fs = current.findMotion(prev, window=7)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutBM.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+  
+  fs = current.findMotion(prev, window=7,method='HS')  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutHS.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+  
+  fs = current.findMotion(prev, window=7,method='LK',aggregate=False)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    if VISUAL_TEST:
+      current.save("flowOutLK.png")
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+
+  pass 
+
