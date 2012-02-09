@@ -3801,20 +3801,22 @@ class Image:
         return Image(temp)
         
 
-    def _getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF"):
+    def _getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1):
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
         if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
             if( flavor == "SURF" ):
-                surfer = cv2.SURF(thresh)#,1,1) #_hessianThreshold=min_quality,_upright=upright,_extended=extended)
+                surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
                 self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
-                #if( highQuality ):
-                #    d = d.reshape((-1,128))
-                #else:
                 if( len(self._mKPDescriptors) == 0 ):
                     return None                     
-                self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                if( highQuality == 1 ):
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                else:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                
                 self._mKPFlavor = "SURF"
                 del surfer
             
@@ -3855,7 +3857,6 @@ class Image:
 
     def drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1):
         resultImg = template.sideBySide(self,scale=False)
-        #w = template.width
         hdif = (self.height-template.height)/2
         skp,sd = self._getRawKeypoints(thresh)
         tkp,td = template._getRawKeypoints(thresh)
@@ -3937,16 +3938,18 @@ class Image:
         else:
             return None 
 
-    #def quickAndDirtyKeypoints(self, thresh=500.00):
-    #    surfer = cv2.SURF(thresh)#,1,0)
-    #    kp,d = surfer.detect(self.getGrayNumpy(),None,False)
-    #    return kp,d.reshape((-1,64))
 
-    def findKeypoints(self,min_quality=300.00,flavor="SURF" ): #, highQuality=False, getAngle=True,flavor="SURF"):
+    def findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ): 
         """
         """
         fs = FeatureSet()
-        kp,d = self._getRawKeypoints(min_quality,flavor)
+        kp = []
+        d = []
+        if highQuality:
+            kp,d = self._getRawKeypoints(min_quality,flavor,1)
+        else:
+            kp,d = self._getRawKeypoints(min_quality,flavor,0)
+
         if( flavor == "SURF" ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
