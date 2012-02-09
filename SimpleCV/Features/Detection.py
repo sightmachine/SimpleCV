@@ -746,7 +746,7 @@ class KeyPoint(Feature):
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
             return retVal
-=======
+
 ######################################################################    
 class Motion(Feature):
     """

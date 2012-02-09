@@ -8,14 +8,10 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
-<<<<<<< HEAD
 import scipy.cluster.vq as scv    
 import cv2 
- 
-=======
-import scipy.cluster.vq as scv     
-import math # math... who does that
->>>>>>> a3de7b6376010a2f39ce30c8fffbfaf0a060a1c1
+import math # math... who does that 
+
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -219,7 +215,11 @@ class Image:
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
-  
+
+    #Keypoint caching values
+    _mKeyPoints = None
+    _mKPDescriptors = None
+
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
         "_bitmap": "", 
@@ -253,6 +253,9 @@ class Image:
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
+        #Keypoint Descriptors 
+        self._mKeyPoints = []
+        self._mKPDescriptors = []
 
 
         #Check if need to load from URL
@@ -3796,10 +3799,29 @@ class Image:
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
         
-<<<<<<< HEAD
 
+    def _getRawKeypoints(self,thresh=500,highquality=False,forceReset=False):
+        if( forceReset ):
+            self._mKeyPoints = None
+            self._mKPDescriptors = None
 
-    def drawKeypointMatches(self,template,thresh1=0.25):
+        if( self._mKPDescriptors is None or self._mKeyPoints is None ):
+            surfer = cv2.SURF(thresh)#,1,0)
+            kp,d = surfer.detect(self.getGrayNumpy(),None,False)
+            del surfer
+            return kp,d.reshape((-1,64))
+        else:
+            return self._mKeyPoints,self._mKPDescriptors 
+
+    def _getFLANNMatches(self,d1,d2):
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
+        flann = cv2.flann_Index(d1, flann_params)
+        idx, dist = flann.knnSearch(d2, 1, params = {}) # bug: need to provide empty dict
+        del flann
+        return idx,dist
+
+    def drawKeypointMatches(self,template,thresh1=0.15):
         resultImg = template.sideBySide(self,scale=False)
         hdif = (self.height-template.height)/2
         w = template.width
@@ -3823,61 +3845,40 @@ class Image:
             if( result[i] ):
                 pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
                 pt_b = (skp[idx2[i]].pt[1]+w,skp[idx2[i]].pt[0])
-                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=2)
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=1)
         return resultImg
                   
 
-    def hackKeypointMatch(self,template,threshold=0.01):
-        surfer = cv2.SURF()#550.00,1,1)
-        skp,sd = surfer.detect(self.getGrayNumpy(),None,False)
-        tkp,td = surfer.detect(template.getGrayNumpy(),None,False)
-        td = td.reshape((-1,128))
-        sd = sd.reshape((-1,128))
-        
-        matches = []
-        match_val = []
-        for f in td:
-            temp = sd - f 
-            temp = np.square(temp)
-            temp = np.sum(temp,axis=1)
-            #print temp.shape
-            match_index = np.argmin(temp)
-            match_value = np.min(temp)
-            #print str(match_value),str(match_index)
-            matches.append(match_index)
-            match_val.append(match_value)
+    def hackKeypointMatch(self,template,threshold=0.2):
+        tkp,td = template.quickAndDirtyKeypoints()
+        skp,sd = self.quickAndDirtyKeypoints()
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
 
-        matches = np.array(matches)
-        match_val = np.array(match_val)
-        skp = np.array(skp)
-        tkp = np.array(tkp)
+        print(len(tkp))
+        print(len(skp))
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
+        flann = cv2.flann_Index(sd, flann_params)
+        idx2, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        p = dist[:,0]
+        result = p*magic_ratio < threshold
+        lhs = []
+        rhs = []
+        for i in range(0,len(idx2)):
+            if( result[i] ):
+                lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
+                rhs.append((skp[idx2[i]].pt[0], skp[idx2[i]].pt[1]))
 
-        mask = match_val<threshold
-        lhs = tkp[mask]       
-        rhs = skp[matches[mask]]
-        lhs_pt = []
-        for l in lhs:
-            lhs_pt.append(l.pt)
-        lhs_pt = np.array(lhs_pt)
-        rhs_pt = []
-        for r in rhs:
-            rhs_pt.append(r.pt)
-        rhs_pt = np.array(rhs_pt)
-        
-        transform = []
-        print(lhs_pt[0:4,:])
-        if(lhs.shape[0] > 3 and rhs.shape[0] > 3 ):
 
-            transform = cv.CreateMat(2, 3, cv.CV_32FC1)
-            a = ((lhs_pt[0][0],lhs_pt[0][1]),(lhs_pt[1][0],lhs_pt[1][1]),(lhs_pt[2][0],lhs_pt[2][1]))
-            b = ((rhs_pt[0][0],rhs_pt[0][1]),(rhs_pt[1][0],rhs_pt[1][1]),(rhs_pt[2][0],rhs_pt[2][1]))
-            #b = (rhs_pt[0],rhs_pt[1],rhs_pt[2])
-            print(a)
-            print(b)
-            transform = cv.GetAffineTransform(a,b,transform)
-            #transform = cv2.getPerspectiveTransform(np.transpose(lhs_pt[0:4,:]),np.transpose(rhs_pt[0:4,:]))
-
-        return (lhs,rhs ,transform)
+        rhs_pt = np.array(rhs)
+        lhs_pt = np.array(lhs)
+        homography = []         
+        (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
+        return (lhs_pt,rhs_pt ,homography)
         
 
     def keypointMatch(self,template,thresh1=0.2,thresh2=0.4):
@@ -3905,10 +3906,10 @@ class Image:
         return pr
 
 
-    def quickAndDirtyKeypoints(self, thresh=300.00):
-        surfer = cv2.SURF()#thresh,1,1)
+    def quickAndDirtyKeypoints(self, thresh=500.00):
+        surfer = cv2.SURF(thresh)#,1,0)
         kp,d = surfer.detect(self.getGrayNumpy(),None,False)
-        return kp,d.reshape((-1,128))
+        return kp,d.reshape((-1,64))
 
     def findKeypoints(self,min_quality=300.00, highQuality=False, getAngle=True,flavor="SURF"):
         """
@@ -3956,8 +3957,6 @@ class Image:
             return None
 
         return fs
-=======
- 
 
     def findMotion(self, previous_frame, window=11, method='BM', aggregate=True):
         """
@@ -4057,7 +4056,6 @@ class Image:
 
         return fs
         
->>>>>>> a3de7b6376010a2f39ce30c8fffbfaf0a060a1c1
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -4068,14 +4066,38 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
-<<<<<<< HEAD
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint
-=======
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, Motion
->>>>>>> a3de7b6376010a2f39ce30c8fffbfaf0a060a1c1
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion
 
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Images import *
 
+import SimpleCV as scv
+template = scv.Image("KeypointTemplate2.png")
+img = scv.Image("KeypointMatch3.png")
+neg = scv.Image("orson_welles.jpg")
+# while(True):
+#     img = cam.getImage().scale(.4)
+#     (lhsp,rhsp,tp) = img.hackKeypointMatch(template,threshold=0.1)
+#     w = template.width
+#     h = template.height
+#     pt0 = np.array([0,0,1])
+#     pt1 = np.array([0,h,1])
+#     pt2 = np.array([w,h,1])
+#     pt3 = np.array([w,0,1])
+#     pt0p = np.array(pt0*np.matrix(tp))
+#     pt1p = np.array(pt1*np.matrix(tp))
+#     pt2p = np.array(pt2*np.matrix(tp))
+#     pt3p = np.array(pt3*np.matrix(tp))
+#     yo = tp[0][2]
+#     xo = tp[1][2]
+#     pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo))
+#     pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
+#     pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
+#     pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+#     img.drawLine(pt0i,pt1i,color=Color.RED,thickness=2)
+#     img.drawLine(pt1i,pt2i,color=Color.RED,thickness=2)
+#     img.drawLine(pt2i,pt3i,color=Color.RED,thickness=2)
+#     img.drawLine(pt3i,pt0i,color=Color.RED,thickness=2)
+#     img.show()
