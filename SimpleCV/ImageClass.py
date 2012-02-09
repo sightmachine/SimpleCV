@@ -3812,6 +3812,8 @@ class Image:
                 #if( highQuality ):
                 #    d = d.reshape((-1,128))
                 #else:
+                if( len(self._mKPDescriptors) == 0 ):
+                    return None                     
                 self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
                 self._mKPFlavor = "SURF"
                 del surfer
@@ -3851,37 +3853,39 @@ class Image:
         del flann
         return idx,dist
 
-    def drawKeypointMatches(self,template,thresh1=0.15):
+    def drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1):
         resultImg = template.sideBySide(self,scale=False)
+        #w = template.width
         hdif = (self.height-template.height)/2
-        w = template.width
-        h = template.height
-        tkp,td = template.quickAndDirtyKeypoints()
-        skp,sd = self.quickAndDirtyKeypoints()
+        skp,sd = self._getRawKeypoints(thresh)
+        tkp,td = template._getRawKeypoints(thresh)
+        if( td == None or sd == None ):
+            warnings.warn("We didn't get any descriptors. Image might be too uniform or blurry." )
+            return resultImg
         template_points = float(td.shape[0])
         sample_points = float(sd.shape[0])
         magic_ratio = 1.00
         if( sample_points > template_points ):
             magic_ratio = float(sd.shape[0])/float(td.shape[0])
 
-        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
-        flann = cv2.flann_Index(sd, flann_params)
-        idx2, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
         p = dist[:,0]
-        #print p.shape
-        result = p*magic_ratio < thresh1 
-        for i in range(0,len(idx2)):
+        result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
+        for i in range(0,len(idx)):
             if( result[i] ):
                 pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
-                pt_b = (skp[idx2[i]].pt[1]+w,skp[idx2[i]].pt[0])
-                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=1)
+                pt_b = (skp[idx[i]].pt[1]+template.width,skp[idx[i]].pt[0])
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=width)
         return resultImg
                   
 
     def keypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
+        if( td == None or sd == None ):
+            warnings.warn("I didn't get any descriptors. Image might be too uniform or blurry." )
+            return None
+
         template_points = float(td.shape[0])
         sample_points = float(sd.shape[0])
         magic_ratio = 1.00
