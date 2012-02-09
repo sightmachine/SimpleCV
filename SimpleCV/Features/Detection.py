@@ -3,7 +3,7 @@
 # This library includes classes for finding things in images
 #
 # FYI - 
-# All angles shalt be described in degrees with zero pointing east in the
+ # All angles shalt be described in degrees with zero pointing east in the
 # plane of the image with all positive rotations going counter-clockwise.
 # Therefore a rotation from the x-axis to to the y-axis is positive and follows
 # the right hand rule. 
@@ -430,7 +430,7 @@ class TemplateMatch(Feature):
         self.y = miny
         self.points = ((minx,miny),(minx,maxy),(maxx,maxy),(maxx,miny))
     
-
+ 
     def rescale(self,w,h):
         """
         This method keeps the feature's center the same but sets a new width and height
@@ -866,4 +866,87 @@ class Motion(Feature):
 
 
 ######################################################################    
+class KeypointMatch(Feature):
+    """
+    """
+    x = 0.00
+    y = 0.00 
+    image = "" #parent image
+    points = []
+    minRect = []
+    avgColor = None
+    homography = []
+    template = None
+    def __init__(self, image,template,minRect,homography):
+        self.image = image
+        self.template = template
+        self.minRect = minRect
+        self.homography = homography
+        xmax = 0
+        ymax = 0
+        xmin = image.width
+        ymin = image.height
+        for p in minRect:
+            if( p[0] > xmax ):
+                xmax = p[0]
+            if( p[0] < xmin ):
+                xmin = p[0]
+            if( p[1] > ymax ):
+                ymax = p[1]
+            if( p[1] < xmin ):
+                ymin = p[1]
 
+        self.points = ((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin))
+        self.width = (xmax-xmin)
+        self.height = (ymax-ymin)
+        self.x = xmin + (self.width/2)
+        self.y = ymin + (self.height/2)
+   
+    def coordinates(self):
+        """
+        Return a an array of x,y
+        """
+        return np.array([self.x, self.y])  
+  
+    def draw(self, color = Color.GREEN):
+        """
+        With no dimension information, color the x,y point for the featuer 
+        """
+        self.image.drawLine(self.minRect[0],self.minRect[1],color=color)
+        self.image.drawLine(self.minRect[1],self.minRect[2],color=color)
+        self.image.drawLine(self.minRect[2],self.minRect[3],color=color)
+        self.image.drawLine(self.minRect[3],self.minRect[0],color=color)
+
+    def drawRect(self, color = Color.GREEN):
+        self.image.drawLine(self.points[0],self.points[1],color=color)
+        self.image.drawLine(self.points[1],self.points[2],color=color)
+        self.image.drawLine(self.points[2],self.points[3],color=color)
+        self.image.drawLine(self.points[3],self.points[0],color=color)
+        
+    
+    def crop(self):
+        TL = self.points[0]
+        raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
+        mask = Image((self.width,self.height))
+        mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+        mask = mask.applyLayers()
+        mask.blit(raw,(0,0),alpha=None,mask=mask) 
+        return mask
+    
+    def meanColor(self):
+        """
+        return the average color within the circle
+        """
+        if( self.avgColor is None ):
+            TL = self.points[0]
+            raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
+            mask = Image((self.width,self.height))
+            mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+            mask = mask.applyLayers()
+            retVal = cv.Avg(raw.getBitmap(),mask._getGrayscaleBitmap())
+            self.avgColor = retVal
+        else:
+            retVal = self.avgColor
+        return retVal 
+
+  

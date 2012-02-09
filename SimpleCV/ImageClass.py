@@ -219,6 +219,7 @@ class Image:
     #Keypoint caching values
     _mKeyPoints = None
     _mKPDescriptors = None
+    _mKPFlavor = "NONE"
 
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
@@ -256,7 +257,7 @@ class Image:
         #Keypoint Descriptors 
         self._mKeyPoints = []
         self._mKPDescriptors = []
-
+        self._mKPFlavor = "NONE"
 
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -3800,24 +3801,53 @@ class Image:
         return Image(temp)
         
 
-    def _getRawKeypoints(self,thresh=500,highquality=False,forceReset=False):
+    def _getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF"):
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
+        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+            if( flavor == "SURF" ):
+                surfer = cv2.SURF(thresh)#,1,1) #_hessianThreshold=min_quality,_upright=upright,_extended=extended)
+                self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
+                #if( highQuality ):
+                #    d = d.reshape((-1,128))
+                #else:
+                self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                self._mKPFlavor = "SURF"
+                del surfer
+            
+            elif( flavor == "FAST" ):
+                faster = cv2.FastFeatureDetector(threshold=min_quality,nonmaxSuppression=True)
+                self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                self._mKPDescriptors = None
+                self._mKPFlavor = "FAST"
+                del faster
 
-        if( self._mKPDescriptors is None or self._mKeyPoints is None ):
-            surfer = cv2.SURF(thresh)#,1,0)
-            kp,d = surfer.detect(self.getGrayNumpy(),None,False)
-            del surfer
-            return kp,d.reshape((-1,64))
-        else:
-            return self._mKeyPoints,self._mKPDescriptors 
+            elif( flavor == "MSER"):
+                mserer = cv2.MSER()
+                self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+                self._mKPDescriptors = None
+                self._mKPFlavor = "MSER"
+                del mserer
 
-    def _getFLANNMatches(self,d1,d2):
+            elif( flavor == "STAR"):
+                starer = cv2.StarDetector()
+                self._mKeyPoints = starer.detect(self.getGrayNumpy())
+                self._mKPDescriptors = None
+                self._mKPFlavor = "STAR"
+                del starer
+          
+            else:
+                warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+                return None
+
+        return self._mKeyPoints,self._mKPDescriptors 
+
+    def _getFLANNMatches(self,sd,td):
         FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
         flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
-        flann = cv2.flann_Index(d1, flann_params)
-        idx, dist = flann.knnSearch(d2, 1, params = {}) # bug: need to provide empty dict
+        flann = cv2.flann_Index(sd, flann_params)
+        idx, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
         del flann
         return idx,dist
 
@@ -3849,109 +3879,76 @@ class Image:
         return resultImg
                   
 
-    def hackKeypointMatch(self,template,threshold=0.2):
-        tkp,td = template.quickAndDirtyKeypoints()
-        skp,sd = self.quickAndDirtyKeypoints()
+    def keypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
+        skp,sd = self._getRawKeypoints(quality)
+        tkp,td = template._getRawKeypoints(quality)
         template_points = float(td.shape[0])
         sample_points = float(sd.shape[0])
         magic_ratio = 1.00
         if( sample_points > template_points ):
             magic_ratio = float(sd.shape[0])/float(td.shape[0])
 
-        print(len(tkp))
-        print(len(skp))
-        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
-        flann = cv2.flann_Index(sd, flann_params)
-        idx2, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
         p = dist[:,0]
-        result = p*magic_ratio < threshold
-        lhs = []
-        rhs = []
-        for i in range(0,len(idx2)):
-            if( result[i] ):
-                lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                rhs.append((skp[idx2[i]].pt[0], skp[idx2[i]].pt[1]))
-
-
-        rhs_pt = np.array(rhs)
-        lhs_pt = np.array(lhs)
-        homography = []         
-        (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
-        return (lhs_pt,rhs_pt ,homography)
-        
-
-    def keypointMatch(self,template,thresh1=0.2,thresh2=0.4):
-        surfer = cv2.SURF()#550.00,1,1)
-        skp,sd = surfer.detect(self.getGrayNumpy(),None,False)
-        tkp,td = surfer.detect(template.getGrayNumpy(),None,False)
-        td = td.reshape((-1,128))
-        sd = sd.reshape((-1,128))
-        template_points = float(td.shape[0])
-        sample_points = float(sd.shape[0])
-        magic_ratio = 1.00
-        if( sample_points > template_points ):
-            magic_ratio = float(sd.shape[0])/float(td.shape[0])
-
-        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
-        flann = cv2.flann_Index(sd, flann_params)
-        idx2, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
-        #print dist
-        p = dist[:,0]
-        #print p.shape
-        result, = np.where( p*magic_ratio < thresh1 )
+        result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
         pr = result.shape[0]/float(dist.shape[0])
-        #if( pr > thresh2 ): # we'll call this a match
-        return pr
 
+        if( pr >  minMatch and len(result)>4 ): # if more than minMatch % matches we go ahead and get the data 
+            lhs = []
+            rhs = []
+            for i in range(0,len(idx)):
+                if( result[i] ):
+                    lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+            
+            rhs_pt = np.array(rhs)
+            lhs_pt = np.array(lhs)
+            if( len(rhs_pt) < 16  or len(lhs_pt) < 16 ):
+                return None
+            homography = []         
+            (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
+            w = template.width
+            h = template.height
+            yo = homography[0][2] # get the x/y offset from the affine transform
+            xo = homography[1][2]
+            # draw our template
+            pt0 = np.array([0,0,1]) 
+            pt1 = np.array([0,h,1])
+            pt2 = np.array([w,h,1])
+            pt3 = np.array([w,0,1])
+            # apply the affine transform to our points
+            pt0p = np.array(pt0*np.matrix(homography)) 
+            pt1p = np.array(pt1*np.matrix(homography))
+            pt2p = np.array(pt2*np.matrix(homography))
+            pt3p = np.array(pt3*np.matrix(homography))
+            #update and clamp the corners to get our template in the other image
+            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo)) 
+            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
+            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
+            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            #construct the feature set and return it. 
+            fs = FeatureSet()
+            fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
+            return fs
+        else:
+            return None 
 
-    def quickAndDirtyKeypoints(self, thresh=500.00):
-        surfer = cv2.SURF(thresh)#,1,0)
-        kp,d = surfer.detect(self.getGrayNumpy(),None,False)
-        return kp,d.reshape((-1,64))
+    #def quickAndDirtyKeypoints(self, thresh=500.00):
+    #    surfer = cv2.SURF(thresh)#,1,0)
+    #    kp,d = surfer.detect(self.getGrayNumpy(),None,False)
+    #    return kp,d.reshape((-1,64))
 
-    def findKeypoints(self,min_quality=300.00, highQuality=False, getAngle=True,flavor="SURF"):
+    def findKeypoints(self,min_quality=300.00,flavor="SURF" ): #, highQuality=False, getAngle=True,flavor="SURF"):
         """
         """
-
-        extended = 0
-        if(highQuality):
-            extended = 1
-        
-        upright = 0
-        if(getAngle):
-            upright = 1
-
         fs = FeatureSet()
+        kp,d = self._getRawKeypoints(min_quality,flavor)
         if( flavor == "SURF" ):
-            surfer = cv2.SURF(_hessianThreshold=min_quality,_upright=upright,_extended=extended)
-            kp,d = surfer.detect(self.getGrayNumpy(),None,False)
-            if( highQuality ):
-                d = d.reshape((-1,128))
-            else:
-                d = d.reshape((-1,64))
-      
             for i in range(0,len(kp)):
-                fs.append(KeyPoint(self,kp[i],d[i],"SURF"))
-        elif( flavor == "FAST" ):
-            faster = cv2.FastFeatureDetector(threshold=min_quality,nonmaxSuppression=True)
-            kp = faster.detect(self.getGrayNumpy())
+                fs.append(KeyPoint(self,kp[i],d[i],flavor))
+        elif(flavor == "MSER" or flavor == "STAR" or flavor == "FAST" ):
             for i in range(0,len(kp)):
-                fs.append(KeyPoint(self,kp[i],None,"FAST"))
-
-#        elif( flavor == "MSER"):
-#            mserer = cv2.MSER()
-#            kp = mserer.detect(self.getGrayNumpy(),None)
-#            for i in range(0,len(kp)):
-#                fs.append(KeyPoint(self,kp[i],None,"MSER"))
-
-        elif( flavor == "STAR"):
-            starer = cv2.StarDetector()
-            kp = starer.detect(self.getGrayNumpy())
-            for i in range(0,len(kp)):
-                fs.append(KeyPoint(self,kp[i],None,"STAR"))
-                
+                fs.append(KeyPoint(self,kp[i],None,flavor))
         else:
             warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
             return None
@@ -4066,17 +4063,17 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
 
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Images import *
 
-import SimpleCV as scv
-template = scv.Image("KeypointTemplate2.png")
-img = scv.Image("KeypointMatch3.png")
-neg = scv.Image("orson_welles.jpg")
+#import SimpleCV as scv
+#template = scv.Image("KeypointTemplate2.png")
+#img = scv.Image("KeypointMatch3.png")
+#neg = scv.Image("orson_welles.jpg")
 # while(True):
 #     img = cam.getImage().scale(.4)
 #     (lhsp,rhsp,tp) = img.hackKeypointMatch(template,threshold=0.1)
