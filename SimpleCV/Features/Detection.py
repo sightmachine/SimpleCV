@@ -868,6 +868,8 @@ class Motion(Feature):
 ######################################################################    
 class KeypointMatch(Feature):
     """
+    This class encapsulates a keypoint match between images of an object.
+    It is used to record a template of one image as it appears in another image
     """
     x = 0.00
     y = 0.00 
@@ -910,7 +912,8 @@ class KeypointMatch(Feature):
   
     def draw(self, color = Color.GREEN):
         """
-        With no dimension information, color the x,y point for the featuer 
+        The default drawing operation is to draw the min bounding 
+        rectangle in an image. 
         """
         self.image.drawLine(self.minRect[0],self.minRect[1],color=color)
         self.image.drawLine(self.minRect[1],self.minRect[2],color=color)
@@ -918,6 +921,12 @@ class KeypointMatch(Feature):
         self.image.drawLine(self.minRect[3],self.minRect[0],color=color)
 
     def drawRect(self, color = Color.GREEN):
+        """
+        This method draws the axes alligned square box of the template 
+        match. This box holds the minimum bounding rectangle that describes
+        the object. If the minimum bounding rectangle is axes aligned
+        then the two bounding rectangles will match. 
+        """
         self.image.drawLine(self.points[0],self.points[1],color=color)
         self.image.drawLine(self.points[1],self.points[2],color=color)
         self.image.drawLine(self.points[2],self.points[3],color=color)
@@ -925,6 +934,11 @@ class KeypointMatch(Feature):
         
     
     def crop(self):
+        """
+        Returns a cropped image of the feature match. This cropped version is the 
+        axes aligned box masked to just include the image data of the minimum bounding
+        rectangle.
+        """
         TL = self.points[0]
         raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
         mask = Image((self.width,self.height))
@@ -950,3 +964,16 @@ class KeypointMatch(Feature):
         return retVal 
 
   
+    def getMinRect(self):
+        """
+        Returns the minimum bounding rectangle of the feature as a list
+        of (x,y) tuples. 
+        """
+        return self.minRect
+    
+    def getHomography(self):
+        """
+        Returns the homography matrix used to calulate the minimum bounding
+        rectangle. 
+        """
+        return self.homography
