@@ -14,6 +14,7 @@ from SimpleCV import *
 from nose.tools import with_setup
 
 VISUAL_TEST = False
+SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
 black = Color.BLACK
@@ -310,12 +311,14 @@ def test_detection_barcode():
   if not ZXING_ENABLED:
     return None
 
-  nocode = Image(testimage).findBarcode()
-  if nocode: #we should find no barcode in our test image 
-    assert False
-  code = Image(testbarcode).findBarcode() 
-  
-  if code.points:
+  if( SHOW_WARNING_TESTS ):
+    nocode = Image(testimage).findBarcode()
+    if nocode: #we should find no barcode in our test image 
+      assert False
+    code = Image(testbarcode).findBarcode() 
+    if code.points:
+      pass
+  else:
     pass
     
 def test_detection_x():
@@ -651,6 +654,14 @@ def test_image_crop():
   h = 20
   crop = img.crop(x,y,w,h)
   crop2 = img[x:(x+w),y:(y+h)]
+  crop6 = img.crop(0,0,10,10)
+  if( SHOW_WARNING_TESTS ):
+    crop7 = img.crop(0,0,-10,10)
+    crop8 = img.crop(-50,-50,10,10)
+    crop3 = img.crop(-3,-3,10,20)
+    crop4 = img.crop(-10,10,20,20,centered=True)
+    crop5 = img.crop(-10,-10,20,20)
+ 
   diff = crop-crop2;
   c=diff.meanColor()
   if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):

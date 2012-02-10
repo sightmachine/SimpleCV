@@ -2272,7 +2272,10 @@ class Image:
     def getPixel(self, x, y):
         """
         This function returns the RGB value for a particular image pixel given a specific row and column.
-
+        
+        NOTE:
+        this function will always return pixels in RGB format even if the image is BGR format. 
+        
         Parameters:
             x - Int
             y - Int
@@ -2288,7 +2291,10 @@ class Image:
             warnings.warn("getRGBPixel: Y value is not valid.")
         else:
             c = cv.Get2D(self.getBitmap(), y, x)
-            retVal = (c[2],c[1],c[0])
+            if( self._colorSpace == ColorSpace.BGR ): 
+                retVal = (c[2],c[1],c[0])
+            else:
+                retVal = (c[0],c[1],c[2])
         
         return retVal
   
@@ -2431,15 +2437,24 @@ class Image:
         if( w <= 0 or h <= 0 ):
             warnings.warn("Can't do a negative crop!")
             return None
-        
-        retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
+        if( x < 0 or y < 0 ):
+            warnings.warn("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
+
         if( centered ):
             rectangle = (x-(w/2), y-(h/2), w, h)
         else:
             rectangle = (x, y, w, h)
     
+
+        (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
+
+        if( bottomROI is None ):
+            warnings.warn("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
+            return None
+
+        retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
     
-        cv.SetImageROI(self.getBitmap(), rectangle)
+        cv.SetImageROI(self.getBitmap(), bottomROI)
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
         return Image(retVal, colorSpace=self._colorSpace)
