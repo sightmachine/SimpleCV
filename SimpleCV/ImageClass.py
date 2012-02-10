@@ -327,7 +327,9 @@ class Image:
                 source = scvImg
         
         if (type(source) == tuple):
-            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            w = int(source[0])
+            h = int(source[1])
+            source = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
             cv.Zero(source)
         if (type(source) == cv.cvmat):
             self._matrix = source
@@ -3801,7 +3803,7 @@ class Image:
         return Image(temp)
         
 
-    def _getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1):
+    def _getRawKeypoints(self,thresh=500.00,flavor="SURF", highQuality=1, forceReset=False):
         """
         This method finds keypoints in an image and returns them as the raw keypoints
         and keypoint descriptors. When this method is called it caches a the features
@@ -3828,8 +3830,6 @@ class Image:
                  "FAST" - The FAST keypoint extraction algorithm
                  See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
 
-                 "MSER" - The MSER keypoint extraction algorithm
-                 See: http://en.wikipedia.org/wiki/MSER
 
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
                       values and a vector of 128 descriptor values. The latter are "high" 
@@ -3876,24 +3876,24 @@ class Image:
                 if( highQuality == 1 ):
                     self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
                 else:
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
                 
                 self._mKPFlavor = "SURF"
                 del surfer
             
             elif( flavor == "FAST" ):
-                faster = cv2.FastFeatureDetector(threshold=min_quality,nonmaxSuppression=True)
+                faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                 self._mKeyPoints = faster.detect(self.getGrayNumpy())
                 self._mKPDescriptors = None
                 self._mKPFlavor = "FAST"
                 del faster
 
-            elif( flavor == "MSER"):
-                mserer = cv2.MSER()
-                self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
-                self._mKPDescriptors = None
-                self._mKPFlavor = "MSER"
-                del mserer
+            #elif( flavor == "MSER"):
+            #    mserer = cv2.MSER()
+            #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+            #    self._mKPDescriptors = None
+            #    self._mKPFlavor = "MSER"
+            #    del mserer
 
             elif( flavor == "STAR"):
                 starer = cv2.StarDetector()
@@ -4178,8 +4178,6 @@ class Image:
                  "FAST" - The FAST keypoint extraction algorithm
                  See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
 
-                 "MSER" - The MSER keypoint extraction algorithm
-                 See: http://en.wikipedia.org/wiki/MSER
 
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
                       values and a vector of 128 descriptor values. The latter are "high" 
@@ -4223,7 +4221,7 @@ class Image:
         if( flavor == "SURF" ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
-        elif(flavor == "MSER" or flavor == "STAR" or flavor == "FAST" ):
+        elif(flavor == "STAR" or flavor == "FAST" ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],None,flavor))
         else:
