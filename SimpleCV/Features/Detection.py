@@ -642,6 +642,10 @@ class Motion(Feature):
         This helper method normalizes the vector give an input magnitude. 
         This is helpful for keeping the flow vector inside the sample window.
         """
+        if( max_mag == 0 ):
+            self.norm_dx = 0
+            self.norm_dy = 0
+            return None
         mag = self.magnitude()
         new_mag = mag/max_mag
         unit = self.unitVector()

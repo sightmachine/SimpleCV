@@ -3870,7 +3870,7 @@ class Image:
             # I am pegging these to the window size. 
             block = (window,window) # block size
             shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
-            spread = (window*4,window*4) # the search windows.
+            spread = (window*2,window*2) # the search windows.
             wv = (self.width - block[0]) / shift[0] # the result image size
             hv = (self.height - block[1]) / shift[1]
             xf = cv.CreateMat(hv, wv, cv.CV_32FC1)

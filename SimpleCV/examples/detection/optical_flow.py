@@ -1,50 +1,59 @@
 from SimpleCV import *
 
 
-d = Display()
-cam = Camera()
-scale_amount = 0.5
-prev = cam.getImage().scale(scale_amount)
+scale_amount = (200,150)
+d = Display(scale_amount)
+cam = Camera(1)
+prev = cam.getImage().scale(scale_amount[0],scale_amount[1])
 
 time.sleep(0.5)
 
 
-def movement_check(x = 0,y = 0):
+def movement_check(x = 0,y = 0,t=1):
 	direction = ""
 	directionX = ""
 	directionY = ""
 	
-	if x > 1:
-		directionX = "moving right"
-	if x < 0:
-		directionX = "moving left"
-	if y < 0:
-		directionY = "moving up"
-	if y > 1:
-		directionY = "moving down"
+	if x > t:
+		directionX = "Right"
+	if x < -1*t:
+		directionX = "Left"
+	if y < -1*t:
+		directionY = "Up"
+	if y > t:
+		directionY = "Down"
 
-	direction = directionX + "," + directionY
+	direction = directionX + " " + directionY
 	
 
 	if direction is not "":
-		print "direction:",direction
+		return direction
+	else:
+		return "No Motion"
 
+
+t = 0.5
+buffer = 20
+count = 0
 while d.isNotDone():
-	current = cam.getImage().scale(scale_amount)
-	
-	fs = current.findMotion(prev, window=7)
+	current = cam.getImage().scale(scale_amount[0],scale_amount[1])
+	if( count < buffer ):
+		count = count + 1
+	else:
+		fs = current.findMotion(prev, window=15, method="BM")
+		if fs:
+			fs.draw(color=Color.RED)
+			dx = 0
+			dy = 0
+			for f in fs:
+				dx = dx + f.dx
+				dy = dy + f.dy
+				
+			dx = (dx / len(fs))
+			dy = (dy / len(fs))
+			motionStr = movement_check(dx,dy,t)
+			current.drawText(motionStr,10,10)
 
-	if fs:
-		dx = 0
-		dy = 0
-		for f in fs:
-			dx = dx + f.dx
-			dy = dy + f.dy
-
-		dx = (dx / len(fs))
-		dy = (dy / len(fs))
-
-		movement_check(dx,dy)
-
-	time.sleep(0.1)
+	prev = current
+	time.sleep(0.01)
 	current.save(d)
