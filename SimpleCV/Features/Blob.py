@@ -282,7 +282,7 @@ class Blob(Feature):
         dimensions. The minimum enclosing rectangle is slightly harder to maninpulate but
         gives much better information about the blobs dimensions. 
         """
-        if self.mMinRectangle[0][0] > self.mMinRectangle[0][1]:
+        if self.mMinRectangle[1][0] < self.mMinRectangle[1][1]:
             return self.mMinRectangle[2] 
         else:
             return 90 + self.mMinRectangle[2]
