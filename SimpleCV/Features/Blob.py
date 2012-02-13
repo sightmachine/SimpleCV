@@ -766,4 +766,4 @@ class Blob(Feature):
         return np.sum(abs((1/ myM - 1/ otherM)))
         
     def __repr__(self):
-        return "SimpleCV.Blob.Blob at (%d, %d) with area %d" % (self.x, self.y, self.area())
+        return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
