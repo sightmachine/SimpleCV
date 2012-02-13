@@ -313,5 +313,7 @@ class Feature(object):
         """
     
         return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
-        
+    
+    def __repr__(self):
+        return "%s.%s at (%d,%d)" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y)
 
