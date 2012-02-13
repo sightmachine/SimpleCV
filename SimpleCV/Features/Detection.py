@@ -810,6 +810,10 @@ class Motion(Feature):
         This helper method normalizes the vector give an input magnitude. 
         This is helpful for keeping the flow vector inside the sample window.
         """
+        if( max_mag == 0 ):
+            self.norm_dx = 0
+            self.norm_dy = 0
+            return None
         mag = self.magnitude()
         new_mag = mag/max_mag
         unit = self.unitVector()
@@ -910,27 +914,27 @@ class KeypointMatch(Feature):
         """
         return np.array([self.x, self.y])  
   
-    def draw(self, color = Color.GREEN):
+    def draw(self, color = Color.GREEN,width=2):
         """
         The default drawing operation is to draw the min bounding 
         rectangle in an image. 
         """
-        self.image.drawLine(self.minRect[0],self.minRect[1],color=color)
-        self.image.drawLine(self.minRect[1],self.minRect[2],color=color)
-        self.image.drawLine(self.minRect[2],self.minRect[3],color=color)
-        self.image.drawLine(self.minRect[3],self.minRect[0],color=color)
+        self.image.drawLine(self.minRect[0],self.minRect[1],color=color,thickness=width)
+        self.image.drawLine(self.minRect[1],self.minRect[2],color=color,thickness=width)
+        self.image.drawLine(self.minRect[2],self.minRect[3],color=color,thickness=width)
+        self.image.drawLine(self.minRect[3],self.minRect[0],color=color,thickness=width)
 
-    def drawRect(self, color = Color.GREEN):
+    def drawRect(self, color = Color.GREEN,width=2):
         """
         This method draws the axes alligned square box of the template 
         match. This box holds the minimum bounding rectangle that describes
         the object. If the minimum bounding rectangle is axes aligned
         then the two bounding rectangles will match. 
         """
-        self.image.drawLine(self.points[0],self.points[1],color=color)
-        self.image.drawLine(self.points[1],self.points[2],color=color)
-        self.image.drawLine(self.points[2],self.points[3],color=color)
-        self.image.drawLine(self.points[3],self.points[0],color=color)
+        self.image.drawLine(self.points[0],self.points[1],color=color,thickness=width)
+        self.image.drawLine(self.points[1],self.points[2],color=color,thickness=width)
+        self.image.drawLine(self.points[2],self.points[3],color=color,thickness=width)
+        self.image.drawLine(self.points[3],self.points[0],color=color,thickness=width)
         
     
     def crop(self):

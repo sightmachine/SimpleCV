@@ -2294,7 +2294,10 @@ class Image:
     def getPixel(self, x, y):
         """
         This function returns the RGB value for a particular image pixel given a specific row and column.
-
+        
+        NOTE:
+        this function will always return pixels in RGB format even if the image is BGR format. 
+        
         Parameters:
             x - Int
             y - Int
@@ -2310,7 +2313,10 @@ class Image:
             warnings.warn("getRGBPixel: Y value is not valid.")
         else:
             c = cv.Get2D(self.getBitmap(), y, x)
-            retVal = (c[2],c[1],c[0])
+            if( self._colorSpace == ColorSpace.BGR ): 
+                retVal = (c[2],c[1],c[0])
+            else:
+                retVal = (c[0],c[1],c[2])
         
         return retVal
   
@@ -2455,13 +2461,25 @@ class Image:
             return None
         
         retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
+        if( x < 0 or y < 0 ):
+            warnings.warn("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
+
+
         if( centered ):
             rectangle = (int(x-(w/2)), int(y-(h/2)), int(w), int(h))
         else:
             rectangle = (int(x), int(y), int(w), int(h))
     
+
+        (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
+
+        if( bottomROI is None ):
+            warnings.warn("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
+            return None
+
+        retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
     
-        cv.SetImageROI(self.getBitmap(), rectangle)
+        cv.SetImageROI(self.getBitmap(), bottomROI)
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
         return Image(retVal, colorSpace=self._colorSpace)
@@ -3871,7 +3889,7 @@ class Image:
                 surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
                 self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
                 if( len(self._mKPDescriptors) == 0 ):
-                    return None                     
+                    return None, None                     
                 
                 if( highQuality == 1 ):
                     self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
@@ -3904,7 +3922,7 @@ class Image:
           
             else:
                 warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
-                return None
+                return None, None
 
         return self._mKeyPoints,self._mKPDescriptors 
 
@@ -4090,8 +4108,8 @@ class Image:
         """
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
-        if( td == None or sd == None ):
-            warnings.warn("I didn't get any descriptors. Image might be too uniform or blurry." )
+        if( skp == None or tkp == None ):
+            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
             return None
 
         template_points = float(td.shape[0])
@@ -4302,7 +4320,7 @@ class Image:
             # I am pegging these to the window size. 
             block = (window,window) # block size
             shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
-            spread = (window*4,window*4) # the search windows.
+            spread = (window*2,window*2) # the search windows.
             wv = (self.width - block[0]) / shift[0] # the result image size
             hv = (self.height - block[1]) / shift[1]
             xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
