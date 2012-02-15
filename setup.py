@@ -29,5 +29,5 @@ setup(name="SimpleCV",
   packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'sampleimages']),
   zip_safe = True,
   requires=['cv', 'numpy', 'scipy', 'pygame', 'pil'],
-  scripts=['simplecv']
+  scripts=['scripts/simplecv']
   )
