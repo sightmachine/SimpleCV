@@ -686,7 +686,7 @@ class Motion(Feature):
         """
         x = int(self.x-(self.window/2))
         y = int(self.y-(self.window/2))
-        self.image.crop(x,y,int(self.window),int(self.window)).meanColor()
+        return self.image.crop(x,y,int(self.window),int(self.window)).meanColor()
 
     
     def crop(self):

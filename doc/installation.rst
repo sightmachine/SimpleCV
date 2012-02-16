@@ -57,31 +57,29 @@ Commands::
 Mac OS X (10.6 and above)
 -----------------------------
 
-Note: While not required, it is strongly recommended that you install XCode from Apple: http://itunes.apple.com/us/app/xcode/
-
-Also please note the instructions tell you to use wget but it may not be included in your Mac install.
-
-If you want to keep control of your usr/local or are adept at building for Unix, you may want to use the directions below.  Otherwise, we recommend using our Superpack, which contains everything you need in a single package:  http://sourceforge.net/projects/simplecv/files/ 
+Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
 
 Steps:
 
-#. Install Xcode http://developer.apple.com/technologies/xcode.html
+#. Install Xcode http://itunes.apple.com/us/app/xcode/id448457090?mt=12 
 #. Install homebrew https://github.com/mxcl/homebrew/wiki/installation
-#. Use homebrew to install opencv and git
-#. Install scipy superpack, but with ipython 0.10.2 http://stronginference.com/scipy-superpack/ (download from http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh)
-#. Install python imaging library (10.6 needs ARCHFLAGS tweak)
+#. Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak)
+#. Install scipy superpack for Mac OSX http://fonnesbeck.github.com/ScipySuperpack/
 #. clone simplecv and python setup.py install
+
+Before you do these you must install XCode from the App Store!  I'd also run these someplace you don't mind dumping a little code:
 
 Commands::
 
-    ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
-    wget http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh 
-    sh superpack_10.6_2011.05.28-ipython10.sh
+    mkdir ~/Code
+    cd ~/Code
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
     brew install opencv
-    ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     brew install git
     ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
-    git clone git://git.code.sf.net/p/simplecv/git.git simplecv
+    ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
+    curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
+    git clone git://github.com/ingenuitas/SimpleCV.git simplecv
     cd simplecv
     python setup.py install
 
