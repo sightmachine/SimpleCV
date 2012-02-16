@@ -10,8 +10,6 @@ def thresholdOp(in_image):
 
 morph_extractor = MorphologyFeatureExtractor()
 morph_extractor.setThresholdOperation(thresholdOp)
-
-
 extractors = [morph_extractor]
 nuts_path = "./data/nuts/"
 bolts_path = "./data/bolts/"
@@ -27,7 +25,6 @@ props ={
         'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
     }
 
-
 TrainData = False
 classifierSVM = None
 if( TrainData ):
@@ -37,20 +34,19 @@ if( TrainData ):
 
 
 classifierSVM = SVMClassifier.load("nutbolt.pkl")
-
 def thresholdOpGreen(in_image):
      return in_image.hueDistance(60).binarize(thresh=70).invert().dilate(2)
 
 morph_extractor = MorphologyFeatureExtractor()
 morph_extractor.setThresholdOperation(thresholdOp)
 classifierSVM.setFeatureExtractors([morph_extractor])
-
+count = 0
 cam = Camera(1)
 blobber = BlobMaker()
 img = cam.getImage()
 disp = Display(resolution=(800,600))
-minsize = 400#   img.width*img.height/200
-maxsize = (800*600)/20
+minsize = 100
+maxsize = (800*600)/10
 while not disp.isDone():
     img = cam.getImage().resize(800,600)
     blobs = []
@@ -77,16 +73,20 @@ while not disp.isDone():
                 bottom = mask[:,h/2:h].meanColor()
                 if(bottom[0] > top[0] ):
                     blob.rotate(180)
-                    name = classifierSVM.classify(blob.mImg)
-                    if( name is not None ):
-                        itemName = str(name)
-                        if(itemName=='bolt'):
-                            img.dl().polygon(hull,color=Color.BLUE,width=3)
-                            img.dl().setFontSize(50)
-                            img.dl().text(itemName,(blob.x,blob.y),color=Color.BLUE)
-                        else:
-                            img.dl().polygon(hull,color=Color.ORANGE,width=3)
-                            img.dl().setFontSize(50)
-                            img.dl().text(itemName,(blob.x,blob.y),color=Color.ORANGE)
+                name = classifierSVM.classify(blob.mImg)
+                if( name is not None ):
+                    itemName = str(name)
+                    if(itemName=='bolt'):
+                        img.dl().polygon(hull,color=Color.BLUE,width=3)
+                        img.dl().setFontSize(50)
+                        img.dl().text(itemName,(blob.x,blob.y),color=Color.BLUE)
+                    else:
+                        img.dl().polygon(hull,color=Color.ORANGE,width=3)
+                        img.dl().setFontSize(50)
+                        img.dl().text(itemName,(blob.x,blob.y),color=Color.ORANGE)
 
+                            
     img.save(disp)    
+    count = count + 1
+    fname = "output"+str(count)+".png"
+    img.save(fname)
