@@ -2,7 +2,9 @@
 
 #load system libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image 
+from SimpleCV.ImageClass import Image
+from SimpleCV.Display import Display
+from SimpleCV.Color import Color
 import platform
 
 #Globals
@@ -372,6 +374,52 @@ class Camera(FrameSource):
         cv.Copy(frame, newimg)
         return Image(newimg, self)
 
+    def live(self):
+        """
+        This shows a live view of the camera.
+        To use it's as simple as:
+
+        >>> cam = Camera()
+        >>> cam.live()
+
+        Left click will show mouse coordinates and color
+        Right click will kill the live image
+        """
+
+        start_time = time.time()
+        
+        from SimpleCV.Display import Display
+        i = self.getImage()
+        d = Display(i.size())
+        i.save(d)
+        col = Color.RED
+
+        while d.isNotDone():
+          i = self.getImage()
+          elapsed_time = time.time() - start_time
+          
+
+          if d.mouseLeft:
+            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            i.dl().text(txt, (10,i.height / 2), color=col)
+            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+          if elapsed_time > 0 and elapsed_time < 5:
+            
+            i.dl().text("In live mode", (10,10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            
+          
+          i.save(d)
+          if d.mouseRight:
+            d.done = True
+
+        
+        pg.quit()
+          
 class VirtualCamera(FrameSource):
     """
     The virtual camera lets you test algorithms or functions by providing 
@@ -551,4 +599,6 @@ class JpegStreamCamera(FrameSource):
         """
         self.capturetime = self._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
+
+
 
