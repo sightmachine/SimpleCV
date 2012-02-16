@@ -323,12 +323,12 @@ class Blob(Feature):
         Rectify the blob image and the contour such that the major
         axis is aligned to either vertical=0 or horizontal=1 
         """
-        finalRotation = self.angle()
+        finalRotation = self.angle() 
         w = self.minRectWidth()
         h = self.minRectHeight()
         
         if( w > h ):
-            finalRotation = finalRotation - 90
+            finalRotation = finalRotation 
             
         if(axis > 0 ):
             finalRotation = finalRotation - 90

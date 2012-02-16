@@ -1,6 +1,3 @@
-# SimpleCV Image Object
-
-
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
@@ -1845,7 +1842,6 @@ class Image:
             cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
         return Image(newbitmap, colorSpace=self._colorSpace)
 
-
     def __pow__(self, other):
         newbitmap = self.getEmpty() 
         cv.Pow(self.getBitmap(), newbitmap, other)
@@ -2026,7 +2022,7 @@ class Image:
         Returns:
             FeatureSet
         """
-        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
                 spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))

@@ -10,7 +10,7 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
     in the image. The user must provide a segmented white on black blob image.
     This operation then straightens the image and collects the data. 
     """
-    mNBins = 12
+    mNBins = 9
     mBlobMaker = None
     mThresholdOpeation = None
     def __init__(self, thresholdOperation=None):
@@ -22,7 +22,7 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         def binarize_wrap(img):
             
         """
-        self.mNBins = 12
+        self.mNBins = 9
         self.mBlobMaker = BlobMaker()
         self.mThresholdOpeation = thresholdOperation
     
