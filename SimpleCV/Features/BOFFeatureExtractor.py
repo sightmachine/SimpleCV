@@ -155,8 +155,10 @@ class BOFFeatureExtractor(object):
                 count = count + 1
         return img
         
-    def _getPatches(self,img,sz):
+    def _getPatches(self,img,sz=None):
         #retVal = [] # may need to go to np.array
+        if( sz is None ):
+             sz = self.mPatchSize
         img2 = img.toHLS()
         lmat = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
         patch = cv.CreateImage(self.mPatchSize,cv.IPL_DEPTH_8U,1)
@@ -283,7 +285,7 @@ class BOFFeatureExtractor(object):
                 y = (hidx*self.mPatchSize[1])
                 p = codes[count]
                 temp = Image(self.mCodebook[p,:].reshape(self.mPatchSize[0],self.mPatchSize[1]))    
-                retVal.blit(temp,pos=(x,y))
+                retVal = retVal.blit(temp,pos=(x,y))
                 count = count + 1
         return retVal
         
