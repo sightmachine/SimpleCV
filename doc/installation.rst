@@ -71,7 +71,7 @@ Steps:
 
 Before you do these you must install XCode from the App Store and run the installer!  I'd also run these someplace you don't mind dumping a little code:
 
-Commands::
+Commands (for Lion)::
 
     mkdir ~/Code
     cd ~/Code
@@ -87,8 +87,28 @@ Commands::
     sudo easy_install pip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
     wget http://www.pygame.org/ftp/pygame-1.9.2pre-py2.7-macosx10.7.mpkg.zip
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
     unzip pygame-1.9.2pre-py2.7-macosx10.7.mpkg.zip && open pygame-1.9.2pre-py2.7-macosx10.7.mpkg
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
+
+Commands (for Snow Leopard)::
+
+    mkdir ~/Code
+    cd ~/Code
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
+    brew install opencv
+    brew install git
+    brew install wget  
+    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
+    ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
+    sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
+    sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
+    sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
+    sudo easy_install pip
+    curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
+    wget http://www.pygame.org/ftp/pygame-1.9.2pre-py2.6-macosx10.6.mpkg.zip 
+    unzip pygame-1.9.2pre-py2.6-macosx10.6.mpkg.zip && open pygame-1.9.2pre-py2.6-macosx10.6.mpkg 
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
+
 
 
 Windows 7/Vista
