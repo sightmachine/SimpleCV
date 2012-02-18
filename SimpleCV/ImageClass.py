@@ -3902,6 +3902,8 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
+Image.greyscale = Image.grayscale
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, Motion
 
 from SimpleCV.Stream import JpegStreamer
