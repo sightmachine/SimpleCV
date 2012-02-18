@@ -61,13 +61,15 @@ Note: We originally tried to bundle all Mac dependencies in a superpack.  This t
 
 Steps:
 
-#. Install Xcode http://itunes.apple.com/us/app/xcode/id448457090?mt=12 
+#. Install Xcode http://itunes.apple.com/us/app/xcode/id448457090?mt=12 and then run the Xcode installer. 
 #. Install homebrew https://github.com/mxcl/homebrew/wiki/installation
 #. Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak)
+#  Homebrew puts the libraries in /usr/local/lib/, which by default isn't in the python sys.path -- either add it, or link the files
 #. Install scipy superpack for Mac OSX http://fonnesbeck.github.com/ScipySuperpack/
+#. Install pygame using the installer appropriate for Lion or Snow Leopard (not the pure python packages, the mpkg.zip files)
 #. clone simplecv and python setup.py install
 
-Before you do these you must install XCode from the App Store!  I'd also run these someplace you don't mind dumping a little code:
+Before you do these you must install XCode from the App Store and run the installer!  I'd also run these someplace you don't mind dumping a little code:
 
 Commands::
 
@@ -76,12 +78,17 @@ Commands::
     /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
     brew install opencv
     brew install git
+    brew install wget  
     ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
     ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
+    sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
+    sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
+    sudo ln -s /usr/local/lib/python2.7/site-packages/cv.py /Library/Python/2.7/site-packages/cv.py
+    sudo easy_install pip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
-    git clone git://github.com/ingenuitas/SimpleCV.git simplecv
-    cd simplecv
-    python setup.py install
+    wget http://www.pygame.org/ftp/pygame-1.9.2pre-py2.7-macosx10.7.mpkg.zip
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
+    unzip pygame-1.9.2pre-py2.7-macosx10.7.mpkg.zip && open pygame-1.9.2pre-py2.7-macosx10.7.mpkg
 
 
 Windows 7/Vista
