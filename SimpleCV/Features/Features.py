@@ -184,7 +184,25 @@ class FeatureSet(list):
         Returns a nparray with the cropped features as Imges
         """
         return np.array([f.crop() for f in self])  
-    
+
+    def inside(self,region):
+        """
+        Return only the features inside the region, where region can be
+        
+        - A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+        - A bounding circle of the form (x,y,r)
+        - A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+        - Any two dimensional feature (e.g. blobs, circle ...)
+        
+        """
+        return np.appray([f.isContainedWithin(region) for f in self])
+
+    def outside(self,region):
+        """
+        Returns the oposite of inside
+        """
+        return np.appray([f.isNotContainedWithin(region) for f in self])
+
 class Feature(object):
     """
     The Feature object is an abstract class which real features descend from.
@@ -196,8 +214,12 @@ class Feature(object):
     * default functions for determining angle, area, meanColor, etc for FeatureSets
     * in the Feature class, these functions assume the feature is 1px  
     """
-    x = 0.0
-    y = 0.0 
+    x = 0.000
+    y = 0.00 
+    mMaxX = None
+    mMaxY = None
+    mMinX = None
+    mMinY = None
     image = "" #parent image
     points = []
   
@@ -303,8 +325,8 @@ class Feature(object):
                 minY = p[1]
         
         return maxY - minY
-  
-    
+
+   
     def crop(self):
         """
         This function returns the largest bounding box for an image.
@@ -317,3 +339,291 @@ class Feature(object):
     def __repr__(self):
         return "%s.%s at (%d,%d)" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y)
 
+
+    def _updateExtents(self):
+        if( self.mMaxX is None or self.mMaxY is None or 
+            self.mMinX is None or self.mMinY is None):
+            self.mMaxX = float("-infinity")
+            self.mMaxY = float("-infinity")
+            self.mMinX = float("infinity")
+            self.mMinY = float("infinity")
+            for p in points:
+                if( p[0] > self.mMaxX):
+                    self.mMaxX = p[0] 
+                if( p[0] < self.mMinX):
+                    self.mMinX = p[0]
+                if( p[1] > self.mMaxY):
+                    self.mMaxY = p[1]
+                if( p[1] < self.mMinY):
+                    self.mMinY = p[1]
+        
+    def extents(self):
+        """
+        return the max x, min x, max y, min y
+        """
+        self._updateExtents()
+        return (self.mMaxX,self.mMaxY,self.mMinX,self.mMinY)
+
+    def minY(self):
+        """
+        This method return the minimum y value of the bounding box of the
+        the blob. 
+        """
+        self._updateExtents()
+        return self.mMinY
+        
+    def maxY(self):
+        """
+        This method return the maximum y value of the bounding box of the
+        the blob. 
+        """       
+        self._updateExtents()
+        return self.mMaxY
+
+
+    def minX(self):
+        """
+        This method return the minimum x value of the bounding box of the
+        the blob. 
+        """
+        self._updateExtents()
+        return self.mMinX
+        
+    def maxX(self):
+        """
+        This method return the maximum X value of the bounding box of the
+        the blob. 
+        """       
+        self._updateExtents()
+        return self.mMaxX
+
+    def topLeftCorner(self):
+        """
+        This method returns the top left corner of the bounding box of
+        the blob as an (x,y) tuple.
+        """
+        self._updateExtents()
+        return (self.mMinX,self.mMinY)
+
+    def bottomRightCorner(self):
+        """
+        This method returns the bottom right corner of the bounding box of
+        the blob as an (x,y) tuple.
+        """        
+        self._updateExtents()
+        return (self.mMaxX,self.mMaxY)
+        
+    def bottomLeftCorner(self):
+        """
+        This method returns the bottom left corner of the bounding box of
+        the blob as an (x,y) tuple.
+        """ 
+        self._updateExtents()
+        return (self.mMinX,self.mMaxY)
+        
+    def topRightCorner(self):
+        """
+        This method returns the top right corner of the bounding box of
+        the blob as an (x,y) tuple.
+        """        
+        self._updateExtents()
+        return (self.mMaxX,self.mMinY)
+
+
+    def above(self,object):
+        """
+        Given a point or another blob determine if this blob is above the other blob
+        """
+        if( isinstance(object,Feature) ): 
+            return( self.minY() > object.maxY() )
+        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
+            return( self.minY() > object[1]  )
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to feature.above(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            return None
+    
+    def below(self,object):
+        """
+        Given a point or another blob determine if this blob is below the other blob
+        """    
+        if( isinstance(object,Feature) ): 
+            return( self.maxY() < object.minY() )
+        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
+            return( self.maxY() < object[1]  )
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to feature.below(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            return None
+ 
+     
+    def right(self,object):
+        """
+        Given a point or another blob determine if this blob is to the right of the other blob
+        """
+        if( isinstance(object,Feature) ): 
+            return( self.maxX() < object.minX() )
+        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
+            return( self.maxX() < object[0]  )
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to feature.right(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            return None
+
+    def left(self,object):
+        """
+        Given a point or another blob determine if this blob is to the left of the other blob
+        """           
+        if( isinstance(object,Feature) ): 
+            return( self.minX() > object.maxX() )
+        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
+            return( self.minX() > object[0]  )
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            return None
+
+    def contains(self,other,simple=True):
+        """
+        Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
+        """
+        if( isinstance(other,Feature) ):
+            retVal = False
+            if( simple ): 
+                if( other.minX() >=  self.minX() and other.minX() <= self.maxX() and
+                    other.minY() >=  self.minY() and other.minY() <= self.maxY() and
+                    other.maxX() >=  self.minX() and other.maxX() <= self.maxX() and
+                    other.maxY() >=  self.minY() and other.maxY() <= self.maxY() ):
+                    retVal = True            
+            else:
+                for p in other.pts: # this isn't completely correct - only tests if points lie in poly, not edges. 
+                    retVal = self._pointInsidePolygon(p,self.pts)
+                    if( not retVal ):
+                        break
+                
+            return retVal
+        elif(isinstance(other,tuple) or isinstance(other,'ndarray') ):
+            if( simple ):
+                return( other[0] <= self.maxX() and
+                        other[0] >= self.minX() and
+                        other[1] <= self.maxY() and
+                        other[1] >= self.minY() )
+            else:
+                return self._pointInsidePolygon(other,self.pts)
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            return None  
+    
+    def overlaps(self, other, simple=True):
+        """
+        Returns true if this blob contains at least one point, part of a collection
+        of points, or any part of a blob.        
+        """
+        retVal = False
+        if( isinstance(other,Feature) ):
+            if( simple ):
+                if( self.contains(other.topRightCorner()) or self.contains(other.topLeftCorner()) or
+                    self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
+                    retVal = True           
+            else:
+                for p in other.pts: # this isn't completely correct - only tests if points lie in poly, not edges. 
+                    retVal = self._pointInsidePolygon(p,self.pts)
+                    if( not retVal ):
+                        break
+                
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to feature.overlap. This method only takes another blob.")
+            retVal = None
+
+        return retVal
+
+    def doesNotContain(self, other,simple=True):
+        """
+        Returns true if all of features points are inside this point.
+        """
+        return not self.contains(other,simple)
+
+    def doesNotOverlap( self, other,simple=True):
+        """
+        Returns true if none of the feature's points overlap with the other feature.
+        """
+        return not self.overlaps( other, simple)
+
+
+    def isContainedWithin(self,other,simple=True):
+        """
+        Returns true if this feature is contained within the structure stored in other. Other can be one of the following 
+        types:
+        Any feature type
+        A bounding box tuple of the form (x,y,w,h)
+        A bounding circle tuple of the form (x,y,r)
+        A list of (x,y) tuples defining a polygon.
+        """
+        retVal = True
+        if( isinstance(other,Feature) ):
+            retVal = other.contains(self)
+        elif( isinstance(other,tuple) and len(other)==3 ):
+            #assume we are in x,y, r format 
+            rr = other[2]*other[2]
+            x = other[0]
+            y = other[1]
+            for p in self.pts:
+                test = ((x-pt[0])*(x-pt[0]))+((y-pt[1])*(y-pt[1]))
+                if( test > rr ):
+                    retVal = False
+                    break
+        elif( isinstance(other,tuple) and len(other)==4 and 
+            ( isinstance(other[0],float) or isinstance(other[0],int))): # we assume a tuple of four is (x,y,w,h)
+            retVal = ( self.maxX() <= other[0]+other[2] and
+                       self.minX() >= other[0] and
+                       self.maxY() <= other[1]+other[3] and
+                       self.minY() >= other[1] )
+        elif(isinstance(other,tuple) >= 4):
+            #everything else .... 
+            sz = len(other)
+            if( sz > len(pts)): # easier to test if we're inside 
+                for p in self.pts:
+                    test = self._pointInsidePolygon(p,other)
+                    if(not test):
+                        retVal = False
+                        break 
+            else: # otherwise it cheaper to test that all of the points are outside of us
+                for p in other:
+                    test = self._pointInsidePolygon(p,self.pts)
+                    if( test ):
+                        retVal = False
+                        break
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            retVal = False
+        return retVal
+
+
+    def isNotContainedWithin(self,shape,simple=True):
+        """
+        """
+        return not self.isContainedWithin(shape,simple)
+
+    def _pointInsidePolygon(self,point,polygon):
+        """
+        returns true if tuple point (x,y) is inside polygon of the form ((a,b),(c,d),...,(a,b)) the polygon should be closed
+        Adapted for python from:
+        http://paulbourke.net/geometry/insidepoly/
+        """
+        retval = True
+        counter = 0
+        p1 = None
+        for p2 in polygon:
+            if( p1 is None ):
+                p1 = p2
+            else:
+                if( point[1] > np.min((p1[1],p2[1])) ):
+                    if( point[1] <= np.max((p1[1],p2[1])) ):
+                        if( point[0] <= np.max((p1[0],p2[0])) ):
+                            if( p1[1] != p2[1] ):
+                                test = (point[1]-p1[1])*(p2[0]-p1[0])/((p2[1]-p1[1])+p1[0])
+                                if( p1[0] == p2[0] or point[0] <= test ):
+                                    counter = counter + 1
+                                
+                                    
+        if( counter % 2 == 0 ):
+            retVal = False
+        return retVal
+
+#--------------------------------------------- 
