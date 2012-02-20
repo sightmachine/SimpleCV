@@ -364,6 +364,7 @@ class Image:
             else:
                 self.filename = source
                 self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
     

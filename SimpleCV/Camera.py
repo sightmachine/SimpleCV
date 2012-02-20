@@ -2,7 +2,7 @@
 
 #load system libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image
+from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
 import platform
@@ -438,7 +438,15 @@ class VirtualCamera(FrameSource):
         VirtualCamera("img.jpg", "image") or VirtualCamera("video.mpg", "video")
         """
         self.source = s
-        self.sourcetype = st 
+        self.sourcetype = st
+        self.counter = 0
+        
+        if (self.sourcetype == "imageset"):
+            self.source = ImageSet()
+            if (type(s) == list):
+                self.source.load(*s)
+            else:
+                self.source.load(s)
         
         if (self.sourcetype == 'video'):
             self.capture = cv.CaptureFromFile(self.source) 
@@ -449,6 +457,11 @@ class VirtualCamera(FrameSource):
         """
         if (self.sourcetype == 'image'):
             return Image(self.source, self)
+            
+        if (self.sourcetype == 'imageset'):
+            img = self.source[self.counter % len(self.source)]
+            self.counter = self.counter + 1
+            return img
         
         if (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
