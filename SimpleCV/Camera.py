@@ -427,7 +427,12 @@ class VirtualCamera(FrameSource):
     The virtual camera lets you test algorithms or functions by providing 
     a Camera object which is not a physically connected device.
     
-    Currently, VirtualCamera supports "image" and "video" source types.
+    Currently, VirtualCamera supports "image", "imageset" and "video" source types.
+    
+    For image, pass the filename or URL to the image
+    For the video, the filename
+    For imageset, you can pass either a path or a list of [path, extension]
+    
     """
     source = ""
     sourcetype = ""
