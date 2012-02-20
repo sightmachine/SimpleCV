@@ -195,13 +195,35 @@ class FeatureSet(list):
         - Any two dimensional feature (e.g. blobs, circle ...)
         
         """
-        return np.appray([f.isContainedWithin(region) for f in self])
+        fs = FeatureSet()
+        for f in self:
+            if(f.isContainedWithin(region)):
+                fs.append(f)
+        return fs
+
+        
 
     def outside(self,region):
         """
         Returns the oposite of inside
         """
-        return np.appray([f.isNotContainedWithin(region) for f in self])
+        fs = FeatureSet()
+        for f in self:
+            if(f.isNotContainedWithin(region)):
+                fs.append(f)
+        return fs
+
+    def overlaps(self,region):
+        """
+        returns all features that overlap the region
+        """
+        fs = FeatureSet()
+        for f in self: # NOTE KAT LOOK HERE TOMORROW
+            if(f.overlaps(region)):
+                fs.append(f)
+        return fs
+
+
 
 class Feature(object):
     """
@@ -347,7 +369,7 @@ class Feature(object):
             self.mMaxY = float("-infinity")
             self.mMinX = float("infinity")
             self.mMinY = float("infinity")
-            for p in points:
+            for p in self.points:
                 if( p[0] > self.mMaxX):
                     self.mMaxX = p[0] 
                 if( p[0] < self.mMinX):
@@ -492,8 +514,8 @@ class Feature(object):
                     other.maxY() >=  self.minY() and other.maxY() <= self.maxY() ):
                     retVal = True            
             else:
-                for p in other.pts: # this isn't completely correct - only tests if points lie in poly, not edges. 
-                    retVal = self._pointInsidePolygon(p,self.pts)
+                for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
+                    retVal = self._pointInsidePolygon(p,self.points)
                     if( not retVal ):
                         break
                 
@@ -505,7 +527,7 @@ class Feature(object):
                         other[1] <= self.maxY() and
                         other[1] >= self.minY() )
             else:
-                return self._pointInsidePolygon(other,self.pts)
+                return self._pointInsidePolygon(other,self.points)
         else:
             warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None  
@@ -522,8 +544,8 @@ class Feature(object):
                     self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
                     retVal = True           
             else:
-                for p in other.pts: # this isn't completely correct - only tests if points lie in poly, not edges. 
-                    retVal = self._pointInsidePolygon(p,self.pts)
+                for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
+                    retVal = self._pointInsidePolygon(p,self.points)
                     if( not retVal ):
                         break
                 
@@ -563,8 +585,8 @@ class Feature(object):
             rr = other[2]*other[2]
             x = other[0]
             y = other[1]
-            for p in self.pts:
-                test = ((x-pt[0])*(x-pt[0]))+((y-pt[1])*(y-pt[1]))
+            for p in self.points:
+                test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
                 if( test > rr ):
                     retVal = False
                     break
@@ -577,15 +599,15 @@ class Feature(object):
         elif(isinstance(other,tuple) >= 4):
             #everything else .... 
             sz = len(other)
-            if( sz > len(pts)): # easier to test if we're inside 
-                for p in self.pts:
+            if( sz > len(self.points)): # easier to test if we're inside 
+                for p in self.points:
                     test = self._pointInsidePolygon(p,other)
                     if(not test):
                         retVal = False
                         break 
             else: # otherwise it cheaper to test that all of the points are outside of us
                 for p in other:
-                    test = self._pointInsidePolygon(p,self.pts)
+                    test = self._pointInsidePolygon(p,self.points)
                     if( test ):
                         retVal = False
                         break
