@@ -83,6 +83,13 @@ class Display:
     yoffset = 0
     imgw = 0
     imgh = 0
+    lastLeftButton = 0
+    lastRightButton = 0
+    leftButtonDown = None
+    leftButtonUp = None
+    rightButtonDown = None
+    rightButtonUp = None
+
     
     def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV"):
         global PYGAME_INITIALIZED
@@ -94,6 +101,13 @@ class Display:
         self.yscale = 1.0
         self.xoffset = 0
         self.yoffset = 0
+        self.lastLeftButton = 0
+        self.lastRightButton = 0
+        self.leftButtonDown = None
+        self.leftButtonUp = None
+        self.rightButtonDown = None
+        self.rightButtonUp = None
+
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image. 
         self.resolution = resolution
@@ -103,7 +117,28 @@ class Display:
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
           
-        
+    def leftButtonUpPosition(self):
+        return self.leftButtonUp
+
+    def leftButtonDownPosition(self):
+        return self.leftButtonDown
+
+    def rightButtonUpPosition(self):
+        return self.rightButtonUp
+
+    def rightButtonDownPosition(self):
+        return self.rightButtonDown
+
+    def pointsToBoundingBox(self, pt0, pt1):
+        """
+        Given two screen cooridnates return the bounding box in x,y,w,h format. 
+        """
+        xmax = np.max((pt0[0],pt1[0]))
+        xmin = np.min((pt0[0],pt1[0]))
+        ymax = np.max((pt0[1],pt1[1]))
+        ymin = np.min((pt0[1],pt1[1]))
+        return xmin,ymin,xmax-xmin,ymax-ymin
+
     def writeFrame(self, img, fit=True):
         """
         writeFrame copies the given Image object to the display, you can also use
@@ -307,6 +342,13 @@ class Display:
         values based on any new generated events
         """
         self.mouseWheelUp = self.mouseWheelDown = 0
+        self.lastLeftButton = self.mouseLeft
+        self.lastRightButton = self.mouseRight
+        self.leftButtonDown = None
+        self.leftButtonUp = None
+        self.rightButtonDown = None
+        self.rightButtonUp = None
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
@@ -319,10 +361,24 @@ class Display:
                 (self.mouseX,self.mouseY) = self._clamp(x,y)
                 self.mouseLeft, self.mouseMiddle, self.mouseRight = event.buttons
             if event.type == pg.MOUSEBUTTONUP:
+
                 self._setButtonState(0, event.button)
+                
             if event.type == pg.MOUSEBUTTONDOWN:
                 self._setButtonState(1, event.button)
+
         pressed = pg.key.get_pressed()
+
+        if( self.lastLeftButton == 0 and self.mouseLeft == 1 ):
+            self.leftButtonDown = (self.mouseX,self.mouseY)
+        if( self.lastLeftButton == 1 and self.mouseLeft == 0 ):
+            self.leftButtonUp = (self.mouseX,self.mouseY)
+
+        if( self.lastRightButton == 0 and self.mouseRight == 1 ):
+            self.rightButtonDown = (self.mouseX,self.mouseY)
+        if( self.lastRightButton == 1 and self.mouseRight == 0 ):
+            self.rightButtonUp = (self.mouseX,self.mouseY)
+
         #If ESC pressed, end the display
         if(pressed[27] == 1):
             self.done = True
