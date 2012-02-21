@@ -244,7 +244,8 @@ class Feature(object):
     mMinY = None
     image = "" #parent image
     points = []
-  
+    boundingBox = []
+
     def __init__(self, i, at_x, at_y):
         self.x = at_x
         self.y = at_y
@@ -378,7 +379,13 @@ class Feature(object):
                     self.mMaxY = p[1]
                 if( p[1] < self.mMinY):
                     self.mMinY = p[1]
-        
+            
+            self.boundingBox = [(self.mMinX,self.mMinY),(self.mMinX,self.mMaxY),(self.mMaxX,self.mMaxY),(self.mMaxX,self.mMinY)]
+            
+    def boundingBox(self):
+        self._updateExtents()
+        return self.boundingBox
+
     def extents(self):
         """
         return the max x, min x, max y, min y
@@ -460,6 +467,8 @@ class Feature(object):
             return( self.minY() > object.maxY() )
         elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
             return( self.minY() > object[1]  )
+        elif( isinstance(object,float) or isinstance(object,int) ):
+            return( self.minY() > object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.above(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -472,6 +481,8 @@ class Feature(object):
             return( self.maxY() < object.minY() )
         elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
             return( self.maxY() < object[1]  )
+        elif( isinstance(object,float) or isinstance(object,int) ):
+            return( self.maxY() < object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.below(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -485,6 +496,8 @@ class Feature(object):
             return( self.maxX() < object.minX() )
         elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
             return( self.maxX() < object[0]  )
+        elif( isinstance(object,float) or isinstance(object,int) ):
+            return( self.maxX() < object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.right(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -497,6 +510,8 @@ class Feature(object):
             return( self.minX() > object.maxX() )
         elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
             return( self.minX() > object[0]  )
+        elif( isinstance(object,float) or isinstance(object,int) ):
+            return( self.minX() > object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -505,33 +520,52 @@ class Feature(object):
         """
         Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
         """
-        if( isinstance(other,Feature) ):
-            retVal = False
-            if( simple ): 
-                if( other.minX() >=  self.minX() and other.minX() <= self.maxX() and
-                    other.minY() >=  self.minY() and other.minY() <= self.maxY() and
-                    other.maxX() >=  self.minX() and other.maxX() <= self.maxX() and
-                    other.maxY() >=  self.minY() and other.maxY() <= self.maxY() ):
-                    retVal = True            
-            else:
-                for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
-                    retVal = self._pointInsidePolygon(p,self.points)
+        retVal = False
+        bounds = self.boundingBox
+        if( not simple ):
+            bounds = self.points
+
+        if( isinstance(other,Feature) ):# A feature
+            retVal = True
+            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
+                    retVal = self._pointInsidePolygon(p,bounds)
                     if( not retVal ):
                         break
                 
-            return retVal
-        elif(isinstance(other,tuple) or isinstance(other,'ndarray') ):
-            if( simple ):
-                return( other[0] <= self.maxX() and
-                        other[0] >= self.minX() and
-                        other[1] <= self.maxY() and
-                        other[1] >= self.minY() )
-            else:
-                return self._pointInsidePolygon(other,self.points)
+        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,'ndarray') and other.shape[0]==2) ):
+            retVal = self._pointInsidePolygon(other,bounds)
+
+        elif( isinstance(other,tuple) and len(other)==3 ): # A circle
+            #assume we are in x,y, r format 
+            retVal = True
+            rr = other[2]*other[2]
+            x = other[0]
+            y = other[1]
+            for p in bounds:
+                test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
+                if( test < rr ):
+                    retVal = False
+                    break
+
+        elif( isinstance(other,tuple) and len(other)==4 and ( isinstance(other[0],float) or isinstance(other[0],int))): 
+            retVal = ( self.maxX() <= other[0]+other[2] and
+                       self.minX() >= other[0] and
+                       self.maxY() <= other[1]+other[3] and
+                       self.minY() >= other[1] )
+        elif(isinstance(other,tuple) >= 4): # an arbitrary polygon
+            #everything else .... 
+            retVal = True
+            for p in other:
+                test = self.pointInsidePolygon(p,bounds)
+                if(not test):
+                    retVal = False
+                    break
         else:
             warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
-            return None  
-    
+            return False  
+
+        return retVal
+
     def overlaps(self, other, simple=True):
         """
         Returns true if this blob contains at least one point, part of a collection
