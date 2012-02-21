@@ -1,6 +1,3 @@
-# SimpleCV Image Object
-
-
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
@@ -381,6 +378,7 @@ class Image:
             else:
                 self.filename = source
                 self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
     
@@ -416,7 +414,53 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
-    
+    def live(self):
+        """
+        This shows a live view of the camera.
+        To use it's as simple as:
+
+        >>> cam = Camera()
+        >>> cam.live()
+
+        Left click will show mouse coordinates and color
+        Right click will kill the live image
+        """
+
+        start_time = time.time()
+        
+        from SimpleCV.Display import Display
+        i = self
+        d = Display(i.size())
+        i.save(d)
+        col = Color.RED
+
+        while d.isNotDone():
+          i = self
+          elapsed_time = time.time() - start_time
+          
+
+          if d.mouseLeft:
+            i.clearLayers()
+            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            i.dl().text(txt, (10,i.height / 2), color=col)
+            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+          if elapsed_time > 0 and elapsed_time < 5:
+            
+            i.dl().text("In live mode", (10,10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            
+          
+          i.save(d)
+          if d.mouseRight:
+            d.done = True
+
+        
+        pg.quit()
+
     def getColorSpace(self):
         """
         Returns the value matched in the color space class
@@ -1866,7 +1910,6 @@ class Image:
             cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
         return Image(newbitmap, colorSpace=self._colorSpace)
 
-
     def __pow__(self, other):
         newbitmap = self.getEmpty() 
         cv.Pow(self.getBitmap(), newbitmap, other)
@@ -2047,7 +2090,7 @@ class Image:
         Returns:
             FeatureSet
         """
-        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
                 spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
@@ -4362,8 +4405,10 @@ class Image:
         self._colorSpace = mydict['colorspace']
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
+Image.greyscale = Image.grayscale
 
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *

@@ -18,7 +18,7 @@ if not (inp == "" or inp.lower() == "y"):
 
 machine_learning_data_set = "https://github.com/downloads/ingenuitas/SimpleCV/machine_learning_dataset.zip"
 data_path = download_and_extract(machine_learning_data_set)
-
+print data_path
 w = 800
 h = 600
 n=50
@@ -59,7 +59,7 @@ extractors = [hue]
 path = [cactus_path,cup_path,basket_path]
 classes = ['cactus','cup','basket']
 props ={
-        'KernelType':'Poly', #default is a RBF Kernel
+        'KernelType':'RBF', #default is a RBF Kernel
         'SVMType':'C',     #default is C 
         'nu':None,          # NU for SVM NU
         'c':None,           #C for SVM C - the slack variable

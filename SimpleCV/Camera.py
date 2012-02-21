@@ -2,7 +2,9 @@
 
 #load system libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image 
+from SimpleCV.ImageClass import Image, ImageSet
+from SimpleCV.Display import Display
+from SimpleCV.Color import Color
 import platform
 
 #Globals
@@ -242,6 +244,52 @@ class FrameSource:
             retVal = True
     
         return retVal
+    
+    def live(self):
+        """
+        This shows a live view of the camera.
+        To use it's as simple as:
+
+        >>> cam = Camera()
+        >>> cam.live()
+
+        Left click will show mouse coordinates and color
+        Right click will kill the live image
+        """
+
+        start_time = time.time()
+        
+        from SimpleCV.Display import Display
+        i = self.getImage()
+        d = Display(i.size())
+        i.save(d)
+        col = Color.RED
+
+        while d.isNotDone():
+          i = self.getImage()
+          elapsed_time = time.time() - start_time
+          
+
+          if d.mouseLeft:
+            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            i.dl().text(txt, (10,i.height / 2), color=col)
+            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+          if elapsed_time > 0 and elapsed_time < 5:
+            
+            i.dl().text("In live mode", (10,10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            
+          
+          i.save(d)
+          if d.mouseRight:
+            d.done = True
+
+        
+        pg.quit()
  
 class Camera(FrameSource):
     """
@@ -372,12 +420,19 @@ class Camera(FrameSource):
         cv.Copy(frame, newimg)
         return Image(newimg, self)
 
+
+          
 class VirtualCamera(FrameSource):
     """
     The virtual camera lets you test algorithms or functions by providing 
     a Camera object which is not a physically connected device.
     
-    Currently, VirtualCamera supports "image" and "video" source types.
+    Currently, VirtualCamera supports "image", "imageset" and "video" source types.
+    
+    For image, pass the filename or URL to the image
+    For the video, the filename
+    For imageset, you can pass either a path or a list of [path, extension]
+    
     """
     source = ""
     sourcetype = ""
@@ -388,7 +443,15 @@ class VirtualCamera(FrameSource):
         VirtualCamera("img.jpg", "image") or VirtualCamera("video.mpg", "video")
         """
         self.source = s
-        self.sourcetype = st 
+        self.sourcetype = st
+        self.counter = 0
+        
+        if (self.sourcetype == "imageset"):
+            self.source = ImageSet()
+            if (type(s) == list):
+                self.source.load(*s)
+            else:
+                self.source.load(s)
         
         if (self.sourcetype == 'video'):
             self.capture = cv.CaptureFromFile(self.source) 
@@ -399,6 +462,11 @@ class VirtualCamera(FrameSource):
         """
         if (self.sourcetype == 'image'):
             return Image(self.source, self)
+            
+        if (self.sourcetype == 'imageset'):
+            img = self.source[self.counter % len(self.source)]
+            self.counter = self.counter + 1
+            return img
         
         if (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
@@ -551,4 +619,6 @@ class JpegStreamCamera(FrameSource):
         """
         self.capturetime = self._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
+
+
 

@@ -31,8 +31,7 @@ one of our all-in-one Superpacks from SourceForge: http://sf.net/projects/simple
 
 You will absolutely need:
 
-* OpenCV installed for your platform http://opencv.willowgarage.com/wiki/Instal
-lGuide
+* OpenCV installed for your platform http://opencv.willowgarage.com/wiki/InstallGuide
 * SciPY/Numpy installed for your platform http://www.scipy.org/Download
 * Python Imaging Library http://www.pythonware.com/products/pil/
 * PyGame for drawing and interfaces http://pygame.org

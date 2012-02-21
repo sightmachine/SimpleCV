@@ -1,19 +1,13 @@
 from SimpleCV import *
-
-
 scale_amount = (200,150)
 d = Display(scale_amount)
 cam = Camera(1)
 prev = cam.getImage().scale(scale_amount[0],scale_amount[1])
-
 time.sleep(0.5)
-
-
 def movement_check(x = 0,y = 0,t=1):
 	direction = ""
 	directionX = ""
-	directionY = ""
-	
+	directionY = ""	
 	if x > t:
 		directionX = "Right"
 	if x < -1*t:
@@ -24,13 +18,10 @@ def movement_check(x = 0,y = 0,t=1):
 		directionY = "Down"
 
 	direction = directionX + " " + directionY
-	
-
 	if direction is not "":
 		return direction
 	else:
 		return "No Motion"
-
 
 t = 0.5
 buffer = 20
