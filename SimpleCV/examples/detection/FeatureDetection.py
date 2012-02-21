@@ -20,48 +20,54 @@ from SimpleCV.Display import Display
 cam = Camera()
 display = Display((800,600)) # create our display
 
-def reinit():
-	quality = 400.00
-	minDist = 0.25
-	minMatch = 0.2
-	trained_img = None
-	mode = "untrained"
-	startX = None
-	startY = None
-	endY = None
-	endX = None
-
+quality = 400.00
+minDist = 0.25
+minMatch = 0.2
+template_img = None
+mode = "untrained"
+startX = None
+startY = None
+endY = None
+endX = None
 
 while( display.isNotDone() ):
-		img = cam.getImage().scale(0.5) # get the image
+		img = cam.getImage()
 
-		if display.mouseX > 0:
-			print "cood:",display.mouseX,",",display.mouseY
-
+		#Display this if a template has not been trained yet
 		if mode == "untrained":
 			if startX == None or startY == None:
 				img.dl().text("Click the upper left corner to train", (10,10))
 				if display.mouseLeft:
 					startX = display.mouseX
 					startY = display.mouseY
-					time.sleep(0.05)
-					print "st:",startX,",",startY
+					time.sleep(0.2)
 			elif endX == None or endY == None:
 				img.dl().text("now click the lower right corner to train", (10,10))
 				if display.mouseLeft:
 					endX = display.mouseX
 					endY = display.mouseY
+					template_img = img.crop(startX,startY,endX - startX, endY - startY)
 					mode = "trained"
-					time.sleep(0.05)
-					print "ed:",endX,",",endY
-
+					time.sleep(0.2)
 			else:
 				pass
 			
 		if mode == "trained":
-			img.dl().rectangle2pts((startX,startY),(endX,endY))
-		
+			keypoints = img.findKeypointMatch(template_img,quality,minDist,minMatch)
+			if keypoints:
+				keypoints.draw()
+				img = img.applyLayers()
+			img = img.drawKeypointMatches(template_img)   # draw the keypoint layers
 
-					
+			#Reset
+			if display.mouseRight:
+				template_img = None
+				mode = "untrained"
+				startX = None
+				startY = None
+				endY = None
+				endX = None
+				
 		img = img.applyLayers() # apply the layers before resize
 		img.save(display)
+		time.sleep(0.05)
