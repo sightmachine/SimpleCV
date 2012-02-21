@@ -4023,6 +4023,9 @@ class Image:
          ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
 
         """
+        if template == None:
+          return None
+          
         resultImg = template.sideBySide(self,scale=False)
         hdif = (self.height-template.height)/2
         skp,sd = self._getRawKeypoints(thresh)
@@ -4106,6 +4109,9 @@ class Image:
 
 
         """
+        if template == None:
+          return None
+        
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):

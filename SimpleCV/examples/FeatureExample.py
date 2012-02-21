@@ -2,7 +2,7 @@
 import time
 from SimpleCV import Color, Image, np, Camera
 from SimpleCV.Display import Display
-cam = Camera(1)
+cam = Camera()
 time.sleep(.1) # grab our camera
 display = Display((800,600)) # create our display
 got_img = False

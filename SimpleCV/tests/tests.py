@@ -1481,7 +1481,7 @@ def test_movement_feature():
   pass 
 
 def test_keypoint_extraction():
-  img = Image("../sampleimages/KeyPointTemplate2.png")
+  img = Image("../sampleimages/KeypointTemplate2.png")
   kp1 = img.findKeypoints()
   kp2 = img.findKeypoints(highQuality=True)
   kp3 = img.findKeypoints(flavor="STAR")
@@ -1496,7 +1496,7 @@ def test_keypoint_extraction():
 
 
 def test_keypoint_match():
-  template = Image("../sampleimages/KeyPointTemplate2.png")
+  template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   match1 = Image("../sampleimages/kptest1.png")
   match2 = Image("../sampleimages/aerospace.jpg")
@@ -1526,7 +1526,7 @@ def test_keypoint_match():
     assert False
 
 def test_draw_keypointt_matches():
-  template = Image("../sampleimages/KeyPointTemplate2.png")
+  template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
   if VISUAL_TEST:
