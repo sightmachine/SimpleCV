@@ -28,6 +28,9 @@ class Corner(Feature):
     def __init__(self, i, at_x, at_y):
         super(Corner, self).__init__(i, at_x, at_y)
         self.points = [(at_x,at_y)]
+        #not sure if we need all four
+        self.boundingBox = [(at_x-1,at_y-1),(at_x-1,at_y+1),(at_x+1,at_y+1),(at_x+1,at_y-1)]
+        self.points = self.boundingBox
         #can we look at the eigenbuffer and find direction?
   
     def draw(self, color = (255, 0, 0)):
@@ -54,6 +57,8 @@ class Line(Feature):
         self.x = (line[0][0] + line[1][0]) / 2
         self.y = (line[0][1] + line[1][1]) / 2
         self.points = copy(line)
+        #not sure if this is going to work
+        self.boundingBox = self.points
  
     def draw(self, color = (0, 0, 255)):
         """
@@ -185,6 +190,7 @@ class Barcode(Feature):
         self.image = i 
         self.data = zxbc.data 
         self.points = copy(zxbc.points)
+        self.boundingBox = self.points 
         numpoints = len(self.points)
         self.x = 0
         self.y = 0
@@ -262,6 +268,7 @@ class HaarFeature(Feature):
         self.x = x + self._width/2
         self.y = y + self._height/2 #set location of feature to middle of rectangle
         self.points = ((x, y), (x + self._width, y), (x + self._width, y + self._height), (x, y + self._height))
+        self.boundingBox = self.points
         #set bounding points of the rectangle
         self.classifier = haarclassifier
     
@@ -342,7 +349,8 @@ class Chessboard(Feature):
         #sort corners along the x - y axis
         
         self.points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1], negdiagsorted[0])
-        #return the exterior points in clockwise order
+        self.boundingBox = self.points
+      #return the exterior points in clockwise order
       
     def draw(self, no_needed_color = None):
         """
@@ -390,7 +398,7 @@ class TemplateMatch(Feature):
                         (location[0] + template.width, location[1]),
                         (location[0] + template.width, location[1] + template.height),
                         (location[0], location[1] + template.height)]
-
+        self.boundingBox = self.points
 
     def getExtents(self):
         """
@@ -468,6 +476,7 @@ class Circle(Feature):
         self.r = r
         self.avgColor = None
         self.image = i
+        self.boundingBox = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
         segments = 18
         rng = range(1,segments+1)
         self.points = []
@@ -622,7 +631,8 @@ class Motion(Feature):
         sz = wndw/2
         # so we center at the flow vector
         self.points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y-sz),(at_x-sz,at_y-sz)]
-        
+        self.bounds = self.points
+
     def draw(self, color = Color.GREEN, normalize=True):
         """
         Draw the optical flow vector going from the sample point along the length of the motion vector

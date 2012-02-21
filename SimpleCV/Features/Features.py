@@ -185,7 +185,7 @@ class FeatureSet(list):
         """
         return np.array([f.crop() for f in self])  
 
-    def inside(self,region,simple=False):
+    def inside(self,region,simple=True):
         """
         Return only the features inside the region, where region can be
         
@@ -194,6 +194,9 @@ class FeatureSet(list):
         - A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
         - Any two dimensional feature (e.g. blobs, circle ...)
         
+        - FAILS:
+             line segment in region
+             interior contour on blobs. 
         """
         fs = FeatureSet()
         for f in self:
@@ -202,8 +205,7 @@ class FeatureSet(list):
         return fs
 
         
-
-    def outside(self,region,simple=False):
+    def outside(self,region,simple=True):
         """
         Returns the oposite of inside
         """
@@ -213,16 +215,52 @@ class FeatureSet(list):
                 fs.append(f)
         return fs
 
-    def overlaps(self,region,simple=False):
+    def overlaps(self,region,simple=True):
         """
         returns all features that overlap the region
         """
         fs = FeatureSet()
-        for f in self: # NOTE KAT LOOK HERE TOMORROW
-            if(region.overlaps(region,simple)):
+        for f in self: 
+            if(f.overlaps(region,simple)):
                 fs.append(f)
         return fs
 
+    def above(self,region):
+        """
+        """
+        fs = FeatureSet()
+        for f in self: 
+            if(f.above(region)):
+                fs.append(f)
+        return fs
+
+    def below(self,region):
+        """
+        """
+        fs = FeatureSet()
+        for f in self: 
+            if(f.below(region)):
+                fs.append(f)
+        return fs
+
+    def left(self,region):
+        """
+        """
+        fs = FeatureSet()
+        for f in self: 
+            if(f.left(region)):
+                fs.append(f)
+        return fs
+
+    def right(self,region):
+        """
+        """
+        fs = FeatureSet()
+        for f in self: 
+            if(f.right(region)):
+                fs.append(f)
+        return fs
+       
 
 
 class Feature(object):
@@ -236,7 +274,7 @@ class Feature(object):
     * default functions for determining angle, area, meanColor, etc for FeatureSets
     * in the Feature class, these functions assume the feature is 1px  
     """
-    x = 0.000
+    x = 0.00
     y = 0.00 
     mMaxX = None
     mMaxY = None
@@ -572,41 +610,48 @@ class Feature(object):
         of points, or any part of a blob.        
         """
         retVal = False
-        if( isinstance(other,Feature) ):
-            if( simple ):
-                if( self.contains(other.topRightCorner()) or self.contains(other.topLeftCorner()) or
-                    self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
-                    retVal = True           
-            else:
-                for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
-                    retVal = self._pointInsidePolygon(p,self.points)
-                    if( not retVal ):
+        bounds = self.boundingBox
+        if( not simple ):
+            bounds = self.points
+
+        if( isinstance(other,Feature) ):# A feature
+            retVal = True
+            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
+                    retVal = self._pointInsidePolygon(p,bounds)
+                    if( retVal ):
                         break
-        elif( isinstance(other,tuple) and len(other)==3 ):
+                
+        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,'ndarray') and other.shape[0]==2) ):
+            retVal = self._pointInsidePolygon(other,bounds)
+
+        elif( isinstance(other,tuple) and len(other)==3 ): # A circle
             #assume we are in x,y, r format 
+            retVal = False
             rr = other[2]*other[2]
             x = other[0]
             y = other[1]
-            for p in self.points:
+            for p in bounds:
                 test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
                 if( test < rr ):
                     retVal = True
                     break
-        elif( isinstance(other,tuple) and len(other)==4 and 
-            ( isinstance(other[0],float) or isinstance(other[0],int))): # we assume a tuple of four is (x,y,w,h)
-            retVal = ( self.maxX() <= other[0]+other[2] and
-                       self.minX() >= other[0] and
-                       self.maxY() <= other[1]+other[3] and
-                       self.minY() >= other[1] )        
-        elif(isinstance(other,tuple) >= 4):
-            for p in self.points:
-                test = self._pointInsidePolygon(p,other)
-                if( test ):
+
+        elif( isinstance(other,tuple) and len(other)==4 and ( isinstance(other[0],float) or isinstance(other[0],int))): 
+            retVal = ( self.contains( (other[0],other[1] ) ) or # see if we contain any corner
+                       self.contains( (other[0]+other[2],other[1] ) ) or
+                       self.contains( (other[0],other[1]+other[3] ) ) or
+                       self.contains( (other[0]+other[2],other[1]+other[3] ) ) )
+        elif(isinstance(other,tuple) >= 4): # an arbitrary polygon
+            #everything else .... 
+            retVal = False
+            for p in other:
+                test = self.pointInsidePolygon(p,bounds)
+                if(test):
                     retVal = True
-                    break 
+                    break
         else:
-            warnings.warn("SimpleCV did not recognize the input type to feature.overlap. This method only takes another blob.")
-            retVal = None
+            warnings.warn("SimpleCV did not recognize the input type to features.overlaps. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            return False  
 
         return retVal
 
@@ -633,6 +678,11 @@ class Feature(object):
         A list of (x,y) tuples defining a polygon.
         """
         retVal = True
+
+        bounds = self.boundingBox
+        if( not simple ):
+            bounds = self.points
+
         if( isinstance(other,Feature) ):
             retVal = other.contains(self,simple)
         elif( isinstance(other,tuple) and len(other)==3 ):
@@ -640,7 +690,7 @@ class Feature(object):
             rr = other[2]*other[2]
             x = other[0]
             y = other[1]
-            for p in self.points:
+            for p in bounds:
                 test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
                 if( test > rr ):
                     retVal = False
@@ -653,19 +703,13 @@ class Feature(object):
                        self.minY() >= other[1] )
         elif(isinstance(other,tuple) >= 4):
             #everything else .... 
-            sz = len(other)
-            if( sz > len(self.points)): # easier to test if we're inside 
-                for p in self.points:
-                    test = self._pointInsidePolygon(p,other)
-                    if(not test):
-                        retVal = False
-                        break 
-            else: # otherwise it cheaper to test that all of the points are outside of us
-                for p in other:
-                    test = self._pointInsidePolygon(p,self.points)
-                    if( test ):
-                        retVal = False
-                        break
+            retVal = True
+            for p in bounds:
+                test = self.pointInsidePolygon(p,other)
+                if(not test):
+                    retVal = False
+                    break
+
         else:
             warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             retVal = False

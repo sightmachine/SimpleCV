@@ -196,7 +196,7 @@ class Blob(Feature):
         """
         This method returns the top right corner of the bounding box of
         the blob as an (x,y) tuple.
-        """        
+        """       
         return (self.mBoundingBox[0]+self.mBoundingBox[2],self.mBoundingBox[1])
 
     def area(self):
@@ -509,7 +509,7 @@ class Blob(Feature):
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
-            layer._mSurface.blit(masksurface, self.points[0])
+            layer._mSurface.blit(masksurface, self.boundingBox[0]) # KAT EDIT
         else:
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)
