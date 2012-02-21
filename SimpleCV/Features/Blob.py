@@ -433,42 +433,42 @@ class Blob(Feature):
             return None  
     
 
-    def contains(self,other):
-        """
-        Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
-        """
-        if(other.__class__.__name__ == 'Blob' ):
-            retVal = False
-            if( other.minX() >=  self.minX() and other.minX() <= self.maxX() and
-                other.minY() >=  self.minY() and other.minY() <= self.maxY() and
-                other.maxX() >=  self.minX() and other.maxX() <= self.maxX() and
-                other.maxY() >=  self.minY() and other.maxY() <= self.maxY() ):
-                retVal = True             
-            return retVal;
-        elif(other.__class__.__name__ == 'tuple' or other.__class__.__name__ == 'ndarray'):
-            return( other[0] <= self.maxX() and
-                    other[0] >= self.minX() and
-                    other[1] <= self.maxY() and
-                    other[1] >= self.minY() )
-        else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
-            return None  
+#     def contains(self,other):
+#         """
+#         Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
+#         """
+#         if(other.__class__.__name__ == 'Blob' ):
+#             retVal = False
+#             if( other.minX() >=  self.minX() and other.minX() <= self.maxX() and
+#                 other.minY() >=  self.minY() and other.minY() <= self.maxY() and
+#                 other.maxX() >=  self.minX() and other.maxX() <= self.maxX() and
+#                 other.maxY() >=  self.minY() and other.maxY() <= self.maxY() ):
+#                 retVal = True             
+#             return retVal;
+#         elif(other.__class__.__name__ == 'tuple' or other.__class__.__name__ == 'ndarray'):
+#             return( other[0] <= self.maxX() and
+#                     other[0] >= self.minX() and
+#                     other[1] <= self.maxY() and
+#                     other[1] >= self.minY() )
+#         else:
+#             warnings.warn("SimpleCV did not recognize the input type to blob.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+#             return None  
     
-    def overlaps(self, other):
-        """
-        Returns true if this blob contains at least one point, part of a collection
-        of points, or any part of a blob.        
-        """
-        retVal = False
-        if(other.__class__.__name__ == 'Blob' ):
-            if( self.contains(other.topRightCorner()) or self.contains(other.topLeftCorner()) or
-                self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
-                retVal = True            
-        else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.overlap. This method only takes another blob.")
-            retVal = None
+#     def overlaps(self, other):
+#         """
+#         Returns true if this blob contains at least one point, part of a collection
+#         of points, or any part of a blob.        
+#         """
+#         retVal = False
+#         if(other.__class__.__name__ == 'Blob' ):
+#             if( self.contains(other.topRightCorner()) or self.contains(other.topLeftCorner()) or
+#                 self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
+#                 retVal = True            
+#         else:
+#             warnings.warn("SimpleCV did not recognize the input type to blob.overlap. This method only takes another blob.")
+#             retVal = None
 
-        return retVal;
+#         return retVal;
 
     def draw(self, color = Color.GREEN, alpha=-1, width=-1, layer=None):
         """

@@ -27,6 +27,7 @@ class Corner(Feature):
     """
     def __init__(self, i, at_x, at_y):
         super(Corner, self).__init__(i, at_x, at_y)
+        self.points = [(at_x,at_y)]
         #can we look at the eigenbuffer and find direction?
   
     def draw(self, color = (255, 0, 0)):
@@ -467,6 +468,14 @@ class Circle(Feature):
         self.r = r
         self.avgColor = None
         self.image = i
+        segments = 18
+        rng = range(1,segments+1)
+        self.points = []
+        for theta in rng:
+            rp = 2.0*math.pi*float(theta)/float(segments)
+            x = (r*math.sin(rp))+at_x
+            y = (r*math.cos(rp))+at_y
+            self.points.append((x,y))
   
     def coordinates(self):
         """

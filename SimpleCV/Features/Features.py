@@ -6,7 +6,7 @@
 #load system libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
-
+import copy
 
 class FeatureSet(list):
     """
@@ -185,7 +185,7 @@ class FeatureSet(list):
         """
         return np.array([f.crop() for f in self])  
 
-    def inside(self,region):
+    def inside(self,region,simple=False):
         """
         Return only the features inside the region, where region can be
         
@@ -197,29 +197,29 @@ class FeatureSet(list):
         """
         fs = FeatureSet()
         for f in self:
-            if(f.isContainedWithin(region)):
+            if(f.isContainedWithin(region,simple)):
                 fs.append(f)
         return fs
 
         
 
-    def outside(self,region):
+    def outside(self,region,simple=False):
         """
         Returns the oposite of inside
         """
         fs = FeatureSet()
         for f in self:
-            if(f.isNotContainedWithin(region)):
+            if(f.isNotContainedWithin(region,simple)):
                 fs.append(f)
         return fs
 
-    def overlaps(self,region):
+    def overlaps(self,region,simple=False):
         """
         returns all features that overlap the region
         """
         fs = FeatureSet()
         for f in self: # NOTE KAT LOOK HERE TOMORROW
-            if(f.overlaps(region)):
+            if(region.overlaps(region,simple)):
                 fs.append(f)
         return fs
 
@@ -548,7 +548,28 @@ class Feature(object):
                     retVal = self._pointInsidePolygon(p,self.points)
                     if( not retVal ):
                         break
-                
+        elif( isinstance(other,tuple) and len(other)==3 ):
+            #assume we are in x,y, r format 
+            rr = other[2]*other[2]
+            x = other[0]
+            y = other[1]
+            for p in self.points:
+                test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
+                if( test < rr ):
+                    retVal = True
+                    break
+        elif( isinstance(other,tuple) and len(other)==4 and 
+            ( isinstance(other[0],float) or isinstance(other[0],int))): # we assume a tuple of four is (x,y,w,h)
+            retVal = ( self.maxX() <= other[0]+other[2] and
+                       self.minX() >= other[0] and
+                       self.maxY() <= other[1]+other[3] and
+                       self.minY() >= other[1] )        
+        elif(isinstance(other,tuple) >= 4):
+            for p in self.points:
+                test = self._pointInsidePolygon(p,other)
+                if( test ):
+                    retVal = True
+                    break 
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.overlap. This method only takes another blob.")
             retVal = None
@@ -579,7 +600,7 @@ class Feature(object):
         """
         retVal = True
         if( isinstance(other,Feature) ):
-            retVal = other.contains(self)
+            retVal = other.contains(self,simple)
         elif( isinstance(other,tuple) and len(other)==3 ):
             #assume we are in x,y, r format 
             rr = other[2]*other[2]
@@ -628,10 +649,16 @@ class Feature(object):
         Adapted for python from:
         http://paulbourke.net/geometry/insidepoly/
         """
-        retval = True
+        retVal = True
         counter = 0
         p1 = None
-        for p2 in polygon:
+        if( len(polygon) < 3 ):
+            warnings.warn("feature._pointInsidePolygon - this is not a valid polygon")
+            return False 
+
+        poly = copy.deepcopy(polygon)
+        poly.append(polygon[0])
+        for p2 in poly:
             if( p1 is None ):
                 p1 = p2
             else:
@@ -642,7 +669,7 @@ class Feature(object):
                                 test = (point[1]-p1[1])*(p2[0]-p1[0])/((p2[1]-p1[1])+p1[0])
                                 if( p1[0] == p2[0] or point[0] <= test ):
                                     counter = counter + 1
-                                
+                p1 = p2                
                                     
         if( counter % 2 == 0 ):
             retVal = False
