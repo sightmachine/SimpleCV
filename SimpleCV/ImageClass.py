@@ -38,6 +38,11 @@ class ImageSet(list):
     >>> imgs = ImageSet()
     >>> imgs.download("ninjas")
     >>> imgs.show(ninjas)
+
+    or you can load a directory path:
+
+    >>> imgs = ImageSet('/path/to/imgs/')
+    >>> imgs.show()
     
     This will download and show a bunch of random ninjas.  If you want to
     save all those images locally then just use:
@@ -46,6 +51,12 @@ class ImageSet(list):
 
     
     """
+
+    def __init__(self, directory = None):
+      if directory:
+        self.load(directory)
+
+      return
 
     def download(self, tag=None, number=10):
       """
@@ -87,7 +98,7 @@ class ImageSet(list):
         
 
 
-    def show(self, showtime = 1):
+    def show(self, showtime = 0.25):
       """
       This is a quick way to show all the items in a ImageSet.
       The time is in seconds. You can also provide a decimal value, so
@@ -135,13 +146,19 @@ class ImageSet(list):
 
       >>> imgs = ImageSet()
       >>> imgs.load("images/faces")
+      >>> imgs.load("images/eyes", "png")
 
       """
 
       if not directory:
         print "You need to give a directory to load from"
         return
-        
+
+      if not os.path.exists(directory):
+        print "Invalied image path given"
+        return
+      
+      
       if extension:
         extension = "*." + extension
         formats = [os.path.join(directory, extension)]
