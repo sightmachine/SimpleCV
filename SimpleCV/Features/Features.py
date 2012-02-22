@@ -22,16 +22,16 @@ class FeatureSet(list):
     >>> lines.crop()
     """
   
-    def draw(self, color = Color.GREEN, autocolor = False):
+    def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
         """
         for f in self:
             if(autocolor):
                 color = Color().getRandom()
-            f.draw(color)
+            f.draw(color,width)
     
-    def show(self, color = Color.GREEN, autocolor = False):
+    def show(self, color = Color.GREEN, autocolor = False,width=1):
         """
         This function will automatically draw the features on the image and show it.
         It is a basically a shortcut function for development and is the same as:
@@ -42,8 +42,7 @@ class FeatureSet(list):
         >>> img.show()
 
         """
-
-        self.draw(color, autocolor)
+        self.draw(color, autocolor,width)
         self[-1].image.show()
                 
   
@@ -221,7 +220,7 @@ class FeatureSet(list):
         """
         fs = FeatureSet()
         for f in self: 
-            if(f.overlaps(region,simple)):
+            if( f.overlaps(region,simple) ):
                 fs.append(f)
         return fs
 
@@ -502,11 +501,11 @@ class Feature(object):
         Given a point or another blob determine if this blob is above the other blob
         """
         if( isinstance(object,Feature) ): 
-            return( self.minY() > object.maxY() )
-        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
-            return( self.minY() > object[1]  )
+            return( self.maxY() < object.minY() )
+        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
+            return( self.maxY() < object[1]  )
         elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.minY() > object )
+            return( self.maxY() < object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.above(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -516,11 +515,11 @@ class Feature(object):
         Given a point or another blob determine if this blob is below the other blob
         """    
         if( isinstance(object,Feature) ): 
-            return( self.maxY() < object.minY() )
-        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
-            return( self.maxY() < object[1]  )
+            return( self.minY() > object.maxY() )
+        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
+            return( self.minY() > object[1]  )
         elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.maxY() < object )
+            return( self.minY() > object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.below(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -531,11 +530,11 @@ class Feature(object):
         Given a point or another blob determine if this blob is to the right of the other blob
         """
         if( isinstance(object,Feature) ): 
-            return( self.maxX() < object.minX() )
-        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
-            return( self.maxX() < object[0]  )
+            return( self.minX() > object.maxX() )
+        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
+            return( self.minX() > object[0]  )
         elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.maxX() < object )
+            return( self.minX() > object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.right(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -545,11 +544,11 @@ class Feature(object):
         Given a point or another blob determine if this blob is to the left of the other blob
         """           
         if( isinstance(object,Feature) ): 
-            return( self.minX() > object.maxX() )
-        elif( isinstance(object,tuple) or isinstance(object,'ndarray') ):
-            return( self.minX() > object[0]  )
+            return( self.maxX() < object.minX() )
+        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
+            return( self.maxX() < object[0]  )
         elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.minX() > object )
+            return( self.maxX() < object )
         else:
             warnings.warn("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
@@ -562,15 +561,20 @@ class Feature(object):
         bounds = self.boundingBox
         if( not simple ):
             bounds = self.points
+        if( len(bounds) < 3 ):
+                warnings.warn("BAD NEWS BEARS")
 
+        #print("doing test")
         if( isinstance(other,Feature) ):# A feature
             retVal = True
-            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
-                    retVal = self._pointInsidePolygon(p,bounds)
-                    if( not retVal ):
-                        break
+            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.            
+                p2 = (int(p[0]),int(p[1]))
+                retVal = self._pointInsidePolygon(p2,bounds)
+                if( not retVal ):
+                    #print(p)
+                    break
                 
-        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,'ndarray') and other.shape[0]==2) ):
+        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
             retVal = self._pointInsidePolygon(other,bounds)
 
         elif( isinstance(other,tuple) and len(other)==3 ): # A circle
@@ -590,7 +594,7 @@ class Feature(object):
                        self.minX() >= other[0] and
                        self.maxY() <= other[1]+other[3] and
                        self.minY() >= other[1] )
-        elif(isinstance(other,tuple) >= 4): # an arbitrary polygon
+        elif(isinstance(other,list) and len(other) >= 4): # an arbitrary polygon
             #everything else .... 
             retVal = True
             for p in other:
@@ -613,15 +617,17 @@ class Feature(object):
         bounds = self.boundingBox
         if( not simple ):
             bounds = self.points
-
+        if( len(bounds) < 3 ):
+                warnings.warn("BAD NEWS BEARS")
         if( isinstance(other,Feature) ):# A feature
             retVal = True
+            
             for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
-                    retVal = self._pointInsidePolygon(p,bounds)
-                    if( retVal ):
-                        break
+                retVal = self._pointInsidePolygon(p,bounds)
+                if( retVal ):
+                    break
                 
-        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,'ndarray') and other.shape[0]==2) ):
+        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
             retVal = self._pointInsidePolygon(other,bounds)
 
         elif( isinstance(other,tuple) and len(other)==3 ): # A circle
@@ -641,7 +647,7 @@ class Feature(object):
                        self.contains( (other[0]+other[2],other[1] ) ) or
                        self.contains( (other[0],other[1]+other[3] ) ) or
                        self.contains( (other[0]+other[2],other[1]+other[3] ) ) )
-        elif(isinstance(other,tuple) >= 4): # an arbitrary polygon
+        elif(isinstance(other,list) and len(other)  >= 4): # an arbitrary polygon
             #everything else .... 
             retVal = False
             for p in other:
@@ -727,13 +733,15 @@ class Feature(object):
         Adapted for python from:
         http://paulbourke.net/geometry/insidepoly/
         """
-        retVal = True
-        counter = 0
-        p1 = None
         if( len(polygon) < 3 ):
             warnings.warn("feature._pointInsidePolygon - this is not a valid polygon")
             return False 
-
+ 
+        counter = 0
+        retVal = True
+        p1 = None
+        #print(point)
+        
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
         for p2 in poly:
@@ -744,7 +752,7 @@ class Feature(object):
                     if( point[1] <= np.max((p1[1],p2[1])) ):
                         if( point[0] <= np.max((p1[0],p2[0])) ):
                             if( p1[1] != p2[1] ):
-                                test = (point[1]-p1[1])*(p2[0]-p1[0])/((p2[1]-p1[1])+p1[0])
+                                test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
                                 if( p1[0] == p2[0] or point[0] <= test ):
                                     counter = counter + 1
                 p1 = p2                

@@ -6,7 +6,7 @@ from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
-import cv2 
+#import cv2 
 import math # math... who does that 
 
 class ColorSpace:
