@@ -47,6 +47,12 @@ class ImageSet(list):
     
     """
 
+    def __init__(self, directory = None):
+      if directory:
+        self.load(directory)
+
+      return
+
     def download(self, tag=None, number=10):
       """
       This function downloads images from Google Image search based
