@@ -5,8 +5,10 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
-import scipy.cluster.vq as scv     
-import math # math... who does that
+import scipy.cluster.vq as scv    
+import cv2 
+import math # math... who does that 
+
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -36,6 +38,11 @@ class ImageSet(list):
     >>> imgs = ImageSet()
     >>> imgs.download("ninjas")
     >>> imgs.show(ninjas)
+
+    or you can load a directory path:
+
+    >>> imgs = ImageSet('/path/to/imgs/')
+    >>> imgs.show()
     
     This will download and show a bunch of random ninjas.  If you want to
     save all those images locally then just use:
@@ -44,6 +51,12 @@ class ImageSet(list):
 
     
     """
+
+    def __init__(self, directory = None):
+      if directory:
+        self.load(directory)
+
+      return
 
     def download(self, tag=None, number=10):
       """
@@ -85,7 +98,7 @@ class ImageSet(list):
         
 
 
-    def show(self, showtime = 1):
+    def show(self, showtime = 0.25):
       """
       This is a quick way to show all the items in a ImageSet.
       The time is in seconds. You can also provide a decimal value, so
@@ -133,13 +146,19 @@ class ImageSet(list):
 
       >>> imgs = ImageSet()
       >>> imgs.load("images/faces")
+      >>> imgs.load("images/eyes", "png")
 
       """
 
       if not directory:
         print "You need to give a directory to load from"
         return
-        
+
+      if not os.path.exists(directory):
+        print "Invalied image path given"
+        return
+      
+      
       if extension:
         extension = "*." + extension
         formats = [os.path.join(directory, extension)]
@@ -206,10 +225,16 @@ class Image:
     _cannyparam = (0, 0) #parameters that created _edgeMap
     _pil = "" #holds a PIL object in buffer
     _numpy = "" #numpy form buffer
+    _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
-  
+
+    #Keypoint caching values
+    _mKeyPoints = None
+    _mKPDescriptors = None
+    _mKPFlavor = "NONE"
+
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
         "_bitmap": "", 
@@ -222,6 +247,7 @@ class Image:
         "_cannyparam": (0, 0), 
         "_pil": "",
         "_numpy": "",
+        "_grayNumpy":"",
         "_pgsurface": ""}  
     
     
@@ -242,7 +268,10 @@ class Image:
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
-
+        #Keypoint Descriptors 
+        self._mKeyPoints = []
+        self._mKPDescriptors = []
+        self._mKPFlavor = "NONE"
 
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -312,7 +341,9 @@ class Image:
                 source = scvImg
         
         if (type(source) == tuple):
-            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            w = int(source[0])
+            h = int(source[1])
+            source = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
             cv.Zero(source)
         if (type(source) == cv.cvmat):
             self._matrix = source
@@ -400,7 +431,53 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
-    
+    def live(self):
+        """
+        This shows a live view of the camera.
+        To use it's as simple as:
+
+        >>> cam = Camera()
+        >>> cam.live()
+
+        Left click will show mouse coordinates and color
+        Right click will kill the live image
+        """
+
+        start_time = time.time()
+        
+        from SimpleCV.Display import Display
+        i = self
+        d = Display(i.size())
+        i.save(d)
+        col = Color.RED
+
+        while d.isNotDone():
+          i = self
+          elapsed_time = time.time() - start_time
+          
+
+          if d.mouseLeft:
+            i.clearLayers()
+            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            i.dl().text(txt, (10,i.height / 2), color=col)
+            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+          if elapsed_time > 0 and elapsed_time < 5:
+            
+            i.dl().text("In live mode", (10,10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            
+          
+          i.save(d)
+          if d.mouseRight:
+            d.done = True
+
+        
+        pg.quit()
+
     def getColorSpace(self):
         """
         Returns the value matched in the color space class
@@ -610,8 +687,6 @@ class Image:
         """
         Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
         """
-
-
         bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
         cv.SetZero(bitmap)
         return bitmap
@@ -626,8 +701,6 @@ class Image:
             return self._bitmap
         elif (self._matrix):
             self._bitmap = cv.GetImage(self._matrix)
-
-
         return self._bitmap
 
 
@@ -663,6 +736,17 @@ class Image:
         return self._pil
   
   
+    def getGrayNumpy(self):
+        """
+        Return a grayscale Numpy array. This is handy for keypoint detection. 
+        """
+        if( self._grayNumpy != "" ):
+            return self._grayNumpy
+        else:
+            self._grayNumpy = uint8(np.array(cv.GetMat(self._getGrayscaleBitmap())).transpose())
+
+        return self._grayNumpy
+
     def getNumpy(self):
         """
         Get a Numpy array of the image in width x height x RGB dimensions
@@ -2435,13 +2519,16 @@ class Image:
         if( w <= 0 or h <= 0 ):
             warnings.warn("Can't do a negative crop!")
             return None
+        
+        retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
         if( x < 0 or y < 0 ):
             warnings.warn("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
 
+
         if( centered ):
-            rectangle = (x-(w/2), y-(h/2), w, h)
+            rectangle = (int(x-(w/2)), int(y-(h/2)), int(w), int(h))
         else:
-            rectangle = (x, y, w, h)
+            rectangle = (int(x), int(y), int(w), int(h))
     
 
         (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
@@ -3793,7 +3880,439 @@ class Image:
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
         
+
+    def _getRawKeypoints(self,thresh=500.00,flavor="SURF", highQuality=1, forceReset=False):
+        """
+        This method finds keypoints in an image and returns them as the raw keypoints
+        and keypoint descriptors. When this method is called it caches a the features
+        and keypoints locally for quick and easy access.
+       
+        Parameters:
+        min_quality - The minimum quality metric for SURF descriptors. Good values
+                      range between about 300.00 and 600.00
+        
+        flavor - a string indicating the method to use to extract features.
+                 A good primer on how feature/keypoint extractiors can be found here:
+
+                 http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
+                 http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+        
+
+                 "SURF" - extract the SURF features and descriptors. If you don't know
+                 what to use, use this. 
+                 See: http://en.wikipedia.org/wiki/SURF
+
+                 "STAR" - The STAR feature extraction algorithm
+                 See: http://pr.willowgarage.com/wiki/Star_Detector
+
+                 "FAST" - The FAST keypoint extraction algorithm
+                 See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+
+
+        highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
+                      values and a vector of 128 descriptor values. The latter are "high" 
+                      quality descriptors. 
+                     
+        forceReset - If keypoints have already been calculated for this image those
+                     keypoints are returned veresus recalculating the values. If 
+                     force reset is True we always recalculate the values, otherwise
+                     we will used the cached copies. 
+                      
+        Returns:
+        A tuple of keypoint objects and optionally a numpy array of the descriptors. 
+
+        Example:
+        >>>> img = Image("aerospace.jpg")
+        >>>> kp,d = img._getRawKeypoints() 
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See Also:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+
+        """
+        if( forceReset ):
+            self._mKeyPoints = None
+            self._mKPDescriptors = None
+        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+            if( flavor == "SURF" ):
+                surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
+                if( len(self._mKPDescriptors) == 0 ):
+                    return None, None                     
+                
+                if( highQuality == 1 ):
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                else:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                self._mKPFlavor = "SURF"
+                del surfer
+            
+            elif( flavor == "FAST" ):
+                faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                self._mKPDescriptors = None
+                self._mKPFlavor = "FAST"
+                del faster
+
+            #elif( flavor == "MSER"):
+            #    mserer = cv2.MSER()
+            #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+            #    self._mKPDescriptors = None
+            #    self._mKPFlavor = "MSER"
+            #    del mserer
+
+            elif( flavor == "STAR"):
+                starer = cv2.StarDetector()
+                self._mKeyPoints = starer.detect(self.getGrayNumpy())
+                self._mKPDescriptors = None
+                self._mKPFlavor = "STAR"
+                del starer
+          
+            else:
+                warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+                return None, None
+
+        return self._mKeyPoints,self._mKPDescriptors 
+
+    def _getFLANNMatches(self,sd,td):
+        """
+        Summary:
+        This method does a fast local approximate nearest neighbors (FLANN) calculation between two sets
+        of feature vectors. The result are two numpy arrays the first one is a list of indexes of the
+        matches and the second one is the match distance value. For the match indices or idx, the index
+        values correspond to the values of td, and the value in the array is the index in td. I.
+        I.e. j = idx[i] is where td[i] matches sd[j]. 
+        The second numpy array, at the index i is the match distance between td[i] and sd[j].
+        Lower distances mean better matches. 
+
+        Parameters:
+        sd - A numpy array of feature vectors of any size.
+        td - A numpy array of feature vectors of any size, this vector is used for indexing
+             and the result arrays will have a length matching this vector. 
+
+        Returns:
+        Two numpy arrays, the first one, idx, is the idx of the matches of the vector td with sd.
+        The second one, dist, is the distance value for the closest match.
+
+        Example:
+        >>>> kpt,td = img1._getRawKeypoints() # t is template
+        >>>> kps,sd = img2._getRawKeypoints() # s is source
+        >>>> idx,dist = img1._getFLANNMatches(sd,td)
+        >>>> j = idx[42]
+        >>>> print kps[j] # matches kp 42
+        >>>> print dist[i] # the match quality.
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+        """
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
+        flann = cv2.flann_Index(sd, flann_params)
+        idx, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        del flann
+        return idx,dist
+
+    def drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1):
+        """
+        Summary:
+        Draw keypoints draws a side by side representation of two images, calculates
+        keypoints for both images, determines the keypoint correspondences, and then draws
+        the correspondences. This method is helpful for debugging keypoint calculations
+        and also looks really cool :) .  The parameters mirror the parameters used 
+        for findKeypointMatches to assist with debugging 
+
+        Parameters:
+        template - A template image. 
+
+        quality - The feature quality metric. This can be any value between about 300 and 500. Higher
+        values should return fewer, but higher quality features. 
+
+        minDist - The value below which the feature correspondence is considered a match. This 
+                  is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        width    - The width of the drawn line.
+
+        Returns:
+        A side by side image of the template and source image with each feature correspondence 
+        draw in a different color. 
+
+        Example:
+        >>>> img = cam.getImage()
+        >>>> template = Image("myTemplate.png")
+        >>>> result = img.drawKeypointMatches(self,template,300.00,0.4):
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+
+        """
+        if template == None:
+          return None
+          
+        resultImg = template.sideBySide(self,scale=False)
+        hdif = (self.height-template.height)/2
+        skp,sd = self._getRawKeypoints(thresh)
+        tkp,td = template._getRawKeypoints(thresh)
+        if( td == None or sd == None ):
+            warnings.warn("We didn't get any descriptors. Image might be too uniform or blurry." )
+            return resultImg
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
+
+        idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
+        p = dist[:,0]
+        result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
+        for i in range(0,len(idx)):
+            if( result[i] ):
+                pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
+                pt_b = (skp[idx[i]].pt[1]+template.width,skp[idx[i]].pt[0])
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=width)
+        return resultImg
+                  
+
+    def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
+        """
+        findKeypointMatch allows you to match a template image with another image using 
+        SURF keypoints. The method extracts keypoints from each image, uses the Fast Local
+        Approximate Nearest Neighbors algorithm to find correspondences between the feature
+        points, filters the correspondences based on quality, and then, attempts to calculate
+        a homography between the two images. This homography allows us to draw a matching
+        bounding box in the source image that corresponds to the template. This method allows
+        you to perform matchs the ordinarily fail when using the findTemplate method. 
+        This method should be able to handle a reasonable changes in camera orientation and
+        illumination. Using a template that is close to the target image will yield much
+        better results.
+
+        Warning:
+        This method is only capable of finding one instance of the template in an image. 
+        If more than one instance is visible the homography calculation and the method will 
+        fail.
+
+        Parameters:
+        template - A template image. 
+
+        quality - The feature quality metric. This can be any value between about 300 and 500. Higher
+        values should return fewer, but higher quality features. 
+
+        minDist - The value below which the feature correspondence is considered a match. This 
+                  is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        minMatch - The percentage of features which must have matches to proceed with homography calculation.
+                   A value of 0.4 means 40% of features must match. Higher values mean better matches
+                   are used. Good values are between about 0.3 and 0.7
  
+        Returns:
+                  If a homography (match) is found this method returns a feature set with a single 
+                  KeypointMatch feature. If no match is found None is returned.
+        Example:
+                  >>>> template = Image("template.png")
+                  >>>> img = camera.getImage()
+                  >>>> fs = img.findKeypointMatch(template)
+                  >>>> if( fs is not None ):
+                  >>>>      fs[0].draw()
+                  >>>>      img.show()
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See Also:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+
+
+        """
+        if template == None:
+          return None
+        
+        skp,sd = self._getRawKeypoints(quality)
+        tkp,td = template._getRawKeypoints(quality)
+        if( skp == None or tkp == None ):
+            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
+            return None
+
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
+
+        idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
+        p = dist[:,0]
+        result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
+        pr = result.shape[0]/float(dist.shape[0])
+
+        if( pr >  minMatch and len(result)>4 ): # if more than minMatch % matches we go ahead and get the data 
+            lhs = []
+            rhs = []
+            for i in range(0,len(idx)):
+                if( result[i] ):
+                    lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+            
+            rhs_pt = np.array(rhs)
+            lhs_pt = np.array(lhs)
+            if( len(rhs_pt) < 16  or len(lhs_pt) < 16 ):
+                return None
+            homography = []         
+            (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
+            w = template.width
+            h = template.height
+            yo = homography[0][2] # get the x/y offset from the affine transform
+            xo = homography[1][2]
+            # draw our template
+            pt0 = np.array([0,0,1]) 
+            pt1 = np.array([0,h,1])
+            pt2 = np.array([w,h,1])
+            pt3 = np.array([w,0,1])
+            # apply the affine transform to our points
+            pt0p = np.array(pt0*np.matrix(homography)) 
+            pt1p = np.array(pt1*np.matrix(homography))
+            pt2p = np.array(pt2*np.matrix(homography))
+            pt3p = np.array(pt3*np.matrix(homography))
+            #update and clamp the corners to get our template in the other image
+            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo)) 
+            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
+            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
+            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            #construct the feature set and return it. 
+            fs = FeatureSet()
+            fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
+            return fs
+        else:
+            return None 
+
+
+    def findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ): 
+        """
+        This method finds keypoints in an image and returns them as a feature set.
+        Keypoints are unique regions in an image that demonstrate some degree of 
+        invariance to changes in camera pose and illumination. They are helpful
+        for calculating homographies between camera views, object rotations, and
+        multiple view overlaps.
+
+        We support four keypoint detectors and only one form of keypoint descriptors.
+        Only the surf flavor of keypoint returns feature and descriptors at this time.
+       
+        Parameters:
+        min_quality - The minimum quality metric for SURF descriptors. Good values
+                      range between about 300.00 and 600.00
+        
+        flavor - a string indicating the method to use to extract features.
+                 A good primer on how feature/keypoint extractiors can be found here:
+
+                 http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
+                 http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+        
+
+                 "SURF" - extract the SURF features and descriptors. If you don't know
+                 what to use, use this. 
+                 See: http://en.wikipedia.org/wiki/SURF
+
+                 "STAR" - The STAR feature extraction algorithm
+                 See: http://pr.willowgarage.com/wiki/Star_Detector
+
+                 "FAST" - The FAST keypoint extraction algorithm
+                 See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+
+
+        highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
+                      values and a vector of 128 descriptor values. The latter are "high" 
+                      quality descriptors. 
+                      
+        Returns:
+        A feature set of KeypointFeatures. These KeypointFeatures let's you draw each 
+        feature, crop the features, get the feature descriptors, etc. 
+
+        Example:
+        >>>> img = Image("aerospace.jpg")
+        >>>> fs = img.findKeypoints(flavor="SURF",min_quality=500,highQuality=True)
+        >>>> fs = fs.sortArea()
+        >>>> fs[-1].draw()
+        >>>> img.draw()
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See Also:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+
+        """
+        fs = FeatureSet()
+        kp = []
+        d = []
+        if highQuality:
+            kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=1)
+        else:
+            kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
+
+        if( flavor == "SURF" ):
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],d[i],flavor))
+        elif(flavor == "STAR" or flavor == "FAST" ):
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],None,flavor))
+        else:
+            warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+            return None
+
+        return fs
 
     def findMotion(self, previous_frame, window=11, method='BM', aggregate=True):
         """
@@ -3905,10 +4424,9 @@ class Image:
 
 Image.greyscale = Image.grayscale
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, Motion
 
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Images import *
-

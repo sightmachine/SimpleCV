@@ -3,7 +3,7 @@
 # This library includes classes for finding things in images
 #
 # FYI - 
-# All angles shalt be described in degrees with zero pointing east in the
+ # All angles shalt be described in degrees with zero pointing east in the
 # plane of the image with all positive rotations going counter-clockwise.
 # Therefore a rotation from the x-axis to to the y-axis is positive and follows
 # the right hand rule. 
@@ -13,8 +13,8 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
+from math import *
 from math import pi
-import math
 
 
 ######################################################################
@@ -430,7 +430,7 @@ class TemplateMatch(Feature):
         self.y = miny
         self.points = ((minx,miny),(minx,maxy),(maxx,maxy),(maxx,miny))
     
-
+ 
     def rescale(self,w,h):
         """
         This method keeps the feature's center the same but sets a new width and height
@@ -579,6 +579,174 @@ class Circle(Feature):
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
             return retVal
 
+##################################################################################
+class KeyPoint(Feature):
+    """
+    Class for a SURF/SIFT/ORB/STAR keypoint
+    """
+    x = 0.00
+    y = 0.00 
+    r = 0.00
+    image = "" #parent image
+    points = []
+    avgColor = None
+    mAngle = 0
+    mOctave = 0
+    mResponse = 0.00
+    mFlavor = ""
+    mDescriptor = None
+    mKeyPoint = None
+    def __init__(self, i, keypoint, descriptor=None, flavor="SURF" ):
+#i, point, diameter, descriptor=None,angle=-1, octave=0,response=0.00,flavor="SURF"):
+        self.mKeyPoint = keypoint
+        self.x = keypoint.pt[1]
+        self.y = keypoint.pt[0]
+        self.r = keypoint.size/2.0
+        self.avgColor = None
+        self.image = i
+        self.mAngle = keypoint.angle
+        self.mOctave = keypoint.octave
+        self.mResponse = keypoint.response
+        self.mFlavor = flavor
+        self.mDescriptor = descriptor
+        x = self.x
+        y = self.y
+        r = self.r
+        self.points = ((x+r,y+r),(x+r,y-r),(x-r,y-r),(x-r,y+r))
+
+    def getObject(self):
+        return self.mKeyPoint
+
+    def descriptor(self):
+        return self.mDescriptor
+
+    def quality(self):
+        return self.mResponse 
+
+    def octave(self):
+        return self.mOctave
+
+    def flavor(self):
+        return self.mFlavor
+
+    def angle(self):
+        return self.mAngle
+
+    def coordinates(self):
+        """
+        Return a an array of x,y
+        """
+        return np.array([self.x, self.y])  
+  
+    def draw(self, color = Color.GREEN):
+        """
+        With no dimension information, color the x,y point for the featuer 
+        """
+        self.image.drawCircle((self.x,self.y),self.r,color=color)
+        pt1 = (int(self.x),int(self.y))
+        pt2 = (int(self.x+(self.radius()*sin(radians(self.angle())))),
+               int(self.y+(self.radius()*cos(radians(self.angle())))))
+        self.image.drawLine(pt1,pt2,color)
+    
+    def show(self, color = Color.GREEN):
+        """
+        This function will automatically draw the features on the image and show it.
+        It is a basically a shortcut function for development and is the same as:
+        
+        >>> img = Image("logo")
+        >>> feat = img.findBlobs()
+        >>> if feat: feat.draw()
+        >>> img.show()
+
+        """
+        self.draw(color)
+        self.image.show()
+  
+    def distanceFrom(self, point = (-1, -1)): 
+        """
+        Given a point (default to center of the image), return the euclidean distance of x,y from this point
+        """
+        if (point[0] == -1 or point[1] == -1):
+            point = np.array(self.image.size()) / 2
+        return spsd.euclidean(point, [self.x, self.y]) 
+  
+    def meanColor(self):
+        """
+        return the average color within the circle
+        """
+        #generate the mask
+        if( self.avgColor is None):
+            mask = self.image.getEmpty(1)
+            cv.Zero(mask)
+            cv.Circle(mask,(int(self.x),int(self.y)),int(self.r),color=(255,255,255),thickness=-1)
+            temp = cv.Avg(self.image.getBitmap(),mask)
+            self.avgColor = (temp[0],temp[1],temp[2])
+        return self.avgColor
+  
+    def colorDistance(self, color = (0, 0, 0)): 
+        """
+          Return the euclidean color distance of the color tuple at x,y from a given color (default black)
+        """
+        return spsd.euclidean(np.array(color), np.array(self.meanColor())) 
+  
+  
+    def area(self):
+        """
+        Area covered by the feature -- for a pixel, 1
+        """
+        return self.r*self.r*pi
+
+    def perimeter(self):
+        """
+        Perimeter of the feature in pixels
+        """
+        return 2*pi*self.r
+  
+    def width(self):
+        """
+        Width of the feature -- for compliance just r*2
+        """
+        return self.r*2
+  
+    def height(self):
+        """
+        Height of the feature -- for compliance just r*2
+        """
+        return self.r*2
+  
+    def radius(self):
+        """
+        Radius of the circle in pixels.
+        """
+        return self.r
+    
+    def diameter(self):
+        """
+        Diameter of the circle in pixels
+        """
+        return self.r*2
+    
+    def crop(self,noMask=False):
+        """
+        This function returns the largest bounding box for an image.
+        if noMask=True we return the bounding box image of the circle.
+        if noMask=False (default) we return the masked circle with the rest of the area set to black
+        Returns Image
+        """
+        if( noMask ):
+            return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
+        else:
+            mask = self.image.getEmpty(1)
+            result = self.image.getEmpty()
+            cv.Zero(mask)
+            cv.Zero(result)
+            #if you want to shave a bit of time we go do the crop before the blit
+            cv.Circle(mask,(int(self.x),int(self.y)),int(self.r),color=(255,255,255),thickness=-1)
+            cv.Copy(self.image.getBitmap(),result,mask)
+            retVal = Image(result)
+            retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
+            return retVal
+
 ######################################################################    
 class Motion(Feature):
     """
@@ -702,3 +870,114 @@ class Motion(Feature):
 
 
 ######################################################################    
+class KeypointMatch(Feature):
+    """
+    This class encapsulates a keypoint match between images of an object.
+    It is used to record a template of one image as it appears in another image
+    """
+    x = 0.00
+    y = 0.00 
+    image = "" #parent image
+    points = []
+    minRect = []
+    avgColor = None
+    homography = []
+    template = None
+    def __init__(self, image,template,minRect,homography):
+        self.image = image
+        self.template = template
+        self.minRect = minRect
+        self.homography = homography
+        xmax = 0
+        ymax = 0
+        xmin = image.width
+        ymin = image.height
+        for p in minRect:
+            if( p[0] > xmax ):
+                xmax = p[0]
+            if( p[0] < xmin ):
+                xmin = p[0]
+            if( p[1] > ymax ):
+                ymax = p[1]
+            if( p[1] < xmin ):
+                ymin = p[1]
+
+        self.points = ((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin))
+        self.width = (xmax-xmin)
+        self.height = (ymax-ymin)
+        self.x = xmin + (self.width/2)
+        self.y = ymin + (self.height/2)
+   
+    def coordinates(self):
+        """
+        Return a an array of x,y
+        """
+        return np.array([self.x, self.y])  
+  
+    def draw(self, color = Color.GREEN,width=2):
+        """
+        The default drawing operation is to draw the min bounding 
+        rectangle in an image. 
+        """
+        self.image.drawLine(self.minRect[0],self.minRect[1],color=color,thickness=width)
+        self.image.drawLine(self.minRect[1],self.minRect[2],color=color,thickness=width)
+        self.image.drawLine(self.minRect[2],self.minRect[3],color=color,thickness=width)
+        self.image.drawLine(self.minRect[3],self.minRect[0],color=color,thickness=width)
+
+    def drawRect(self, color = Color.GREEN,width=2):
+        """
+        This method draws the axes alligned square box of the template 
+        match. This box holds the minimum bounding rectangle that describes
+        the object. If the minimum bounding rectangle is axes aligned
+        then the two bounding rectangles will match. 
+        """
+        self.image.drawLine(self.points[0],self.points[1],color=color,thickness=width)
+        self.image.drawLine(self.points[1],self.points[2],color=color,thickness=width)
+        self.image.drawLine(self.points[2],self.points[3],color=color,thickness=width)
+        self.image.drawLine(self.points[3],self.points[0],color=color,thickness=width)
+        
+    
+    def crop(self):
+        """
+        Returns a cropped image of the feature match. This cropped version is the 
+        axes aligned box masked to just include the image data of the minimum bounding
+        rectangle.
+        """
+        TL = self.points[0]
+        raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
+        mask = Image((self.width,self.height))
+        mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+        mask = mask.applyLayers()
+        mask.blit(raw,(0,0),alpha=None,mask=mask) 
+        return mask
+    
+    def meanColor(self):
+        """
+        return the average color within the circle
+        """
+        if( self.avgColor is None ):
+            TL = self.points[0]
+            raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
+            mask = Image((self.width,self.height))
+            mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+            mask = mask.applyLayers()
+            retVal = cv.Avg(raw.getBitmap(),mask._getGrayscaleBitmap())
+            self.avgColor = retVal
+        else:
+            retVal = self.avgColor
+        return retVal 
+
+  
+    def getMinRect(self):
+        """
+        Returns the minimum bounding rectangle of the feature as a list
+        of (x,y) tuples. 
+        """
+        return self.minRect
+    
+    def getHomography(self):
+        """
+        Returns the homography matrix used to calulate the minimum bounding
+        rectangle. 
+        """
+        return self.homography

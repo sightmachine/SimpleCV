@@ -19,7 +19,7 @@ SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass b
 #colors
 black = Color.BLACK
 white = Color.WHITE
-ed = Color.RED
+red = Color.RED
 green = Color.GREEN
 blue = Color.BLUE
 
@@ -1408,6 +1408,28 @@ def test_blob_isa_methods():
   else:
     assert False
 
+def test_findKeypoints():
+  img = Image(testimage2)
+  kp = img.findKeypoints()
+  for k in kp:
+    k.getObject()
+    k.descriptor()
+    k.quality()
+    k.octave()
+    k.flavor()
+    k.angle()
+    k.coordinates()
+    k.draw()
+    k.distanceFrom()
+    k.meanColor()
+    k.area()
+    k.perimeter()
+    k.width()
+    k.height()
+    k.radius()
+    k.crop()
+  pass
+
 def test_movement_feature():
   #~ current = Image("../sampleimages/flow1.png")
   #~ prev = Image("../sampleimages/flow2.png")
@@ -1457,3 +1479,58 @@ def test_movement_feature():
     assert False
 
   pass 
+
+def test_keypoint_extraction():
+  img = Image("../sampleimages/KeypointTemplate2.png")
+  kp1 = img.findKeypoints()
+  kp2 = img.findKeypoints(highQuality=True)
+  kp3 = img.findKeypoints(flavor="STAR")
+  #TODO: Fix FAST binding
+  #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
+  if( len(kp1)==190 and 
+      len(kp2)==190 and
+      len(kp3)==37
+      #~ and len(kp4)==521
+    ):
+    pass
+  else:
+    assert False
+
+
+def test_keypoint_match():
+  template = Image("../sampleimages/KeypointTemplate2.png")
+  match0 = Image("../sampleimages/kptest0.png")
+  match1 = Image("../sampleimages/kptest1.png")
+  match2 = Image("../sampleimages/aerospace.jpg")
+
+  fs0 = match0.findKeypointMatch(template)
+  fs1 = match1.findKeypointMatch(template,quality=400.00,minDist=0.15,minMatch=0.2)
+  fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.1,minMatch=0.4)
+  if( fs0 is not None and fs1 is not None and fs2 is None):
+    if VISUAL_TEST:
+      fs0.draw()
+      match0.save("KPAffineMatch0.png")
+    if VISUAL_TEST:
+      fs1.draw()
+      match1.save("KPAffineMatch1.png")
+    f = fs0[0] 
+    f.drawRect()
+    f.draw()
+    f.getHomography()
+    f.getMinRect()
+    f.meanColor()
+    f.crop()
+    f.x
+    f.y
+    f.coordinates()
+    pass
+  else:
+    assert False
+
+def test_draw_keypointt_matches():
+  template = Image("../sampleimages/KeypointTemplate2.png")
+  match0 = Image("../sampleimages/kptest0.png")
+  result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
+  if VISUAL_TEST:
+    result.save("KPMatch.png")
+  pass
