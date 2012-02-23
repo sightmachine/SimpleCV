@@ -210,6 +210,11 @@ class Image:
     camera = ""
     _mLayers = []  
 
+    _mDoHuePalette = False
+    _mPaletteBins = None
+    _mPalette = None
+    _mPaletteMembers = None
+    _mPalettePercentages = None
 
     _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -272,6 +277,16 @@ class Image:
         self._mKeyPoints = []
         self._mKPDescriptors = []
         self._mKPFlavor = "NONE"
+        #Pallete Stuff
+        self._mDoHuePalette = False
+        self._mPaletteBins = None
+        self._mPalette = None
+        self._mPaletteMembers = None
+        self._mPalettePercentages = None
+
+        
+
+
 
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -4411,7 +4426,148 @@ class Image:
             f.normalizeTo(max_mag)
 
         return fs
-        
+
+
+    def _generatePalette(self,bins,hue):
+        if( self._mPaletteBins != bins or
+            self._mDoHuePalette != hue ):
+            total = float(self.width*self.height)
+            percentages = []
+            result = None
+            if( not hue ):
+                pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
+                result = scv.kmeans2(pixels,bins)
+
+            else:
+                hsv = self
+                if( self._colorSpace != ColorSpace.HSV ):
+                    hsv = self.toHSV()
+                
+                h = hsv.getEmpty(1)       
+                cv.Split(hsv.getBitmap(),None,None,h,None)
+                mat =  cv.GetMat(h)
+                pixels = np.array(mat).reshape(-1,1)
+                result = scv.kmeans2(pixels,bins)                
+
+
+            for i in range(0,bins):
+                count = np.where(result[1]==i)
+                v = float(count[0].shape[0])/total
+                percentages.append(v)
+
+            self._mDoHuePalette = hue
+            self._mPaletteBins = bins
+            self._mPalette = result[0]
+            self._mPaletteMembers = result[1]
+            self._mPalettePercentages = percentages
+
+
+    def getPalette(self,bins=10,hue=False):
+        self._generatePalette(bins,hue)
+        return self._mPalette
+        # need to cache pallete and members
+
+    def rePalette(self,palette,hue=False):
+        retVal = None
+        if(hue):
+            hsv = self
+            if( self._colorSpace != ColorSpace.HSV ):
+                hsv = self.toHSV()
+                
+            h = hsv.getEmpty(1)       
+            cv.Split(hsv.getBitmap(),None,None,h,None)
+            mat =  cv.GetMat(h)
+            pixels = np.array(mat).reshape(-1,1)
+            result = scv.vq(pixels,palette)
+            derp = self._mPalette[result[0]]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            result = scv.vq(self.getNumpy().reshape(-1,3),palette)
+            retVal = Image(palette[result[0]].reshape(self.width,self.height,3))
+        return retVal
+
+    def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
+        self._generatePalette(bins,hue)
+        retVal = None
+        if( not hue ):
+            if( horizontal ):
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width),int(self.height*.1))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                    roi = (int(idxL),0,int(idxH-idxL),size[1])
+                    cv.SetImageROI(pal,roi)
+                    color = np.array((self._mPalette[i][2],self._mPalette[i][1],self._mPalette[i][0]))
+                    cv.AddS(pal,color,pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+            else:
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (self.width*.1,self.height)
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
+                cvZero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
+                    roi = (0,int(idxL),size[0],int(idxH-idxL))
+                    cv.SetImageROI(pal,roi)
+                    color = np.array((self._mPalette[i][2],self._mPalette[i][1],self._mPalette[i][0]))
+                    cv.AddS(pal,color,pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+        else: # do hue
+            if( horizontal ):
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (self.width,self.height*.1)
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                    roi = (int(idxL),0,int(idxH-idxL),size[1])
+                    cv.SetImageROI(pal,roi)
+                    cv.AddS(pal,self._mPalette[i],pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+            else:
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (self.width*.1,self.height)
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
+                cvZero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
+                    roi = (0,int(idxL),size[0],int(idxH-idxL))
+                    cv.SetImageROI(pal,roi)
+                    cv.AddS(pal,self._mPalette[i],pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+                 
+        return retVal 
+
+    def palettize(self,bins=10,hue=False):
+        retVal = None
+        self._generatePalette(bins,hue)
+        if( hue ):
+            derp = self._mPalette[self._mPaletteMembers]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
+        return retVal 
+
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
