@@ -268,7 +268,7 @@ class Feature(object):
         """
         Area covered by the feature -- for a pixel, 1
         """
-        return 1
+        return self.width() * self.height()
   
     def width(self):
         """
@@ -313,5 +313,7 @@ class Feature(object):
         """
     
         return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
-        
+    
+    def __repr__(self):
+        return "%s.%s at (%d,%d)" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y)
 

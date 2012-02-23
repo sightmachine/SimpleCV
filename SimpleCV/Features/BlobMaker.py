@@ -89,7 +89,6 @@ class BlobMaker:
             return retVal 
         
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
-        
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
@@ -107,25 +106,28 @@ class BlobMaker:
         as a tree and we traverse up and across the tree. 
         """
         retVal = []
-
+        
         if( seq is None ):
             return retVal
-        
-        if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress         
-            temp =  self._extractData(seq,colorImg,minsize,maxsize)
-            if( temp is not None ):
-                retVal.append(temp)
-
-        #get the current feature
-        nextBlob = seq.h_next() # move to the next feature on our level
-       
-        
-        if( nextBlob is not None ):
-            #the next object is whatever this object is, add its list to ours
-            retVal += self._extractFromBinary(nextBlob, isaHole, colorImg, minsize,maxsize)
+                
+        nextLayerDown = []
+        while True:
+            if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress
+                temp =  self._extractData(seq,colorImg,minsize,maxsize)
+                if( temp is not None ):
+                    retVal.append(temp)
             
-        nextLayer = seq.v_next() # move down a layer    
-        if(nextLayer is not None): #the next object, since it is down a layer is different
+            nextLayer = seq.v_next()
+            
+            if nextLayer is not None:
+                nextLayerDown.append(nextLayer)
+                
+            seq = seq.h_next()
+            
+            if seq is None:
+                break
+        
+        for nextLayer in nextLayerDown:
             retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize)
         
         return retVal
@@ -140,6 +142,7 @@ class BlobMaker:
         area = cv.ContourArea(seq)
         if( area < minsize or area > maxsize):
             return None
+
         retVal = Blob()
         retVal.image = color 
         retVal.mArea = area
@@ -151,15 +154,19 @@ class BlobMaker:
         
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
+
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
-        retVal.mHullMask = self._getHullMask(chull,retVal.mBoundingBox)
+        hullMask = self._getHullMask(chull,retVal.mBoundingBox)
+        retVal.mHullImg = self._getBlobAsImage(chull,retVal.mBoundingBox,color.getBitmap(),hullMask)
+        retVal.mHullMask = Image(hullMask)
         del chull
         
         moments = cv.Moments(seq)
 
         #This is a hack for a python wrapper bug that was missing
         #the constants required from the ctype
+        retVal.m00 = area
         try: 
             retVal.m10 = moments.m10
             retVal.m01 = moments.m01
@@ -178,13 +185,15 @@ class BlobMaker:
             retVal.m12 = cv.GetSpatialMoment(moments,1,2)
             
         retVal.mHu = cv.GetHuMoments(moments)
-        retVal.mMask = self._getMask(seq,retVal.mBoundingBox)
-        mask = retVal.mMask
+        mask = self._getMask(seq,retVal.mBoundingBox)
+        retVal.mMask = Image(mask)
+
         retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
-        retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
-        retVal.mAvgColor = retVal.mAvgColor[0:3]
+        #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
+        #retVal.mAvgColor = retVal.mAvgColor[0:3]
         retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
+
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
         bb = retVal.mBoundingBox

@@ -2,7 +2,7 @@ from SimpleCV.base import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
-
+from math import sin, cos, pi
 
 class Blob(Feature):
     """
@@ -40,6 +40,7 @@ class Blob(Feature):
     mLabelColor = [] # what color to draw the label
     mAvgColor = []#The average color of the blob's area. 
     mImg =  '' #Image()# the segmented image of the blob
+    mHullImg = '' # Image() the image from the hull.
     mMask = '' #Image()# A mask of the blob area
     mHullMask = '' #Image()#A mask of the hull area ... we may want to use this for the image mask. 
     mHoleContour = []  # list of hole contours
@@ -68,22 +69,23 @@ class Blob(Feature):
         self.mAvgColor = [-1,-1,-1]
         self.mImg = None
         self.mMask = None
+        self.mHullImg = None
         self.image = None
         self.mHullMask = None
         self.mHoleContour = [] 
         self.mVertEdgeHist = [] #vertical edge histogram
         self.mHortEdgeHist = [] #horizontal edge histgram
         self.points = []
-    
-    _iplimage_fields = ("mHullMask", "mMask")
+        #TODO 
+        # I would like to clean up the Hull mask parameters
+        # it seems to me that we may want the convex hull to be
+        # the default way we calculate for area. 
         
     def __getstate__(self):
         newdict = {}
         for k in self.__dict__.keys():
             if k == "image":
                 continue
-            elif k in self._iplimage_fields:
-                newdict[k + "__string"] = self.__dict__[k].tostring()
             else:
                 newdict[k] = self.__dict__[k]
         return newdict
@@ -111,7 +113,12 @@ class Blob(Feature):
         Returns:
             Tuple
         """
-        return (self.mAvgColor[0],self.mAvgColor[1],self.mAvgColor[2])
+        cv.SetImageROI(self.image.getBitmap(),self.mBoundingBox)
+        #may need the offset paramete
+        avg = cv.Avg(self.image.getBitmap(),self.mMask._getGrayscaleBitmap())
+        cv.ResetImageROI(self.image.getBitmap())
+        
+        return tuple(reversed(avg[0:3]))
 
     def minX(self):
         """
@@ -205,6 +212,68 @@ class Blob(Feature):
         """
         return max(self.mBoundingBox[2],self.mBoundingBox[3])
 
+
+    def getMinRectPoints(self):
+        """
+        Returns the corners for the smallest rotated rectangle to enclose the blob. 
+        The points are returned as a list of  (x,y) tupples.
+        """
+        ang = 2*pi*(float(self.angle())/360.00)
+        tx = self.minRectX()
+        ty = self.minRectY()
+        w = self.minRectWidth()/2.0
+        h = self.minRectHeight()/2.0
+        derp = np.matrix([[cos(ang),-1*sin(ang),tx],[sin(ang),cos(ang),ty],[0,0,1]])
+        # [ cos a , -sin a, tx ]
+        # [ sin a , cos a , ty ]
+        # [ 0     , 0     ,  1 ]
+        tl = np.matrix([-1.0*w,h,1.0]) #Kat gladly supports homo. coordinates. 
+        tr = np.matrix([w,h,1.0])
+        bl = np.matrix([-1.0*w,-1.0*h,1.0])
+        br = np.matrix([w,-1.0*h,1.0])
+        tlp = derp*tl.transpose()
+        trp = derp*tr.transpose()
+        blp = derp*bl.transpose()
+        brp = derp*br.transpose()
+        return( (tlp[0,0],tlp[1,0]),(trp[0,0],trp[1,0]),(blp[0,0],blp[1,0]),(brp[0,0],brp[1,0]) )
+    
+    def drawRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
+        """
+        Draws the bounding rectangle for the blob. 
+        color = The color to render the blob's box.
+        alpha = The alpha value of the rendered blob 0 = transparent 255 = opaque.
+        width = The width of the drawn blob in pixels
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Returns none, this operation works on the supplied layer or the source image. 
+        """
+        if( layer is None ):
+            layer = self.image.dl()
+
+        if( width < 1 ):
+            layer.rectangle(self.topLeftCorner(),(self.width(),self.height()),color,width,filled=True,alpha=alpha)
+        else:
+            layer.rectangle(self.topLeftCorner(),(self.width(),self.height()),color,width,filled=False,alpha=alpha)
+            
+
+    def drawMinRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
+        """
+        Draws the minimum bounding rectangle for the blob. 
+        color = The color to render the blob's box.
+        alpha = The alpha value of the rendered blob 0 = transparent 255 = opaque.
+        width = The width of the drawn blob in pixels
+        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+
+        Returns none, this operation works on the supplied layer or the source image. 
+        """
+        if( layer is None ):
+            layer = self.image.dl()
+        (tl,tr,bl,br) = self.getMinRectPoints()
+        layer.line(tl,tr,color,width=width,alpha=alpha,antialias = False)
+        layer.line(bl,br,color,width=width,alpha=alpha,antialias = False)
+        layer.line(tl,bl,color,width=width,alpha=alpha,antialias = False)
+        layer.line(tr,br,color,width=width,alpha=alpha,antialias = False)
+
     def angle(self):
         """
         This method returns the angle between the horizontal and the minimum enclosing
@@ -213,7 +282,10 @@ class Blob(Feature):
         dimensions. The minimum enclosing rectangle is slightly harder to maninpulate but
         gives much better information about the blobs dimensions. 
         """
-        return(self.mMinRectangle[2])
+        if self.mMinRectangle[1][0] < self.mMinRectangle[1][1]:
+            return self.mMinRectangle[2] 
+        else:
+            return 90 + self.mMinRectangle[2]
         
     def minRectX(self):
         """
@@ -251,12 +323,12 @@ class Blob(Feature):
         Rectify the blob image and the contour such that the major
         axis is aligned to either vertical=0 or horizontal=1 
         """
-        finalRotation = self.angle()
+        finalRotation = self.angle() 
         w = self.minRectWidth()
         h = self.minRectHeight()
         
         if( w > h ):
-            finalRotation = finalRotation - 90
+            finalRotation = finalRotation 
             
         if(axis > 0 ):
             finalRotation = finalRotation - 90
@@ -279,16 +351,10 @@ class Blob(Feature):
         mode = ""
         point =(self.x,self.y)
         self.mImg = self.mImg.rotate(angle,mode,point)
-        #this is a bit of a hack, but it saves a lot of code
-        #I left masks as bitmaps grrrr
-        tempMask = Image(self.mMask)
-        self.mMask = tempMask.rotate(angle,mode,point).getBitmap()
-        
-        tempMask = Image(self.mHullMask)
-        self.mHullMask = tempMask.rotate(angle,mode,point).getBitmap()
-        
-        #self.mMask.rotate(theta,"",(self.x,self.y))
-        #self.mHullMask.rotate(theta,"",(self.x,self.y))
+        self.mHullImg = self.mHullImg.rotate(angle,mode,point)
+        self.mMask = self.mMask.rotate(angle,mode,point)
+        self.mHullMask = self.mHullMask.rotate(angle,mode,point)
+
         self.mContour = map(lambda x:
                             (x[0]*np.cos(theta)-x[1]*np.sin(theta),
                              x[0]*np.sin(theta)+x[1]*np.cos(theta)),
@@ -310,14 +376,16 @@ class Blob(Feature):
         """
         Given a point or another blob determine if this blob is above the other blob
         """
-        if(blob.__class__.__name__ == 'blob' ):
+        if(blob.__class__.__name__ == 'Blob' ):
             return( self.minY() > blob.maxY() )
         elif(blob.__class__.__name__ == 'tuple'):
             return( self.minY() > blob[1] )
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.minY() > blob[1] )
         else:
+            warnings.warn("SimpleCV did not recognize the input type to blob.above(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None
+
  
 
     
@@ -325,26 +393,28 @@ class Blob(Feature):
         """
         Given a point or another blob determine if this blob is below the other blob
         """    
-        if(blob.__class__.__name__ == 'blob' ):
+        if(blob.__class__.__name__ == 'Blob' ):
             return( self.maxY() < blob.minY() )
         elif(blob.__class__.__name__ == 'tuple'):
             return( self.maxY() < blob[1] )
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.maxY() < blob[1] )
         else:
-            return None 
-    
+            warnings.warn("SimpleCV did not recognize the input type to blob.below(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            return None
+     
     def right(self,blob):
         """
         Given a point or another blob determine if this blob is to the right of the other blob
         """
-        if(blob.__class__.__name__ == 'blob' ):
+        if(blob.__class__.__name__ == 'Blob' ):
             return( self.maxX() < blob.minX() )
         elif(blob.__class__.__name__ == 'tuple'):
             return( self.maxX() < blob[0] )
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.maxX() < blob[0] )
         else:
+            warnings.warn("SimpleCV did not recognize the input type to blob.right(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None   
      
     
@@ -352,13 +422,14 @@ class Blob(Feature):
         """
         Given a point or another blob determine if this blob is to the left of the other blob
         """           
-        if(blob.__class__.__name__ == 'blob' ):
+        if(blob.__class__.__name__ == 'Blob' ):
             return( self.minX() > blob.maxX() )
         elif(blob.__class__.__name__ == 'tuple'):
             return( self.minX() > blob[0] )
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.minX() > blob[0] )
         else:
+            warnings.warn("SimpleCV did not recognize the input type to blob.left(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None  
     
 
@@ -366,10 +437,13 @@ class Blob(Feature):
         """
         Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
         """
-        if(other.__class__.__name__ == 'blob' ):
-            retVal = True
-            if( self.above(other) or self.below(other) or self.right(other) or self(below)):   
-                retVal = False             
+        if(other.__class__.__name__ == 'Blob' ):
+            retVal = False
+            if( other.minX() >=  self.minX() and other.minX() <= self.maxX() and
+                other.minY() >=  self.minY() and other.minY() <= self.maxY() and
+                other.maxX() >=  self.minX() and other.maxX() <= self.maxX() and
+                other.maxY() >=  self.minY() and other.maxY() <= self.maxY() ):
+                retVal = True             
             return retVal;
         elif(other.__class__.__name__ == 'tuple' or other.__class__.__name__ == 'ndarray'):
             return( other[0] <= self.maxX() and
@@ -377,6 +451,7 @@ class Blob(Feature):
                     other[1] <= self.maxY() and
                     other[1] >= self.minY() )
         else:
+            warnings.warn("SimpleCV did not recognize the input type to blob.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None  
     
     def overlaps(self, other):
@@ -385,11 +460,15 @@ class Blob(Feature):
         of points, or any part of a blob.        
         """
         retVal = False
-        if(other.__class__.__name__ == 'blob' ):
+        if(other.__class__.__name__ == 'Blob' ):
             if( self.contains(other.topRightCorner()) or self.contains(other.topLeftCorner()) or
                 self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
                 retVal = True            
-            return retVal;
+        else:
+            warnings.warn("SimpleCV did not recognize the input type to blob.overlap. This method only takes another blob.")
+            retVal = None
+
+        return retVal;
 
     def draw(self, color = Color.GREEN, alpha=-1, width=-1, layer=None):
         """
@@ -414,15 +493,15 @@ class Blob(Feature):
             
         if width == -1:
             #copy the mask into 3 channels and multiply by the appropriate color
-            maskred = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
-            maskgrn = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
-            maskblu = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 1)
+            maskred = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
+            maskgrn = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
+            maskblu = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
             
-            maskbit = cv.CreateImage(cv.GetSize(self.mMask), cv.IPL_DEPTH_8U, 3) 
+            maskbit = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 3) 
 
-            cv.ConvertScale(self.mMask, maskred, color[0] / 255.0)
-            cv.ConvertScale(self.mMask, maskgrn, color[1] / 255.0)
-            cv.ConvertScale(self.mMask, maskblu, color[2] / 255.0)
+            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskred, color[0] / 255.0)
+            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskgrn, color[1] / 255.0)
+            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskblu, color[2] / 255.0)
             
             cv.Merge(maskblu, maskgrn, maskred, None, maskbit)    
             
@@ -436,7 +515,7 @@ class Blob(Feature):
             self.drawHoles(color, alpha, width, layer)
             
                    
-    def drawOutline(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
+    def drawOutline(self, color=Color.GREEN, alpha=128, width=1, layer=None):
         """
         Draw the blob contour the given layer -- if no layer is provided, draw
         to the source image
@@ -580,7 +659,7 @@ class Blob(Feature):
         This compares the hull mask to the bounding rectangle.  Returns the area
         of the blob's hull as a fraction of the bounding rectangle
         """
-        blackcount, whitecount = Image(self.mHullMask).histogram(2)
+        blackcount, whitecount = self.mHullMask.histogram(2)
         return abs(1.0 - float(whitecount) / (self.minRectWidth() * self.minRectHeight()))
         
     
@@ -602,9 +681,7 @@ class Blob(Feature):
         idealcircle.dl().circle((self.width()/2, self.height()/2), radius, filled= True, color=Color.WHITE)
         idealcircle = idealcircle.applyLayers()
         
-        hullmask = Image(self.mHullMask)
-        
-        netdiff = (idealcircle - hullmask) + (hullmask - idealcircle)
+        netdiff = (idealcircle - self.mHullMask) + (self.mHullMask - idealcircle)
         numblack, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
 
@@ -625,7 +702,49 @@ class Blob(Feature):
         Return the radius of the convex hull contour from the centroid
         """
         return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
+
+    def getHullImage(self):
+        """
+        The convex hull of a blob is the shape that would result if you snapped a rubber band around
+        the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
+        This method returns an image where the source image around the convex hull of the blob is copied 
+        ontop a black background.
+
+        Returns an image of the convex hull. 
+        """
+        return self.mHullImg
+
+    def getHullMask(self):
+        """
+        The convex hull of a blob is the shape that would result if you snapped a rubber band around
+        the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
+        This method returns an image where the area of the convex hull is white and the rest of the image 
+        is black. This image is cropped to the size of the blob.
+
+        Returns an image of the convex hull mask. 
+        """
+        return self.mHullMask
         
+    def getBlobImage(self):
+        """
+        This method automatically copies all of the image data around the blob and puts it in a new 
+        image. The resulting image has the size of the blob, with the blob data copied in place. 
+        Where the blob is not present the background is black.
+
+        Returns and image of blob.
+        """
+        return self.mImg
+
+    def getBlobMask(self):
+        """
+        This method returns an image of the blob's mask. Areas where the blob are present are white
+        while all other areas are black. The image is cropped to match the blob area.
+        
+        Returns an image of the mask blob. 
+
+        """
+        return self.mMask
+
     def match(self, otherblob):
         """
         Compare the Hu moments between two blobs to see if they match.  Returns
@@ -645,3 +764,6 @@ class Blob(Feature):
         otherM = otherSigns * otherLogs
         
         return np.sum(abs((1/ myM - 1/ otherM)))
+        
+    def __repr__(self):
+        return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())

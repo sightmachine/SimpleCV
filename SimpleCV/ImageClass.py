@@ -1,6 +1,3 @@
-# SimpleCV Image Object
-
-
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
@@ -8,7 +5,10 @@ from numpy import int32
 from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
-     
+import scipy.cluster.vq as scv    
+import cv2 
+import math # math... who does that 
+
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -38,6 +38,11 @@ class ImageSet(list):
     >>> imgs = ImageSet()
     >>> imgs.download("ninjas")
     >>> imgs.show(ninjas)
+
+    or you can load a directory path:
+
+    >>> imgs = ImageSet('/path/to/imgs/')
+    >>> imgs.show()
     
     This will download and show a bunch of random ninjas.  If you want to
     save all those images locally then just use:
@@ -46,6 +51,12 @@ class ImageSet(list):
 
     
     """
+
+    def __init__(self, directory = None):
+      if directory:
+        self.load(directory)
+
+      return
 
     def download(self, tag=None, number=10):
       """
@@ -87,7 +98,7 @@ class ImageSet(list):
         
 
 
-    def show(self, showtime = 1):
+    def show(self, showtime = 0.25):
       """
       This is a quick way to show all the items in a ImageSet.
       The time is in seconds. You can also provide a decimal value, so
@@ -135,13 +146,19 @@ class ImageSet(list):
 
       >>> imgs = ImageSet()
       >>> imgs.load("images/faces")
+      >>> imgs.load("images/eyes", "png")
 
       """
 
       if not directory:
         print "You need to give a directory to load from"
         return
-        
+
+      if not os.path.exists(directory):
+        print "Invalied image path given"
+        return
+      
+      
       if extension:
         extension = "*." + extension
         formats = [os.path.join(directory, extension)]
@@ -208,10 +225,16 @@ class Image:
     _cannyparam = (0, 0) #parameters that created _edgeMap
     _pil = "" #holds a PIL object in buffer
     _numpy = "" #numpy form buffer
+    _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
-  
+
+    #Keypoint caching values
+    _mKeyPoints = None
+    _mKPDescriptors = None
+    _mKPFlavor = "NONE"
+
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
         "_bitmap": "", 
@@ -224,6 +247,7 @@ class Image:
         "_cannyparam": (0, 0), 
         "_pil": "",
         "_numpy": "",
+        "_grayNumpy":"",
         "_pgsurface": ""}  
     
     
@@ -244,6 +268,10 @@ class Image:
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
+        #Keypoint Descriptors 
+        self._mKeyPoints = []
+        self._mKPDescriptors = []
+        self._mKPFlavor = "NONE"
 
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -313,7 +341,9 @@ class Image:
                 source = scvImg
         
         if (type(source) == tuple):
-            source = cv.CreateImage(source, cv.IPL_DEPTH_8U, 3)
+            w = int(source[0])
+            h = int(source[1])
+            source = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
             cv.Zero(source)
         if (type(source) == cv.cvmat):
             self._matrix = source
@@ -365,6 +395,7 @@ class Image:
             else:
                 self.filename = source
                 self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
     
@@ -388,7 +419,8 @@ class Image:
 
 
         else:
-            return None 
+            return None
+
         #if the caller passes in a colorspace we overide it 
         if(colorSpace != ColorSpace.UNKNOWN):
             self._colorSpace = colorSpace
@@ -399,7 +431,53 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
-    
+    def live(self):
+        """
+        This shows a live view of the camera.
+        To use it's as simple as:
+
+        >>> cam = Camera()
+        >>> cam.live()
+
+        Left click will show mouse coordinates and color
+        Right click will kill the live image
+        """
+
+        start_time = time.time()
+        
+        from SimpleCV.Display import Display
+        i = self
+        d = Display(i.size())
+        i.save(d)
+        col = Color.RED
+
+        while d.isNotDone():
+          i = self
+          elapsed_time = time.time() - start_time
+          
+
+          if d.mouseLeft:
+            i.clearLayers()
+            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            i.dl().text(txt, (10,i.height / 2), color=col)
+            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+          if elapsed_time > 0 and elapsed_time < 5:
+            
+            i.dl().text("In live mode", (10,10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            
+          
+          i.save(d)
+          if d.mouseRight:
+            d.done = True
+
+        
+        pg.quit()
+
     def getColorSpace(self):
         """
         Returns the value matched in the color space class
@@ -609,8 +687,6 @@ class Image:
         """
         Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
         """
-
-
         bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
         cv.SetZero(bitmap)
         return bitmap
@@ -625,8 +701,6 @@ class Image:
             return self._bitmap
         elif (self._matrix):
             self._bitmap = cv.GetImage(self._matrix)
-
-
         return self._bitmap
 
 
@@ -662,6 +736,17 @@ class Image:
         return self._pil
   
   
+    def getGrayNumpy(self):
+        """
+        Return a grayscale Numpy array. This is handy for keypoint detection. 
+        """
+        if( self._grayNumpy != "" ):
+            return self._grayNumpy
+        else:
+            self._grayNumpy = uint8(np.array(cv.GetMat(self._getGrayscaleBitmap())).transpose())
+
+        return self._grayNumpy
+
     def getNumpy(self):
         """
         Get a Numpy array of the image in width x height x RGB dimensions
@@ -694,7 +779,9 @@ class Image:
             cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)  
+            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.GRAY):
+            cv.Split(self.getBitmap(), self._graybitmap, self._graybitmap, self._graybitmap, None)
         else:
             warnings.warn("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
             return None    
@@ -733,7 +820,7 @@ class Image:
         if (self._pgsurface):
             return self._pgsurface
         else:
-            self._pgsurface = pg.image.fromstring(self.getPIL().tostring(), self.size(), "RGB")
+            self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
     
@@ -770,7 +857,6 @@ class Image:
 
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
-                print "jepgstream"
                 fh.jpgdata = StringIO() 
                 saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
@@ -785,7 +871,6 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
-                print "display"
                 self.filename = "" 
                 self.filehandle = fh
                 fh.writeFrame(saveimg)
@@ -843,6 +928,9 @@ class Image:
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
+        WARNING: the two value scale command is deprecated. To set width and height
+        use the resize function. 
+
         Scale the image to a new width and height.
 
         If no height is provided, the width is considered a scaling value ie::
@@ -1038,8 +1126,8 @@ class Image:
       
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
-        Do a binary threshold the image, changing all values above thresh to maxv
-        and all below to black.  If a color tuple is provided, each color channel
+        Do a binary threshold the image, changing all values below thresh to maxv
+        and all above to black.  If a color tuple is provided, each color channel
         is thresholded separately.
     
 
@@ -1054,9 +1142,9 @@ class Image:
             cv.Split(self.getBitmap(), b, g, r, None)
     
     
-            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY)
-            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY)
-            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY)
+            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
+            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
     
     
             cv.Add(r, g, r)
@@ -1144,8 +1232,6 @@ class Image:
         more information about thresholding.  The threshblocksize and threshconstant
         parameters are only used for adaptive threshold.
  
-        Note that this previously used cvblob and the python-cvblob library, 
-        which is no longer necessary
     
         Returns: FEATURESET
         """
@@ -1191,6 +1277,7 @@ class Image:
 
         #lovely.  This segfaults if not present
         if type(cascade) == str:
+            
           if (not os.path.exists(cascade)):
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
@@ -1840,7 +1927,6 @@ class Image:
             cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
         return Image(newbitmap, colorSpace=self._colorSpace)
 
-
     def __pow__(self, other):
         newbitmap = self.getEmpty() 
         cv.Pow(self.getBitmap(), newbitmap, other)
@@ -1903,8 +1989,38 @@ class Image:
         in a FeatureSet.  The single parameter is the ZXing_path, if you 
         don't have the ZXING_LIBRARY env parameter set.
 
-
         You can clone python-zxing at http://github.com/oostendo/python-zxing
+
+        INSTALLING ZEBRA CROSSING
+        1) Download zebra crossing 1.6 from: http://code.google.com/p/zxing/
+        2) unpack the zip file where ever you see fit
+              cd zxing-1.6 
+              ant -f core/build.xml
+              ant -f javase/build.xml 
+            This should build the library, but double check the readme
+        3) Get our helper library 
+           git clone git://github.com/oostendo/python-zxing.git
+           cd python-zxing
+           nosetests tests.py
+        4) Our library does not have a setup file. You will need to add
+           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
+        
+           export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+           export PYTHONPATH=$PYTHONPATH:<FULL PATH OF ZXING PYTHON PLUG-IN - (i.e. step 3)>
+           
+           On windows you will need to add these same variables to the system variable, e.g.
+           http://www.computerhope.com/issues/ch000549.htm
+        
+        5) On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        6) Go grab some barcodes!
+
+        WARNING:
+        Users on OSX may see the following error:
+
+        RuntimeWarning: tmpnam is a potential security risk to your program        
+        
+        We are working to resolve this issue. For normal use this should not be a problem.
 
         Parameters:
         
@@ -1915,6 +2031,7 @@ class Image:
             BARCODE
         """
         if not ZXING_ENABLED:
+            warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
             return None
 
 
@@ -1990,7 +2107,7 @@ class Image:
         Returns:
             FeatureSet
         """
-        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE + cv.CALIB_CB_FAST_CHECK )
+        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
                 spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
@@ -2237,7 +2354,10 @@ class Image:
     def getPixel(self, x, y):
         """
         This function returns the RGB value for a particular image pixel given a specific row and column.
-
+        
+        NOTE:
+        this function will always return pixels in RGB format even if the image is BGR format. 
+        
         Parameters:
             x - Int
             y - Int
@@ -2245,13 +2365,19 @@ class Image:
         Returns:
             Int
         """
+        c = None
         retVal = None
         if( x < 0 or x >= self.width ):
             warnings.warn("getRGBPixel: X value is not valid.")
         elif( y < 0 or y >= self.height ):
             warnings.warn("getRGBPixel: Y value is not valid.")
         else:
-            retVal = cv.Get2D(self.getBitmap(), y, x)
+            c = cv.Get2D(self.getBitmap(), y, x)
+            if( self._colorSpace == ColorSpace.BGR ): 
+                retVal = (c[2],c[1],c[0])
+            else:
+                retVal = (c[0],c[1],c[2])
+        
         return retVal
   
   
@@ -2394,14 +2520,26 @@ class Image:
             warnings.warn("Can't do a negative crop!")
             return None
         
-        retVal = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
+        retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
+        if( x < 0 or y < 0 ):
+            warnings.warn("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
+
+
         if( centered ):
-            rectangle = (x-(w/2), y-(h/2), w, h)
+            rectangle = (int(x-(w/2)), int(y-(h/2)), int(w), int(h))
         else:
-            rectangle = (x, y, w, h)
+            rectangle = (int(x), int(y), int(w), int(h))
     
+
+        (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
+
+        if( bottomROI is None ):
+            warnings.warn("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
+            return None
+
+        retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
     
-        cv.SetImageROI(self.getBitmap(), rectangle)
+        cv.SetImageROI(self.getBitmap(), bottomROI)
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
         return Image(retVal, colorSpace=self._colorSpace)
@@ -2486,6 +2624,31 @@ class Image:
         self.getDrawingLayer().text(text, (x, y), color)
     
     
+    def drawRectangle(self,x,y,w,h,color=Color.RED,width=1,alpha=255):
+        """
+        Draw a rectangle on the screen given the upper left corner of the rectangle
+        and the width and height. 
+        
+        x - the x position
+        y - the y position
+        w - the width of the rectangle
+        h - the height of the rectangle
+        color - an RGB tuple indicating the desired color.
+        width - the width of the rectangle, a value less than or equal to zero means filled in completely.
+        alpha - the alpha value on the interval from 255 to 0, 255 is opaque, 0 is completely transparent. 
+
+        returns:
+        None - this operation is in place. 
+        """
+        if( width < 1 ):
+            self.getDrawingLayer().rectangle((x,y),(w,h),color,filled=True,alpha=alpha)
+        else:
+            self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
+            
+    def drawRotatedRectangle(self,boundingbox,color=Color.RED,width=1):
+        cv.EllipseBox(self.getBitmap(),boundingbox,color,width)
+
+
     def show(self, type = 'window'):
         """
         This function automatically pops up a window and shows the current image
@@ -2533,7 +2696,7 @@ class Image:
         return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB") 
     
         
-    def addDrawingLayer(self, layer = ""):
+    def addDrawingLayer(self, layer = None):
         """
         Push a new drawing layer onto the back of the layer stack
 
@@ -2543,6 +2706,10 @@ class Image:
         Returns:
             Int
         """
+
+        if not isinstance(layer, DrawingLayer):
+          return "Please pass a DrawingLayer object"
+        
         if not layer:
             layer = DrawingLayer(self.size())
         self._mLayers.append(layer)
@@ -2581,7 +2748,8 @@ class Image:
             index - Int
         """
         if not len(self._mLayers):
-            self.addDrawingLayer()
+            layer = DrawingLayer(self.size())
+            self.addDrawingLayer(layer)
       
       
         return self._mLayers[index]
@@ -2779,12 +2947,9 @@ class Image:
             retval = Image(retVal)
         return(retVal)
 
+
     def blit(self, img, pos=None,alpha=None,mask=None,alphaMask=None):
         """
-        Take image and copy it into this image at the specified to image and return
-        the result. If pos+img.sz exceeds the size of this image then img is cropped.
-        Pos is the top left corner of the input image
-
         img - an image to place ontop of this image.
         pos - an xy position tuple of the top left corner of img on this image.
         alpha - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
@@ -2793,6 +2958,7 @@ class Image:
         """
         retVal = Image(self.getEmpty())
         cv.Copy(self.getBitmap(),retVal.getBitmap())
+
         w = img.width
         h = img.height
 
@@ -3060,6 +3226,8 @@ class Image:
         cv.ResetImageROI(self.getBitmap())
         return Image(newCanvas)
 
+
+
     def _rectOverlapROIs(self,top, bottom, pos):
         """
         top is a rectangle (w,h)
@@ -3074,10 +3242,16 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        trc = self._inBounds(bottom,tr) 
-        tlc = self._inBounds(bottom,tl) 
-        brc = self._inBounds(bottom,br) 
-        blc = self._inBounds(bottom,bl) 
+        def inBounds((w,h), (x,y)):
+            retVal = True
+            if( x < 0 or  y < 0 or x > w or y > h):
+                retVal = False
+            return retVal
+
+        trc = inBounds(bottom,tr) 
+        tlc = inBounds(bottom,tl) 
+        brc = inBounds(bottom,br) 
+        blc = inBounds(bottom,bl) 
         if( not trc and not tlc and not brc and not blc ): # no overlap
             return None,None
         elif( trc and tlc and brc and blc ): # easy case top is fully inside bottom 
@@ -3087,8 +3261,8 @@ class Image:
         # let's figure out where the top rectangle sits on the bottom
         # we clamp the corners of the top rectangle to live inside
         # the bottom rectangle and from that get the x,y,w,h
-        tl = (self._clamp(0,bottom[0],tl[0]),self._clamp(0,bottom[1],tl[1]))
-        br = (self._clamp(0,bottom[0],br[0]),self._clamp(0,bottom[1],br[1]))
+        tl = (np.clip(tl[0],0,bottom[0]),np.clip(tl[1],0,bottom[1]))
+        br = (np.clip(br[0],0,bottom[0]),np.clip(br[1],0,bottom[1]))
 
         bx = tl[0]
         by = tl[1] 
@@ -3102,57 +3276,101 @@ class Image:
         tl = pos 
         br = (pos[0]+bottom[0],pos[1]+bottom[1])
         bl = (pos[0],pos[1]+bottom[1])
-        tl = (self._clamp(0,top[0],tl[0]),self._clamp(0,top[1],tl[1]))
-        br = (self._clamp(0,top[0],br[0]), self._clamp(0,top[1],br[1]))
+        tl = (np.clip(tl[0],0,top[0]), np.clip(tl[1],0,top[1]))
+        br = (np.clip(br[0],0,top[0]), np.clip(br[1],0,top[1]))
         tx = tl[0]
         ty = tl[1] 
         tw = abs(br[0]-tl[0])
         th = abs(br[1]-tl[1])
         return (tx,ty,tw,th),(bx,by,bw,bh)
 
-    def _clamp( self, min, max, value):
+    def createBinaryMask(self,color1=(0,0,0),color2=(255,255,255)):
         """
-        Clamp, return min, max, or a value in between
-        """
-        if( value > max ):
-            return max
-        elif( value < min ):
-            return min
-        else:
-            return value
-
-    def _inBounds(self,(w,h), (x,y)):
-        """
-        check if (x,y) is in the range of (0,0)->(w,h)
-        """
-        retVal = True
-        if( x < 0 or  y < 0 or x > w or y > h):
-            retVal = False
-            
-        return retVal
-
-        
-    def createBinaryMask(self, rgb_color=(0,255,0), rgb_thresh=(0,0,0)):
-        """
-        Generate a binary mask of the image based on either a hue or an rgb triplet.
+        Generate a binary mask of the image based on a range of rgb values.
         A binary mask is a black and white image where the white area is kept and the
         black area is removed. 
 
-        rgb_color - The central color to use to generate the mask.
-        rgb_thresh - The range of each channel to include in the mask. 
+        This method is used by specifying two colors as the range between the minimum and maximum
+        values that will be masked white.
+
+        example:
+        >>>> img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
        
         """
-        if( rgb_color is not None ):
-            #closure around the filter we're applying
-            def rgbToAlpha(rgb):
-                if( rgb[0] <= rgb_color[0]+rgb_thresh[0] and rgb[0] >= rgb_color[0]-rgb_thresh[0] and
-                    rgb[1] <= rgb_color[1]+rgb_thresh[1] and rgb[1] >= rgb_color[1]-rgb_thresh[1] and
-                    rgb[2] <= rgb_color[2]+rgb_thresh[2] and rgb[2] >= rgb_color[2]-rgb_thresh[2] ):
-                    return((255,255,255))
-                else:
-                    return((0,0,0))
-            #end closure
-        return self.applyPixelFunction(rgbToAlpha)
+        if( color1[0]-color2[0] == 0 or 
+            color1[1]-color2[1] == 0 or
+            color1[2]-color2[2] == 0 ):
+            warnings.warn("No color range selected, the result will be black, returning None instead.")
+            return None
+        if( color1[0] > 255 or color1[0] < 0 or
+            color1[1] > 255 or color1[1] < 0 or
+            color1[2] > 255 or color1[2] < 0 or
+            color2[0] > 255 or color2[0] < 0 or
+            color2[1] > 255 or color2[1] < 0 or
+            color2[2] > 255 or color2[2] < 0 ):
+            warnings.warn("One of the tuple values falls outside of the range of 0 to 255")
+            return None 
+
+        r = self.getEmpty(1)
+        g = self.getEmpty(1)
+        b = self.getEmpty(1)
+        
+        rl = self.getEmpty(1)
+        gl = self.getEmpty(1)
+        bl = self.getEmpty(1)
+ 
+        rh = self.getEmpty(1)
+        gh = self.getEmpty(1)
+        bh = self.getEmpty(1)
+
+        cv.Split(self.getBitmap(),b,g,r,None);
+        #the difference == 255 case is where open CV
+        #kinda screws up, this should just be a white image
+        if( abs(color1[0]-color2[0]) == 255 ):
+            cv.Zero(rl)
+            cv.AddS(rl,255,rl)
+        #there is a corner case here where difference == 0
+        #right now we throw an error on this case. 
+        #also we use the triplets directly as OpenCV is 
+        # SUPER FINICKY about the type of the threshold. 
+        elif( color1[0] < color2[0] ):
+            cv.Threshold(r,rl,color1[0],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(r,rh,color2[0],255,cv.CV_THRESH_BINARY)
+            cv.Sub(rl,rh,rl)
+        else:
+            cv.Threshold(r,rl,color2[0],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(r,rh,color1[0],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(rl,rh,rl)
+
+
+        if( abs(color1[1]-color2[1]) == 255 ):
+            cv.Zero(gl)
+            cv.AddS(gl,255,gl)
+        elif( color1[1] < color2[1] ):
+            cv.Threshold(g,gl,color1[1],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(g,gh,color2[1],255,cv.CV_THRESH_BINARY)
+            cv.Sub(gl,gh,gl)
+        else:
+            cv.Threshold(g,gl,color2[1],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(g,gh,color1[1],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(gl,gh,gl)
+
+        if( abs(color1[2]-color2[2]) == 255 ):
+            cv.Zero(bl)
+            cv.AddS(bl,255,bl)
+        elif( color1[2] < color2[2] ):
+            cv.Threshold(b,bl,color1[2],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(b,bh,color2[2],255,cv.CV_THRESH_BINARY)
+            cv.Sub(bl,bh,bl)
+        else:
+            cv.Threshold(b,bl,color2[2],255,cv.CV_THRESH_BINARY)
+            cv.Threshold(b,bh,color1[2],255,cv.CV_THRESH_BINARY)    
+            cv.Sub(bl,bh,bl)
+
+
+        cv.And(rl,gl,rl)
+        cv.And(rl,bl,rl)
+        return Image(rl)
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
         """
@@ -3173,7 +3391,7 @@ class Image:
         cv.Copy(self.getBitmap(),newCanvas,mask.getBitmap());
         return Image(newCanvas,colorSpace=self._colorSpace);
 
-    def createAlphaMask(self, hue=60):
+    def createAlphaMask(self, hue=60, hue_lb=None,hue_ub=None):
         """
         Generate a grayscale or binary mask image based either on a hue or an RGB triplet that can be used
         like an alpha channel. In the resulting mask, the hue/rgb_color will be treated as transparent (black). 
@@ -3192,18 +3410,26 @@ class Image:
              rgb_thresh = an integer distance from the rgb_color that will also be added to the mask. 
         """
 
-        if( hue<0 or hue > 255 ):
-            warnings.warn("Invalid hue color, valid range is 0 to 255.")
-            #closure around the filter we're applying
-        def hueToAlpha(hsv):
-            if(hsv[2]==hue):
-                mI = hsv[0];
-                return((255-mI,255-mI,255-mI))
-            else:
-                return((255,255,255))
-        #end closure
-        return self.toHSV().applyPixelFunction(hueToAlpha)
-                
+        if( hue<0 or hue > 180 ):
+            warnings.warn("Invalid hue color, valid hue range is 0 to 180.")
+
+        if( self._colorSpace != ColorSpace.HSV ):
+            hsv = self.toHSV()
+        else:
+            hsv = self
+        h = hsv.getEmpty(1)
+        s = hsv.getEmpty(1)
+        mask = hsv.getEmpty(1)
+        cv.Split(hsv.getBitmap(),None,s,h,None)
+        hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation 
+        if(hue_lb is not None and hue_ub is not None):
+            hlut[hue_lb:hue_ub]=255
+        else:
+            hlut[hue] = 255
+        cv.LUT(h,mask,cv.fromarray(hlut))
+        cv.Copy(s,h,mask) #we'll save memory using hue
+        return Image(h).invert() 
+
 
     def applyPixelFunction(self, theFunc):
         """
@@ -3216,6 +3442,7 @@ class Image:
         pixels = np.array(self.getNumpy()).reshape(-1,3).tolist()
         result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3) 
         return Image(result) 
+
 
     def integralImage(self,tilted=False):
         """
@@ -3307,6 +3534,14 @@ class Image:
         find the centroid of all of these values. We suggest using an iterative
         k-means approach to find the centroids.
         
+        methods:
+        SQR_DIFF_NORM - Normalized square difference
+        SQR_DIFF      - Square difference
+        CCOEFF        -
+        CCOEFF_NORM   -
+        CCORR         - Cross correlation
+        CCORR_NORM    - Normalize cross correlation
+
         Example:
         
         >>> image = Image("/path/to/img.png")
@@ -3373,8 +3608,29 @@ class Image:
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+
+        #cluster overlapping template matches 
+        finalfs = FeatureSet()
+        if( len(fs) > 0 ):
+            print(str(len(fs)))
+            finalfs.append(fs[0])
+            for f in fs:
+                match = False
+                for f2 in finalfs:
+                    if( f2.overlaps(f) ): #if they overlap
+                        f2.consume(f) #merge them
+                        match = True
+                        break
+                    if( not match ):
+                        finalfs.append(f)
+        
+            for f in finalfs: #rescale the resulting clusters to fit the template size
+                f.rescale(template_image.width,template_image.height)
             
-        return fs
+            fs = finalfs
+        
+        return fs                           
+         
 
     def readText(self):
         """
@@ -3412,8 +3668,38 @@ class Image:
         result = tesseract.ProcessPagesBuffer(stringbuffer,len(stringbuffer),api)
         return result
 
+    def findCircle(self,canny=100,thresh=350,distance=-1):
+        """
+        Perform the Hough Circle transform to extract _perfect_ circles from the image
+        canny - the upper bound on a canny edge detector used to find circle edges.
 
-    def whiteBalance(self,method="GrayWorld"):
+        thresh - the threshold at which to count a circle. Small parts of a circle get
+        added to the accumulator array used internally to the array. This value is the
+        minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
+
+        Warning: if this threshold is too high, and no circles are found the underlying OpenCV
+        routine fails and causes a segfault. 
+        
+        distance - the minimum distance between each successive circle in pixels. 10 is a good
+        starting value.
+
+        returns: a circle feature set. 
+        """
+        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
+        #a distnace metric for how apart our circles should be - this is sa good bench mark
+        if(distance < 0 ):
+            distance = 1 + max(self.width,self.height)/50
+        cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
+        if storage.rows == 0:
+            return None
+        circs = np.asarray(storage)
+        sz = circs.shape
+        circleFS = FeatureSet()
+        for i in range(sz[0]):
+            circleFS.append(Circle(self,int(circs[i][0][0]),int(circs[i][0][1]),int(circs[i][0][2])))  
+        return circleFS
+
+    def whiteBalance(self,method="Simple"):
         """
         Attempts to perform automatic white balancing. 
         Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
@@ -3423,10 +3709,7 @@ class Image:
         http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
         http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
         """
-        if(self._colorSpace != ColorSpace.RGB ):
-            img = self.toRGB()
-        else:
-            img = self
+        img = self
         if(method=="GrayWorld"):           
             avg = cv.Avg(img.getBitmap());
             bf = float(avg[0])
@@ -3475,20 +3758,10 @@ class Image:
             retVal = img.getEmpty()
             cv.Merge(b,g,r,None,retVal);
             retVal = Image(retVal)
-        elif( method == "Robust" ):
-            yuvImg = img.getEmpty()
-            cv.CvtColor(self.getBitmap(), yuvImg, cv.CV_RGB2YUV)
-            y = img.getEmpty(1);
-            u = img.getEmpty(1);
-            v = img.getEmpty(1);
-            uabs = img.getEmpty(1);
-            vabs = img.getEmpty(1);
-            y = img.getEmpty(1);
-            
         elif( method == "Simple" ):
             thresh = 0.003
-
-            tempMat = np.array(img.getMatrix()).copy()
+            sz = img.width*img.height
+            tempMat = img.getNumpy() 
             bcf = sss.cumfreq(tempMat[:,:,0], numbins=256)
             bcf = bcf[0] # get our cumulative histogram of values for this color
 
@@ -3499,10 +3772,10 @@ class Image:
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
                 blb = blb+1
-                lower_thresh = bcf[blb]/tempMat[:,:,0].size
+                lower_thresh = bcf[blb]/sz
             while( upper_thresh < thresh ):
                 bub = bub-1
-                upper_thresh = (tempMat[:,:,0].size-bcf[bub])/tempMat[:,:,0].size
+                upper_thresh = (sz-bcf[bub])/sz
 
 
             gcf = sss.cumfreq(tempMat[:,:,1], numbins=256)
@@ -3514,25 +3787,25 @@ class Image:
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
                 glb = glb+1
-                lower_thresh = gcf[glb]/tempMat[:,:,1].size
+                lower_thresh = gcf[glb]/sz
             while( upper_thresh < thresh ):
                 gub = gub-1
-                upper_thresh = (tempMat[:,:,1].size-gcf[gub])/tempMat[:,:,1].size
+                upper_thresh = (sz-gcf[gub])/sz
 
 
             rcf = sss.cumfreq(tempMat[:,:,2], numbins=256)
             rcf = rcf[0]
             rlb = -1 #our upper bound
             rub = 256 # our lower bound
-            lower_thresh = 0.00
+            lower_thresh = 0.00 
             upper_thresh = 0.00
             #now find the upper and lower thresh% of our values live
             while( lower_thresh < thresh ):
                 rlb = rlb+1
-                lower_thresh = rcf[rlb]/tempMat[:,:,2].size
+                lower_thresh = rcf[rlb]/sz
             while( upper_thresh < thresh ):
                 rub = rub-1
-                upper_thresh = (tempMat[:,:,2].size-rcf[rub])/tempMat[:,:,2].size
+                upper_thresh = (sz-rcf[rub])/sz
             #now we create the scale factors for the remaining pixels
             rlbf = float(rlb)
             rubf = float(rub)
@@ -3540,36 +3813,604 @@ class Image:
             gubf = float(gub)
             blbf = float(blb)
             bubf = float(bub)
-            def transformClosure((r,g,b)):
-                if(r <= rlb):
-                    r = 0
-                elif( r >= rub):
-                    r = 255
-                else:
-                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
-                    rf = ((float(r)-rlbf)*255.00/(rubf-rlbf))
-                    r = int(rf)
-                if(g <= glb):
-                    g = 0
-                elif( g >= gub):
-                    g = 255
-                else:
-                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
-                    gf = ((float(g)-glbf)*255.00/(gubf-glbf))
-                    g = int(gf)
-                if(b <= blb):
-                    b = 0
-                elif( b >= bub):
-                    b = 255
-                else:
-                    #f(x) = (x - Vmin) × (max - min) / (Vmax - Vmin) + min.
-                    bf = ((float(b)-blbf)*255.00/(bubf-blbf))
-                    b = int(bf)
-                return((r,g,b))
 
-            retVal = self.applyPixelFunction(transformClosure)
-
+            rLUT = np.ones((256,1),dtype=uint8)
+            gLUT = np.ones((256,1),dtype=uint8)
+            bLUT = np.ones((256,1),dtype=uint8)
+            for i in range(256):
+                if(i <= rlb):
+                    rLUT[i][0] = 0
+                elif( i >= rub):
+                    rLUT[i][0] = 255
+                else:
+                    rf = ((float(i)-rlbf)*255.00/(rubf-rlbf))
+                    rLUT[i][0] = int(rf)
+                if( i <= glb):
+                    gLUT[i][0] = 0
+                elif( i >= gub):
+                    gLUT[i][0] = 255
+                else:
+                    gf = ((float(i)-glbf)*255.00/(gubf-glbf))
+                    gLUT[i][0] = int(gf)
+                if( i <= blb):
+                    bLUT[i][0] = 0
+                elif( i >= bub):
+                    bLUT[i][0] = 255
+                else:
+                    bf = ((float(i)-blbf)*255.00/(bubf-blbf))
+                    bLUT[i][0] = int(bf)
+            retVal = img.applyLUT(bLUT,rLUT,gLUT)
         return retVal 
+        
+    def applyLUT(self,rLUT=None,bLUT=None,gLUT=None):
+        """
+        Apply LUT allows you to apply a LUT (look up table) to the pixels in a image. Each LUT is just 
+        an array where each index in the array points to its value in the result image. For example 
+        rLUT[0]=255 would change all pixels where the red channel is zero to the value 255.
+        
+        params:
+        rLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        gLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        bLUT = a tuple or np.array of size (256x1) with dtype=uint8
+        !The dtype is very important. Will throw the following error without it:
+        
+        error: dst.size() == src.size() && dst.type() == CV_MAKETYPE(lut.depth(), src.channels())
+        
+        
+        returns:
+        The image remapped using the LUT.
+        
+        example:
+        This example saturates the red channel
+        >>>> rlut = np.ones((256,1),dtype=uint8)*255
+        >>>> img=img.applyLUT(rLUT=rlut)
+       
+        """
+        r = self.getEmpty(1)
+        g = self.getEmpty(1)
+        b = self.getEmpty(1)
+        cv.Split(self.getBitmap(),b,g,r,None);
+        if(rLUT is not None):
+            cv.LUT(r,r,cv.fromarray(rLUT))
+        if(gLUT is not None):
+            cv.LUT(g,g,cv.fromarray(gLUT))
+        if(bLUT is not None):
+            cv.LUT(b,b,cv.fromarray(bLUT))
+        temp = self.getEmpty()
+        cv.Merge(b,g,r,None,temp)
+        return Image(temp)
+        
+
+    def _getRawKeypoints(self,thresh=500.00,flavor="SURF", highQuality=1, forceReset=False):
+        """
+        This method finds keypoints in an image and returns them as the raw keypoints
+        and keypoint descriptors. When this method is called it caches a the features
+        and keypoints locally for quick and easy access.
+       
+        Parameters:
+        min_quality - The minimum quality metric for SURF descriptors. Good values
+                      range between about 300.00 and 600.00
+        
+        flavor - a string indicating the method to use to extract features.
+                 A good primer on how feature/keypoint extractiors can be found here:
+
+                 http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
+                 http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+        
+
+                 "SURF" - extract the SURF features and descriptors. If you don't know
+                 what to use, use this. 
+                 See: http://en.wikipedia.org/wiki/SURF
+
+                 "STAR" - The STAR feature extraction algorithm
+                 See: http://pr.willowgarage.com/wiki/Star_Detector
+
+                 "FAST" - The FAST keypoint extraction algorithm
+                 See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+
+
+        highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
+                      values and a vector of 128 descriptor values. The latter are "high" 
+                      quality descriptors. 
+                     
+        forceReset - If keypoints have already been calculated for this image those
+                     keypoints are returned veresus recalculating the values. If 
+                     force reset is True we always recalculate the values, otherwise
+                     we will used the cached copies. 
+                      
+        Returns:
+        A tuple of keypoint objects and optionally a numpy array of the descriptors. 
+
+        Example:
+        >>>> img = Image("aerospace.jpg")
+        >>>> kp,d = img._getRawKeypoints() 
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See Also:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+
+        """
+        if( forceReset ):
+            self._mKeyPoints = None
+            self._mKPDescriptors = None
+        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+            if( flavor == "SURF" ):
+                surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
+                if( len(self._mKPDescriptors) == 0 ):
+                    return None, None                     
+                
+                if( highQuality == 1 ):
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                else:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                self._mKPFlavor = "SURF"
+                del surfer
+            
+            elif( flavor == "FAST" ):
+                faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                self._mKPDescriptors = None
+                self._mKPFlavor = "FAST"
+                del faster
+
+            #elif( flavor == "MSER"):
+            #    mserer = cv2.MSER()
+            #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+            #    self._mKPDescriptors = None
+            #    self._mKPFlavor = "MSER"
+            #    del mserer
+
+            elif( flavor == "STAR"):
+                starer = cv2.StarDetector()
+                self._mKeyPoints = starer.detect(self.getGrayNumpy())
+                self._mKPDescriptors = None
+                self._mKPFlavor = "STAR"
+                del starer
+          
+            else:
+                warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+                return None, None
+
+        return self._mKeyPoints,self._mKPDescriptors 
+
+    def _getFLANNMatches(self,sd,td):
+        """
+        Summary:
+        This method does a fast local approximate nearest neighbors (FLANN) calculation between two sets
+        of feature vectors. The result are two numpy arrays the first one is a list of indexes of the
+        matches and the second one is the match distance value. For the match indices or idx, the index
+        values correspond to the values of td, and the value in the array is the index in td. I.
+        I.e. j = idx[i] is where td[i] matches sd[j]. 
+        The second numpy array, at the index i is the match distance between td[i] and sd[j].
+        Lower distances mean better matches. 
+
+        Parameters:
+        sd - A numpy array of feature vectors of any size.
+        td - A numpy array of feature vectors of any size, this vector is used for indexing
+             and the result arrays will have a length matching this vector. 
+
+        Returns:
+        Two numpy arrays, the first one, idx, is the idx of the matches of the vector td with sd.
+        The second one, dist, is the distance value for the closest match.
+
+        Example:
+        >>>> kpt,td = img1._getRawKeypoints() # t is template
+        >>>> kps,sd = img2._getRawKeypoints() # s is source
+        >>>> idx,dist = img1._getFLANNMatches(sd,td)
+        >>>> j = idx[42]
+        >>>> print kps[j] # matches kp 42
+        >>>> print dist[i] # the match quality.
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+        """
+        FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+        flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
+        flann = cv2.flann_Index(sd, flann_params)
+        idx, dist = flann.knnSearch(td, 1, params = {}) # bug: need to provide empty dict
+        del flann
+        return idx,dist
+
+    def drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1):
+        """
+        Summary:
+        Draw keypoints draws a side by side representation of two images, calculates
+        keypoints for both images, determines the keypoint correspondences, and then draws
+        the correspondences. This method is helpful for debugging keypoint calculations
+        and also looks really cool :) .  The parameters mirror the parameters used 
+        for findKeypointMatches to assist with debugging 
+
+        Parameters:
+        template - A template image. 
+
+        quality - The feature quality metric. This can be any value between about 300 and 500. Higher
+        values should return fewer, but higher quality features. 
+
+        minDist - The value below which the feature correspondence is considered a match. This 
+                  is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        width    - The width of the drawn line.
+
+        Returns:
+        A side by side image of the template and source image with each feature correspondence 
+        draw in a different color. 
+
+        Example:
+        >>>> img = cam.getImage()
+        >>>> template = Image("myTemplate.png")
+        >>>> result = img.drawKeypointMatches(self,template,300.00,0.4):
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+
+        """
+        if template == None:
+          return None
+          
+        resultImg = template.sideBySide(self,scale=False)
+        hdif = (self.height-template.height)/2
+        skp,sd = self._getRawKeypoints(thresh)
+        tkp,td = template._getRawKeypoints(thresh)
+        if( td == None or sd == None ):
+            warnings.warn("We didn't get any descriptors. Image might be too uniform or blurry." )
+            return resultImg
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
+
+        idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
+        p = dist[:,0]
+        result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
+        for i in range(0,len(idx)):
+            if( result[i] ):
+                pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
+                pt_b = (skp[idx[i]].pt[1]+template.width,skp[idx[i]].pt[0])
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=width)
+        return resultImg
+                  
+
+    def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
+        """
+        findKeypointMatch allows you to match a template image with another image using 
+        SURF keypoints. The method extracts keypoints from each image, uses the Fast Local
+        Approximate Nearest Neighbors algorithm to find correspondences between the feature
+        points, filters the correspondences based on quality, and then, attempts to calculate
+        a homography between the two images. This homography allows us to draw a matching
+        bounding box in the source image that corresponds to the template. This method allows
+        you to perform matchs the ordinarily fail when using the findTemplate method. 
+        This method should be able to handle a reasonable changes in camera orientation and
+        illumination. Using a template that is close to the target image will yield much
+        better results.
+
+        Warning:
+        This method is only capable of finding one instance of the template in an image. 
+        If more than one instance is visible the homography calculation and the method will 
+        fail.
+
+        Parameters:
+        template - A template image. 
+
+        quality - The feature quality metric. This can be any value between about 300 and 500. Higher
+        values should return fewer, but higher quality features. 
+
+        minDist - The value below which the feature correspondence is considered a match. This 
+                  is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        minMatch - The percentage of features which must have matches to proceed with homography calculation.
+                   A value of 0.4 means 40% of features must match. Higher values mean better matches
+                   are used. Good values are between about 0.3 and 0.7
+ 
+        Returns:
+                  If a homography (match) is found this method returns a feature set with a single 
+                  KeypointMatch feature. If no match is found None is returned.
+        Example:
+                  >>>> template = Image("template.png")
+                  >>>> img = camera.getImage()
+                  >>>> fs = img.findKeypointMatch(template)
+                  >>>> if( fs is not None ):
+                  >>>>      fs[0].draw()
+                  >>>>      img.show()
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See Also:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+
+
+        """
+        if template == None:
+          return None
+        
+        skp,sd = self._getRawKeypoints(quality)
+        tkp,td = template._getRawKeypoints(quality)
+        if( skp == None or tkp == None ):
+            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
+            return None
+
+        template_points = float(td.shape[0])
+        sample_points = float(sd.shape[0])
+        magic_ratio = 1.00
+        if( sample_points > template_points ):
+            magic_ratio = float(sd.shape[0])/float(td.shape[0])
+
+        idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
+        p = dist[:,0]
+        result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
+        pr = result.shape[0]/float(dist.shape[0])
+
+        if( pr >  minMatch and len(result)>4 ): # if more than minMatch % matches we go ahead and get the data 
+            lhs = []
+            rhs = []
+            for i in range(0,len(idx)):
+                if( result[i] ):
+                    lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+            
+            rhs_pt = np.array(rhs)
+            lhs_pt = np.array(lhs)
+            if( len(rhs_pt) < 16  or len(lhs_pt) < 16 ):
+                return None
+            homography = []         
+            (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
+            w = template.width
+            h = template.height
+            yo = homography[0][2] # get the x/y offset from the affine transform
+            xo = homography[1][2]
+            # draw our template
+            pt0 = np.array([0,0,1]) 
+            pt1 = np.array([0,h,1])
+            pt2 = np.array([w,h,1])
+            pt3 = np.array([w,0,1])
+            # apply the affine transform to our points
+            pt0p = np.array(pt0*np.matrix(homography)) 
+            pt1p = np.array(pt1*np.matrix(homography))
+            pt2p = np.array(pt2*np.matrix(homography))
+            pt3p = np.array(pt3*np.matrix(homography))
+            #update and clamp the corners to get our template in the other image
+            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo)) 
+            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
+            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
+            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            #construct the feature set and return it. 
+            fs = FeatureSet()
+            fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
+            return fs
+        else:
+            return None 
+
+
+    def findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ): 
+        """
+        This method finds keypoints in an image and returns them as a feature set.
+        Keypoints are unique regions in an image that demonstrate some degree of 
+        invariance to changes in camera pose and illumination. They are helpful
+        for calculating homographies between camera views, object rotations, and
+        multiple view overlaps.
+
+        We support four keypoint detectors and only one form of keypoint descriptors.
+        Only the surf flavor of keypoint returns feature and descriptors at this time.
+       
+        Parameters:
+        min_quality - The minimum quality metric for SURF descriptors. Good values
+                      range between about 300.00 and 600.00
+        
+        flavor - a string indicating the method to use to extract features.
+                 A good primer on how feature/keypoint extractiors can be found here:
+
+                 http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
+                 http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+        
+
+                 "SURF" - extract the SURF features and descriptors. If you don't know
+                 what to use, use this. 
+                 See: http://en.wikipedia.org/wiki/SURF
+
+                 "STAR" - The STAR feature extraction algorithm
+                 See: http://pr.willowgarage.com/wiki/Star_Detector
+
+                 "FAST" - The FAST keypoint extraction algorithm
+                 See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+
+
+        highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
+                      values and a vector of 128 descriptor values. The latter are "high" 
+                      quality descriptors. 
+                      
+        Returns:
+        A feature set of KeypointFeatures. These KeypointFeatures let's you draw each 
+        feature, crop the features, get the feature descriptors, etc. 
+
+        Example:
+        >>>> img = Image("aerospace.jpg")
+        >>>> fs = img.findKeypoints(flavor="SURF",min_quality=500,highQuality=True)
+        >>>> fs = fs.sortArea()
+        >>>> fs[-1].draw()
+        >>>> img.draw()
+
+        Notes:
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        See Also:
+         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+         ImageClass._getFLANNMatches(self,sd,td)
+         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+
+        """
+        fs = FeatureSet()
+        kp = []
+        d = []
+        if highQuality:
+            kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=1)
+        else:
+            kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
+
+        if( flavor == "SURF" ):
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],d[i],flavor))
+        elif(flavor == "STAR" or flavor == "FAST" ):
+            for i in range(0,len(kp)):
+                fs.append(KeyPoint(self,kp[i],None,flavor))
+        else:
+            warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+            return None
+
+        return fs
+
+    def findMotion(self, previous_frame, window=11, method='BM', aggregate=True):
+        """
+        findMotion - perform an optical flow calculation. This method attempts to find 
+                     motion between two subsequent frames of an image. You provide it 
+                     with the previous frame image and it returns a feature set of motion
+                     fetures that are vectors in the direction of motion.
+
+        previous_frame - The last frame as an Image. 
+
+        window         - The block size for the algorithm. For the the HS and LK methods 
+                         this is the regular sample grid at which we return motion samples.
+                         For the block matching method this is the matching window size.
+
+        method         - The algorithm to use as a string. Your choices are:
+                         'BM' - default block matching robust but slow - if you are unsure use this.
+                         'LK' - Lucas-Kanade method - http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method 
+                         'HS' - Horn-Schunck method - http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method
+
+
+        aggregate      - If aggregate is true, each of our motion features is the average of
+                         motion around the sample grid defined by window. If aggregate is false
+                         we just return the the value as sampled at the window grid interval. For 
+                         block matching this flag is ignored.
+        """
+        if( self.width != previous_frame.width or self.height != previous_frame.height):
+            warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
+            return None
+        fs = FeatureSet()
+        max_mag = 0.00
+
+        if( method == "LK" or method == "HS" ):
+            # create the result images. 
+            xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1) 
+            yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)         
+            win = (window,window)
+            if( method == "LK" ):
+                cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
+            else:
+                cv.CalcOpticalFlowHS(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),0,xf,yf,1.0,(cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                
+            w = math.floor((float(window))/2.0) 
+            cx = ((self.width-window)/window)+1 #our sample rate
+            cy = ((self.height-window)/window)+1
+            vx = 0.00
+            vy = 0.00
+            for x in range(0,int(cx)): # go through our sample grid
+                for y in range(0,int(cy)): 
+                    xi = (x*window)+w # calculate the sample point
+                    yi = (y*window)+w
+                    if( aggregate ):
+                        lowx = int(xi-w)
+                        highx = int(xi+w)
+                        lowy = int(yi-w)
+                        highy = int(yi+w)
+                        xderp = xf[lowy:highy,lowx:highx] # get the average x/y components in the output
+                        yderp = yf[lowy:highy,lowx:highx]
+                        vx = np.average(xderp)
+                        vy = np.average(yderp)
+                    else: # other wise just sample
+                        vx = xf[yi,xi]
+                        vy = yf[yi,xi]
+ 
+                    mag = (vx*vx)+(vy*vy)
+                    if(mag > max_mag): # calculate the max magnitude for normalizing our vectors
+                        max_mag = mag
+                    fs.append(Motion(self,xi,yi,vx,vy,window)) # add the sample to the feature set
+
+        elif( method == "BM"):
+            # In the interest of keep the parameter list short
+            # I am pegging these to the window size. 
+            block = (window,window) # block size
+            shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
+            spread = (window*2,window*2) # the search windows.
+            wv = (self.width - block[0]) / shift[0] # the result image size
+            hv = (self.height - block[1]) / shift[1]
+            xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            for x in range(0,int(wv)): # go through the sample grid
+                for y in range(0,int(hv)):
+                    xi = (shift[0]*(x))+block[0] #where on the input image the samples live
+                    yi = (shift[1]*(y))+block[1]
+                    vx = xf[y,x] # the result image values
+                    vy = yf[y,x]
+                    fs.append(Motion(self,xi,yi,vx,vy,window)) # add the feature
+                    mag = (vx*vx)+(vy*vy) # same the magnitude
+                    if(mag > max_mag):
+                        max_mag = mag
+        else:
+            warnings.warn("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ") 
+            return None
+	
+        max_mag = math.sqrt(max_mag) # do the normalization
+        for f in fs:
+            f.normalizeTo(max_mag)
+
+        return fs
         
 
     def __getstate__(self):
@@ -3580,9 +4421,12 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker
+
+Image.greyscale = Image.grayscale
+
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Images import *
-

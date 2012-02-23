@@ -2,7 +2,9 @@
 
 #load system libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image 
+from SimpleCV.ImageClass import Image, ImageSet
+from SimpleCV.Display import Display
+from SimpleCV.Color import Color
 import platform
 
 #Globals
@@ -25,6 +27,7 @@ class FrameBufferThread(threading.Thread):
                     cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
                 else:
                     cv.GrabFrame(cam.capture)
+                cam._threadcapturetime = time.time()
             time.sleep(0.04)    #max 25 fps, if you're lucky
 
 
@@ -36,10 +39,13 @@ class FrameSource:
     """
     _calibMat = "" #Intrinsic calibration matrix 
     _distCoeff = "" #Distortion matrix
+    _threadcapturetime = '' #when the last picture was taken
+    capturetime = '' #timestamp of the last aquired image
+    
     def __init__(self):
         return
     
-    def getPropery(self, p):
+    def getProperty(self, p):
         return None
   
     def getAllProperties(self):
@@ -238,6 +244,52 @@ class FrameSource:
             retVal = True
     
         return retVal
+    
+    def live(self):
+        """
+        This shows a live view of the camera.
+        To use it's as simple as:
+
+        >>> cam = Camera()
+        >>> cam.live()
+
+        Left click will show mouse coordinates and color
+        Right click will kill the live image
+        """
+
+        start_time = time.time()
+        
+        from SimpleCV.Display import Display
+        i = self.getImage()
+        d = Display(i.size())
+        i.save(d)
+        col = Color.RED
+
+        while d.isNotDone():
+          i = self.getImage()
+          elapsed_time = time.time() - start_time
+          
+
+          if d.mouseLeft:
+            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            i.dl().text(txt, (10,i.height / 2), color=col)
+            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+          if elapsed_time > 0 and elapsed_time < 5:
+            
+            i.dl().text("In live mode", (10,10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            
+          
+          i.save(d)
+          if d.mouseRight:
+            d.done = True
+
+        
+        pg.quit()
  
 class Camera(FrameSource):
     """
@@ -359,18 +411,28 @@ class Camera(FrameSource):
         
         if (not self.threaded):
             cv.GrabFrame(self.capture)
+            self.capturetime = time.time()
+        else:
+            self.capturetime = self._threadcapturetime
 
         frame = cv.RetrieveFrame(self.capture)
         newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
         cv.Copy(frame, newimg)
         return Image(newimg, self)
 
+
+          
 class VirtualCamera(FrameSource):
     """
     The virtual camera lets you test algorithms or functions by providing 
     a Camera object which is not a physically connected device.
     
-    Currently, VirtualCamera supports "image" and "video" source types.
+    Currently, VirtualCamera supports "image", "imageset" and "video" source types.
+    
+    For image, pass the filename or URL to the image
+    For the video, the filename
+    For imageset, you can pass either a path or a list of [path, extension]
+    
     """
     source = ""
     sourcetype = ""
@@ -381,7 +443,15 @@ class VirtualCamera(FrameSource):
         VirtualCamera("img.jpg", "image") or VirtualCamera("video.mpg", "video")
         """
         self.source = s
-        self.sourcetype = st 
+        self.sourcetype = st
+        self.counter = 0
+        
+        if (self.sourcetype == "imageset"):
+            self.source = ImageSet()
+            if (type(s) == list):
+                self.source.load(*s)
+            else:
+                self.source.load(s)
         
         if (self.sourcetype == 'video'):
             self.capture = cv.CaptureFromFile(self.source) 
@@ -392,6 +462,11 @@ class VirtualCamera(FrameSource):
         """
         if (self.sourcetype == 'image'):
             return Image(self.source, self)
+            
+        if (self.sourcetype == 'imageset'):
+            img = self.source[self.counter % len(self.source)]
+            self.counter = self.counter + 1
+            return img
         
         if (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
@@ -409,12 +484,14 @@ class Kinect(FrameSource):
     #https://github.com/amiller/libfreenect-goodies
     def getImage(self):
         video = freenect.sync_get_video()[0]
+        self.capturetime = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
         return Image(video.transpose([1,0,2]), self)
   
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def getDepth(self):
         depth = freenect.sync_get_depth()[0]
+        self.capturetime = time.time()
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
         depth = depth.astype(np.uint8).transpose()
@@ -424,6 +501,7 @@ class Kinect(FrameSource):
     #we're going to also support a higher-resolution (11-bit) depth matrix
     #if you want to actually do computations with the depth
     def getDepthMatrix(self):
+        self.capturetime = time.time()
         return freenect.sync_get_depth()[0]
   
 
@@ -481,6 +559,7 @@ class JpegStreamReader(threading.Thread):
                 #we have a full jpeg in buffer.  Convert to an image
                 if contenttype == "jpeg":
                     self.currentframe = buff 
+                    self._threadcapturetime = time.time()
                 buff = ''
       
             if (re.match("Content-Type", data, re.I)):
@@ -500,6 +579,7 @@ class JpegStreamReader(threading.Thread):
                     buff += data + f.read(length - len(data)) #read the remainder of the image
                     if contenttype == "jpeg":
                         self.currentframe = buff
+                        self._threadcapturetime = time.time()
                 else:
                     while (not re.search(boundary, data)):
                         buff += data 
@@ -537,5 +617,8 @@ class JpegStreamCamera(FrameSource):
         """
         Return the current frame of the JpegStream being monitored
         """
+        self.capturetime = self._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
+
+
 

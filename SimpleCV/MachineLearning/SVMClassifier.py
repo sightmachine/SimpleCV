@@ -183,6 +183,7 @@ class SVMClassifier:
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
+
                 if( feats is not None ):
                     featureVector.extend(feats)
                 else:
@@ -191,7 +192,6 @@ class SVMClassifier:
             if(badFeat):
                 badFeat = False
                 continue
-            
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             text = 'Training: ' + className
@@ -265,9 +265,10 @@ class SVMClassifier:
             print("Correct: "+str(good))
             print("Incorrect: "+str(bad))
             classes = self.mDataSetOrange.domain.classVar.values
-            print "\t"+"\t".join(classes)
-            for className, classConfusions in zip(classes, confusion):
-                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
+            print confusion
+            #print "\t"+"\t".join(classes)
+            #for className, classConfusions in zip(classes, confusion):
+            #    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
             
         return [good, bad, confusion]
 

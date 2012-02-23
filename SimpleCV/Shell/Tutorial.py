@@ -12,14 +12,14 @@ lb = "\n" #linebreak
 tb = "\t" #tab
 
 #Command to clear the shell screen
-def clear():
+def shellclear():
   if platform.system() == "Windows":
     return
   call("clear")
 
 
 def tutorial_image():
-  clear()
+  shellclear()
   print "SimpleCV Image tutorial"
   print "-----------------------"
   print lb
@@ -31,7 +31,7 @@ def tutorial_image():
   print "img = Image('./SimpleCV/sampleimages/color.jpg')"
   print lb
   raw_input("[Press enter to continue]")
-  clear()
+  shellclear()
   print "Now try it yourself at the terminal"
   print "img = Image('./SimpleCV/sampleimages/color.jpg')"
   print lb
@@ -44,7 +44,7 @@ def tutorial_image():
       print "please type:"
       print shouldbe
 
-  clear()
+  shellclear()
   print "Correct, you just loaded an image into memory"
   print "Images are the basis for everything in SimpleCV"
   print "they are what manipulations are performed on"
@@ -54,13 +54,13 @@ def tutorial_image():
   return
 
 def tutorial_save():
-  clear()
+  shellclear()
   print "Once you have an Image Object loaded in memory you can"
   print "now save it to disk.  If you don't or don't know how then"
   print "you can run the image tutorial"
   print lb
   raw_input("[Press enter to continue]")
-  clear()
+  shellclear()
   print "Saving an image is very simple, pardon the pun."
   print "but once it's loaded into memory, it's literally just:"
   print "image.save()"
@@ -82,14 +82,14 @@ def tutorial_save():
       print "please type:"
       print shouldbe
 
-  clear()
+  shellclear()
   print "Correct, you just saved a new copy of the image to /tmp/new.jpg"
   print "as you can see in SimpleCV most of the functions are intuitive"
   print lb
   raw_input("[Press enter to continue]")
   return
 def tutorial_copy():
-  clear()
+  shellclear()
   print "Image Copy"
   print "If you need a copy of an image, this is also very simple"
   print "img = Image('./SimpleCV/sampleimages/color.jpg')"
@@ -107,7 +107,7 @@ def tutorial_copy():
       print "sorry, that is incorrect"
       print "please type:"
       print shouldbe
-  clear()
+  shellclear()
   print "Correct, you just cloned an image into memory"
   print "you need to be careful when using this method though"
   print "as using a reference vs. a copy.  For instance if you just"
@@ -121,7 +121,7 @@ def tutorial_copy():
   return
 
 def tutorial_slicing():
-  clear()
+  shellclear()
   print "Slicing:"
   print "Slicing is sort of a new paradigm to access parts of an image"
   print "Typically in vision a region of interest (ROI) is given.  "
@@ -138,7 +138,7 @@ def tutorial_slicing():
   print "foundedges = img[5:25,10:30].edges()"
   print lb
   raw_input("[Press enter to continue]")
-  clear()
+  shellclear()
   in_text = ""
   shouldbe = "ROI = img[1:6,1:6]"
   print "Please type this now:"
@@ -150,13 +150,13 @@ def tutorial_slicing():
       print "sorry, that is incorrect"
       print "please type:"
       print shouldbe
-  clear()
+  shellclear()
   print "Correct, you just returned a 5 pixel by 5 pixel image object"
   print lb
   return
 
 def tutorial_corners():
-  clear()
+  shellclear()
   print "Finding corners:"
   print "This will find corner Feature objects and return them as a FeatureSet"
   print "the  strongest corners first.  The parameters give the number"
@@ -178,7 +178,7 @@ def tutorial_corners():
   print "in SimpleCV"
   print lb
   raw_input("[Press enter to continue]")
-  clear()
+  shellclear()
   in_text = ""
   shouldbe = "corners = img.findCorners()"
   print "Please type this now:"
@@ -190,7 +190,7 @@ def tutorial_corners():
       print "sorry, that is incorrect"
       print "please type:"
       print shouldbe
-  clear()
+  shellclear()
   print "Correct, you just returned a featureset object which contains"
   print "feature objects.  These feature objects contain data from the"
   print "found corners"
@@ -200,7 +200,7 @@ def tutorial_corners():
     
 def magic_tutorial(self,arg):
   if (arg == ""):
-    clear()
+    shellclear()
     print "??????????????????????????????????"
     print " Welcome to the SimpleCV tutorial "
     print "??????????????????????????????????"
