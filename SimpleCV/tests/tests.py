@@ -1534,3 +1534,9 @@ def test_draw_keypointt_matches():
   if VISUAL_TEST:
     result.save("KPMatch.png")
   pass
+
+def test_skeletonize():
+  img = Image(logo)
+  s = img.skeletonize()
+  s2 = img.skeletonize(10)
+  pass
