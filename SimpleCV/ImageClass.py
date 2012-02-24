@@ -4428,7 +4428,49 @@ class Image:
         return fs
 
 
+    
     def _generatePalette(self,bins,hue):
+        """
+        Summary:
+        This is the main entry point for palette generation. A palette, for our purposes,
+        is a list of the main colors in an image. Creating a palette with 10 bins, tries 
+        to cluster the colors in rgb space into ten distinct groups. In hue space we only
+        look at the hue channel. All of the relevant palette data is cached in the image 
+        class. 
+
+        Parameters:
+        bins - an integer number of bins into which to divide the colors in the image.
+        hue  - if hue is true we do only cluster on the image hue values. 
+
+        Returns:
+        Nothing, but creates the image's cached values for: 
+        
+        self._mDoHuePalette
+        self._mPaletteBins
+        self._mPalette 
+        self._mPaletteMembers 
+        self._mPalettePercentages
+
+
+        Example:
+        
+        >>>> img._generatePalette(bins=42)
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        """
         if( self._mPaletteBins != bins or
             self._mDoHuePalette != hue ):
             total = float(self.width*self.height)
@@ -4463,9 +4505,42 @@ class Image:
 
 
     def getPalette(self,bins=10,hue=False):
+        """
+        Summary:
+        This method returns the colors in the palette of the image. A palette is the 
+        set of the most common colors in an image. This method is helpful for segmentation.
+
+        Parameters:
+        bins - an integer number of bins into which to divide the colors in the image.
+        hue  - if hue is true we do only cluster on the image hue values. 
+
+        Returns:
+        an numpy array of the BGR color tuples. 
+
+        Example:
+        
+        >>>> p = img.getPalette(bins=42)
+        >>>> print p[2]
+       
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+                
+        """
         self._generatePalette(bins,hue)
         return self._mPalette
-        # need to cache pallete and members
+
 
     def rePalette(self,palette,hue=False):
         retVal = None
@@ -4479,7 +4554,7 @@ class Image:
             mat =  cv.GetMat(h)
             pixels = np.array(mat).reshape(-1,1)
             result = scv.vq(pixels,palette)
-            derp = self._mPalette[result[0]]
+            derp = palette[result[0]]
             retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
             retVal = retVal.rotate(-90,fixed=False)
         else:
@@ -4488,6 +4563,50 @@ class Image:
         return retVal
 
     def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
+        """
+        Summary:
+        This method returns the visual representation (swatches) of the palette in an image. The palette 
+        is orientated either horizontally or vertically, and each color is given an area 
+        proportional to the number of pixels that have that color in the image. The palette 
+        is arranged as it is returned from the clustering algorithm. When size is left
+        to its default value, the palette size will match the size of the 
+        orientation, and then be 10% of the other dimension. E.g. if our image is 640X480 the horizontal
+        palette will be (640x48) likewise the vertical palette will be (480x64)
+        
+        If a Hue palette is used this method will return a grayscale palette
+        
+        Parameters:
+        bins      - an integer number of bins into which to divide the colors in the image.
+        hue       - if hue is true we do only cluster on the image hue values. 
+        size      - The size of the generated palette as a (width,height) tuple, if left default we select 
+                    a size based on the image so it can be nicely displayed with the 
+                    image. 
+        horizontal- If true we orientate our palette horizontally, otherwise vertically. 
+
+        Returns:
+        A palette swatch image. 
+
+        Example:
+        
+        >>>> p = img1.drawPaletteColors()
+        >>>> img2 = img1.sideBySide(p,side="bottom")
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        """
         self._generatePalette(bins,hue)
         retVal = None
         if( not hue ):
@@ -4509,9 +4628,9 @@ class Image:
                 retVal = Image(pal)
             else:
                 if( size[0] == -1 or size[1] == -1 ):
-                    size = (self.width*.1,self.height)
+                    size = (int(self.width*.1),int(self.height))
                 pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
-                cvZero(pal)
+                cv.Zero(pal)
                 idxL = 0
                 idxH = 0
                 for i in range(0,bins):
@@ -4526,7 +4645,7 @@ class Image:
         else: # do hue
             if( horizontal ):
                 if( size[0] == -1 or size[1] == -1 ):
-                    size = (self.width,self.height*.1)
+                    size = (int(self.width),int(self.height*.1))
                 pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
                 cv.Zero(pal)
                 idxL = 0
@@ -4541,9 +4660,9 @@ class Image:
                 retVal = Image(pal)
             else:
                 if( size[0] == -1 or size[1] == -1 ):
-                    size = (self.width*.1,self.height)
+                    size = (int(self.width*.1),int(self.height))
                 pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
-                cvZero(pal)
+                cv.Zero(pal)
                 idxL = 0
                 idxH = 0
                 for i in range(0,bins):
@@ -4558,6 +4677,41 @@ class Image:
         return retVal 
 
     def palettize(self,bins=10,hue=False):
+        """
+        Summary:
+        This method analyzes an image and determines the most common colors using a k-means algorithm.
+        The method then goes through and replaces each pixel with the centroid of the clutsters found
+        by k-means. This reduces the number of colors in an image to the number of bins. This can be particularly
+        handy for doing segementation based on color.
+
+        Parameters:
+        bins      - an integer number of bins into which to divide the colors in the image.
+        hue       - if hue is true we do only cluster on the image hue values. 
+        
+
+        Returns:
+        An image matching the original where each color is replaced with its palette value.  
+
+        Example:
+        
+        >>>> img2 = img1.palettize()
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        """
         retVal = None
         self._generatePalette(bins,hue)
         if( hue ):
