@@ -1,25 +1,30 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; SimpleCV v1.2 documentation</title>
+    <title>Installation &mdash; SimpleCV 1.2 documentation</title>
+    
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
         VERSION:     '1.2',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="SimpleCV v1.2 documentation" href="index.html" />
+    <link rel="top" title="SimpleCV 1.2 documentation" href="index.html" />
     <link rel="next" title="SimpleCV Package" href="SimpleCV.html" />
     <link rel="prev" title="SimpleCV Cookbook" href="cookbook.html" /> 
   </head>
@@ -31,15 +36,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="SimpleCV.html" title="SimpleCV Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="cookbook.html" title="SimpleCV Cookbook"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">SimpleCV v1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">SimpleCV 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,7 +55,7 @@
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p><a href="#id1"><span class="problematic" id="id2">*</span></a>Note: There are also video tutorials located online at:
+<p>Note: There are also video tutorials located online at:
 &lt;<a class="reference external" href="http://simplecv.org">http://simplecv.org</a>&gt;</p>
 <p>or on the youtube channel:
 &lt;<a class="reference external" href="http://www.youtube.com/user/IngenuitasOfficial">http://www.youtube.com/user/IngenuitasOfficial</a>&gt;</p>
@@ -69,7 +74,7 @@
 <h2>Ubuntu 11.10<a class="headerlink" href="#ubuntu-11-10" title="Permalink to this headline">¶</a></h2>
 <p>To upgrade from OpenCV 2.1 to OpenCV 2.3 run the following command:</p>
 <blockquote>
-sudo add-apt-repository ppa:gijzelaar/cuda &amp;&amp; sudo add-apt-repository ppa:gijzelaar/opencv2.3 &amp;&amp; sudo apt-get update</blockquote>
+<div>sudo add-apt-repository ppa:gijzelaar/cuda &amp;&amp; sudo add-apt-repository ppa:gijzelaar/opencv2.3 &amp;&amp; sudo apt-get update</div></blockquote>
 <p>Then install the debian package</p>
 <p>Here is the manual method for installation:</p>
 <p>Steps:</p>
@@ -96,28 +101,51 @@ sudo python setup.py install</pre>
 </div>
 <div class="section" id="mac-os-x-10-6-and-above">
 <h2>Mac OS X (10.6 and above)<a class="headerlink" href="#mac-os-x-10-6-and-above" title="Permalink to this headline">¶</a></h2>
-<p>Note: While not required, it is strongly recommended that you install XCode from Apple: <a class="reference external" href="http://itunes.apple.com/us/app/xcode/">http://itunes.apple.com/us/app/xcode/</a></p>
-<p>If you want to keep control of your usr/local or are adept at building for Unix, you may want to use the directions below.  Otherwise, we recommend using our Superpack, which contains everything you need in a single package:  <a class="reference external" href="http://sourceforge.net/projects/simplecv/files/">http://sourceforge.net/projects/simplecv/files/</a></p>
+<p>Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.</p>
 <p>Steps:</p>
 <ol class="arabic simple">
-<li>Install Xcode <a class="reference external" href="http://developer.apple.com/technologies/xcode.html">http://developer.apple.com/technologies/xcode.html</a></li>
+<li>Install Xcode <a class="reference external" href="http://itunes.apple.com/us/app/xcode/id448457090?mt=12">http://itunes.apple.com/us/app/xcode/id448457090?mt=12</a> and then run the Xcode installer.</li>
 <li>Install homebrew <a class="reference external" href="https://github.com/mxcl/homebrew/wiki/installation">https://github.com/mxcl/homebrew/wiki/installation</a></li>
-<li>Use homebrew to install opencv and git</li>
-<li>Install scipy superpack, but with ipython 0.10.2 <a class="reference external" href="http://stronginference.com/scipy-superpack/">http://stronginference.com/scipy-superpack/</a> (download from <a class="reference external" href="http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh">http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh</a>)</li>
-<li>Install python imaging library (10.6 needs ARCHFLAGS tweak)</li>
-<li>clone simplecv and python setup.py install</li>
 </ol>
-<p>Commands:</p>
-<div class="highlight-python"><pre>ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
-wget http://ingenuitas.com/misc/superpack_10.6_2011.05.28-ipython10.sh
-sh superpack_10.6_2011.05.28-ipython10.sh
+<p>#. Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak), plus the SDL dependencies for pygame
+#  Homebrew puts the libraries in /usr/local/lib/, which by default isn&#8217;t in the python sys.path &#8211; either add it, or link the files
+#. Install scipy superpack for Mac OSX <a class="reference external" href="http://fonnesbeck.github.com/ScipySuperpack/">http://fonnesbeck.github.com/ScipySuperpack/</a>
+#. easy_install pip and use pip install pygame
+#. clone simplecv and python setup.py install</p>
+<p>Before you do these you must install XCode from the App Store and run the installer!  I&#8217;d also run these someplace you don&#8217;t mind dumping a little code:</p>
+<p>Commands (for Lion):</p>
+<div class="highlight-python"><pre>mkdir ~/Code
+cd ~/Code
+/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
 brew install opencv
-ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
 brew install git
+brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi
 ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
-git clone git://git.code.sf.net/p/simplecv/git.git simplecv
-cd simplecv
-python setup.py install</pre>
+ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
+sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
+sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
+sudo ln -s /usr/local/lib/python2.7/site-packages/cv.py /Library/Python/2.7/site-packages/cv.py
+sudo easy_install pip
+sudo pip install hg+http://bitbucket.org/pygame/pygame
+curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh &amp;&amp; source install_superpack.sh
+pip install https://github.com/ingenuitas/SimpleCV/zipball/master</pre>
+</div>
+<p>Commands (for Snow Leopard):</p>
+<div class="highlight-python"><pre>mkdir ~/Code
+cd ~/Code
+/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
+brew install opencv
+brew install git
+brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi
+ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
+ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
+sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
+sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
+sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
+sudo easy_install pip
+sudo pip install hg+http://bitbucket.org/pygame/pygame
+curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
+pip install https://github.com/ingenuitas/SimpleCV/zipball/master</pre>
 </div>
 </div>
 <div class="section" id="windows-7-vista">
@@ -146,42 +174,42 @@ recommend using the Windows Superpack, available at <a class="reference external
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/simplecv.png" alt="Logo"/>
             </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Installation</a><ul>
-<li><a class="reference external" href="#ubuntu-10-4-or-10-11">Ubuntu 10.4 or 10.11</a></li>
-<li><a class="reference external" href="#ubuntu-11-4">Ubuntu 11.4</a></li>
-<li><a class="reference external" href="#ubuntu-11-10">Ubuntu 11.10</a></li>
-<li><a class="reference external" href="#mac-os-x-10-6-and-above">Mac OS X (10.6 and above)</a></li>
-<li><a class="reference external" href="#windows-7-vista">Windows 7/Vista</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#ubuntu-10-4-or-10-11">Ubuntu 10.4 or 10.11</a></li>
+<li><a class="reference internal" href="#ubuntu-11-4">Ubuntu 11.4</a></li>
+<li><a class="reference internal" href="#ubuntu-11-10">Ubuntu 11.10</a></li>
+<li><a class="reference internal" href="#mac-os-x-10-6-and-above">Mac OS X (10.6 and above)</a></li>
+<li><a class="reference internal" href="#windows-7-vista">Windows 7/Vista</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="cookbook.html"
-                                  title="previous chapter">SimpleCV Cookbook</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="SimpleCV.html"
-                                  title="next chapter">SimpleCV Package</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/installation.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cookbook.html"
+                        title="previous chapter">SimpleCV Cookbook</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="SimpleCV.html"
+                        title="next chapter">SimpleCV Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -193,7 +221,7 @@ recommend using the Windows Superpack, available at <a class="reference external
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
+          <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
           <a href="SimpleCV.html" title="SimpleCV Package"
@@ -201,11 +229,11 @@ recommend using the Windows Superpack, available at <a class="reference external
         <li class="right" >
           <a href="cookbook.html" title="SimpleCV Cookbook"
              >previous</a> |</li>
-        <li><a href="index.html">SimpleCV v1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">SimpleCV 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2011, Ingeuitas.
+        &copy; Copyright 2011, Ingeuitas.
     </div>
   </body>
 </html>
