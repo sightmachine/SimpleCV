@@ -810,6 +810,12 @@ class Image:
 
         return self._equalizedgraybitmap
     
+
+    def equalize(self):
+        """
+        Perform a histogram equalization on the image, return a grayscale image.
+        """
+        return Image(self._getEqualizedGrayscaleBitmap())
     
     def getPGSurface(self):
         """
