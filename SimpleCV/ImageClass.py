@@ -6,7 +6,7 @@ from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
-import cv2 
+#import cv2 
 import math # math... who does that 
 
 class ColorSpace:
@@ -810,6 +810,12 @@ class Image:
 
         return self._equalizedgraybitmap
     
+
+    def equalize(self):
+        """
+        Perform a histogram equalization on the image, return a grayscale image.
+        """
+        return Image(self._getEqualizedGrayscaleBitmap())
     
     def getPGSurface(self):
         """
