@@ -2772,6 +2772,12 @@ class Image:
       
         return None
 
+    def layers(self):
+        """
+        Return the array of DrawingLayer objects associated with the image
+        """
+        return self._mLayers
+
 
         #render the image. 
     def _renderImage(self, layer):
