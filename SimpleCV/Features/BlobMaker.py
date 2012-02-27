@@ -146,6 +146,7 @@ class BlobMaker:
         retVal = Blob()
         retVal.image = color 
         retVal.mArea = area
+        
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
         retVal.mBoundingBox = cv.BoundingRect(seq)
         retVal.x = retVal.mBoundingBox[0]+(retVal.mBoundingBox[2]/2)
@@ -154,12 +155,21 @@ class BlobMaker:
         
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
+            retVal.points = list(seq)
+
+        # so this is a bit hacky.... need to refactor blobs
+        xx = retVal.mBoundingBox[0]
+        yy = retVal.mBoundingBox[1]
+        ww = retVal.mBoundingBox[2]
+        hh = retVal.mBoundingBox[3]
+        retVal.boundingBox = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
 
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
         hullMask = self._getHullMask(chull,retVal.mBoundingBox)
         retVal.mHullImg = self._getBlobAsImage(chull,retVal.mBoundingBox,color.getBitmap(),hullMask)
         retVal.mHullMask = Image(hullMask)
+        
         del chull
         
         moments = cv.Moments(seq)
@@ -196,11 +206,7 @@ class BlobMaker:
 
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
-        bb = retVal.mBoundingBox
-        retVal.points.append((bb[0], bb[1]))
-        retVal.points.append((bb[0] + bb[2], bb[1]))
-        retVal.points.append((bb[0] + bb[2], bb[1] + bb[3]))
-        retVal.points.append((bb[0], bb[1] + bb[3]))
+    
         
         return retVal
     

@@ -1535,6 +1535,7 @@ def test_draw_keypointt_matches():
     result.save("KPMatch.png")
   pass
 
+<<<<<<< HEAD
 
 def test_basic_palette():
   img = Image(testimageclr)
@@ -1577,4 +1578,10 @@ def test_drawPalette():
   img6 = img.drawPaletteColors(horizontal=False,hue=True)
   img7 = img.drawPaletteColors(size=(69,420),hue=True )
   img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
+
+def test_skeletonize():
+  img = Image(logo)
+  s = img.skeletonize()
+  s2 = img.skeletonize(10)
+
   pass
