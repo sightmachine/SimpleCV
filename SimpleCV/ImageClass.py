@@ -4701,6 +4701,40 @@ class Image:
         bins      - an integer number of bins into which to divide the colors in the image.
         hue       - if hue is true we do only cluster on the image hue values. 
         
+
+        Returns:
+        An image matching the original where each color is replaced with its palette value.  
+
+        Example:
+        
+        >>>> img2 = img1.palettize()
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        """
+        retVal = None
+        self._generatePalette(bins,hue)
+        if( hue ):
+            derp = self._mPalette[self._mPaletteMembers]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
+        return retVal 
+
     def skeletonize(self, radius = 5):
         """
         Summary:
@@ -4744,40 +4778,6 @@ class Image:
         retVal = np.zeros([self.width,self.height])
         retVal[skeleton] = 255
         return Image(retVal)
-
-        Returns:
-        An image matching the original where each color is replaced with its palette value.  
-
-        Example:
-        
-        >>>> img2 = img1.palettize()
-        >>>> img2.show()
-
-        Notes:
-        The hue calculations should be siginificantly faster than the generic RGB calculation as 
-        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
-        about k-means initialization with the following warning:
-        
-        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
-
-        This shouldn't be a real problem. 
-        
-        See Also:
-        ImageClass.getPalette(self,bins=10,hue=False
-        ImageClass.rePalette(self,palette,hue=False):
-        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
-        ImageClass.palettize(self,bins=10,hue=False)
-        """
-        retVal = None
-        self._generatePalette(bins,hue)
-        if( hue ):
-            derp = self._mPalette[self._mPaletteMembers]
-            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
-            retVal = retVal.rotate(-90,fixed=False)
-        else:
-            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
-        return retVal 
-
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )

@@ -1535,7 +1535,6 @@ def test_draw_keypointt_matches():
     result.save("KPMatch.png")
   pass
 
-<<<<<<< HEAD
 
 def test_basic_palette():
   img = Image(testimageclr)
