@@ -4483,6 +4483,8 @@ class Image:
         ImageClass.rePalette(self,palette,hue=False):
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
         ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
         """
         if( self._mPaletteBins != bins or
             self._mDoHuePalette != hue ):
@@ -4549,7 +4551,8 @@ class Image:
         ImageClass.rePalette(self,palette,hue=False):
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
         ImageClass.palettize(self,bins=10,hue=False)
-                
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
         """
         self._generatePalette(bins,hue)
         return self._mPalette
@@ -4619,6 +4622,8 @@ class Image:
         ImageClass.rePalette(self,palette,hue=False):
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
         ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
         """
         self._generatePalette(bins,hue)
         retVal = None
@@ -4724,6 +4729,9 @@ class Image:
         ImageClass.rePalette(self,palette,hue=False):
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
         ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+
         """
         retVal = None
         self._generatePalette(bins,hue)
@@ -4735,7 +4743,46 @@ class Image:
             retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
         return retVal 
 
-    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,):
+
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
+        """
+        Description:
+        This method attempts to use palettization to do segmentation and behaves similar to the 
+        findBlobs blob in that it returs a feature set of blob objects. Once a palette has been 
+        extracted using getPalette() we can then select colors from that palette to be labeled 
+        white within our blobs. 
+
+        Parameters:
+        palette_selection - color triplets selected from our palette that will serve turned into blobs
+                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+
+        dilate            - the optional number of dilation operations to perform on the binary image
+                            prior to performing blob extraction.
+        minsize           - the minimum blob size in pixels
+        maxsize           - the maximim blob size in pixels.
+
+        Returns:
+        If the method executes successfully a FeatureSet of Blobs is returned from the image. If the method 
+        fails a value of None is returned. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> p = img.getPalette()
+        >>>> blobs = img.findBlobsFromPalette( (p[0],p[1],[6]) )
+        >>>> blobs.draw()
+        >>>> img.show()
+
+        Notes: 
+
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        """
+
         #we get the palette from find palete 
         #ASSUME: GET PALLETE WAS CALLED!
         if( self._mPalette == None ):
@@ -4764,8 +4811,55 @@ class Image:
     
         if not len(blobs):
             return None
+
+
+    def binarizeFromPalette(self, palette_selection):
+        """
+        Description:
+        This method uses the color palette to generate a binary (black and white) image. Palaette selection
+        is a list of color tuples retrieved from img.getPalette(). The provided values will be drawn white
+        while other values will be black. 
+
+        Parameters:
+        palette_selection - color triplets selected from our palette that will serve turned into blobs
+                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+
+        Returns:
+        This method returns a black and white images, where colors that are close to the colors
+        in palette_selection are set to white
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> p = img.getPalette()
+        >>>> b = img.binarizeFromPalette( (p[0],p[1],[6]) )
+        >>>> b.show()
+
+        Notes: 
+
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        """
+
+        #we get the palette from find palete 
+        #ASSUME: GET PALLETE WAS CALLED!
+        if( self._mPalette == None ):
+            warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
+            return None
+        img = self.palettize(self._mPaletteBins)
+        npimg = img.getNumpy()
+        white = np.array([255,255,255])
+        black = np.array([0,0,0])
+
+        for p in palette_selection:
+            npimg = np.where(npimg != p,npimg,white)
             
-        return FeatureSet(blobs).sortArea()
+        npimg = np.where(npimg != white,black,white)
+        bwimg = Image(npimg)
+        return bwimg
 
     def skeletonize(self, radius = 5):
         """
