@@ -4512,7 +4512,7 @@ class Image:
 
             self._mDoHuePalette = hue
             self._mPaletteBins = bins
-            self._mPalette = result[0]
+            self._mPalette = np.array(result[0],dtype='uint8')
             self._mPaletteMembers = result[1]
             self._mPalettePercentages = percentages
 
@@ -4634,7 +4634,7 @@ class Image:
                     idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
                     roi = (int(idxL),0,int(idxH-idxL),size[1])
                     cv.SetImageROI(pal,roi)
-                    color = np.array((self._mPalette[i][2],self._mPalette[i][1],self._mPalette[i][0]))
+                    color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
                     cv.AddS(pal,color,pal)
                     cv.ResetImageROI(pal)
                     idxL = idxH
@@ -4650,7 +4650,7 @@ class Image:
                     idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
                     roi = (0,int(idxL),size[0],int(idxH-idxL))
                     cv.SetImageROI(pal,roi)
-                    color = np.array((self._mPalette[i][2],self._mPalette[i][1],self._mPalette[i][0]))
+                    color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
                     cv.AddS(pal,color,pal)
                     cv.ResetImageROI(pal)
                     idxL = idxH
@@ -4734,6 +4734,38 @@ class Image:
         else:
             retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
         return retVal 
+
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,):
+        #we get the palette from find palete 
+        #ASSUME: GET PALLETE WAS CALLED!
+        if( self._mPalette == None ):
+            warning.warn("No palette exists, call getPalette())")
+            return None
+        img = self.palettize(self._mPaletteBins)
+        npimg = img.getNumpy()
+        white = np.array([255,255,255])
+        black = np.array([0,0,0])
+
+        for p in palette_selection:
+            npimg = np.where(npimg != p,npimg,white)
+            
+        npimg = np.where(npimg != white,black,white)
+        bwimg = Image(npimg)
+        if( dilate > 0 ):
+            bwimg =bwimg.dilate(dilate)
+        
+        if (maxsize == 0):  
+            maxsize = self.width * self.height / 2
+        #create a single channel image, thresholded to parameters
+    
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(bwimg,
+            self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+            
+        return FeatureSet(blobs).sortArea()
 
     def skeletonize(self, radius = 5):
         """
