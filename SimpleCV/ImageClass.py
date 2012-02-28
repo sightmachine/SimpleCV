@@ -4709,7 +4709,7 @@ class Image:
                     idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
                     roi = (int(idxL),0,int(idxH-idxL),size[1])
                     cv.SetImageROI(pal,roi)
-                    cv.AddS(pal,self._mPalette[i],pal)
+                    cv.AddS(pal,float(self._mPalette[i]),pal)
                     cv.ResetImageROI(pal)
                     idxL = idxH
                 retVal = Image(pal)
@@ -4724,7 +4724,7 @@ class Image:
                     idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
                     roi = (0,int(idxL),size[0],int(idxH-idxL))
                     cv.SetImageROI(pal,roi)
-                    cv.AddS(pal,self._mPalette[i],pal)
+                    cv.AddS(pal,float(self._mPalette[i]),pal)
                     cv.ResetImageROI(pal)
                     idxL = idxH
                 retVal = Image(pal)
@@ -4822,19 +4822,7 @@ class Image:
 
         #we get the palette from find palete 
         #ASSUME: GET PALLETE WAS CALLED!
-        if( self._mPalette == None ):
-            warning.warn("No palette exists, call getPalette())")
-            return None
-        img = self.palettize(self._mPaletteBins)
-        npimg = img.getNumpy()
-        white = np.array([255,255,255])
-        black = np.array([0,0,0])
-
-        for p in palette_selection:
-            npimg = np.where(npimg != p,npimg,white)
-            
-        npimg = np.where(npimg != white,black,white)
-        bwimg = Image(npimg)
+        bwimg = self.binarizeFromPalette(palette_selection)
         if( dilate > 0 ):
             bwimg =bwimg.dilate(dilate)
         
@@ -4848,6 +4836,7 @@ class Image:
     
         if not len(blobs):
             return None
+        return blobs
 
 
     def binarizeFromPalette(self, palette_selection):
@@ -4886,17 +4875,30 @@ class Image:
         if( self._mPalette == None ):
             warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
             return None
+        retVal = None
         img = self.palettize(self._mPaletteBins)
-        npimg = img.getNumpy()
-        white = np.array([255,255,255])
-        black = np.array([0,0,0])
+        if( not self._mDoHuePalette ):
+            npimg = img.getNumpy()
+            white = np.array([255,255,255])
+            black = np.array([0,0,0])
 
-        for p in palette_selection:
-            npimg = np.where(npimg != p,npimg,white)
+            for p in palette_selection:
+                npimg = np.where(npimg != p,npimg,white)
             
-        npimg = np.where(npimg != white,black,white)
-        bwimg = Image(npimg)
-        return bwimg
+            npimg = np.where(npimg != white,black,white)
+            retVal = Image(npimg)
+        else:
+            npimg = img.getNumpy()
+            white = np.array([255])
+            black = np.array([0])
+
+            for p in palette_selection:
+                npimg = np.where(npimg != p,npimg,white)
+            
+            npimg = np.where(npimg != white,black,white)
+            retVal = Image(npimg)
+
+        return retVal
 
     def skeletonize(self, radius = 5):
         """
