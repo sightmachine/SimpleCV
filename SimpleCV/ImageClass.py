@@ -4876,7 +4876,7 @@ class Image:
             warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
             return None
         retVal = None
-        img = self.palettize(self._mPaletteBins)
+        img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
         if( not self._mDoHuePalette ):
             npimg = img.getNumpy()
             white = np.array([255,255,255])
@@ -4888,7 +4888,7 @@ class Image:
             npimg = np.where(npimg != white,black,white)
             retVal = Image(npimg)
         else:
-            npimg = img.getNumpy()
+            npimg = img.getNumpy()[:,:,1]
             white = np.array([255])
             black = np.array([0])
 

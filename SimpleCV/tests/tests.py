@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
 #   nosetest tests.py
@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = False
+VISUAL_TEST = True
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -1577,6 +1577,39 @@ def test_drawPalette():
   img6 = img.drawPaletteColors(horizontal=False,hue=True)
   img7 = img.drawPaletteColors(size=(69,420),hue=True )
   img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
+
+def test_palette_binarize():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  img2 = img.binarizeFromPalette(p[0:5])
+  if VISUAL_TEST:
+    img2.save("binary_palette_1.png")
+  p = img.getPalette(hue=True)
+  img2 = img.binarizeFromPalette(p[0:5])
+  if VISUAL_TEST:
+    img2.save("binary_palette_2.png")
+  pass
+
+def test_palette_blobs():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  b1 = img.findBlobsFromPalette(p[0:5])
+  b1.draw()
+  if VISUAL_TEST:
+    img.save("blobs_palette_1.png")
+
+  p = img.getPalette(hue=True)
+  b2 = img.findBlobsFromPalette(p[0:5])
+  b2.draw()
+  if VISUAL_TEST:
+    img.save("blobs_palette_2.png")
+
+  if( len(b1) > 0 and len(b2) > 0 ):
+    pass
+  else:
+    assert False
+
+    
 
 def test_skeletonize():
   img = Image(logo)
