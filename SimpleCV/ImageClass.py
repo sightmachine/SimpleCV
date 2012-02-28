@@ -6,7 +6,6 @@ from numpy import uint8
 import pygame as pg
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
-#import cv2 
 import math # math... who does that 
 
 class ColorSpace:
@@ -3953,6 +3952,12 @@ class Image:
          ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
 
         """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
+            return
+        
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
@@ -4042,6 +4047,11 @@ class Image:
          ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
          ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
         """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't run FLANN Matches without OpenCV >= 2.3.0")
+            return
         FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
         flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
         flann = cv2.flann_Index(sd, flann_params)
@@ -4181,6 +4191,13 @@ class Image:
 
 
         """
+        
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
+            return
+            
         if template == None:
           return None
         
