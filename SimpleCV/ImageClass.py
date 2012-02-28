@@ -393,7 +393,14 @@ class Image:
 
             else:
                 self.filename = source
-                self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                try:
+                    self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                except:
+                    self._pil = pil.open(self.filename).convert("RGB")
+                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                    cv.SetData(self._bitmap, self._pil.tostring())
+                    cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+                
                 #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
@@ -406,7 +413,7 @@ class Image:
             self._colorSpace = ColorSpace.BGR
 
 
-        elif (PIL_ENABLED and (source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "Image")):
+        elif (PIL_ENABLED and (source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "WebPPImageFile" or  source.__class__.__name__ == "Image")):
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
@@ -828,6 +835,14 @@ class Image:
             self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
+    def toString(self):
+        """
+        returns the image as a string
+        
+        returns str
+        """
+        return self.getBitmap().tostring()
+    
     
     def save(self, filehandle_or_filename="", mode="", verbose = False):
         """
@@ -839,6 +854,7 @@ class Image:
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
         """
+        
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -846,7 +862,7 @@ class Image:
             else:
                 filehandle_or_filename = self.filehandle
 
-
+            
         if (len(self._mLayers)):
             saveimg = self.applyLayers()
         else:
@@ -882,7 +898,6 @@ class Image:
 
 
             else:
-                print "other"
                 if (not mode):
                     mode = "jpeg"
       
@@ -900,7 +915,12 @@ class Image:
           filename = tempfile.mkstemp(suffix=".png")[-1]
         else:  
           filename = filehandle_or_filename
-          
+        
+        if re.search('\.webp$', filename): 
+            self.getPIL().save(filename)
+            return 1
+        
+        
         if (filename):
             cv.SaveImage(filename, saveimg.getBitmap())  
             self.filename = filename #set the filename for future save operations
