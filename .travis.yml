@@ -6,5 +6,5 @@ python:
 install: apt-get install python-numpy python-nose python-imaging python-scipy python-pygame
 # command to run tests, e.g. python setup.py test
 script:
-	- cd SimpleCV/tests/
-	- nosetests tests.py
+- cd SimpleCV/tests/
+- nosetests tests.py
