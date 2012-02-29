@@ -27,13 +27,17 @@ class Corner(Feature):
     """
     def __init__(self, i, at_x, at_y):
         super(Corner, self).__init__(i, at_x, at_y)
+        self.points = [(at_x,at_y)]
+        #not sure if we need all four
+        self.boundingBox = [(at_x-1,at_y-1),(at_x-1,at_y+1),(at_x+1,at_y+1),(at_x+1,at_y-1)]
+        self.points = self.boundingBox
         #can we look at the eigenbuffer and find direction?
   
-    def draw(self, color = (255, 0, 0)):
+    def draw(self, color = (255, 0, 0),width=1):
         """
         Draw a small circle around the corner.  Color tuple is single parameter, default Red 
         """
-        self.image.drawCircle((self.x, self.y), 4, color)
+        self.image.drawCircle((self.x, self.y), 4, color,width)
 
 ######################################################################
 class Line(Feature):
@@ -53,12 +57,14 @@ class Line(Feature):
         self.x = (line[0][0] + line[1][0]) / 2
         self.y = (line[0][1] + line[1][1]) / 2
         self.points = copy(line)
+        #not sure if this is going to work
+        self.boundingBox = self.points
  
-    def draw(self, color = (0, 0, 255)):
+    def draw(self, color = (0, 0, 255),width=1):
         """
         Draw the line, default color is blue
         """
-        self.image.drawLine(self.points[0], self.points[1], color)
+        self.image.drawLine(self.points[0], self.points[1], color,width)
       
     def length(self):
         """
@@ -184,6 +190,7 @@ class Barcode(Feature):
         self.image = i 
         self.data = zxbc.data 
         self.points = copy(zxbc.points)
+        self.boundingBox = self.points 
         numpoints = len(self.points)
         self.x = 0
         self.y = 0
@@ -196,16 +203,16 @@ class Barcode(Feature):
             self.x /= numpoints
             self.y /= numpoints
   
-    def draw(self, color = (255, 0, 0)): 
+    def draw(self, color = (255, 0, 0),width=1): 
         """
         Draws the bounding area of the barcode, given by points.  Note that for
         QR codes, these points are the reference boxes, and so may "stray" into 
         the actual code.
         """
-        self.image.drawLine(self.points[0], self.points[1], color)
-        self.image.drawLine(self.points[1], self.points[2], color)
-        self.image.drawLine(self.points[2], self.points[3], color)
-        self.image.drawLine(self.points[3], self.points[0], color)
+        self.image.drawLine(self.points[0], self.points[1], color,width)
+        self.image.drawLine(self.points[1], self.points[2], color,width)
+        self.image.drawLine(self.points[2], self.points[3], color,width)
+        self.image.drawLine(self.points[3], self.points[0], color,width)
   
     def length(self):
         """
@@ -261,17 +268,18 @@ class HaarFeature(Feature):
         self.x = x + self._width/2
         self.y = y + self._height/2 #set location of feature to middle of rectangle
         self.points = ((x, y), (x + self._width, y), (x + self._width, y + self._height), (x, y + self._height))
+        self.boundingBox = self.points
         #set bounding points of the rectangle
         self.classifier = haarclassifier
     
-    def draw(self, color = (0, 255, 0)):
+    def draw(self, color = (0, 255, 0),width=1):
         """
         Draw the bounding rectangle, default color green
         """
-        self.image.drawLine(self.points[0], self.points[1], color)
-        self.image.drawLine(self.points[1], self.points[2], color)
-        self.image.drawLine(self.points[2], self.points[3], color)
-        self.image.drawLine(self.points[3], self.points[0], color)
+        self.image.drawLine(self.points[0], self.points[1], color,width)
+        self.image.drawLine(self.points[1], self.points[2], color,width)
+        self.image.drawLine(self.points[2], self.points[3], color,width)
+        self.image.drawLine(self.points[3], self.points[0], color,width)
       
     def __getstate__(self):
         dict = self.__dict__.copy()
@@ -341,7 +349,8 @@ class Chessboard(Feature):
         #sort corners along the x - y axis
         
         self.points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1], negdiagsorted[0])
-        #return the exterior points in clockwise order
+        self.boundingBox = self.points
+      #return the exterior points in clockwise order
       
     def draw(self, no_needed_color = None):
         """
@@ -389,7 +398,7 @@ class TemplateMatch(Feature):
                         (location[0] + template.width, location[1]),
                         (location[0] + template.width, location[1] + template.height),
                         (location[0], location[1] + template.height)]
-
+        self.boundingBox = self.points
 
     def getExtents(self):
         """
@@ -447,8 +456,8 @@ class TemplateMatch(Feature):
                        (x+w,y+h),
                        (x,y+h))
 
-    def draw(self, color = Color.GREEN):
-        self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color)
+    def draw(self, color = Color.GREEN, width = 1):
+        self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color, width=width)
 ######################################################################
 class Circle(Feature):
     """
@@ -467,6 +476,15 @@ class Circle(Feature):
         self.r = r
         self.avgColor = None
         self.image = i
+        self.boundingBox = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
+        segments = 18
+        rng = range(1,segments+1)
+        self.points = []
+        for theta in rng:
+            rp = 2.0*math.pi*float(theta)/float(segments)
+            x = (r*math.sin(rp))+at_x
+            y = (r*math.cos(rp))+at_y
+            self.points.append((x,y))
   
     def coordinates(self):
         """
@@ -474,11 +492,11 @@ class Circle(Feature):
         """
         return np.array([self.x, self.y])  
   
-    def draw(self, color = Color.GREEN):
+    def draw(self, color = Color.GREEN,width=1):
         """
         With no dimension information, color the x,y point for the featuer 
         """
-        self.image.drawCircle((self.x,self.y),self.r,color=color)
+        self.image.drawCircle((self.x,self.y),self.r,color=color,thickness=width)
     
     def show(self, color = Color.GREEN):
         """
@@ -612,7 +630,16 @@ class KeyPoint(Feature):
         x = self.x
         y = self.y
         r = self.r
-        self.points = ((x+r,y+r),(x+r,y-r),(x-r,y-r),(x-r,y+r))
+        self.boundingBox = ((x+r,y+r),(x+r,y-r),(x-r,y-r),(x-r,y+r))
+        segments = 18
+        rng = range(1,segments+1)
+        self.points = []
+        for theta in rng:
+            rp = 2.0*math.pi*float(theta)/float(segments)
+            x = (r*math.sin(rp))+self.x
+            y = (r*math.cos(rp))+self.y
+            self.points.append((x,y))
+ 
 
     def getObject(self):
         return self.mKeyPoint
@@ -638,15 +665,15 @@ class KeyPoint(Feature):
         """
         return np.array([self.x, self.y])  
   
-    def draw(self, color = Color.GREEN):
+    def draw(self, color = Color.GREEN, width=1):
         """
         With no dimension information, color the x,y point for the featuer 
         """
-        self.image.drawCircle((self.x,self.y),self.r,color=color)
+        self.image.drawCircle((self.x,self.y),self.r,color=color,thickness=width)
         pt1 = (int(self.x),int(self.y))
         pt2 = (int(self.x+(self.radius()*sin(radians(self.angle())))),
                int(self.y+(self.radius()*cos(radians(self.angle())))))
-        self.image.drawLine(pt1,pt2,color)
+        self.image.drawLine(pt1,pt2,color,thickness=width)
     
     def show(self, color = Color.GREEN):
         """
@@ -781,8 +808,9 @@ class Motion(Feature):
         sz = wndw/2
         # so we center at the flow vector
         self.points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y-sz),(at_x-sz,at_y-sz)]
-        
-    def draw(self, color = Color.GREEN, normalize=True):
+        self.bounds = self.points
+
+    def draw(self, color = Color.GREEN, width=1,normalize=True):
         """
         Draw the optical flow vector going from the sample point along the length of the motion vector
         
@@ -802,7 +830,7 @@ class Motion(Feature):
             new_x = self.x + self.dx
             new_y = self.y + self.dy
 
-        self.image.drawLine((self.x,self.y),(new_x,new_y),color)
+        self.image.drawLine((self.x,self.y),(new_x,new_y),color,width)
 
     
     def normalizeTo(self, max_mag):
@@ -914,7 +942,7 @@ class KeypointMatch(Feature):
         """
         return np.array([self.x, self.y])  
   
-    def draw(self, color = Color.GREEN,width=2):
+    def draw(self, color = Color.GREEN,width=1):
         """
         The default drawing operation is to draw the min bounding 
         rectangle in an image. 
@@ -924,7 +952,7 @@ class KeypointMatch(Feature):
         self.image.drawLine(self.minRect[2],self.minRect[3],color=color,thickness=width)
         self.image.drawLine(self.minRect[3],self.minRect[0],color=color,thickness=width)
 
-    def drawRect(self, color = Color.GREEN,width=2):
+    def drawRect(self, color = Color.GREEN,width=1):
         """
         This method draws the axes alligned square box of the template 
         match. This box holds the minimum bounding rectangle that describes

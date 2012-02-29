@@ -4,6 +4,7 @@ from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
 import pygame as pg
+import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
@@ -4461,6 +4462,49 @@ class Image:
 
         return fs
         
+    def skeletonize(self, radius = 5):
+        """
+        Summary:
+
+        Skeletonization is the process of taking in a set of blobs (here blobs are white
+        on a black background) and finding a squigly line that would be the back bone of
+        the blobs were they some sort of vertebrate animal. Another way of thinking about 
+        skeletonization is that it finds a series of lines that approximates a blob's shape.
+
+        A good summary can be found here:
+        http://www.inf.u-szeged.hu/~palagyi/skel/skel.html
+
+        Parameters:
+        
+        radius - an intenger that defines how roughly how wide a blob must be to be added 
+                 to the skeleton, lower values give more skeleton lines, higher values give
+                 fewer skeleton lines. 
+        
+        Example:
+       
+        >>>> cam = Camera()
+        >>>> while True:
+        >>>>     img = cam.getImage()
+        >>>>     b = img.binarize().invert()
+        >>>>     s = img.skeletonize()
+        >>>>     r = b-s
+        >>>>     r.show()
+
+        Notes:
+        This code was a suggested improvement by Alex Wiltchko, check out his awesome blog here:
+        http://alexbw.posterous.com/
+
+        See Also:
+        None
+        
+        """
+        img = self.toGray().getNumpy()[:,:,0]
+        distance_img = ndimage.distance_transform_edt(img)
+        morph_laplace_img = ndimage.morphological_laplace(distance_img, (radius, radius))
+        skeleton = morph_laplace_img < morph_laplace_img.min()/2
+        retVal = np.zeros([self.width,self.height])
+        retVal[skeleton] = 255
+        return Image(retVal)
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
