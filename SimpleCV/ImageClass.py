@@ -414,7 +414,7 @@ class Image:
             self._colorSpace = ColorSpace.BGR
 
 
-        elif (PIL_ENABLED and (source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "WebPPImageFile" or  source.__class__.__name__ == "Image")):
+        elif (PIL_ENABLED and (source.__class__.__bases__[0].__name__ == "ImageFile" or source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "WebPPImageFile" or  source.__class__.__name__ == "Image")):
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
@@ -845,7 +845,7 @@ class Image:
         return self.getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False):
+    def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
@@ -855,7 +855,8 @@ class Image:
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
         """
-        
+        #TODO, we use the term mode here when we mean format
+        #TODO, if any params are passed, use PIL
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -880,7 +881,7 @@ class Image:
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
                 fh.jpgdata = StringIO() 
-                saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
+                saveimg.getPIL().save(fh.jpgdata, "jpeg", **params) #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
                 self.filename = "" 
                 self.filehandle = fh
@@ -902,7 +903,7 @@ class Image:
                 if (not mode):
                     mode = "jpeg"
       
-                saveimg.getPIL().save(fh, mode)
+                saveimg.getPIL().save(fh, mode, **params)
                 self.filehandle = fh #set the filename for future save operations
                 self.filename = ""
                 
@@ -918,7 +919,7 @@ class Image:
           filename = filehandle_or_filename
         
         if re.search('\.webp$', filename): 
-            self.getPIL().save(filename)
+            self.getPIL().save(filename, **params)
             return 1
         
         
