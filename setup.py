@@ -28,6 +28,6 @@ setup(name="SimpleCV",
   license='BSD',
   packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'sampleimages']),
   zip_safe = True,
-  requires=['cv', 'numpy', 'scipy', 'pygame', 'pil'],
+  requires=['cv', 'numpy', 'scipy', 'pygame', 'pil','cv2'],
   scripts=['scripts/simplecv']
   )

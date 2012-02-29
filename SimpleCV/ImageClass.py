@@ -9,6 +9,7 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 
+
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -1149,7 +1150,13 @@ class Image:
         except:
             return None
       
-      
+    def threshold(self, value):
+        gray = self._getGrayscaleBitmap()
+        result = self.getEmpty(1)
+        cv.Threshold(gray, result, value, 255, cv.CV_THRESH_BINARY)
+        retVal = Image(result)
+        return retVal
+ 
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         Do a binary threshold the image, changing all values below thresh to maxv
@@ -4505,6 +4512,97 @@ class Image:
         retVal = np.zeros([self.width,self.height])
         retVal[skeleton] = 255
         return Image(retVal)
+
+    def smartThreshold(self, mask=None, rect=None):
+        """
+        """
+        try:
+            import cv2
+            #import copy
+        except:
+            warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
+            return
+        retVal = []
+        if( mask is not None ):
+            bmp = mask._getGrayscaleBitmap()
+            # translate the human readable images to something opencv wants using a lut
+            LUT = np.zeros((256,1),dtype=uint8)
+            LUT[255]=1
+            LUT[64]=2
+            LUT[192]=3
+            cv.LUT(bmp,bmp,cv.fromarray(LUT))
+            mask_in = np.array(cv.GetMat(bmp)) 
+            # get our image in a flavor grab cut likes
+            npimg = np.array(cv.GetMat(self.getBitmap())) 
+            # reguire
+            tmp1 = np.zeros((1, 13 * 5))
+            tmp2 = np.zeros((1, 13 * 5))
+            # do the algorithm
+            cv2.grabCut(npimg,mask_in,None,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_MASK)
+            # generate the output image
+            output = cv.CreateImageHeader((mask_in.shape[1],mask_in.shape[0]),cv.IPL_DEPTH_8U,1)
+            cv.SetData(output,mask_in.tostring(),mask_in.dtype.itemsize*mask_in.shape[1])
+            # remap the color space
+            LUT = np.zeros((256,1),dtype=uint8)
+            LUT[1]=255
+            LUT[2]=64
+            LUT[3]=192
+            cv.LUT(output,output,cv.fromarray(LUT))
+            # and create teh return value
+            mask._graybitmap = None # don't ask me why... but this gets corrupted
+            retVal = Image(output)
+
+        elif ( rect is not None ):
+            npimg = np.array(cv.GetMat(self.getBitmap())) 
+            tmp1 = np.zeros((1, 13 * 5))
+            tmp2 = np.zeros((1, 13 * 5))
+            mask = np.zeros((self.height,self.width),dtype='uint8')
+            cv2.grabCut(npimg,mask,rect,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_RECT)
+            #mask = np.transpose(mask)
+            bmp = cv.CreateImageHeader((mask.shape[1],mask.shape[0]),cv.IPL_DEPTH_8U,1)
+            cv.SetData(bmp,mask.tostring(),mask.dtype.itemsize*mask.shape[1])
+            LUT = np.zeros((256,1),dtype=uint8)
+            LUT[1]=255
+            LUT[2]=64
+            LUT[3]=192
+            cv.LUT(bmp,bmp,cv.fromarray(LUT))
+            retVal = Image(bmp)
+        else:
+            warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
+            #ASPLODE
+        return retVal
+            
+    def findBlobsSmart(self,mask=None,rect=None):
+        """
+        mask should be gray scale - I think we need to modify colors to be useful. 
+        """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
+            return
+        retVal = []
+        #if( mask is not None ):
+        #    
+        if ( rect is not None ):
+            npimg = np.array(cv.GetMat(self.getBitmap())) 
+            tmp1 = np.zeros((1, 13 * 5))
+            tmp2 = np.zeros((1, 13 * 5))
+            mask = np.zeros((self.height,self.width),dtype='uint8')
+            cv2.grabCut(npimg,mask,rect,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_RECT)
+            #mask = np.transpose(mask)
+            bmp = cv.CreateImageHeader((mask.shape[1],mask.shape[0]),cv.IPL_DEPTH_8U,1)
+            cv.SetData(bmp,mask.tostring(),mask.dtype.itemsize*mask.shape[1])
+            LUT = np.zeros((256,1),dtype=uint8)
+            LUT[1]=255
+            LUT[2]=64
+            LUT[3]=192
+            cv.LUT(bmp,bmp,cv.fromarray(LUT))
+            retVal = Image(bmp)
+        else:
+            warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
+            #ASPLODE
+        return retVal
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
