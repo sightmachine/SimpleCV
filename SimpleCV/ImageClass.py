@@ -901,7 +901,7 @@ class Image:
                 if (not mode):
                     mode = "jpeg"
       
-                saveung.getPIL().save(fh, mode)
+                saveimg.getPIL().save(fh, mode)
                 self.filehandle = fh #set the filename for future save operations
                 self.filename = ""
                 
