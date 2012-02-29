@@ -1,0 +1,12 @@
+language: python
+python:
+  - 2.7
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install:
+- sudo apt-get install python-numpy python-nose python-imaging python-scipy python-pygame
+- sudo apt-get update
+- sudo apt-get install python-opencv
+# command to run tests, e.g. python setup.py test
+script:
+- cd SimpleCV/tests/
+- nosetests tests.py
