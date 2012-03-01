@@ -197,7 +197,6 @@ class Image:
     >>> img = Image("logo")
     >>> img = Image("logo_inverted")
     >>> img = Image("logo_transparent")
-    >>> img = Image("barcode")
 
     Or you can load an image from a URL:
     >>> img = Image("http://www.simplecv.org/image.png")
