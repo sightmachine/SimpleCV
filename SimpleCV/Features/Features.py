@@ -29,7 +29,7 @@ class FeatureSet(list):
         for f in self:
             if(autocolor):
                 color = Color().getRandom()
-            f.draw(color,width)
+            f.draw(color=color,width=width)
     
     def show(self, color = Color.GREEN, autocolor = False,width=1):
         """
