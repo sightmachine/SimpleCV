@@ -1150,12 +1150,6 @@ class Image:
         except:
             return None
       
-    def threshold(self, value):
-        gray = self._getGrayscaleBitmap()
-        result = self.getEmpty(1)
-        cv.Threshold(gray, result, value, 255, cv.CV_THRESH_BINARY)
-        retVal = Image(result)
-        return retVal
  
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
@@ -4515,10 +4509,48 @@ class Image:
 
     def smartThreshold(self, mask=None, rect=None):
         """
+        Summary:
+        smartThreshold uses a method called grabCut, also called graph cut, to 
+        automagically generate a grayscale mask image. The dumb version of threshold
+        just uses color, smartThreshold looks at
+        both color and edges to find a blob. To work smartThreshold needs either a 
+        rectangle that bounds the object you want to find, or a mask. If you use
+        a rectangle make sure it holds the complete object. In the case of a mask, it
+        need not be a normal binary mask, it can have the normal white foreground and black
+        background, but also a light and dark gray values that correspond to areas 
+        that are more likely to be foreground and more likely to be background. These
+        values can be found in the color class as Color.BACKGROUND, Color.FOREGROUND, 
+        Color.MAYBE_BACKGROUND, and Color.MAYBE_FOREGROUND. 
+
+        Parameters:
+        mask         - A grayscale mask the same size as the image using the 4 mask color values
+        rect         - A rectangle tuple of the form (x_position,y_position,width,height)
+
+        Returns:
+        A grayscale image with the foreground / background values assigned to:
+        BACKGROUND = (0,0,0)
+        MAYBE_BACKGROUND = (64,64,64)
+        MAYBE_FOREGROUND =  (192,192,192)
+        FOREGROUND = (255,255,255)
+        
+        Example:
+        >>>> img = Image("RatTop.png")
+        >>>> mask = Image((img.width,img.height))
+        >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True
+        >>>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+        >>>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+        >>>> mask.applyLayers()
+        >>>> new_mask = img.smartThreshold(mask=mask)
+        >>>> new_mask.show()
+
+        Notes:
+        http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
+
+        See Also:
+        ImageClass.smartFindBlobs()
         """
         try:
             import cv2
-            #import copy
         except:
             warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
             return
@@ -4534,7 +4566,7 @@ class Image:
             mask_in = np.array(cv.GetMat(bmp)) 
             # get our image in a flavor grab cut likes
             npimg = np.array(cv.GetMat(self.getBitmap())) 
-            # reguire
+            # require by opencv
             tmp1 = np.zeros((1, 13 * 5))
             tmp2 = np.zeros((1, 13 * 5))
             # do the algorithm
@@ -4548,7 +4580,7 @@ class Image:
             LUT[2]=64
             LUT[3]=192
             cv.LUT(output,output,cv.fromarray(LUT))
-            # and create teh return value
+            # and create the return value
             mask._graybitmap = None # don't ask me why... but this gets corrupted
             retVal = Image(output)
 
@@ -4558,7 +4590,6 @@ class Image:
             tmp2 = np.zeros((1, 13 * 5))
             mask = np.zeros((self.height,self.width),dtype='uint8')
             cv2.grabCut(npimg,mask,rect,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_RECT)
-            #mask = np.transpose(mask)
             bmp = cv.CreateImageHeader((mask.shape[1],mask.shape[0]),cv.IPL_DEPTH_8U,1)
             cv.SetData(bmp,mask.tostring(),mask.dtype.itemsize*mask.shape[1])
             LUT = np.zeros((256,1),dtype=uint8)
@@ -4569,40 +4600,95 @@ class Image:
             retVal = Image(bmp)
         else:
             warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
-            #ASPLODE
         return retVal
             
-    def findBlobsSmart(self,mask=None,rect=None):
+    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):
         """
-        mask should be gray scale - I think we need to modify colors to be useful. 
+        Summary:
+        smartFindBlobs uses a method called grabCut, also called graph cut, to 
+        automagically determine the boundary of a blob in the image. The dumb find
+        blobs just uses color threshold to find the boundary, smartFindBlobs looks at
+        both color and edges to find a blob. To work smartFindBlobs needs either a 
+        rectangle that bounds the object you want to find, or a mask. If you use
+        a rectangle make sure it holds the complete object. In the case of a mask, it
+        need not be a normal binary mask, it can have the normal white foreground and black
+        background, but also a light and dark gray values that correspond to areas 
+        that are more likely to be foreground and more likely to be background. These
+        values can be found in the color class as Color.BACKGROUND, Color.FOREGROUND, 
+        Color.MAYBE_BACKGROUND, and Color.MAYBE_FOREGROUND. 
+
+        Parameters:
+        mask         - A grayscale mask the same size as the image using the 4 mask color values
+        rect         - A rectangle tuple of the form (x_position,y_position,width,height)
+        thresh_level - This represents what grab cut values to use in the mask after the
+                       graph cut algorithm is run, 
+                       1  - means use the foreground, maybe_foreground, and maybe_background values
+                       2  - means use the foreground and maybe_foreground values.
+                       3+ - means use just the foreground
+        Returns:
+        A featureset of blobs. If everything went smoothly only a couple of blobs should
+        be present. 
+        
+        Example:
+        >>>> img = Image("RatTop.png")
+        >>>> mask = Image((img.width,img.height))
+        >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True
+        >>>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+        >>>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+        >>>> mask.applyLayers()
+        >>>> blobs = img.smartFindBlobs(mask=mask)
+        >>>> blobs.draw()
+        >>>> blobs.show()
+
+        Notes:
+        http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
+
+        See Also:
+        ImageClass.smartThreshold(self, mask=None, rect=None)
         """
-        try:
-            import cv2
-        except:
-            warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
-            return
-        retVal = []
-        #if( mask is not None ):
-        #    
-        if ( rect is not None ):
-            npimg = np.array(cv.GetMat(self.getBitmap())) 
-            tmp1 = np.zeros((1, 13 * 5))
-            tmp2 = np.zeros((1, 13 * 5))
-            mask = np.zeros((self.height,self.width),dtype='uint8')
-            cv2.grabCut(npimg,mask,rect,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_RECT)
-            #mask = np.transpose(mask)
-            bmp = cv.CreateImageHeader((mask.shape[1],mask.shape[0]),cv.IPL_DEPTH_8U,1)
-            cv.SetData(bmp,mask.tostring(),mask.dtype.itemsize*mask.shape[1])
-            LUT = np.zeros((256,1),dtype=uint8)
-            LUT[1]=255
-            LUT[2]=64
-            LUT[3]=192
-            cv.LUT(bmp,bmp,cv.fromarray(LUT))
-            retVal = Image(bmp)
-        else:
-            warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
-            #ASPLODE
+        result = self.smartThreshold(mask, rect)
+        binary = None
+        if( thresh_level ==  1 ):
+            result = result.threshold(192)
+        elif( thresh_level == 2):
+            result = result.threshold(128)
+        elif( thresh_level > 2 ):
+            result = result.threshold(1)
+        bm = BlobMaker()
+        retVal = bm.extractFromBinary(result,self)
         return retVal
+
+    def threshold(self, value):
+        """
+        Summary:
+        We roll old school with this vanilla threshold function. It takes your image
+        converts it to grayscale, and applies a threshold. Values above the threshold 
+        are white, values below the threshold are black (note this is in contrast to 
+        binarize... which is a stupid function that drives me up a wall). The resulting
+        black and white image is returned.
+        
+        Parameters:
+        value - the threshold, goes between 0 and 255
+
+        Returns:
+        A black and white image.
+        
+        Example:
+        >>>> img = Image("purplemonkeydishwasher.png")
+        >>>> result = img.threshold(42)
+       
+        Notes:
+        THRESHOLD RULES BINARIZE DROOLS!
+        
+        See Also:
+        ImageClass.binarize()
+        """
+        gray = self._getGrayscaleBitmap()
+        result = self.getEmpty(1)
+        cv.Threshold(gray, result, value, 255, cv.CV_THRESH_BINARY)
+        retVal = Image(result)
+        return retVal
+
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
