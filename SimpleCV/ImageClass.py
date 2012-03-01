@@ -413,7 +413,11 @@ class Image:
             self._colorSpace = ColorSpace.BGR
 
 
-        elif (PIL_ENABLED and (source.__class__.__bases__[0].__name__ == "ImageFile" or source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "WebPPImageFile" or  source.__class__.__name__ == "Image")):
+        elif (PIL_ENABLED and (
+                (len(source.__class__.__bases__) and source.__class__.__bases__[0].__name__ == "ImageFile")
+                or source.__class__.__name__ == "JpegImageFile"
+                or source.__class__.__name__ == "WebPPImageFile"
+                or  source.__class__.__name__ == "Image")):
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
