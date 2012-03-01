@@ -2954,7 +2954,7 @@ class Image:
                 x = (self.width-resolution[0])/2
                 y = (self.height-resolution[1])/2
                 img = img.crop(x,y,targetw,targeth)
-            elif( self.width < resolution[0] and self.height >= resolution[1]): #height too big
+            elif( self.width <= resolution[0] and self.height > resolution[1]): #height too big
                 #crop along the y dimension and center along the x dimension
                 targetw = self.width
                 targeth = resolution[1]
