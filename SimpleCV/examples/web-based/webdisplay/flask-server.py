@@ -2,6 +2,15 @@
 This application uses Flask as a web server and jquery to trigger
 pictures with SimpleCV
 
+To use start the web server:
+>>> python flask-server.py
+
+Then to run the application:
+>>> python webkit-gtk.py
+
+*Note: You are not required to run the webkit-gtk.py, you can also
+visit http://localhost:5000
+
 '''
 
 print __doc__
