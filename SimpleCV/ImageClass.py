@@ -857,6 +857,15 @@ class Image:
     
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
+
+        Save also supports IPython Notebooks when passing it a Display object
+        that has been instainted with the notebook flag.
+
+        To do this just use:
+        >>> disp = Display(displaytype='notebook')
+        >>> img.save(disp)
+
+        *Note: You must have IPython notebooks installed for this to work
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
@@ -897,9 +906,24 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
-                self.filename = "" 
-                self.filehandle = fh
-                fh.writeFrame(saveimg)
+
+                if fh.displaytype == 'notebook':
+                  try:
+                    from IPython.core.display import Image as IPImage
+                  except ImportError:
+                    print "You need IPython Notebooks to use this display mode"
+                    return
+
+                  tf = tempfile.NamedTemporaryFile(suffix=".png")
+                  loc = '/tmp/' + tf.name.split('/')[-1]
+                  tf.close()
+                  self.save(loc)
+                  ipimg = IPImage(filename=loc)
+                  return ipimg
+                else:
+                  self.filename = "" 
+                  self.filehandle = fh
+                  fh.writeFrame(saveimg)
 
 
             else:
