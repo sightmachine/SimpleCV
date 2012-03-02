@@ -22,7 +22,7 @@ class FeatureSet(list):
     >>> lines.crop()
     """
   
-    def draw(self, color = Color.GREEN,width=1, autocolor = False):
+    def draw(self, color = Color.GREEN,width=-1, autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
         """
