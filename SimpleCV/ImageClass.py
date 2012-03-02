@@ -4,9 +4,9 @@ from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
 import pygame as pg
+import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
-import cv2 
 import math # math... who does that 
 
 class ColorSpace:
@@ -197,7 +197,6 @@ class Image:
     >>> img = Image("logo")
     >>> img = Image("logo_inverted")
     >>> img = Image("logo_transparent")
-    >>> img = Image("barcode")
 
     Or you can load an image from a URL:
     >>> img = Image("http://www.simplecv.org/image.png")
@@ -394,7 +393,14 @@ class Image:
 
             else:
                 self.filename = source
-                self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                try:
+                    self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                except:
+                    self._pil = pil.open(self.filename).convert("RGB")
+                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                    cv.SetData(self._bitmap, self._pil.tostring())
+                    cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+                
                 #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
@@ -407,7 +413,11 @@ class Image:
             self._colorSpace = ColorSpace.BGR
 
 
-        elif (PIL_ENABLED and (source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "Image")):
+        elif (PIL_ENABLED and (
+                (len(source.__class__.__bases__) and source.__class__.__bases__[0].__name__ == "ImageFile")
+                or source.__class__.__name__ == "JpegImageFile"
+                or source.__class__.__name__ == "WebPPImageFile"
+                or  source.__class__.__name__ == "Image")):
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
@@ -810,6 +820,12 @@ class Image:
 
         return self._equalizedgraybitmap
     
+
+    def equalize(self):
+        """
+        Perform a histogram equalization on the image, return a grayscale image.
+        """
+        return Image(self._getEqualizedGrayscaleBitmap())
     
     def getPGSurface(self):
         """
@@ -823,8 +839,16 @@ class Image:
             self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
+    def toString(self):
+        """
+        returns the image as a string
+        
+        returns str
+        """
+        return self.getBitmap().tostring()
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False):
+    
+    def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
@@ -833,7 +857,18 @@ class Image:
     
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
+
+        Save also supports IPython Notebooks when passing it a Display object
+        that has been instainted with the notebook flag.
+
+        To do this just use:
+        >>> disp = Display(displaytype='notebook')
+        >>> img.save(disp)
+
+        *Note: You must have IPython notebooks installed for this to work
         """
+        #TODO, we use the term mode here when we mean format
+        #TODO, if any params are passed, use PIL
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -841,7 +876,7 @@ class Image:
             else:
                 filehandle_or_filename = self.filehandle
 
-
+            
         if (len(self._mLayers)):
             saveimg = self.applyLayers()
         else:
@@ -858,7 +893,7 @@ class Image:
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
                 fh.jpgdata = StringIO() 
-                saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
+                saveimg.getPIL().save(fh.jpgdata, "jpeg", **params) #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
                 self.filename = "" 
                 self.filehandle = fh
@@ -871,17 +906,31 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
-                self.filename = "" 
-                self.filehandle = fh
-                fh.writeFrame(saveimg)
+
+                if fh.displaytype == 'notebook':
+                  try:
+                    from IPython.core.display import Image as IPImage
+                  except ImportError:
+                    print "You need IPython Notebooks to use this display mode"
+                    return
+
+                  tf = tempfile.NamedTemporaryFile(suffix=".png")
+                  loc = '/tmp/' + tf.name.split('/')[-1]
+                  tf.close()
+                  self.save(loc)
+                  ipimg = IPImage(filename=loc)
+                  return ipimg
+                else:
+                  self.filename = "" 
+                  self.filehandle = fh
+                  fh.writeFrame(saveimg)
 
 
             else:
-                print "other"
                 if (not mode):
                     mode = "jpeg"
       
-                saveung.getPIL().save(fh, mode)
+                saveimg.getPIL().save(fh, mode, **params)
                 self.filehandle = fh #set the filename for future save operations
                 self.filename = ""
                 
@@ -895,7 +944,12 @@ class Image:
           filename = tempfile.mkstemp(suffix=".png")[-1]
         else:  
           filename = filehandle_or_filename
-          
+        
+        if re.search('\.webp$', filename): 
+            self.getPIL().save(filename, **params)
+            return 1
+        
+        
         if (filename):
             cv.SaveImage(filename, saveimg.getBitmap())  
             self.filename = filename #set the filename for future save operations
@@ -2772,6 +2826,12 @@ class Image:
       
         return None
 
+    def layers(self):
+        """
+        Return the array of DrawingLayer objects associated with the image
+        """
+        return self._mLayers
+
 
         #render the image. 
     def _renderImage(self, layer):
@@ -2922,7 +2982,7 @@ class Image:
                 x = (self.width-resolution[0])/2
                 y = (self.height-resolution[1])/2
                 img = img.crop(x,y,targetw,targeth)
-            elif( self.width < resolution[0] and self.height >= resolution[1]): #height too big
+            elif( self.width <= resolution[0] and self.height > resolution[1]): #height too big
                 #crop along the y dimension and center along the x dimension
                 targetw = self.width
                 targeth = resolution[1]
@@ -3941,6 +4001,12 @@ class Image:
          ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
 
         """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
+            return
+        
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
@@ -4030,6 +4096,11 @@ class Image:
          ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
          ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
         """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't run FLANN Matches without OpenCV >= 2.3.0")
+            return
         FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
         flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
         flann = cv2.flann_Index(sd, flann_params)
@@ -4169,6 +4240,13 @@ class Image:
 
 
         """
+        
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
+            return
+            
         if template == None:
           return None
         
@@ -4412,6 +4490,49 @@ class Image:
 
         return fs
         
+    def skeletonize(self, radius = 5):
+        """
+        Summary:
+
+        Skeletonization is the process of taking in a set of blobs (here blobs are white
+        on a black background) and finding a squigly line that would be the back bone of
+        the blobs were they some sort of vertebrate animal. Another way of thinking about 
+        skeletonization is that it finds a series of lines that approximates a blob's shape.
+
+        A good summary can be found here:
+        http://www.inf.u-szeged.hu/~palagyi/skel/skel.html
+
+        Parameters:
+        
+        radius - an intenger that defines how roughly how wide a blob must be to be added 
+                 to the skeleton, lower values give more skeleton lines, higher values give
+                 fewer skeleton lines. 
+        
+        Example:
+       
+        >>>> cam = Camera()
+        >>>> while True:
+        >>>>     img = cam.getImage()
+        >>>>     b = img.binarize().invert()
+        >>>>     s = img.skeletonize()
+        >>>>     r = b-s
+        >>>>     r.show()
+
+        Notes:
+        This code was a suggested improvement by Alex Wiltchko, check out his awesome blog here:
+        http://alexbw.posterous.com/
+
+        See Also:
+        None
+        
+        """
+        img = self.toGray().getNumpy()[:,:,0]
+        distance_img = ndimage.distance_transform_edt(img)
+        morph_laplace_img = ndimage.morphological_laplace(distance_img, (radius, radius))
+        skeleton = morph_laplace_img < morph_laplace_img.min()/2
+        retVal = np.zeros([self.width,self.height])
+        retVal[skeleton] = 255
+        return Image(retVal)
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )

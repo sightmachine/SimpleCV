@@ -4,7 +4,7 @@ import csv
 from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
 from SimpleCV.Display import Display
 
-cam = Camera(0)
+cam = Camera(1)
 time.sleep(.1) # uhg
 display = Display((800,600))
 data = "None"
@@ -12,7 +12,7 @@ mydict = dict()
 myfile = "mystuff.csv"
 while( display.isNotDone() ):
     display.checkEvents()#check for mouse clicks
-    img = cam.getImage()
+    img = cam.getImage().scale(.3)
     #img = img.scale(1) #use a smaller image
     img.drawRectangle(img.width/4,img.height/4,img.width/2,img.height/2,color=Color.RED,width=3)
     if( display.mouseLeft > 0 ): # click the mouse to read
