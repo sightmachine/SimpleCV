@@ -13,3 +13,4 @@ SimpleCV/sampleimages/9d4l.jpg
 SimpleCV/utils/*
 SimpleCV/utils/
 SimpleCV/tests/*.pkl
+*.ipynb
