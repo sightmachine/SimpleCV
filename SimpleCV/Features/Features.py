@@ -31,7 +31,7 @@ class FeatureSet(list):
                 color = Color().getRandom()
             f.draw(color=color,width=width)
     
-    def show(self, color = Color.GREEN, autocolor = False,width=1):
+    def show(self, color = Color.GREEN, autocolor = False,width= -1):
         """
         This function will automatically draw the features on the image and show it.
         It is a basically a shortcut function for development and is the same as:
@@ -42,7 +42,7 @@ class FeatureSet(list):
         >>> img.show()
 
         """
-        self.draw(color, autocolor,width)
+        self.draw(color, width, autocolor)
         self[-1].image.show()
                 
   
