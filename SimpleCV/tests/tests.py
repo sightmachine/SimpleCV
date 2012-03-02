@@ -1540,3 +1540,52 @@ def test_skeletonize():
   s = img.skeletonize()
   s2 = img.skeletonize(10)
   pass
+
+def test_threshold():
+  img = Image(logo)
+  for t in range(0,255):
+    img.threshold(t)
+  pass
+
+def test_smartThreshold():
+  img = Image("../sampleimages/RatTop.png")
+  mask = Image((img.width,img.height))
+  mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+  mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+  mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+  mask = mask.applyLayers()
+  new_mask = img.smartThreshold(mask=mask)
+  if VISUAL_TEST:
+    new_mask.save("SMART_THRESHOLD_MASK.png")
+  
+  new_mask = img.smartThreshold(rect=(30,30,150,185))
+  if VISUAL_TEST:
+    new_mask.save("SMART_THRESHOLD_RECT.png")
+
+  pass
+
+def test_smartFindBlobs():
+  img = Image("../sampleimages/RatTop.png")
+  mask = Image((img.width,img.height))
+  mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+  mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+  mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+  mask = mask.applyLayers()
+  blobs = img.smartFindBlobs(mask=mask)
+  blobs.draw()
+  if VISUAL_TEST:
+    img.save("SMART_BLOB_MASK.png")
+  if( len(blobs) < 1 ):
+    assert False
+
+  for t in range(1,3):
+    blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
+    blobs2.draw()
+    if VISUAL_TEST:
+      fname = "SMART_BLOB_RECT" + str(t) + ".png"
+      img.save(fname)
+      if( len(blobs2) < 1 ):
+        assert False
+
+  pass
+

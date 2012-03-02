@@ -4564,10 +4564,10 @@ class Image:
         Example:
         >>>> img = Image("RatTop.png")
         >>>> mask = Image((img.width,img.height))
-        >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True
+        >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
         >>>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
         >>>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-        >>>> mask.applyLayers()
+        >>>> mask = mask.applyLayers()
         >>>> new_mask = img.smartThreshold(mask=mask)
         >>>> new_mask.show()
 
@@ -4663,7 +4663,7 @@ class Image:
         >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True
         >>>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
         >>>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-        >>>> mask.applyLayers()
+        >>>> mask = mask.applyLayers()
         >>>> blobs = img.smartFindBlobs(mask=mask)
         >>>> blobs.draw()
         >>>> blobs.show()
