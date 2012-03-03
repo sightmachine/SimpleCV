@@ -42,7 +42,7 @@ classifierSVM.setFeatureExtractors([morph_extractor])
 
 
 count = 0
-cam = Camera(1)
+cam = Camera(0)
 blobber = BlobMaker()
 disp = Display(resolution=(800,600))
 minsize = 100
