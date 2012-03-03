@@ -30,7 +30,7 @@ startY = None
 endY = None
 endX = None
 
-while( display.isNotDone() ):
+while not display.isDone():
 		img = cam.getImage()
 
 		#Display this if a template has not been trained yet
