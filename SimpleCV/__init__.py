@@ -15,4 +15,4 @@ from SimpleCV.MachineLearning import *
 
 if (__name__ == '__main__'):
     from SimpleCV.Shell import *
-    main()
+    main(sys.argv)
