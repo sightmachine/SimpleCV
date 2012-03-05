@@ -4536,6 +4536,46 @@ class Image:
 
     def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True):
         """
+        Summary:
+        floodFill works just like ye olde paint bucket tool in your favorite image manipulation
+        program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
+        point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
+        tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
+        The method accepts both single values, and triplet tuples for the tolerance values. If you 
+        require more control over your tolerance you can use the upper and lower values. The fixed
+        range parameter let's you toggle between setting the tolerance with repect to the seed pixel,
+        and using a tolerance that is relative to the adjacent pixels. If fixed_range is true the
+        method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
+        be with repsect to adjacent pixels. 
+
+        Parameters:
+        points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        tolerance   - The color tolerance as a single value or a triplet.
+        color       - The color to replace the floodFill pixels with
+        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
+                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
+                      the adjacent pixels to the pixel under test.
+
+        Returns:
+        An Image where the values similar to the seed pixel have been replaced by the input color. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> img2 = img.floodFill(((10,10),(54,32)),tolerance=(10,10,10),color=Color.RED)
+        >>>> img2.show()
+
+        Notes:
+
+        See Also:
+        ImageClass.floodFillToMask()
+        ImageClass.findFloodFillBlobs()
+        
         """
         if( isinstance(points,tuple) ):
             points = np.array(points)
@@ -4583,6 +4623,56 @@ class Image:
 
     def floodFillToMask(self, points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True,mask=None):
         """
+        Summary:
+        floodFillToMask works sorta paint bucket tool in your favorite image manipulation
+        program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
+        point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
+        tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
+        Unlike regular floodFill, floodFillToMask, will return a binary mask of your flood fill
+        operation. This is handy if you want to extract blobs from an area, or create a 
+        selection from a region. The method takes in an optional mask. Non-zero values of the mask
+        act to block the flood fill operations. This is handy if you want to use an edge image
+        to "stop" the flood fill operation within a particular region.
+
+        The method accepts both single values, and triplet tuples for the tolerance values. If you 
+        require more control over your tolerance you can use the upper and lower values. The fixed
+        range parameter let's you toggle between setting the tolerance with repect to the seed pixel,
+        and using a tolerance that is relative to the adjacent pixels. If fixed_range is true the
+        method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
+        be with repsect to adjacent pixels. 
+
+        Parameters:
+        points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        tolerance   - The color tolerance as a single value or a triplet.
+        color       - The color to replace the floodFill pixels with
+        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
+                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
+                      the adjacent pixels to the pixel under test.
+        mask        - An optional mask image that can be used to control the flood fill operation. 
+                      the output of this function will include the mask data in the input mask. 
+
+        Returns:
+        An Image where the values similar to the seed pixel have been replaced by the input color. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> mask = img.edges()
+        >>>> mask= img.floodFillToMask(((10,10),(54,32)),tolerance=(10,10,10),mask=mask)
+        >>>> mask.show
+
+        Notes:
+        None
+
+        See Also:
+        ImageClass.floodFill()
+        ImageClass.findFloodFillBlobs()
+        
         """
         mask_flag = 255 # flag weirdness
         if( isinstance(points,tuple) ):
@@ -4638,15 +4728,40 @@ class Image:
 
     def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
         """
-        This will look for continuous
-        light regions and return them as Blob features in a FeatureSet.  Parameters
-        specify the binarize filter threshold value, and minimum and maximum size for blobs.  
-        If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
-        more information about thresholding.  The threshblocksize and threshconstant
-        parameters are only used for adaptive threshold.
- 
+        Summary:
+        This method acts like findBlobs, but it lets you specifiy blobs directly by
+        providing a mask image. The mask image must match the size of this image, and 
+        the mask should have values > threshold where you want the blobs selected. This 
+        method can be used with binarize, dialte, erode, floodFill, edges etc to 
+        get really nice segmentation. 
         
-        Returns: FEATURESET
+        Parameters:
+        mask      - The mask image, areas lighter than threshold will be counted as blobs.
+                    Mask should be the same size as this image. 
+        threshold - A single threshold value used when we binarize the mask. 
+        minsize   - The minimum size of the returned blobs.
+        maxsize   - The maximum size of the returned blobs, if none is specified we peg 
+                    this to the image size. 
+
+        Returns:
+        A featureset of blobs. If no blobs are found None is returned. 
+
+        Example:
+        
+        >>>> img = Image("Foo.png")
+        >>>> mask = img.binarize().dilate(2)
+        >>>> blobs = img.findBlobsFromMask(mask)
+        >>>> blobs.show()
+        
+        Notes:
+        -N/A-
+
+        See Also:
+        ImageClass.findBlobs()
+        ImageClass.binarize()
+        ImageClass.threshold()
+        ImageClass.dilate()
+        ImageClass.erode()
         """
         if (maxsize == 0):  
             maxsize = self.width * self.height / 2
@@ -4670,6 +4785,55 @@ class Image:
     def findFloodFillBlobs(self,points,tolerance=None,lower=None,upper=None,
                            fixed_range=True,minsize=30,maxsize=-1):
         """
+        Summary:
+        This method lets you use a flood fill operation and pipe the results to findBlobs. You provide
+        the points to seed floodFill and the rest is taken care of. 
+
+        floodFill works just like ye olde paint bucket tool in your favorite image manipulation
+        program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
+        point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
+        tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
+        The method accepts both single values, and triplet tuples for the tolerance values. If you 
+        require more control over your tolerance you can use the upper and lower values. The fixed
+        range parameter let's you toggle between setting the tolerance with repect to the seed pixel,
+        and using a tolerance that is relative to the adjacent pixels. If fixed_range is true the
+        method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
+        be with repsect to adjacent pixels. 
+
+        Parameters:
+        points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        tolerance   - The color tolerance as a single value or a triplet.
+        color       - The color to replace the floodFill pixels with
+        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
+                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
+                      the adjacent pixels to the pixel under test.
+        minsize     - The minimum size of the returned blobs.
+        maxsize     - The maximum size of the returned blobs, if none is specified we peg 
+                      this to the image size. 
+
+        Returns:
+        A featureset of blobs. If no blobs are found None is returned. 
+
+
+        An Image where the values similar to the seed pixel have been replaced by the input color. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> blerbs = img.findFloodFillBlobs(((10,10),(20,20),(30,30)),tolerance=30)
+        >>>> blerbs.show()
+
+        Notes:
+
+        See Also:
+        ImageClass.findBlobs()
+        ImageClass.floodFill()
+        
         """
         mask = self.floodFillToMask(points,tolerance,color=Color.WHITE,lower=lower,upper=upper,fixed_range=fixed_range)
         return self.findBlobsFromMask(mask,minsize,maxsize)

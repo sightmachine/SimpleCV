@@ -1540,3 +1540,43 @@ def test_skeletonize():
   s = img.skeletonize()
   s2 = img.skeletonize(10)
   pass
+
+def test_biblical_flood_fill():
+  img = Image(testimage2)
+  b = img.findBlobs()
+  img.floodFill(b.coordinates(),tolerance=3,color=Color.RED)
+  img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.BLUE)
+  img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.GREEN,fixed_range=False)
+  img.floodFill((30,30),lower=3,upper=5,color=Color.ORANGE)
+  img.floodFill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
+  img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
+  img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
+  if VISUAL_TEST:
+    result.save("biblical.png")
+  pass
+  
+def test_flood_fill_to_mask():
+  img = Image(testimage2)
+  b = img.findBlobs()
+  imask = img.edges()
+  omask = img.floodFillToMask(b.coordinates(),tolerance=10)
+  omask2 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask)
+  omask3 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask,fixed_range=False)
+  if VISUAL_TEST:
+    omask.save("flood_fill_to_mask1.png")
+    omask2.save("flood_fill_to_mask2.png")
+    omask3.save("flood_fill_to_mask3.png")
+  pass
+
+def test_findBlobsFromMask():
+  img = Image(testimage2)
+  mask = img.binarize().invert()
+  b1 = img.findBlobsFromMask(mask)
+  b2 = img.findBlobs()
+  if(len(b1) == len(b2) ):
+    pass
+  else:
+    assert False
+
+def test_findFloodFillBlobs():
+  pass
