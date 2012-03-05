@@ -8,7 +8,7 @@ import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
-
+import copy # for deep copy
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -4533,6 +4533,146 @@ class Image:
         retVal = np.zeros([self.width,self.height])
         retVal[skeleton] = 255
         return Image(retVal)
+
+    def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True):
+        """
+        """
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+        # first we guess what the user wants to do
+        # if we get and int/float convert it to a tuple
+        if( upper is None and lower is None and tolerance is None ):
+            upper = (0,0,0)
+            lower = (0,0,0)
+
+        if( tolerance is not None and
+            (isinstance(tolerance,float) or isinstance(tolerance,int))):
+            tolerance = (int(tolerance),int(tolerance),int(tolerance))
+            
+        if( lower is not None and
+            (isinstance(lower,float) or isinstance(lower, int)) ):
+            lower = (int(lower),int(lower),int(lower))
+        elif( lower is None ):
+            lower = tolerance 
+  
+        if( upper is not None and
+            (isinstance(upper,float) or isinstance(upper, int)) ):
+            upper = (int(upper),int(upper),int(upper))
+        elif( upper is None ):
+            upper = tolerance 
+    
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+
+        flags = 8
+        if( fixed_range ):
+            flags = flags+cv.CV_FLOODFILL_FIXED_RANGE
+            
+        bmp = self.getEmpty()
+        cv.Copy(self.getBitmap(),bmp)
+    
+        if( len(points.shape) != 1 ):
+            for p in points:
+                cv.FloodFill(bmp,tuple(p),color,lower,upper,flags)
+        else:
+            cv.FloodFill(bmp,tuple(points),color,lower,upper,flags)
+
+        retVal = Image(bmp)
+            
+        return retVal
+
+    def floodFillToMask(self, points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True,mask=None):
+        """
+        """
+        mask_flag = 255 # flag weirdness
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+        # first we guess what the user wants to do
+        # if we get and int/float convert it to a tuple
+        if( upper is None and lower is None and tolerance is None ):
+            upper = (0,0,0)
+            lower = (0,0,0)
+
+        if( tolerance is not None and
+            (isinstance(tolerance,float) or isinstance(tolerance,int))):
+            tolerance = (int(tolerance),int(tolerance),int(tolerance))
+            
+        if( lower is not None and
+            (isinstance(lower,float) or isinstance(lower, int)) ):
+            lower = (int(lower),int(lower),int(lower))
+        elif( lower is None ):
+            lower = tolerance 
+  
+        if( upper is not None and
+            (isinstance(upper,float) or isinstance(upper, int)) ):
+            upper = (int(upper),int(upper),int(upper))
+        elif( upper is None ):
+            upper = tolerance 
+    
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+            
+        flags = (mask_flag << 8 )+8
+        if( fixed_range ):
+            flags = flags + cv.CV_FLOODFILL_FIXED_RANGE
+
+        localMask = None
+        #opencv wants a mask that is slightly larger 
+        if( mask is None ):
+            localMask  = cv.CreateImage((self.width+2,self.height+2), cv.IPL_DEPTH_8U, 1)
+            cv.Zero(localMask)
+        else:
+            localMask = mask.embiggen(size=(self.width+2,self.height+2))._getGrayscaleBitmap()
+
+        bmp = self.getEmpty()
+        cv.Copy(self.getBitmap(),bmp)
+        if( len(points.shape) != 1 ):
+            for p in points:
+                cv.FloodFill(bmp,tuple(p),color,lower,upper,flags,localMask)
+        else:
+            cv.FloodFill(bmp,tuple(points),color,lower,upper,flags,localMask)
+
+        retVal = Image(localMask)
+        retVal = retVal.crop(1,1,self.width,self.height)
+        return retVal
+
+    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
+        """
+        This will look for continuous
+        light regions and return them as Blob features in a FeatureSet.  Parameters
+        specify the binarize filter threshold value, and minimum and maximum size for blobs.  
+        If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+ 
+        
+        Returns: FEATURESET
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height / 2
+        #create a single channel image, thresholded to parameters
+        if( mask.width != self.width or mask.height != self.height ):
+            warning.warn("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            return None
+
+        blobmaker = BlobMaker()
+        gray = mask._getGrayscaleBitmap()
+        result = mask.getEmpty(1)
+        cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
+        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+            
+        return FeatureSet(blobs).sortArea()
+
+
+    def findFloodFillBlobs(self,points,tolerance=None,lower=None,upper=None,
+                           fixed_range=True,minsize=30,maxsize=-1):
+        """
+        """
+        mask = self.floodFillToMask(points,tolerance,color=Color.WHITE,lower=lower,upper=upper,fixed_range=fixed_range)
+        return self.findBlobsFromMask(mask,minsize,maxsize)
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
