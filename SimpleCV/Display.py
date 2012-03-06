@@ -92,7 +92,7 @@ class Display:
     displaytype = None
 
     
-    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard'):
+    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
         """
         This is the generic display object.  You are able to set the display type.
         The standard display type will pop up a window
@@ -108,6 +108,9 @@ class Display:
         
         """
         global PYGAME_INITIALIZED
+
+        if headless:
+          os.environ["SDL_VIDEODRIVER"] = "dummy"
         
         if not PYGAME_INITIALIZED:
             pg.init()
