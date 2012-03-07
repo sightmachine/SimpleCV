@@ -4534,6 +4534,58 @@ class Image:
         retVal[skeleton] = 255
         return Image(retVal)
 
+    def getDFT(self):
+        rImgIn = cv.CreateImage( (self.width,self.height), cv.IPL_DEPTH_64F, 1)
+        iImgIn = cv.CreateImage( (self.width,self.height), cv.IPL_DEPTH_64F, 1)
+        cImgIn = cv.CreateImage( (self.width,self.height), cv.IPL_DEPTH_64F, 2)
+
+        cv.Scale(self._getGrayscaleBitmap(), rImgIn, 1.0, 0.0)
+        cv.Zero(iImgIn)
+        cv.Merge(rImgIn, iImgIn, None, None, cImgIn)
+        
+        dft_M = cv.GetOptimalDFTSize( self.height - 1 )
+        dft_N = cv.GetOptimalDFTSize( self.width - 1 )
+        
+        dft_A = cv.CreateMat( dft_M, dft_N, cv.CV_64FC2 )
+        image_Re = cv.CreateImage( (dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
+        image_Im = cv.CreateImage( (dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
+        
+        # copy A to dft_A and pad dft_A with zeros
+        tmp = cv.GetSubRect( dft_A, (0,0, self.width, self.height))
+        cv.Copy( cImgIn, tmp, None )
+        if(dft_A.width > self.width):
+            tmp = cv.GetSubRect( dft_A, (self.width,0, dft_N - self.width, self.height))
+            cv.Zero( tmp )
+
+        cv.DFT( dft_A, dft_A, cv.CV_DXT_FORWARD, cImgIn.height )
+
+        # Split Fourier in real and imaginary parts
+        cv.Split( dft_A, image_Re, image_Im, None, None )
+
+        # Compute the magnitude of the spectrum Mag = sqrt(Re^2 + Im^2)
+        cv.Pow( image_Re, image_Re, 2.0)
+        cv.Pow( image_Im, image_Im, 2.0)
+        cv.Add( image_Re, image_Im, image_Re, None)
+        cv.Pow( image_Re, image_Re, 0.5 )
+
+        # Compute log(1 + Mag)
+        cv.AddS( image_Re, cv.ScalarAll(1.0), image_Re, None ) # 1 + Mag
+        cv.Log( image_Re, image_Re ) # log(1 + Mag)
+
+
+        # Rearrange the quadrants of Fourier image so that the origin is at
+        # the image center
+        # cvShiftDFT( image_Re, image_Re )
+        
+        min, max, pt1, pt2 = cv.MinMaxLoc(image_Re)
+        cv.Scale(image_Re, image_Re, 1.0/(max-min), 1.0*(-min)/(max-min))
+        result = self.getEmpty(1)
+        cv.Mul(image_Re,image_Re,image_Re,255.00)
+        cv.ConvertScale(image_Re,result)
+        return Image(result)
+
+
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
