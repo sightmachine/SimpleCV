@@ -394,7 +394,7 @@ class Image:
             elif source.split('.')[-1] == 'webp':
 
                 try:
-                    import webm.decode
+                    from webm import decode as webmDecode
                 except ImportError:
                       raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
 
@@ -407,7 +407,16 @@ class Image:
                 #~ IMAGE_WIDTH = 644
                 #~ IMAGE_HEIGHT = 484
 
-                result = webm.decode.DecodeRGB(WEBP_IMAGE_DATA)
+                WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
+                result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
+                webpImage = pil.frombuffer(
+                    "RGB", (result.width, result.height), str(result.bitmap),
+                    "raw", "RGB", 0, 1
+                )
+                self._pil = webpImage.convert("RGB")
+                self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                cv.SetData(self._bitmap, self._pil.tostring())
+                cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
 
             else:
                 self.filename = source
