@@ -10,5 +10,7 @@ install:
 - sudo apt-get install python-opencv
 # command to run tests, e.g. python setup.py test
 script:
+- env
+- whereis opencv
 - cd SimpleCV/tests/
 - nosetests tests.py
