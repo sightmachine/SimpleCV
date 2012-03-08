@@ -391,6 +391,33 @@ class Image:
             if source == '':
                 raise IOError("No filename provided to Image constructor")
 
+            elif source.split('.')[-1] == 'webp':
+
+                try:
+                    from webm import decode as webmDecode
+                except ImportError:
+                      raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+
+                #~ WEBP_IMAGE_FILE = os.path.join(os.path.dirname(__file__), "vancouver2.webp")
+                #~ PNG_IMAGE_FILE = os.path.join(os.path.dirname(__file__), "vancouver2.png")
+                #~ DECODE_FILENAME = os.path.join(os.path.dirname(__file__), "decode_{0}.png")
+                #~ ENCODE_FILENAME = os.path.join(os.path.dirname(__file__), "encode_{0}.webp")
+                #~ WEBP_IMAGE_DATA = bytearray(file(WEBP_IMAGE_FILE, "rb").read())
+                #~ PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
+                #~ IMAGE_WIDTH = 644
+                #~ IMAGE_HEIGHT = 484
+
+                WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
+                result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
+                webpImage = pil.frombuffer(
+                    "RGB", (result.width, result.height), str(result.bitmap),
+                    "raw", "RGB", 0, 1
+                )
+                self._pil = webpImage.convert("RGB")
+                self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                cv.SetData(self._bitmap, self._pil.tostring())
+                cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+
             else:
                 self.filename = source
                 try:
@@ -845,7 +872,7 @@ class Image:
         
         returns str
         """
-        return self.getBitmap().tostring()
+        return self.toRGB().getBitmap().tostring()
     
     
     def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
