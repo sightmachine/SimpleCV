@@ -962,10 +962,35 @@ class Image:
           filename = tempfile.mkstemp(suffix=".png")[-1]
         else:  
           filename = filehandle_or_filename
-        
-        if re.search('\.webp$', filename): 
-            self.getPIL().save(filename, **params)
-            return 1
+
+        #allow saving in webp format
+        if re.search('\.webp$', filename):
+            try:
+              #newer versions of PIL support webp format, try that first
+              self.getPIL().save(filename, **params)
+            except:
+              #if PIL doesn't support it, maybe we have the python-webm library
+              try:
+                from webm import encode as webmEncode
+                from webm.handlers import BitmapHandler, WebPHandler
+              except:
+                warnings.warn('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                return 0
+
+              #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
+              PNG_BITMAP_DATA = bytearray(self.toString()) 
+              IMAGE_WIDTH = self.width
+              IMAGE_HEIGHT = self.height
+              
+              
+              image = BitmapHandler(
+                  PNG_BITMAP_DATA, BitmapHandler.RGB,
+                  IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH * 3
+              )
+              result = webmEncode.EncodeRGB(image)
+
+              file(filename.format("RGB"), "wb").write(result.data)
+              return 1
         
         
         if (filename):

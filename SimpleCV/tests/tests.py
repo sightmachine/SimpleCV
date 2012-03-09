@@ -1544,7 +1544,7 @@ def test_skeletonize():
 
 
 def test_image_webp_load():
-
+  #only run if webm suppport exist on system
   try:
     import webm
   except:
@@ -1556,4 +1556,22 @@ def test_image_webp_load():
 
   else:
     pass
+  
+def test_image_webp_save():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    pass
+
+  img = Image('simplecv')
+  tf = tempfile.NamedTemporaryFile(suffix=".webp")
+  if img.save(tf.name):
+    pass
+  else:
+    assert False
+
+
+
+
   
