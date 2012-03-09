@@ -13,8 +13,8 @@ before_install:
   - sudo apt-get install libcvaux2.1 
   - sudo apt-get install libhighgui2.1 
   - sudo apt-get install libcv-dev 
-  - sudo apt-get install libcvaux-dev 
-  - sudo apt-get install libhighgui-dev
+  #~ - sudo apt-get install libcvaux-dev 
+  #~ - sudo apt-get install libhighgui-dev
   - sudo apt-get install python-opencv
 # command to run tests, e.g. python setup.py test
 script:
