@@ -398,15 +398,6 @@ class Image:
                 except ImportError:
                       raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
 
-                #~ WEBP_IMAGE_FILE = os.path.join(os.path.dirname(__file__), "vancouver2.webp")
-                #~ PNG_IMAGE_FILE = os.path.join(os.path.dirname(__file__), "vancouver2.png")
-                #~ DECODE_FILENAME = os.path.join(os.path.dirname(__file__), "decode_{0}.png")
-                #~ ENCODE_FILENAME = os.path.join(os.path.dirname(__file__), "encode_{0}.webp")
-                #~ WEBP_IMAGE_DATA = bytearray(file(WEBP_IMAGE_FILE, "rb").read())
-                #~ PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
-                #~ IMAGE_WIDTH = 644
-                #~ IMAGE_HEIGHT = 484
-
                 WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
                 result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
                 webpImage = pil.frombuffer(
