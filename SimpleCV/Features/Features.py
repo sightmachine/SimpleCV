@@ -22,7 +22,7 @@ class FeatureSet(list):
     >>> lines.crop()
     """
   
-    def draw(self, color = Color.GREEN,width=-1, autocolor = False):
+    def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
         """
@@ -31,7 +31,7 @@ class FeatureSet(list):
                 color = Color().getRandom()
             f.draw(color=color,width=width)
     
-    def show(self, color = Color.GREEN, autocolor = False,width= -1):
+    def show(self, color = Color.GREEN, autocolor = False,width=1):
         """
         This function will automatically draw the features on the image and show it.
         It is a basically a shortcut function for development and is the same as:

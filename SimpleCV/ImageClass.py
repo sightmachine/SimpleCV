@@ -3715,17 +3715,17 @@ class Image:
         #cluster overlapping template matches 
         finalfs = FeatureSet()
         if( len(fs) > 0 ):
-            print(str(len(fs)))
             finalfs.append(fs[0])
             for f in fs:
                 match = False
                 for f2 in finalfs:
                     if( f2.overlaps(f) ): #if they overlap
                         f2.consume(f) #merge them
-                        match = True
+                        match = True 
                         break
-                    if( not match ):
-                        finalfs.append(f)
+
+                if( not match ):
+                    finalfs.append(f)
         
             for f in finalfs: #rescale the resulting clusters to fit the template size
                 f.rescale(template_image.width,template_image.height)
