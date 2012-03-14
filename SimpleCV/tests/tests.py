@@ -1548,28 +1548,33 @@ def test_image_webp_load():
   try:
     import webm
   except:
+    warnings.warn("Couldn't run the webp test as optional webm library required")
     pass
-  img = Image(webp)
-
-  if len(img.toString()) <= 1:
-    assert False
 
   else:
-    pass
-  
+    img = Image(webp)
+
+    if len(img.toString()) <= 1:
+      assert False
+
+    else:
+      pass
+    
 def test_image_webp_save():
   #only run if webm suppport exist on system
   try:
     import webm
   except:
+    warnings.warn("Couldn't run the webp test as optional webm library required")
     pass
 
-  img = Image('simplecv')
-  tf = tempfile.NamedTemporaryFile(suffix=".webp")
-  if img.save(tf.name):
-    pass
   else:
-    assert False
+    img = Image('simplecv')
+    tf = tempfile.NamedTemporaryFile(suffix=".webp")
+    if img.save(tf.name):
+      pass
+    else:
+      assert False
 
 
 
