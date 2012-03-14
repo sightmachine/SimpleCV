@@ -1349,25 +1349,58 @@ class Image:
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
-        If you want to find Haar Features (useful for face detection among other
-        purposes) this will return Haar feature objects in a FeatureSet.  The
-        parameters are:
-        * the scaling factor for subsequent rounds of the haar cascade (default 1.2)7
-        * the minimum number of rectangles that makes up an object (default 2)
-        * whether or not to use Canny pruning to reject areas with too many edges (default yes, set to 0 to disable) 
-
+        SUMMARY:
+        A Haar like feature cascase is a really robust way of finding the location
+        of a known object. This technique works really well for a few specific applications
+        like face, pedestrian, and vehicle detection. It is worth noting that this
+        approach _IS NOT A MAGIC BULLET_ . Creating a cascade file requires a large
+        number of images that have been sorted by a human.vIf you want to find Haar 
+        Features (useful for face detection among other purposes) this will return 
+        Haar feature objects in a FeatureSet.  
 
         For more information, consult the cv.HaarDetectObjects documentation
    
-   
         You will need to provide your own cascade file - these are usually found in
-        /usr/local/share/opencv/haarcascades and specify a number of body parts.
+        /SimpleCV/Features/HaarCascades/ and specify a number of body parts.
         
         Note that the cascade parameter can be either a filename, or a HaarCascade
-        loaded with cv.Load().
+        loaded with cv.Load(), or a SimpleCV HaarCascade object. 
+
+        PARAMETERS:
+        cascade - The Haar Cascade file, this can be either the path to a cascade
+                  file or a HaarCascased SimpleCV object that has already been
+                  loaded. 
+
+        scale_factor - The scaling factor for subsequent rounds of the Haar cascade 
+                       (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
+
+        min_neighbors - The minimum number of rectangles that makes up an object. Ususally
+                        detected faces are clustered around the face, this is the number
+                        of detections in a cluster that we need for detection. Higher
+                        values here should reduce false positives and decrease false negatives.
 
 
-        Returns: FEATURESET
+        use-canny - Whether or not to use Canny pruning to reject areas with too many edges 
+                    (default yes, set to 0 to disable) 
+
+
+
+        RETURNS:
+        A feature set of HaarFeatures 
+        
+        EXAMPLE:
+        >>>> faces = HaarCascade("./SimpleCV/Features/HaarCascades/face.xml","myFaces")
+        >>>> cam = Camera()
+        >>>> while True:
+        >>>>     f = cam.getImage().findHaarFeatures(faces)
+        >>>>     if( f is not None ):
+        >>>>          f.show()
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Haar-like_features
+        The video on this pages shows how Haar features and cascades work to located faces:
+        http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
+        
         """
         storage = cv.CreateMemStorage(0)
 
@@ -1379,7 +1412,7 @@ class Image:
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
 
-          import SimpleCV.Features.HaarCascade
+          from SimpleCV.Features.HaarCascade import *
           cascade = HaarCascade(cascade)
   
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
