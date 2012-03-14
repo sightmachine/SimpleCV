@@ -2089,21 +2089,22 @@ class Image:
         You can clone python-zxing at http://github.com/oostendo/python-zxing
 
         INSTALLING ZEBRA CROSSING
-        1) Download zebra crossing 1.6 from: http://code.google.com/p/zxing/
+        1) Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
         2) unpack the zip file where ever you see fit
-              cd zxing-1.6 
+              cd zxing-x.x, where x.x is the version number of zebra crossing 
               ant -f core/build.xml
               ant -f javase/build.xml 
             This should build the library, but double check the readme
         3) Get our helper library 
            git clone git://github.com/oostendo/python-zxing.git
            cd python-zxing
-           nosetests tests.py
+           python setup.py install
         4) Our library does not have a setup file. You will need to add
            it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
         
            export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-           export PYTHONPATH=$PYTHONPATH:<FULL PATH OF ZXING PYTHON PLUG-IN - (i.e. step 3)>
+           for example: export ZXING_LIBRARY=/my/install/path/zxing-x.x/
+
            
            On windows you will need to add these same variables to the system variable, e.g.
            http://www.computerhope.com/issues/ch000549.htm
