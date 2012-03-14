@@ -127,7 +127,7 @@ class ImageSet(list):
       This shows the file paths of all the images in the set
 
       if they haven't been saved to disk then they will not have a filepath
-      
+     
       """
 
       for i in self:
@@ -1378,10 +1378,11 @@ class Image:
           if (not os.path.exists(cascade)):
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
-          cascade = cv.Load(cascade)
 
+          import SimpleCV.Features.HaarCascade
+          cascade = HaarCascade(cascade)
   
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, use_canny)
+        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
     
