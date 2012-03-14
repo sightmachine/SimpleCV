@@ -228,6 +228,8 @@ class Image:
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
+    #For DFT Caching 
+    _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
     #Keypoint caching values
     _mKeyPoints = None
@@ -247,8 +249,7 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-        "_pgsurface": ""}  
-    
+        "_pgsurface": ""}      
     
     #initialize the frame
     #parameters: source designation (filename)
@@ -4578,57 +4579,139 @@ class Image:
         retVal[skeleton] = 255
         return Image(retVal)
 
-    def getDFT(self):
-        rImgIn = cv.CreateImage( (self.width,self.height), cv.IPL_DEPTH_64F, 1)
-        iImgIn = cv.CreateImage( (self.width,self.height), cv.IPL_DEPTH_64F, 1)
-        cImgIn = cv.CreateImage( (self.width,self.height), cv.IPL_DEPTH_64F, 2)
+    def _doDFT(self, grayscale=False):
 
-        cv.Scale(self._getGrayscaleBitmap(), rImgIn, 1.0, 0.0)
-        cv.Zero(iImgIn)
-        cv.Merge(rImgIn, iImgIn, None, None, cImgIn)
+        if( grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3)):
+            self._DFT = []
+            img = self._getGrayscaleBitmap()
+            width, height = cv.GetSize(img)
+            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            cv.ConvertScale(img,data,1.0)
+            cv.Zero(blank)
+            cv.Merge(data,blank,None,None,src)
+            cv.Merge(data,blank,None,None,dst)
+            cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+            self._DFT.append(dst)
+        elif( not grayscale and (len(self._DFT) < 2 )):
+            self._DFT = []
+            r = self.getEmpty(1)
+            g = self.getEmpty(1)
+            b = self.getEmpty(1)
+            cv.Split(self.getBitmap(),b,g,r,None)
+            chans = [b,g,r]
+            width = self.width
+            height = self.height
+            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            for c in chans:                
+                dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+                cv.ConvertScale(c,data,1.0)
+                cv.Zero(blank)
+                cv.Merge(data,blank,None,None,src)
+                cv.Merge(data,blank,None,None,dst)
+                cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+                self._DFT.append(dst)
+
+    def rawDFTImage(self,grayscale=False):
+        self._doDFT(grayscale)
+        return self._DFT 
+
+    def getDFTLogMagnitude(self,grayscale=False):
+        self._doDFT(grayscale)
+        chans = []
+        if( grayscale ):
+            chans = [self.getEmpty(1)]
+        else:
+            chans = [self.getEmpty(1),self.getEmpty(1),self.getEmpty(1)]
+        data = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1)
+        blank = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1) 
         
-        dft_M = cv.GetOptimalDFTSize( self.height - 1 )
-        dft_N = cv.GetOptimalDFTSize( self.width - 1 )
-        
-        dft_A = cv.CreateMat( dft_M, dft_N, cv.CV_64FC2 )
-        image_Re = cv.CreateImage( (dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
-        image_Im = cv.CreateImage( (dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
-        
-        # copy A to dft_A and pad dft_A with zeros
-        tmp = cv.GetSubRect( dft_A, (0,0, self.width, self.height))
-        cv.Copy( cImgIn, tmp, None )
-        if(dft_A.width > self.width):
-            tmp = cv.GetSubRect( dft_A, (self.width,0, dft_N - self.width, self.height))
-            cv.Zero( tmp )
+        for i in range(0,len(chans)):
+            cv.Split(self._DFT[i],data,blank,None,None)
+            cv.Pow( data, data, 2.0)
+            cv.Pow( blank, blank, 2.0)
+            cv.Add( data, blank, data, None)
+            cv.Pow( data, data, 0.5 )
+            cv.AddS( data, cv.ScalarAll(1.0), data, None ) # 1 + Mag
+            cv.Log( data, data ) # log(1 + Mag
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,chans[i])
 
-        cv.DFT( dft_A, dft_A, cv.CV_DXT_FORWARD, cImgIn.height )
+        retVal = None
+        if( grayscale ):
+            retVal = Image(chans[0])
+        else:
+            retVal = self.getEmpty()
+            cv.Merge(chans[0],chans[1],chans[2],None,retVal)
+            retVal = Image(retVal)
+        return retVal
 
-        # Split Fourier in real and imaginary parts
-        cv.Split( dft_A, image_Re, image_Im, None, None )
+    def applyDFTFilter(self,flt,grayscale=False):
+        if( flt.width != self.width and 
+            flt.height != self.height ):
+            warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
+        self._doDFT(grayscale)
+        flt = flt._getGrayscaleBitmap()
+        filter2 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+        filter = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
+        cv.ConvertScale(flt._getGrayscaleBitmap(), filter1,1.0)
+        cv.ConvertScale(flt._getGrayscaleBitmap(), filter2,1.0)
+        cv.Merge(filter1,filter2,None,None,filter)
+        for c in self._DFT: #fuck.... need to clone DFT
+            cv.Mul(c, filter, c)
+        return self.InverseDFT(c,grayscale)
 
-        # Compute the magnitude of the spectrum Mag = sqrt(Re^2 + Im^2)
-        cv.Pow( image_Re, image_Re, 2.0)
-        cv.Pow( image_Im, image_Im, 2.0)
-        cv.Add( image_Re, image_Im, image_Re, None)
-        cv.Pow( image_Re, image_Re, 0.5 )
+    def DFTHighPass(self, cutoff1,cutoff2=None,grayscale=False):
+        return None
 
-        # Compute log(1 + Mag)
-        cv.AddS( image_Re, cv.ScalarAll(1.0), image_Re, None ) # 1 + Mag
-        cv.Log( image_Re, image_Re ) # log(1 + Mag)
+    def DFTLowPass(self, cutoff1,cutoff2=None,grayscale=False):
+        return None
+    
+    def DFTBandPass(self, range1, range2=None,grayscale=False):
+        return None
 
+    def InverseDFT(self, raw_dft_image):
+        #Grrrrrr neeed to clone here too
+        if( len(raw_dft_image) == 1 ):
+            cv.DFT(raw_dft_image[0], raw_dft_image[0], cv.CV_DXT_INV_SCALE)
+            w = raw_dft_image[0].width
+            h = raw_dft_image[0].height
+            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            cv.Split(raw_dft_image[0],data,blank,None,None)
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,result)
+            retVal = Image(result)
+        else: # DO RGB separately
+            results = []
+            w = raw_dft_image[0].width
+            h = raw_dft_image[0].height
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            for i in range(0,len(raw_dft_image)):
+                cv.DFT(raw_dft_image[i], raw_dft_image[i], cv.CV_DXT_INV_SCALE)
+                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+                cv.Split( raw_dft_image[i],data,blank,None,None)
+                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+                cv.Mul(data,data,data,255.0) # this may not be right
+                cv.Convert(data,result)
+                results.append(result)
+                      
+            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
+            cv.Merge(results[0],results[1],results[2],None,retVal)
+            retVal = Image(retVal)
 
-        # Rearrange the quadrants of Fourier image so that the origin is at
-        # the image center
-        # cvShiftDFT( image_Re, image_Re )
-        
-        min, max, pt1, pt2 = cv.MinMaxLoc(image_Re)
-        cv.Scale(image_Re, image_Re, 1.0/(max-min), 1.0*(-min)/(max-min))
-        result = self.getEmpty(1)
-        cv.Mul(image_Re,image_Re,image_Re,255.00)
-        cv.ConvertScale(image_Re,result)
-        return Image(result)
-
-
+        return retVal
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
