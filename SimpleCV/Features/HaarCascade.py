@@ -1,5 +1,4 @@
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image 
 
 class HaarCascade():
      _mCascade = None
