@@ -4616,12 +4616,26 @@ class Image:
                 cv.DFT(src, dst, cv.CV_DXT_FORWARD)
                 self._DFT.append(dst)
 
+    def _getDFTClone(self,grayscale=False):
+        self._doDFT(grayscale)
+        retVal = []
+        if(grayscale):
+            gs = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
+            cv.Copy(self._DFT[0],gs)
+            retVal.append(gs)
+        else:
+            for img in self._DFT:
+                temp = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
+                cv.Copy(img,temp)
+                retVal.append(temp)
+        return retVal
+
     def rawDFTImage(self,grayscale=False):
         self._doDFT(grayscale)
         return self._DFT 
 
     def getDFTLogMagnitude(self,grayscale=False):
-        self._doDFT(grayscale)
+        dft = self._getDFTClone(grayscale)
         chans = []
         if( grayscale ):
             chans = [self.getEmpty(1)]
@@ -4631,7 +4645,7 @@ class Image:
         blank = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1) 
         
         for i in range(0,len(chans)):
-            cv.Split(self._DFT[i],data,blank,None,None)
+            cv.Split(dft[i],data,blank,None,None)
             cv.Pow( data, data, 2.0)
             cv.Pow( blank, blank, 2.0)
             cv.Add( data, blank, data, None)
@@ -4656,16 +4670,17 @@ class Image:
         if( flt.width != self.width and 
             flt.height != self.height ):
             warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
-        self._doDFT(grayscale)
+        dft = self._getDFTClone(grayscale)
         flt = flt._getGrayscaleBitmap()
         filter2 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+        filter1 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
         filter = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
-        cv.ConvertScale(flt._getGrayscaleBitmap(), filter1,1.0)
-        cv.ConvertScale(flt._getGrayscaleBitmap(), filter2,1.0)
+        cv.ConvertScale(flt, filter1,1.0)
+        cv.ConvertScale(flt, filter2,1.0)
         cv.Merge(filter1,filter2,None,None,filter)
-        for c in self._DFT: #fuck.... need to clone DFT
+        for c in dft: #fuck.... need to clone DFT
             cv.Mul(c, filter, c)
-        return self.InverseDFT(c,grayscale)
+        return self._inverseDFT(dft)
 
     def DFTHighPass(self, cutoff1,cutoff2=None,grayscale=False):
         return None
@@ -4676,33 +4691,89 @@ class Image:
     def DFTBandPass(self, range1, range2=None,grayscale=False):
         return None
 
-    def InverseDFT(self, raw_dft_image):
-        #Grrrrrr neeed to clone here too
-        if( len(raw_dft_image) == 1 ):
-            cv.DFT(raw_dft_image[0], raw_dft_image[0], cv.CV_DXT_INV_SCALE)
-            w = raw_dft_image[0].width
-            h = raw_dft_image[0].height
+    def _inverseDFT(self,input):
+        # a destructive IDFT operation for internal calls
+        w = input[0].width
+        h = input[0].height
+        if( len(input) == 1 ):
+            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
             result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
             data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
             blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            cv.Split(raw_dft_image[0],data,blank,None,None)
+            cv.Split(input[0],data,blank,None,None)
             min, max, pt1, pt2 = cv.MinMaxLoc(data)
-            cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+            denom = max-min
+            if(denom == 0):
+                denom = 1
+            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
             cv.Mul(data,data,data,255.0)
             cv.Convert(data,result)
             retVal = Image(result)
         else: # DO RGB separately
             results = []
-            w = raw_dft_image[0].width
-            h = raw_dft_image[0].height
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            for i in range(0,len(input)):
+                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
+                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+                cv.Split( input[i],data,blank,None,None)
+                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                denom = max-min
+                if(denom == 0):
+                    denom = 1
+                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+                cv.Mul(data,data,data,255.0) # this may not be right
+                cv.Convert(data,result)
+                results.append(result)
+                      
+            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
+            cv.Merge(results[0],results[1],results[2],None,retVal)
+            retVal = Image(retVal)
+        del input
+        return retVal
+
+    def InverseDFT(self, raw_dft_image):
+        #Grrrrrr neeed to clone here too
+        input  = []
+        w = raw_dft_image[0].width
+        h = raw_dft_image[0].height
+        if(len(raw_dft_image) == 1):
+            gs = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
+            cv.Copy(self._DFT[0],gs)
+            input.append(gs)
+        else:
+            for img in raw_dft_image:
+                temp = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
+                cv.Copy(img,temp)
+                input.append(img)
+            
+        if( len(input) == 1 ):
+            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
+            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            cv.Split(input[0],data,blank,None,None)
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            denom = max-min
+            if(denom == 0):
+                denom = 1
+            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,result)
+            retVal = Image(result)
+        else: # DO RGB separately
+            results = []
             data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
             blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
             for i in range(0,len(raw_dft_image)):
-                cv.DFT(raw_dft_image[i], raw_dft_image[i], cv.CV_DXT_INV_SCALE)
+                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
                 result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
-                cv.Split( raw_dft_image[i],data,blank,None,None)
+                cv.Split( input[i],data,blank,None,None)
                 min, max, pt1, pt2 = cv.MinMaxLoc(data)
-                cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+                denom = max-min
+                if(denom == 0):
+                    denom = 1
+                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
                 cv.Mul(data,data,data,255.0) # this may not be right
                 cv.Convert(data,result)
                 results.append(result)
