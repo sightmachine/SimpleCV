@@ -4682,14 +4682,93 @@ class Image:
             cv.Mul(c, filter, c)
         return self._inverseDFT(dft)
 
-    def DFTHighPass(self, cutoff1,cutoff2=None,grayscale=False):
-        return None
+    def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
+            xCutoff = [xCutoff,xCutoff,xCutoff]
+        if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
+            yCutoff = [yCutoff,yCutoff,yCutoff]    
+        if(yCutoff is None):
+            yCutoff = xCutoff
+        for c in xCutoff:
+            if( c < 0 or c > self.width ):
+                warnings.warn("ImageClass.highPassFilter one of your x cut off values is invalid.")
+                return None
+        for c in yCutoff:
+            if( c < 0 or c > self.height ):
+                warnings.warn("ImageClass.highPassFilter one of your y cut off values is invalid.")
+                return None
+        filter = None
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Rectangle(filter,(xCutoff[0],yCutoff[0]),(self.width,self.height),(255,255,255),thickness=-1)
+        else:
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Rectangle(filter,(xCutoff[0],yCutoff[0]),(self.width,self.height),(255,0,0),thickness=-1)
+            cv.Rectangle(filter,(xCutoff[1],yCutoff[1]),(self.width,self.height),(0,255,0),thickness=-1)
+            cv.Rectangle(filter,(xCutoff[2],yCutoff[2]),(self.width,self.height),(0,0,255),thickness=-1)
 
-    def DFTLowPass(self, cutoff1,cutoff2=None,grayscale=False):
-        return None
-    
-    def DFTBandPass(self, range1, range2=None,grayscale=False):
-        return None
+            
+        scvFilt = Image(filter)
+        return self.applyDFTFilter(scvFilt,grayscale)
+
+    def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
+            xCutoff = [xCutoff,xCutoff,xCutoff]
+        if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
+            yCutoff = [yCutoff,yCutoff,yCutoff]   
+        if(yCutoff is None):
+            yCutoff = xCutoff
+        for c in xCutoff:
+            if( c < 0 or c > self.width ):
+                warnings.warn("ImageClass.lowPassFilter one of your x cut off values is invalid.")
+                return None
+        for c in yCutoff:
+            if( c < 0 or c > self.height ):
+                warnings.warn("ImageClass.lowPassFilter one of your y cut off values is invalid.")
+                return None
+        filter = None
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(255,255,255),thickness=-1)
+        else:
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(255,0,0),thickness=-1)
+            cv.Rectangle(filter,(0,0),(xCutoff[1],yCutoff[1]),(0,255,0),thickness=-1)
+            cv.Rectangle(filter,(0,0),(xCutoff[2],yCutoff[2]),(0,0,255),thickness=-1)
+                        
+        scvFilt = Image(filter)
+        return self.applyDFTFilter(scvFilt,grayscale)
+
+    #FUCK! need to decide BGR or RGB 
+    # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
+    # or (x,y)
+    def bandPassFilter(self, start, stop,grayscale=False):
+        if( isinstance(start,tuple)  ):
+            start = [start,start,start]
+        if( isinstance(stop,tuple)  ):
+            stop = [stop,stop,stop]
+        #we're not checking start < stop 
+        for c in start:
+            if( c[0] < 0 or c[0] > self.width or c[1] < 0 or c[0] > self.height ):
+                warnings.warn("ImageClass.bandPassFilter one of your filter values is invalid.")
+                return None
+        for c in stop:
+            if( c[0] < 0 or c[0] > self.width or c[1] < 0 or c[0] > self.height ):
+                warnings.warn("ImageClass.bandPassFilter one of your filter values is invalid.")
+                return None
+        filter = None
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Rectangle(filter,start[0],stop[0],(255,255,255),thickness=-1)
+        else:
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Rectangle(filter,start[0],stop[0],(255,0,0),thickness=-1)
+            cv.Rectangle(filter,start[1],stop[1],(0,255,0),thickness=-1)
+            cv.Rectangle(filter,start[2],stop[2],(0,0,255),thickness=-1)
+                        
+        scvFilt = Image(filter)
+        return self.applyDFTFilter(scvFilt,grayscale)
+
 
     def _inverseDFT(self,input):
         # a destructive IDFT operation for internal calls
