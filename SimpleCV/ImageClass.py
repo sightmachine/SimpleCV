@@ -249,7 +249,13 @@ class Image:
         "_grayNumpy":"",
         "_pgsurface": ""}  
     
-    
+    def __repr__(self):
+        if len(self.filename) == 0:
+          fn = "None"
+        else:
+          fn = self.filename
+        return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
+      
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
