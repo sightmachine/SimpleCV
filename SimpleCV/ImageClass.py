@@ -49,13 +49,24 @@ class ImageSet(list):
 
     >>> imgs.save()
 
+    You can also load up the sample images that come with simplecv as:
+
+    >>> imgs = ImageSet('samples')
+    >>> imgs.filelist
+    >>> logo = imgs.find('simplecv.png')
     
     """
 
+    filelist = None
     def __init__(self, directory = None):
+
+      if directory.lower() == 'samples' or directory.lower() == 'sample':
+          from SimpleCV import __path__ as scvpath
+          directory = scvpath[0] + '/sampleimages'
+          directory = os.path.join(os.getcwd(), directory)
+          
       if directory:
         self.load(directory)
-
       return
 
     def download(self, tag=None, number=10):
@@ -168,11 +179,29 @@ class ImageSet(list):
         
       file_set = [glob.glob(p) for p in formats]
 
+
+      self.filelist = dict()
+
       for f in file_set:
         for i in f:
-          self.append(Image(i))
+          tmp = Image(i)
+          #~ self.filelist.append(tmp.filename.split('/')[-1])
+          self.filelist[tmp.filename.split('/')[-1]] = tmp
+          self.append(tmp)
 
+    def find(self, key):
+      """
+      This function is used to find a particule file.
+      The key is it's filename with extension
+      If you would like to see a list of file names just use
 
+      >>> imgs = ImageSet('samples')
+      >>> imgs.filelist
+      """
+      try:
+        return self.filelist[key]
+      except:
+        return None
       
   
 class Image:
