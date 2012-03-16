@@ -60,14 +60,15 @@ class ImageSet(list):
     filelist = None
     def __init__(self, directory = None):
 
+      if not directory:
+          return
       if directory.lower() == 'samples' or directory.lower() == 'sample':
           from SimpleCV import __path__ as scvpath
           directory = scvpath[0] + '/sampleimages'
           directory = os.path.join(os.getcwd(), directory)
           
-      if directory:
-        self.load(directory)
-      return
+      self.load(directory)
+
 
     def download(self, tag=None, number=10):
       """
@@ -901,12 +902,18 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
+    def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False, **params):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
         place it was saved to. 
-    
+
+        To save as a temporary file just use:
+
+        >>> img = Image('simplecv')
+        >>> img.save(temp=True)
+
+        It will return the path that it saved to.
     
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
@@ -922,6 +929,10 @@ class Image:
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
+
+        #if it's a temporary file
+        if temp:
+            filename = tempfile.NamedTemporaryFile(suffix=".png")
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -1039,8 +1050,11 @@ class Image:
 
         if verbose:
           print self.filename
-          
-        return 1
+
+        if temp:
+          return filename
+        else:
+          return 1
 
 
     def copy(self):

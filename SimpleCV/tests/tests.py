@@ -23,51 +23,22 @@ red = Color.RED
 green = Color.GREEN
 blue = Color.BLUE
 
+imgs = ImageSet('samples')
 
 #images
-barcode = "../sampleimages/barcode.png"
-testimage = "../sampleimages/9dots4lines.png"
-testimage2 = "../sampleimages/aerospace.jpg"
-whiteimage = "../sampleimages/white.png"
-blackimage = "../sampleimages/black.png"
-testimageclr = "../sampleimages/statue_liberty.jpg"
-testbarcode = "../sampleimages/barcode.png"
-testoutput = "../sampleimages/9d4l.jpg"
-tmpimg = "../sampleimages/tmpimg.jpg"
-greyscaleimage = "../sampleimages/greyscale.jpg"
-logo = "../sampleimages/logo.png"
-logo_inverted = "../sampleimages/logo_inverted.png"
-ocrimage = "../sampleimages/ocr-test.png"
-circles = "../sampleimages/circles.png"
 webp = "../sampleimages/simplecv.webp"
 
-#alpha masking images
-topImg = "../sampleimages/RatTop.png"
-bottomImg = "../sampleimages/RatBottom.png"
-maskImg = "../sampleimages/RatMask.png"
-alphaMaskImg = "../sampleimages/RatAlphaMask.png"
-alphaSrcImg = "../sampleimages/GreenMaskSource.png"
-
-
 #These function names are required by nose test, please leave them as is
-def setup_context():
-  img = Image(testimage)
-  
-def destroy_context():
-  img = ""
-
-@with_setup(setup_context, destroy_context)
-def test_image_loadsave():
-  img = Image(testimage)
-  img.save(testoutput)  
-  if (os.path.isfile(testoutput)):
-    os.remove(testoutput)
+def test_image_save():
+  img = imgs.find('barcode.png').copy()
+  pth = img.save(temp=True)  
+  if (os.path.isfile(pth)):
     pass
   else: 
     assert False
   
 def test_image_numpy_constructor():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   grayimg = img.grayscale()
 
   chan3_array = np.array(img.getMatrix())
@@ -83,7 +54,7 @@ def test_image_numpy_constructor():
 
 
 def test_image_bitmap():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   bmp = img.getBitmap();
   if bmp.width > 0:
     pass
@@ -94,20 +65,20 @@ def test_image_bitmap():
 # Image Class Test
 
 def test_image_stretch():
-  img = Image(greyscaleimage)
+  img = imgs.find('greyscale.jpg').copy()
   stretched = img.stretch(100,200)
   if(stretched == None):
       assert False
 
   
 def test_image_scale():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   thumb = img.scale(30,30)
   if(thumb == None):
       assert False
 
 def test_image_copy():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   copy = img.copy()
 
   if (img[1,1] != copy[1,1] or img.size() != copy.size()):
@@ -116,7 +87,7 @@ def test_image_copy():
   
 
 def test_image_getitem():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   colors = img[1,1]
   if (colors[0] == 255 and colors[1] == 255 and colors[2] == 255):
     pass
@@ -124,7 +95,7 @@ def test_image_getitem():
     assert False
 
 def test_image_getslice():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   section = img[1:10,1:10]
   if(section == None):
       assert False
@@ -132,7 +103,7 @@ def test_image_getslice():
 
 
 def test_image_setitem():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   img[1,1] = (0, 0, 0)
   newimg = Image(img.getBitmap())
   colors = newimg[1,1]
@@ -142,7 +113,7 @@ def test_image_setitem():
     assert False
 
 def test_image_setslice():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   img[1:10,1:10] = (0,0,0) #make a black box
   newimg = Image(img.getBitmap())
   section = newimg[1:10,1:10]
@@ -153,14 +124,14 @@ def test_image_setslice():
   pass
 
 def test_detection_findCorners():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   corners = img.findCorners(25)
   if (len(corners) == 0):
     assert False 
 
   
 def test_color_meancolor():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   roi = img[1:50,1:50]
   
   r, g, b = roi.meanColor()
@@ -169,7 +140,7 @@ def test_color_meancolor():
     pass 
 
 def test_image_smooth():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   img.smooth()
   img.smooth('bilateral', (3,3), 4, 1)
   img.smooth('blur', (3, 3))
@@ -183,7 +154,7 @@ def test_image_smooth():
   pass
 
 def test_image_binarize():
-  img =  Image(testimage2)
+  img =  imgs.find('aerospace.jpg').copy()
   binary = img.binarize()
   binary2 = img.binarize((60, 100, 200))
   hist = binary.histogram(20)
@@ -194,7 +165,7 @@ def test_image_binarize():
     assert False
 
 def test_image_binarize_adaptive():
-  img =  Image(testimage2)
+  img =  imgs.find('aerospace.jpg').copy()
   binary = img.binarize(-1)
   hist = binary.histogram(20)  
   if (hist[0] + hist[-1] == np.sum(hist)):
@@ -203,7 +174,7 @@ def test_image_binarize_adaptive():
     assert False
 
 def test_image_invert():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   clr = img[1,1]
   img = img.invert()
 
@@ -214,7 +185,7 @@ def test_image_invert():
 
 
 def test_image_size():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   (width, height) = img.size()
   if type(width) == int and type(height) == int and width > 0 and height > 0:
     pass
@@ -222,18 +193,18 @@ def test_image_size():
     assert False
 
 def test_image_drawing():
-  img = Image(testimageclr)
+  img = imgs.find('statue_liberty.jpg').copy()
   img.drawCircle((5, 5), 3)
   img.drawLine((5, 5), (5, 8))
   
 def test_image_splitchannels():  
-  img = Image(testimageclr)
+  img = imgs.find('statue_liberty.jpg').copy()
   (r, g, b) = img.splitChannels(True)
   (red, green, blue) = img.splitChannels()
   pass
 
 def test_image_histogram():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   h = img.histogram(25)
 
   for i in h:
@@ -243,14 +214,14 @@ def test_image_histogram():
   pass
 
 def test_detection_lines():
-    img = Image(testimage2)
+    img = imgs.find('aerospace.jpg').copy()
     lines = img.findLines()
 
     if(lines == 0 or lines == None):
         assert False
 
 def test_detection_feature_measures():
-    img = Image(testimage2)
+    img = imgs.find('aerospace.jpg').copy()
   
     fs = FeatureSet()
     fs.append(Corner(img, 5, 5))
@@ -295,14 +266,14 @@ def test_detection_feature_measures():
     fs1 = fs.sortDistance() 
 
 def test_detection_blobs():
-    img = Image(testbarcode)
+    img = imgs.find('barcode.png').copy()
     blobs = img.findBlobs()
     if blobs == None:
         assert False
         
 
 def test_detection_blobs_adaptive():
-    img = Image(testimage)
+    img = imgs.find('9dots4lines.png').copy()
     blobs = img.findBlobs(-1, threshblocksize=99)
     if blobs == None:
         assert False
@@ -313,33 +284,33 @@ def test_detection_barcode():
     return None
 
   if( SHOW_WARNING_TESTS ):
-    nocode = Image(testimage).findBarcode()
+    nocode = imgs.find('9dots4lines.png').copy().findBarcode()
     if nocode: #we should find no barcode in our test image 
       assert False
-    code = Image(testbarcode).findBarcode() 
+    code = imgs.find('barcode.png').copy().findBarcode() 
     if code.points:
       pass
   else:
     pass
     
 def test_detection_x():
-  tmpX = Image(testimage).findLines().x()[0]
+  tmpX = imgs.find('9dots4lines.png').copy().findLines().x()[0]
 
-  if (tmpX > 0 and Image(testimage).size()[0]):
+  if (tmpX > 0 and imgs.find('9dots4lines.png').copy().size()[0]):
     pass
   else:
     assert False
 
 def test_detection_y():
-  tmpY = Image(testimage).findLines().y()[0]
+  tmpY = imgs.find('9dots4lines.png').copy().findLines().y()[0]
 
-  if (tmpY > 0 and Image(testimage).size()[0]):
+  if (tmpY > 0 and imgs.find('9dots4lines.png').copy().size()[0]):
     pass
   else:
     assert False
 
 def test_detection_area():
-    img = Image(testimage2)
+    img = imgs.find('aerospace.jpg').copy()
     bm = BlobMaker()
     result = bm.extract(img)
     area_val = result[0].area()
@@ -350,17 +321,17 @@ def test_detection_area():
         assert False
 
 def test_detection_angle():
-  angle_val = Image(testimage).findLines().angle()[0]
+  angle_val = imgs.find('9dots4lines.png').copy().findLines().angle()[0]
 
 def test_image():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   if(isinstance(img, Image)):
     pass
   else:
     assert False
 
 def test_color_colordistance():
-  img = Image(blackimage)
+  img = imgs.find('black.png').copy()
   (r,g,b) = img.splitChannels()
   avg = img.meanColor()
   
@@ -381,7 +352,7 @@ def test_color_colordistance():
   pass
   
 def test_detection_length():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   val = img.findLines().length()
 
   if (val == None):
@@ -397,7 +368,7 @@ def test_detection_length():
   
   
 def test_detection_sortangle():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   val = img.findLines().sortAngle()
 
   if(val[0].x < val[1].x):
@@ -406,14 +377,14 @@ def test_detection_sortangle():
     assert False
     
 def test_detection_sortarea():
-    img = Image(testimage)
+    img = imgs.find('9dots4lines.png').copy()
     bm = BlobMaker()
     result = bm.extract(img)
     val = result.sortArea()
   #FIXME: Find blobs may appear to be broken. Returning type none
 
 def test_detection_sortLength():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   val = img.findLines().sortLength()
   #FIXME: Length is being returned as euclidean type, believe we need a universal type, either Int or scvINT or something.
  
@@ -422,15 +393,15 @@ def test_detection_sortLength():
 #def test_sortDistance():
 
 def test_image_add():
-  imgA = Image(blackimage)
-  imgB = Image(whiteimage)
+  imgA = imgs.find('black.png').copy()
+  imgB = imgs.find('white.png').copy()
 
   imgC = imgA + imgB
 
 def test_color_curve_HSL():
   y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
   curve = ColorCurve(y)
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   img2 = img.applyHLSCurve(curve,curve,curve)
   img3 = img-img2
   c = img3.meanColor()
@@ -441,7 +412,7 @@ def test_color_curve_HSL():
 def test_color_curve_RGB():
   y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
   curve = ColorCurve(y)
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   img2 = img.applyRGBCurve(curve,curve,curve)
   img3 = img-img2
   c = img3.meanColor()
@@ -451,7 +422,7 @@ def test_color_curve_RGB():
 def test_color_curve_GRAY():
   y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights 
   curve = ColorCurve(y)
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   gray = img.grayscale()
   img2 = img.applyIntensityCurve(curve)
   print(gray.meanColor())
@@ -462,7 +433,7 @@ def test_color_curve_GRAY():
     assert False
 
 def test_image_dilate():
-  img=Image(barcode)
+  img = imgs.find('barcode.png').copy()
   img2 = img.dilate(20)
   c=img2.meanColor()
   print(c)
@@ -470,7 +441,7 @@ def test_image_dilate():
     assert False;
 
 def test_image_erode():
-  img=Image(barcode)
+  img = imgs.find('barcode.png').copy()
   img2 = img.erode(100)
   c=img2.meanColor()
   print(c)
@@ -478,7 +449,7 @@ def test_image_erode():
     assert False;
   
 def test_image_morph_open():
-  img = Image(barcode);
+  img = imgs.find('barcode.png').copy()
   erode= img.erode()
   dilate = erode.dilate()
   result = img.morphOpen()
@@ -489,7 +460,7 @@ def test_image_morph_open():
     assert False;
 
 def test_image_morph_close():
-  img = Image(barcode)
+  img = imgs.find('barcode.png').copy()
   dilate = img.dilate()
   erode = dilate.erode()
   result = img.morphClose()
@@ -500,7 +471,7 @@ def test_image_morph_close():
     assert False;
 
 def test_image_morph_grad():
-  img = Image(barcode)
+  img = imgs.find('barcode.png').copy()
   dilate = img.dilate()
   erode = img.erode()
   dif = dilate-erode
@@ -511,7 +482,7 @@ def test_image_morph_grad():
     assert False
 
 def test_image_rotate_fixed():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   img2=img.rotate(180, scale = 1)
   img3=img.flipVertical()
   img4=img3.flipHorizontal()
@@ -523,7 +494,7 @@ def test_image_rotate_fixed():
 
 
 def test_image_rotate_full():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   img2=img.rotate(180,"full",scale = 1)
   c1=img.meanColor()
   c2=img2.meanColor()
@@ -531,7 +502,7 @@ def test_image_rotate_full():
     assert False
 
 def test_image_shear_warp():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
   s = img.shear(dst)
   color = s[0,0] 
@@ -547,7 +518,7 @@ def test_image_shear_warp():
   pass
 
 def test_image_affine():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   src =  ((0,0),(img.width-1,0),(img.width-1,img.height-1))
   dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
   aWarp = cv.CreateMat(2,3,cv.CV_32FC1)
@@ -562,7 +533,7 @@ def test_image_affine():
     assert False
 
 def test_image_perspective():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   src = ((0,0),(img.width-1,0),(img.width-1,img.height-1),(0,img.height-1))
   dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
   pWarp = cv.CreateMat(3,3,cv.CV_32FC1)
@@ -580,38 +551,38 @@ def test_image_perspective():
     assert False
     
 def test_image_horz_scanline():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   sl = img.getHorzScanline(10)
   if( sl.shape[0]!=img.width or sl.shape[1]!=3 ):
     assert False
 
 def test_image_vert_scanline():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   sl = img.getVertScanline(10)
   if( sl.shape[0]!=img.height or sl.shape[1]!=3 ):
     assert False
     
 def test_image_horz_scanline_gray():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   sl = img.getHorzScanlineGray(10)
   if( sl.shape[0]!=img.width or sl.shape[1]!=1 ):
     assert False
 
 def test_image_vert_scanline_gray():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   sl = img.getVertScanlineGray(10)
   if( sl.shape[0]!=img.height or sl.shape[1]!=1 ):
     assert False
 
 def test_image_get_pixel():
-    img = Image(logo)
+    img = imgs.find('logo.png').copy()
     px = img.getPixel(0,0)
     print(px)
     if(px[0] != 0 or px[1] != 0 or px[2] != 0 ):
       assert False
       
 def test_image_get_gray_pixel():
-    img = Image(logo)
+    img = imgs.find('logo.png').copy()
     px = img.getGrayPixel(0,0)
     if(px != 0):
       assert False
@@ -648,7 +619,7 @@ def test_camera_undistort():
     assert False
     
 def test_image_crop():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   x = 5
   y = 6
   w = 10
@@ -669,7 +640,7 @@ def test_image_crop():
     assert False
 
 def test_image_region_select():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   x1 = 0
   y1 = 0
   x2 = img.width
@@ -681,63 +652,63 @@ def test_image_region_select():
     assert False
 
 def test_image_subtract():
-  imgA = Image(logo)
-  imgB = Image(logo_inverted)
+  imgA = imgs.find('logo.png').copy()
+  imgB = imgs.find('logo_inverted.png').copy()
 
   imgC = imgA - imgB
 
 def test_image_negative():
-  imgA = Image(logo)
+  imgA = imgs.find('logo.png').copy()
 
   imgB = -imgA
  
 def test_image_divide():
-  imgA = Image(logo)
-  imgB = Image(logo_inverted)
+  imgA = imgs.find('logo.png').copy()
+  imgB = imgs.find('logo_inverted.png').copy()
 
   imgC = imgA / imgB
   
 def test_image_and():
-  imgA = Image(logo)
-  imgB = Image(logo_inverted)
+  imgA = imgs.find('logo.png').copy()
+  imgB = imgs.find('logo_inverted.png').copy()
 
   imgC = imgA and imgB
   
   
 def test_image_or():
-  imgA = Image(logo)
-  imgB = Image(logo_inverted)
+  imgA = imgs.find('logo.png').copy()
+  imgB = imgs.find('logo_inverted.png').copy()
 
   imgC = imgA or imgB
 
 def test_image_edgemap():
-  imgA = Image(logo)
+  imgA = imgs.find('logo.png').copy()
   imgB = imgA._getEdgeMap()
 
 
 def test_color_colormap_build():
   cm = ColorModel()
-  cm.add(Image(testimage))
+  cm.add(imgs.find('9dots4lines.png').copy())
   cm.add((127,127,127))
   if(cm.contains((127,127,127))):
     cm.remove((127,127,127))
   else:
     assert False
-  img = cm.threshold(Image(testimage))
+  img = cm.threshold(imgs.find('9dots4lines.png').copy())
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
   cm.save("temp.txt")
   cm2 = ColorModel()
   cm2.load("temp.txt")
-  img = cm2.threshold(Image(testimage))
+  img = cm2.threshold(imgs.find('9dots4lines.png').copy())
   c=img.meanColor()
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False
 
 
 def test_feature_height():
-  imgA = Image(logo)
+  imgA = imgs.find('logo.png').copy()
   lines = imgA.findLines(1)
   heights = lines.height()
 
@@ -747,7 +718,7 @@ def test_feature_height():
     pass
 
 def test_feature_width():
-  imgA = Image(logo)
+  imgA = imgs.find('logo.png').copy()
   lines = imgA.findLines(1)
   widths = lines.width()
 
@@ -757,7 +728,7 @@ def test_feature_width():
     pass
 
 def test_feature_crop():
-  imgA = Image(logo)
+  imgA = imgs.find('logo.png').copy()
   lines = imgA.findLines(1)
   croppedImages = lines.crop()
 
@@ -769,7 +740,7 @@ def test_feature_crop():
     
 def test_color_conversion_func_BGR():
   #we'll just go through the space to make sure nothing blows up
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   bgr = img.toBGR()
   rgb = img.toRGB()
   hls = img.toHLS()
@@ -784,7 +755,7 @@ def test_color_conversion_func_BGR():
   
   
 def test_color_conversion_func_RGB():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   if( not img.isBGR() ):
     assert False
   rgb = img.toRGB()
@@ -810,7 +781,7 @@ def test_color_conversion_func_RGB():
     assert False 
 
 def test_color_conversion_func_HSV():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   hsv = img.toHSV()
   foo = hsv.toBGR()
   foo = hsv.toRGB()
@@ -819,7 +790,7 @@ def test_color_conversion_func_HSV():
   foo = hsv.toXYZ()
   
 def test_color_conversion_func_HLS():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   hls = img.toHLS()
   foo = hls.toBGR()
   foo = hls.toRGB()
@@ -828,7 +799,7 @@ def test_color_conversion_func_HLS():
   foo = hls.toXYZ()   
 
 def test_color_conversion_func_XYZ():
-  img = Image(testimage)
+  img = imgs.find('9dots4lines.png').copy()
   xyz = img.toXYZ()  
   foo = xyz.toBGR()
   foo = xyz.toRGB()
@@ -952,7 +923,7 @@ def test_blob_methods():
         b.overlaps(first)
 
 def test_image_convolve():
-    img = Image(testimageclr)
+    img = imgs.find('statue_liberty.jpg').copy()
     kernel = np.array([[0,0,0],[0,1,0],[0,0,0]])
     img2 = img.convolve(kernel,center=(2,2))
     c=img.meanColor()
@@ -965,7 +936,7 @@ def test_image_convolve():
 
 
 def test_detection_ocr():
-    img = Image(ocrimage)
+    img = imgs.find('ocr-test.png').copy()
     print "TESTING OCR"
     foundtext = img.readText()
     print foundtext
@@ -983,7 +954,7 @@ def test_template_match():
 
 
 def test_image_intergralimage():
-    img = Image(logo)
+    img = imgs.find('logo.png').copy()
     ii = img.integralImage()
     if len(ii) == 0:
         assert False
@@ -1026,7 +997,7 @@ def test_segmentation_color():
         pass
 
 def test_embiggen():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   if VISUAL_TEST:
     img.embiggen(size=(100,100),color=Color.RED).save("embiggen_centered.png")
     img.embiggen(size=(100,100),color=Color.RED,pos=(30,30)).save("embiggen_centered2.png")
@@ -1059,7 +1030,7 @@ def test_embiggen():
   pass
 
 def test_createBinaryMask():
-  img2 = Image(logo)
+  img2 = imgs.find('logo.png').copy()
   if VISUAL_TEST:
     img2.createBinaryMask(color1=(0,100,100),color2=(255,200,200)).save("BinaryMask1.png")
     img2.createBinaryMask(color1=(0,0,0),color2=(128,128,128)).save('BinaryMask2.png')
@@ -1073,7 +1044,7 @@ def test_createBinaryMask():
   pass
 
 def test_applyBinaryMask():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255))
   if VISUAL_TEST:
     img.applyBinaryMask(mask).save("appliedMask1.png")
@@ -1086,7 +1057,7 @@ def test_applyBinaryMask():
   pass
 
 def test_applyPixelFunc():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   def myFunc((r,g,b)):
     return( (b,g,r) )
 
@@ -1098,8 +1069,8 @@ def test_applyPixelFunc():
   pass
 
 def test_applySideBySide():
-  img = Image(logo)
-  img3 = Image(testimage2)
+  img = imgs.find('logo.png').copy()
+  img3 = imgs.find('aerospace.jpg').copy()
 
   #LB = little image big image
   #BL = big image little image  -> this is important to test all the possible cases.
@@ -1146,7 +1117,7 @@ def test_applySideBySide():
   pass
 
 def test_resize():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   w = img.width
   h = img.height
   img2 = img.resize(w*2,None)
@@ -1166,15 +1137,15 @@ def test_resize():
     pass
 
 def test_createAlphaMask():
-  alphaMask = Image(alphaSrcImg)
+  alphaMask = imgs.find('GreenMaskSource.png').copy()
   mask = alphaMask.createAlphaMask(hue=60)
   if VISUAL_TEST: mask.save("AlphaMask.png")
 
   mask = alphaMask.createAlphaMask(hue_lb=59,hue_ub=61)
   if VISUAL_TEST: mask.save("AlphaMask2.png")
 
-  top = Image(topImg)
-  bottom = Image(bottomImg)
+  top = imgs.find('RatTop.png').copy()
+  bottom = imgs.find('RatBottom.png').copy()
   if VISUAL_TEST:
     bottom.blit(top,alphaMask=mask).save("AlphaMask3.png")
 
@@ -1183,8 +1154,8 @@ def test_createAlphaMask():
   pass
 
 def test_blit_regular(): 
-  top = Image(topImg)
-  bottom = Image(bottomImg)
+  top = imgs.find('RatTop.png').copy()
+  bottom = imgs.find('RatBottom.png').copy()
 
   if VISUAL_TEST:
     bottom.blit(top).save("BlitNormal.png")
@@ -1202,9 +1173,9 @@ def test_blit_regular():
   pass
 
 def test_blit_mask():
-  top = Image(topImg)
-  bottom = Image(bottomImg)
-  mask = Image(maskImg)
+  top = imgs.find('RatTop.png').copy()
+  bottom = imgs.find('RatBottom.png').copy()
+  mask = imgs.find('RatMask.png').copy()
   if VISUAL_TEST:
     bottom.blit(top,mask=mask).save("BlitMaskNormal.png")
     bottom.blit(top,mask=mask,pos=(-50,-50)).save("BlitMaskTL.png")
@@ -1221,8 +1192,8 @@ def test_blit_mask():
 
 
 def test_blit_alpha():
-  top = Image(topImg)
-  bottom = Image(bottomImg)
+  top = imgs.find('RatTop.png').copy()
+  bottom = imgs.find('RatBottom.png').copy()
   a = 0.5
   if VISUAL_TEST:
     bottom.blit(top,alpha=a).save("BlitAlphaNormal.png")
@@ -1241,9 +1212,9 @@ def test_blit_alpha():
 
 
 def test_blit_alpha_mask():
-  top = Image(topImg)
-  bottom = Image(bottomImg)
-  aMask = Image(alphaMaskImg)
+  top = imgs.find('RatTop.png').copy()
+  bottom = imgs.find('RatBottom.png').copy()
+  aMask = imgs.find('RatAlphaMask.png').copy()
   if VISUAL_TEST:
     bottom.blit(top,alphaMask=aMask).save("BlitAlphaMaskNormal.png")
     bottom.blit(top,alphaMask=aMask,pos=(-10,-10)).save("BlitAlphaMaskTL.png")
@@ -1286,7 +1257,7 @@ def test_whiteBalance():
 
 
 def test_hough_circles():
-  img = Image(circles)
+  img = imgs.find('circles.png').copy()
   circs = img.findCircle(thresh=100)
   if( circs[0] < 1 ):
     assert False
@@ -1309,7 +1280,7 @@ def test_hough_circles():
     assert False
 
 def test_drawRectangle():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   img.drawRectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
   img.drawRectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
   img.drawRectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
@@ -1321,7 +1292,7 @@ def test_drawRectangle():
 
 
 def test_BlobMinRect():
-  img = Image(testimageclr)
+  img = imgs.find('statue_liberty.jpg').copy()
   blobs = img.findBlobs()
   for b in blobs:
     b.drawMinRect(color=Color.BLUE,width=3,alpha=123)
@@ -1331,7 +1302,7 @@ def test_BlobMinRect():
   pass
 
 def test_BlobRect():
-  img = Image(testimageclr)
+  img = imgs.find('statue_liberty.jpg').copy()
   blobs = img.findBlobs()
   for b in blobs:
     b.drawRect(color=Color.BLUE,width=3,alpha=123)
@@ -1385,7 +1356,7 @@ def test_blob_spatial_relationships():
     assert False
   
 def test_BlobPickle():
-  img = Image(testimageclr)
+  img = imgs.find('statue_liberty.jpg').copy()
   blobs = img.findBlobs()
   for b in blobs:
     p = pickle.dumps(b)
@@ -1396,7 +1367,7 @@ def test_BlobPickle():
   pass
 
 def test_blob_isa_methods():
-  img1 = Image(circles)
+  img1 = imgs.find('circles.png').copy()
   img2 = Image("../sampleimages/blockhead.png")
   blobs = img1.findBlobs().sortArea()
   t1 = blobs[-1].isCircle()
@@ -1410,7 +1381,7 @@ def test_blob_isa_methods():
     assert False
 
 def test_findKeypoints():
-  img = Image(testimage2)
+  img = imgs.find('aerospace.jpg').copy()
   kp = img.findKeypoints()
   for k in kp:
     k.getObject()
@@ -1537,7 +1508,7 @@ def test_draw_keypointt_matches():
   pass
 
 def test_skeletonize():
-  img = Image(logo)
+  img = imgs.find('logo.png').copy()
   s = img.skeletonize()
   s2 = img.skeletonize(10)
   pass
@@ -1552,7 +1523,7 @@ def test_image_webp_load():
     pass
 
   else:
-    img = Image(webp)
+    img = imgs.find('simplecv.webp').copy()
 
     if len(img.toString()) <= 1:
       assert False
