@@ -249,10 +249,6 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-<<<<<<< HEAD
-        "_pgsurface": ""}      
-    
-=======
         "_pgsurface": ""}  
     
     def __repr__(self):
@@ -262,7 +258,7 @@ class Image:
           fn = self.filename
         return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
       
->>>>>>> e142a82d208bc32bc4e6643d01243b6ba380c266
+
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
@@ -4629,6 +4625,8 @@ class Image:
                 self._DFT.append(dst)
 
     def _getDFTClone(self,grayscale=False):
+        # this is needs to be switched to the optimal 
+        # DFT size for faster processing. 
         self._doDFT(grayscale)
         retVal = []
         if(grayscale):
@@ -4684,14 +4682,22 @@ class Image:
             warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
         dft = self._getDFTClone(grayscale)
         flt = flt._getGrayscaleBitmap()
-        filter2 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-        filter1 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-        filter = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
-        cv.ConvertScale(flt, filter1,1.0)
-        cv.ConvertScale(flt, filter2,1.0)
-        cv.Merge(filter1,filter2,None,None,filter)
-        for c in dft: #fuck.... need to clone DFT
-            cv.Mul(c, filter, c)
+        flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+        cv.ConvertScale(flt,flt64f,1.0)
+        finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
+        cv.Merge(flt64f,flt64f,None,None,finalFilt)
+        for d in dft:
+            cv.MulSpectrums(d,finalFilt,d,0)
+        #Filter really should be a complex image 
+        #filter2 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+        #filter1 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+        #filter = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
+        #cv.ConvertScale(flt, filter1,1.0)
+        #cv.ConvertScale(flt, filter2,1.0)
+        #cv.Merge(filter1,filter2,None,None,filter)
+        #for c in dft: #fuck.... need to clone DFT
+        #    cv.Mul(c, filter, c)
+        #And instead do multiply spectrums here. 
         return self._inverseDFT(dft)
 
     def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
