@@ -121,6 +121,14 @@ def find(f, seq):
             return True
     return False
 
+def test():
+    """
+    This function is meant to run builtin unittests
+    """
+
+    print 'unit test'
+
+
 def download_and_extract(URL):
     """
     This function takes in a URL for a zip file, extracts it and returns
