@@ -4676,35 +4676,45 @@ class Image:
             retVal = Image(retVal)
         return retVal
 
+    def _boundsFromPercentage(self, floatVal, bound):
+        return np.clip(int(floatVal*bound),0,bound)
+
     def applyDFTFilter(self,flt,grayscale=False):
         if( flt.width != self.width and 
             flt.height != self.height ):
             warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
-        dft = self._getDFTClone(grayscale)
-        flt = flt._getGrayscaleBitmap()
-        flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-        cv.ConvertScale(flt,flt64f,1.0)
-        finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
-        cv.Merge(flt64f,flt64f,None,None,finalFilt)
-        for d in dft:
-            cv.MulSpectrums(d,finalFilt,d,0)
-        #Filter really should be a complex image 
-        #filter2 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-        #filter1 = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-        #filter = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
-        #cv.ConvertScale(flt, filter1,1.0)
-        #cv.ConvertScale(flt, filter2,1.0)
-        #cv.Merge(filter1,filter2,None,None,filter)
-        #for c in dft: #fuck.... need to clone DFT
-        #    cv.Mul(c, filter, c)
-        #And instead do multiply spectrums here. 
+        dft = []
+        if( grayscale ):
+            dft = self._getDFTClone(grayscale)
+            flt = flt._getGrayscaleBitmap()
+            flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+            cv.ConvertScale(flt,flt64f,1.0)
+            finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
+            cv.Merge(flt64f,flt64f,None,None,finalFilt)
+            for d in dft:
+                cv.MulSpectrums(d,finalFilt,d,0)
+        else: #break down the filter and then do each channel 
+            dft = self._getDFTClone(grayscale)
+            flt = flt.getBitmap()
+            b = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            g = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            r = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            cv.Split(flt,b,g,r,None)
+            chans = [b,g,r]
+            for c in range(0,len(chans)):
+                flt64f = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,1)
+                cv.ConvertScale(chans[c],flt64f,1.0)
+                finalFilt = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,2)
+                cv.Merge(flt64f,flt64f,None,None,finalFilt)
+                cv.MulSpectrums(dft[c],finalFilt,dft[c],0)
+
         return self._inverseDFT(dft)
 
     def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
             xCutoff = [xCutoff,xCutoff,xCutoff]
         if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
-            yCutoff = [yCutoff,yCutoff,yCutoff]    
+            yCutoff = [yCutoff,yCutoff,yCutoff]   
         if(yCutoff is None):
             yCutoff = xCutoff
         for c in xCutoff:
@@ -4718,16 +4728,29 @@ class Image:
         filter = None
         if( grayscale ):
             filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
             cv.Rectangle(filter,(xCutoff[0],yCutoff[0]),(self.width,self.height),(255,255,255),thickness=-1)
         else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
             filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Rectangle(filter,(xCutoff[0],yCutoff[0]),(self.width,self.height),(255,0,0),thickness=-1)
-            cv.Rectangle(filter,(xCutoff[1],yCutoff[1]),(self.width,self.height),(0,255,0),thickness=-1)
-            cv.Rectangle(filter,(xCutoff[2],yCutoff[2]),(self.width,self.height),(0,0,255),thickness=-1)
+            cv.Zero(filter)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+
+            cv.Rectangle(filterB,(xCutoff[0],yCutoff[0]),(self.width,self.height),255,thickness=-1)
+            cv.Rectangle(filterG,(xCutoff[1],yCutoff[1]),(self.width,self.height),255,thickness=-1)
+            cv.Rectangle(filterR,(xCutoff[2],yCutoff[2]),(self.width,self.height),255,thickness=-1)
+            cv.Merge(filterB,filterG,filterR,None,filter)
 
             
         scvFilt = Image(filter)
-        return self.applyDFTFilter(scvFilt,grayscale)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
 
     def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
@@ -4746,16 +4769,28 @@ class Image:
                 return None
         filter = None
         if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filter)
             cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(255,255,255),thickness=-1)
         else:
             filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(255,0,0),thickness=-1)
-            cv.Rectangle(filter,(0,0),(xCutoff[1],yCutoff[1]),(0,255,0),thickness=-1)
-            cv.Rectangle(filter,(0,0),(xCutoff[2],yCutoff[2]),(0,0,255),thickness=-1)
-                        
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filter)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            cv.Rectangle(filterB,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1)
+            cv.Rectangle(filterG,(0,0),(xCutoff[1],yCutoff[1]),255,thickness=-1)
+            cv.Rectangle(filterR,(0,0),(xCutoff[2],yCutoff[2]),255,thickness=-1)
+            cv.Merge(filterB,filterG,filterR,None,filter)                        
+
         scvFilt = Image(filter)
-        return self.applyDFTFilter(scvFilt,grayscale)
+
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        del scvFilt
+        return retVal
 
     #FUCK! need to decide BGR or RGB 
     # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
