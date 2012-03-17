@@ -984,9 +984,8 @@ class Image:
     
     def upload(self):
         """
-        Upload the image to imgur and prints the information received.
+        Uploads the image to imgur (anonimously) and prints the links received.
         """
-
         response = cStringIO.StringIO()
         c = pycurl.Curl()
         values = [
@@ -994,11 +993,16 @@ class Image:
                   ("image", (c.FORM_FILE, self.filename))]
         c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
         c.setopt(c.HTTPPOST, values)
-
+        c.setopt(c.WRITEFUNCTION, response.write)
         c.perform()
         c.close()
 
-        print response.getvalue()
+        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+
+        if match:
+            print "Imgur page: http://imgur.com/" + match.group(1)
+            print "Original image: " + match.group(3)
+            print "Delete page: http://imgur.com/delete/" + match.group(2)
 
 
     #scale this image, and return a new Image object with the new dimensions 
