@@ -2753,7 +2753,7 @@ class Image:
         cv.EllipseBox(self.getBitmap(),boundingbox,color,width)
 
 
-    def show(self, type = 'window'):
+    def show(self, type = 'window', res=(640,480)):
         """
         This function automatically pops up a window and shows the current image
 
@@ -2763,7 +2763,7 @@ class Image:
 
         Parameters:
             type - String
-
+	    res - tuple  (widht, height)
         Return:
             Display
         """
@@ -2776,7 +2776,7 @@ class Image:
         elif (type == 'window'):
           from SimpleCV.Display import Display
           #d = Display(self.size())
-          d = Display()		# Changed
+          d = Display(res)		# Changed
           self.save(d)
           return d
         else:
