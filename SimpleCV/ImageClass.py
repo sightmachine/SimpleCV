@@ -2775,7 +2775,8 @@ class Image:
           return js
         elif (type == 'window'):
           from SimpleCV.Display import Display
-          d = Display(self.size())
+          #d = Display(self.size())
+          d = Display()		# Changed
           self.save(d)
           return d
         else:
