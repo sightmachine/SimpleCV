@@ -195,6 +195,9 @@ class Display:
         #   if one / both too small - center along axis
         #
         # this is getting a little long. Probably needs to be refactored. 
+        
+        # Tried to solve above mentioned points, don't know if my way is correct, but resizing is working.
+        # Also changed a line in ImageClass.py in show() function.
         wndwAR = float(self.resolution[0])/float(self.resolution[1])
         imgAR = float(img.width)/float(img.height)
         self.sourceresolution = img.size()
@@ -301,39 +304,60 @@ class Display:
                 cornery = targety
                 s = img.getPGSurface()
             elif(img.width > self.resolution[0] and img.height > self.resolution[1]): #crop too big on both axes
-                targetw = self.resolution[0]
-                targeth = self.resolution[1]
-                targetx = 0
-                targety = 0
-                x = (img.width-self.resolution[0])/2
-                y = (img.height-self.resolution[1])/2
-                cornerx = -1*x
-                cornery = -1*y
-                img = img.crop(x,y,targetw,targeth)
+                #targetw = self.resolution[0]
+                #targeth = self.resolution[1]
+                #targetx = 0
+                #targety = 0
+                #x = (img.width-self.resolution[0])/2
+                #y = (img.height-self.resolution[1])/2
+                #cornerx = -1*x
+                #cornery = -1*y
+                #img = img.crop(x,y,targetw,targeth)
+                
+                #Instead of cropping, resizing the image
+                self.yscale = float(self.resolution[0])/float(img.width)
+                self.xscale = float(self.resolution[1])/float(img.height)
+                img.width = int(self.yscale*img.width)
+                img.height = int(self.xscale*img.height)
+                img.resize(img.width, img.height)
                 s = img.getPGSurface()
             elif( img.width < self.resolution[0] and img.height >= self.resolution[1]): #height too big
                 #crop along the y dimension and center along the x dimension
-                targetw = img.width
-                targeth = self.resolution[1]
-                targetx = (self.resolution[0]-img.width)/2
-                targety = 0
-                x = 0
-                y = (img.height-self.resolution[1])/2
-                cornerx = targetx
-                cornery = -1 * y
-                img = img.crop(x,y,targetw,targeth)
+                #targetw = img.width
+                #targeth = self.resolution[1]
+                #targetx = (self.resolution[0]-img.width)/2
+                #targety = 0
+                #x = 0
+                #y = (img.height-self.resolution[1])/2
+                #cornerx = targetx
+                #cornery = -1 * y
+                #img = img.crop(x,y,targetw,targeth)
+                
+                #Instead of cropping, resizing image, according to height scale
+                self.xscale = float(self.resolution[1])/float(img.height)
+                self.yscale = self.xscale
+                img.width = int(self.yscale*img.width)
+                img.height = int(self.xscale*img.height)
+                img.resize(img.width, img.height)
                 s = img.getPGSurface()
             elif( img.width > self.resolution[0] and img.height <= self.resolution[1]): #width too big
                 #crop along the y dimension and center along the x dimension
-                targetw = self.resolution[0]
-                targeth = img.height
-                targetx = 0
-                targety = (self.resolution[1]-img.height)/2
-                x = (img.width-self.resolution[0])/2
-                y = 0
-                cornerx = -1 * x
-                cornery = targety
-                img = img.crop(x,y,targetw,targeth)
+                #targetw = self.resolution[0]
+                #targeth = img.height
+                #targetx = 0
+                #targety = (self.resolution[1]-img.height)/2
+                #x = (img.width-self.resolution[0])/2
+                #y = 0
+                #cornerx = -1 * x
+                #cornery = targety
+                #img = img.crop(x,y,targetw,targeth)
+                
+                #Instead of cropping, resizing image, according to width scale
+                self.yscale = float(self.resolution[0])/float(img.width)
+                self.xscale = self.yscale
+                img.width = int(self.yscale*img.width)
+                img.height = int(self.xscale*img.height)
+                img.resize(img.width, img.height)
                 s = img.getPGSurface()
             self.xoffset = cornerx
             self.yoffset = cornery
