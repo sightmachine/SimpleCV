@@ -160,7 +160,7 @@ class Display:
         ymin = np.min((pt0[1],pt1[1]))
         return xmin,ymin,xmax-xmin,ymax-ymin
 
-    def writeFrame(self, img, fit=True):
+    def writeFrame(self, img, fit=False):
         """
         writeFrame copies the given Image object to the display, you can also use
         Image.save()
@@ -317,8 +317,16 @@ class Display:
                 #Instead of cropping, resizing the image
                 self.yscale = float(self.resolution[0])/float(img.width)
                 self.xscale = float(self.resolution[1])/float(img.height)
-                img.width = int(self.yscale*img.width)
-                img.height = int(self.xscale*img.height)
+                if int(self.yscale*img.height) > self.resolution[1]:    # scaling width down, new height > resolution
+                    if int(self.xscale*img.width) > self.resolutin[0]:  # scaling height down, new width > resoltuion
+                        width = int(self.yscale*img.width)
+                        height = int(self.xscale*img.height)
+                    else:                                               # scaling height down, new width > resolution
+                        width = int(self.xscale*img.width)
+                        height = int(self.xscale*img.height)
+                else:                                                   # scaling width down, new height < resolution
+                    width = int(self.yscale*img.width)
+                    height = int(self.yscale*img.height)
                 new_img = img.resize(img.width, img.height) # resize() returns a new image
                 s = new_img.getPGSurface() # Show new resized image
             elif( img.width < self.resolution[0] and img.height >= self.resolution[1]): #height too big
