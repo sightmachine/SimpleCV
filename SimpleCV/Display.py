@@ -319,8 +319,8 @@ class Display:
                 self.xscale = float(self.resolution[1])/float(img.height)
                 img.width = int(self.yscale*img.width)
                 img.height = int(self.xscale*img.height)
-                img.resize(img.width, img.height)
-                s = img.getPGSurface()
+                new_img = img.resize(img.width, img.height) # resize() returns a new image
+                s = new_img.getPGSurface() # Show new resized image
             elif( img.width < self.resolution[0] and img.height >= self.resolution[1]): #height too big
                 #crop along the y dimension and center along the x dimension
                 #targetw = img.width
@@ -338,8 +338,8 @@ class Display:
                 self.yscale = self.xscale
                 img.width = int(self.yscale*img.width)
                 img.height = int(self.xscale*img.height)
-                img.resize(img.width, img.height)
-                s = img.getPGSurface()
+                new_img = img.resize(img.width, img.height)
+                s = new_img.getPGSurface()
             elif( img.width > self.resolution[0] and img.height <= self.resolution[1]): #width too big
                 #crop along the y dimension and center along the x dimension
                 #targetw = self.resolution[0]
@@ -357,8 +357,8 @@ class Display:
                 self.xscale = self.yscale
                 img.width = int(self.yscale*img.width)
                 img.height = int(self.xscale*img.height)
-                img.resize(img.width, img.height)
-                s = img.getPGSurface()
+                new_img = img.resize(img.width, img.height)
+                s = new_img.getPGSurface()
             self.xoffset = cornerx
             self.yoffset = cornery
             black = pg.Surface((self.resolution[0], self.resolution[1]))
