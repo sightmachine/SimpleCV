@@ -9,6 +9,9 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 
+import pycurl # for integration with imgur
+import cStringIO # (same)
+
 
 class ColorSpace:
     """
@@ -979,7 +982,25 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    
+    def upload(self):
+        """
+        Upload the image to imgur and prints the information received.
+        """
+
+        response = cStringIO.StringIO()
+        c = pycurl.Curl()
+        values = [
+                  ("key", "256f6d06ba612e13fb34f51f8391db13"),
+                  ("image", (c.FORM_FILE, self.filename))]
+        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+        c.setopt(c.HTTPPOST, values)
+
+        c.perform()
+        c.close()
+
+        print response.getvalue()
+
+
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
