@@ -4592,7 +4592,50 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
-
+            
+    def getDFT(self):
+        """
+        Takes grayscale of the image and applies DFT.
+        Retruns cv2.cv.iplimage
+        
+        Example:
+        cam = Camera()
+        im = cam.getImage()
+        imDFT = im.getDFT()
+        
+        imDFT is cv2.cv.iplimage
+        """
+        # Confused about adding DFTshift. Should I add here and retrun image with DFTshift
+        # or add a separate function for DFTshift ?
+        # I think I should add DFTshift here. and since DFTshift also requires cv2.cv.iplimage
+        # it would be easy to apply DFTshift on image_Re, and return.
+        # And the final problem
+        # Should I return cv2.cv.iplimage, as it would be easier to apply filter. ?
+        im = self._getGrayscaleBitmap()
+        realInput = cv.CreateImage(cv.GetSize(im),cv.IPL_DEPTH_64F,1)
+        imaginaryInput = cv.CreateImage(cv.GetSize(im),cv.IPL_DEPTH_64F,1)
+        complexInput = cv.CreateImage(cv.GetSize(im),cv.IPL_DEPTH_64F,2)
+        cv.Scale(im, realInput, 1.0, 0.0)
+        cv.Zero(imaginaryInput)
+        cv.Merge(realInput, imaginaryInput, None, None, complexInput)
+        dft_M = cv.GetOptimalDFTSize(im.height - 1)
+        dft_N = cv.GetOptimalDFTSize(im.width - 1)
+        dft_A = cv.CreateMat(dft_M, dft_N, cv.CV_64FC2)
+        image_Re = cv.CreateImage((dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
+        image_Im = cv.CreateImage((dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
+        tmp = cv.GetSubRect(dft_A, (0, 0, im.width, im.height))
+        cv.Copy(complexInput, tmp, None)
+        if(dft_A.width > im.width):
+            tmp = cv.GetSubRect(dft_A, (im.width, 0, dft_N - im.width, im.height))
+            cv.Zero(tmp)
+        cv.DFT(dft_A, dft_A, cv.CV_DXT_FORWARD, complexInput.height)
+        cv.Split(dft_A, image_Re, image_Im, None, None)
+        cv.AddS(image_Re, cv.ScalarAll(1.0), image_Re, None)
+        cv.Log(image_Re, image_Re)
+        #return Image(image_Re, colorSpace=self._colorSpace)
+        #print type(image_Re)
+        return image_Re     # Returns cv2.cv.iplimage. Need to change that. Tried. Getting errors.
+                            # check out http://help.simplecv.org/question/118/getting-error-when-i-tried-imageimage_re-where
 
 Image.greyscale = Image.grayscale
 
