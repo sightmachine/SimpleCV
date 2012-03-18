@@ -318,7 +318,7 @@ class Display:
                 self.yscale = float(self.resolution[0])/float(img.width)
                 self.xscale = float(self.resolution[1])/float(img.height)
                 if int(self.yscale*img.height) > self.resolution[1]:    # scaling width down, new height > resolution
-                    if int(self.xscale*img.width) > self.resolutin[0]:  # scaling height down, new width > resoltuion
+                    if int(self.xscale*img.width) > self.resolution[0]:  # scaling height down, new width > resoltuion
                         width = int(self.yscale*img.width)
                         height = int(self.xscale*img.height)
                     else:                                               # scaling height down, new width > resolution
