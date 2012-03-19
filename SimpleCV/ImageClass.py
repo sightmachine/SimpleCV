@@ -431,7 +431,8 @@ class Image:
                 try:
                     from webm import decode as webmDecode
                 except ImportError:
-                      raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      warnings.warn('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      return
 
                 WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
                 result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
