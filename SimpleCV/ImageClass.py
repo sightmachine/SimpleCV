@@ -4854,10 +4854,43 @@ class Image:
     def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         """
         SUMMARY:
+        This method applies a high pass DFT filter. This filter enhances 
+        the high frequencies and removes the low frequency signals. This has
+        the effect of enhancing edges. The frequencies are defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
         PARAMETERS:
+        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
+                  frequency can be used for the b,g, and r signals by providing a 
+                  list of values. The frequency is defined between zero to one, 
+                  where zero is constant component and 1 is the highest possible 
+                  frequency in the image. 
+
+        yCutoff - The cutoff frequencies in the y direction. If none are provided
+                  we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
         RETURNS:
+        A SimpleCV Image after applying the filter. 
+
         EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.lowPassFilter([0.2,0.1,0.2])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
         NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: http://en.wikipedia.org/wiki/High-pass_filter#Image
         SEE ALSO:
         """
         if( isinstance(xCutoff,float) ):    
@@ -4917,10 +4950,43 @@ class Image:
     def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         """
         SUMMARY:
+        This method applies a low pass DFT filter. This filter enhances 
+        the low frequencies and removes the high frequency signals. This has
+        the effect of reducing noise. The frequencies are defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
         PARAMETERS:
+        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
+                  frequency can be used for the b,g, and r signals by providing a 
+                  list of values. The frequency is defined between zero to one, 
+                  where zero is constant component and 1 is the highest possible 
+                  frequency in the image. 
+
+        yCutoff - The cutoff frequencies in the y direction. If none are provided
+                  we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
         RETURNS:
+        A SimpleCV Image after applying the filter. 
+
         EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.highPassFilter([0.2,0.2,0.05])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
         NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: http://en.wikipedia.org/wiki/Low-pass_filter
         SEE ALSO:
         """
         if( isinstance(xCutoff,float) ):    
@@ -4981,12 +5047,58 @@ class Image:
     def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
         """
         SUMMARY:
+        This method applies a simple band pass DFT filter. This filter enhances 
+        the a range of frequencies and removes all of the other frequencies. This allows
+        a user to precisely select a set of signals to display . The frequencies are 
+        defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
         PARAMETERS:
+        xCutoffLow  - The horizontal frequency at which we perform the cutoff of the low 
+                      frequency signals. A separate 
+                      frequency can be used for the b,g, and r signals by providing a 
+                      list of values. The frequency is defined between zero to one, 
+                      where zero is constant component and 1 is the highest possible 
+                      frequency in the image. 
+
+        xCutoffHigh - The horizontal frequency at which we perform the cutoff of the high 
+                      frequency signals. Our filter passes signals between xCutoffLow and 
+                      xCutoffHigh. A separate frequency can be used for the b, g, and r 
+                      channels by providing a 
+                      list of values. The frequency is defined between zero to one, 
+                      where zero is constant component and 1 is the highest possible 
+                      frequency in the image. 
+
+        yCutoffLow - The low frequency cutoff in the y direction. If none 
+                     are provided we use the same values as provided for x. 
+
+        yCutoffHigh- The high frequency cutoff in the y direction. If none 
+                     are provided we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
         RETURNS:
+        A SimpleCV Image after applying the filter. 
+
         EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
         NOTES:
-        SEE ALSO:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: 
         """
+
         if( isinstance(xCutoffLow,float) ):    
             xCutoffLow = [xCutoffLow,xCutoffLow,xCutoffLow]
         if( isinstance(yCutoffLow,float) ):
@@ -5110,13 +5222,25 @@ class Image:
     def InverseDFT(self, raw_dft_image):
         """
         SUMMARY:
+        This method provides a way of performing an inverse discrete Fourier transform 
+        on a real/imaginary image pair and obtaining the result as a SimpleCV image. This
+        method is helpful if you wish to perform custom filter development. 
+
         PARAMETERS:
+        raw_dft_image - A list object with either one or three IPL images. Each image should 
+                        have a 64f depth and contain two channels (the real and the imaginary).
         RETURNS:
+        A simpleCV image.
+
         EXAMPLE:
-        NOTES:
-        SEE ALSO:
+        Note that this is an example, I don't recommend doing this unless you know what 
+        you are doing. 
+        >>>> raw = img.getRawDFT()
+        >>>> cv.SomeOperation(raw)
+        >>>> result = img.InverseDFT(raw)
+        >>>> result.show()
+
         """
-        #Grrrrrr neeed to clone here too
         input  = []
         w = raw_dft_image[0].width
         h = raw_dft_image[0].height
