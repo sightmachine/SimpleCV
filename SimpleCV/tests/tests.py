@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = False
+VISUAL_TEST = True
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -1548,7 +1548,8 @@ def test_image_webp_load():
   try:
     import webm
   except:
-    warnings.warn("Couldn't run the webp test as optional webm library required")
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
     pass
 
   else:
@@ -1565,7 +1566,8 @@ def test_image_webp_save():
   try:
     import webm
   except:
-    warnings.warn("Couldn't run the webp test as optional webm library required")
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
     pass
 
   else:
@@ -1576,7 +1578,87 @@ def test_image_webp_save():
     else:
       assert False
 
+def test_get_raw_dft():
+  img = Image("../sampleimages/RedDog2.jpg")
+  raw3 = img.rawDFTImage()
+  raw1 = img.rawDFTImage(grayscale=True)
+  if( len(raw3) != 3 or
+      len(raw1) != 1 or
+      raw1[0].width != img.width or
+      raw1[0].height != img.height or
+      raw3[0].height != img.height or
+      raw3[0].width != img.width or
+      raw1[0].depth != 64L or
+      raw3[0].depth != 64L or
+      raw3[0].channels != 2 or
+      raw3[0].channels != 2 ):
+    assert False
+  else:
+    pass
 
+def test_getDFTLogMagnitude():
+  img = Image("../sampleimages/RedDog2.jpg")  
+  lm3 = img.getDFTLogMagnitude()
+  lm1 = img.getDFTLogMagnitude(grayscale=True)
+  pass
 
+def test_applyDFTFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  flt = Image("../sampleimages/RedDogFlt.png")
+  f1 = img.applyDFTFilter(flt)
+  f2 = img.applyDFTFilter(flt,grayscale=True)
+  if VISUAL_TEST:
+    f1.save("DFTFilt.png")
+    f2.save("DFTFiltGray.png")
+  pass
 
-  
+def test_highPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.highPassFilter(0.5)
+  b = img.highPassFilter(0.5,grayscale=True)
+  c = img.highPassFilter(0.5,yCutoff=0.4)
+  d = img.highPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.highPassFilter([0.5,0.4,0.3])
+  f = img.highPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+  if VISUAL_TEST:
+    a.save("DFT-hpf-A.png")
+    b.save("DFT-hpf-B.png")
+    c.save("DFT-hpf-C.png")
+    d.save("DFT-hpf-D.png")
+    e.save("DFT-hpf-E.png")
+    f.save("DFT-hpf-F.png")
+    
+  pass
+
+def test_lowPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.lowPassFilter(0.5)
+  b = img.lowPassFilter(0.5,grayscale=True)
+  c = img.lowPassFilter(0.5,yCutoff=0.4)
+  d = img.lowPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.lowPassFilter([0.5,0.4,0.3])
+  f = img.lowPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+  if VISUAL_TEST:
+    a.save("DFT-lpf-A.png")
+    b.save("DFT-lpf-B.png")
+    c.save("DFT-lpf-C.png")
+    d.save("DFT-lpf-D.png")
+    e.save("DFT-lpf-E.png")
+    f.save("DFT-lpf-F.png")
+  pass
+
+def test_bandPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.bandPassFilter(0.1,0.3)
+  b = img.bandPassFilter(0.1,0.3,grayscale=True)
+  c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
+  d = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
+  e = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5])
+  f = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
+  if VISUAL_TEST:
+    a.save("DFT-bpf-A.png")
+    b.save("DFT-bpf-B.png")
+    c.save("DFT-bpf-C.png")
+    d.save("DFT-bpf-D.png")
+    e.save("DFT-bpf-E.png")
+    f.save("DFT-bpf-F.png")

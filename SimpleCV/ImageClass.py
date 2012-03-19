@@ -1113,7 +1113,7 @@ class Image:
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
         if algorithm_name == "blur":
-            algorithm = cv.CVB_BLUR
+            algorithm = cv.CV_BLUR
         if algorithm_name == "bilateral":
             algorithm = cv.CV_BILATERAL
             win_y = win_x #aperature must be square
