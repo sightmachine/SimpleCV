@@ -1113,7 +1113,7 @@ class Image:
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
         if algorithm_name == "blur":
-            algorithm = cv.CV_BLUR
+            algorithm = cv.CVB_BLUR
         if algorithm_name == "bilateral":
             algorithm = cv.CV_BILATERAL
             win_y = win_x #aperature must be square
@@ -4306,7 +4306,7 @@ class Image:
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
-            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
+            warnings.warn("I didn't get any keypoints. Image might be too uniform orb blurry." )
             return None
 
         template_points = float(td.shape[0])
@@ -4848,6 +4848,9 @@ class Image:
 
         return self._inverseDFT(dft)
 
+    def _boundsFromPercentage(self, floatVal, bound):
+        return np.clip(int(floatVal*(bound/2.00)),0,(bound/2))
+
     def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         """
         SUMMARY:
@@ -4857,43 +4860,56 @@ class Image:
         NOTES:
         SEE ALSO:
         """
-        if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
+        if( isinstance(xCutoff,float) ):    
             xCutoff = [xCutoff,xCutoff,xCutoff]
-        if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
+        if( isinstance(yCutoff,float) ):
             yCutoff = [yCutoff,yCutoff,yCutoff]   
         if(yCutoff is None):
-            yCutoff = xCutoff
-        for c in xCutoff:
-            if( c < 0 or c > self.width ):
-                warnings.warn("ImageClass.highPassFilter one of your x cut off values is invalid.")
-                return None
-        for c in yCutoff:
-            if( c < 0 or c > self.height ):
-                warnings.warn("ImageClass.highPassFilter one of your y cut off values is invalid.")
-                return None
+            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
+
+        for i in range(0,len(xCutoff)):
+            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
+            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
+
         filter = None
+        h  = self.height
+        w  = self.width
+
         if( grayscale ):
             filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
             cv.Zero(filter)
-            cv.Rectangle(filter,(xCutoff[0],yCutoff[0]),(self.width,self.height),(255,255,255),thickness=-1)
+            cv.AddS(filter,255,filter) # make everything white
+            #now make all of the corners black
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(0,0,0),thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),(0,0,0),thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),(0,0,0),thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),(0,0,0),thickness=-1) #BR       
+
         else:
             #I need to looking into CVMERGE/SPLIT... I would really need to know
             # how much memory we're allocating here
             filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
             filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
             filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Zero(filter)
             cv.Zero(filterB)
             cv.Zero(filterG)
             cv.Zero(filterR)
+            cv.AddS(filterB,255,filterB) # make everything white
+            cv.AddS(filterG,255,filterG) # make everything whit
+            cv.AddS(filterR,255,filterR) # make everything white
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),0,thickness=-1)
+                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),0,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),0,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),0,thickness=-1)         
+                i = i+1
 
-            cv.Rectangle(filterB,(xCutoff[0],yCutoff[0]),(self.width,self.height),255,thickness=-1)
-            cv.Rectangle(filterG,(xCutoff[1],yCutoff[1]),(self.width,self.height),255,thickness=-1)
-            cv.Rectangle(filterR,(xCutoff[2],yCutoff[2]),(self.width,self.height),255,thickness=-1)
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
             cv.Merge(filterB,filterG,filterR,None,filter)
 
-            
         scvFilt = Image(filter)
         retVal = self.applyDFTFilter(scvFilt,grayscale)
         return retVal
@@ -4907,49 +4923,62 @@ class Image:
         NOTES:
         SEE ALSO:
         """
-        if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
+        if( isinstance(xCutoff,float) ):    
             xCutoff = [xCutoff,xCutoff,xCutoff]
-        if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
+        if( isinstance(yCutoff,float) ):
             yCutoff = [yCutoff,yCutoff,yCutoff]   
         if(yCutoff is None):
-            yCutoff = xCutoff
-        for c in xCutoff:
-            if( c < 0 or c > self.width ):
-                warnings.warn("ImageClass.lowPassFilter one of your x cut off values is invalid.")
-                return None
-        for c in yCutoff:
-            if( c < 0 or c > self.height ):
-                warnings.warn("ImageClass.lowPassFilter one of your y cut off values is invalid.")
-                return None
+            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
+
+        for i in range(0,len(xCutoff)):
+            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
+            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
+
         filter = None
+        h  = self.height
+        w  = self.width
+
         if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
             cv.Zero(filter)
-            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(255,255,255),thickness=-1)
+            #now make all of the corners black
+            
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),255,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),255,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),255,thickness=-1) #BR       
+
         else:
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
             filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
             filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
             filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filter)
             cv.Zero(filterB)
             cv.Zero(filterG)
             cv.Zero(filterR)
-            cv.Rectangle(filterB,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1)
-            cv.Rectangle(filterG,(0,0),(xCutoff[1],yCutoff[1]),255,thickness=-1)
-            cv.Rectangle(filterR,(0,0),(xCutoff[2],yCutoff[2]),255,thickness=-1)
-            cv.Merge(filterB,filterG,filterR,None,filter)                        
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),255,thickness=-1)
+                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),255,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),255,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),255,thickness=-1)         
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
 
         scvFilt = Image(filter)
-
         retVal = self.applyDFTFilter(scvFilt,grayscale)
-        del scvFilt
         return retVal
+
 
     #FUCK! need to decide BGR or RGB 
     # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
     # or (x,y)
-    def bandPassFilter(self, start, stop,grayscale=False):
+    def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
         """
         SUMMARY:
         PARAMETERS:
@@ -4958,31 +4987,75 @@ class Image:
         NOTES:
         SEE ALSO:
         """
-        if( isinstance(start,tuple)  ):
-            start = [start,start,start]
-        if( isinstance(stop,tuple)  ):
-            stop = [stop,stop,stop]
-        #we're not checking start < stop 
-        for c in start:
-            if( c[0] < 0 or c[0] > self.width or c[1] < 0 or c[0] > self.height ):
-                warnings.warn("ImageClass.bandPassFilter one of your filter values is invalid.")
-                return None
-        for c in stop:
-            if( c[0] < 0 or c[0] > self.width or c[1] < 0 or c[0] > self.height ):
-                warnings.warn("ImageClass.bandPassFilter one of your filter values is invalid.")
-                return None
+        if( isinstance(xCutoffLow,float) ):    
+            xCutoffLow = [xCutoffLow,xCutoffLow,xCutoffLow]
+        if( isinstance(yCutoffLow,float) ):
+            yCutoffLow = [yCutoffLow,yCutoffLow,yCutoffLow]   
+        if( isinstance(xCutoffHigh,float) ):    
+            xCutoffHigh = [xCutoffHigh,xCutoffHigh,xCutoffHigh]
+        if( isinstance(yCutoffHigh,float) ):
+            yCutoffHigh = [yCutoffHigh,yCutoffHigh,yCutoffHigh]   
+
+        if(yCutoffLow is None):
+            yCutoffLow = [xCutoffLow[0],xCutoffLow[1],xCutoffLow[2]] 
+        if(yCutoffHigh is None):
+            yCutoffHigh = [xCutoffHigh[0],xCutoffHigh[1],xCutoffHigh[2]]
+
+        for i in range(0,len(xCutoffLow)):
+            xCutoffLow[i] = self._boundsFromPercentage(xCutoffLow[i],self.width)
+            xCutoffHigh[i] = self._boundsFromPercentage(xCutoffHigh[i],self.width)
+            yCutoffHigh[i] = self._boundsFromPercentage(yCutoffHigh[i],self.height)  
+            yCutoffLow[i] = self._boundsFromPercentage(yCutoffLow[i],self.height)
+  
         filter = None
+        h  = self.height
+        w  = self.width
         if( grayscale ):
             filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
-            cv.Rectangle(filter,start[0],stop[0],(255,255,255),thickness=-1)
+            cv.Zero(filter)
+            #now make all of the corners black
+            cv.Rectangle(filter,(0,0),(xCutoffHigh[0],yCutoffHigh[0]),255,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoffHigh[0]),(xCutoffHigh[0],h),255,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoffHigh[0],0),(w,yCutoffHigh[0]),255,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoffHigh[0],h-yCutoffHigh[0]),(w,h),255,thickness=-1) #BR       
+            cv.Rectangle(filter,(0,0),(xCutoffLow[0],yCutoffLow[0]),0,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoffLow[0]),(xCutoffLow[0],h),0,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoffLow[0],0),(w,yCutoffLow[0]),0,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoffLow[0],h-yCutoffLow[0]),(w,h),0,thickness=-1) #BR       
+
+
         else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoffHigh[i],yCutoffHigh[i]),255,thickness=-1) #TL
+                cv.Rectangle(f,(0,h-yCutoffHigh[i]),(xCutoffHigh[i],h),255,thickness=-1) #BL
+                cv.Rectangle(f,(w-xCutoffHigh[i],0),(w,yCutoffHigh[i]),255,thickness=-1) #TR
+                cv.Rectangle(f,(w-xCutoffHigh[i],h-yCutoffHigh[i]),(w,h),255,thickness=-1) #BR       
+                cv.Rectangle(f,(0,0),(xCutoffLow[i],yCutoffLow[i]),0,thickness=-1) #TL
+                cv.Rectangle(f,(0,h-yCutoffLow[i]),(xCutoffLow[i],h),0,thickness=-1) #BL
+                cv.Rectangle(f,(w-xCutoffLow[i],0),(w,yCutoffLow[i]),0,thickness=-1) #TR
+                cv.Rectangle(f,(w-xCutoffLow[i],h-yCutoffLow[i]),(w,h),0,thickness=-1) #BR       
+                i = i+1
+
             filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Rectangle(filter,start[0],stop[0],(255,0,0),thickness=-1)
-            cv.Rectangle(filter,start[1],stop[1],(0,255,0),thickness=-1)
-            cv.Rectangle(filter,start[2],stop[2],(0,0,255),thickness=-1)
-                        
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
         scvFilt = Image(filter)
-        return self.applyDFTFilter(scvFilt,grayscale)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+
+
 
 
     def _inverseDFT(self,input):
