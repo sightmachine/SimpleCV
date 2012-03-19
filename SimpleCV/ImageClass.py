@@ -4588,7 +4588,37 @@ class Image:
         return Image(retVal)
 
     def _doDFT(self, grayscale=False):
+        """
+        SUMMARY:
+        This private method peforms the discrete Fourier transform on an input image.
+        The transform can be applied to a single channel gray image or to each channel of the
+        image. Each channel generates a 64F 2 channel IPL image corresponding to the real 
+        and imaginary components of the DFT. A list of these IPL images are then cached 
+        in the private member variable _DFT. 
 
+        
+        PARAMETERS:
+        grayscale - If grayscale is True we first covert the image to grayscale, otherwise
+                    we perform the operation on each channel. 
+        
+        RETURNS:
+        nothing - but creates a locally cached list of IPL imgaes corresponding to the real
+                  and imaginary components of each channel. 
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> img._doDFT()
+                >>>> img._DFT[0] # get the b channel Re/Im components
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        TODO:
+        This method really needs to convert the image to an optimal DFT size. 
+        http://opencv.itseez.com/modules/core/doc/operations_on_arrays.html#getoptimaldftsize
+
+        """
         if( grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3)):
             self._DFT = []
             img = self._getGrayscaleBitmap()
@@ -4625,6 +4655,27 @@ class Image:
                 self._DFT.append(dst)
 
     def _getDFTClone(self,grayscale=False):
+        """
+        SUMMARY:
+        This method works just like _doDFT but returns a deep copy
+        of the resulting array which can be used in destructive operations.
+
+        RETURNS:
+        A deep copy of the cached DFT real/imaginary image list. 
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> myDFT = img._getDFTClone()
+                >>>> SomeCVFunc(myDFT[0])
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+        ImageClass._doDFT()
+
+        """
         # this is needs to be switched to the optimal 
         # DFT size for faster processing. 
         self._doDFT(grayscale)
@@ -4641,10 +4692,64 @@ class Image:
         return retVal
 
     def rawDFTImage(self,grayscale=False):
+        """
+        SUMMARY:
+        This method returns the _RAW_ DFT transform of an image as a list of IPL Images.
+        Each result image is a two channel 64f image where the first channel is the real
+        component and the second channel is teh imaginary component. If the operation 
+        is performed on an RGB image and grayscale is False the result is a list of 
+        these images of the form [b,g,r].
+
+        RETURNS:
+        A list of the DFT images (see above). Note that this is a shallow copy operation.
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> myDFT = img.rawDFTImage()
+                >>>> for c in myDFT:
+                >>>>    #do some operation on the DFT
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+        ImageClass._doDFT()
+        """
         self._doDFT(grayscale)
         return self._DFT 
 
     def getDFTLogMagnitude(self,grayscale=False):
+        """
+        SUMMARY:
+        This method returns the log value of the magnitude image of the DFT transform. This 
+        method is helpful for examining and comparing the results of DFT transforms. The log
+        component helps to "squish" the large floating point values into an image that can 
+        be rendered easily. 
+
+        In the image the low frequency components are in the corners of the image and the high 
+        frequency components are in the center of the image. 
+
+        PARAMETERS:
+        grayscale - if grayscale is True we perform the magnitude operation of the grayscale
+                    image otherwise we perform the operation on each channel. 
+        RETURNS:
+        Returns a SimpleCV image corresponding to the log magnitude of the input image.
+        
+        EXAMPLE:
+        
+        >>>> img = Image("RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.lowPassFilter(img.width/10.img.height/10)
+        >>>> lpf.getDFTLogMagnitude().show()
+        
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+
+        """
         dft = self._getDFTClone(grayscale)
         chans = []
         if( grayscale ):
@@ -4680,6 +4785,39 @@ class Image:
         return np.clip(int(floatVal*bound),0,bound)
 
     def applyDFTFilter(self,flt,grayscale=False):
+        """
+        SUMMARY:
+        This function allows you to apply an arbitrary filter to the DFT of an image. 
+        This filter takes in a gray scale image, whiter values are kept and black values
+        are rejected. In the DFT image, the lower frequency values are in the corners
+        of the image, while the higher frequency components are in the center. For example,
+        a low pass filter has white squares in the corners and is black everywhere else. 
+
+        PARAMETERS:
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+        
+        flt       - A grayscale filter image. The size of the filter must match the size of
+                    the image. 
+
+        RETURNS:
+        A SimpleCV image after applying the filter. 
+
+        EXAMPLE:
+        >>>>  filter = Image("MyFilter.png")
+        >>>>  myImage = Image("MyImage.png")
+        >>>>  result = myImage.applyDFTFilter(filter)
+        >>>>  result.show()
+
+        NOTES:
+
+        SEE ALSO:
+
+        TODO:
+        Make this function support a separate filter image for each channel.
+        """
         if( flt.width != self.width and 
             flt.height != self.height ):
             warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
@@ -4711,6 +4849,14 @@ class Image:
         return self._inverseDFT(dft)
 
     def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
         if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
             xCutoff = [xCutoff,xCutoff,xCutoff]
         if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
@@ -4753,6 +4899,14 @@ class Image:
         return retVal
 
     def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
         if( isinstance(xCutoff,int) or isinstance(xCutoff,float) ):
             xCutoff = [xCutoff,xCutoff,xCutoff]
         if( isinstance(yCutoff,int) or isinstance(yCutoff,float) ):
@@ -4796,6 +4950,14 @@ class Image:
     # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
     # or (x,y)
     def bandPassFilter(self, start, stop,grayscale=False):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
         if( isinstance(start,tuple)  ):
             start = [start,start,start]
         if( isinstance(stop,tuple)  ):
@@ -4824,6 +4986,14 @@ class Image:
 
 
     def _inverseDFT(self,input):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
         # a destructive IDFT operation for internal calls
         w = input[0].width
         h = input[0].height
@@ -4865,6 +5035,14 @@ class Image:
         return retVal
 
     def InverseDFT(self, raw_dft_image):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
         #Grrrrrr neeed to clone here too
         input  = []
         w = raw_dft_image[0].width
