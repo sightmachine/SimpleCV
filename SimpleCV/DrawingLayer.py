@@ -58,7 +58,10 @@ class DrawingLayer:
         self._mFontName = None
         self._mFont = pg.font.Font(self._mFontName, self._mFontSize)    
     
-     
+    def __repr__(self):
+        return "<SimpleCV.DrawingLayer Object size (%d, %d)>" % (self.width, self.height)
+    
+    
     def setDefaultAlpha(self, alpha):
         """
         This method sets the default alpha value for all methods called on this

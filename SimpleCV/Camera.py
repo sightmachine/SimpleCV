@@ -342,8 +342,12 @@ class Camera(FrameSource):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index))
-                
-            self.capture.start()
+
+            try:
+              self.capture.start()
+            except:
+              warnings.warn("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
+              return
             time.sleep(0)
             self.pygame_buffer = self.capture.get_image()
             self.pygame_camera = True
