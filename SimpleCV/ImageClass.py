@@ -177,16 +177,15 @@ class ImageSet(list):
         
       else:
         formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
-        
-      file_set = [glob.glob(p) for p in formats]
 
+      
+      file_set = [glob.glob(p) for p in formats]
 
       self.filelist = dict()
 
       for f in file_set:
         for i in f:
           tmp = Image(i)
-          #~ self.filelist.append(tmp.filename.split('/')[-1])
           self.filelist[tmp.filename.split('/')[-1]] = tmp
           self.append(tmp)
 
@@ -442,6 +441,7 @@ class Image:
                 )
                 self._pil = webpImage.convert("RGB")
                 self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                self.filename = source
                 cv.SetData(self._bitmap, self._pil.tostring())
                 cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
 
