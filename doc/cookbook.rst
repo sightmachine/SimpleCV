@@ -89,7 +89,7 @@ Colors and Levels
 
 You can also split channels, if you are interested in only processing a single color::
 
-    (red, green, blue) = Camera().getImage().channels()
+    (red, green, blue) = Camera().getImage().splitChannels()
     red.save("redcam.jpg")
     green.save("greencam.jpg")
     blue.save("bluecam.jpg")
