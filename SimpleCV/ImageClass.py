@@ -9,6 +9,8 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 
+import pycurl # for integration with imgur
+
 
 class ColorSpace:
     """
@@ -979,7 +981,29 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    
+
+    def upload(self):
+        """
+        Uploads the image to imgur (anonimously) and prints the links received.
+        """
+        response = StringIO()
+        c = pycurl.Curl()
+        values = [
+                  ("key", "256f6d06ba612e13fb34f51f8391db13"),
+                  ("image", (c.FORM_FILE, self.filename))]
+        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+        c.setopt(c.HTTPPOST, values)
+        c.setopt(c.WRITEFUNCTION, response.write)
+        c.perform()
+        c.close()
+
+        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+        if match:
+            print "Imgur page: http://imgur.com/" + match.group(1)
+            print "Original image: " + match.group(3)
+            print "Delete page: http://imgur.com/delete/" + match.group(2)
+
+
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
