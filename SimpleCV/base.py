@@ -18,6 +18,8 @@ import glob #for directory scanning
 import abc #abstract base class
 import colorsys
 
+import logging #disabling warnings (proper logging coming soon)
+
 from copy import copy
 from math import sqrt, atan2
 from pkg_resources import load_entry_point
