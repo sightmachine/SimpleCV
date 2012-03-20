@@ -9,7 +9,6 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 
-import pycurl # for integration with imgur
 
 
 class ColorSpace:
@@ -982,14 +981,20 @@ class Image:
         return Image(newimg, colorSpace=self._colorSpace) 
     
 
-    def upload(self):
+    def upload(self,api_key):
         """
-        Uploads the image to imgur (anonimously) and prints the links received.
+        Uploads the image to imgur (using the api key given as a parameter) and prints the links received.
         """
+        try:
+          import pycurl
+        except ImportError:
+          print "PycURL Library not installed."
+          return
+
         response = StringIO()
         c = pycurl.Curl()
         values = [
-                  ("key", "256f6d06ba612e13fb34f51f8391db13"),
+                  ("key", api_key),
                   ("image", (c.FORM_FILE, self.filename))]
         c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
         c.setopt(c.HTTPPOST, values)
@@ -999,10 +1004,11 @@ class Image:
 
         match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
         if match:
-            print "Imgur page: http://imgur.com/" + match.group(1)
-            print "Original image: " + match.group(3)
-            print "Delete page: http://imgur.com/delete/" + match.group(2)
-
+          print "Imgur page: http://imgur.com/" + match.group(1)
+          print "Original image: " + match.group(3)
+          print "Delete page: http://imgur.com/delete/" + match.group(2)
+        else:
+          print "The API Key given is not valid"
 
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
