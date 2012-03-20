@@ -10,7 +10,6 @@ import scipy.cluster.vq as scv
 import math # math... who does that 
 
 import pycurl # for integration with imgur
-import cStringIO # (same)
 
 
 class ColorSpace:
@@ -982,11 +981,12 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
+
     def upload(self):
         """
         Uploads the image to imgur (anonimously) and prints the links received.
         """
-        response = cStringIO.StringIO()
+        response = StringIO()
         c = pycurl.Curl()
         values = [
                   ("key", "256f6d06ba612e13fb34f51f8391db13"),
@@ -998,7 +998,6 @@ class Image:
         c.close()
 
         match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
-
         if match:
             print "Imgur page: http://imgur.com/" + match.group(1)
             print "Original image: " + match.group(3)
