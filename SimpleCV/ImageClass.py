@@ -228,6 +228,8 @@ class Image:
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
+    #For DFT Caching 
+    _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
     #Keypoint caching values
     _mKeyPoints = None
@@ -256,6 +258,7 @@ class Image:
           fn = self.filename
         return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
       
+
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
@@ -4304,7 +4307,7 @@ class Image:
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
-            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
+            warnings.warn("I didn't get any keypoints. Image might be too uniform orb blurry." )
             return None
 
         template_points = float(td.shape[0])
@@ -4584,6 +4587,710 @@ class Image:
         retVal = np.zeros([self.width,self.height])
         retVal[skeleton] = 255
         return Image(retVal)
+
+    def _doDFT(self, grayscale=False):
+        """
+        SUMMARY:
+        This private method peforms the discrete Fourier transform on an input image.
+        The transform can be applied to a single channel gray image or to each channel of the
+        image. Each channel generates a 64F 2 channel IPL image corresponding to the real 
+        and imaginary components of the DFT. A list of these IPL images are then cached 
+        in the private member variable _DFT. 
+
+        
+        PARAMETERS:
+        grayscale - If grayscale is True we first covert the image to grayscale, otherwise
+                    we perform the operation on each channel. 
+        
+        RETURNS:
+        nothing - but creates a locally cached list of IPL imgaes corresponding to the real
+                  and imaginary components of each channel. 
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> img._doDFT()
+                >>>> img._DFT[0] # get the b channel Re/Im components
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        TODO:
+        This method really needs to convert the image to an optimal DFT size. 
+        http://opencv.itseez.com/modules/core/doc/operations_on_arrays.html#getoptimaldftsize
+
+        """
+        if( grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3)):
+            self._DFT = []
+            img = self._getGrayscaleBitmap()
+            width, height = cv.GetSize(img)
+            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            cv.ConvertScale(img,data,1.0)
+            cv.Zero(blank)
+            cv.Merge(data,blank,None,None,src)
+            cv.Merge(data,blank,None,None,dst)
+            cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+            self._DFT.append(dst)
+        elif( not grayscale and (len(self._DFT) < 2 )):
+            self._DFT = []
+            r = self.getEmpty(1)
+            g = self.getEmpty(1)
+            b = self.getEmpty(1)
+            cv.Split(self.getBitmap(),b,g,r,None)
+            chans = [b,g,r]
+            width = self.width
+            height = self.height
+            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            for c in chans:                
+                dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+                cv.ConvertScale(c,data,1.0)
+                cv.Zero(blank)
+                cv.Merge(data,blank,None,None,src)
+                cv.Merge(data,blank,None,None,dst)
+                cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+                self._DFT.append(dst)
+
+    def _getDFTClone(self,grayscale=False):
+        """
+        SUMMARY:
+        This method works just like _doDFT but returns a deep copy
+        of the resulting array which can be used in destructive operations.
+
+        RETURNS:
+        A deep copy of the cached DFT real/imaginary image list. 
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> myDFT = img._getDFTClone()
+                >>>> SomeCVFunc(myDFT[0])
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+        ImageClass._doDFT()
+
+        """
+        # this is needs to be switched to the optimal 
+        # DFT size for faster processing. 
+        self._doDFT(grayscale)
+        retVal = []
+        if(grayscale):
+            gs = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
+            cv.Copy(self._DFT[0],gs)
+            retVal.append(gs)
+        else:
+            for img in self._DFT:
+                temp = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
+                cv.Copy(img,temp)
+                retVal.append(temp)
+        return retVal
+
+    def rawDFTImage(self,grayscale=False):
+        """
+        SUMMARY:
+        This method returns the _RAW_ DFT transform of an image as a list of IPL Images.
+        Each result image is a two channel 64f image where the first channel is the real
+        component and the second channel is teh imaginary component. If the operation 
+        is performed on an RGB image and grayscale is False the result is a list of 
+        these images of the form [b,g,r].
+
+        RETURNS:
+        A list of the DFT images (see above). Note that this is a shallow copy operation.
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> myDFT = img.rawDFTImage()
+                >>>> for c in myDFT:
+                >>>>    #do some operation on the DFT
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+        ImageClass._doDFT()
+        """
+        self._doDFT(grayscale)
+        return self._DFT 
+
+    def getDFTLogMagnitude(self,grayscale=False):
+        """
+        SUMMARY:
+        This method returns the log value of the magnitude image of the DFT transform. This 
+        method is helpful for examining and comparing the results of DFT transforms. The log
+        component helps to "squish" the large floating point values into an image that can 
+        be rendered easily. 
+
+        In the image the low frequency components are in the corners of the image and the high 
+        frequency components are in the center of the image. 
+
+        PARAMETERS:
+        grayscale - if grayscale is True we perform the magnitude operation of the grayscale
+                    image otherwise we perform the operation on each channel. 
+        RETURNS:
+        Returns a SimpleCV image corresponding to the log magnitude of the input image.
+        
+        EXAMPLE:
+        
+        >>>> img = Image("RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.lowPassFilter(img.width/10.img.height/10)
+        >>>> lpf.getDFTLogMagnitude().show()
+        
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+
+        """
+        dft = self._getDFTClone(grayscale)
+        chans = []
+        if( grayscale ):
+            chans = [self.getEmpty(1)]
+        else:
+            chans = [self.getEmpty(1),self.getEmpty(1),self.getEmpty(1)]
+        data = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1)
+        blank = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1) 
+        
+        for i in range(0,len(chans)):
+            cv.Split(dft[i],data,blank,None,None)
+            cv.Pow( data, data, 2.0)
+            cv.Pow( blank, blank, 2.0)
+            cv.Add( data, blank, data, None)
+            cv.Pow( data, data, 0.5 )
+            cv.AddS( data, cv.ScalarAll(1.0), data, None ) # 1 + Mag
+            cv.Log( data, data ) # log(1 + Mag
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,chans[i])
+
+        retVal = None
+        if( grayscale ):
+            retVal = Image(chans[0])
+        else:
+            retVal = self.getEmpty()
+            cv.Merge(chans[0],chans[1],chans[2],None,retVal)
+            retVal = Image(retVal)
+        return retVal
+
+    def _boundsFromPercentage(self, floatVal, bound):
+        return np.clip(int(floatVal*bound),0,bound)
+
+    def applyDFTFilter(self,flt,grayscale=False):
+        """
+        SUMMARY:
+        This function allows you to apply an arbitrary filter to the DFT of an image. 
+        This filter takes in a gray scale image, whiter values are kept and black values
+        are rejected. In the DFT image, the lower frequency values are in the corners
+        of the image, while the higher frequency components are in the center. For example,
+        a low pass filter has white squares in the corners and is black everywhere else. 
+
+        PARAMETERS:
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+        
+        flt       - A grayscale filter image. The size of the filter must match the size of
+                    the image. 
+
+        RETURNS:
+        A SimpleCV image after applying the filter. 
+
+        EXAMPLE:
+        >>>>  filter = Image("MyFilter.png")
+        >>>>  myImage = Image("MyImage.png")
+        >>>>  result = myImage.applyDFTFilter(filter)
+        >>>>  result.show()
+
+        NOTES:
+
+        SEE ALSO:
+
+        TODO:
+        Make this function support a separate filter image for each channel.
+        """
+        if( flt.width != self.width and 
+            flt.height != self.height ):
+            warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
+        dft = []
+        if( grayscale ):
+            dft = self._getDFTClone(grayscale)
+            flt = flt._getGrayscaleBitmap()
+            flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+            cv.ConvertScale(flt,flt64f,1.0)
+            finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
+            cv.Merge(flt64f,flt64f,None,None,finalFilt)
+            for d in dft:
+                cv.MulSpectrums(d,finalFilt,d,0)
+        else: #break down the filter and then do each channel 
+            dft = self._getDFTClone(grayscale)
+            flt = flt.getBitmap()
+            b = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            g = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            r = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            cv.Split(flt,b,g,r,None)
+            chans = [b,g,r]
+            for c in range(0,len(chans)):
+                flt64f = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,1)
+                cv.ConvertScale(chans[c],flt64f,1.0)
+                finalFilt = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,2)
+                cv.Merge(flt64f,flt64f,None,None,finalFilt)
+                cv.MulSpectrums(dft[c],finalFilt,dft[c],0)
+
+        return self._inverseDFT(dft)
+
+    def _boundsFromPercentage(self, floatVal, bound):
+        return np.clip(int(floatVal*(bound/2.00)),0,(bound/2))
+
+    def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        """
+        SUMMARY:
+        This method applies a high pass DFT filter. This filter enhances 
+        the high frequencies and removes the low frequency signals. This has
+        the effect of enhancing edges. The frequencies are defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
+        PARAMETERS:
+        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
+                  frequency can be used for the b,g, and r signals by providing a 
+                  list of values. The frequency is defined between zero to one, 
+                  where zero is constant component and 1 is the highest possible 
+                  frequency in the image. 
+
+        yCutoff - The cutoff frequencies in the y direction. If none are provided
+                  we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
+        RETURNS:
+        A SimpleCV Image after applying the filter. 
+
+        EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.lowPassFilter([0.2,0.1,0.2])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
+        NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: http://en.wikipedia.org/wiki/High-pass_filter#Image
+        SEE ALSO:
+        """
+        if( isinstance(xCutoff,float) ):    
+            xCutoff = [xCutoff,xCutoff,xCutoff]
+        if( isinstance(yCutoff,float) ):
+            yCutoff = [yCutoff,yCutoff,yCutoff]   
+        if(yCutoff is None):
+            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
+
+        for i in range(0,len(xCutoff)):
+            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
+            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
+
+        filter = None
+        h  = self.height
+        w  = self.width
+
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
+            cv.AddS(filter,255,filter) # make everything white
+            #now make all of the corners black
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(0,0,0),thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),(0,0,0),thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),(0,0,0),thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),(0,0,0),thickness=-1) #BR       
+
+        else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            cv.AddS(filterB,255,filterB) # make everything white
+            cv.AddS(filterG,255,filterG) # make everything whit
+            cv.AddS(filterR,255,filterR) # make everything white
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),0,thickness=-1)
+                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),0,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),0,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),0,thickness=-1)         
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
+        scvFilt = Image(filter)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+    def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        """
+        SUMMARY:
+        This method applies a low pass DFT filter. This filter enhances 
+        the low frequencies and removes the high frequency signals. This has
+        the effect of reducing noise. The frequencies are defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
+        PARAMETERS:
+        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
+                  frequency can be used for the b,g, and r signals by providing a 
+                  list of values. The frequency is defined between zero to one, 
+                  where zero is constant component and 1 is the highest possible 
+                  frequency in the image. 
+
+        yCutoff - The cutoff frequencies in the y direction. If none are provided
+                  we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
+        RETURNS:
+        A SimpleCV Image after applying the filter. 
+
+        EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.highPassFilter([0.2,0.2,0.05])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
+        NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: http://en.wikipedia.org/wiki/Low-pass_filter
+        SEE ALSO:
+        """
+        if( isinstance(xCutoff,float) ):    
+            xCutoff = [xCutoff,xCutoff,xCutoff]
+        if( isinstance(yCutoff,float) ):
+            yCutoff = [yCutoff,yCutoff,yCutoff]   
+        if(yCutoff is None):
+            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
+
+        for i in range(0,len(xCutoff)):
+            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
+            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
+
+        filter = None
+        h  = self.height
+        w  = self.width
+
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
+            #now make all of the corners black
+            
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),255,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),255,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),255,thickness=-1) #BR       
+
+        else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),255,thickness=-1)
+                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),255,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),255,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),255,thickness=-1)         
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
+        scvFilt = Image(filter)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+
+    #FUCK! need to decide BGR or RGB 
+    # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
+    # or (x,y)
+    def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
+        """
+        SUMMARY:
+        This method applies a simple band pass DFT filter. This filter enhances 
+        the a range of frequencies and removes all of the other frequencies. This allows
+        a user to precisely select a set of signals to display . The frequencies are 
+        defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
+        PARAMETERS:
+        xCutoffLow  - The horizontal frequency at which we perform the cutoff of the low 
+                      frequency signals. A separate 
+                      frequency can be used for the b,g, and r signals by providing a 
+                      list of values. The frequency is defined between zero to one, 
+                      where zero is constant component and 1 is the highest possible 
+                      frequency in the image. 
+
+        xCutoffHigh - The horizontal frequency at which we perform the cutoff of the high 
+                      frequency signals. Our filter passes signals between xCutoffLow and 
+                      xCutoffHigh. A separate frequency can be used for the b, g, and r 
+                      channels by providing a 
+                      list of values. The frequency is defined between zero to one, 
+                      where zero is constant component and 1 is the highest possible 
+                      frequency in the image. 
+
+        yCutoffLow - The low frequency cutoff in the y direction. If none 
+                     are provided we use the same values as provided for x. 
+
+        yCutoffHigh- The high frequency cutoff in the y direction. If none 
+                     are provided we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
+        RETURNS:
+        A SimpleCV Image after applying the filter. 
+
+        EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
+        NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: 
+        """
+
+        if( isinstance(xCutoffLow,float) ):    
+            xCutoffLow = [xCutoffLow,xCutoffLow,xCutoffLow]
+        if( isinstance(yCutoffLow,float) ):
+            yCutoffLow = [yCutoffLow,yCutoffLow,yCutoffLow]   
+        if( isinstance(xCutoffHigh,float) ):    
+            xCutoffHigh = [xCutoffHigh,xCutoffHigh,xCutoffHigh]
+        if( isinstance(yCutoffHigh,float) ):
+            yCutoffHigh = [yCutoffHigh,yCutoffHigh,yCutoffHigh]   
+
+        if(yCutoffLow is None):
+            yCutoffLow = [xCutoffLow[0],xCutoffLow[1],xCutoffLow[2]] 
+        if(yCutoffHigh is None):
+            yCutoffHigh = [xCutoffHigh[0],xCutoffHigh[1],xCutoffHigh[2]]
+
+        for i in range(0,len(xCutoffLow)):
+            xCutoffLow[i] = self._boundsFromPercentage(xCutoffLow[i],self.width)
+            xCutoffHigh[i] = self._boundsFromPercentage(xCutoffHigh[i],self.width)
+            yCutoffHigh[i] = self._boundsFromPercentage(yCutoffHigh[i],self.height)  
+            yCutoffLow[i] = self._boundsFromPercentage(yCutoffLow[i],self.height)
+  
+        filter = None
+        h  = self.height
+        w  = self.width
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
+            #now make all of the corners black
+            cv.Rectangle(filter,(0,0),(xCutoffHigh[0],yCutoffHigh[0]),255,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoffHigh[0]),(xCutoffHigh[0],h),255,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoffHigh[0],0),(w,yCutoffHigh[0]),255,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoffHigh[0],h-yCutoffHigh[0]),(w,h),255,thickness=-1) #BR       
+            cv.Rectangle(filter,(0,0),(xCutoffLow[0],yCutoffLow[0]),0,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoffLow[0]),(xCutoffLow[0],h),0,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoffLow[0],0),(w,yCutoffLow[0]),0,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoffLow[0],h-yCutoffLow[0]),(w,h),0,thickness=-1) #BR       
+
+
+        else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoffHigh[i],yCutoffHigh[i]),255,thickness=-1) #TL
+                cv.Rectangle(f,(0,h-yCutoffHigh[i]),(xCutoffHigh[i],h),255,thickness=-1) #BL
+                cv.Rectangle(f,(w-xCutoffHigh[i],0),(w,yCutoffHigh[i]),255,thickness=-1) #TR
+                cv.Rectangle(f,(w-xCutoffHigh[i],h-yCutoffHigh[i]),(w,h),255,thickness=-1) #BR       
+                cv.Rectangle(f,(0,0),(xCutoffLow[i],yCutoffLow[i]),0,thickness=-1) #TL
+                cv.Rectangle(f,(0,h-yCutoffLow[i]),(xCutoffLow[i],h),0,thickness=-1) #BL
+                cv.Rectangle(f,(w-xCutoffLow[i],0),(w,yCutoffLow[i]),0,thickness=-1) #TR
+                cv.Rectangle(f,(w-xCutoffLow[i],h-yCutoffLow[i]),(w,h),0,thickness=-1) #BR       
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
+        scvFilt = Image(filter)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+
+
+
+
+    def _inverseDFT(self,input):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
+        # a destructive IDFT operation for internal calls
+        w = input[0].width
+        h = input[0].height
+        if( len(input) == 1 ):
+            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
+            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            cv.Split(input[0],data,blank,None,None)
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            denom = max-min
+            if(denom == 0):
+                denom = 1
+            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,result)
+            retVal = Image(result)
+        else: # DO RGB separately
+            results = []
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            for i in range(0,len(input)):
+                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
+                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+                cv.Split( input[i],data,blank,None,None)
+                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                denom = max-min
+                if(denom == 0):
+                    denom = 1
+                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+                cv.Mul(data,data,data,255.0) # this may not be right
+                cv.Convert(data,result)
+                results.append(result)
+                      
+            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
+            cv.Merge(results[0],results[1],results[2],None,retVal)
+            retVal = Image(retVal)
+        del input
+        return retVal
+
+    def InverseDFT(self, raw_dft_image):
+        """
+        SUMMARY:
+        This method provides a way of performing an inverse discrete Fourier transform 
+        on a real/imaginary image pair and obtaining the result as a SimpleCV image. This
+        method is helpful if you wish to perform custom filter development. 
+
+        PARAMETERS:
+        raw_dft_image - A list object with either one or three IPL images. Each image should 
+                        have a 64f depth and contain two channels (the real and the imaginary).
+        RETURNS:
+        A simpleCV image.
+
+        EXAMPLE:
+        Note that this is an example, I don't recommend doing this unless you know what 
+        you are doing. 
+        >>>> raw = img.getRawDFT()
+        >>>> cv.SomeOperation(raw)
+        >>>> result = img.InverseDFT(raw)
+        >>>> result.show()
+
+        """
+        input  = []
+        w = raw_dft_image[0].width
+        h = raw_dft_image[0].height
+        if(len(raw_dft_image) == 1):
+            gs = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
+            cv.Copy(self._DFT[0],gs)
+            input.append(gs)
+        else:
+            for img in raw_dft_image:
+                temp = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
+                cv.Copy(img,temp)
+                input.append(img)
+            
+        if( len(input) == 1 ):
+            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
+            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            cv.Split(input[0],data,blank,None,None)
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            denom = max-min
+            if(denom == 0):
+                denom = 1
+            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,result)
+            retVal = Image(result)
+        else: # DO RGB separately
+            results = []
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            for i in range(0,len(raw_dft_image)):
+                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
+                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+                cv.Split( input[i],data,blank,None,None)
+                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                denom = max-min
+                if(denom == 0):
+                    denom = 1
+                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+                cv.Mul(data,data,data,255.0) # this may not be right
+                cv.Convert(data,result)
+                results.append(result)
+                      
+            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
+            cv.Merge(results[0],results[1],results[2],None,retVal)
+            retVal = Image(retVal)
+
+        return retVal
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
