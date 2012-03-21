@@ -469,11 +469,27 @@ class Image:
     def getEXIFData(self):
         """
         Summary:
+        This function extracts the exif data from an image file like JPEG or TIFF.
+        The data is returned as a dict. 
+
         Parameters:
+        None
+
         Returns:
+        A dictionary of key value pairs. The value pairs are defined in the EXIF.py file. 
+
         Example:
+        >>>> img = Image("./SimpleCV/sampleimages/OWS.jpg")
+        >>>> data = img.getEXIFData()
+        >>>> data['Image GPSInfo'].values
+
         Notes:
+        Compliments of: http://exif-py.sourceforge.net/
+
+        http://en.wikipedia.org/wiki/Exchangeable_image_file_format
+
         See Also:
+        /SimpleCV/SimpleCV/EXIF.py
         """
         import os, string
         if( len(self.filename) < 5 or self.filename is None ):

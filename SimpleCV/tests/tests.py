@@ -1576,7 +1576,15 @@ def test_image_webp_save():
     else:
       assert False
 
-
+def test_getEXIFData():
+  img = Image("../sampleimages/OWS.jpg")
+  img2 = Image(testimage)
+  d1 = img.getEXIFData()
+  d2 = img2.getEXIFData()
+  if( len(d1) > 0 and len(d2) == 0 ):
+    pass
+  else:
+    assert False
 
 
   
