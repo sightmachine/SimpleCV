@@ -3,6 +3,7 @@ from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
+from EXIF import *
 import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
@@ -169,8 +170,8 @@ class ImageSet(list):
       file_set = [glob.glob(p) for p in formats]
 
       for f in file_set:
-        for i in f:
-          self.append(Image(i))
+          for i in f:
+              self.append(Image(i))
 
 
       
@@ -259,7 +260,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True):
         """ 
         The constructor takes a single polymorphic parameter, which it tests
         to see how it should convert into an RGB image.  Supported types include:
@@ -424,7 +425,7 @@ class Image:
                     self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
                     cv.SetData(self._bitmap, self._pil.tostring())
                     cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-                
+
                 #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
@@ -465,6 +466,32 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
+    def getEXIFData(self):
+        """
+        Summary:
+        Parameters:
+        Returns:
+        Example:
+        Notes:
+        See Also:
+        """
+        import os, string
+        if( len(self.filename) < 5 or self.filename is None ):
+            #I am not going to warn, better of img sets
+            #warnings.warn("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
+            return {}
+
+        fileName, fileExtension = os.path.splitext(self.filename)
+        fileExtension = string.lower(fileExtension)
+        if( fileExtension != '.jpeg' and fileExtension != '.jpg' and
+            fileExtension != 'tiff' and fileExtension != '.tif'):
+            #warnings.warn("ImageClass.getEXIFData: This image format does not support EXIF")
+            return {}
+
+        raw = open(self.filename,'rb')
+        data = process_file(raw)
+        return data
+
     def live(self):
         """
         This shows a live view of the camera.
