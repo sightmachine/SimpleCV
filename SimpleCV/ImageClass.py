@@ -2756,7 +2756,7 @@ class Image:
         cv.EllipseBox(self.getBitmap(),boundingbox,color,width)
 
 
-    def show(self, type = 'window', res=(640,480)):
+    def show(self, type = 'window'):
         """
         This function automatically pops up a window and shows the current image
 
@@ -2766,7 +2766,7 @@ class Image:
 
         Parameters:
             type - String
-	    res - tuple  (widht, height)
+
         Return:
             Display
         """
@@ -2778,8 +2778,7 @@ class Image:
           return js
         elif (type == 'window'):
           from SimpleCV.Display import Display
-          #d = Display(self.size())
-          d = Display(res)		# Changed
+          d = Display(self.size())
           self.save(d)
           return d
         else:
@@ -5291,6 +5290,156 @@ class Image:
             retVal = Image(retVal)
 
         return retVal
+        
+    def applyButterworthFilter(self,dia=400,order=2,highpass=False,grayscale=False):
+        """
+        SUMMARY:
+            Creates a butterworth filter of 64x64 pixels, resizes it to fit
+            image, applies DFT on image using the filter.
+            Returns image with DFT applied on it
+        PARAMETERS:
+        dia: int
+            Diameter of Butterworth low pass filter
+        order: int 
+            Order of butterworth lowpass filter
+        highpass: BOOL
+            True: highpass filter
+            False: lowpass filter
+        grayscale: BOOL
+    
+        Examples:
+    
+        im = Image("lenna")
+        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+        Output image: http://i.imgur.com/5LS3e.png
+    
+        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        Output img: http://i.imgur.com/QlCAY.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        Output img: http://i.imgur.com/BYYnp.png
+    
+        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        Output img: http://i.imgur.com/BYYnp.png
+        """
+        w,h = self.size()
+        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
+        dia = int(dia/((w/64.0+h/64.0)/2.0))
+        if highpass:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    flt[i,j] = 255-(255/(1+(d/dia)**(order*2)))
+        else:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    flt[i,j] = 255/(1+(d/dia)**(order*2))
+    
+        flt = Image(flt)
+        flt_re = flt.resize(w,h)
+        img = self.applyDFTFilter(flt_re,grayscale)
+        return img
+    
+    def applyGaussianFilter(self, dia=400, highpass=False, grayscale=False):
+        """
+        SUMMARY:
+            Creates a gaussian filter of 64x64 pixels, resizes it to fit
+            image, applies DFT on image using the filter.
+            Returns image with DFT applied on it
+        PARAMETERS:
+        dia: int
+            Diameter of Gaussian filter
+        highpass: BOOL
+            True: highpass filter
+            False: lowpass filter
+        grayscale: BOOL
+    
+        Example:
+    
+        im = Image("lenna")
+        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+        Output image: http://i.imgur.com/DttJv.png
+    
+        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        Output img: http://i.imgur.com/PWn4o.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        Output img: http://i.imgur.com/9hX5J.png
+    
+        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        Output img: http://i.imgur.com/MXI5T.png
+        """
+        w,h = self.size()
+        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
+        dia = int(dia/((w/64.0+h/64.0)/2.0))
+        if highpass:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    val = 255-(255.0*math.exp(-(d**2)/((dia**2)*2)))
+                    flt[i,j]=val
+        else:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    val = 255.0*math.exp(-(d**2)/((dia**2)*2))
+                    flt[i,j]=val        
+                
+        flt = Image(flt)
+        flt_re = flt.resize(w,h)
+        img = self.applyDFTFilter(flt_re,grayscale)
+        return img
+        
+    def applyUnsharpMask(self,boost=1,dia=400,grayscale=False):
+        """
+        SUMMARY:
+            This method applies unsharp mask or highboost filtering
+            on image depending upon the boost value provided.
+            DFT is applied on image using gaussian lowpass filter.
+            A mask is created subtracting the DFT image from the original
+            iamge. And then mask is added in the image to sharpen it.
+            unsharp masking => image + mask
+            highboost filtering => image + (boost)*mask
+        PARAMETERS:
+    
+        boost: int  
+            boost = 1 => unsharp masking
+            boost > 1 => highboost filtering
+        dia: int
+            Diameter of Gaussian low pass filter
+        grayscale: BOOL
+    
+        Examples: 
+        ==============================================================
+        Gaussian Filters:
+        im = Image("lenna")
+        img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        output image: http://i.imgur.com/A1pZf.png
+   
+        img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        output image: http://i.imgur.com/smCdL.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        output image: http://i.imgur.com/VtGzl.png
+    
+        img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        output image: http://i.imgur.com/bywny.png
+        """
+        if boost < 0:
+            print "boost >= 1"
+            return None
+    
+        lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
+        im = Image(self.getBitmap())
+        mask = im - lpIm
+        img = im
+        for i in range(boost):
+            img = img + mask
+        return img
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -5299,50 +5448,9 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
-            
-    def getDFT(self):
-        """
-        Takes grayscale of the image and applies DFT.
-        Retruns cv2.cv.iplimage
         
-        Example:
-        cam = Camera()
-        im = cam.getImage()
-        imDFT = im.getDFT()
-        
-        imDFT is cv2.cv.iplimage
-        """
-        # Confused about adding DFTshift. Should I add here and retrun image with DFTshift
-        # or add a separate function for DFTshift ?
-        # I think I should add DFTshift here. and since DFTshift also requires cv2.cv.iplimage
-        # it would be easy to apply DFTshift on image_Re, and return.
-        # And the final problem
-        # Should I return cv2.cv.iplimage, as it would be easier to apply filter. ?
-        im = self._getGrayscaleBitmap()
-        realInput = cv.CreateImage(cv.GetSize(im),cv.IPL_DEPTH_64F,1)
-        imaginaryInput = cv.CreateImage(cv.GetSize(im),cv.IPL_DEPTH_64F,1)
-        complexInput = cv.CreateImage(cv.GetSize(im),cv.IPL_DEPTH_64F,2)
-        cv.Scale(im, realInput, 1.0, 0.0)
-        cv.Zero(imaginaryInput)
-        cv.Merge(realInput, imaginaryInput, None, None, complexInput)
-        dft_M = cv.GetOptimalDFTSize(im.height - 1)
-        dft_N = cv.GetOptimalDFTSize(im.width - 1)
-        dft_A = cv.CreateMat(dft_M, dft_N, cv.CV_64FC2)
-        image_Re = cv.CreateImage((dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
-        image_Im = cv.CreateImage((dft_N, dft_M), cv.IPL_DEPTH_64F, 1)
-        tmp = cv.GetSubRect(dft_A, (0, 0, im.width, im.height))
-        cv.Copy(complexInput, tmp, None)
-        if(dft_A.width > im.width):
-            tmp = cv.GetSubRect(dft_A, (im.width, 0, dft_N - im.width, im.height))
-            cv.Zero(tmp)
-        cv.DFT(dft_A, dft_A, cv.CV_DXT_FORWARD, complexInput.height)
-        cv.Split(dft_A, image_Re, image_Im, None, None)
-        cv.AddS(image_Re, cv.ScalarAll(1.0), image_Re, None)
-        cv.Log(image_Re, image_Re)
-        #return Image(image_Re, colorSpace=self._colorSpace)
-        #print type(image_Re)
-        return image_Re     # Returns cv2.cv.iplimage. Need to change that. Tried. Getting errors.
-                            # check out http://help.simplecv.org/question/118/getting-error-when-i-tried-imageimage_re-where
+ 
+
 
 Image.greyscale = Image.grayscale
 
