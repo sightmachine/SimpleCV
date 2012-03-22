@@ -195,9 +195,6 @@ class Display:
         #   if one / both too small - center along axis
         #
         # this is getting a little long. Probably needs to be refactored. 
-        
-        # Tried to solve above mentioned points, don't know if my way is correct, but resizing is working.
-        # Also changed a line in ImageClass.py in show() function.
         wndwAR = float(self.resolution[0])/float(self.resolution[1])
         imgAR = float(img.width)/float(img.height)
         self.sourceresolution = img.size()
@@ -313,10 +310,9 @@ class Display:
                 cornerx = -1*x
                 cornery = -1*y
                 img = img.crop(x,y,targetw,targeth)
-
-                s = img.getPGSurface() # Show new resized image
+                s = img.getPGSurface()
             elif( img.width < self.resolution[0] and img.height >= self.resolution[1]): #height too big
-                crop along the y dimension and center along the x dimension
+                #crop along the y dimension and center along the x dimension
                 targetw = img.width
                 targeth = self.resolution[1]
                 targetx = (self.resolution[0]-img.width)/2
@@ -326,10 +322,9 @@ class Display:
                 cornerx = targetx
                 cornery = -1 * y
                 img = img.crop(x,y,targetw,targeth)
-
                 s = img.getPGSurface()
             elif( img.width > self.resolution[0] and img.height <= self.resolution[1]): #width too big
-                crop along the y dimension and center along the x dimension
+                #crop along the y dimension and center along the x dimension
                 targetw = self.resolution[0]
                 targeth = img.height
                 targetx = 0
@@ -339,7 +334,6 @@ class Display:
                 cornerx = -1 * x
                 cornery = targety
                 img = img.crop(x,y,targetw,targeth)
-  
                 s = img.getPGSurface()
             self.xoffset = cornerx
             self.yoffset = cornery
