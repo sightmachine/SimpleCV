@@ -5290,6 +5290,156 @@ class Image:
             retVal = Image(retVal)
 
         return retVal
+        
+    def applyButterworthFilter(self,dia=400,order=2,highpass=False,grayscale=False):
+        """
+        SUMMARY:
+            Creates a butterworth filter of 64x64 pixels, resizes it to fit
+            image, applies DFT on image using the filter.
+            Returns image with DFT applied on it
+        PARAMETERS:
+        dia: int
+            Diameter of Butterworth low pass filter
+        order: int 
+            Order of butterworth lowpass filter
+        highpass: BOOL
+            True: highpass filter
+            False: lowpass filter
+        grayscale: BOOL
+    
+        Examples:
+    
+        im = Image("lenna")
+        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+        Output image: http://i.imgur.com/5LS3e.png
+    
+        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        Output img: http://i.imgur.com/QlCAY.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        Output img: http://i.imgur.com/BYYnp.png
+    
+        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        Output img: http://i.imgur.com/BYYnp.png
+        """
+        w,h = self.size()
+        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
+        dia = int(dia/((w/64.0+h/64.0)/2.0))
+        if highpass:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    flt[i,j] = 255-(255/(1+(d/dia)**(order*2)))
+        else:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    flt[i,j] = 255/(1+(d/dia)**(order*2))
+    
+        flt = Image(flt)
+        flt_re = flt.resize(w,h)
+        img = self.applyDFTFilter(flt_re,grayscale)
+        return img
+    
+    def applyGaussianFilter(self, dia=400, highpass=False, grayscale=False):
+        """
+        SUMMARY:
+            Creates a gaussian filter of 64x64 pixels, resizes it to fit
+            image, applies DFT on image using the filter.
+            Returns image with DFT applied on it
+        PARAMETERS:
+        dia: int
+            Diameter of Gaussian filter
+        highpass: BOOL
+            True: highpass filter
+            False: lowpass filter
+        grayscale: BOOL
+    
+        Example:
+    
+        im = Image("lenna")
+        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+        Output image: http://i.imgur.com/DttJv.png
+    
+        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        Output img: http://i.imgur.com/PWn4o.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        Output img: http://i.imgur.com/9hX5J.png
+    
+        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        Output img: http://i.imgur.com/MXI5T.png
+        """
+        w,h = self.size()
+        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
+        dia = int(dia/((w/64.0+h/64.0)/2.0))
+        if highpass:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    val = 255-(255.0*math.exp(-(d**2)/((dia**2)*2)))
+                    flt[i,j]=val
+        else:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    val = 255.0*math.exp(-(d**2)/((dia**2)*2))
+                    flt[i,j]=val        
+                
+        flt = Image(flt)
+        flt_re = flt.resize(w,h)
+        img = self.applyDFTFilter(flt_re,grayscale)
+        return img
+        
+    def applyUnsharpMask(self,boost=1,dia=400,grayscale=False):
+        """
+        SUMMARY:
+            This method applies unsharp mask or highboost filtering
+            on image depending upon the boost value provided.
+            DFT is applied on image using gaussian lowpass filter.
+            A mask is created subtracting the DFT image from the original
+            iamge. And then mask is added in the image to sharpen it.
+            unsharp masking => image + mask
+            highboost filtering => image + (boost)*mask
+        PARAMETERS:
+    
+        boost: int  
+            boost = 1 => unsharp masking
+            boost > 1 => highboost filtering
+        dia: int
+            Diameter of Gaussian low pass filter
+        grayscale: BOOL
+    
+        Examples: 
+        ==============================================================
+        Gaussian Filters:
+        im = Image("lenna")
+        img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        output image: http://i.imgur.com/A1pZf.png
+   
+        img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        output image: http://i.imgur.com/smCdL.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        output image: http://i.imgur.com/VtGzl.png
+    
+        img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        output image: http://i.imgur.com/bywny.png
+        """
+        if boost < 0:
+            print "boost >= 1"
+            return None
+    
+        lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
+        im = Image(self.getBitmap())
+        mask = im - lpIm
+        img = im
+        for i in range(boost):
+            img = img + mask
+        return img
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -5298,6 +5448,8 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+        
+ 
 
 
 Image.greyscale = Image.grayscale
