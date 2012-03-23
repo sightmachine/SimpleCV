@@ -1410,6 +1410,11 @@ def test_blob_isa_methods():
     assert False
 
 def test_findKeypoints():
+  try:
+    import cv2
+  except:
+    pass
+    return 
   img = Image(testimage2)
   kp = img.findKeypoints()
   for k in kp:
@@ -1482,6 +1487,12 @@ def test_movement_feature():
   pass 
 
 def test_keypoint_extraction():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+
   img = Image("../sampleimages/KeypointTemplate2.png")
   kp1 = img.findKeypoints()
   kp2 = img.findKeypoints(highQuality=True)
@@ -1499,6 +1510,12 @@ def test_keypoint_extraction():
 
 
 def test_keypoint_match():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   match1 = Image("../sampleimages/kptest1.png")
@@ -1528,7 +1545,12 @@ def test_keypoint_match():
   else:
     assert False
 
-def test_draw_keypointt_matches():
+def test_draw_keypoint_matches():
+  try:
+    import cv2
+  except:
+    pass
+    return
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
@@ -1576,7 +1598,29 @@ def test_image_webp_save():
     else:
       assert False
 
-
-
-
+def test_detection_spatial_relationships():
+  img = Image(testimageclr)
+  template = img.crop(200,200,50,50)
+  motion = img.embiggen((img.width+10,img.height+10),pos=(10,10))
+  motion = motion.crop(10,10,img.width,img.height)
+  blobFS = img.findBlobs()
+  lineFS = img.findLines()
+  circFS = img.findCircle()
+  cornFS = img.findCorners()
+  # need if
+  keypFS = img.findKeypoints()
+  moveFS = img.findMotion(motion)
+  aCircle = (img.width/2,img.height/2,np.min(img.width/2,img.height/2))
+  aRect = (50,50,200,200)
+  aPoint = (img.width/2,img.height/2)
+  aPoly =  ((0,0),(img.width/2,0),(img.height/2,0)) # a triangle
+  feats = []
+  if( keypFS == None ):
+    feats  = [blobFS,lineFS,circFS,cornFS,moveFS]
+  else:
+    feats = [blobFS,lineFS,circFS,cornFS,keypFS,moveFS]
   
+  for f in feats:
+    print str(len(f))
+    
+  assert False

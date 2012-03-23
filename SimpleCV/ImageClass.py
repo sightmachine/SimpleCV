@@ -3517,7 +3517,14 @@ class Image:
         Parameters:
              hue = a hue used to generate the alpha mask.
              rgb_color = an rgb triplet used to generate a mask
-             rgb_thresh = an integer distance from the rgb_color that will also be added to the mask. 
+             rgb_thresh = an integer distance from the rgb_color that will also be added to the mask.
+
+        NOTES:
+
+        -==== BUG NOTE ====- 
+        This method seems to error on the LUT map for some versions of OpenCV.
+        I am trying to figure out why. -KAS
+        
         """
 
         if( hue<0 or hue > 180 ):
@@ -3818,6 +3825,14 @@ class Image:
         Simple AWB:
         http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
         http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
+
+
+        NOTES:
+
+        -==== BUG NOTE ====- 
+        This method seems to error on the LUT map for some versions of OpenCV.
+        I am trying to figure out why. -KAS
+        
         """
         img = self
         if(method=="GrayWorld"):           
@@ -3975,6 +3990,13 @@ class Image:
         >>>> rlut = np.ones((256,1),dtype=uint8)*255
         >>>> img=img.applyLUT(rLUT=rlut)
        
+
+        NOTE:
+
+        -==== BUG NOTE ====- 
+        This method seems to error on the LUT map for some versions of OpenCV.
+        I am trying to figure out why. -KAS
+        
         """
         r = self.getEmpty(1)
         g = self.getEmpty(1)
@@ -4055,7 +4077,7 @@ class Image:
             import cv2
         except:
             warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
-            return
+            return 
         
         if( forceReset ):
             self._mKeyPoints = None
@@ -4422,6 +4444,12 @@ class Image:
          ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
 
         """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't use Keypoints without OpenCV >= 2.3.0")
+            return None
+
         fs = FeatureSet()
         kp = []
         d = []
