@@ -180,10 +180,28 @@ consoleHandler.setFormatter(formatter)
 logger = logging.getLogger('Main Logger')
 logger.addHandler(consoleHandler)
 
-def init_logging(loglvl):
-    logger.setLevel(loglvl)
+def init_logging(log_level):
+    logger.setLevel(log_level)
 
-def set_logging(loglvl,myfilename = None):
+def get_logging_level(log_level): #Deals with the parameter given
+
+    mydict = {
+        1: logging.DEBUG, "debug": logging.DEBUG,
+        2: logging.INFO, "info": logging.INFO,
+        3: logging.WARNING, "warning": logging.WARNING,
+        4: logging.ERROR, "error": logging.ERROR,
+        5: logging.CRITICAL, "critical": logging.CRITICAL
+    }
+
+    if isinstance(log_level,int):
+        return mydict[log_level]
+    elif isinstance(log_level,str):
+        return mydict[log_level.lower()]
+    else:
+        print "The logging level given is not valid"
+        return None
+
+def set_logging(log_level,myfilename = None):
     """
     This function sets the threshold for the logging system and, if desired, directs the messages to a logfile. Level options:
     'DEBUG' or 1
@@ -193,28 +211,17 @@ def set_logging(loglvl,myfilename = None):
     'CRITICAL' or 5
     """
 
-    if isinstance(loglvl,int) or isinstance(loglvl,str):
-      if loglvl == 'DEBUG' or loglvl == 1:
-        logger.setLevel(logging.DEBUG)
-      elif loglvl == 'INFO' or loglvl == 2:
-        logger.setLevel(logging.DEBUG)
-      elif loglvl == 'WARNING' or loglvl == 3:
-        logger.setLevel(logging.DEBUG)
-      elif loglvl == 'ERROR' or loglvl == 4:
-        logger.setLevel(logging.DEBUG)
-      elif loglvl == 'CRITICAL' or loglvl == 5:
-        logger.setLevel(logging.DEBUG)
-      else:
-        print "The logging level given is not valid"
-    else:
-        print "The type given is not valid"
+    level = get_logging_level(log_level)
 
-    if myfilename is not None:
+    if level is not None and myfilename is not None:
         fileHandler = logging.FileHandler(filename=myfilename)
-        fileHandler.setLevel(loglvl)
+        fileHandler.setLevel(level)
         fileHandler.setFormatter(formatter)
         logger.addHandler(fileHandler)
         logger.removeHandler(consoleHandler) #Console logging is disabled.
+        print "Now logging to",myfilename
+
+    logger.setLevel(level)
 
 
 #supported image formats regular expression

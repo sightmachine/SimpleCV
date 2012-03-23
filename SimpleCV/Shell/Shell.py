@@ -173,15 +173,15 @@ def main(*args):
     loglvl = logging.WARNING
     if len(args) and len(args[0]) > 1:
       for flag in args[0]:
-        if flag == '--headless' or flag == 'headless':
+        if flag in ["--headless","headless"]:
           # set SDL to use the dummy NULL video driver,
           #   so it doesn't need a windowing system.
           os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-        elif flag == '--nowarnings' or flag == 'nowarnings':
+        elif flag in ['--nowarnings','nowarnings']:
           loglvl = logging.INFO
 
-        elif flag == '--debug' or flag == 'debug':
+        elif flag in ['--debug','debug']:
           loglvl = logging.DEBUG
 
     init_logging(loglvl)
