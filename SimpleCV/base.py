@@ -17,6 +17,7 @@ import pickle
 import glob #for directory scanning
 import abc #abstract base class
 import colorsys
+import logging
 
 from copy import copy
 from math import sqrt, atan2
@@ -84,6 +85,7 @@ try:
     
 except ImportError:
     ORANGE_ENABLED = False
+
 
 #couple quick typecheck helper functions
 def is_number(n):
@@ -169,6 +171,51 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
         return retVal
     else:
         warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
+
+#Logging system - Global elements
+
+consoleHandler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s: %(message)s')
+consoleHandler.setFormatter(formatter)
+logger = logging.getLogger('Main Logger')
+logger.addHandler(consoleHandler)
+
+def init_logging(loglvl):
+    logger.setLevel(loglvl)
+
+def set_logging(loglvl,myfilename = None):
+    """
+    This function sets the threshold for the logging system and, if desired, directs the messages to a logfile. Level options:
+    'DEBUG' or 1
+    'INFO' or 2
+    'WARNING' or 3
+    'ERROR' or 4
+    'CRITICAL' or 5
+    """
+
+    if isinstance(loglvl,int) or isinstance(loglvl,str):
+      if loglvl == 'DEBUG' or loglvl == 1:
+        logger.setLevel(logging.DEBUG)
+      elif loglvl == 'INFO' or loglvl == 2:
+        logger.setLevel(logging.DEBUG)
+      elif loglvl == 'WARNING' or loglvl == 3:
+        logger.setLevel(logging.DEBUG)
+      elif loglvl == 'ERROR' or loglvl == 4:
+        logger.setLevel(logging.DEBUG)
+      elif loglvl == 'CRITICAL' or loglvl == 5:
+        logger.setLevel(logging.DEBUG)
+      else:
+        print "The logging level given is not valid"
+    else:
+        print "The type given is not valid"
+
+    if myfilename is not None:
+        fileHandler = logging.FileHandler(filename=myfilename)
+        fileHandler.setLevel(loglvl)
+        fileHandler.setFormatter(formatter)
+        logger.addHandler(fileHandler)
+        logger.removeHandler(consoleHandler) #Console logging is disabled.
+
 
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.dcx','*.eps','*.ps','*.gif','*.im','*.jpg','*.jpe','*.jpeg','*.pcd','*.pcx','*.png','*.pbm','*.pgm','*.ppm','*.psd','*.tif','*.tiff','*.xbm','*.xpm')

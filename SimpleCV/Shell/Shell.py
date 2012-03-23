@@ -168,17 +168,27 @@ def setup_shell():
 
 
 
-
 def main(*args):
 
-    if len(args) > 1:
-      if args[0][1] == '--headless' or args[0][1] == 'headless':
-        # set SDL to use the dummy NULL video driver, 
-        #   so it doesn't need a windowing system.
-        os.environ["SDL_VIDEODRIVER"] = "dummy"
+    loglvl = logging.WARNING
+    if len(args) and len(args[0]) > 1:
+      for flag in args[0]:
+        if flag == '--headless' or flag == 'headless':
+          # set SDL to use the dummy NULL video driver,
+          #   so it doesn't need a windowing system.
+          os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+        elif flag == '--nowarnings' or flag == 'nowarnings':
+          loglvl = logging.INFO
+
+        elif flag == '--debug' or flag == 'debug':
+          loglvl = logging.DEBUG
+
+    init_logging(loglvl)
+
     
     shellclear()
-    
+ 
     scvShell = setup_shell()
     #Note that all loaded libraries are inherited in the embedded ipython shell
     sys.exit(scvShell())

@@ -9,8 +9,6 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 
-
-
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
