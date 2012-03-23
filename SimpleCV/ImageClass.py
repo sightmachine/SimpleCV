@@ -3733,7 +3733,7 @@ class Image:
             for f in fs:
                 match = False
                 for f2 in finalfs:
-                    if( f2.overlaps(f) ): #if they overlap
+                    if( f2._templateOverlaps(f) ): #if they overlap
                         f2.consume(f) #merge them
                         match = True 
                         break

@@ -372,65 +372,65 @@ class Blob(Feature):
                      h)
             
 
-    def above(self,blob):
-        """
-        Given a point or another blob determine if this blob is above the other blob
-        """
-        if(blob.__class__.__name__ == 'Blob' ):
-            return( self.minY() > blob.maxY() )
-        elif(blob.__class__.__name__ == 'tuple'):
-            return( self.minY() > blob[1] )
-        elif(blob.__class__.__name__ == 'ndarray'):
-            return( self.minY() > blob[1] )
-        else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.above(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
-            return None
+#     def above(self,blob):
+#         """
+#         Given a point or another blob determine if this blob is above the other blob
+#         """
+#         if(blob.__class__.__name__ == 'Blob' ):
+#             return( self.minY() > blob.maxY() )
+#         elif(blob.__class__.__name__ == 'tuple'):
+#             return( self.minY() > blob[1] )
+#         elif(blob.__class__.__name__ == 'ndarray'):
+#             return( self.minY() > blob[1] )
+#         else:
+#             warnings.warn("SimpleCV did not recognize the input type to blob.above(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+#             return None
 
  
 
     
-    def below(self,blob):
-        """
-        Given a point or another blob determine if this blob is below the other blob
-        """    
-        if(blob.__class__.__name__ == 'Blob' ):
-            return( self.maxY() < blob.minY() )
-        elif(blob.__class__.__name__ == 'tuple'):
-            return( self.maxY() < blob[1] )
-        elif(blob.__class__.__name__ == 'ndarray'):
-            return( self.maxY() < blob[1] )
-        else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.below(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
-            return None
+#     def below(self,blob):
+#         """
+#         Given a point or another blob determine if this blob is below the other blob
+#         """    
+#         if(blob.__class__.__name__ == 'Blob' ):
+#             return( self.maxY() < blob.minY() )
+#         elif(blob.__class__.__name__ == 'tuple'):
+#             return( self.maxY() < blob[1] )
+#         elif(blob.__class__.__name__ == 'ndarray'):
+#             return( self.maxY() < blob[1] )
+#         else:
+#             warnings.warn("SimpleCV did not recognize the input type to blob.below(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+#             return None
      
-    def right(self,blob):
-        """
-        Given a point or another blob determine if this blob is to the right of the other blob
-        """
-        if(blob.__class__.__name__ == 'Blob' ):
-            return( self.maxX() < blob.minX() )
-        elif(blob.__class__.__name__ == 'tuple'):
-            return( self.maxX() < blob[0] )
-        elif(blob.__class__.__name__ == 'ndarray'):
-            return( self.maxX() < blob[0] )
-        else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.right(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
-            return None   
+#     def right(self,blob):
+#         """
+#         Given a point or another blob determine if this blob is to the right of the other blob
+#         """
+#         if(blob.__class__.__name__ == 'Blob' ):
+#             return( self.maxX() < blob.minX() )
+#         elif(blob.__class__.__name__ == 'tuple'):
+#             return( self.maxX() < blob[0] )
+#         elif(blob.__class__.__name__ == 'ndarray'):
+#             return( self.maxX() < blob[0] )
+#         else:
+#             warnings.warn("SimpleCV did not recognize the input type to blob.right(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+#             return None   
      
     
-    def left(self,blob):
-        """
-        Given a point or another blob determine if this blob is to the left of the other blob
-        """           
-        if(blob.__class__.__name__ == 'Blob' ):
-            return( self.minX() > blob.maxX() )
-        elif(blob.__class__.__name__ == 'tuple'):
-            return( self.minX() > blob[0] )
-        elif(blob.__class__.__name__ == 'ndarray'):
-            return( self.minX() > blob[0] )
-        else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.left(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
-            return None  
+#     def left(self,blob):
+#         """
+#         Given a point or another blob determine if this blob is to the left of the other blob
+#         """           
+#         if(blob.__class__.__name__ == 'Blob' ):
+#             return( self.minX() > blob.maxX() )
+#         elif(blob.__class__.__name__ == 'tuple'):
+#             return( self.minX() > blob[0] )
+#         elif(blob.__class__.__name__ == 'ndarray'):
+#             return( self.minX() > blob[0] )
+#         else:
+#             warnings.warn("SimpleCV did not recognize the input type to blob.left(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+#             return None  
     
 
 #     def contains(self,other):
