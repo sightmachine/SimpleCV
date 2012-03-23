@@ -10,6 +10,7 @@ import scipy.cluster.vq as scv
 import math # math... who does that 
 
 
+
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -979,7 +980,36 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    
+
+    def upload(self,api_key):
+        """
+        Uploads the image to imgur (using the api key given as a parameter) and prints the links received.
+        """
+        try:
+          import pycurl
+        except ImportError:
+          print "PycURL Library not installed."
+          return
+
+        response = StringIO()
+        c = pycurl.Curl()
+        values = [
+                  ("key", api_key),
+                  ("image", (c.FORM_FILE, self.filename))]
+        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+        c.setopt(c.HTTPPOST, values)
+        c.setopt(c.WRITEFUNCTION, response.write)
+        c.perform()
+        c.close()
+
+        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+        if match:
+          print "Imgur page: http://imgur.com/" + match.group(1)
+          print "Original image: " + match.group(3)
+          print "Delete page: http://imgur.com/delete/" + match.group(2)
+        else:
+          print "The API Key given is not valid"
+
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
