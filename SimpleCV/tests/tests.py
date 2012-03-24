@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = False
+VISUAL_TEST = True
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -1552,7 +1552,7 @@ def test_biblical_flood_fill():
   img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
   img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
   if VISUAL_TEST:
-    result.save("biblical.png")
+    img.save("biblical.png")
   pass
   
 def test_flood_fill_to_mask():
