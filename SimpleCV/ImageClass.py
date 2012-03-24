@@ -128,7 +128,10 @@ class ImageSet(list):
             tf.close()
             i.save(loc)
             listofnames.append(i.filename)
-        headstr = '<img src="'
+        headstr = '<img src="file://'
+        import platform
+        if platform.system() == 'Windows':
+            headstr += 'C:\\'
         tailstr = '"/>'
         finalset = ''
         for i in listofnames:
