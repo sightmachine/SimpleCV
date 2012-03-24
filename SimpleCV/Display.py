@@ -115,7 +115,8 @@ class Display:
           os.environ["SDL_VIDEODRIVER"] = "dummy"
         
         if not PYGAME_INITIALIZED:
-            pg.init()
+            if not displaytype == 'notebook':
+                pg.init()
             PYGAME_INITIALIZED = True
         self.xscale = 1.0
         self.yscale = 1.0
@@ -132,7 +133,8 @@ class Display:
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image. 
         self.resolution = resolution
-        self.screen = pg.display.set_mode(resolution, flags)
+        if not displaytype == 'notebook':
+            self.screen = pg.display.set_mode(resolution, flags)
         scvLogo = SimpleCV.Image("simplecv").scale(32,32)
         pg.display.set_icon(scvLogo.getPGSurface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
