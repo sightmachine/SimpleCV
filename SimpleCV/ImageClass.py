@@ -298,7 +298,8 @@ class Image:
 
 
         #Check if need to load from URL
-        if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
+        #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
+        if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             try:
                 img_file = urllib2.urlopen(source)
             except:
