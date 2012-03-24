@@ -209,6 +209,11 @@ class Image:
     camera = ""
     _mLayers = []  
 
+    _mDoHuePalette = False
+    _mPaletteBins = None
+    _mPalette = None
+    _mPaletteMembers = None
+    _mPalettePercentages = None
 
     _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -280,6 +285,16 @@ class Image:
         self._mKeyPoints = []
         self._mKPDescriptors = []
         self._mKPFlavor = "NONE"
+        #Pallete Stuff
+        self._mDoHuePalette = False
+        self._mPaletteBins = None
+        self._mPalette = None
+        self._mPaletteMembers = None
+        self._mPalettePercentages = None
+
+        
+
+
 
         #Check if need to load from URL
         if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -4542,7 +4557,430 @@ class Image:
             f.normalizeTo(max_mag)
 
         return fs
+
+
+    
+    def _generatePalette(self,bins,hue):
+        """
+        Summary:
+        This is the main entry point for palette generation. A palette, for our purposes,
+        is a list of the main colors in an image. Creating a palette with 10 bins, tries 
+        to cluster the colors in rgb space into ten distinct groups. In hue space we only
+        look at the hue channel. All of the relevant palette data is cached in the image 
+        class. 
+
+        Parameters:
+        bins - an integer number of bins into which to divide the colors in the image.
+        hue  - if hue is true we do only cluster on the image hue values. 
+
+        Returns:
+        Nothing, but creates the image's cached values for: 
         
+        self._mDoHuePalette
+        self._mPaletteBins
+        self._mPalette 
+        self._mPaletteMembers 
+        self._mPalettePercentages
+
+
+        Example:
+        
+        >>>> img._generatePalette(bins=42)
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        """
+        if( self._mPaletteBins != bins or
+            self._mDoHuePalette != hue ):
+            total = float(self.width*self.height)
+            percentages = []
+            result = None
+            if( not hue ):
+                pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
+                result = scv.kmeans2(pixels,bins)
+
+            else:
+                hsv = self
+                if( self._colorSpace != ColorSpace.HSV ):
+                    hsv = self.toHSV()
+                
+                h = hsv.getEmpty(1)       
+                cv.Split(hsv.getBitmap(),None,None,h,None)
+                mat =  cv.GetMat(h)
+                pixels = np.array(mat).reshape(-1,1)
+                result = scv.kmeans2(pixels,bins)                
+
+
+            for i in range(0,bins):
+                count = np.where(result[1]==i)
+                v = float(count[0].shape[0])/total
+                percentages.append(v)
+
+            self._mDoHuePalette = hue
+            self._mPaletteBins = bins
+            self._mPalette = np.array(result[0],dtype='uint8')
+            self._mPaletteMembers = result[1]
+            self._mPalettePercentages = percentages
+
+
+    def getPalette(self,bins=10,hue=False):
+        """
+        Summary:
+        This method returns the colors in the palette of the image. A palette is the 
+        set of the most common colors in an image. This method is helpful for segmentation.
+
+        Parameters:
+        bins - an integer number of bins into which to divide the colors in the image.
+        hue  - if hue is true we do only cluster on the image hue values. 
+
+        Returns:
+        an numpy array of the BGR color tuples. 
+
+        Example:
+        
+        >>>> p = img.getPalette(bins=42)
+        >>>> print p[2]
+       
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        """
+        self._generatePalette(bins,hue)
+        return self._mPalette
+
+
+    def rePalette(self,palette,hue=False):
+        retVal = None
+        if(hue):
+            hsv = self
+            if( self._colorSpace != ColorSpace.HSV ):
+                hsv = self.toHSV()
+                
+            h = hsv.getEmpty(1)       
+            cv.Split(hsv.getBitmap(),None,None,h,None)
+            mat =  cv.GetMat(h)
+            pixels = np.array(mat).reshape(-1,1)
+            result = scv.vq(pixels,palette)
+            derp = palette[result[0]]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            result = scv.vq(self.getNumpy().reshape(-1,3),palette)
+            retVal = Image(palette[result[0]].reshape(self.width,self.height,3))
+        return retVal
+
+    def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
+        """
+        Summary:
+        This method returns the visual representation (swatches) of the palette in an image. The palette 
+        is orientated either horizontally or vertically, and each color is given an area 
+        proportional to the number of pixels that have that color in the image. The palette 
+        is arranged as it is returned from the clustering algorithm. When size is left
+        to its default value, the palette size will match the size of the 
+        orientation, and then be 10% of the other dimension. E.g. if our image is 640X480 the horizontal
+        palette will be (640x48) likewise the vertical palette will be (480x64)
+        
+        If a Hue palette is used this method will return a grayscale palette
+        
+        Parameters:
+        bins      - an integer number of bins into which to divide the colors in the image.
+        hue       - if hue is true we do only cluster on the image hue values. 
+        size      - The size of the generated palette as a (width,height) tuple, if left default we select 
+                    a size based on the image so it can be nicely displayed with the 
+                    image. 
+        horizontal- If true we orientate our palette horizontally, otherwise vertically. 
+
+        Returns:
+        A palette swatch image. 
+
+        Example:
+        
+        >>>> p = img1.drawPaletteColors()
+        >>>> img2 = img1.sideBySide(p,side="bottom")
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        """
+        self._generatePalette(bins,hue)
+        retVal = None
+        if( not hue ):
+            if( horizontal ):
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width),int(self.height*.1))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                    roi = (int(idxL),0,int(idxH-idxL),size[1])
+                    cv.SetImageROI(pal,roi)
+                    color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
+                    cv.AddS(pal,color,pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+            else:
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width*.1),int(self.height))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
+                    roi = (0,int(idxL),size[0],int(idxH-idxL))
+                    cv.SetImageROI(pal,roi)
+                    color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
+                    cv.AddS(pal,color,pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+        else: # do hue
+            if( horizontal ):
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width),int(self.height*.1))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                    roi = (int(idxL),0,int(idxH-idxL),size[1])
+                    cv.SetImageROI(pal,roi)
+                    cv.AddS(pal,float(self._mPalette[i]),pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+            else:
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width*.1),int(self.height))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
+                    roi = (0,int(idxL),size[0],int(idxH-idxL))
+                    cv.SetImageROI(pal,roi)
+                    cv.AddS(pal,float(self._mPalette[i]),pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+                 
+        return retVal 
+
+    def palettize(self,bins=10,hue=False):
+        """
+        Summary:
+        This method analyzes an image and determines the most common colors using a k-means algorithm.
+        The method then goes through and replaces each pixel with the centroid of the clutsters found
+        by k-means. This reduces the number of colors in an image to the number of bins. This can be particularly
+        handy for doing segementation based on color.
+
+        Parameters:
+        bins      - an integer number of bins into which to divide the colors in the image.
+        hue       - if hue is true we do only cluster on the image hue values. 
+        
+
+        Returns:
+        An image matching the original where each color is replaced with its palette value.  
+
+        Example:
+        
+        >>>> img2 = img1.palettize()
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+
+        """
+        retVal = None
+        self._generatePalette(bins,hue)
+        if( hue ):
+            derp = self._mPalette[self._mPaletteMembers]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
+        return retVal 
+
+
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
+        """
+        Description:
+        This method attempts to use palettization to do segmentation and behaves similar to the 
+        findBlobs blob in that it returs a feature set of blob objects. Once a palette has been 
+        extracted using getPalette() we can then select colors from that palette to be labeled 
+        white within our blobs. 
+
+        Parameters:
+        palette_selection - color triplets selected from our palette that will serve turned into blobs
+                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+
+        dilate            - the optional number of dilation operations to perform on the binary image
+                            prior to performing blob extraction.
+        minsize           - the minimum blob size in pixels
+        maxsize           - the maximim blob size in pixels.
+
+        Returns:
+        If the method executes successfully a FeatureSet of Blobs is returned from the image. If the method 
+        fails a value of None is returned. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> p = img.getPalette()
+        >>>> blobs = img.findBlobsFromPalette( (p[0],p[1],[6]) )
+        >>>> blobs.draw()
+        >>>> img.show()
+
+        Notes: 
+
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        """
+
+        #we get the palette from find palete 
+        #ASSUME: GET PALLETE WAS CALLED!
+        bwimg = self.binarizeFromPalette(palette_selection)
+        if( dilate > 0 ):
+            bwimg =bwimg.dilate(dilate)
+        
+        if (maxsize == 0):  
+            maxsize = self.width * self.height / 2
+        #create a single channel image, thresholded to parameters
+    
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(bwimg,
+            self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+        return blobs
+
+
+    def binarizeFromPalette(self, palette_selection):
+        """
+        Description:
+        This method uses the color palette to generate a binary (black and white) image. Palaette selection
+        is a list of color tuples retrieved from img.getPalette(). The provided values will be drawn white
+        while other values will be black. 
+
+        Parameters:
+        palette_selection - color triplets selected from our palette that will serve turned into blobs
+                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+
+        Returns:
+        This method returns a black and white images, where colors that are close to the colors
+        in palette_selection are set to white
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> p = img.getPalette()
+        >>>> b = img.binarizeFromPalette( (p[0],p[1],[6]) )
+        >>>> b.show()
+
+        Notes: 
+
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        """
+
+        #we get the palette from find palete 
+        #ASSUME: GET PALLETE WAS CALLED!
+        if( self._mPalette == None ):
+            warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
+            return None
+        retVal = None
+        img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
+        if( not self._mDoHuePalette ):
+            npimg = img.getNumpy()
+            white = np.array([255,255,255])
+            black = np.array([0,0,0])
+
+            for p in palette_selection:
+                npimg = np.where(npimg != p,npimg,white)
+            
+            npimg = np.where(npimg != white,black,white)
+            retVal = Image(npimg)
+        else:
+            npimg = img.getNumpy()[:,:,1]
+            white = np.array([255])
+            black = np.array([0])
+
+            for p in palette_selection:
+                npimg = np.where(npimg != p,npimg,white)
+            
+            npimg = np.where(npimg != white,black,white)
+            retVal = Image(npimg)
+
+        return retVal
+
     def skeletonize(self, radius = 5):
         """
         Summary:
