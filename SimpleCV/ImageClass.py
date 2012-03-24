@@ -10,6 +10,9 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 import copy # for deep copy
+import pycurl # for integration with imgur
+
+
 class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
@@ -1089,7 +1092,36 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    
+
+    def upload(self,api_key):
+        """
+        Uploads the image to imgur (using the api key given as a parameter) and prints the links received.
+        """
+        try:
+          import pycurl
+        except ImportError:
+          print "PycURL Library not installed."
+          return
+
+        response = StringIO()
+        c = pycurl.Curl()
+        values = [
+                  ("key", api_key),
+                  ("image", (c.FORM_FILE, self.filename))]
+        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+        c.setopt(c.HTTPPOST, values)
+        c.setopt(c.WRITEFUNCTION, response.write)
+        c.perform()
+        c.close()
+
+        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+        if match:
+          print "Imgur page: http://imgur.com/" + match.group(1)
+          print "Original image: " + match.group(3)
+          print "Delete page: http://imgur.com/delete/" + match.group(2)
+        else:
+          print "The API Key given is not valid"
+
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
@@ -1288,7 +1320,7 @@ class Image:
         except:
             return None
       
-      
+
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         Do a binary threshold the image, changing all values below thresh to maxv
@@ -4365,7 +4397,7 @@ class Image:
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
-            warnings.warn("I didn't get any keypoints. Image might be too uniform orb blurry." )
+            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
             return None
 
         template_points = float(td.shape[0])
