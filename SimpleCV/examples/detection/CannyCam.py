@@ -12,7 +12,7 @@ from SimpleCV.Display import Display, pg
 
 cam = Camera() #initialize the camera
 done = False # setup boolean to stop the program
-max_threshold = 500 # this is used for the edge detection
+max_threshold = 300 # this is used for the edge detection
 threshold_step = 0.5 # this is the amount to adjust the threshold by each time the display is updated
 threshold = max_threshold
 running = True

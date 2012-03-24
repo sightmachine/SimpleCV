@@ -602,6 +602,15 @@ class JpegStreamCamera(FrameSource):
     The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage() 
 
     Requires the [Python Imaging Library](http://www.pythonware.com/library/pil/handbook/index.htm)
+    
+    Example:
+    -------
+    
+    Using your Android Phone as a Camera. Softwares like IP Webcam can be used.
+    
+    >>> cam = JpegStreamCamera("http://192.168.65.101:8080/videofeed") # your IP may be different.
+    >>> img = cam.getImages()
+    >>> img.show()
     """
     url = ""
     camthread = ""
