@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
 #   nosetest tests.py
@@ -39,6 +39,7 @@ logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 circles = "../sampleimages/circles.png"
+webp = "../sampleimages/simplecv.webp"
 
 #alpha masking images
 topImg = "../sampleimages/RatTop.png"
@@ -497,7 +498,7 @@ def test_image_morph_close():
   print(c)
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False;
-
+00 
 def test_image_morph_grad():
   img = Image(barcode)
   dilate = img.dilate()
@@ -1535,11 +1536,194 @@ def test_draw_keypointt_matches():
     result.save("KPMatch.png")
   pass
 
+
+def test_basic_palette():
+  img = Image(testimageclr)
+  img._generatePalette(10,False)
+  if( img._mPalette is not None and
+      img._mPaletteMembers is not None and
+      img._mPalettePercentages is not None and
+      img._mPaletteBins == 10
+      ):
+    img._generatePalette(20,True)
+    if( img._mPalette is not None and
+        img._mPaletteMembers is not None and
+        img._mPalettePercentages is not None and
+        img._mPaletteBins == 20
+        ):
+      pass
+
+def test_palettize():
+  img = Image(testimageclr)
+  img2 = img.palettize(bins=20,hue=False)
+  img3 = img.palettize(bins=3,hue=True)
+  pass
+
+def test_repalette():
+  img = Image(testimageclr)
+  img2 = Image(bottomImg)
+  p = img.getPalette()
+  img3 = img2.rePalette(p)
+  p = img.getPalette(hue=True)
+  img4 = img2.rePalette(p,hue=True)
+  pass
+
+def test_drawPalette():
+  img = Image(testimageclr)
+  img1 = img.drawPaletteColors()
+  img2 = img.drawPaletteColors(horizontal=False)
+  img3 = img.drawPaletteColors(size=(69,420) )
+  img4 = img.drawPaletteColors(size=(69,420),horizontal=False)
+  img5 = img.drawPaletteColors(hue=True)
+  img6 = img.drawPaletteColors(horizontal=False,hue=True)
+  img7 = img.drawPaletteColors(size=(69,420),hue=True )
+  img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
+
+def test_palette_binarize():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  img2 = img.binarizeFromPalette(p[0:5])
+  if VISUAL_TEST:
+    img2.save("binary_palette_1.png")
+  p = img.getPalette(hue=True)
+  img2 = img.binarizeFromPalette(p[0:5])
+  if VISUAL_TEST:
+    img2.save("binary_palette_2.png")
+  pass
+
+def test_palette_blobs():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  b1 = img.findBlobsFromPalette(p[0:5])
+  b1.draw()
+  if VISUAL_TEST:
+    img.save("blobs_palette_1.png")
+
+  p = img.getPalette(hue=True)
+  b2 = img.findBlobsFromPalette(p[0:5])
+  b2.draw()
+  if VISUAL_TEST:
+    img.save("blobs_palette_2.png")
+
+  if( len(b1) > 0 and len(b2) > 0 ):
+    pass
+  else:
+    assert False
+
+    
+
 def test_skeletonize():
   img = Image(logo)
   s = img.skeletonize()
   s2 = img.skeletonize(10)
+
   pass
+
+
+def test_image_webp_load():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
+    pass
+
+  else:
+    img = Image(webp)
+
+    if len(img.toString()) <= 1:
+      assert False
+
+    else:
+      pass
+    
+def test_image_webp_save():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
+    pass
+
+  else:
+    img = Image('simplecv')
+    tf = tempfile.NamedTemporaryFile(suffix=".webp")
+    if img.save(tf.name):
+      pass
+    else:
+      assert False
+
+def test_get_raw_dft():
+  img = Image("../sampleimages/RedDog2.jpg")
+  raw3 = img.rawDFTImage()
+  raw1 = img.rawDFTImage(grayscale=True)
+  if( len(raw3) != 3 or
+      len(raw1) != 1 or
+      raw1[0].width != img.width or
+      raw1[0].height != img.height or
+      raw3[0].height != img.height or
+      raw3[0].width != img.width or
+      raw1[0].depth != 64L or
+      raw3[0].depth != 64L or
+      raw3[0].channels != 2 or
+      raw3[0].channels != 2 ):
+    assert False
+  else:
+    pass
+
+def test_getDFTLogMagnitude():
+  img = Image("../sampleimages/RedDog2.jpg")  
+  lm3 = img.getDFTLogMagnitude()
+  lm1 = img.getDFTLogMagnitude(grayscale=True)
+  pass
+
+def test_applyDFTFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  flt = Image("../sampleimages/RedDogFlt.png")
+  f1 = img.applyDFTFilter(flt)
+  f2 = img.applyDFTFilter(flt,grayscale=True)
+  if VISUAL_TEST:
+    f1.save("DFTFilt.png")
+    f2.save("DFTFiltGray.png")
+  pass
+
+def test_highPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.highPassFilter(0.5)
+  b = img.highPassFilter(0.5,grayscale=True)
+  c = img.highPassFilter(0.5,yCutoff=0.4)
+  d = img.highPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.highPassFilter([0.5,0.4,0.3])
+  f = img.highPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+  if VISUAL_TEST:
+    a.save("DFT-hpf-A.png")
+    b.save("DFT-hpf-B.png")
+    c.save("DFT-hpf-C.png")
+    d.save("DFT-hpf-D.png")
+    e.save("DFT-hpf-E.png")
+    f.save("DFT-hpf-F.png")
+    
+  pass
+
+def test_lowPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.lowPassFilter(0.5)
+  b = img.lowPassFilter(0.5,grayscale=True)
+  c = img.lowPassFilter(0.5,yCutoff=0.4)
+  d = img.lowPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.lowPassFilter([0.5,0.4,0.3])
+  f = img.lowPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+  if VISUAL_TEST:
+    a.save("DFT-lpf-A.png")
+    b.save("DFT-lpf-B.png")
+    c.save("DFT-lpf-C.png")
+    d.save("DFT-lpf-D.png")
+    e.save("DFT-lpf-E.png")
+    f.save("DFT-lpf-F.png")
+  pass
+
 
 def test_biblical_flood_fill():
   img = Image(testimage2)
@@ -1580,3 +1764,20 @@ def test_findBlobsFromMask():
 
 def test_findFloodFillBlobs():
   pass
+
+def test_bandPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.bandPassFilter(0.1,0.3)
+  b = img.bandPassFilter(0.1,0.3,grayscale=True)
+  c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
+  d = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
+  e = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5])
+  f = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
+  if VISUAL_TEST:
+    a.save("DFT-bpf-A.png")
+    b.save("DFT-bpf-B.png")
+    c.save("DFT-bpf-C.png")
+    d.save("DFT-bpf-D.png")
+    e.save("DFT-bpf-E.png")
+    f.save("DFT-bpf-F.png")
+
