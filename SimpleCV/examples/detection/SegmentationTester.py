@@ -15,7 +15,7 @@ w = 800
 h = 600
 nframes = 25
 display = Display(resolution = (w,h)) #create a new display to draw images on
-cam = Camera(1)
+cam = Camera(0)
 
 count = 0
 while( count < nframes ):

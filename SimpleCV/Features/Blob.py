@@ -470,7 +470,7 @@ class Blob(Feature):
 
 #         return retVal;
 
-    def draw(self, color = Color.GREEN, alpha=-1, width=-1, layer=None):
+    def draw(self, color = Color.GREEN, width=-1, alpha=-1, layer=None):
         """
         Draw the blob, in the given color, to the appropriate layer
         

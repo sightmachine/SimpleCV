@@ -39,6 +39,7 @@ logo = "../sampleimages/logo.png"
 logo_inverted = "../sampleimages/logo_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 circles = "../sampleimages/circles.png"
+webp = "../sampleimages/simplecv.webp"
 
 #alpha masking images
 topImg = "../sampleimages/RatTop.png"
@@ -1617,3 +1618,42 @@ def test_skeletonize():
   s2 = img.skeletonize(10)
 
   pass
+
+
+def test_image_webp_load():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    warnings.warn("Couldn't run the webp test as optional webm library required")
+    pass
+
+  else:
+    img = Image(webp)
+
+    if len(img.toString()) <= 1:
+      assert False
+
+    else:
+      pass
+    
+def test_image_webp_save():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    warnings.warn("Couldn't run the webp test as optional webm library required")
+    pass
+
+  else:
+    img = Image('simplecv')
+    tf = tempfile.NamedTemporaryFile(suffix=".webp")
+    if img.save(tf.name):
+      pass
+    else:
+      assert False
+
+
+
+
+  

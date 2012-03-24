@@ -89,10 +89,30 @@ class Display:
     leftButtonUp = None
     rightButtonDown = None
     rightButtonUp = None
+    displaytype = None
 
+    def __repr__(self):
+        return "<SimpleCV.Display Object resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.resolution, self.imgw, self.imgh, hex(id(self)))
     
-    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV"):
+    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
+        """
+        This is the generic display object.  You are able to set the display type.
+        The standard display type will pop up a window
+        The notebook display type is to be used in conjunction with IPython Notebooks
+        this is so it is web based.  If you have IPython Notebooks installed
+        you just need to start IPython Notebooks and open in your browser.
+
+        Once in IPython you can do the following:
+        >>> from SimpleCV import *
+        >>> disp = Display(displaytype='notebook')
+        >>> img = Image('simplecv')
+        >>> img.save(disp)
+        
+        """
         global PYGAME_INITIALIZED
+
+        if headless:
+          os.environ["SDL_VIDEODRIVER"] = "dummy"
         
         if not PYGAME_INITIALIZED:
             pg.init()
@@ -107,6 +127,7 @@ class Display:
         self.leftButtonUp = None
         self.rightButtonDown = None
         self.rightButtonUp = None
+        self.displaytype = displaytype
 
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image. 

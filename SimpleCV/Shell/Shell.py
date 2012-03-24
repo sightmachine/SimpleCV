@@ -169,7 +169,14 @@ def setup_shell():
 
 
 
-def main():
+def main(*args):
+
+    if len(args) > 1:
+      if args[0][1] == '--headless' or args[0][1] == 'headless':
+        # set SDL to use the dummy NULL video driver, 
+        #   so it doesn't need a windowing system.
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+    
     shellclear()
     
     scvShell = setup_shell()

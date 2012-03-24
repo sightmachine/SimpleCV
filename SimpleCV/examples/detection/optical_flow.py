@@ -1,7 +1,7 @@
 from SimpleCV import *
 scale_amount = (200,150)
 d = Display(scale_amount)
-cam = Camera(1)
+cam = Camera(0)
 prev = cam.getImage().scale(scale_amount[0],scale_amount[1])
 time.sleep(0.5)
 def movement_check(x = 0,y = 0,t=1):
@@ -27,7 +27,8 @@ t = 0.5
 buffer = 20
 count = 0
 while d.isNotDone():
-	current = cam.getImage().scale(scale_amount[0],scale_amount[1])
+	current = cam.getImage()
+	current = current.scale(scale_amount[0],scale_amount[1])
 	if( count < buffer ):
 		count = count + 1
 	else:

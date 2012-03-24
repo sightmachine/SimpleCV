@@ -1,0 +1,63 @@
+body
+{
+		text-align: center;
+		background-color: rgb(20,20,30);
+		background-image: linear-gradient(top,rgb(60,60,70), rgb(20,20,30));
+		background-image: -moz-radial-gradient(50% 0%,circle cover,rgb(110,110,120), rgb(20,20,30) 30%);
+		background-image: -webkit-gradient(radial, center top, 0, center top, 500, from(rgb(110,110,120)), to(rgb(20,20,30)), color-stop(0.5, rgb(20,20,30)));
+		background-position: 50% 50%;  
+		background-repeat: no-repeat;
+		height: 100%;
+		width: 100%;
+}
+h1
+{
+		color: #8ECD14;
+		text-align:center;
+		font-size: 14pt;
+		
+}
+h3
+{
+		font-size: 10pt;
+		color: #ffffff;
+}
+p
+{
+		font-family:"Times New Roman";
+		font-size:20px;
+}
+a,
+a:visited,
+a:hover
+{
+		color: #AACCEE;
+}
+input
+{
+		margin: 10px;
+}
+table
+{
+		margin-left: 0 auto;
+		margin-right: 0 auto;
+		width: 100%;
+}
+td
+{
+		margin: 10px;
+		display: block;
+}
+.button {
+		background-color: #AACCEE;
+		color: #000000;
+		text-align: center;
+		background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFFFFF), to(#666666), color-stop(1,#333333));
+		background-image: -moz-linear-gradient(19% 75% 90deg,#FFFFFF, #C9C9C9, #C7C7C7 100%);
+		border-radius: 10px;
+}
+img,
+embed
+{
+		border: 1px solid #8ECD14;
+}

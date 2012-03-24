@@ -197,7 +197,6 @@ class Image:
     >>> img = Image("logo")
     >>> img = Image("logo_inverted")
     >>> img = Image("logo_transparent")
-    >>> img = Image("barcode")
 
     Or you can load an image from a URL:
     >>> img = Image("http://www.simplecv.org/image.png")
@@ -255,7 +254,13 @@ class Image:
         "_grayNumpy":"",
         "_pgsurface": ""}  
     
-    
+    def __repr__(self):
+        if len(self.filename) == 0:
+          fn = "None"
+        else:
+          fn = self.filename
+        return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
+      
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
@@ -407,6 +412,24 @@ class Image:
             if source == '':
                 raise IOError("No filename provided to Image constructor")
 
+            elif source.split('.')[-1] == 'webp':
+
+                try:
+                    from webm import decode as webmDecode
+                except ImportError:
+                      raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+
+                WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
+                result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
+                webpImage = pil.frombuffer(
+                    "RGB", (result.width, result.height), str(result.bitmap),
+                    "raw", "RGB", 0, 1
+                )
+                self._pil = webpImage.convert("RGB")
+                self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                cv.SetData(self._bitmap, self._pil.tostring())
+                cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+
             else:
                 self.filename = source
                 try:
@@ -429,7 +452,11 @@ class Image:
             self._colorSpace = ColorSpace.BGR
 
 
-        elif (PIL_ENABLED and (source.__class__.__name__ == "JpegImageFile" or source.__class__.__name__ == "WebPPImageFile" or  source.__class__.__name__ == "Image")):
+        elif (PIL_ENABLED and (
+                (len(source.__class__.__bases__) and source.__class__.__bases__[0].__name__ == "ImageFile")
+                or source.__class__.__name__ == "JpegImageFile"
+                or source.__class__.__name__ == "WebPPImageFile"
+                or  source.__class__.__name__ == "Image")):
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
@@ -857,10 +884,10 @@ class Image:
         
         returns str
         """
-        return self.getBitmap().tostring()
+        return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False):
+    def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
@@ -869,8 +896,18 @@ class Image:
     
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
+
+        Save also supports IPython Notebooks when passing it a Display object
+        that has been instainted with the notebook flag.
+
+        To do this just use:
+        >>> disp = Display(displaytype='notebook')
+        >>> img.save(disp)
+
+        *Note: You must have IPython notebooks installed for this to work
         """
-        
+        #TODO, we use the term mode here when we mean format
+        #TODO, if any params are passed, use PIL
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -895,7 +932,7 @@ class Image:
 
             if (type(fh) == InstanceType and fh.__class__.__name__ == "JpegStreamer"):
                 fh.jpgdata = StringIO() 
-                saveimg.getPIL().save(fh.jpgdata, "jpeg") #save via PIL to a StringIO handle 
+                saveimg.getPIL().save(fh.jpgdata, "jpeg", **params) #save via PIL to a StringIO handle 
                 fh.refreshtime = time.time()
                 self.filename = "" 
                 self.filehandle = fh
@@ -908,16 +945,31 @@ class Image:
 
 
             elif (type(fh) == InstanceType and fh.__class__.__name__ == "Display"):
-                self.filename = "" 
-                self.filehandle = fh
-                fh.writeFrame(saveimg)
+
+                if fh.displaytype == 'notebook':
+                  try:
+                    from IPython.core.display import Image as IPImage
+                  except ImportError:
+                    print "You need IPython Notebooks to use this display mode"
+                    return
+
+                  tf = tempfile.NamedTemporaryFile(suffix=".png")
+                  loc = '/tmp/' + tf.name.split('/')[-1]
+                  tf.close()
+                  self.save(loc)
+                  ipimg = IPImage(filename=loc)
+                  return ipimg
+                else:
+                  self.filename = "" 
+                  self.filehandle = fh
+                  fh.writeFrame(saveimg)
 
 
             else:
                 if (not mode):
                     mode = "jpeg"
       
-                saveung.getPIL().save(fh, mode)
+                saveimg.getPIL().save(fh, mode, **params)
                 self.filehandle = fh #set the filename for future save operations
                 self.filename = ""
                 
@@ -931,10 +983,35 @@ class Image:
           filename = tempfile.mkstemp(suffix=".png")[-1]
         else:  
           filename = filehandle_or_filename
-        
-        if re.search('\.webp$', filename): 
-            self.getPIL().save(filename)
-            return 1
+
+        #allow saving in webp format
+        if re.search('\.webp$', filename):
+            try:
+              #newer versions of PIL support webp format, try that first
+              self.getPIL().save(filename, **params)
+            except:
+              #if PIL doesn't support it, maybe we have the python-webm library
+              try:
+                from webm import encode as webmEncode
+                from webm.handlers import BitmapHandler, WebPHandler
+              except:
+                warnings.warn('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                return 0
+
+              #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
+              PNG_BITMAP_DATA = bytearray(self.toString()) 
+              IMAGE_WIDTH = self.width
+              IMAGE_HEIGHT = self.height
+              
+              
+              image = BitmapHandler(
+                  PNG_BITMAP_DATA, BitmapHandler.RGB,
+                  IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH * 3
+              )
+              result = webmEncode.EncodeRGB(image)
+
+              file(filename.format("RGB"), "wb").write(result.data)
+              return 1
         
         
         if (filename):
@@ -2033,21 +2110,22 @@ class Image:
         You can clone python-zxing at http://github.com/oostendo/python-zxing
 
         INSTALLING ZEBRA CROSSING
-        1) Download zebra crossing 1.6 from: http://code.google.com/p/zxing/
+        1) Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
         2) unpack the zip file where ever you see fit
-              cd zxing-1.6 
+              cd zxing-x.x, where x.x is the version number of zebra crossing 
               ant -f core/build.xml
               ant -f javase/build.xml 
             This should build the library, but double check the readme
         3) Get our helper library 
            git clone git://github.com/oostendo/python-zxing.git
            cd python-zxing
-           nosetests tests.py
+           python setup.py install
         4) Our library does not have a setup file. You will need to add
            it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
         
            export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-           export PYTHONPATH=$PYTHONPATH:<FULL PATH OF ZXING PYTHON PLUG-IN - (i.e. step 3)>
+           for example: export ZXING_LIBRARY=/my/install/path/zxing-x.x/
+
            
            On windows you will need to add these same variables to the system variable, e.g.
            http://www.computerhope.com/issues/ch000549.htm
@@ -2969,7 +3047,7 @@ class Image:
                 x = (self.width-resolution[0])/2
                 y = (self.height-resolution[1])/2
                 img = img.crop(x,y,targetw,targeth)
-            elif( self.width < resolution[0] and self.height >= resolution[1]): #height too big
+            elif( self.width <= resolution[0] and self.height > resolution[1]): #height too big
                 #crop along the y dimension and center along the x dimension
                 targetw = self.width
                 targeth = resolution[1]
@@ -3659,17 +3737,17 @@ class Image:
         #cluster overlapping template matches 
         finalfs = FeatureSet()
         if( len(fs) > 0 ):
-            print(str(len(fs)))
             finalfs.append(fs[0])
             for f in fs:
                 match = False
                 for f2 in finalfs:
                     if( f2.overlaps(f) ): #if they overlap
                         f2.consume(f) #merge them
-                        match = True
+                        match = True 
                         break
-                    if( not match ):
-                        finalfs.append(f)
+
+                if( not match ):
+                    finalfs.append(f)
         
             for f in finalfs: #rescale the resulting clusters to fit the template size
                 f.rescale(template_image.width,template_image.height)
