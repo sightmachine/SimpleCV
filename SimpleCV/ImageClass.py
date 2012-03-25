@@ -114,17 +114,32 @@ class ImageSet(list):
         i.show()
         time.sleep(showtime)
 
-    def save(self, verbose = False):
+    def save(self, verbose = False, displaytype=None):
       """
       This is a quick way to save all the images in a data set.
+      Or to Display in webInterface.
 
       If you didn't specify a path one will randomly be generated.
       To see the location the files are being saved to then pass
       verbose = True
       """
-
-      for i in self:
-        i.save(verbose=verbose)
+      if displaytype=='notebook':
+        try:
+          from IPython.core.display import Image as IPImage
+        except ImportError:
+          print "You need IPython Notebooks to use this display mode"
+          return
+        from IPython.core import display as Idisplay
+        for i in self:
+          tf = tempfile.NamedTemporaryFile(suffix=".png")
+          loc = '/tmp/' + tf.name.split('/')[-1]
+          tf.close()
+          i.save(loc)
+          Idisplay.display(IPImage(filename=loc))
+          return
+      else:
+        for i in self:
+          i.save(verbose=verbose)
       
     def showPaths(self):
       """
@@ -1003,12 +1018,13 @@ class Image:
                     print "You need IPython Notebooks to use this display mode"
                     return
 
+                  from IPython.core import display as Idisplay
                   tf = tempfile.NamedTemporaryFile(suffix=".png")
                   loc = '/tmp/' + tf.name.split('/')[-1]
                   tf.close()
                   self.save(loc)
-                  ipimg = IPImage(filename=loc)
-                  return ipimg
+                  Idisplay.display(IPImage(filename=loc))
+                  return
                 else:
                   self.filename = "" 
                   self.filehandle = fh
@@ -1028,7 +1044,7 @@ class Image:
               
             return 1
 
-        #make a temporary file location is there isn't one
+        #make a temporary file location if there isn't one
         if not filehandle_or_filename:
           filename = tempfile.mkstemp(suffix=".png")[-1]
         else:  
