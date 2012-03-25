@@ -17,6 +17,7 @@ import pickle
 import glob #for directory scanning
 import abc #abstract base class
 import colorsys
+import logging
 
 from copy import copy
 from math import sqrt, atan2
@@ -34,7 +35,7 @@ except ImportError:
         import cv
     except ImportError:
         raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
-        
+
 import numpy as np
 import scipy.spatial.distance as spsd
 import scipy.cluster.vq as cluster #for kmeans
@@ -54,19 +55,19 @@ except ImportError:
         from PIL import ImageFont as pilImageFont
         from PIL import ImageDraw as pilImageDraw
     except ImportError:
-        PIL_ENABLED = False 
+        PIL_ENABLED = False
 
 ZXING_ENABLED = True
 try:
     import zxing
 except ImportError:
-    ZXING_ENABLED = False 
+    ZXING_ENABLED = False
 
 FREENECT_ENABLED = True
 try:
     import freenect
 except ImportError:
-    FREENECT_ENABLED = False 
+    FREENECT_ENABLED = False
 
 OCR_ENABLED = True
 try:
@@ -81,7 +82,7 @@ try:
     import orngTest #for cross validation
     import orngStat
     import orngEnsemble # for bagging / boosting
-    
+
 except ImportError:
     ORANGE_ENABLED = False
 
@@ -100,7 +101,7 @@ def is_tuple(n):
 
     Returns: Boolean
     """
-    return type(n) == tuple 
+    return type(n) == tuple
 
 def reverse_tuple(n):
     """
@@ -135,7 +136,7 @@ def download_and_extract(URL):
     the temporary path it was extracted to
     """
     if URL == None:
-        warnings.warn("Please provide URL")
+        logger.warning("Please provide URL")
         return None
 
     tmpdir = tempfile.mkdtemp()
@@ -147,16 +148,16 @@ def download_and_extract(URL):
     with open(path, "wb") as local_file:
         local_file.write(zdata.read())
 
-    zfile = zipfile.ZipFile(path)    
+    zfile = zipfile.ZipFile(path)
     print "Extracting zipfile"
     try:
         zfile.extractall(tmpdir)
     except:
-        warnings.warn("Couldn't extract zip file")
+        logger.warning("Couldn't extract zip file")
         return None
 
     return tmpdir
-    
+
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """
     This function is a utility for converting numpy arrays to the cv.cvMat format.
@@ -173,10 +174,79 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
             cv.SetData(retVal, inputMat.tostring(), inputMat.dtype.itemsize * inputMat.shape[1])
         elif( sz > 2 ):
             retVal = cv.CreateMat(inputMat.shape, dataType)
-            #I am going to hold off on this..... no good approach... may not be needed    
+            #I am going to hold off on this..... no good approach... may not be needed
         return retVal
     else:
-        warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
+        logger.warning("MatrixConversionUtil: the input matrix type is not supported")
+
+#Logging system - Global elements
+
+consoleHandler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s: %(message)s')
+consoleHandler.setFormatter(formatter)
+logger = logging.getLogger('Main Logger')
+logger.addHandler(consoleHandler)
+
+#The two following functions are used internally.
+def init_logging(log_level):
+    logger.setLevel(log_level)
+
+def read_logging_level(log_level):
+    levels_dict = {
+        1: logging.DEBUG, "debug": logging.DEBUG,
+        2: logging.INFO, "info": logging.INFO,
+        3: logging.WARNING, "warning": logging.WARNING,
+        4: logging.ERROR, "error": logging.ERROR,
+        5: logging.CRITICAL, "critical": logging.CRITICAL
+    }
+
+    if isinstance(log_level,str):
+       log_level = log_level.lower()
+
+    if log_level in levels_dict:
+        return levels_dict[log_level]
+    else:
+        print "The logging level given is not valid"
+        return None
+
+def get_logging_level():
+    """
+    This function prints the current logging level of the main logger.
+    """
+    levels_dict = {
+        10: "DEBUG",
+        20: "INFO",
+        30: "WARNING",
+        40: "ERROR",
+        50: "CRITICAL"
+    }
+
+    print "The current logging level is:", levels_dict[logger.getEffectiveLevel()]
+
+def set_logging(log_level,myfilename = None):
+    """
+    This function sets the threshold for the logging system and, if desired, directs the messages to a logfile. Level options:
+    'DEBUG' or 1
+    'INFO' or 2
+    'WARNING' or 3
+    'ERROR' or 4
+    'CRITICAL' or 5
+    """
+
+    level = read_logging_level(log_level)
+
+    if level and myfilename:
+        fileHandler = logging.FileHandler(filename=myfilename)
+        fileHandler.setLevel(level)
+        fileHandler.setFormatter(formatter)
+        logger.addHandler(fileHandler)
+        logger.removeHandler(consoleHandler) #Console logging is disabled.
+        print "Now logging to",myfilename,"with level",level
+    elif level:
+        print "Now logging with level",level
+
+    logger.setLevel(level)
+
 
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
