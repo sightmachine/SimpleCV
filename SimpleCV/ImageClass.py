@@ -120,27 +120,22 @@ class ImageSet(list):
       verbose = True
       """
       if displaytype=='notebook':
-        from IPython.core.display import HTML as IPHImage
-        listofnames = []
+        try:
+          from IPython.core.display import Image as IPImage
+        except ImportError:
+          print "You need IPython Notebooks to use this display mode"
+          return
+        from IPython.core import display as Idisplay
         for i in self:
-            tf = tempfile.NamedTemporaryFile(suffix=".png")
-            loc = '/tmp/' + tf.name.split('/')[-1]
-            tf.close()
-            i.save(loc)
-            listofnames.append(i.filename)
-        headstr = '<img src="file://'
-        import platform
-        if platform.system() == 'Windows':
-            headstr += 'C:\\'
-        tailstr = '"/>'
-        finalset = ''
-        for i in listofnames:
-            finalset += hstring+i+tstring
-        iphimg = IPHImage(finalset)
-        return iphimg
+          tf = tempfile.NamedTemporaryFile(suffix=".png")
+          loc = '/tmp/' + tf.name.split('/')[-1]
+          tf.close()
+          i.save(loc)
+          Idisplay.display(IPImage(filename=loc))
+          return
       else:
         for i in self:
-            i.save(verbose=verbose)
+          i.save(verbose=verbose)
       
     def showPaths(self):
       """
@@ -958,12 +953,13 @@ class Image:
                     print "You need IPython Notebooks to use this display mode"
                     return
 
+                  from IPython.core import display as Idisplay
                   tf = tempfile.NamedTemporaryFile(suffix=".png")
                   loc = '/tmp/' + tf.name.split('/')[-1]
                   tf.close()
                   self.save(loc)
-                  ipimg = IPImage(filename=loc)
-                  return ipimg
+                  Idisplay.display(IPImage(filename=loc))
+                  return
                 else:
                   self.filename = "" 
                   self.filehandle = fh
