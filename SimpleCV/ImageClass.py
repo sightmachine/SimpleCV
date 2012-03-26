@@ -1527,7 +1527,7 @@ class Image:
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
 
-          from SimpleCV.Features.HaarCascade import *
+          from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
   
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
