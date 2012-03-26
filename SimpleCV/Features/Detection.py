@@ -261,6 +261,7 @@ class HaarFeature(Feature):
     _width = ""
     _height = ""
     neighbors = ''
+    featureName = 'None'
     
     def __init__(self, i, haarobject, haarclassifier = None):
         self.image = i
@@ -271,6 +272,8 @@ class HaarFeature(Feature):
         self.boundingBox = self.points
         #set bounding points of the rectangle
         self.classifier = haarclassifier
+        if( haarclassifier is not None ):
+            self.featureName = haarclassifier.getName()
     
     def draw(self, color = (0, 255, 0),width=1):
         """

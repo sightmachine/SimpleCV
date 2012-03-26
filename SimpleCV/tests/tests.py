@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
 #   nosetest tests.py
@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = False
+VISUAL_TEST = True
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -498,7 +498,7 @@ def test_image_morph_close():
   print(c)
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     assert False;
-
+00 
 def test_image_morph_grad():
   img = Image(barcode)
   dilate = img.dilate()
@@ -1565,10 +1565,135 @@ def test_draw_keypoint_matches():
     result.save("KPMatch.png")
   pass
 
+
+def test_basic_palette():
+  img = Image(testimageclr)
+  img._generatePalette(10,False)
+  if( img._mPalette is not None and
+      img._mPaletteMembers is not None and
+      img._mPalettePercentages is not None and
+      img._mPaletteBins == 10
+      ):
+    img._generatePalette(20,True)
+    if( img._mPalette is not None and
+        img._mPaletteMembers is not None and
+        img._mPalettePercentages is not None and
+        img._mPaletteBins == 20
+        ):
+      pass
+
+def test_palettize():
+  img = Image(testimageclr)
+  img2 = img.palettize(bins=20,hue=False)
+  img3 = img.palettize(bins=3,hue=True)
+  pass
+
+def test_repalette():
+  img = Image(testimageclr)
+  img2 = Image(bottomImg)
+  p = img.getPalette()
+  img3 = img2.rePalette(p)
+  p = img.getPalette(hue=True)
+  img4 = img2.rePalette(p,hue=True)
+  pass
+
+def test_drawPalette():
+  img = Image(testimageclr)
+  img1 = img.drawPaletteColors()
+  img2 = img.drawPaletteColors(horizontal=False)
+  img3 = img.drawPaletteColors(size=(69,420) )
+  img4 = img.drawPaletteColors(size=(69,420),horizontal=False)
+  img5 = img.drawPaletteColors(hue=True)
+  img6 = img.drawPaletteColors(horizontal=False,hue=True)
+  img7 = img.drawPaletteColors(size=(69,420),hue=True )
+  img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
+
+def test_palette_binarize():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  img2 = img.binarizeFromPalette(p[0:5])
+  if VISUAL_TEST:
+    img2.save("binary_palette_1.png")
+  p = img.getPalette(hue=True)
+  img2 = img.binarizeFromPalette(p[0:5])
+  if VISUAL_TEST:
+    img2.save("binary_palette_2.png")
+  pass
+
+def test_palette_blobs():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  b1 = img.findBlobsFromPalette(p[0:5])
+  b1.draw()
+  if VISUAL_TEST:
+    img.save("blobs_palette_1.png")
+
+  p = img.getPalette(hue=True)
+  b2 = img.findBlobsFromPalette(p[0:5])
+  b2.draw()
+  if VISUAL_TEST:
+    img.save("blobs_palette_2.png")
+
+  if( len(b1) > 0 and len(b2) > 0 ):
+    pass
+  else:
+    assert False
+
+    
+
 def test_skeletonize():
   img = Image(logo)
   s = img.skeletonize()
   s2 = img.skeletonize(10)
+
+  pass
+
+
+def test_threshold():
+  img = Image(logo)
+  for t in range(0,255):
+    img.threshold(t)
+  pass
+
+def test_smartThreshold():
+  img = Image("../sampleimages/RatTop.png")
+  mask = Image((img.width,img.height))
+  mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+  mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+  mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+  mask = mask.applyLayers()
+  new_mask = img.smartThreshold(mask=mask)
+  if VISUAL_TEST:
+    new_mask.save("SMART_THRESHOLD_MASK.png")
+  
+  new_mask = img.smartThreshold(rect=(30,30,150,185))
+  if VISUAL_TEST:
+    new_mask.save("SMART_THRESHOLD_RECT.png")
+
+  pass
+
+def test_smartFindBlobs():
+  img = Image("../sampleimages/RatTop.png")
+  mask = Image((img.width,img.height))
+  mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+  mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+  mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+  mask = mask.applyLayers()
+  blobs = img.smartFindBlobs(mask=mask)
+  blobs.draw()
+  if VISUAL_TEST:
+    img.save("SMART_BLOB_MASK.png")
+  if( len(blobs) < 1 ):
+    assert False
+
+  for t in range(2,3):
+    blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
+    if(blobs2 is not None):
+      blobs2.draw()
+      if VISUAL_TEST:
+        fname = "SMART_BLOB_RECT" + str(t) + ".png"
+        img.save(fname)
+        
   pass
 
 
@@ -1577,7 +1702,8 @@ def test_image_webp_load():
   try:
     import webm
   except:
-    warnings.warn("Couldn't run the webp test as optional webm library required")
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
     pass
 
   else:
@@ -1594,7 +1720,8 @@ def test_image_webp_save():
   try:
     import webm
   except:
-    warnings.warn("Couldn't run the webp test as optional webm library required")
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
     pass
 
   else:
@@ -1661,3 +1788,157 @@ def test_detection_spatial_relationships():
 
 
   pass
+
+def test_getEXIFData():
+  img = Image("../sampleimages/OWS.jpg")
+  img2 = Image(testimage)
+  d1 = img.getEXIFData()
+  d2 = img2.getEXIFData()
+  if( len(d1) > 0 and len(d2) == 0 ):
+    pass
+  else:
+    assert False
+
+def test_get_raw_dft():
+  img = Image("../sampleimages/RedDog2.jpg")
+  raw3 = img.rawDFTImage()
+  raw1 = img.rawDFTImage(grayscale=True)
+  if( len(raw3) != 3 or
+      len(raw1) != 1 or
+      raw1[0].width != img.width or
+      raw1[0].height != img.height or
+      raw3[0].height != img.height or
+      raw3[0].width != img.width or
+      raw1[0].depth != 64L or
+      raw3[0].depth != 64L or
+      raw3[0].channels != 2 or
+      raw3[0].channels != 2 ):
+    assert False
+  else:
+    pass
+
+def test_getDFTLogMagnitude():
+  img = Image("../sampleimages/RedDog2.jpg")  
+  lm3 = img.getDFTLogMagnitude()
+  lm1 = img.getDFTLogMagnitude(grayscale=True)
+  pass
+
+
+def test_applyDFTFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  flt = Image("../sampleimages/RedDogFlt.png")
+  f1 = img.applyDFTFilter(flt)
+  f2 = img.applyDFTFilter(flt,grayscale=True)
+  if VISUAL_TEST:
+    f1.save("DFTFilt.png")
+    f2.save("DFTFiltGray.png")
+  pass
+
+def test_highPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.highPassFilter(0.5)
+  b = img.highPassFilter(0.5,grayscale=True)
+  c = img.highPassFilter(0.5,yCutoff=0.4)
+  d = img.highPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.highPassFilter([0.5,0.4,0.3])
+  f = img.highPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+  if VISUAL_TEST:
+    a.save("DFT-hpf-A.png")
+    b.save("DFT-hpf-B.png")
+    c.save("DFT-hpf-C.png")
+    d.save("DFT-hpf-D.png")
+    e.save("DFT-hpf-E.png")
+    f.save("DFT-hpf-F.png")
+    
+  pass
+
+def test_lowPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.lowPassFilter(0.5)
+  b = img.lowPassFilter(0.5,grayscale=True)
+  c = img.lowPassFilter(0.5,yCutoff=0.4)
+  d = img.lowPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.lowPassFilter([0.5,0.4,0.3])
+  f = img.lowPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+  if VISUAL_TEST:
+    a.save("DFT-lpf-A.png")
+    b.save("DFT-lpf-B.png")
+    c.save("DFT-lpf-C.png")
+    d.save("DFT-lpf-D.png")
+    e.save("DFT-lpf-E.png")
+    f.save("DFT-lpf-F.png")
+  pass
+
+def test_findHaarFeatures():
+  img = Image("../sampleimages/orson_welles.jpg")
+  face = HaarCascade("../Features/HaarCascades/face.xml")
+  f = img.findHaarFeatures(face)
+  f2 = img.findHaarFeatures("../Features/HaarCascades/face.xml")
+  if( len(f) > 0 and len(f2) > 0 ):
+    f[0].width()
+    f[0].height()
+    f[0].draw()
+    f[0].x
+    f[0].y
+    f[0].length()
+    f[0].area()
+    pass
+  else:
+    assert False
+
+
+def test_biblical_flood_fill():
+  img = Image(testimage2)
+  b = img.findBlobs()
+  img.floodFill(b.coordinates(),tolerance=3,color=Color.RED)
+  img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.BLUE)
+  img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.GREEN,fixed_range=False)
+  img.floodFill((30,30),lower=3,upper=5,color=Color.ORANGE)
+  img.floodFill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
+  img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
+  img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
+  if VISUAL_TEST:
+    img.save("biblical.png")
+  pass
+  
+def test_flood_fill_to_mask():
+  img = Image(testimage2)
+  b = img.findBlobs()
+  imask = img.edges()
+  omask = img.floodFillToMask(b.coordinates(),tolerance=10)
+  omask2 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask)
+  omask3 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask,fixed_range=False)
+  if VISUAL_TEST:
+    omask.save("flood_fill_to_mask1.png")
+    omask2.save("flood_fill_to_mask2.png")
+    omask3.save("flood_fill_to_mask3.png")
+  pass
+
+def test_findBlobsFromMask():
+  img = Image(testimage2)
+  mask = img.binarize().invert()
+  b1 = img.findBlobsFromMask(mask)
+  b2 = img.findBlobs()
+  if(len(b1) == len(b2) ):
+    pass
+  else:
+    assert False
+
+
+def test_bandPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.bandPassFilter(0.1,0.3)
+  b = img.bandPassFilter(0.1,0.3,grayscale=True)
+  c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
+  d = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
+  e = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5])
+  f = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
+  if VISUAL_TEST:
+    a.save("DFT-bpf-A.png")
+    b.save("DFT-bpf-B.png")
+    c.save("DFT-bpf-C.png")
+    d.save("DFT-bpf-D.png")
+    e.save("DFT-bpf-E.png")
+    f.save("DFT-bpf-F.png")
+
+

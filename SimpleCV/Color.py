@@ -63,7 +63,12 @@ class Color:
     MAROON = (128, 0, 0)
     CRIMSON = (220, 20, 60)
     DEFAULT = (0, 0, 0)
-  
+    # These are for the grab cut / findBlobsSmart
+    BACKGROUND = (0,0,0)
+    MAYBE_BACKGROUND = (64,64,64)
+    MAYBE_FOREGROUND =  (192,192,192)
+    FOREGROUND = (255,255,255)
+
     colorlist = [
                 BLACK,
                 WHITE,                
