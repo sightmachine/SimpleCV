@@ -4,10 +4,18 @@ python:
 notifications:
   email: false
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install:
-- sudo apt-get install python-numpy python-nose python-imaging python-scipy python-pygame
-- sudo apt-get update
-- sudo apt-get install python-opencv
+before_install:
+  - sudo apt-get update
+  - sudo apt-get upgrade
+  - sudo apt-get install libavformat-dev 
+  - sudo apt-get install ffmpeg 
+  - sudo apt-get install libcv2.1 
+  - sudo apt-get install libcvaux2.1 
+  - sudo apt-get install libhighgui2.1 
+  - sudo apt-get install libcv-dev 
+  #~ - sudo apt-get install libcvaux-dev 
+  #~ - sudo apt-get install libhighgui-dev
+  - sudo apt-get install python-opencv
 # command to run tests, e.g. python setup.py test
 script:
 - cd SimpleCV/tests/

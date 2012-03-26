@@ -91,8 +91,10 @@ class Display:
     rightButtonUp = None
     displaytype = None
 
+    def __repr__(self):
+        return "<SimpleCV.Display Object resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.resolution, self.imgw, self.imgh, hex(id(self)))
     
-    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard'):
+    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
         """
         This is the generic display object.  You are able to set the display type.
         The standard display type will pop up a window
@@ -108,9 +110,13 @@ class Display:
         
         """
         global PYGAME_INITIALIZED
+
+        if headless:
+          os.environ["SDL_VIDEODRIVER"] = "dummy"
         
         if not PYGAME_INITIALIZED:
-            pg.init()
+            if not displaytype == 'notebook':
+                pg.init()
             PYGAME_INITIALIZED = True
         self.xscale = 1.0
         self.yscale = 1.0
@@ -127,7 +133,8 @@ class Display:
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image. 
         self.resolution = resolution
-        self.screen = pg.display.set_mode(resolution, flags)
+        if not displaytype == 'notebook':
+            self.screen = pg.display.set_mode(resolution, flags)
         scvLogo = SimpleCV.Image("simplecv").scale(32,32)
         pg.display.set_icon(scvLogo.getPGSurface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:

@@ -1,8 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-from SimpleCV import *
-
+#from SimpleCV import __version__
 
 setup(name="SimpleCV",
   version=1.2,
@@ -28,6 +27,8 @@ setup(name="SimpleCV",
   license='BSD',
   packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'sampleimages']),
   zip_safe = True,
-  requires=['cv', 'numpy', 'scipy', 'pygame', 'pil','cv2'],
+
+  requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
+
   scripts=['scripts/simplecv']
   )

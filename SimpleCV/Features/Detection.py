@@ -261,6 +261,7 @@ class HaarFeature(Feature):
     _width = ""
     _height = ""
     neighbors = ''
+    featureName = 'None'
     
     def __init__(self, i, haarobject, haarclassifier = None):
         self.image = i
@@ -271,6 +272,8 @@ class HaarFeature(Feature):
         self.boundingBox = self.points
         #set bounding points of the rectangle
         self.classifier = haarclassifier
+        if( haarclassifier is not None ):
+            self.featureName = haarclassifier.getName()
     
     def draw(self, color = (0, 255, 0),width=1):
         """
@@ -407,15 +410,15 @@ class TemplateMatch(Feature):
         w = self.width()
         h = self.height()
         return (self.x+w, 
+                self.y+w,
                 self.x,
-                self.y+h,
                 self.y)
 
     def overlaps(self,other):
         """
         Returns true if this feature overlaps another template feature.
         """
-        (maxx,minx,maxy,miny) = self.getExtents()
+        (maxx,maxy,minx,miny) = self.getExtents()
         overlap = False
         for p in other.points:
             if( p[0] <= maxx and p[0] >= minx and p[1] <= maxy and p[1] >= miny ):
@@ -429,8 +432,9 @@ class TemplateMatch(Feature):
         """
         Given another template feature, make this feature the size of the two features combined.
         """
-        (maxx,minx,maxy,miny) = self.getExtents()
-        (maxx0,minx0,maxy0,miny0) = other.getExtents()
+        (maxx,maxy,minx,miny) = self.getExtents()
+        (maxx0,maxy0,minx0,miny0) = other.getExtents()
+
         maxx = max(maxx,maxx0)
         minx = min(minx,minx0)
         maxy = max(maxy,maxy0)
@@ -444,7 +448,7 @@ class TemplateMatch(Feature):
         """
         This method keeps the feature's center the same but sets a new width and height
         """
-        (maxx,minx,maxy,miny) = self.getExtents()
+        (maxx,maxy,minx,miny) = self.getExtents()
         xc = minx+((maxx-minx)/2)
         yc = miny+((maxy-miny)/2)
         x = xc-(w/2)

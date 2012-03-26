@@ -3,11 +3,14 @@ from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
+from EXIF import *
 import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
+import copy # for deep copy
+import pycurl # for integration with imgur
 
 
 class ColorSpace:
@@ -111,24 +114,39 @@ class ImageSet(list):
         i.show()
         time.sleep(showtime)
 
-    def save(self, verbose = False):
+    def save(self, verbose = False, displaytype=None):
       """
       This is a quick way to save all the images in a data set.
+      Or to Display in webInterface.
 
       If you didn't specify a path one will randomly be generated.
       To see the location the files are being saved to then pass
       verbose = True
       """
-
-      for i in self:
-        i.save(verbose=verbose)
+      if displaytype=='notebook':
+        try:
+          from IPython.core.display import Image as IPImage
+        except ImportError:
+          print "You need IPython Notebooks to use this display mode"
+          return
+        from IPython.core import display as Idisplay
+        for i in self:
+          tf = tempfile.NamedTemporaryFile(suffix=".png")
+          loc = '/tmp/' + tf.name.split('/')[-1]
+          tf.close()
+          i.save(loc)
+          Idisplay.display(IPImage(filename=loc))
+          return
+      else:
+        for i in self:
+          i.save(verbose=verbose)
       
     def showPaths(self):
       """
       This shows the file paths of all the images in the set
 
       if they haven't been saved to disk then they will not have a filepath
-      
+     
       """
 
       for i in self:
@@ -170,8 +188,8 @@ class ImageSet(list):
       file_set = [glob.glob(p) for p in formats]
 
       for f in file_set:
-        for i in f:
-          self.append(Image(i))
+          for i in f:
+              self.append(Image(i))
 
 
       
@@ -210,6 +228,11 @@ class Image:
     camera = ""
     _mLayers = []  
 
+    _mDoHuePalette = False
+    _mPaletteBins = None
+    _mPalette = None
+    _mPaletteMembers = None
+    _mPalettePercentages = None
 
     _barcodeReader = "" #property for the ZXing barcode reader
 
@@ -229,6 +252,8 @@ class Image:
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
   
+    #For DFT Caching 
+    _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
     #Keypoint caching values
     _mKeyPoints = None
@@ -250,11 +275,18 @@ class Image:
         "_grayNumpy":"",
         "_pgsurface": ""}  
     
-    
+    def __repr__(self):
+        if len(self.filename) == 0:
+          fn = "None"
+        else:
+          fn = self.filename
+        return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
+      
+
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True):
         """ 
         The constructor takes a single polymorphic parameter, which it tests
         to see how it should convert into an RGB image.  Supported types include:
@@ -272,9 +304,20 @@ class Image:
         self._mKeyPoints = []
         self._mKPDescriptors = []
         self._mKPFlavor = "NONE"
+        #Pallete Stuff
+        self._mDoHuePalette = False
+        self._mPaletteBins = None
+        self._mPalette = None
+        self._mPaletteMembers = None
+        self._mPalettePercentages = None
+
+        
+
+
 
         #Check if need to load from URL
-        if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
+        #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
+        if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             try:
                 img_file = urllib2.urlopen(source)
             except:
@@ -392,6 +435,24 @@ class Image:
             if source == '':
                 raise IOError("No filename provided to Image constructor")
 
+            elif source.split('.')[-1] == 'webp':
+
+                try:
+                    from webm import decode as webmDecode
+                except ImportError:
+                      raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+
+                WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
+                result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
+                webpImage = pil.frombuffer(
+                    "RGB", (result.width, result.height), str(result.bitmap),
+                    "raw", "RGB", 0, 1
+                )
+                self._pil = webpImage.convert("RGB")
+                self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                cv.SetData(self._bitmap, self._pil.tostring())
+                cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+
             else:
                 self.filename = source
                 try:
@@ -401,7 +462,7 @@ class Image:
                     self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
                     cv.SetData(self._bitmap, self._pil.tostring())
                     cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-                
+
                 #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
     
@@ -442,6 +503,48 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
+    def getEXIFData(self):
+        """
+        Summary:
+        This function extracts the exif data from an image file like JPEG or TIFF.
+        The data is returned as a dict. 
+
+        Parameters:
+        None
+
+        Returns:
+        A dictionary of key value pairs. The value pairs are defined in the EXIF.py file. 
+
+        Example:
+        >>>> img = Image("./SimpleCV/sampleimages/OWS.jpg")
+        >>>> data = img.getEXIFData()
+        >>>> data['Image GPSInfo'].values
+
+        Notes:
+        Compliments of: http://exif-py.sourceforge.net/
+
+        http://en.wikipedia.org/wiki/Exchangeable_image_file_format
+
+        See Also:
+        /SimpleCV/SimpleCV/EXIF.py
+        """
+        import os, string
+        if( len(self.filename) < 5 or self.filename is None ):
+            #I am not going to warn, better of img sets
+            #warnings.warn("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
+            return {}
+
+        fileName, fileExtension = os.path.splitext(self.filename)
+        fileExtension = string.lower(fileExtension)
+        if( fileExtension != '.jpeg' and fileExtension != '.jpg' and
+            fileExtension != 'tiff' and fileExtension != '.tif'):
+            #warnings.warn("ImageClass.getEXIFData: This image format does not support EXIF")
+            return {}
+
+        raw = open(self.filename,'rb')
+        data = process_file(raw)
+        return data
+
     def live(self):
         """
         This shows a live view of the camera.
@@ -846,7 +949,7 @@ class Image:
         
         returns str
         """
-        return self.getBitmap().tostring()
+        return self.toRGB().getBitmap().tostring()
     
     
     def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
@@ -915,12 +1018,13 @@ class Image:
                     print "You need IPython Notebooks to use this display mode"
                     return
 
+                  from IPython.core import display as Idisplay
                   tf = tempfile.NamedTemporaryFile(suffix=".png")
                   loc = '/tmp/' + tf.name.split('/')[-1]
                   tf.close()
                   self.save(loc)
-                  ipimg = IPImage(filename=loc)
-                  return ipimg
+                  Idisplay.display(IPImage(filename=loc))
+                  return
                 else:
                   self.filename = "" 
                   self.filehandle = fh
@@ -940,15 +1044,40 @@ class Image:
               
             return 1
 
-        #make a temporary file location is there isn't one
+        #make a temporary file location if there isn't one
         if not filehandle_or_filename:
           filename = tempfile.mkstemp(suffix=".png")[-1]
         else:  
           filename = filehandle_or_filename
-        
-        if re.search('\.webp$', filename): 
-            self.getPIL().save(filename, **params)
-            return 1
+
+        #allow saving in webp format
+        if re.search('\.webp$', filename):
+            try:
+              #newer versions of PIL support webp format, try that first
+              self.getPIL().save(filename, **params)
+            except:
+              #if PIL doesn't support it, maybe we have the python-webm library
+              try:
+                from webm import encode as webmEncode
+                from webm.handlers import BitmapHandler, WebPHandler
+              except:
+                warnings.warn('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                return 0
+
+              #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
+              PNG_BITMAP_DATA = bytearray(self.toString()) 
+              IMAGE_WIDTH = self.width
+              IMAGE_HEIGHT = self.height
+              
+              
+              image = BitmapHandler(
+                  PNG_BITMAP_DATA, BitmapHandler.RGB,
+                  IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH * 3
+              )
+              result = webmEncode.EncodeRGB(image)
+
+              file(filename.format("RGB"), "wb").write(result.data)
+              return 1
         
         
         if (filename):
@@ -979,7 +1108,36 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    
+
+    def upload(self,api_key):
+        """
+        Uploads the image to imgur (using the api key given as a parameter) and prints the links received.
+        """
+        try:
+          import pycurl
+        except ImportError:
+          print "PycURL Library not installed."
+          return
+
+        response = StringIO()
+        c = pycurl.Curl()
+        values = [
+                  ("key", api_key),
+                  ("image", (c.FORM_FILE, self.filename))]
+        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+        c.setopt(c.HTTPPOST, values)
+        c.setopt(c.WRITEFUNCTION, response.write)
+        c.perform()
+        c.close()
+
+        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+        if match:
+          print "Imgur page: http://imgur.com/" + match.group(1)
+          print "Original image: " + match.group(3)
+          print "Delete page: http://imgur.com/delete/" + match.group(2)
+        else:
+          print "The API Key given is not valid"
+
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
         """
@@ -1178,7 +1336,6 @@ class Image:
         except:
             return None
       
- 
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         Do a binary threshold the image, changing all values below thresh to maxv
@@ -1307,25 +1464,58 @@ class Image:
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
-        If you want to find Haar Features (useful for face detection among other
-        purposes) this will return Haar feature objects in a FeatureSet.  The
-        parameters are:
-        * the scaling factor for subsequent rounds of the haar cascade (default 1.2)7
-        * the minimum number of rectangles that makes up an object (default 2)
-        * whether or not to use Canny pruning to reject areas with too many edges (default yes, set to 0 to disable) 
-
+        SUMMARY:
+        A Haar like feature cascase is a really robust way of finding the location
+        of a known object. This technique works really well for a few specific applications
+        like face, pedestrian, and vehicle detection. It is worth noting that this
+        approach _IS NOT A MAGIC BULLET_ . Creating a cascade file requires a large
+        number of images that have been sorted by a human.vIf you want to find Haar 
+        Features (useful for face detection among other purposes) this will return 
+        Haar feature objects in a FeatureSet.  
 
         For more information, consult the cv.HaarDetectObjects documentation
    
-   
         You will need to provide your own cascade file - these are usually found in
-        /usr/local/share/opencv/haarcascades and specify a number of body parts.
+        /SimpleCV/Features/HaarCascades/ and specify a number of body parts.
         
         Note that the cascade parameter can be either a filename, or a HaarCascade
-        loaded with cv.Load().
+        loaded with cv.Load(), or a SimpleCV HaarCascade object. 
+
+        PARAMETERS:
+        cascade - The Haar Cascade file, this can be either the path to a cascade
+                  file or a HaarCascased SimpleCV object that has already been
+                  loaded. 
+
+        scale_factor - The scaling factor for subsequent rounds of the Haar cascade 
+                       (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
+
+        min_neighbors - The minimum number of rectangles that makes up an object. Ususally
+                        detected faces are clustered around the face, this is the number
+                        of detections in a cluster that we need for detection. Higher
+                        values here should reduce false positives and decrease false negatives.
 
 
-        Returns: FEATURESET
+        use-canny - Whether or not to use Canny pruning to reject areas with too many edges 
+                    (default yes, set to 0 to disable) 
+
+
+
+        RETURNS:
+        A feature set of HaarFeatures 
+        
+        EXAMPLE:
+        >>>> faces = HaarCascade("./SimpleCV/Features/HaarCascades/face.xml","myFaces")
+        >>>> cam = Camera()
+        >>>> while True:
+        >>>>     f = cam.getImage().findHaarFeatures(faces)
+        >>>>     if( f is not None ):
+        >>>>          f.show()
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Haar-like_features
+        The video on this pages shows how Haar features and cascades work to located faces:
+        http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
+        
         """
         storage = cv.CreateMemStorage(0)
 
@@ -1336,10 +1526,11 @@ class Image:
           if (not os.path.exists(cascade)):
               warnings.warn("Could not find Haar Cascade file " + cascade)
               return None
-          cascade = cv.Load(cascade)
 
+          from SimpleCV.Features.HaarCascade import *
+          cascade = HaarCascade(cascade)
   
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade, storage, scale_factor, use_canny)
+        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
     
@@ -2047,21 +2238,22 @@ class Image:
         You can clone python-zxing at http://github.com/oostendo/python-zxing
 
         INSTALLING ZEBRA CROSSING
-        1) Download zebra crossing 1.6 from: http://code.google.com/p/zxing/
+        1) Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
         2) unpack the zip file where ever you see fit
-              cd zxing-1.6 
+              cd zxing-x.x, where x.x is the version number of zebra crossing 
               ant -f core/build.xml
               ant -f javase/build.xml 
             This should build the library, but double check the readme
         3) Get our helper library 
            git clone git://github.com/oostendo/python-zxing.git
            cd python-zxing
-           nosetests tests.py
+           python setup.py install
         4) Our library does not have a setup file. You will need to add
            it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
         
            export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-           export PYTHONPATH=$PYTHONPATH:<FULL PATH OF ZXING PYTHON PLUG-IN - (i.e. step 3)>
+           for example: export ZXING_LIBRARY=/my/install/path/zxing-x.x/
+
            
            On windows you will need to add these same variables to the system variable, e.g.
            http://www.computerhope.com/issues/ch000549.htm
@@ -3673,17 +3865,17 @@ class Image:
         #cluster overlapping template matches 
         finalfs = FeatureSet()
         if( len(fs) > 0 ):
-            print(str(len(fs)))
             finalfs.append(fs[0])
             for f in fs:
                 match = False
                 for f2 in finalfs:
                     if( f2.overlaps(f) ): #if they overlap
                         f2.consume(f) #merge them
-                        match = True
+                        match = True 
                         break
-                    if( not match ):
-                        finalfs.append(f)
+
+                if( not match ):
+                    finalfs.append(f)
         
             for f in finalfs: #rescale the resulting clusters to fit the template size
                 f.rescale(template_image.width,template_image.height)
@@ -4490,7 +4682,430 @@ class Image:
             f.normalizeTo(max_mag)
 
         return fs
+
+
+    
+    def _generatePalette(self,bins,hue):
+        """
+        Summary:
+        This is the main entry point for palette generation. A palette, for our purposes,
+        is a list of the main colors in an image. Creating a palette with 10 bins, tries 
+        to cluster the colors in rgb space into ten distinct groups. In hue space we only
+        look at the hue channel. All of the relevant palette data is cached in the image 
+        class. 
+
+        Parameters:
+        bins - an integer number of bins into which to divide the colors in the image.
+        hue  - if hue is true we do only cluster on the image hue values. 
+
+        Returns:
+        Nothing, but creates the image's cached values for: 
         
+        self._mDoHuePalette
+        self._mPaletteBins
+        self._mPalette 
+        self._mPaletteMembers 
+        self._mPalettePercentages
+
+
+        Example:
+        
+        >>>> img._generatePalette(bins=42)
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        """
+        if( self._mPaletteBins != bins or
+            self._mDoHuePalette != hue ):
+            total = float(self.width*self.height)
+            percentages = []
+            result = None
+            if( not hue ):
+                pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
+                result = scv.kmeans2(pixels,bins)
+
+            else:
+                hsv = self
+                if( self._colorSpace != ColorSpace.HSV ):
+                    hsv = self.toHSV()
+                
+                h = hsv.getEmpty(1)       
+                cv.Split(hsv.getBitmap(),None,None,h,None)
+                mat =  cv.GetMat(h)
+                pixels = np.array(mat).reshape(-1,1)
+                result = scv.kmeans2(pixels,bins)                
+
+
+            for i in range(0,bins):
+                count = np.where(result[1]==i)
+                v = float(count[0].shape[0])/total
+                percentages.append(v)
+
+            self._mDoHuePalette = hue
+            self._mPaletteBins = bins
+            self._mPalette = np.array(result[0],dtype='uint8')
+            self._mPaletteMembers = result[1]
+            self._mPalettePercentages = percentages
+
+
+    def getPalette(self,bins=10,hue=False):
+        """
+        Summary:
+        This method returns the colors in the palette of the image. A palette is the 
+        set of the most common colors in an image. This method is helpful for segmentation.
+
+        Parameters:
+        bins - an integer number of bins into which to divide the colors in the image.
+        hue  - if hue is true we do only cluster on the image hue values. 
+
+        Returns:
+        an numpy array of the BGR color tuples. 
+
+        Example:
+        
+        >>>> p = img.getPalette(bins=42)
+        >>>> print p[2]
+       
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        """
+        self._generatePalette(bins,hue)
+        return self._mPalette
+
+
+    def rePalette(self,palette,hue=False):
+        retVal = None
+        if(hue):
+            hsv = self
+            if( self._colorSpace != ColorSpace.HSV ):
+                hsv = self.toHSV()
+                
+            h = hsv.getEmpty(1)       
+            cv.Split(hsv.getBitmap(),None,None,h,None)
+            mat =  cv.GetMat(h)
+            pixels = np.array(mat).reshape(-1,1)
+            result = scv.vq(pixels,palette)
+            derp = palette[result[0]]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            result = scv.vq(self.getNumpy().reshape(-1,3),palette)
+            retVal = Image(palette[result[0]].reshape(self.width,self.height,3))
+        return retVal
+
+    def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
+        """
+        Summary:
+        This method returns the visual representation (swatches) of the palette in an image. The palette 
+        is orientated either horizontally or vertically, and each color is given an area 
+        proportional to the number of pixels that have that color in the image. The palette 
+        is arranged as it is returned from the clustering algorithm. When size is left
+        to its default value, the palette size will match the size of the 
+        orientation, and then be 10% of the other dimension. E.g. if our image is 640X480 the horizontal
+        palette will be (640x48) likewise the vertical palette will be (480x64)
+        
+        If a Hue palette is used this method will return a grayscale palette
+        
+        Parameters:
+        bins      - an integer number of bins into which to divide the colors in the image.
+        hue       - if hue is true we do only cluster on the image hue values. 
+        size      - The size of the generated palette as a (width,height) tuple, if left default we select 
+                    a size based on the image so it can be nicely displayed with the 
+                    image. 
+        horizontal- If true we orientate our palette horizontally, otherwise vertically. 
+
+        Returns:
+        A palette swatch image. 
+
+        Example:
+        
+        >>>> p = img1.drawPaletteColors()
+        >>>> img2 = img1.sideBySide(p,side="bottom")
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        """
+        self._generatePalette(bins,hue)
+        retVal = None
+        if( not hue ):
+            if( horizontal ):
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width),int(self.height*.1))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                    roi = (int(idxL),0,int(idxH-idxL),size[1])
+                    cv.SetImageROI(pal,roi)
+                    color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
+                    cv.AddS(pal,color,pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+            else:
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width*.1),int(self.height))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
+                    roi = (0,int(idxL),size[0],int(idxH-idxL))
+                    cv.SetImageROI(pal,roi)
+                    color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
+                    cv.AddS(pal,color,pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+        else: # do hue
+            if( horizontal ):
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width),int(self.height*.1))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                    roi = (int(idxL),0,int(idxH-idxL),size[1])
+                    cv.SetImageROI(pal,roi)
+                    cv.AddS(pal,float(self._mPalette[i]),pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+            else:
+                if( size[0] == -1 or size[1] == -1 ):
+                    size = (int(self.width*.1),int(self.height))
+                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1) 
+                cv.Zero(pal)
+                idxL = 0
+                idxH = 0
+                for i in range(0,bins):
+                    idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
+                    roi = (0,int(idxL),size[0],int(idxH-idxL))
+                    cv.SetImageROI(pal,roi)
+                    cv.AddS(pal,float(self._mPalette[i]),pal)
+                    cv.ResetImageROI(pal)
+                    idxL = idxH
+                retVal = Image(pal)
+                 
+        return retVal 
+
+    def palettize(self,bins=10,hue=False):
+        """
+        Summary:
+        This method analyzes an image and determines the most common colors using a k-means algorithm.
+        The method then goes through and replaces each pixel with the centroid of the clutsters found
+        by k-means. This reduces the number of colors in an image to the number of bins. This can be particularly
+        handy for doing segementation based on color.
+
+        Parameters:
+        bins      - an integer number of bins into which to divide the colors in the image.
+        hue       - if hue is true we do only cluster on the image hue values. 
+        
+
+        Returns:
+        An image matching the original where each color is replaced with its palette value.  
+
+        Example:
+        
+        >>>> img2 = img1.palettize()
+        >>>> img2.show()
+
+        Notes:
+        The hue calculations should be siginificantly faster than the generic RGB calculation as 
+        it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
+        about k-means initialization with the following warning:
+        
+        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+
+        This shouldn't be a real problem. 
+        
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+
+        """
+        retVal = None
+        self._generatePalette(bins,hue)
+        if( hue ):
+            derp = self._mPalette[self._mPaletteMembers]
+            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = retVal.rotate(-90,fixed=False)
+        else:
+            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
+        return retVal 
+
+
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
+        """
+        Description:
+        This method attempts to use palettization to do segmentation and behaves similar to the 
+        findBlobs blob in that it returs a feature set of blob objects. Once a palette has been 
+        extracted using getPalette() we can then select colors from that palette to be labeled 
+        white within our blobs. 
+
+        Parameters:
+        palette_selection - color triplets selected from our palette that will serve turned into blobs
+                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+
+        dilate            - the optional number of dilation operations to perform on the binary image
+                            prior to performing blob extraction.
+        minsize           - the minimum blob size in pixels
+        maxsize           - the maximim blob size in pixels.
+
+        Returns:
+        If the method executes successfully a FeatureSet of Blobs is returned from the image. If the method 
+        fails a value of None is returned. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> p = img.getPalette()
+        >>>> blobs = img.findBlobsFromPalette( (p[0],p[1],[6]) )
+        >>>> blobs.draw()
+        >>>> img.show()
+
+        Notes: 
+
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.binarizeFromPalette(self, palette_selection)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        """
+
+        #we get the palette from find palete 
+        #ASSUME: GET PALLETE WAS CALLED!
+        bwimg = self.binarizeFromPalette(palette_selection)
+        if( dilate > 0 ):
+            bwimg =bwimg.dilate(dilate)
+        
+        if (maxsize == 0):  
+            maxsize = self.width * self.height / 2
+        #create a single channel image, thresholded to parameters
+    
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(bwimg,
+            self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+        return blobs
+
+
+    def binarizeFromPalette(self, palette_selection):
+        """
+        Description:
+        This method uses the color palette to generate a binary (black and white) image. Palaette selection
+        is a list of color tuples retrieved from img.getPalette(). The provided values will be drawn white
+        while other values will be black. 
+
+        Parameters:
+        palette_selection - color triplets selected from our palette that will serve turned into blobs
+                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+
+        Returns:
+        This method returns a black and white images, where colors that are close to the colors
+        in palette_selection are set to white
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> p = img.getPalette()
+        >>>> b = img.binarizeFromPalette( (p[0],p[1],[6]) )
+        >>>> b.show()
+
+        Notes: 
+
+        See Also:
+        ImageClass.getPalette(self,bins=10,hue=False
+        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
+        ImageClass.palettize(self,bins=10,hue=False)
+        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        """
+
+        #we get the palette from find palete 
+        #ASSUME: GET PALLETE WAS CALLED!
+        if( self._mPalette == None ):
+            warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
+            return None
+        retVal = None
+        img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
+        if( not self._mDoHuePalette ):
+            npimg = img.getNumpy()
+            white = np.array([255,255,255])
+            black = np.array([0,0,0])
+
+            for p in palette_selection:
+                npimg = np.where(npimg != p,npimg,white)
+            
+            npimg = np.where(npimg != white,black,white)
+            retVal = Image(npimg)
+        else:
+            npimg = img.getNumpy()[:,:,1]
+            white = np.array([255])
+            black = np.array([0])
+
+            for p in palette_selection:
+                npimg = np.where(npimg != p,npimg,white)
+            
+            npimg = np.where(npimg != white,black,white)
+            retVal = Image(npimg)
+
+        return retVal
+
     def skeletonize(self, radius = 5):
         """
         Summary:
@@ -4718,6 +5333,1165 @@ class Image:
         return retVal
 
 
+    def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True):
+        """
+        Summary:
+        floodFill works just like ye olde paint bucket tool in your favorite image manipulation
+        program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
+        point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
+        tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
+        The method accepts both single values, and triplet tuples for the tolerance values. If you 
+        require more control over your tolerance you can use the upper and lower values. The fixed
+        range parameter let's you toggle between setting the tolerance with repect to the seed pixel,
+        and using a tolerance that is relative to the adjacent pixels. If fixed_range is true the
+        method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
+        be with repsect to adjacent pixels. 
+
+        Parameters:
+        points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        tolerance   - The color tolerance as a single value or a triplet.
+        color       - The color to replace the floodFill pixels with
+        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
+                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
+                      the adjacent pixels to the pixel under test.
+
+        Returns:
+        An Image where the values similar to the seed pixel have been replaced by the input color. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> img2 = img.floodFill(((10,10),(54,32)),tolerance=(10,10,10),color=Color.RED)
+        >>>> img2.show()
+
+        Notes:
+
+        See Also:
+        ImageClass.floodFillToMask()
+        ImageClass.findFloodFillBlobs()
+        
+        """
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+        # first we guess what the user wants to do
+        # if we get and int/float convert it to a tuple
+        if( upper is None and lower is None and tolerance is None ):
+            upper = (0,0,0)
+            lower = (0,0,0)
+
+        if( tolerance is not None and
+            (isinstance(tolerance,float) or isinstance(tolerance,int))):
+            tolerance = (int(tolerance),int(tolerance),int(tolerance))
+            
+        if( lower is not None and
+            (isinstance(lower,float) or isinstance(lower, int)) ):
+            lower = (int(lower),int(lower),int(lower))
+        elif( lower is None ):
+            lower = tolerance 
+  
+        if( upper is not None and
+            (isinstance(upper,float) or isinstance(upper, int)) ):
+            upper = (int(upper),int(upper),int(upper))
+        elif( upper is None ):
+            upper = tolerance 
+    
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+
+        flags = 8
+        if( fixed_range ):
+            flags = flags+cv.CV_FLOODFILL_FIXED_RANGE
+            
+        bmp = self.getEmpty()
+        cv.Copy(self.getBitmap(),bmp)
+    
+        if( len(points.shape) != 1 ):
+            for p in points:
+                cv.FloodFill(bmp,tuple(p),color,lower,upper,flags)
+        else:
+            cv.FloodFill(bmp,tuple(points),color,lower,upper,flags)
+
+        retVal = Image(bmp)
+            
+        return retVal
+
+    def floodFillToMask(self, points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True,mask=None):
+        """
+        Summary:
+        floodFillToMask works sorta paint bucket tool in your favorite image manipulation
+        program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
+        point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
+        tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
+        Unlike regular floodFill, floodFillToMask, will return a binary mask of your flood fill
+        operation. This is handy if you want to extract blobs from an area, or create a 
+        selection from a region. The method takes in an optional mask. Non-zero values of the mask
+        act to block the flood fill operations. This is handy if you want to use an edge image
+        to "stop" the flood fill operation within a particular region.
+
+        The method accepts both single values, and triplet tuples for the tolerance values. If you 
+        require more control over your tolerance you can use the upper and lower values. The fixed
+        range parameter let's you toggle between setting the tolerance with repect to the seed pixel,
+        and using a tolerance that is relative to the adjacent pixels. If fixed_range is true the
+        method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
+        be with repsect to adjacent pixels. 
+
+        Parameters:
+        points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        tolerance   - The color tolerance as a single value or a triplet.
+        color       - The color to replace the floodFill pixels with
+        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
+                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
+                      the adjacent pixels to the pixel under test.
+        mask        - An optional mask image that can be used to control the flood fill operation. 
+                      the output of this function will include the mask data in the input mask. 
+
+        Returns:
+        An Image where the values similar to the seed pixel have been replaced by the input color. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> mask = img.edges()
+        >>>> mask= img.floodFillToMask(((10,10),(54,32)),tolerance=(10,10,10),mask=mask)
+        >>>> mask.show
+
+        Notes:
+        None
+
+        See Also:
+        ImageClass.floodFill()
+        ImageClass.findFloodFillBlobs()
+        
+        """
+        mask_flag = 255 # flag weirdness
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+        # first we guess what the user wants to do
+        # if we get and int/float convert it to a tuple
+        if( upper is None and lower is None and tolerance is None ):
+            upper = (0,0,0)
+            lower = (0,0,0)
+
+        if( tolerance is not None and
+            (isinstance(tolerance,float) or isinstance(tolerance,int))):
+            tolerance = (int(tolerance),int(tolerance),int(tolerance))
+            
+        if( lower is not None and
+            (isinstance(lower,float) or isinstance(lower, int)) ):
+            lower = (int(lower),int(lower),int(lower))
+        elif( lower is None ):
+            lower = tolerance 
+  
+        if( upper is not None and
+            (isinstance(upper,float) or isinstance(upper, int)) ):
+            upper = (int(upper),int(upper),int(upper))
+        elif( upper is None ):
+            upper = tolerance 
+    
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+            
+        flags = (mask_flag << 8 )+8
+        if( fixed_range ):
+            flags = flags + cv.CV_FLOODFILL_FIXED_RANGE
+
+        localMask = None
+        #opencv wants a mask that is slightly larger 
+        if( mask is None ):
+            localMask  = cv.CreateImage((self.width+2,self.height+2), cv.IPL_DEPTH_8U, 1)
+            cv.Zero(localMask)
+        else:
+            localMask = mask.embiggen(size=(self.width+2,self.height+2))._getGrayscaleBitmap()
+
+        bmp = self.getEmpty()
+        cv.Copy(self.getBitmap(),bmp)
+        if( len(points.shape) != 1 ):
+            for p in points:
+                cv.FloodFill(bmp,tuple(p),color,lower,upper,flags,localMask)
+        else:
+            cv.FloodFill(bmp,tuple(points),color,lower,upper,flags,localMask)
+
+        retVal = Image(localMask)
+        retVal = retVal.crop(1,1,self.width,self.height)
+        return retVal
+
+    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
+        """
+        Summary:
+        This method acts like findBlobs, but it lets you specifiy blobs directly by
+        providing a mask image. The mask image must match the size of this image, and 
+        the mask should have values > threshold where you want the blobs selected. This 
+        method can be used with binarize, dialte, erode, floodFill, edges etc to 
+        get really nice segmentation. 
+        
+        Parameters:
+        mask      - The mask image, areas lighter than threshold will be counted as blobs.
+                    Mask should be the same size as this image. 
+        threshold - A single threshold value used when we binarize the mask. 
+        minsize   - The minimum size of the returned blobs.
+        maxsize   - The maximum size of the returned blobs, if none is specified we peg 
+                    this to the image size. 
+
+        Returns:
+        A featureset of blobs. If no blobs are found None is returned. 
+
+        Example:
+        
+        >>>> img = Image("Foo.png")
+        >>>> mask = img.binarize().dilate(2)
+        >>>> blobs = img.findBlobsFromMask(mask)
+        >>>> blobs.show()
+        
+        Notes:
+        -N/A-
+
+        See Also:
+        ImageClass.findBlobs()
+        ImageClass.binarize()
+        ImageClass.threshold()
+        ImageClass.dilate()
+        ImageClass.erode()
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height / 2
+        #create a single channel image, thresholded to parameters
+        if( mask.width != self.width or mask.height != self.height ):
+            warning.warn("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            return None
+
+        blobmaker = BlobMaker()
+        gray = mask._getGrayscaleBitmap()
+        result = mask.getEmpty(1)
+        cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
+        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize)
+    
+        if not len(blobs):
+            return None
+            
+        return FeatureSet(blobs).sortArea()
+
+
+    def findFloodFillBlobs(self,points,tolerance=None,lower=None,upper=None,
+                           fixed_range=True,minsize=30,maxsize=-1):
+        """
+        Summary:
+        This method lets you use a flood fill operation and pipe the results to findBlobs. You provide
+        the points to seed floodFill and the rest is taken care of. 
+
+        floodFill works just like ye olde paint bucket tool in your favorite image manipulation
+        program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
+        point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
+        tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
+        The method accepts both single values, and triplet tuples for the tolerance values. If you 
+        require more control over your tolerance you can use the upper and lower values. The fixed
+        range parameter let's you toggle between setting the tolerance with repect to the seed pixel,
+        and using a tolerance that is relative to the adjacent pixels. If fixed_range is true the
+        method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
+        be with repsect to adjacent pixels. 
+
+        Parameters:
+        points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        tolerance   - The color tolerance as a single value or a triplet.
+        color       - The color to replace the floodFill pixels with
+        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
+                      around the seed pixel. This value can be a single value or a triplet. This will override
+                      the tolerance variable.
+        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
+                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
+                      the adjacent pixels to the pixel under test.
+        minsize     - The minimum size of the returned blobs.
+        maxsize     - The maximum size of the returned blobs, if none is specified we peg 
+                      this to the image size. 
+
+        Returns:
+        A featureset of blobs. If no blobs are found None is returned. 
+
+
+        An Image where the values similar to the seed pixel have been replaced by the input color. 
+
+        Example:
+        >>>> img = Image("lenna")
+        >>>> blerbs = img.findFloodFillBlobs(((10,10),(20,20),(30,30)),tolerance=30)
+        >>>> blerbs.show()
+
+        Notes:
+
+        See Also:
+        ImageClass.findBlobs()
+        ImageClass.floodFill()
+        
+        """
+        mask = self.floodFillToMask(points,tolerance,color=Color.WHITE,lower=lower,upper=upper,fixed_range=fixed_range)
+        return self.findBlobsFromMask(mask,minsize,maxsize)
+
+    def _doDFT(self, grayscale=False):
+        """
+        SUMMARY:
+        This private method peforms the discrete Fourier transform on an input image.
+        The transform can be applied to a single channel gray image or to each channel of the
+        image. Each channel generates a 64F 2 channel IPL image corresponding to the real 
+        and imaginary components of the DFT. A list of these IPL images are then cached 
+        in the private member variable _DFT. 
+
+        
+        PARAMETERS:
+        grayscale - If grayscale is True we first covert the image to grayscale, otherwise
+                    we perform the operation on each channel. 
+        
+        RETURNS:
+        nothing - but creates a locally cached list of IPL imgaes corresponding to the real
+                  and imaginary components of each channel. 
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> img._doDFT()
+                >>>> img._DFT[0] # get the b channel Re/Im components
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        TODO:
+        This method really needs to convert the image to an optimal DFT size. 
+        http://opencv.itseez.com/modules/core/doc/operations_on_arrays.html#getoptimaldftsize
+
+        """
+        if( grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3)):
+            self._DFT = []
+            img = self._getGrayscaleBitmap()
+            width, height = cv.GetSize(img)
+            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            cv.ConvertScale(img,data,1.0)
+            cv.Zero(blank)
+            cv.Merge(data,blank,None,None,src)
+            cv.Merge(data,blank,None,None,dst)
+            cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+            self._DFT.append(dst)
+        elif( not grayscale and (len(self._DFT) < 2 )):
+            self._DFT = []
+            r = self.getEmpty(1)
+            g = self.getEmpty(1)
+            b = self.getEmpty(1)
+            cv.Split(self.getBitmap(),b,g,r,None)
+            chans = [b,g,r]
+            width = self.width
+            height = self.height
+            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
+            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+            for c in chans:                
+                dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
+                cv.ConvertScale(c,data,1.0)
+                cv.Zero(blank)
+                cv.Merge(data,blank,None,None,src)
+                cv.Merge(data,blank,None,None,dst)
+                cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+                self._DFT.append(dst)
+
+    def _getDFTClone(self,grayscale=False):
+        """
+        SUMMARY:
+        This method works just like _doDFT but returns a deep copy
+        of the resulting array which can be used in destructive operations.
+
+        RETURNS:
+        A deep copy of the cached DFT real/imaginary image list. 
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> myDFT = img._getDFTClone()
+                >>>> SomeCVFunc(myDFT[0])
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+        ImageClass._doDFT()
+
+        """
+        # this is needs to be switched to the optimal 
+        # DFT size for faster processing. 
+        self._doDFT(grayscale)
+        retVal = []
+        if(grayscale):
+            gs = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
+            cv.Copy(self._DFT[0],gs)
+            retVal.append(gs)
+        else:
+            for img in self._DFT:
+                temp = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
+                cv.Copy(img,temp)
+                retVal.append(temp)
+        return retVal
+
+    def rawDFTImage(self,grayscale=False):
+        """
+        SUMMARY:
+        This method returns the _RAW_ DFT transform of an image as a list of IPL Images.
+        Each result image is a two channel 64f image where the first channel is the real
+        component and the second channel is teh imaginary component. If the operation 
+        is performed on an RGB image and grayscale is False the result is a list of 
+        these images of the form [b,g,r].
+
+        RETURNS:
+        A list of the DFT images (see above). Note that this is a shallow copy operation.
+        
+        EXAMPLE:
+                >>>> img = Image('logo.png')
+                >>>> myDFT = img.rawDFTImage()
+                >>>> for c in myDFT:
+                >>>>    #do some operation on the DFT
+
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+        ImageClass._doDFT()
+        """
+        self._doDFT(grayscale)
+        return self._DFT 
+
+    def getDFTLogMagnitude(self,grayscale=False):
+        """
+        SUMMARY:
+        This method returns the log value of the magnitude image of the DFT transform. This 
+        method is helpful for examining and comparing the results of DFT transforms. The log
+        component helps to "squish" the large floating point values into an image that can 
+        be rendered easily. 
+
+        In the image the low frequency components are in the corners of the image and the high 
+        frequency components are in the center of the image. 
+
+        PARAMETERS:
+        grayscale - if grayscale is True we perform the magnitude operation of the grayscale
+                    image otherwise we perform the operation on each channel. 
+        RETURNS:
+        Returns a SimpleCV image corresponding to the log magnitude of the input image.
+        
+        EXAMPLE:
+        
+        >>>> img = Image("RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.lowPassFilter(img.width/10.img.height/10)
+        >>>> lpf.getDFTLogMagnitude().show()
+        
+        NOTES:
+        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+
+        SEE ALSO:
+
+        """
+        dft = self._getDFTClone(grayscale)
+        chans = []
+        if( grayscale ):
+            chans = [self.getEmpty(1)]
+        else:
+            chans = [self.getEmpty(1),self.getEmpty(1),self.getEmpty(1)]
+        data = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1)
+        blank = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1) 
+        
+        for i in range(0,len(chans)):
+            cv.Split(dft[i],data,blank,None,None)
+            cv.Pow( data, data, 2.0)
+            cv.Pow( blank, blank, 2.0)
+            cv.Add( data, blank, data, None)
+            cv.Pow( data, data, 0.5 )
+            cv.AddS( data, cv.ScalarAll(1.0), data, None ) # 1 + Mag
+            cv.Log( data, data ) # log(1 + Mag
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,chans[i])
+
+        retVal = None
+        if( grayscale ):
+            retVal = Image(chans[0])
+        else:
+            retVal = self.getEmpty()
+            cv.Merge(chans[0],chans[1],chans[2],None,retVal)
+            retVal = Image(retVal)
+        return retVal
+
+    def _boundsFromPercentage(self, floatVal, bound):
+        return np.clip(int(floatVal*bound),0,bound)
+
+    def applyDFTFilter(self,flt,grayscale=False):
+        """
+        SUMMARY:
+        This function allows you to apply an arbitrary filter to the DFT of an image. 
+        This filter takes in a gray scale image, whiter values are kept and black values
+        are rejected. In the DFT image, the lower frequency values are in the corners
+        of the image, while the higher frequency components are in the center. For example,
+        a low pass filter has white squares in the corners and is black everywhere else. 
+
+        PARAMETERS:
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+        
+        flt       - A grayscale filter image. The size of the filter must match the size of
+                    the image. 
+
+        RETURNS:
+        A SimpleCV image after applying the filter. 
+
+        EXAMPLE:
+        >>>>  filter = Image("MyFilter.png")
+        >>>>  myImage = Image("MyImage.png")
+        >>>>  result = myImage.applyDFTFilter(filter)
+        >>>>  result.show()
+
+        NOTES:
+
+        SEE ALSO:
+
+        TODO:
+        Make this function support a separate filter image for each channel.
+        """
+        if( flt.width != self.width and 
+            flt.height != self.height ):
+            warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
+        dft = []
+        if( grayscale ):
+            dft = self._getDFTClone(grayscale)
+            flt = flt._getGrayscaleBitmap()
+            flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
+            cv.ConvertScale(flt,flt64f,1.0)
+            finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
+            cv.Merge(flt64f,flt64f,None,None,finalFilt)
+            for d in dft:
+                cv.MulSpectrums(d,finalFilt,d,0)
+        else: #break down the filter and then do each channel 
+            dft = self._getDFTClone(grayscale)
+            flt = flt.getBitmap()
+            b = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            g = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            r = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
+            cv.Split(flt,b,g,r,None)
+            chans = [b,g,r]
+            for c in range(0,len(chans)):
+                flt64f = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,1)
+                cv.ConvertScale(chans[c],flt64f,1.0)
+                finalFilt = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,2)
+                cv.Merge(flt64f,flt64f,None,None,finalFilt)
+                cv.MulSpectrums(dft[c],finalFilt,dft[c],0)
+
+        return self._inverseDFT(dft)
+
+    def _boundsFromPercentage(self, floatVal, bound):
+        return np.clip(int(floatVal*(bound/2.00)),0,(bound/2))
+
+    def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        """
+        SUMMARY:
+        This method applies a high pass DFT filter. This filter enhances 
+        the high frequencies and removes the low frequency signals. This has
+        the effect of enhancing edges. The frequencies are defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
+        PARAMETERS:
+        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
+                  frequency can be used for the b,g, and r signals by providing a 
+                  list of values. The frequency is defined between zero to one, 
+                  where zero is constant component and 1 is the highest possible 
+                  frequency in the image. 
+
+        yCutoff - The cutoff frequencies in the y direction. If none are provided
+                  we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
+        RETURNS:
+        A SimpleCV Image after applying the filter. 
+
+        EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.lowPassFilter([0.2,0.1,0.2])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
+        NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: http://en.wikipedia.org/wiki/High-pass_filter#Image
+        SEE ALSO:
+        """
+        if( isinstance(xCutoff,float) ):    
+            xCutoff = [xCutoff,xCutoff,xCutoff]
+        if( isinstance(yCutoff,float) ):
+            yCutoff = [yCutoff,yCutoff,yCutoff]   
+        if(yCutoff is None):
+            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
+
+        for i in range(0,len(xCutoff)):
+            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
+            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
+
+        filter = None
+        h  = self.height
+        w  = self.width
+
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
+            cv.AddS(filter,255,filter) # make everything white
+            #now make all of the corners black
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(0,0,0),thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),(0,0,0),thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),(0,0,0),thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),(0,0,0),thickness=-1) #BR       
+
+        else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            cv.AddS(filterB,255,filterB) # make everything white
+            cv.AddS(filterG,255,filterG) # make everything whit
+            cv.AddS(filterR,255,filterR) # make everything white
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),0,thickness=-1)
+                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),0,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),0,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),0,thickness=-1)         
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
+        scvFilt = Image(filter)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+    def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
+        """
+        SUMMARY:
+        This method applies a low pass DFT filter. This filter enhances 
+        the low frequencies and removes the high frequency signals. This has
+        the effect of reducing noise. The frequencies are defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
+        PARAMETERS:
+        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
+                  frequency can be used for the b,g, and r signals by providing a 
+                  list of values. The frequency is defined between zero to one, 
+                  where zero is constant component and 1 is the highest possible 
+                  frequency in the image. 
+
+        yCutoff - The cutoff frequencies in the y direction. If none are provided
+                  we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
+        RETURNS:
+        A SimpleCV Image after applying the filter. 
+
+        EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.highPassFilter([0.2,0.2,0.05])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
+        NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: http://en.wikipedia.org/wiki/Low-pass_filter
+        SEE ALSO:
+        """
+        if( isinstance(xCutoff,float) ):    
+            xCutoff = [xCutoff,xCutoff,xCutoff]
+        if( isinstance(yCutoff,float) ):
+            yCutoff = [yCutoff,yCutoff,yCutoff]   
+        if(yCutoff is None):
+            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
+
+        for i in range(0,len(xCutoff)):
+            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
+            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
+
+        filter = None
+        h  = self.height
+        w  = self.width
+
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
+            #now make all of the corners black
+            
+            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),255,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),255,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),255,thickness=-1) #BR       
+
+        else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),255,thickness=-1)
+                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),255,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),255,thickness=-1)
+                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),255,thickness=-1)         
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
+        scvFilt = Image(filter)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+
+    #FUCK! need to decide BGR or RGB 
+    # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
+    # or (x,y)
+    def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
+        """
+        SUMMARY:
+        This method applies a simple band pass DFT filter. This filter enhances 
+        the a range of frequencies and removes all of the other frequencies. This allows
+        a user to precisely select a set of signals to display . The frequencies are 
+        defined as going between
+        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
+        the highest possible frequencies. Each of the frequencies are defined 
+        with respect to the horizontal and vertical signal. This filter 
+        isn't perfect and has a harsh cutoff that causes ringing artifacts.
+
+        PARAMETERS:
+        xCutoffLow  - The horizontal frequency at which we perform the cutoff of the low 
+                      frequency signals. A separate 
+                      frequency can be used for the b,g, and r signals by providing a 
+                      list of values. The frequency is defined between zero to one, 
+                      where zero is constant component and 1 is the highest possible 
+                      frequency in the image. 
+
+        xCutoffHigh - The horizontal frequency at which we perform the cutoff of the high 
+                      frequency signals. Our filter passes signals between xCutoffLow and 
+                      xCutoffHigh. A separate frequency can be used for the b, g, and r 
+                      channels by providing a 
+                      list of values. The frequency is defined between zero to one, 
+                      where zero is constant component and 1 is the highest possible 
+                      frequency in the image. 
+
+        yCutoffLow - The low frequency cutoff in the y direction. If none 
+                     are provided we use the same values as provided for x. 
+
+        yCutoffHigh- The high frequency cutoff in the y direction. If none 
+                     are provided we use the same values as provided for x. 
+
+        grayscale - if this value is True we perfrom the operation on the DFT of the gray
+                    version of the image and the result is gray image. If grayscale is true
+                    we perform the operation on each channel and the recombine them to create 
+                    the result.
+                 
+        RETURNS:
+        A SimpleCV Image after applying the filter. 
+
+        EXAMPLE:
+        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>>> img.getDFTLogMagnitude().show()
+        >>>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
+        >>>> lpf.show()
+        >>>> lpf.getDFTLogMagnitude().show()
+
+        NOTES:
+        This filter is far from perfect and will generate a lot of ringing artifacts.
+        See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        See: 
+        """
+
+        if( isinstance(xCutoffLow,float) ):    
+            xCutoffLow = [xCutoffLow,xCutoffLow,xCutoffLow]
+        if( isinstance(yCutoffLow,float) ):
+            yCutoffLow = [yCutoffLow,yCutoffLow,yCutoffLow]   
+        if( isinstance(xCutoffHigh,float) ):    
+            xCutoffHigh = [xCutoffHigh,xCutoffHigh,xCutoffHigh]
+        if( isinstance(yCutoffHigh,float) ):
+            yCutoffHigh = [yCutoffHigh,yCutoffHigh,yCutoffHigh]   
+
+        if(yCutoffLow is None):
+            yCutoffLow = [xCutoffLow[0],xCutoffLow[1],xCutoffLow[2]] 
+        if(yCutoffHigh is None):
+            yCutoffHigh = [xCutoffHigh[0],xCutoffHigh[1],xCutoffHigh[2]]
+
+        for i in range(0,len(xCutoffLow)):
+            xCutoffLow[i] = self._boundsFromPercentage(xCutoffLow[i],self.width)
+            xCutoffHigh[i] = self._boundsFromPercentage(xCutoffHigh[i],self.width)
+            yCutoffHigh[i] = self._boundsFromPercentage(yCutoffHigh[i],self.height)  
+            yCutoffLow[i] = self._boundsFromPercentage(yCutoffLow[i],self.height)
+  
+        filter = None
+        h  = self.height
+        w  = self.width
+        if( grayscale ):
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
+            cv.Zero(filter)
+            #now make all of the corners black
+            cv.Rectangle(filter,(0,0),(xCutoffHigh[0],yCutoffHigh[0]),255,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoffHigh[0]),(xCutoffHigh[0],h),255,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoffHigh[0],0),(w,yCutoffHigh[0]),255,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoffHigh[0],h-yCutoffHigh[0]),(w,h),255,thickness=-1) #BR       
+            cv.Rectangle(filter,(0,0),(xCutoffLow[0],yCutoffLow[0]),0,thickness=-1) #TL
+            cv.Rectangle(filter,(0,h-yCutoffLow[0]),(xCutoffLow[0],h),0,thickness=-1) #BL
+            cv.Rectangle(filter,(w-xCutoffLow[0],0),(w,yCutoffLow[0]),0,thickness=-1) #TR
+            cv.Rectangle(filter,(w-xCutoffLow[0],h-yCutoffLow[0]),(w,h),0,thickness=-1) #BR       
+
+
+        else:
+            #I need to looking into CVMERGE/SPLIT... I would really need to know
+            # how much memory we're allocating here
+            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
+            cv.Zero(filterB)
+            cv.Zero(filterG)
+            cv.Zero(filterR)
+            #now make all of the corners black
+            temp = [filterB,filterG,filterR]
+            i = 0
+            for f in temp:
+                cv.Rectangle(f,(0,0),(xCutoffHigh[i],yCutoffHigh[i]),255,thickness=-1) #TL
+                cv.Rectangle(f,(0,h-yCutoffHigh[i]),(xCutoffHigh[i],h),255,thickness=-1) #BL
+                cv.Rectangle(f,(w-xCutoffHigh[i],0),(w,yCutoffHigh[i]),255,thickness=-1) #TR
+                cv.Rectangle(f,(w-xCutoffHigh[i],h-yCutoffHigh[i]),(w,h),255,thickness=-1) #BR       
+                cv.Rectangle(f,(0,0),(xCutoffLow[i],yCutoffLow[i]),0,thickness=-1) #TL
+                cv.Rectangle(f,(0,h-yCutoffLow[i]),(xCutoffLow[i],h),0,thickness=-1) #BL
+                cv.Rectangle(f,(w-xCutoffLow[i],0),(w,yCutoffLow[i]),0,thickness=-1) #TR
+                cv.Rectangle(f,(w-xCutoffLow[i],h-yCutoffLow[i]),(w,h),0,thickness=-1) #BR       
+                i = i+1
+
+            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
+            cv.Merge(filterB,filterG,filterR,None,filter)
+
+        scvFilt = Image(filter)
+        retVal = self.applyDFTFilter(scvFilt,grayscale)
+        return retVal
+
+
+
+
+
+    def _inverseDFT(self,input):
+        """
+        SUMMARY:
+        PARAMETERS:
+        RETURNS:
+        EXAMPLE:
+        NOTES:
+        SEE ALSO:
+        """
+        # a destructive IDFT operation for internal calls
+        w = input[0].width
+        h = input[0].height
+        if( len(input) == 1 ):
+            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
+            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            cv.Split(input[0],data,blank,None,None)
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            denom = max-min
+            if(denom == 0):
+                denom = 1
+            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,result)
+            retVal = Image(result)
+        else: # DO RGB separately
+            results = []
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            for i in range(0,len(input)):
+                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
+                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+                cv.Split( input[i],data,blank,None,None)
+                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                denom = max-min
+                if(denom == 0):
+                    denom = 1
+                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+                cv.Mul(data,data,data,255.0) # this may not be right
+                cv.Convert(data,result)
+                results.append(result)
+                      
+            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
+            cv.Merge(results[0],results[1],results[2],None,retVal)
+            retVal = Image(retVal)
+        del input
+        return retVal
+
+    def InverseDFT(self, raw_dft_image):
+        """
+        SUMMARY:
+        This method provides a way of performing an inverse discrete Fourier transform 
+        on a real/imaginary image pair and obtaining the result as a SimpleCV image. This
+        method is helpful if you wish to perform custom filter development. 
+
+        PARAMETERS:
+        raw_dft_image - A list object with either one or three IPL images. Each image should 
+                        have a 64f depth and contain two channels (the real and the imaginary).
+        RETURNS:
+        A simpleCV image.
+
+        EXAMPLE:
+        Note that this is an example, I don't recommend doing this unless you know what 
+        you are doing. 
+        >>>> raw = img.getRawDFT()
+        >>>> cv.SomeOperation(raw)
+        >>>> result = img.InverseDFT(raw)
+        >>>> result.show()
+
+        """
+        input  = []
+        w = raw_dft_image[0].width
+        h = raw_dft_image[0].height
+        if(len(raw_dft_image) == 1):
+            gs = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
+            cv.Copy(self._DFT[0],gs)
+            input.append(gs)
+        else:
+            for img in raw_dft_image:
+                temp = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
+                cv.Copy(img,temp)
+                input.append(img)
+            
+        if( len(input) == 1 ):
+            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
+            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            cv.Split(input[0],data,blank,None,None)
+            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            denom = max-min
+            if(denom == 0):
+                denom = 1
+            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+            cv.Mul(data,data,data,255.0)
+            cv.Convert(data,result)
+            retVal = Image(result)
+        else: # DO RGB separately
+            results = []
+            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
+            for i in range(0,len(raw_dft_image)):
+                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
+                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
+                cv.Split( input[i],data,blank,None,None)
+                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                denom = max-min
+                if(denom == 0):
+                    denom = 1
+                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
+                cv.Mul(data,data,data,255.0) # this may not be right
+                cv.Convert(data,result)
+                results.append(result)
+                      
+            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
+            cv.Merge(results[0],results[1],results[2],None,retVal)
+            retVal = Image(retVal)
+
+        return retVal
+        
+    def applyButterworthFilter(self,dia=400,order=2,highpass=False,grayscale=False):
+        """
+        SUMMARY:
+            Creates a butterworth filter of 64x64 pixels, resizes it to fit
+            image, applies DFT on image using the filter.
+            Returns image with DFT applied on it
+        PARAMETERS:
+        dia: int
+            Diameter of Butterworth low pass filter
+        order: int 
+            Order of butterworth lowpass filter
+        highpass: BOOL
+            True: highpass filter
+            False: lowpass filter
+        grayscale: BOOL
+    
+        Examples:
+    
+        im = Image("lenna")
+        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+        Output image: http://i.imgur.com/5LS3e.png
+    
+        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        Output img: http://i.imgur.com/QlCAY.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        Output img: http://i.imgur.com/BYYnp.png
+    
+        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        Output img: http://i.imgur.com/BYYnp.png
+        """
+        w,h = self.size()
+        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
+        dia = int(dia/((w/64.0+h/64.0)/2.0))
+        if highpass:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    flt[i,j] = 255-(255/(1+(d/dia)**(order*2)))
+        else:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    flt[i,j] = 255/(1+(d/dia)**(order*2))
+    
+        flt = Image(flt)
+        flt_re = flt.resize(w,h)
+        img = self.applyDFTFilter(flt_re,grayscale)
+        return img
+    
+    def applyGaussianFilter(self, dia=400, highpass=False, grayscale=False):
+        """
+        SUMMARY:
+            Creates a gaussian filter of 64x64 pixels, resizes it to fit
+            image, applies DFT on image using the filter.
+            Returns image with DFT applied on it
+        PARAMETERS:
+        dia: int
+            Diameter of Gaussian filter
+        highpass: BOOL
+            True: highpass filter
+            False: lowpass filter
+        grayscale: BOOL
+    
+        Example:
+    
+        im = Image("lenna")
+        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+        Output image: http://i.imgur.com/DttJv.png
+    
+        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        Output img: http://i.imgur.com/PWn4o.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        Output img: http://i.imgur.com/9hX5J.png
+    
+        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        Output img: http://i.imgur.com/MXI5T.png
+        """
+        w,h = self.size()
+        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
+        dia = int(dia/((w/64.0+h/64.0)/2.0))
+        if highpass:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    val = 255-(255.0*math.exp(-(d**2)/((dia**2)*2)))
+                    flt[i,j]=val
+        else:
+            for i in range(64):
+                for j in range(64):
+                    d = sqrt((j-32)**2+(i-32)**2)
+                    val = 255.0*math.exp(-(d**2)/((dia**2)*2))
+                    flt[i,j]=val        
+                
+        flt = Image(flt)
+        flt_re = flt.resize(w,h)
+        img = self.applyDFTFilter(flt_re,grayscale)
+        return img
+        
+    def applyUnsharpMask(self,boost=1,dia=400,grayscale=False):
+        """
+        SUMMARY:
+            This method applies unsharp mask or highboost filtering
+            on image depending upon the boost value provided.
+            DFT is applied on image using gaussian lowpass filter.
+            A mask is created subtracting the DFT image from the original
+            iamge. And then mask is added in the image to sharpen it.
+            unsharp masking => image + mask
+            highboost filtering => image + (boost)*mask
+        PARAMETERS:
+    
+        boost: int  
+            boost = 1 => unsharp masking
+            boost > 1 => highboost filtering
+        dia: int
+            Diameter of Gaussian low pass filter
+        grayscale: BOOL
+    
+        Examples: 
+        ==============================================================
+        Gaussian Filters:
+        im = Image("lenna")
+        img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        output image: http://i.imgur.com/A1pZf.png
+   
+        img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        output image: http://i.imgur.com/smCdL.png
+    
+        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        output image: http://i.imgur.com/VtGzl.png
+    
+        img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        output image: http://i.imgur.com/bywny.png
+        """
+        if boost < 0:
+            print "boost >= 1"
+            return None
+    
+        lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
+        im = Image(self.getBitmap())
+        mask = im - lpIm
+        img = im
+        for i in range(boost):
+            img = img + mask
+        return img
+
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
@@ -4725,6 +6499,8 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+        
+ 
 
 
 Image.greyscale = Image.grayscale
