@@ -4466,7 +4466,7 @@ class Image:
             for i in range(0,len(idx)):
                 if( result[i] ):
                     lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
