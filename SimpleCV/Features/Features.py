@@ -619,6 +619,7 @@ class Feature(object):
         """
         retVal = False
         bounds = self.boundingBox
+        print(type(other))
         if( isinstance(other,Feature) ):# A feature
             retVal = True            
             for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
