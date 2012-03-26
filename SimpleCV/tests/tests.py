@@ -1655,6 +1655,7 @@ def test_image_webp_save():
     else:
       assert False
 
+<<<<<<< HEAD
 
 def test_getEXIFData():
   img = Image("../sampleimages/OWS.jpg")
@@ -1735,6 +1736,23 @@ def test_lowPassFilter():
     e.save("DFT-lpf-E.png")
     f.save("DFT-lpf-F.png")
   pass
+
+def test_findHaarFeatures():
+  img = Image("../sampleimages/orson_welles.jpg")
+  face = HaarCascade("../Features/HaarCascades/face.xml")
+  f = img.findHaarFeatures(face)
+  f2 = img.findHaarFeatures("../Features/HaarCascades/face.xml")
+  if( len(f) > 0 and len(f2) > 0 ):
+    f[0].width()
+    f[0].height()
+    f[0].draw()
+    f[0].x
+    f[0].y
+    f[0].length()
+    f[0].area()
+    pass
+  else:
+    assert False
 
 
 def test_biblical_flood_fill():
