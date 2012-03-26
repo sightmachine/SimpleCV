@@ -1657,7 +1657,7 @@ def test_smartFindBlobs():
   if( len(blobs) < 1 ):
     assert False
 
-  for t in range(1,3):
+  for t in range(2,3):
     blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
     if(blobs2 is not None):
       blobs2.draw()

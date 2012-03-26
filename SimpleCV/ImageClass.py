@@ -5291,14 +5291,18 @@ class Image:
         """
         result = self.smartThreshold(mask, rect)
         binary = None
-        if( thresh_level ==  1 ):
-            result = result.threshold(192)
-        elif( thresh_level == 2):
-            result = result.threshold(128)
-        elif( thresh_level > 2 ):
-            result = result.threshold(1)
-        bm = BlobMaker()
-        retVal = bm.extractFromBinary(result,self)
+        retVal = None
+
+        if result:
+          if( thresh_level ==  1 ):
+              result = result.threshold(192)
+          elif( thresh_level == 2):
+              result = result.threshold(128)
+          elif( thresh_level > 2 ):
+              result = result.threshold(1)
+          bm = BlobMaker()
+          retVal = bm.extractFromBinary(result,self)
+        
         return retVal
 
     def threshold(self, value):
