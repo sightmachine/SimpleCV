@@ -567,11 +567,11 @@ class Image:
 
         while d.isNotDone():
           i = self
+          i.clearLayers()
           elapsed_time = time.time() - start_time
           
 
           if d.mouseLeft:
-            i.clearLayers()
             txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
             i.dl().text(txt, (10,i.height / 2), color=col)
             txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
