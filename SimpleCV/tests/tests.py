@@ -1793,3 +1793,11 @@ def test_bandPassFilter():
     e.save("DFT-bpf-E.png")
     f.save("DFT-bpf-F.png")
 
+def test_image_slice():
+  img = Image("../sampleimages/blockhead.png")
+  I = img.findLines()
+  I2 = I[0:10]
+  if isinstance(I2, list):
+    pass
+  else:
+    assert False
