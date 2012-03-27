@@ -10,7 +10,7 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 import copy # for deep copy
-import pycurl # for integration with imgur
+
 
 
 class ColorSpace:
