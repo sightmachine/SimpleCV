@@ -4224,6 +4224,7 @@ class Image:
 
     def _getRawKeypoints(self,thresh=500.00,flavor="SURF", highQuality=1, forceReset=False):
         """
+        .. _getRawKeypoints:
         This method finds keypoints in an image and returns them as the raw keypoints
         and keypoint descriptors. When this method is called it caches a the features
         and keypoints locally for quick and easy access.
@@ -4464,6 +4465,10 @@ class Image:
 
     def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
         """
+        .. findKeypointMatch:
+
+        **DESCRIPTION**
+
         findKeypointMatch allows you to match a template image with another image using 
         SURF keypoints. The method extracts keypoints from each image, uses the Fast Local
         Approximate Nearest Neighbors algorithm to find correspondences between the feature
@@ -4475,49 +4480,57 @@ class Image:
         illumination. Using a template that is close to the target image will yield much
         better results.
 
-        Warning:
-        This method is only capable of finding one instance of the template in an image. 
-        If more than one instance is visible the homography calculation and the method will 
-        fail.
+        .. Warning::
+          This method is only capable of finding one instance of the template in an image. 
+          If more than one instance is visible the homography calculation and the method will 
+          fail.
 
-        Parameters:
-        template - A template image. 
+        **PARAMETERS**
 
-        quality - The feature quality metric. This can be any value between about 300 and 500. Higher
-        values should return fewer, but higher quality features. 
+        * *template* - A template image. 
 
-        minDist - The value below which the feature correspondence is considered a match. This 
-                  is the distance between two feature vectors. Good values are between 0.05 and 0.3
+        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features. 
 
-        minMatch - The percentage of features which must have matches to proceed with homography calculation.
-                   A value of 0.4 means 40% of features must match. Higher values mean better matches
-                   are used. Good values are between about 0.3 and 0.7
+        * *minDist* - The value below which the feature correspondence is considered a match. This 
+          is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        * *minMatch* - The percentage of features which must have matches to proceed with homography calculation.
+          A value of 0.4 means 40% of features must match. Higher values mean better matches
+          are used. Good values are between about 0.3 and 0.7
+
  
-        Returns:
-                  If a homography (match) is found this method returns a feature set with a single 
-                  KeypointMatch feature. If no match is found None is returned.
-        Example:
-                  >>> template = Image("template.png")
-                  >>> img = camera.getImage()
-                  >>> fs = img.findKeypointMatch(template)
-                  >>> if( fs is not None ):
-                  >>>      fs[0].draw()
-                  >>>      img.show()
+        **RETURNS** 
 
-        Notes:
+        If a homography (match) is found this method returns a feature set with a single 
+        KeypointMatch feature. If no match is found None is returned.
+         
+        **EXAMPLE**
+        
+        >>> template = Image("template.png")
+        >>> img = camera.getImage()
+        >>> fs = img.findKeypointMatch(template)
+        >>> if( fs is not None ):
+        >>>      fs[0].draw()
+        >>>      img.show()
+        
+        **NOTES**
+
         If you would prefer to work with the raw keypoints and descriptors each image keeps
         a local cache of the raw values. These are named:
         
-        self._mKeyPoints # A tuple of keypoint objects
-        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
 
-        See Also:
-         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
-         ImageClass._getFLANNMatches(self,sd,td)
-         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
-         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
+        | self._mKeyPoints # A Tuple of keypoint objects
+        | self._mKPDescriptors # The descriptor as a floating point numpy array
+        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
+
+        **SEE ALSO**
+        
+        :py:meth:`_getRawKeypoints` 
+        :py:meth:`_getFLANNMatches`
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
 
 
         """
