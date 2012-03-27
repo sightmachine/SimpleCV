@@ -190,7 +190,10 @@ class ImageSet(list):
       for f in file_set:
         for i in f:
           tmp = Image(i)
-          self.filelist[tmp.filename.split('/')[-1]] = tmp
+          if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+            self.filelist[tmp.filename.split('\\')[-1]] = tmp
+          else:
+            self.filelist[tmp.filename.split('/')[-1]] = tmp
           self.append(tmp)
 
     def find(self, key):
