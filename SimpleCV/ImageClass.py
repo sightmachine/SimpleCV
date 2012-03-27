@@ -10,7 +10,7 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 import copy # for deep copy
-import pycurl # for integration with imgur
+
 
 
 class ColorSpace:
@@ -57,14 +57,34 @@ class ImageSet(list):
 
     >>> imgs.save()
 
+    You can also load up the sample images that come with simplecv as:
+
+    >>> imgs = ImageSet('samples')
+    >>> imgs.filelist
+    >>> logo = imgs.find('simplecv.png')
     
     """
 
+    filelist = None
     def __init__(self, directory = None):
-      if directory:
-        self.load(directory)
 
-      return
+      if not directory:
+          return
+      if directory.lower() == 'samples' or directory.lower() == 'sample':
+        #~ import pdb
+        #~ pdb.set_trace()
+        pth = __file__
+        
+        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+          pth = pth.split('\\')[-2]
+        else:
+          pth = pth.split('/')[-2]
+        pth = os.path.realpath(pth)
+        directory = os.path.join(pth, 'sampleimages')
+
+          
+      self.load(directory)
+
 
     def download(self, tag=None, number=10):
       """
@@ -197,14 +217,38 @@ class ImageSet(list):
         
       else:
         formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
-        
+
+      
       file_set = [glob.glob(p) for p in formats]
 
+      self.filelist = dict()
+
       for f in file_set:
+        for i in f:
+          tmp = Image(i)
+          if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+            self.filelist[tmp.filename.split('\\')[-1]] = tmp
+          else:
+            self.filelist[tmp.filename.split('/')[-1]] = tmp
+          self.append(tmp)
+
+    def find(self, key):
+      """
+      This function is used to find a particule file.
+      The key is it's filename with extension
+      If you would like to see a list of file names just use
           for i in f:
               self.append(Image(i))
 
 
+
+      >>> imgs = ImageSet('samples')
+      >>> imgs.filelist
+      """
+      try:
+        return self.filelist[key]
+      except:
+        return None
       
   
 class Image:
@@ -457,7 +501,8 @@ class Image:
                 try:
                     from webm import decode as webmDecode
                 except ImportError:
-                      raise ('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      warnings.warn('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      return
 
                 WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
                 result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
@@ -467,6 +512,7 @@ class Image:
                 )
                 self._pil = webpImage.convert("RGB")
                 self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                self.filename = source
                 cv.SetData(self._bitmap, self._pil.tostring())
                 cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
 
@@ -970,12 +1016,18 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False, **params):
+    def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False, **params):
         """
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
         place it was saved to. 
-    
+
+        To save as a temporary file just use:
+
+        >>> img = Image('simplecv')
+        >>> img.save(temp=True)
+
+        It will return the path that it saved to.
     
         Save will implicitly render the image's layers before saving, but the layers are 
         not applied to the Image itself.
@@ -992,6 +1044,10 @@ class Image:
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
+
+        #if it's a temporary file
+        if temp:
+            filename = tempfile.NamedTemporaryFile(suffix=".png")
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -1110,8 +1166,11 @@ class Image:
 
         if verbose:
           print self.filename
-          
-        return 1
+
+        if temp:
+          return filename
+        else:
+          return 1
 
 
     def copy(self):

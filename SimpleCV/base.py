@@ -121,6 +121,14 @@ def find(f, seq):
             return True
     return False
 
+def test():
+    """
+    This function is meant to run builtin unittests
+    """
+
+    print 'unit test'
+
+
 def download_and_extract(URL):
     """
     This function takes in a URL for a zip file, extracts it and returns
@@ -171,6 +179,6 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
         warnings.warn("MatrixConversionUtil: the input matrix type is not supported")
 
 #supported image formats regular expression
-IMAGE_FORMATS = ('*.bmp','*.dcx','*.eps','*.ps','*.gif','*.im','*.jpg','*.jpe','*.jpeg','*.pcd','*.pcx','*.png','*.pbm','*.pgm','*.ppm','*.psd','*.tif','*.tiff','*.xbm','*.xpm')
+IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
 #maximum image size - 
 MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.  
