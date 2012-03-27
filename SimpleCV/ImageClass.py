@@ -252,7 +252,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
     def handpick(self):
         """
-        This functions lets you discard all the unwanted images
+        This function lets you discard all the unwanted images
         in the set one by one. This can be useful if the download
         function returns several images that don't quite match
         your purposes.
