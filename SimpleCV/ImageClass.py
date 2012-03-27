@@ -121,7 +121,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       while len(add_set) < number:
         opener = urllib2.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        url = ("http://www.google.com/search?tbm=isch&q=" + str(tag) +
+        url = ("http://www.google.com/search?tbm=isch&q=" + urllib2.quote(tag) +
                size_param + "&start=" + str(candidate_count))
         page = opener.open(url)
         soup = BeautifulSoup(page)
@@ -4577,7 +4577,7 @@ class Image:
             for i in range(0,len(idx)):
                 if( result[i] ):
                     lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
