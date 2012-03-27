@@ -82,24 +82,33 @@ class ImageSet(list):
 
         return
 
-      opener = urllib2.build_opener()
-      opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-      url = "http://www.google.com/search?tbm=isch&q=" + str(tag)
-      page = opener.open(url)
-      soup = BeautifulSoup(page)
-      imgs = soup.findAll('img')
+      add_set = ImageSet()
+      candidate_count = 0
+      
+      while len(add_set) < number:
+        opener = urllib2.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        url = "http://www.google.com/search?tbm=isch&q="+str(tag)+"&start="+str(candidate_count)
+        page = opener.open(url)
+        soup = BeautifulSoup(page)
+        imgs = soup.findAll('img')
 
-      for img in imgs:
-        dl_url = str(dict(img.attrs)['src'])
+        for img in imgs:
+          dl_url = str(dict(img.attrs)['src'])
+          candidate_count += 1
 
-        try:
-          add_img = Image(dl_url)
-          self.append(add_img)
+          try:
+            add_img = Image(dl_url)
+            add_set.append(add_img)
 
-        except:
-          #do nothing
-          None
-        
+          except:
+            #do nothing
+            None
+
+          if len(add_set) >= number:
+              break
+
+      self.extend(add_set)
 
 
     def show(self, showtime = 0.25):
