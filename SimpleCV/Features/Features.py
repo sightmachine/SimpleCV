@@ -21,6 +21,16 @@ class FeatureSet(list):
     >>> lines.x()
     >>> lines.crop()
     """
+    def __getslice__(self, i, j):
+        """
+        Returns a FeatureSet when sliced. Previously used to
+        return list. Now it is possible to use FeatureSet member
+        functions on sub-lists"""
+        result =  list.__getslice__(self, i, j)
+        try:
+            return FeatureSet(result)
+        except:
+            return result
   
     def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
