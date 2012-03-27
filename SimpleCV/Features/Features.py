@@ -569,7 +569,6 @@ class Feature(object):
         """
         retVal = False
         bounds = self.boundingBox
-
         if( isinstance(other,Feature) ):# A feature
             retVal = True
             for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.            
@@ -619,10 +618,9 @@ class Feature(object):
         """
         retVal = False
         bounds = self.boundingBox
-        print(type(other))
         if( isinstance(other,Feature) ):# A feature
             retVal = True            
-            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
+            for p in other.boundingBox: # this isn't completely correct - only tests if points lie in poly, not edges. 
                 retVal = self._pointInsidePolygon(p,bounds)
                 if( retVal ):
                     break
@@ -632,7 +630,6 @@ class Feature(object):
 
         elif( isinstance(other,tuple) and len(other)==3 and not isinstance(other[0],tuple)): # A circle
             #assume we are in x,y, r format 
-            print(other)
             retVal = False
             rr = other[2]*other[2]
             x = other[0]
@@ -705,7 +702,7 @@ class Feature(object):
                        self.minX() >= other[0] and
                        self.maxY() <= other[1]+other[3] and
                        self.minY() >= other[1] )
-        elif(isinstance(other,tuple) >= 4): # an arbitrary polygon
+        elif(isinstance(other,list) and len(other) > 2 ): # an arbitrary polygon
             #everything else .... 
             retVal = True
             for p in bounds:
@@ -729,7 +726,7 @@ class Feature(object):
         """
         returns true if tuple point (x,y) is inside polygon of the form ((a,b),(c,d),...,(a,b)) the polygon should be closed
         Adapted for python from:
-        http://paulbourke.net/geometry/insidepoly/
+        Http://paulbourke.net/geometry/insidepoly/
         """
         if( len(polygon) < 3 ):
             warnings.warn("feature._pointInsidePolygon - this is not a valid polygon")
@@ -741,18 +738,19 @@ class Feature(object):
         
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
-        for p2 in poly:
-            if( p1 is None ):
-                p1 = p2
-            else:
-                if( point[1] > np.min((p1[1],p2[1])) ):
-                    if( point[1] <= np.max((p1[1],p2[1])) ):
-                        if( point[0] <= np.max((p1[0],p2[0])) ):
-                            if( p1[1] != p2[1] ):
-                                test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
-                                if( p1[0] == p2[0] or point[0] <= test ):
-                                    counter = counter + 1
-                p1 = p2                
+   #     for p2 in poly:
+        N = len(poly)
+        p1 = poly[0]
+        for i in range(1,N+1):
+            p2 = poly[i%N]
+            if( point[1] > np.min((p1[1],p2[1])) ):
+                if( point[1] <= np.max((p1[1],p2[1])) ):
+                    if( point[0] <= np.max((p1[0],p2[0])) ):
+                        if( p1[1] != p2[1] ):
+                            test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
+                            if( p1[0] == p2[0] or point[0] <= test ):
+                                counter = counter + 1
+            p1 = p2                
                                     
         if( counter % 2 == 0 ):
             retVal = False
