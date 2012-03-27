@@ -27,16 +27,8 @@ setup(name="SimpleCV",
   license='BSD',
   packages = find_packages(exclude=['ez_setup']),
   zip_safe = True,
-<<<<<<< HEAD
-  requires=['cv', 'numpy', 'scipy', 'pygame', 'pil'],
-  scripts=['scripts/simplecv'],
-  package_data  = {
-            'SimpleCV': ['sampleimages/*']
-  }
-=======
-
   requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
 
   scripts=['scripts/simplecv']
->>>>>>> master
+
   )
