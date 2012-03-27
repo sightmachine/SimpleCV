@@ -63,13 +63,17 @@ class ImageSet(list):
       if not directory:
           return
       if directory.lower() == 'samples' or directory.lower() == 'sample':
+        #~ import pdb
+        #~ pdb.set_trace()
+        pth = __file__
+        
         if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-          pth = os.path.realpath('../sampleimages')
-          directory = os.path.abspath(pth)
+          pth = pth.split('\\')[-2]
         else:
-          from SimpleCV import __path__ as scvpath
-          directory = scvpath[0] + '/sampleimages'
-          directory = os.path.join(os.getcwd(), directory)
+          pth = pth.split('/')[-2]
+        pth = os.path.realpath(pth)
+        directory = os.path.join(pth, 'sampleimages')
+
           
       self.load(directory)
 
