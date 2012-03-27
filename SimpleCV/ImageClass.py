@@ -62,13 +62,15 @@ class ImageSet(list):
 
       return
 
-    def download(self, tag=None, number=10):
+    def download(self, tag=None, number=10, size='thumb'):
       """
       This function downloads images from Google Image search based
-      on the tag you provide.  The number is the number of images you
-      want to have in the list.
+      on the tag you provide. The number is the number of images you
+      want to have in the list. Valid values for size are 'thumb', 'small',
+      'medium', 'large' or a tuple of exact dimensions i.e. (640,480).
+      Note that 'thumb' is exceptionally faster than others.
 
-      note: This requires the python library Beautiful Soup to be installed
+      Also note: This requires the python library Beautiful Soup to be installed
       http://www.crummy.com/software/BeautifulSoup/
       """
 
@@ -82,24 +84,66 @@ class ImageSet(list):
 
         return
 
-      add_set = ImageSet()
-      candidate_count = 0
+
+      INVALID_SIZE_MSG = """I don't understand what size images you want.
+Valid options: 'thumb', 'small', 'medium', 'large'
+ or a tuple of exact dimensions i.e. (640,480)."""
+
+      if type(size) == str:
+          size = size.lower()
+          if size == 'thumb':
+              size_param = ''
+          elif size == 'small':
+              size_param = '&tbs=isz:s'
+          elif size == 'medium':
+              size_param = '&tbs=isz:m'
+          elif size == 'large':
+              size_param = '&tbs=isz:l'
+          else:
+              print INVALID_SIZE_MSG
+              return None
+              
+      elif type(size) == tuple:
+          width, height = size
+          size_param = '&tbs=isz:ex,iszw:' + str(width) + ',iszh:' + str(height)
+
+      else:
+          print INVALID_SIZE_MSG
+          return None
 
       # Used to extract imgurl parameter value from a URL
       imgurl_re = re.compile('(?<=(&|\?)imgurl=)[^&]*((?=&)|$)')
       
+      add_set = ImageSet()
+      candidate_count = 0
+      
+      
       while len(add_set) < number:
         opener = urllib2.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        url = "http://www.google.com/search?tbm=isch&q="+str(tag)+"&start="+str(candidate_count)
+        url = ("http://www.google.com/search?tbm=isch&q=" + str(tag) +
+               size_param + "&start=" + str(candidate_count))
         page = opener.open(url)
         soup = BeautifulSoup(page)
 
-        for link_tag in soup.findAll('a', {'href': re.compile('imgurl=')}):
+        img_urls = []
 
-          dirty_url = link_tag.get('href') # URL to an image as given by Google Images
-          dl_url = str(re.search(imgurl_re, dirty_url).group()) # The direct URL to the image
+        # Gets URLs of the thumbnail images 
+        if size == 'thumb':
+            imgs = soup.findAll('img')
+            for img in imgs:
+                dl_url = str(dict(img.attrs)['src'])
+                img_urls.append(dl_url)
 
+        # Gets the direct image URLs
+        else:
+            for link_tag in soup.findAll('a', {'href': re.compile('imgurl=')}):
+              dirty_url = link_tag.get('href') # URL to an image as given by Google Images
+              dl_url = str(re.search(imgurl_re, dirty_url).group()) # The direct URL to the image
+              img_urls.append(dl_url)
+        
+
+        for dl_url in img_urls:
           try:
             add_img = Image(dl_url, verbose=False)
 
