@@ -84,6 +84,9 @@ class ImageSet(list):
 
       add_set = ImageSet()
       candidate_count = 0
+
+      # Used to extract imgurl parameter value from a URL
+      imgurl_re = re.compile('(?<=(&|\?)imgurl=)[^&]*((?=&)|$)')
       
       while len(add_set) < number:
         opener = urllib2.build_opener()
@@ -91,15 +94,18 @@ class ImageSet(list):
         url = "http://www.google.com/search?tbm=isch&q="+str(tag)+"&start="+str(candidate_count)
         page = opener.open(url)
         soup = BeautifulSoup(page)
-        imgs = soup.findAll('img')
 
-        for img in imgs:
-          dl_url = str(dict(img.attrs)['src'])
-          candidate_count += 1
+        for link_tag in soup.findAll('a', {'href': re.compile('imgurl=')}):
+
+          dirty_url = link_tag.get('href') # URL to an image as given by Google Images
+          dl_url = str(re.search(imgurl_re, dirty_url).group()) # The direct URL to the image
 
           try:
-            add_img = Image(dl_url)
-            add_set.append(add_img)
+            add_img = Image(dl_url, verbose=False)
+
+            # Don't know a better way to check if the image was actually returned
+            if add_img.height <> 0 and add_img.width <> 0:
+              add_set.append(add_img)
 
           except:
             #do nothing
@@ -295,7 +301,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True, verbose=True):
         """ 
         The constructor takes a single polymorphic parameter, which it tests
         to see how it should convert into an RGB image.  Supported types include:
@@ -330,7 +336,8 @@ class Image:
             try:
                 img_file = urllib2.urlopen(source)
             except:
-                print "Couldn't open Image from URL:" + source
+                if verbose:
+                    print "Couldn't open Image from URL:" + source
                 return None
 
             im = StringIO(img_file.read())
