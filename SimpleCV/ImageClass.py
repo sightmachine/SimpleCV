@@ -17,6 +17,8 @@ class ColorSpace:
     """
     This class is used to encapsulates the color space of a given image.
     This class acts like C/C++ style enumerated type.
+
+
     See: http://stackoverflow.com/questions/2122706/detect-color-space-with-opencv
     """
     UNKNOWN = 0
@@ -39,9 +41,11 @@ class ImageSet(list):
 
     Example:
     
+
     >>> imgs = ImageSet()
     >>> imgs.download("ninjas")
     >>> imgs.show(ninjas)
+
 
     or you can load a directory path:
 
@@ -216,18 +220,22 @@ class Image:
     standard format.  If dimensions are passed, an empty image is created.
 
     Examples:
+
     >>> i = Image("/path/to/image.png")
     >>> i = Camera().getImage()
 
 
     You can also just load the SimpleCV logo using:
+
     >>> img = Image("simplecv")
     >>> img = Image("logo")
     >>> img = Image("logo_inverted")
     >>> img = Image("logo_transparent")
 
     Or you can load an image from a URL:
+
     >>> img = Image("http://www.simplecv.org/image.png")
+
     """
     width = 0    #width and height in px
     height = 0
@@ -525,9 +533,10 @@ class Image:
         A dictionary of key value pairs. The value pairs are defined in the EXIF.py file. 
 
         Example:
-        >>>> img = Image("./SimpleCV/sampleimages/OWS.jpg")
-        >>>> data = img.getEXIFData()
-        >>>> data['Image GPSInfo'].values
+   
+        >>> img = Image("./SimpleCV/sampleimages/OWS.jpg")
+        >>> data = img.getEXIFData()
+        >>> data['Image GPSInfo'].values
 
         Notes:
         Compliments of: http://exif-py.sourceforge.net/
@@ -975,10 +984,11 @@ class Image:
         that has been instainted with the notebook flag.
 
         To do this just use:
+        
         >>> disp = Display(displaytype='notebook')
         >>> img.save(disp)
 
-        *Note: You must have IPython notebooks installed for this to work
+        Note: You must have IPython notebooks installed for this to work
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
@@ -1417,15 +1427,19 @@ class Image:
 
         
         Standard Test:
+        
         >>> img = Image("sampleimages/simplecv.png")
         >>> corners = img.findCorners()
         >>> if corners: True
+        
         True
 
         Validation Test:
+        
         >>> img = Image("sampleimages/black.png")
         >>> corners = img.findCorners()
         >>> if not corners: True
+        
         True
         """
         #initialize buffer frames
@@ -1477,7 +1491,7 @@ class Image:
         A Haar like feature cascase is a really robust way of finding the location
         of a known object. This technique works really well for a few specific applications
         like face, pedestrian, and vehicle detection. It is worth noting that this
-        approach _IS NOT A MAGIC BULLET_ . Creating a cascade file requires a large
+        approach **IS NOT A MAGIC BULLET** . Creating a cascade file requires a large
         number of images that have been sorted by a human.vIf you want to find Haar 
         Features (useful for face detection among other purposes) this will return 
         Haar feature objects in a FeatureSet.  
@@ -1492,33 +1506,33 @@ class Image:
 
         PARAMETERS:
         cascade - The Haar Cascade file, this can be either the path to a cascade
-                  file or a HaarCascased SimpleCV object that has already been
-                  loaded. 
+        file or a HaarCascased SimpleCV object that has already been
+        loaded. 
 
         scale_factor - The scaling factor for subsequent rounds of the Haar cascade 
-                       (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
+        (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
 
         min_neighbors - The minimum number of rectangles that makes up an object. Ususally
-                        detected faces are clustered around the face, this is the number
-                        of detections in a cluster that we need for detection. Higher
-                        values here should reduce false positives and decrease false negatives.
+        detected faces are clustered around the face, this is the number
+        of detections in a cluster that we need for detection. Higher
+        values here should reduce false positives and decrease false negatives.
 
 
         use-canny - Whether or not to use Canny pruning to reject areas with too many edges 
-                    (default yes, set to 0 to disable) 
-
+        (default yes, set to 0 to disable) 
 
 
         RETURNS:
         A feature set of HaarFeatures 
         
         EXAMPLE:
-        >>>> faces = HaarCascade("./SimpleCV/Features/HaarCascades/face.xml","myFaces")
-        >>>> cam = Camera()
-        >>>> while True:
-        >>>>     f = cam.getImage().findHaarFeatures(faces)
-        >>>>     if( f is not None ):
-        >>>>          f.show()
+
+        >>> faces = HaarCascade("./SimpleCV/Features/HaarCascades/face.xml","myFaces")
+        >>> cam = Camera()
+        >>> while True:
+        >>>     f = cam.getImage().findHaarFeatures(faces)
+        >>>     if( f is not None ):
+        >>>          f.show()
 
         NOTES:
         http://en.wikipedia.org/wiki/Haar-like_features
@@ -2247,29 +2261,32 @@ class Image:
         You can clone python-zxing at http://github.com/oostendo/python-zxing
 
         INSTALLING ZEBRA CROSSING
-        1) Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
-        2) unpack the zip file where ever you see fit
-              cd zxing-x.x, where x.x is the version number of zebra crossing 
-              ant -f core/build.xml
-              ant -f javase/build.xml 
-            This should build the library, but double check the readme
-        3) Get our helper library 
-           git clone git://github.com/oostendo/python-zxing.git
-           cd python-zxing
-           python setup.py install
-        4) Our library does not have a setup file. You will need to add
+        #. Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
+        #. unpack the zip file where ever you see fit
+
+        >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
+        >>> ant -f core/build.xml
+        >>> ant -f javase/build.xml 
+        
+        This should build the library, but double check the readme
+        #. Get our helper library 
+
+        >>> git clone git://github.com/oostendo/python-zxing.git
+        >>> cd python-zxing
+        >>> python setup.py install
+        #. Our library does not have a setup file. You will need to add
            it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
         
-           export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-           for example: export ZXING_LIBRARY=/my/install/path/zxing-x.x/
-
-           
-           On windows you will need to add these same variables to the system variable, e.g.
-           http://www.computerhope.com/issues/ch000549.htm
+        export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+        for example: export ZXING_LIBRARY=/my/install/path/zxing-x.x/
         
-        5) On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
         
-        6) Go grab some barcodes!
+        On windows you will need to add these same variables to the system variable, e.g.
+        http://www.computerhope.com/issues/ch000549.htm
+        
+        #. On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        #. Go grab some barcodes!
 
         WARNING:
         Users on OSX may see the following error:
@@ -2280,11 +2297,11 @@ class Image:
 
         Parameters:
         
-            zxing_path - String
+        zxing_path - String
             
         Returns:
         
-            BARCODE
+        BARCODE
         """
         if not ZXING_ENABLED:
             warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
@@ -3086,6 +3103,7 @@ class Image:
         adjust image size to match the display size.
 
         This is typically used in this instance:
+
         >>> d = Display((800,600))
         >>> i = Image((640, 480))
         >>> i.save(d)
@@ -3556,7 +3574,8 @@ class Image:
         values that will be masked white.
 
         example:
-        >>>> img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
+        
+        >>> img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
        
         """
         if( color1[0]-color2[0] == 0 or 
@@ -4124,8 +4143,9 @@ class Image:
         
         example:
         This example saturates the red channel
-        >>>> rlut = np.ones((256,1),dtype=uint8)*255
-        >>>> img=img.applyLUT(rLUT=rlut)
+       
+>>> rlut = np.ones((256,1),dtype=uint8)*255
+        >>> img=img.applyLUT(rLUT=rlut)
        
         """
         r = self.getEmpty(1)
@@ -4184,8 +4204,8 @@ class Image:
         A tuple of keypoint objects and optionally a numpy array of the descriptors. 
 
         Example:
-        >>>> img = Image("aerospace.jpg")
-        >>>> kp,d = img._getRawKeypoints() 
+        >>> img = Image("aerospace.jpg")
+        >>> kp,d = img._getRawKeypoints() 
 
         Notes:
         If you would prefer to work with the raw keypoints and descriptors each image keeps
@@ -4275,12 +4295,12 @@ class Image:
         The second one, dist, is the distance value for the closest match.
 
         Example:
-        >>>> kpt,td = img1._getRawKeypoints() # t is template
-        >>>> kps,sd = img2._getRawKeypoints() # s is source
-        >>>> idx,dist = img1._getFLANNMatches(sd,td)
-        >>>> j = idx[42]
-        >>>> print kps[j] # matches kp 42
-        >>>> print dist[i] # the match quality.
+        >>> kpt,td = img1._getRawKeypoints() # t is template
+        >>> kps,sd = img2._getRawKeypoints() # s is source
+        >>> idx,dist = img1._getFLANNMatches(sd,td)
+        >>> j = idx[42]
+        >>> print kps[j] # matches kp 42
+        >>> print dist[i] # the match quality.
 
         Notes:
         If you would prefer to work with the raw keypoints and descriptors each image keeps
@@ -4335,9 +4355,9 @@ class Image:
         draw in a different color. 
 
         Example:
-        >>>> img = cam.getImage()
-        >>>> template = Image("myTemplate.png")
-        >>>> result = img.drawKeypointMatches(self,template,300.00,0.4):
+        >>> img = cam.getImage()
+        >>> template = Image("myTemplate.png")
+        >>> result = img.drawKeypointMatches(self,template,300.00,0.4):
 
         Notes:
         If you would prefer to work with the raw keypoints and descriptors each image keeps
@@ -4418,12 +4438,12 @@ class Image:
                   If a homography (match) is found this method returns a feature set with a single 
                   KeypointMatch feature. If no match is found None is returned.
         Example:
-                  >>>> template = Image("template.png")
-                  >>>> img = camera.getImage()
-                  >>>> fs = img.findKeypointMatch(template)
-                  >>>> if( fs is not None ):
-                  >>>>      fs[0].draw()
-                  >>>>      img.show()
+                  >>> template = Image("template.png")
+                  >>> img = camera.getImage()
+                  >>> fs = img.findKeypointMatch(template)
+                  >>> if( fs is not None ):
+                  >>>      fs[0].draw()
+                  >>>      img.show()
 
         Notes:
         If you would prefer to work with the raw keypoints and descriptors each image keeps
@@ -4522,41 +4542,41 @@ class Image:
         Only the surf flavor of keypoint returns feature and descriptors at this time.
        
         Parameters:
+        
         min_quality - The minimum quality metric for SURF descriptors. Good values
-                      range between about 300.00 and 600.00
+        range between about 300.00 and 600.00
         
         flavor - a string indicating the method to use to extract features.
-                 A good primer on how feature/keypoint extractiors can be found here:
-
-                 http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
-                 http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+        A good primer on how feature/keypoint extractiors can be found here:
         
-
-                 "SURF" - extract the SURF features and descriptors. If you don't know
-                 what to use, use this. 
-                 See: http://en.wikipedia.org/wiki/SURF
-
-                 "STAR" - The STAR feature extraction algorithm
-                 See: http://pr.willowgarage.com/wiki/Star_Detector
-
-                 "FAST" - The FAST keypoint extraction algorithm
-                 See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
-
-
+        http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
+        http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+        
+        * "SURF" - extract the SURF features and descriptors. If you don't know
+          what to use, use this. 
+          See: http://en.wikipedia.org/wiki/SURF
+        
+        * "STAR" - The STAR feature extraction algorithm
+          See: http://pr.willowgarage.com/wiki/Star_Detector
+        
+        * "FAST" - The FAST keypoint extraction algorithm
+          See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+        
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
-                      values and a vector of 128 descriptor values. The latter are "high" 
-                      quality descriptors. 
+        values and a vector of 128 descriptor values. The latter are "high" 
+        quality descriptors. 
                       
         Returns:
         A feature set of KeypointFeatures. These KeypointFeatures let's you draw each 
         feature, crop the features, get the feature descriptors, etc. 
 
         Example:
-        >>>> img = Image("aerospace.jpg")
-        >>>> fs = img.findKeypoints(flavor="SURF",min_quality=500,highQuality=True)
-        >>>> fs = fs.sortArea()
-        >>>> fs[-1].draw()
-        >>>> img.draw()
+        
+        >>> img = Image("aerospace.jpg")
+        >>> fs = img.findKeypoints(flavor="SURF",min_quality=500,highQuality=True)
+        >>> fs = fs.sortArea()
+        >>> fs[-1].draw()
+        >>> img.draw()
 
         Notes:
         If you would prefer to work with the raw keypoints and descriptors each image keeps
@@ -4568,12 +4588,13 @@ class Image:
         self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
 
         See Also:
-         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
-         ImageClass._getFLANNMatches(self,sd,td)
-         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
-         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+        ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
+        ImageClass._getFLANNMatches(self,sd,td)
+        ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+        ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
 
-        """
+        
+         """
         fs = FeatureSet()
         kp = []
         d = []
@@ -4719,7 +4740,7 @@ class Image:
 
         Example:
         
-        >>>> img._generatePalette(bins=42)
+        >>> img._generatePalette(bins=42)
 
         Notes:
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
@@ -4786,8 +4807,8 @@ class Image:
 
         Example:
         
-        >>>> p = img.getPalette(bins=42)
-        >>>> print p[2]
+        >>> p = img.getPalette(bins=42)
+        >>> print p[2]
        
         Notes:
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
@@ -4847,8 +4868,8 @@ class Image:
         bins      - an integer number of bins into which to divide the colors in the image.
         hue       - if hue is true we do only cluster on the image hue values. 
         size      - The size of the generated palette as a (width,height) tuple, if left default we select 
-                    a size based on the image so it can be nicely displayed with the 
-                    image. 
+        a size based on the image so it can be nicely displayed with the 
+        image. 
         horizontal- If true we orientate our palette horizontally, otherwise vertically. 
 
         Returns:
@@ -4856,9 +4877,9 @@ class Image:
 
         Example:
         
-        >>>> p = img1.drawPaletteColors()
-        >>>> img2 = img1.sideBySide(p,side="bottom")
-        >>>> img2.show()
+        >>> p = img1.drawPaletteColors()
+        >>> img2 = img1.sideBySide(p,side="bottom")
+        >>> img2.show()
 
         Notes:
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
@@ -4870,8 +4891,8 @@ class Image:
         This shouldn't be a real problem. 
         
         See Also:
-        ImageClass.getPalette(self,bins=10,hue=False
-        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.getPalette(self,bins=10,hue=False)
+        ImageClass.rePalette(self,palette,hue=False)
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
         ImageClass.palettize(self,bins=10,hue=False)
         ImageClass.binarizeFromPalette(self, palette_selection)
@@ -4964,8 +4985,8 @@ class Image:
 
         Example:
         
-        >>>> img2 = img1.palettize()
-        >>>> img2.show()
+        >>> img2 = img1.palettize()
+        >>> img2.show()
 
         Notes:
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
@@ -5006,10 +5027,10 @@ class Image:
 
         Parameters:
         palette_selection - color triplets selected from our palette that will serve turned into blobs
-                            These values can either be a 3xN numpy array, or a list of RGB triplets.
-
+        These values can either be a 3xN numpy array, or a list of RGB triplets.
+                            
         dilate            - the optional number of dilation operations to perform on the binary image
-                            prior to performing blob extraction.
+        prior to performing blob extraction.
         minsize           - the minimum blob size in pixels
         maxsize           - the maximim blob size in pixels.
 
@@ -5018,11 +5039,12 @@ class Image:
         fails a value of None is returned. 
 
         Example:
-        >>>> img = Image("lenna")
-        >>>> p = img.getPalette()
-        >>>> blobs = img.findBlobsFromPalette( (p[0],p[1],[6]) )
-        >>>> blobs.draw()
-        >>>> img.show()
+
+        >>> img = Image("lenna")
+        >>> p = img.getPalette()
+        >>> blobs = img.findBlobsFromPalette( (p[0],p[1],[6]) )
+        >>> blobs.draw()
+        >>> img.show()
 
         Notes: 
 
@@ -5033,6 +5055,7 @@ class Image:
         ImageClass.palettize(self,bins=10,hue=False)
         ImageClass.binarizeFromPalette(self, palette_selection)
         ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        
         """
 
         #we get the palette from find palete 
@@ -5063,23 +5086,24 @@ class Image:
 
         Parameters:
         palette_selection - color triplets selected from our palette that will serve turned into blobs
-                            These values can either be a 3xN numpy array, or a list of RGB triplets.
+        These values can either be a 3xN numpy array, or a list of RGB triplets.
 
         Returns:
         This method returns a black and white images, where colors that are close to the colors
         in palette_selection are set to white
 
         Example:
-        >>>> img = Image("lenna")
-        >>>> p = img.getPalette()
-        >>>> b = img.binarizeFromPalette( (p[0],p[1],[6]) )
-        >>>> b.show()
+
+        >>> img = Image("lenna")
+        >>> p = img.getPalette()
+        >>> b = img.binarizeFromPalette( (p[0],p[1],[6]) )
+        >>> b.show()
 
         Notes: 
 
         See Also:
-        ImageClass.getPalette(self,bins=10,hue=False
-        ImageClass.rePalette(self,palette,hue=False):
+        ImageClass.getPalette(self,bins=10,hue=False)
+        ImageClass.rePalette(self,palette,hue=False)
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
         ImageClass.palettize(self,bins=10,hue=False)
         ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
@@ -5135,13 +5159,13 @@ class Image:
         
         Example:
        
-        >>>> cam = Camera()
-        >>>> while True:
-        >>>>     img = cam.getImage()
-        >>>>     b = img.binarize().invert()
-        >>>>     s = img.skeletonize()
-        >>>>     r = b-s
-        >>>>     r.show()
+        >>> cam = Camera()
+        >>> while True:
+        >>>     img = cam.getImage()
+        >>>     b = img.binarize().invert()
+        >>>     s = img.skeletonize()
+        >>>     r = b-s
+        >>>     r.show()
 
         Notes:
         This code was a suggested improvement by Alex Wiltchko, check out his awesome blog here:
@@ -5186,14 +5210,14 @@ class Image:
         FOREGROUND = (255,255,255)
         
         Example:
-        >>>> img = Image("RatTop.png")
-        >>>> mask = Image((img.width,img.height))
-        >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
-        >>>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
-        >>>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-        >>>> mask = mask.applyLayers()
-        >>>> new_mask = img.smartThreshold(mask=mask)
-        >>>> new_mask.show()
+        >>> img = Image("RatTop.png")
+        >>> mask = Image((img.width,img.height))
+        >>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+        >>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+        >>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+        >>> mask = mask.applyLayers()
+        >>> new_mask = img.smartThreshold(mask=mask)
+        >>> new_mask.show()
 
         Notes:
         http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
@@ -5273,24 +5297,26 @@ class Image:
         mask         - A grayscale mask the same size as the image using the 4 mask color values
         rect         - A rectangle tuple of the form (x_position,y_position,width,height)
         thresh_level - This represents what grab cut values to use in the mask after the
-                       graph cut algorithm is run, 
-                       1  - means use the foreground, maybe_foreground, and maybe_background values
-                       2  - means use the foreground and maybe_foreground values.
-                       3+ - means use just the foreground
+        graph cut algorithm is run, 
+        1  - means use the foreground, maybe_foreground, and maybe_background values
+        2  - means use the foreground and maybe_foreground values.
+        3+ - means use just the foreground
+        
         Returns:
         A featureset of blobs. If everything went smoothly only a couple of blobs should
         be present. 
         
         Example:
-        >>>> img = Image("RatTop.png")
-        >>>> mask = Image((img.width,img.height))
-        >>>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True
-        >>>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
-        >>>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-        >>>> mask = mask.applyLayers()
-        >>>> blobs = img.smartFindBlobs(mask=mask)
-        >>>> blobs.draw()
-        >>>> blobs.show()
+        
+        >>> img = Image("RatTop.png")
+        >>> mask = Image((img.width,img.height))
+        >>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True
+        >>> mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+        >>> mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+        >>> mask = mask.applyLayers()
+        >>> blobs = img.smartFindBlobs(mask=mask)
+        >>> blobs.draw()
+        >>> blobs.show()
 
         Notes:
         http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
@@ -5330,8 +5356,8 @@ class Image:
         A black and white image.
         
         Example:
-        >>>> img = Image("purplemonkeydishwasher.png")
-        >>>> result = img.threshold(42)
+        >>> img = Image("purplemonkeydishwasher.png")
+        >>> result = img.threshold(42)
        
         Notes:
         THRESHOLD RULES BINARIZE DROOLS!
@@ -5365,22 +5391,24 @@ class Image:
         tolerance   - The color tolerance as a single value or a triplet.
         color       - The color to replace the floodFill pixels with
         lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
-                      around the seed pixel. This value can be a single value or a triplet. This will override
-                      the tolerance variable.
+        around the seed pixel. This value can be a single value or a triplet. This will override
+        the tolerance variable.
         upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
-                      around the seed pixel. This value can be a single value or a triplet. This will override
-                      the tolerance variable.
+        around the seed pixel. This value can be a single value or a triplet. This will override
+        the tolerance variable.
         fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
-                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
-                      the adjacent pixels to the pixel under test.
+        If fixed_range is false, the tolerance is +/- tolerance of the values of 
+        the adjacent pixels to the pixel under test.
 
         Returns:
+        
         An Image where the values similar to the seed pixel have been replaced by the input color. 
 
         Example:
-        >>>> img = Image("lenna")
-        >>>> img2 = img.floodFill(((10,10),(54,32)),tolerance=(10,10,10),color=Color.RED)
-        >>>> img2.show()
+        
+        >>> img = Image("lenna")
+        >>> img2 = img.floodFill(((10,10),(54,32)),tolerance=(10,10,10),color=Color.RED)
+        >>> img2.show()
 
         Notes:
 
@@ -5458,25 +5486,26 @@ class Image:
         tolerance   - The color tolerance as a single value or a triplet.
         color       - The color to replace the floodFill pixels with
         lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
-                      around the seed pixel. This value can be a single value or a triplet. This will override
-                      the tolerance variable.
+        around the seed pixel. This value can be a single value or a triplet. This will override
+        the tolerance variable.
         upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
-                      around the seed pixel. This value can be a single value or a triplet. This will override
-                      the tolerance variable.
+        around the seed pixel. This value can be a single value or a triplet. This will override
+        the tolerance variable.
         fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
-                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
-                      the adjacent pixels to the pixel under test.
+        If fixed_range is false, the tolerance is +/- tolerance of the values of 
+        the adjacent pixels to the pixel under test.
         mask        - An optional mask image that can be used to control the flood fill operation. 
-                      the output of this function will include the mask data in the input mask. 
-
+        the output of this function will include the mask data in the input mask. 
+        
         Returns:
         An Image where the values similar to the seed pixel have been replaced by the input color. 
 
         Example:
-        >>>> img = Image("lenna")
-        >>>> mask = img.edges()
-        >>>> mask= img.floodFillToMask(((10,10),(54,32)),tolerance=(10,10,10),mask=mask)
-        >>>> mask.show
+        
+        >>> img = Image("lenna")
+        >>> mask = img.edges()
+        >>> mask= img.floodFillToMask(((10,10),(54,32)),tolerance=(10,10,10),mask=mask)
+        >>> mask.show
 
         Notes:
         None
@@ -5549,24 +5578,23 @@ class Image:
         
         Parameters:
         mask      - The mask image, areas lighter than threshold will be counted as blobs.
-                    Mask should be the same size as this image. 
+        Mask should be the same size as this image. 
         threshold - A single threshold value used when we binarize the mask. 
         minsize   - The minimum size of the returned blobs.
         maxsize   - The maximum size of the returned blobs, if none is specified we peg 
-                    this to the image size. 
+        this to the image size. 
 
         Returns:
         A featureset of blobs. If no blobs are found None is returned. 
 
         Example:
         
-        >>>> img = Image("Foo.png")
-        >>>> mask = img.binarize().dilate(2)
-        >>>> blobs = img.findBlobsFromMask(mask)
-        >>>> blobs.show()
+        >>> img = Image("Foo.png")
+        >>> mask = img.binarize().dilate(2)
+        >>> blobs = img.findBlobsFromMask(mask)
+        >>> blobs.show()
         
         Notes:
-        -N/A-
 
         See Also:
         ImageClass.findBlobs()
@@ -5597,10 +5625,11 @@ class Image:
     def findFloodFillBlobs(self,points,tolerance=None,lower=None,upper=None,
                            fixed_range=True,minsize=30,maxsize=-1):
         """
+
         Summary:
         This method lets you use a flood fill operation and pipe the results to findBlobs. You provide
         the points to seed floodFill and the rest is taken care of. 
-
+        
         floodFill works just like ye olde paint bucket tool in your favorite image manipulation
         program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
         point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
@@ -5614,31 +5643,39 @@ class Image:
 
         Parameters:
         points      - A tuple, list of tuples, or np.array of seed points for flood fill
+        
         tolerance   - The color tolerance as a single value or a triplet.
+        
         color       - The color to replace the floodFill pixels with
+        
         lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
-                      around the seed pixel. This value can be a single value or a triplet. This will override
-                      the tolerance variable.
+        around the seed pixel. This value can be a single value or a triplet. This will override
+        the tolerance variable.
+        
         upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
-                      around the seed pixel. This value can be a single value or a triplet. This will override
-                      the tolerance variable.
+        around the seed pixel. This value can be a single value or a triplet. This will override
+        the tolerance variable.
+        
         fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
-                      If fixed_range is false, the tolerance is +/- tolerance of the values of 
-                      the adjacent pixels to the pixel under test.
+        If fixed_range is false, the tolerance is +/- tolerance of the values of 
+        the adjacent pixels to the pixel under test.
+        
         minsize     - The minimum size of the returned blobs.
+        
         maxsize     - The maximum size of the returned blobs, if none is specified we peg 
                       this to the image size. 
 
         Returns:
+        
         A featureset of blobs. If no blobs are found None is returned. 
-
-
+        
         An Image where the values similar to the seed pixel have been replaced by the input color. 
 
         Example:
-        >>>> img = Image("lenna")
-        >>>> blerbs = img.findFloodFillBlobs(((10,10),(20,20),(30,30)),tolerance=30)
-        >>>> blerbs.show()
+
+        >>> img = Image("lenna")
+        >>> blerbs = img.findFloodFillBlobs(((10,10),(20,20),(30,30)),tolerance=30)
+        >>> blerbs.show()
 
         Notes:
 
@@ -5669,9 +5706,9 @@ class Image:
                   and imaginary components of each channel. 
         
         EXAMPLE:
-                >>>> img = Image('logo.png')
-                >>>> img._doDFT()
-                >>>> img._DFT[0] # get the b channel Re/Im components
+                >>> img = Image('logo.png')
+                >>> img._doDFT()
+                >>> img._DFT[0] # get the b channel Re/Im components
 
         NOTES:
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
@@ -5727,9 +5764,9 @@ class Image:
         A deep copy of the cached DFT real/imaginary image list. 
         
         EXAMPLE:
-                >>>> img = Image('logo.png')
-                >>>> myDFT = img._getDFTClone()
-                >>>> SomeCVFunc(myDFT[0])
+                >>> img = Image('logo.png')
+                >>> myDFT = img._getDFTClone()
+                >>> SomeCVFunc(myDFT[0])
 
         NOTES:
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
@@ -5767,10 +5804,10 @@ class Image:
         A list of the DFT images (see above). Note that this is a shallow copy operation.
         
         EXAMPLE:
-                >>>> img = Image('logo.png')
-                >>>> myDFT = img.rawDFTImage()
-                >>>> for c in myDFT:
-                >>>>    #do some operation on the DFT
+                >>> img = Image('logo.png')
+                >>> myDFT = img.rawDFTImage()
+                >>> for c in myDFT:
+                >>>    #do some operation on the DFT
 
         NOTES:
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
@@ -5795,16 +5832,17 @@ class Image:
 
         PARAMETERS:
         grayscale - if grayscale is True we perform the magnitude operation of the grayscale
-                    image otherwise we perform the operation on each channel. 
+        image otherwise we perform the operation on each channel. 
+        
         RETURNS:
         Returns a SimpleCV image corresponding to the log magnitude of the input image.
         
         EXAMPLE:
         
-        >>>> img = Image("RedDog2.jpg")
-        >>>> img.getDFTLogMagnitude().show()
-        >>>> lpf = img.lowPassFilter(img.width/10.img.height/10)
-        >>>> lpf.getDFTLogMagnitude().show()
+        >>> img = Image("RedDog2.jpg")
+        >>> img.getDFTLogMagnitude().show()
+        >>> lpf = img.lowPassFilter(img.width/10.img.height/10)
+        >>> lpf.getDFTLogMagnitude().show()
         
         NOTES:
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
@@ -5858,21 +5896,22 @@ class Image:
 
         PARAMETERS:
         grayscale - if this value is True we perfrom the operation on the DFT of the gray
-                    version of the image and the result is gray image. If grayscale is true
-                    we perform the operation on each channel and the recombine them to create 
-                    the result.
+        version of the image and the result is gray image. If grayscale is true
+        we perform the operation on each channel and the recombine them to create 
+        the result.
         
-        flt       - A grayscale filter image. The size of the filter must match the size of
-                    the image. 
+        flt - A grayscale filter image. The size of the filter must match the size of
+        the image. 
 
         RETURNS:
         A SimpleCV image after applying the filter. 
 
         EXAMPLE:
-        >>>>  filter = Image("MyFilter.png")
-        >>>>  myImage = Image("MyImage.png")
-        >>>>  result = myImage.applyDFTFilter(filter)
-        >>>>  result.show()
+
+        >>>  filter = Image("MyFilter.png")
+        >>>  myImage = Image("MyImage.png")
+        >>>  result = myImage.applyDFTFilter(filter)
+        >>>  result.show()
 
         NOTES:
 
@@ -5927,34 +5966,37 @@ class Image:
 
         PARAMETERS:
         xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
-                  frequency can be used for the b,g, and r signals by providing a 
-                  list of values. The frequency is defined between zero to one, 
-                  where zero is constant component and 1 is the highest possible 
-                  frequency in the image. 
+        frequency can be used for the b,g, and r signals by providing a 
+        list of values. The frequency is defined between zero to one, 
+        where zero is constant component and 1 is the highest possible 
+        frequency in the image. 
 
         yCutoff - The cutoff frequencies in the y direction. If none are provided
-                  we use the same values as provided for x. 
+        we use the same values as provided for x. 
 
         grayscale - if this value is True we perfrom the operation on the DFT of the gray
-                    version of the image and the result is gray image. If grayscale is true
-                    we perform the operation on each channel and the recombine them to create 
-                    the result.
+        version of the image and the result is gray image. If grayscale is true
+        we perform the operation on each channel and the recombine them to create 
+        the result.
                  
         RETURNS:
         A SimpleCV Image after applying the filter. 
 
         EXAMPLE:
-        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>>> img.getDFTLogMagnitude().show()
-        >>>> lpf = img.lowPassFilter([0.2,0.1,0.2])
-        >>>> lpf.show()
-        >>>> lpf.getDFTLogMagnitude().show()
+        
+        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>> img.getDFTLogMagnitude().show()
+        >>> lpf = img.lowPassFilter([0.2,0.1,0.2])
+        >>> lpf.show()
+        >>> lpf.getDFTLogMagnitude().show()
 
         NOTES:
         This filter is far from perfect and will generate a lot of ringing artifacts.
         See: http://en.wikipedia.org/wiki/Ringing_(signal)
         See: http://en.wikipedia.org/wiki/High-pass_filter#Image
+        
         SEE ALSO:
+        
         """
         if( isinstance(xCutoff,float) ):    
             xCutoff = [xCutoff,xCutoff,xCutoff]
@@ -6023,34 +6065,38 @@ class Image:
 
         PARAMETERS:
         xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
-                  frequency can be used for the b,g, and r signals by providing a 
-                  list of values. The frequency is defined between zero to one, 
-                  where zero is constant component and 1 is the highest possible 
-                  frequency in the image. 
+        frequency can be used for the b,g, and r signals by providing a 
+        list of values. The frequency is defined between zero to one, 
+        where zero is constant component and 1 is the highest possible 
+        frequency in the image. 
 
         yCutoff - The cutoff frequencies in the y direction. If none are provided
-                  we use the same values as provided for x. 
+        we use the same values as provided for x. 
 
         grayscale - if this value is True we perfrom the operation on the DFT of the gray
-                    version of the image and the result is gray image. If grayscale is true
-                    we perform the operation on each channel and the recombine them to create 
-                    the result.
+        version of the image and the result is gray image. If grayscale is true
+        we perform the operation on each channel and the recombine them to create 
+        the result.
                  
         RETURNS:
         A SimpleCV Image after applying the filter. 
 
         EXAMPLE:
-        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>>> img.getDFTLogMagnitude().show()
-        >>>> lpf = img.highPassFilter([0.2,0.2,0.05])
-        >>>> lpf.show()
-        >>>> lpf.getDFTLogMagnitude().show()
+        
+        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>> img.getDFTLogMagnitude().show()
+        >>> lpf = img.highPassFilter([0.2,0.2,0.05])
+        >>> lpf.show()
+        >>> lpf.getDFTLogMagnitude().show()
 
         NOTES:
+        
         This filter is far from perfect and will generate a lot of ringing artifacts.
         See: http://en.wikipedia.org/wiki/Ringing_(signal)
         See: http://en.wikipedia.org/wiki/Low-pass_filter
+        
         SEE ALSO:
+        
         """
         if( isinstance(xCutoff,float) ):    
             xCutoff = [xCutoff,xCutoff,xCutoff]
@@ -6121,45 +6167,47 @@ class Image:
 
         PARAMETERS:
         xCutoffLow  - The horizontal frequency at which we perform the cutoff of the low 
-                      frequency signals. A separate 
-                      frequency can be used for the b,g, and r signals by providing a 
-                      list of values. The frequency is defined between zero to one, 
-                      where zero is constant component and 1 is the highest possible 
-                      frequency in the image. 
+        frequency signals. A separate 
+        frequency can be used for the b,g, and r signals by providing a 
+        list of values. The frequency is defined between zero to one, 
+        where zero is constant component and 1 is the highest possible 
+        frequency in the image. 
 
         xCutoffHigh - The horizontal frequency at which we perform the cutoff of the high 
-                      frequency signals. Our filter passes signals between xCutoffLow and 
-                      xCutoffHigh. A separate frequency can be used for the b, g, and r 
-                      channels by providing a 
-                      list of values. The frequency is defined between zero to one, 
-                      where zero is constant component and 1 is the highest possible 
-                      frequency in the image. 
+        frequency signals. Our filter passes signals between xCutoffLow and 
+        xCutoffHigh. A separate frequency can be used for the b, g, and r 
+        channels by providing a 
+        list of values. The frequency is defined between zero to one, 
+        where zero is constant component and 1 is the highest possible 
+        frequency in the image. 
 
         yCutoffLow - The low frequency cutoff in the y direction. If none 
-                     are provided we use the same values as provided for x. 
+        are provided we use the same values as provided for x. 
 
         yCutoffHigh- The high frequency cutoff in the y direction. If none 
-                     are provided we use the same values as provided for x. 
+        are provided we use the same values as provided for x. 
 
         grayscale - if this value is True we perfrom the operation on the DFT of the gray
-                    version of the image and the result is gray image. If grayscale is true
-                    we perform the operation on each channel and the recombine them to create 
-                    the result.
+        version of the image and the result is gray image. If grayscale is true
+        we perform the operation on each channel and the recombine them to create 
+        the result.
                  
         RETURNS:
         A SimpleCV Image after applying the filter. 
 
         EXAMPLE:
-        >>>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>>> img.getDFTLogMagnitude().show()
-        >>>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
-        >>>> lpf.show()
-        >>>> lpf.getDFTLogMagnitude().show()
+        
+        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>> img.getDFTLogMagnitude().show()
+        >>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
+        >>> lpf.show()
+        >>> lpf.getDFTLogMagnitude().show()
 
         NOTES:
         This filter is far from perfect and will generate a lot of ringing artifacts.
+        
         See: http://en.wikipedia.org/wiki/Ringing_(signal)
-        See: 
+        
         """
 
         if( isinstance(xCutoffLow,float) ):    
@@ -6291,18 +6339,21 @@ class Image:
 
         PARAMETERS:
         raw_dft_image - A list object with either one or three IPL images. Each image should 
-                        have a 64f depth and contain two channels (the real and the imaginary).
+        have a 64f depth and contain two channels (the real and the imaginary).
+        
         RETURNS:
         A simpleCV image.
 
         EXAMPLE:
+        
         Note that this is an example, I don't recommend doing this unless you know what 
         you are doing. 
-        >>>> raw = img.getRawDFT()
-        >>>> cv.SomeOperation(raw)
-        >>>> result = img.InverseDFT(raw)
-        >>>> result.show()
-
+        
+        >>> raw = img.getRawDFT()
+        >>> cv.SomeOperation(raw)
+        >>> result = img.InverseDFT(raw)
+        >>> result.show()
+    
         """
         input  = []
         w = raw_dft_image[0].width
@@ -6357,34 +6408,36 @@ class Image:
     def applyButterworthFilter(self,dia=400,order=2,highpass=False,grayscale=False):
         """
         SUMMARY:
-            Creates a butterworth filter of 64x64 pixels, resizes it to fit
-            image, applies DFT on image using the filter.
-            Returns image with DFT applied on it
+        Creates a butterworth filter of 64x64 pixels, resizes it to fit
+        image, applies DFT on image using the filter.
+        Returns image with DFT applied on it
+        
         PARAMETERS:
-        dia: int
-            Diameter of Butterworth low pass filter
-        order: int 
-            Order of butterworth lowpass filter
-        highpass: BOOL
-            True: highpass filter
-            False: lowpass filter
+        dia - int Diameter of Butterworth low pass filter
+        order - int Order of butterworth lowpass filter
+        highpass: BOOL True: highpass filterm False: lowpass filter
         grayscale: BOOL
     
         Examples:
     
-        im = Image("lenna")
-        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+        >>> im = Image("lenna")
+        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+       
         Output image: http://i.imgur.com/5LS3e.png
     
-        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        
         Output img: http://i.imgur.com/QlCAY.png
     
-        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        
         Output img: http://i.imgur.com/BYYnp.png
     
-        img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        
         Output img: http://i.imgur.com/BYYnp.png
+        
         """
         w,h = self.size()
         flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
@@ -6408,32 +6461,35 @@ class Image:
     def applyGaussianFilter(self, dia=400, highpass=False, grayscale=False):
         """
         SUMMARY:
-            Creates a gaussian filter of 64x64 pixels, resizes it to fit
-            image, applies DFT on image using the filter.
-            Returns image with DFT applied on it
+        Creates a gaussian filter of 64x64 pixels, resizes it to fit
+        image, applies DFT on image using the filter.
+        Returns image with DFT applied on it
+        
         PARAMETERS:
-        dia: int
-            Diameter of Gaussian filter
-        highpass: BOOL
-            True: highpass filter
-            False: lowpass filter
+        dia -  int - diameter of Gaussian filter
+        highpass: BOOL True: highpass filter False: lowpass filter
         grayscale: BOOL
     
         Example:
     
-        im = Image("lenna")
-        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+        >>> im = Image("lenna")
+        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+   
         Output image: http://i.imgur.com/DttJv.png
     
-        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        
         Output img: http://i.imgur.com/PWn4o.png
     
-        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        
         Output img: http://i.imgur.com/9hX5J.png
     
-        img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        
         Output img: http://i.imgur.com/MXI5T.png
+        
         """
         w,h = self.size()
         flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
@@ -6459,38 +6515,41 @@ class Image:
     def applyUnsharpMask(self,boost=1,dia=400,grayscale=False):
         """
         SUMMARY:
-            This method applies unsharp mask or highboost filtering
-            on image depending upon the boost value provided.
-            DFT is applied on image using gaussian lowpass filter.
-            A mask is created subtracting the DFT image from the original
-            iamge. And then mask is added in the image to sharpen it.
-            unsharp masking => image + mask
-            highboost filtering => image + (boost)*mask
+        This method applies unsharp mask or highboost filtering
+        on image depending upon the boost value provided.
+        DFT is applied on image using gaussian lowpass filter.
+        A mask is created subtracting the DFT image from the original
+        iamge. And then mask is added in the image to sharpen it.
+        unsharp masking => image + mask
+        highboost filtering => image + (boost)*mask
+        
         PARAMETERS:
     
-        boost: int  
-            boost = 1 => unsharp masking
-            boost > 1 => highboost filtering
-        dia: int
-            Diameter of Gaussian low pass filter
-        grayscale: BOOL
+        boost: int  boost = 1 => unsharp masking, boost > 1 => highboost filtering
+        dia - int Diameter of Gaussian low pass filter
+        grayscale - BOOL
     
         Examples: 
-        ==============================================================
         Gaussian Filters:
-        im = Image("lenna")
-        img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        
+        >>> im = Image("lenna")
+        >>> img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        
         output image: http://i.imgur.com/A1pZf.png
-   
-        img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        
+        >>> img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        
         output image: http://i.imgur.com/smCdL.png
-    
-        im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        
+        >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
+        >>> img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        
         output image: http://i.imgur.com/VtGzl.png
-    
-        img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        
+        >>> img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        
         output image: http://i.imgur.com/bywny.png
+        
         """
         if boost < 0:
             print "boost >= 1"
