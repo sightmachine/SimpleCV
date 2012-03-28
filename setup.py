@@ -28,7 +28,9 @@ setup(name="SimpleCV",
   packages = find_packages(exclude=['ez_setup']),
   zip_safe = True,
   requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
-
+  package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE IMAGES
+            'SimpleCV': ['sampleimages/*']
+  },
   scripts=['scripts/simplecv']
 
   )
