@@ -285,12 +285,14 @@ Valid options: 'thumb', 'small', 'medium', 'large'
   
 class Image:
     """
+    **DESCRIPTION**
+
     The Image class is the heart of SimpleCV and allows you to convert to and 
     from a number of source types with ease.  It also has intelligent buffer
     management, so that modified copies of the Image required for algorithms
     such as edge detection, etc can be cached and reused when appropriate.
 
-
+    
     Image are converted into 8-bit, 3-channel images in RGB colorspace.  It will
     automatically handle conversion from other representations into this
     standard format.  If dimensions are passed, an empty image is created.
@@ -379,16 +381,30 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True, verbose=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True):
         """ 
+        **DESCRIPTION**
+
         The constructor takes a single polymorphic parameter, which it tests
         to see how it should convert into an RGB image.  Supported types include:
     
-    
+        **PARAMETERS**
+
+        * *source* - The source of the image. This can be just about anything, a numpy arrray, a file name, a width and height
+          tuple, a url. Certain strings such as "lenna" or "logo" are loaded automatically for quick testing.
+
+        * *camera* - A camera to pull a live image.
+ 
+        * *colorspace* - A default camera color space. If none is specified this will usually default to the BGR colorspace.
+        
+  
+        **NOTES**
+
         OpenCV: iplImage and cvMat types
         Python Image Library: Image type
         Filename: All opencv supported types (jpg, png, bmp, gif, etc)
         URL: The source can be a url, but must include the http://
+
         """
         self._mLayers = []
         self.camera = camera
@@ -403,10 +419,6 @@ class Image:
         self._mPalette = None
         self._mPaletteMembers = None
         self._mPalettePercentages = None
-
-        
-
-
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -601,29 +613,29 @@ class Image:
     
     def getEXIFData(self):
         """
-        Summary:
-        This function extracts the exif data from an image file like JPEG or TIFF.
-        The data is returned as a dict. 
+        **DESCRIPTION**
 
-        Parameters:
-        None
+        This function extracts the exif data from an image file like JPEG or TIFF. The data is returned as a dict. 
 
-        Returns:
+        **RETURNS**
+
         A dictionary of key value pairs. The value pairs are defined in the EXIF.py file. 
 
-        Example:
+        **EXAMPLE**
    
         >>> img = Image("./SimpleCV/sampleimages/OWS.jpg")
         >>> data = img.getEXIFData()
         >>> data['Image GPSInfo'].values
 
-        Notes:
+        **NOTES**
+
         Compliments of: http://exif-py.sourceforge.net/
 
         http://en.wikipedia.org/wiki/Exchangeable_image_file_format
 
-        See Also:
-        /SimpleCV/SimpleCV/EXIF.py
+        **See Also**
+
+        :py:meth:`EXIF.py`
         """
         import os, string
         if( len(self.filename) < 5 or self.filename is None ):
@@ -644,14 +656,16 @@ class Image:
 
     def live(self):
         """
-        This shows a live view of the camera.
-        To use it's as simple as:
+        **DESCRIPTION**
 
+        This shows a live view of the camera. 
+        * Left click will show mouse coordinates and color.
+        * Right click will kill the live image.
+
+        **EXAMPLE** 
         >>> cam = Camera()
         >>> cam.live()
 
-        Left click will show mouse coordinates and color
-        Right click will kill the live image
         """
 
         start_time = time.time()
@@ -691,62 +705,186 @@ class Image:
 
     def getColorSpace(self):
         """
+        **DESCRIPTION**
+        
         Returns the value matched in the color space class
-        so for instance you would use
-        if(image.getColorSpace() == ColorSpace.RGB)
+        
+        **RETURNS**
 
-        RETURNS: Integer
+        Integer corresponding to the color space. 
+        
+        **EXAMPLE**
+
+        >>> if(image.getColorSpace() == ColorSpace.RGB)
+
+        **SEE ALSO** 
+        :py:class:`ColorSpace` 
+
         """
         return self._colorSpace
   
   
     def isRGB(self):
         """
-        Returns Boolean
+        **DESCRIPTION**
+
+        Returns true if this image uses the RGB colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the RGB colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isRGB() ):
+        >>>    r,g,b = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toRGB`
+
+        
         """
         return(self._colorSpace==ColorSpace.RGB)
 
 
     def isBGR(self):
         """
-        Returns Boolean
+        **DESCRIPTION**
+
+        Returns true if this image uses the BGR colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the BGR colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isBGR() ):
+        >>>    b,g,r = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toBGR`
+        
         """
         return(self._colorSpace==ColorSpace.BGR)
     
     
     def isHSV(self):
         """
-        Returns Boolean
+        **DESCRIPTION**
+
+        Returns true if this image uses the HSV colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the HSV colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isHSV() ):
+        >>>    h,s,v = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toHSV`
+        
         """
         return(self._colorSpace==ColorSpace.HSV)
     
     
     def isHLS(self):
         """
-        Returns Boolean
-        """    
+        **DESCRIPTION**
+
+        Returns true if this image uses the HLS colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the HLS colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isHLS() ):
+        >>>    h,l,s = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toHLS`
+        
+        """
         return(self._colorSpace==ColorSpace.HLS)  
   
   
     def isXYZ(self):
         """
-        Returns Boolean
+        **DESCRIPTION**
+
+        Returns true if this image uses the XYZ colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the XYZ colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isXYZ() ):
+        >>>    x,y,z = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toXYZ`
+        
         """
         return(self._colorSpace==ColorSpace.XYZ)
     
     
     def isGray(self):
         """
-        Returns Boolean
+        **DESCRIPTION**
+
+        Returns true if this image uses the BGR colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the BGR colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isBGR() ):
+        >>>    b,g,r = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toBGR`
+        
         """
         return(self._colorSpace==ColorSpace.GRAY)    
 
     def toRGB(self):
         """
-        Converts Image colorspace to RGB
+        **DESCRIPTION**
 
-        RETURNS: Image
+        This method attemps to convert the image to the RGB colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> RGBImg = img.toRGB()
+
+        **SEE ALSO**
+
+        :py:meth:`isRGB`
+        
         """
+
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -767,9 +905,25 @@ class Image:
 
     def toBGR(self):
         """
-        Converts image colorspace to BGR
+        **DESCRIPTION**
 
-        RETURNS: Image
+        This method attemps to convert the image to the BGR colorspace. 
+        If the color space is unknown we assume it is in the BGR format.
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> BGRImg = img.toBGR()
+
+        **SEE ALSO**
+
+        :py:meth:`isBGR`
+        
         """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.RGB or
@@ -791,10 +945,27 @@ class Image:
   
     def toHLS(self):
         """
-        Converts image to HLS colorspace
+        **DESCRIPTION**
 
-        RETURNS: Image
+        This method attempts to convert the image to the HLS colorspace. 
+        If the color space is unknown we assume it is in the BGR format.
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> HLSImg = img.toHLS()
+
+        **SEE ALSO**
+
+        :py:meth:`isHLS`
+        
         """
+
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -817,9 +988,25 @@ class Image:
     
     def toHSV(self):
         """
-        Converts image to HSV colorspace
+        **DESCRIPTION**
 
-        RETURNS: Image
+        This method attempts to convert the image to the HSV colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> HSVImg = img.toHSV()
+
+        **SEE ALSO**
+
+        :py:meth:`isHSV`
+        
         """
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
@@ -843,10 +1030,27 @@ class Image:
     
     def toXYZ(self):
         """
-        Converts image to XYZ colorspace
+        **DESCRIPTION**
 
-        RETURNS: Image
+        This method attemps to convert the image to the XYZ colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> XYZImg = img.toXYZ()
+
+        **SEE ALSO**
+
+        :py:meth:`isXYZ`
+        
         """
+
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -869,10 +1073,27 @@ class Image:
     
     def toGray(self):
         """
-        Converts image to Grayscale colorspace
+        **DESCRIPTION**
 
-        RETURNS: Image
+        This method attemps to convert the image to the grayscale colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> GrayImg = img.toGray()
+
+        **SEE ALSO**
+
+        :py:meth:`isGray`
+        
         """
+
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
@@ -896,7 +1117,36 @@ class Image:
     
     def getEmpty(self, channels = 3):
         """
-        Create a new, empty OpenCV bitmap with the specified number of channels (default 3)h
+        **DESCRIPTION**
+        
+        Create a new, empty OpenCV bitmap with the specified number of channels (default 3).
+        This method basically creates an empty copy of the image. This is handy for 
+        interfacing with OpenCV functions directly. 
+        
+        **PARAMETERS**
+
+        * *channels* - The number of channels in the returned OpenCV image. 
+        
+        **RETURNS**
+
+        Returns an black OpenCV IplImage that matches the width, height, and color 
+        depth of the source image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getEmpty()
+        >>> cv.SomeOpenCVFunc(img.getBitmap(),rawImg)
+
+        **SEE ALSO**
+
+        :py:meth:`getBitmap`
+        :py:meth:`getFPMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        
         """
         bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
         cv.SetZero(bitmap)
@@ -905,8 +1155,31 @@ class Image:
 
     def getBitmap(self):
         """
+        **DESCRIPTION**
+       
         Retrieve the bitmap (iplImage) of the Image.  This is useful if you want
         to use functions from OpenCV with SimpleCV's image class
+        
+        **RETURNS**
+
+        Returns black OpenCV IplImage from this image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getBitmap()
+        >>> rawOut  = img.getEmpty()
+        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getFPMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+
         """
         if (self._bitmap):
             return self._bitmap
@@ -917,7 +1190,31 @@ class Image:
 
     def getMatrix(self):
         """
-        Get the matrix (cvMat) version of the image, required for some OpenCV algorithms 
+        **DESCRIPTION**
+       
+        Get the matrix (cvMat) version of the image, required for some OpenCV algorithms.
+        
+        **RETURNS**
+
+        Returns the OpenCV CvMat version of this image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getMatrix()
+        >>> rawOut  = img.getEmpty()
+        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getFPMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        
         """
         if (self._matrix):
             return self._matrix
@@ -928,16 +1225,67 @@ class Image:
 
     def getFPMatrix(self):
         """
-        Converts the standard int bitmap to a floating point bitmap.
+        **DESCRIPTION**
+       
+        Converts the standard int bitmap to a floating point bitmap. 
+        This is handy for some OpenCV functions. 
+
+        
+        **RETURNS**
+
+        Returns the floating point OpenCV CvMat version of this image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getFPMatrix()
+        >>> rawOut  = img.getEmpty()
+        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        
         """
         retVal =  cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
         cv.Convert(self.getBitmap(),retVal)
         return retVal
     
     def getPIL(self):
-        """ 
+        """
+        **DESCRIPTION**
+       
         Get a PIL Image object for use with the Python Image Library
-        """ 
+        This is handy for some PIL functions. 
+
+        
+        **RETURNS**
+
+        Returns the Python Imaging Library (PIL) version of this image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getPIL()
+
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getFPMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+   
+        """
         if (not PIL_ENABLED):
             return None
         if (not self._pil):
@@ -949,7 +1297,29 @@ class Image:
   
     def getGrayNumpy(self):
         """
-        Return a grayscale Numpy array. This is handy for keypoint detection. 
+        **DESCRIPTION**
+       
+        Return a grayscale Numpy array of the image. 
+        
+        **RETURNS**
+
+        Returns the image, converted first to grayscale and then converted to a 2D numpy array. 
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getGrayNumpy()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        
         """
         if( self._grayNumpy != "" ):
             return self._grayNumpy
@@ -960,8 +1330,30 @@ class Image:
 
     def getNumpy(self):
         """
+        **DESCRIPTION**
+       
         Get a Numpy array of the image in width x height x RGB dimensions
+        
+        **RETURNS**
+
+        Returns the image, converted first to grayscale and then converted to a 3D numpy array. 
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpy()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        
         """
+
         if self._numpy != "":
             return self._numpy
     
@@ -1001,7 +1393,31 @@ class Image:
 
     def getGrayscaleMatrix(self):
         """
-        Returns the intensity grayscale matrix
+        **DESCRIPTION**
+       
+        Get the grayscale matrix (cvMat) version of the image, required for some OpenCV algorithms.
+        
+        **RETURNS**
+
+        Returns the OpenCV CvMat version of this image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getGrayscaleMatrix()
+        >>> rawOut  = img.getEmpty()
+        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getFPMatrix`
+        :py:meth:`getPil`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getMatrix`
+        
         """
         if (self._grayMatrix):
             return self._grayMatrix
@@ -1024,15 +1440,34 @@ class Image:
 
     def equalize(self):
         """
-        Perform a histogram equalization on the image, return a grayscale image.
+        **DESCRIPTION**
+
+        Perform a histogram equalization on the image. 
+
+        **RETURNS**
+
+        Returns a grayscale SimpleCV image.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img = img.equalize()
+
+
         """
         return Image(self._getEqualizedGrayscaleBitmap())
     
     def getPGSurface(self):
         """
-        Gets the pygame surface.  This is used for rendering the display
+        **DESCRIPTION**
 
-        RETURNS: pgsurface
+        Returns the image as a pygame surface.  This is used for rendering the display
+
+        **RETURNS**
+
+        A pygame surface object used for rendering.
+
+        
         """
         if (self._pgsurface):
             return self._pgsurface
@@ -1042,18 +1477,47 @@ class Image:
     
     def toString(self):
         """
-        returns the image as a string
+        **DESCRIPTION**
         
-        returns str
+        Returns the image as a string, useful for moving data around.
+
+        
+        **RETURNS**
+
+        The image, converted to rgb, then converted to a string.
+
         """
         return self.toRGB().getBitmap().tostring()
     
     
     def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False, **params):
         """
+        **DESCRIPTION**
+
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
-        place it was saved to. 
+        place it was saved to. You can save to lots of places, not just files.
+        For example you can save to the Display, a JpegStream, VideoStream, 
+        temporary file, or Ipython Notebook.
+
+    
+        Save will implicitly render the image's layers before saving, but the layers are 
+        not applied to the Image itself.
+
+
+        **PARAMETERS**
+
+        * *filehandle_or_filename* - the filename to which to store the file. The method will infer the file type.
+
+        * *mode* - This flag is used for saving using pul.
+
+        * *verbose* - If this flag is true we return the path where we saved the file. 
+
+        * *temp* - If temp is True we save the image as a temporary file and return the path
+
+        * *params* - This object is used for overloading the PIL save methods. 
+
+        **EXAMPLES**
 
         To save as a temporary file just use:
 
@@ -1061,9 +1525,6 @@ class Image:
         >>> img.save(temp=True)
 
         It will return the path that it saved to.
-    
-        Save will implicitly render the image's layers before saving, but the layers are 
-        not applied to the Image itself.
 
         Save also supports IPython Notebooks when passing it a Display object
         that has been instainted with the notebook flag.
@@ -1073,7 +1534,11 @@ class Image:
         >>> disp = Display(displaytype='notebook')
         >>> img.save(disp)
 
-        Note: You must have IPython notebooks installed for this to work
+        .. Note::
+          You must have IPython notebooks installed for this to work
+       
+        .. attention:: 
+          We need examples for all save methods as they are unintuitve. 
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
@@ -1208,21 +1673,61 @@ class Image:
 
     def copy(self):
         """
+        **DESCRIPTION**
+
         Return a full copy of the Image's bitmap.  Note that this is different
         from using python's implicit copy function in that only the bitmap itself
-        is copied.
+        is copied. This method essentially performs a deep copy.
+    
+        **RETURNS**
 
+        A copy of this SimpleCV image.
 
-        Returns: IMAGE
+        **EXAMPLE**
+        
+        >>> img = Image("logo")
+        >>> img2 = img.copy()
+
         """
         newimg = self.getEmpty() 
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
 
-    def upload(self,api_key):
+    def upload(self,api_key, verbose = True):
         """
-        Uploads the image to imgur (using the api key given as a parameter) and prints the links received.
+        **DESCRIPTION**
+
+        Uploads this image to imgur an image sharing website. 
+        If the upload is successful then the method returns the URLs
+        for the image, the original image, and url to delete the image.
+        In verbose mode these values are also printed. 
+
+        
+        **PARAMETERS**
+
+        * *api_key* - a string of the imgur API key. You must register
+          with imgur to get an API key.
+
+        * *verbose* - If verbose is true all values are printed to the
+          screen
+
+        **RETURNS**
+        
+        If uploading is successful we return a list of the upload URL, the original 
+        image URL, and the delete image URL. If the upload fails we return None. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> result = img.upload( "MY_API_KEY1234567890" )
+        >>> print "Uploaded To: " + result[0]
+        
+        **NOTES**
+        
+        .. Warning:: This method requires that you have PyCurl installed.
+        .. Warning:: You must supply your own API key. See here: http://imgur.com/register/api_anon
+
         """
         try:
           import pycurl
@@ -1243,11 +1748,15 @@ class Image:
 
         match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
         if match:
-          print "Imgur page: http://imgur.com/" + match.group(1)
-          print "Original image: " + match.group(3)
-          print "Delete page: http://imgur.com/delete/" + match.group(2)
+            if(vertbose):
+                print "Imgur page: http://imgur.com/" + match.group(1)
+                print "Original image: " + match.group(3)
+                print "Delete page: http://imgur.com/delete/" + match.group(2)
+            return [match.group(1),match.group(3),match.group(2)]
         else:
-          print "The API Key given is not valid"
+            if(verbose):
+                print "The API Key given is not valid"
+          return None
 
     #scale this image, and return a new Image object with the new dimensions 
     def scale(self, width, height = -1):
