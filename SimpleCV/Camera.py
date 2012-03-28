@@ -275,6 +275,7 @@ class FrameSource:
             i.dl().text(txt, (10,i.height / 2), color=col)
             txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
             i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+            print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
 
 
           if elapsed_time > 0 and elapsed_time < 5:
@@ -282,10 +283,11 @@ class FrameSource:
             i.dl().text("In live mode", (10,10), color=col)
             i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
             i.dl().text("Right click will kill the live image", (10,30), color=col)
-            
+
           
           i.save(d)
           if d.mouseRight:
+            print "Closing Window"
             d.done = True
 
         
