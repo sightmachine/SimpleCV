@@ -1756,22 +1756,38 @@ class Image:
         else:
             if(verbose):
                 print "The API Key given is not valid"
-          return None
+            return None
 
-    #scale this image, and return a new Image object with the new dimensions 
+
     def scale(self, width, height = -1):
         """
-        WARNING: the two value scale command is deprecated. To set width and height
-        use the resize function. 
+        **DESCRIPTION**
 
         Scale the image to a new width and height.
 
-        If no height is provided, the width is considered a scaling value ie::
-            
-            img.scale(200, 100) #scales the image to 200px x 100px
-            img.scale(2.0) #enlarges the image to 2x its current size
+        If no height is provided, the width is considered a scaling value.
+        
+        **PARAMETERS**
+        
+        * *width* - either the new width in pixels, if the height parameter is > 0, or if this value
+          is a floating point value, this is the scaling factor. 
 
-        Returns: IMAGE
+        * *height* - the new height in pixels.
+
+        **RETURNS**
+
+        The resized image. 
+  
+        **EXAMPLE**
+        
+        >>> img.scale(200, 100) #scales the image to 200px x 100px
+        >>> img.scale(2.0) #enlarges the image to 2x its current size
+        
+        
+        .. Warning::the two value scale command is deprecated. To set width and height
+        use the resize function. 
+        
+        :py:meth:`resize`
         """
         w, h = width, height
         if height == -1:
@@ -1789,11 +1805,30 @@ class Image:
     
     def resize(self, w=None,h=None):
         """
-        Resize image based on a width, a height, or both. 
-        If width or height is not provided the value is inferred by keeping the aspect ratio. 
-        If both values are provided then the image is resized accordingly.
+        **DESCRIPTION**
 
-        Returns: IMAGE
+        This method resizes an image based on a width, a height, or both. 
+        If either width or height is not provided the value is inferred by keeping the aspect ratio. 
+        If both values are provided then the image is resized accordingly.
+        
+        **PARAMETERS**
+
+        * *width* - The width of the output image in pixels.
+
+        * *height* - The height of the output image in pixels.
+  
+        **RETURNS** 
+        
+        Returns a resized image, if the size is invalid a warning is issued and
+        None is returned. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img2 = img.resize(w=1024) # h is guessed from w
+        >>> img3 = img.resize(h=1024) # w is guessed from h
+        >>> img4 = img.resize(w=200,h=100)
+
         """
         retVal = None
         if( w is None and h is None ):
@@ -1815,14 +1850,49 @@ class Image:
 
     def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
         """
+        **DESCRIPTION**
+
         Smooth the image, by default with the Gaussian blur.  If desired,
         additional algorithms and aperatures can be specified.  Optional parameters
         are passed directly to OpenCV's cv.Smooth() function.
 
         If grayscale is true the smoothing operation is only performed on a single channel
         otherwise the operation is performed on each channel of the image. 
+       
 
-        Returns: IMAGE
+        **PARAMETERS**
+
+        * *algorithm_name* - valid options are 'blur' or gaussian, 'bilateral', and 'median'.
+          * `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`
+          * `Gaussian Blur <http://en.wikipedia.org/wiki/Gaussian_blur>`
+          * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`
+
+        * *aperature* - A tuple for the aperature of the gaussian blur as an (x,y) tuple. 
+          .. Warning:: These must be odd numbers.
+
+        * *sigma* -
+
+        * *spatial_sigma* - 
+
+        * *grayscale* - Return just the grayscale image. 
+
+
+
+        **RETURNS**
+        
+        The smoothed image.
+
+        **EXAMPLE**
+        
+        >>> img = Image("Lenna") 
+        >>> img2 = img.smooth()
+        >>> img3 = img.smooth('median')
+
+        **SEE ALSO**
+        :py:meth:`bilateralFilter`
+        :py:meth:`medianFilter`
+        
+
         """
         win_x = 3
         win_y = 3  #set the default aperature window size (3x3)
@@ -1872,37 +1942,79 @@ class Image:
 
     def medianFilter(self, window=''):
         """
+        **DESCRIPTION**
+
+        Convience function derived from the :py:meth:`smooth` method
         Perform a median filtering operation to denoise/despeckle the image.
         The optional parameter is the window size.
+          
+        *NOTES*
+
+        `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`
+        
+
         """
         return self.smooth(algorithm_name='median', aperature=window)
     
     
     def bilateralFilter(self, window = ''):
         """
+        **DESCRIPTION**
+
+        Convience function derived from the :py:meth:`smooth` method
         Perform a bilateral filtering operation to denoise/despeckle the image.
         The optional parameter is the window size.
+        
+        *NOTES* 
+
+        `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`
+
         """
         return self.smooth(algorithm_name='bilateral', aperature=window)
     
     
     def invert(self):
         """
+        **DESCRIPTION**
+
         Invert (negative) the image note that this can also be done with the
-        unary minus (-) operator.
+        unary minus (-) operator. For binary image this turns black into white and white into black (i.e. white is the new black). 
 
+        **RETURNS**
+        
+        The opposite of the current image.
 
-        Returns: IMAGE
+        **EXAMPLE**
+        
+        >>> img  = Image("polar_bear_in_the_snow.png")
+        >>> img.invert().save("black_bear_at_night.png")
+
+        **SEE ALSO**
+
+        :py:meth:`binarize`
+
         """
         return -self 
 
 
     def grayscale(self):
         """
-        return a gray scale version of the image
+        **DESCRIPTION**
 
+        This method returns a gray scale version of the image. It makes everything look like an old movie.
 
-        Returns: IMAGE
+        **RETURNS**
+
+        A grayscale SimpleCV image.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img.grayscale().binarize().show()
+
+        **SEE ALSO**
+
+        :py:meth:`binarize`
         """
         return Image(self._getGrayscaleBitmap())
 
@@ -2088,7 +2200,7 @@ class Image:
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
-        SUMMARY:
+        **SUMMARY**
         A Haar like feature cascase is a really robust way of finding the location
         of a known object. This technique works really well for a few specific applications
         like face, pedestrian, and vehicle detection. It is worth noting that this
@@ -2105,7 +2217,7 @@ class Image:
         Note that the cascade parameter can be either a filename, or a HaarCascade
         loaded with cv.Load(), or a SimpleCV HaarCascade object. 
 
-        PARAMETERS:
+        **PARAMETERS**
         cascade - The Haar Cascade file, this can be either the path to a cascade
         file or a HaarCascased SimpleCV object that has already been
         loaded. 
@@ -2123,10 +2235,10 @@ class Image:
         (default yes, set to 0 to disable) 
 
 
-        RETURNS:
+        **RETURNS**
         A feature set of HaarFeatures 
         
-        EXAMPLE:
+        **EXAMPLE**
 
         >>> faces = HaarCascade("./SimpleCV/Features/HaarCascades/face.xml","myFaces")
         >>> cam = Camera()
@@ -4438,7 +4550,7 @@ class Image:
             threshold - Int
             method - String
         
-        RETURNS:
+        **RETURNS**
             FeatureSet
         """
         if(template_image == None):
@@ -4523,7 +4635,7 @@ class Image:
         it in your application try to rotate and/or crop the area so that
         the text would be the same way a document is read
 
-        RETURNS: String
+        **RETURNS** String
 
         If you're having run-time problems I feel bad for your son,
         I've got 99 problems but dependencies ain't one:
@@ -6301,7 +6413,8 @@ class Image:
 
     def _doDFT(self, grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This private method peforms the discrete Fourier transform on an input image.
         The transform can be applied to a single channel gray image or to each channel of the
         image. Each channel generates a 64F 2 channel IPL image corresponding to the real 
@@ -6309,24 +6422,29 @@ class Image:
         in the private member variable _DFT. 
 
         
-        PARAMETERS:
+        **PARAMETERS**
+
         grayscale - If grayscale is True we first covert the image to grayscale, otherwise
                     we perform the operation on each channel. 
         
-        RETURNS:
+        **RETURNS**
+
         nothing - but creates a locally cached list of IPL imgaes corresponding to the real
                   and imaginary components of each channel. 
         
-        EXAMPLE:
-                >>> img = Image('logo.png')
-                >>> img._doDFT()
-                >>> img._DFT[0] # get the b channel Re/Im components
+        **EXAMPLE**
 
-        NOTES:
+        >>> img = Image('logo.png')
+        >>> img._doDFT()
+        >>> img._DFT[0] # get the b channel Re/Im components
+
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
         http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
 
-        TODO:
+        **TO DO**
+
         This method really needs to convert the image to an optimal DFT size. 
         http://opencv.itseez.com/modules/core/doc/operations_on_arrays.html#getoptimaldftsize
 
@@ -6368,23 +6486,28 @@ class Image:
 
     def _getDFTClone(self,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+        
         This method works just like _doDFT but returns a deep copy
         of the resulting array which can be used in destructive operations.
 
-        RETURNS:
+        **RETURNS**
+        
         A deep copy of the cached DFT real/imaginary image list. 
         
-        EXAMPLE:
-                >>> img = Image('logo.png')
-                >>> myDFT = img._getDFTClone()
-                >>> SomeCVFunc(myDFT[0])
+        **EXAMPLE**
+        
+        >>> img = Image('logo.png')
+        >>> myDFT = img._getDFTClone()
+        >>> SomeCVFunc(myDFT[0])
 
-        NOTES:
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
         http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
 
-        SEE ALSO:
+        **SEE ALSO**
+
         ImageClass._doDFT()
 
         """
@@ -6405,35 +6528,52 @@ class Image:
 
     def rawDFTImage(self,grayscale=False):
         """
-        SUMMARY:
-        This method returns the _RAW_ DFT transform of an image as a list of IPL Images.
+        **SUMMARY**
+        
+        This method returns the **RAW** DFT transform of an image as a list of IPL Images.
         Each result image is a two channel 64f image where the first channel is the real
         component and the second channel is teh imaginary component. If the operation 
         is performed on an RGB image and grayscale is False the result is a list of 
         these images of the form [b,g,r].
 
-        RETURNS:
+        **RETURNS**
+        
         A list of the DFT images (see above). Note that this is a shallow copy operation.
         
-        EXAMPLE:
-                >>> img = Image('logo.png')
-                >>> myDFT = img.rawDFTImage()
-                >>> for c in myDFT:
-                >>>    #do some operation on the DFT
+        **EXAMPLE**
 
-        NOTES:
+        >>> img = Image('logo.png')
+        >>> myDFT = img.rawDFTImage()
+        >>> for c in myDFT:
+        >>>    #do some operation on the DFT
+
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
         http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
 
-        SEE ALSO:
-        ImageClass._doDFT()
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
+        
         """
         self._doDFT(grayscale)
         return self._DFT 
 
     def getDFTLogMagnitude(self,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This method returns the log value of the magnitude image of the DFT transform. This 
         method is helpful for examining and comparing the results of DFT transforms. The log
         component helps to "squish" the large floating point values into an image that can 
@@ -6442,25 +6582,41 @@ class Image:
         In the image the low frequency components are in the corners of the image and the high 
         frequency components are in the center of the image. 
 
-        PARAMETERS:
-        grayscale - if grayscale is True we perform the magnitude operation of the grayscale
-        image otherwise we perform the operation on each channel. 
+        **PARAMETERS**
+
+        * *grayscale* - if grayscale is True we perform the magnitude operation of the grayscale
+          image otherwise we perform the operation on each channel. 
         
-        RETURNS:
+        **RETURNS**
+  
         Returns a SimpleCV image corresponding to the log magnitude of the input image.
         
-        EXAMPLE:
+        **EXAMPLE**
         
         >>> img = Image("RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
         >>> lpf = img.lowPassFilter(img.width/10.img.height/10)
         >>> lpf.getDFTLogMagnitude().show()
         
-        NOTES:
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Discrete_Fourier_transform
         http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
 
-        SEE ALSO:
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
+
 
         """
         dft = self._getDFTClone(grayscale)
@@ -6499,37 +6655,51 @@ class Image:
 
     def applyDFTFilter(self,flt,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This function allows you to apply an arbitrary filter to the DFT of an image. 
         This filter takes in a gray scale image, whiter values are kept and black values
         are rejected. In the DFT image, the lower frequency values are in the corners
         of the image, while the higher frequency components are in the center. For example,
         a low pass filter has white squares in the corners and is black everywhere else. 
 
-        PARAMETERS:
-        grayscale - if this value is True we perfrom the operation on the DFT of the gray
-        version of the image and the result is gray image. If grayscale is true
-        we perform the operation on each channel and the recombine them to create 
-        the result.
-        
-        flt - A grayscale filter image. The size of the filter must match the size of
-        the image. 
+        **PARAMETERS**
 
-        RETURNS:
+        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
+          version of the image and the result is gray image. If grayscale is true
+          we perform the operation on each channel and the recombine them to create 
+          the result.
+        
+        * *flt* - A grayscale filter image. The size of the filter must match the size of
+          the image. 
+
+        **RETURNS**
+
         A SimpleCV image after applying the filter. 
 
-        EXAMPLE:
+        **EXAMPLE**
 
         >>>  filter = Image("MyFilter.png")
         >>>  myImage = Image("MyImage.png")
         >>>  result = myImage.applyDFTFilter(filter)
         >>>  result.show()
 
-        NOTES:
+        **SEE ALSO**
 
-        SEE ALSO:
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
 
-        TODO:
+        **TODO**
+
         Make this function support a separate filter image for each channel.
         """
         if( flt.width != self.width and 
@@ -6567,7 +6737,8 @@ class Image:
 
     def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This method applies a high pass DFT filter. This filter enhances 
         the high frequencies and removes the low frequency signals. This has
         the effect of enhancing edges. The frequencies are defined as going between
@@ -6576,25 +6747,27 @@ class Image:
         with respect to the horizontal and vertical signal. This filter 
         isn't perfect and has a harsh cutoff that causes ringing artifacts.
 
-        PARAMETERS:
-        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
-        frequency can be used for the b,g, and r signals by providing a 
-        list of values. The frequency is defined between zero to one, 
-        where zero is constant component and 1 is the highest possible 
-        frequency in the image. 
+        **PARAMETERS**
 
-        yCutoff - The cutoff frequencies in the y direction. If none are provided
-        we use the same values as provided for x. 
+        * *xCutoff* - The horizontal frequency at which we perform the cutoff. A separate 
+          frequency can be used for the b,g, and r signals by providing a 
+          list of values. The frequency is defined between zero to one, 
+          where zero is constant component and 1 is the highest possible 
+          frequency in the image. 
 
-        grayscale - if this value is True we perfrom the operation on the DFT of the gray
-        version of the image and the result is gray image. If grayscale is true
-        we perform the operation on each channel and the recombine them to create 
-        the result.
+        * *yCutoff* - The cutoff frequencies in the y direction. If none are provided
+          we use the same values as provided for x. 
+
+        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
+          version of the image and the result is gray image. If grayscale is true
+          we perform the operation on each channel and the recombine them to create 
+          the result.
                  
-        RETURNS:
+        **RETURNS**
+        
         A SimpleCV Image after applying the filter. 
 
-        EXAMPLE:
+        **EXAMPLE**
         
         >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
@@ -6602,12 +6775,25 @@ class Image:
         >>> lpf.show()
         >>> lpf.getDFTLogMagnitude().show()
 
-        NOTES:
+        **NOTES**
+
         This filter is far from perfect and will generate a lot of ringing artifacts.
         See: http://en.wikipedia.org/wiki/Ringing_(signal)
         See: http://en.wikipedia.org/wiki/High-pass_filter#Image
-        
-        SEE ALSO:
+
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
         
         """
         if( isinstance(xCutoff,float) ):    
@@ -6666,7 +6852,8 @@ class Image:
 
     def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This method applies a low pass DFT filter. This filter enhances 
         the low frequencies and removes the high frequency signals. This has
         the effect of reducing noise. The frequencies are defined as going between
@@ -6675,25 +6862,27 @@ class Image:
         with respect to the horizontal and vertical signal. This filter 
         isn't perfect and has a harsh cutoff that causes ringing artifacts.
 
-        PARAMETERS:
-        xCutoff - The horizontal frequency at which we perform the cutoff. A separate 
-        frequency can be used for the b,g, and r signals by providing a 
-        list of values. The frequency is defined between zero to one, 
-        where zero is constant component and 1 is the highest possible 
-        frequency in the image. 
+        **PARAMETERS**
 
-        yCutoff - The cutoff frequencies in the y direction. If none are provided
-        we use the same values as provided for x. 
+        * *xCutoff* - The horizontal frequency at which we perform the cutoff. A separate 
+          frequency can be used for the b,g, and r signals by providing a 
+          list of values. The frequency is defined between zero to one, 
+          where zero is constant component and 1 is the highest possible 
+          frequency in the image. 
 
-        grayscale - if this value is True we perfrom the operation on the DFT of the gray
-        version of the image and the result is gray image. If grayscale is true
-        we perform the operation on each channel and the recombine them to create 
-        the result.
+        * *yCutoff* - The cutoff frequencies in the y direction. If none are provided
+          we use the same values as provided for x. 
+
+        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
+          version of the image and the result is gray image. If grayscale is true
+          we perform the operation on each channel and the recombine them to create 
+          the result.
                  
-        RETURNS:
+        **RETURNS**
+
         A SimpleCV Image after applying the filter. 
 
-        EXAMPLE:
+        **EXAMPLE**
         
         >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
@@ -6701,13 +6890,25 @@ class Image:
         >>> lpf.show()
         >>> lpf.getDFTLogMagnitude().show()
 
-        NOTES:
+        **NOTES**
         
         This filter is far from perfect and will generate a lot of ringing artifacts.
         See: http://en.wikipedia.org/wiki/Ringing_(signal)
         See: http://en.wikipedia.org/wiki/Low-pass_filter
         
-        SEE ALSO:
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
         
         """
         if( isinstance(xCutoff,float) ):    
@@ -6767,7 +6968,8 @@ class Image:
     # or (x,y)
     def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This method applies a simple band pass DFT filter. This filter enhances 
         the a range of frequencies and removes all of the other frequencies. This allows
         a user to precisely select a set of signals to display . The frequencies are 
@@ -6777,37 +6979,39 @@ class Image:
         with respect to the horizontal and vertical signal. This filter 
         isn't perfect and has a harsh cutoff that causes ringing artifacts.
 
-        PARAMETERS:
-        xCutoffLow  - The horizontal frequency at which we perform the cutoff of the low 
-        frequency signals. A separate 
-        frequency can be used for the b,g, and r signals by providing a 
-        list of values. The frequency is defined between zero to one, 
-        where zero is constant component and 1 is the highest possible 
-        frequency in the image. 
+        **PARAMETERS**
 
-        xCutoffHigh - The horizontal frequency at which we perform the cutoff of the high 
-        frequency signals. Our filter passes signals between xCutoffLow and 
-        xCutoffHigh. A separate frequency can be used for the b, g, and r 
-        channels by providing a 
-        list of values. The frequency is defined between zero to one, 
-        where zero is constant component and 1 is the highest possible 
-        frequency in the image. 
+        * *xCutoffLow*  - The horizontal frequency at which we perform the cutoff of the low 
+          frequency signals. A separate 
+          frequency can be used for the b,g, and r signals by providing a 
+          list of values. The frequency is defined between zero to one, 
+          where zero is constant component and 1 is the highest possible 
+          frequency in the image. 
 
-        yCutoffLow - The low frequency cutoff in the y direction. If none 
-        are provided we use the same values as provided for x. 
+        * *xCutoffHigh* - The horizontal frequency at which we perform the cutoff of the high 
+          frequency signals. Our filter passes signals between xCutoffLow and 
+          xCutoffHigh. A separate frequency can be used for the b, g, and r 
+          channels by providing a 
+          list of values. The frequency is defined between zero to one, 
+          where zero is constant component and 1 is the highest possible 
+          frequency in the image. 
 
-        yCutoffHigh- The high frequency cutoff in the y direction. If none 
-        are provided we use the same values as provided for x. 
+        * *yCutoffLow* - The low frequency cutoff in the y direction. If none 
+          are provided we use the same values as provided for x. 
 
-        grayscale - if this value is True we perfrom the operation on the DFT of the gray
-        version of the image and the result is gray image. If grayscale is true
-        we perform the operation on each channel and the recombine them to create 
-        the result.
+        * *yCutoffHigh* - The high frequency cutoff in the y direction. If none 
+          are provided we use the same values as provided for x. 
+
+        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
+          version of the image and the result is gray image. If grayscale is true
+          we perform the operation on each channel and the recombine them to create 
+          the result.
                  
-        RETURNS:
+        **RETURNS**
+
         A SimpleCV Image after applying the filter. 
 
-        EXAMPLE:
+        **EXAMPLE**
         
         >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
@@ -6815,10 +7019,25 @@ class Image:
         >>> lpf.show()
         >>> lpf.getDFTLogMagnitude().show()
 
-        NOTES:
+        **NOTES**
+
         This filter is far from perfect and will generate a lot of ringing artifacts.
         
         See: http://en.wikipedia.org/wiki/Ringing_(signal)
+
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
         
         """
 
@@ -6895,10 +7114,10 @@ class Image:
 
     def _inverseDFT(self,input):
         """
-        SUMMARY:
-        PARAMETERS:
-        RETURNS:
-        EXAMPLE:
+        **SUMMARY**
+        **PARAMETERS**
+        **RETURNS**
+        **EXAMPLE**
         NOTES:
         SEE ALSO:
         """
@@ -6944,19 +7163,22 @@ class Image:
 
     def InverseDFT(self, raw_dft_image):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This method provides a way of performing an inverse discrete Fourier transform 
         on a real/imaginary image pair and obtaining the result as a SimpleCV image. This
         method is helpful if you wish to perform custom filter development. 
 
-        PARAMETERS:
+        **PARAMETERS**
+
         raw_dft_image - A list object with either one or three IPL images. Each image should 
         have a 64f depth and contain two channels (the real and the imaginary).
         
-        RETURNS:
+        **RETURNS**
+
         A simpleCV image.
 
-        EXAMPLE:
+        **EXAMPLE**
         
         Note that this is an example, I don't recommend doing this unless you know what 
         you are doing. 
@@ -6965,7 +7187,21 @@ class Image:
         >>> cv.SomeOperation(raw)
         >>> result = img.InverseDFT(raw)
         >>> result.show()
-    
+
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
+
         """
         input  = []
         w = raw_dft_image[0].width
@@ -7019,18 +7255,20 @@ class Image:
         
     def applyButterworthFilter(self,dia=400,order=2,highpass=False,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         Creates a butterworth filter of 64x64 pixels, resizes it to fit
         image, applies DFT on image using the filter.
         Returns image with DFT applied on it
         
-        PARAMETERS:
+        **PARAMETERS**
+
         dia - int Diameter of Butterworth low pass filter
         order - int Order of butterworth lowpass filter
         highpass: BOOL True: highpass filterm False: lowpass filter
         grayscale: BOOL
     
-        Examples:
+        **EXAMPLE**
     
         >>> im = Image("lenna")
         >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
@@ -7049,6 +7287,20 @@ class Image:
         >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
         
         Output img: http://i.imgur.com/BYYnp.png
+
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
         
         """
         w,h = self.size()
@@ -7072,17 +7324,19 @@ class Image:
     
     def applyGaussianFilter(self, dia=400, highpass=False, grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         Creates a gaussian filter of 64x64 pixels, resizes it to fit
         image, applies DFT on image using the filter.
         Returns image with DFT applied on it
         
-        PARAMETERS:
+        **PARAMETERS**
+
         dia -  int - diameter of Gaussian filter
         highpass: BOOL True: highpass filter False: lowpass filter
         grayscale: BOOL
     
-        Example:
+        **EXAMPLE**
     
         >>> im = Image("lenna")
         >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
@@ -7102,6 +7356,20 @@ class Image:
         
         Output img: http://i.imgur.com/MXI5T.png
         
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
+
         """
         w,h = self.size()
         flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
@@ -7126,7 +7394,8 @@ class Image:
         
     def applyUnsharpMask(self,boost=1,dia=400,grayscale=False):
         """
-        SUMMARY:
+        **SUMMARY**
+
         This method applies unsharp mask or highboost filtering
         on image depending upon the boost value provided.
         DFT is applied on image using gaussian lowpass filter.
@@ -7135,13 +7404,14 @@ class Image:
         unsharp masking => image + mask
         highboost filtering => image + (boost)*mask
         
-        PARAMETERS:
+        **PARAMETERS**
     
         boost: int  boost = 1 => unsharp masking, boost > 1 => highboost filtering
         dia - int Diameter of Gaussian low pass filter
         grayscale - BOOL
     
-        Examples: 
+        **EXAMPLE**
+
         Gaussian Filters:
         
         >>> im = Image("lenna")
@@ -7162,6 +7432,20 @@ class Image:
         
         output image: http://i.imgur.com/bywny.png
         
+        **SEE ALSO**
+
+        :py:meth:`rawDFTImage`
+        :py:meth:`getDFTLogMagnitude`
+        :py:meth:`applyDFTFilter`
+        :py:meth:`highPassFilter`
+        :py:meth:`lowPassFilter`
+        :py:meth:`bandPassFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyButterworthFilter`
+        :py:meth:`inverseDFT`
+        :py:meth:`applyGaussianFilter`
+        :py:meth:`applyUnsharpMask`
+
         """
         if boost < 0:
             print "boost >= 1"
