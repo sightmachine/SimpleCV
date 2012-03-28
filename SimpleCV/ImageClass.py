@@ -282,13 +282,14 @@ Valid options: 'thumb', 'small', 'medium', 'large'
             self.filelist[tmp.filename.split('/')[-1]] = tmp
           self.append(tmp)
 
-    def find(self, key):
-      """
-      This function is used to find a particule file.
-      The key is it's filename with extension
-      If you would like to see a list of file names just use
-          for i in f:
-              self.append(Image(i))
+   #  def find(self, key):
+#       """
+#       This function is used to find a particule file.
+#       The key is it's filename with extension
+#       If you would like to see a list of file names just use
+#           for i in f:
+#               self.append(Image(i))
+              
 
     def handpick(self):
         """
@@ -4567,8 +4568,6 @@ class Image:
 
     def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
         """
-        .. findKeypointMatch:
-
         **DESCRIPTION**
 
         findKeypointMatch allows you to match a template image with another image using 
