@@ -185,7 +185,6 @@ def main(*args):
           log_level = logging.DEBUG
 
     init_logging(log_level)
-
     shellclear()
 
     scvShell = setup_shell()

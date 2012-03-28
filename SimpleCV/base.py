@@ -187,6 +187,27 @@ consoleHandler.setFormatter(formatter)
 logger = logging.getLogger('Main Logger')
 logger.addHandler(consoleHandler)
 
+try:
+    import IPython
+    ipython_version = IPython.__version__
+except ImportError:
+    ipython_version = None
+
+#This is used with sys.excepthook to log all uncaught exceptions.
+#By default, error messages ARE print to stderr.
+def exception_handler(excType, excValue, traceback):
+    logger.error("", exc_info=(excType, excValue, traceback))
+
+    #print "Hey!",excValue
+    #excValue has the most important info about the error.
+    #It'd be possible to display only that and hide all the (unfriendly) rest.
+
+sys.excepthook = exception_handler
+
+def ipython_exception_handler(shell, excType, excValue, traceback,tb_offset=0):
+    logger.error("", exc_info=(excType, excValue, traceback))
+
+
 #The two following functions are used internally.
 def init_logging(log_level):
     logger.setLevel(log_level)
@@ -225,13 +246,30 @@ def get_logging_level():
 
 def set_logging(log_level,myfilename = None):
     """
-    This function sets the threshold for the logging system and, if desired, directs the messages to a logfile. Level options:
+    This function sets the threshold for the logging system and, if desired, 
+    directs the messages to a logfile. Level options:
+   
     'DEBUG' or 1
     'INFO' or 2
     'WARNING' or 3
     'ERROR' or 4
     'CRITICAL' or 5
+
+    If the user is on the interactive shell and wants to log to file, a custom
+    excepthook is set. By default, if logging to file is not enabled, the way
+    errors are displayed on the interactive shell is not changed.
     """
+
+    if myfilename and ipython_version:
+         try:
+             if ipython_version.startswith("0.10"):
+                 __IPYTHON__.set_custom_exc((Exception,), ipython_exception_handler)
+             else:
+                 ip = get_ipython()
+                 ip.set_custom_exc((Exception,), ipython_exception_handler)
+         except NameError: #In case the interactive shell is not being used
+             sys.exc_clear()
+
 
     level = read_logging_level(log_level)
 
@@ -241,12 +279,11 @@ def set_logging(log_level,myfilename = None):
         fileHandler.setFormatter(formatter)
         logger.addHandler(fileHandler)
         logger.removeHandler(consoleHandler) #Console logging is disabled.
-        print "Now logging to",myfilename,"with level",level
+        print "Now logging to",myfilename,"with level",log_level
     elif level:
-        print "Now logging with level",level
+        print "Now logging with level",log_level
 
     logger.setLevel(level)
-
 
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
