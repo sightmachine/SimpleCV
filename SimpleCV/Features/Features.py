@@ -7,6 +7,7 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
 import copy
+import types
 
 class FeatureSet(list):
     """
@@ -21,17 +22,23 @@ class FeatureSet(list):
     >>> lines.x()
     >>> lines.crop()
     """
-    def __getslice__(self, i, j):
+    def __getitem__(self,key):
         """
         Returns a FeatureSet when sliced. Previously used to
         return list. Now it is possible to use FeatureSet member
-        functions on sub-lists"""
-        result =  list.__getslice__(self, i, j)
-        try:
-            return FeatureSet(result)
-        except:
-            return result
-  
+        functions on sub-lists
+        """
+        if type(key) is types.SliceType: #Or can use 'try:' for speed
+            return FeatureSet(list.__getitem(self.key))
+        else:
+            return list.__getitem__(self,key)
+        
+    def __getslice__(self, i, j):
+        """
+        Deprecated since python 2.0, now using __getitem__
+        """
+        return self.__getitem__(slice(i,j))
+        
     def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
         Call draw() on each feature in the FeatureSet. 
