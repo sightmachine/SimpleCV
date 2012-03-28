@@ -29,7 +29,7 @@ class FeatureSet(list):
         functions on sub-lists
         """
         if type(key) is types.SliceType: #Or can use 'try:' for speed
-            return FeatureSet(list.__getitem__(self, key))
+            return FeatureSet(list.__getitem(self.key))
         else:
             return list.__getitem__(self,key)
         
