@@ -86,13 +86,15 @@ class ImageSet(list):
       self.load(directory)
 
 
-    def download(self, tag=None, number=10):
+    def download(self, tag=None, number=10, size='thumb'):
       """
       This function downloads images from Google Image search based
-      on the tag you provide.  The number is the number of images you
-      want to have in the list.
+      on the tag you provide. The number is the number of images you
+      want to have in the list. Valid values for size are 'thumb', 'small',
+      'medium', 'large' or a tuple of exact dimensions i.e. (640,480).
+      Note that 'thumb' is exceptionally faster than others.
 
-      note: This requires the python library Beautiful Soup to be installed
+      Also note: This requires the python library Beautiful Soup to be installed
       http://www.crummy.com/software/BeautifulSoup/
       """
 
@@ -106,24 +108,72 @@ class ImageSet(list):
 
         return
 
+
+      INVALID_SIZE_MSG = """I don't understand what size images you want.
+Valid options: 'thumb', 'small', 'medium', 'large'
+ or a tuple of exact dimensions i.e. (640,480)."""
+
+      if type(size) == str:
+          size = size.lower()
+          if size == 'thumb':
+              size_param = ''
+          elif size == 'small':
+              size_param = '&tbs=isz:s'
+          elif size == 'medium':
+              size_param = '&tbs=isz:m'
+          elif size == 'large':
+              size_param = '&tbs=isz:l'
+          else:
+              print INVALID_SIZE_MSG
+              return None
+              
+      elif type(size) == tuple:
+          width, height = size
+          size_param = '&tbs=isz:ex,iszw:' + str(width) + ',iszh:' + str(height)
+
+      else:
+          print INVALID_SIZE_MSG
+          return None
+
+      # Used to extract imgurl parameter value from a URL
+      imgurl_re = re.compile('(?<=(&|\?)imgurl=)[^&]*((?=&)|$)')
+      
       add_set = ImageSet()
       candidate_count = 0
+      
       
       while len(add_set) < number:
         opener = urllib2.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        url = "http://www.google.com/search?tbm=isch&q="+str(tag)+"&start="+str(candidate_count)
+        url = ("http://www.google.com/search?tbm=isch&q=" + urllib2.quote(tag) +
+               size_param + "&start=" + str(candidate_count))
         page = opener.open(url)
         soup = BeautifulSoup(page)
-        imgs = soup.findAll('img')
 
-        for img in imgs:
-          dl_url = str(dict(img.attrs)['src'])
-          candidate_count += 1
+        img_urls = []
 
+        # Gets URLs of the thumbnail images 
+        if size == 'thumb':
+            imgs = soup.findAll('img')
+            for img in imgs:
+                dl_url = str(dict(img.attrs)['src'])
+                img_urls.append(dl_url)
+
+        # Gets the direct image URLs
+        else:
+            for link_tag in soup.findAll('a', {'href': re.compile('imgurl=')}):
+              dirty_url = link_tag.get('href') # URL to an image as given by Google Images
+              dl_url = str(re.search(imgurl_re, dirty_url).group()) # The direct URL to the image
+              img_urls.append(dl_url)
+        
+
+        for dl_url in img_urls:
           try:
-            add_img = Image(dl_url)
-            add_set.append(add_img)
+            add_img = Image(dl_url, verbose=False)
+
+            # Don't know a better way to check if the image was actually returned
+            if add_img.height <> 0 and add_img.width <> 0:
+              add_set.append(add_img)
 
           except:
             #do nothing
@@ -240,6 +290,57 @@ class ImageSet(list):
           for i in f:
               self.append(Image(i))
 
+    def handpick(self):
+        """
+        This function lets you discard all the unwanted images
+        in the set one by one. This can be useful if the download
+        function returns several images that don't quite match
+        your purposes.
+        """
+        
+        from SimpleCV.Display import Display
+        start_time = time.time()
+        status_txt = ''
+
+        col = Color.RED
+
+        index = 0
+        while index < len(self):
+
+            img_start_time = time.time()
+            i = self[index].copy()            
+            d = Display(i.size())
+            
+            while d.isNotDone():
+
+                elapsed_time = time.time() - start_time
+                img_elapsed_time = time.time() - img_start_time
+
+                i.clearLayers()
+
+                if elapsed_time > 0 and elapsed_time < 5:
+                  i.dl().text("Left click - keep", (10,10), color=col)
+                  i.dl().text("Right click - discard", (10,20), color=col)
+
+                if status_txt <> '' and img_elapsed_time > 0 and img_elapsed_time < 1:
+                  i.dl().text(status_txt, (10, i.height-20), color=col)
+
+                if d.mouseLeft:
+                  status_txt = 'Image kept'
+                  d.done = True
+                elif d.mouseRight:
+                  del self[index]
+                  index += -1
+                  status_txt = 'Image discarded'
+                  d.done = True
+
+                i.save(d)
+
+            index += 1
+
+        pg.quit()
+        
+
 
 
       >>> imgs = ImageSet('samples')
@@ -347,7 +448,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,exif=True, verbose=True):
         """ 
         The constructor takes a single polymorphic parameter, which it tests
         to see how it should convert into an RGB image.  Supported types include:
@@ -382,7 +483,8 @@ class Image:
             try:
                 img_file = urllib2.urlopen(source)
             except:
-                print "Couldn't open Image from URL:" + source
+                if verbose:
+                    print "Couldn't open Image from URL:" + source
                 return None
 
             im = StringIO(img_file.read())
