@@ -287,8 +287,13 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       This function is used to find a particule file.
       The key is it's filename with extension
       If you would like to see a list of file names just use
-          for i in f:
-              self.append(Image(i))
+      >>> imgs = ImageSet('samples')
+      >>> imgs.filelist
+      """
+      try:
+        return self.filelist[key]
+      except:
+        return None
 
     def handpick(self):
         """
@@ -340,18 +345,6 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
         pg.quit()
         
-
-
-
-      >>> imgs = ImageSet('samples')
-      >>> imgs.filelist
-      """
-      try:
-        return self.filelist[key]
-      except:
-        return None
-      
-  
 class Image:
     """
     The Image class is the heart of SimpleCV and allows you to convert to and 
@@ -713,50 +706,13 @@ class Image:
 
     def live(self):
         """
-        This shows a live view of the camera.
-        To use it's as simple as:
+        Deprecated: 1.3
 
-        >>> cam = Camera()
-        >>> cam.live()
-
-        Left click will show mouse coordinates and color
-        Right click will kill the live image
+        This is now moved to show()
         """
 
-        start_time = time.time()
+        self.show()
         
-        from SimpleCV.Display import Display
-        i = self
-        d = Display(i.size())
-        i.save(d)
-        col = Color.RED
-
-        while d.isNotDone():
-          i = self
-          i.clearLayers()
-          elapsed_time = time.time() - start_time
-          
-
-          if d.mouseLeft:
-            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
-            i.dl().text(txt, (10,i.height / 2), color=col)
-            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
-            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-
-
-          if elapsed_time > 0 and elapsed_time < 5:
-            
-            i.dl().text("In live mode", (10,10), color=col)
-            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
-            i.dl().text("Right click will kill the live image", (10,30), color=col)
-            
-          
-          i.save(d)
-          if d.mouseRight:
-            d.done = True
-
-        
-        pg.quit()
 
     def getColorSpace(self):
         """
@@ -3104,10 +3060,40 @@ class Image:
           webbrowser.open("http://localhost:8080", 2)
           return js
         elif (type == 'window'):
+          start_time = time.time()
+                  
           from SimpleCV.Display import Display
-          d = Display(self.size())
-          self.save(d)
-          return d
+          i = self
+          d = Display(i.size())
+          i.save(d)
+          col = Color.RED
+
+          while d.isNotDone():
+            i = self
+            i.clearLayers()
+            elapsed_time = time.time() - start_time
+            
+
+            if d.mouseLeft:
+              txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+              i.dl().text(txt, (10,i.height / 2), color=col)
+              txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+              i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+
+
+            if elapsed_time > 0 and elapsed_time < 5:
+              
+              i.dl().text("In live mode", (10,10), color=col)
+              i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+              i.dl().text("Right click will kill the live image", (10,30), color=col)
+              
+            
+            i.save(d)
+            if d.mouseRight:
+              d.done = True
+
+          
+            pg.quit()
         else:
           print "Unknown type to show"
 
