@@ -1727,8 +1727,11 @@ class Image:
         
         **NOTES**
         
-        .. Warning:: This method requires that you have PyCurl installed.
-        .. Warning:: You must supply your own API key. See here: http://imgur.com/register/api_anon
+        .. Warning:: 
+          This method requires that you have PyCurl installed.
+          
+        .. Warning:: 
+          You must supply your own API key. See here: http://imgur.com/register/api_anon
 
         """
         try:
@@ -1786,10 +1789,12 @@ class Image:
         >>> img.scale(2.0) #enlarges the image to 2x its current size
         
         
-        .. Warning::the two value scale command is deprecated. To set width and height
-        use the resize function. 
+        .. Warning:: 
+          The two value scale command is deprecated. To set width and height
+          use the resize function. 
         
         :py:meth:`resize`
+        
         """
         w, h = width, height
         if height == -1:
@@ -1870,7 +1875,9 @@ class Image:
           * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`
 
         * *aperature* - A tuple for the aperature of the gaussian blur as an (x,y) tuple. 
-          .. Warning:: These must be odd numbers.
+       
+        .. Warning:: 
+          These must be odd numbers.
 
         * *sigma* -
 
@@ -2023,42 +2030,103 @@ class Image:
 
     def flipHorizontal(self):
         """
-        Horizontally mirror an image
-        Note that flip does not mean rotate 180 degrees! The two are different.
-
-        Returns: IMAGE
+        **DESCRIPTION**
+        
+        Horizontally mirror an image.
+        
+        
+        .. Warning:: 
+          Note that flip does not mean rotate 180 degrees! The two are different.
+        
+        **RETURNS**
+        
+        The flipped SimpleCV image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> upsidedown = img.flipHorizontal()
+        
+        
+        **SEE ALSO**
+        
+        :py:meth:`flipVertical`
+        :py:meth:`rotate`
+        
         """
         newimg = self.getEmpty()
         cv.Flip(self.getBitmap(), newimg, 1)
         return Image(newimg, colorSpace=self._colorSpace) 
-
-
+    
     def flipVertical(self):
         """
-        Vertically mirror an image
-        Note that flip does not mean rotate 180 degrees! The two are different.
+        **DESCRIPTION**
+        
+        Vertically mirror an image.
+        
+        
+        .. Warning:: 
+          Note that flip does not mean rotate 180 degrees! The two are different.
+        
+        **RETURNS**
 
-        Returns: IMAGE
+        The flipped SimpleCV image.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> upsidedown = img.flipHorizontal()
+
+
+        **SEE ALSO**
+        
+        :py:meth:`rotate`
+        :py:meth:`flipHorizontal`
+
         """
+  
         newimg = self.getEmpty()
         cv.Flip(self.getBitmap(), newimg, 0)
-        return Image(newimg, colorSpace=self._colorSpace) 
-    
-    
-    
-    
-    
+        return Image(newimg, colorSpace=self._colorSpace)     
+
     
     def stretch(self, thresh_low = 0, thresh_high = 255):
         """
+        **DESCRIPTION**
+        
         The stretch filter works on a greyscale image, if the image
         is color, it returns a greyscale image.  The filter works by
         taking in a lower and upper threshold.  Anything below the lower
         threshold is pushed to black (0) and anything above the upper
         threshold is pushed to white (255)
 
+        **PARAMETERS**
 
-        Returns: IMAGE
+        * *thresh_low* - The lower threshold for the stretch operation. 
+          This should be a value between 0 and 255. 
+
+        * *thresh_high* - The upper threshold for the stretch operation. 
+          This should be a value between 0 and 255. 
+
+        **RETURNS**
+        
+        A gray scale version of the image with the appropriate histogram stretching. 
+
+        
+        **EXAMPLE**
+        
+        >>> img = Image("orson_welles.jpg")
+        >>> img2 = img.stretch(56.200)
+        >>> img2.show()
+        
+        **NOTES**
+
+        TODO - make this work on RGB images with thresholds for each channel. 
+
+        **SEE ALSO**
+        :py:meth:`binarize`
+        :py:meth:`equalize`
+
         """
         try:
             newimg = self.getEmpty(1) 
@@ -2072,6 +2140,8 @@ class Image:
       
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
+        **DESCRIPTION**
+
         Do a binary threshold the image, changing all values below thresh to maxv
         and all above to black.  If a color tuple is provided, each color channel
         is thresholded separately.
@@ -2080,6 +2150,49 @@ class Image:
         If threshold is -1 (default), an adaptive method (OTSU's method) is used. 
         If then a blocksize is specified, a moving average over each region of block*block 
         pixels a threshold is applied where threshold = local_mean - p.
+
+        **PARAMETERS**
+        
+        * *thresh* - the threshold as an integer or an (r,g,b) tuple , where pixels below (darker) than thresh are set to to max value,
+          and all values above this value are set to black. If this parameter is -1 we use Otsu's method.
+
+        * *maxv* - The maximum value for pixels below the threshold. Ordinarily this should be 255 (white)
+
+        * *blocksize* - the size of the block used in the adaptive binarize operation.
+
+        .. Warning:: 
+          This parameter must be an odd number.
+
+        * *p* - The difference from the local mean to use for thresholding in Otsu's method. 
+        
+        **RETURNS**
+
+        A binary (two colors, usually black and white) SimpleCV image. This works great for the findBlobs
+        family of functions.
+        
+        **EXAMPLE**
+        
+        Example of a vanila threshold versus an adaptive threshold:
+
+        >>> img = Image("orson_welles.jpg")
+        >>> b1 = img.binarize(128)
+        >>> b2 = img.binarize(blocksize=11,p=7)
+        >>> b3 = b1.sideBySide(b2)
+        >>> b3.show()
+        
+
+        **NOTES**
+        
+        `Otsu's Method Description<http://en.wikipedia.org/wiki/Otsu's_method>`
+
+        **SEE ALSO**
+
+        :py:meth:`threshold`
+        :py:meth:`findBlobs`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+
         """
         if (is_tuple(thresh)):
             r = self.getEmpty(1) 
@@ -2119,27 +2232,46 @@ class Image:
   
     def meanColor(self):
         """
-        Finds average color of all the pixels in the image.
+        **DESCRIPTION**
+        
+        This method finds the average color of all the pixels in the image.
+        
+        **RETURNS**
+        
+        A tuple of the average image values. Tuples are in the channel order. *For most images this means the results are (B,G,R).*
 
+        ** EXAMPLE ** 
 
-        Returns: IMAGE
+        >>> img = Image('lenna')
+        >>> colors = img.meanColor()
+      
         """
-        return tuple(reversed(cv.Avg(self.getBitmap())[0:3]))  
-  
-  
-
+        # I changed this to keep channel order - KAS
+        return tuple(cv.Avg(self.getBitmap())[0:3])  
 
     def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
         """
+        **DESCRIPTION**
+        
         This will find corner Feature objects and return them as a FeatureSet
         strongest corners first.  The parameters give the number of corners to look
         for, the minimum quality of the corner feature, and the minimum distance
         between corners.
+        
+        **PARAMETERS**
+   
+        * *maxnum* - The maximum number of corners to return.
+
+        * *minquality* - The minimum quality metric. This shoudl be a number between zero and one. 
+
+        * *mindistance* - The minimum distance, in pixels, between successive corners. 
+
+        ** RETURNS **
+
+        A featureset of :py:class:`Corner` features or None if no corners are found.
 
 
-        Returns: FEATURESET
-
-
+        **EXAMPLE**
         
         Standard Test:
         
@@ -2156,6 +2288,12 @@ class Image:
         >>> if not corners: True
         
         True
+
+        **SEE ALSO**
+
+        :py:class:`Corner`
+        :py:meth:`findKeypoints`
+
         """
         #initialize buffer frames
         eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
@@ -2175,15 +2313,51 @@ class Image:
 
     def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
         """
-        This will look for continuous
+        **DESCRIPTION**
+        
+        Find blobs  will look for continuous
         light regions and return them as Blob features in a FeatureSet.  Parameters
         specify the binarize filter threshold value, and minimum and maximum size for blobs.  
         If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
         more information about thresholding.  The threshblocksize and threshconstant
         parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+
+        * *threshval* - the threshold as an integer or an (r,g,b) tuple , where pixels below (darker) than thresh are set to to max value,
+          and all values above this value are set to black. If this parameter is -1 we use Otsu's method.
+
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
+
+        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
+          .. Warning:: 
+            This parameter must be an odd number.
+
+        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
  
     
-        Returns: FEATURESET
+        **RETURNS**
+        
+        Returns a featureset (basically a list) of :py:class:`blob` features. If no blobs are found this method returns None.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> fs = img.findBlobs() 
+        >>> if( fs is not None ):
+        >>>     fs.draw()
+        
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`findBlobsFromPalette`
+        :py:meth:`smartFindBlobs`
         """
         if (maxsize == 0):  
             maxsize = self.width * self.height / 2
@@ -2203,6 +2377,7 @@ class Image:
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
         **SUMMARY**
+
         A Haar like feature cascase is a really robust way of finding the location
         of a known object. This technique works really well for a few specific applications
         like face, pedestrian, and vehicle detection. It is worth noting that this
@@ -2211,7 +2386,7 @@ class Image:
         Features (useful for face detection among other purposes) this will return 
         Haar feature objects in a FeatureSet.  
 
-        For more information, consult the cv.HaarDetectObjects documentation
+        For more information, consult the cv.HaarDetectObjects documentation.
    
         You will need to provide your own cascade file - these are usually found in
         /SimpleCV/Features/HaarCascades/ and specify a number of body parts.
@@ -2220,24 +2395,24 @@ class Image:
         loaded with cv.Load(), or a SimpleCV HaarCascade object. 
 
         **PARAMETERS**
-        cascade - The Haar Cascade file, this can be either the path to a cascade
-        file or a HaarCascased SimpleCV object that has already been
-        loaded. 
 
-        scale_factor - The scaling factor for subsequent rounds of the Haar cascade 
-        (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
+        * *cascade* - The Haar Cascade file, this can be either the path to a cascade
+          file or a HaarCascased SimpleCV object that has already been
+          loaded. 
 
-        min_neighbors - The minimum number of rectangles that makes up an object. Ususally
-        detected faces are clustered around the face, this is the number
-        of detections in a cluster that we need for detection. Higher
-        values here should reduce false positives and decrease false negatives.
+        * *scale_factor* - The scaling factor for subsequent rounds of the Haar cascade 
+          (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
 
+        * *min_neighbors* - The minimum number of rectangles that makes up an object. Ususally
+          detected faces are clustered around the face, this is the number
+          of detections in a cluster that we need for detection. Higher
+          values here should reduce false positives and decrease false negatives.
 
-        use-canny - Whether or not to use Canny pruning to reject areas with too many edges 
-        (default yes, set to 0 to disable) 
-
+        * *use-canny* - Whether or not to use Canny pruning to reject areas with too many edges 
+          (default yes, set to 0 to disable) 
 
         **RETURNS**
+
         A feature set of HaarFeatures 
         
         **EXAMPLE**
@@ -2249,7 +2424,8 @@ class Image:
         >>>     if( f is not None ):
         >>>          f.show()
 
-        NOTES:
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Haar-like_features
         The video on this pages shows how Haar features and cascades work to located faces:
         http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
@@ -2278,34 +2454,82 @@ class Image:
 
     def drawCircle(self, ctr, rad, color = (0, 0, 0), thickness = 1):
         """
-        Draw a circle on the Image, parameters include:
-        * the center of the circle
-        * the radius in pixels
-        * a color tuple (default black)
-        * the thickness of the circle
+        **SUMMARY**
+        
+        Draw a circle on the image.
+        
+        **PARAMETERS**
+        
+        * *ctr* - The center of the circle as an (x,y) tuple.
+        * *rad* - The radius of the circle in pixels
+        * *color* - A color tuple (default black)
+        * *thickness* - The thickness of the circle, -1 means filled in. 
 
+        **RETURNS**
 
-        Note that this function is depricated, try to use DrawingLayer.circle() instead
+        .. Warning:: 
+          This is an inline operation. Nothing is returned, but a circle is drawn on the images's 
+          drawing layer. 
 
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img.drawCircle((img.width/2,img.height/2),r=50,color=Colors.RED,width=3)
+        >>> img.show()
 
-        Returns: NONE - Inline Operation
+        **NOTES**
+
+        .. Warning:: 
+          Note that this function is depricated, try to use DrawingLayer.circle() instead.
+
+        **SEE ALSO**
+        
+        :py:meth:`drawLine`
+        :py:meth:`drawText`
+        :py:meth:`dl`
+        :py:meth:`drawRectangle`
+        :py:class:`DrawingLayer`
+
         """
         self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
     
     
     def drawLine(self, pt1, pt2, color = (0, 0, 0), thickness = 1):
         """
-        Draw a line on the Image, parameters include
-        * pt1 - the first point for the line (tuple)
-        * pt1 - the second point on the line (tuple)
-        * a color tuple (default black)
-        * thickness of the line 
- 
- 
-        Note that this modifies the image in-place and clears all buffers.
+        **SUMMARY**
+        Draw a line on the image.
+        
+     
+        **PARAMETERS**
+    
+        * *pt1* - the first point for the line (tuple).
+        * *pt2* - the second point on the line (tuple).
+        * *color* - a color tuple (default black).
+        * *thickness* the thickness of the line in pixels.
 
+        **RETURNS**
+        .. Warning:: 
+          This is an inline operation. Nothing is returned, but a circle is drawn on the images's 
+          drawing layer. 
 
-        Returns: NONE - Inline Operation
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img.drawLine((0,0),(img.width,img.height),color=Color.RED,thickness=3)
+        >>> img.show()
+
+        **NOTES**
+
+        ..Warning:: 
+          Note that this function is depricated, try to use DrawingLayer.line() instead.
+
+        **SEE ALSO**
+        
+        :py:meth:`drawText`
+        :py:meth:`dl`
+        :py:meth:`drawCircle`
+        :py:meth:`drawRectangle`
+
         """
         pt1 = (int(pt1[0]), int(pt1[1]))
         pt2 = (int(pt2[0]), int(pt2[1]))
@@ -2316,8 +2540,13 @@ class Image:
 
     def size(self):
         """
-        Gets width and height
+        **SUMMARY**
+        
+        Returns a tuple that lists the width and height of the image.
 
+        **RETURNS**
+        
+        The width and height.
 
         Returns: TUPLE
         """
@@ -2326,10 +2555,34 @@ class Image:
 
     def split(self, cols, rows):
         """
+        **SUMMARY**
+
+        This method can be used to brak and image into a series of image chunks. 
         Given number of cols and rows, splits the image into a cols x rows 2d array 
         of cropped images
         
-        quadrants = Image("foo.jpg").split(2,2) <-- returns a 2d array of 4 images
+        **PARAMETERS**
+
+        * *rows* - an integer number of rows.
+        * *cols* - an integer number of cols.
+
+        **RETURNS**
+
+        A list of SimpleCV images.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> quadrant =img.split(2,2) 
+        >>> for f in quadrant:
+        >>>    f.show()
+        >>>    time.sleep(1)
+        
+
+        **NOTES**
+        
+        TODO: This should return and ImageList
+
         """
         crops = []
         
@@ -2346,12 +2599,32 @@ class Image:
 
     def splitChannels(self, grayscale = True):
         """
+        **SUMMARY**
+
         Split the channels of an image into RGB (not the default BGR)
         single parameter is whether to return the channels as grey images (default)
         or to return them as tinted color image 
 
+        **PARAMETERS**
+        
+        * *grayscale* - If this is true we return three grayscale images, one per channel. 
+          if it is False return tinted images. 
+          
 
-        Returns: TUPLE - of 3 image objects
+        **RETURNS**
+        
+        A tuple of of 3 image objects.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> data = img.splitChannels()
+        >>> for d in data:
+        >>>    d.show()
+        >>>    time.sleep(1)
+
+        **SEE ALSO**
+        :py:meth:`mergeChannels`
         """
         r = self.getEmpty(1) 
         g = self.getEmpty(1) 
@@ -2378,8 +2651,36 @@ class Image:
 
     def mergeChannels(self,r=None,b=None,g=None):
         """
+        **SUMMARY**
         Merge channels is the oposite of splitChannels. The image takes one image for each
-        of the R,G,B channels and then recombines them into a single image. 
+        of the R,G,B channels and then recombines them into a single image. Optionally any of these
+        channels can be None.
+
+        **PARAMETERS**
+        
+        * *r* - The r or last channel  of the result SimpleCV Image.
+        * *g* - The g or center channel of the result SimpleCV Image.
+        * *b* - The b or first channel of the result SimpleCV Image.
+          
+
+        **RETURNS**
+        
+        A SimpleCV Image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> [r,g,b] = img.splitChannels()
+        >>> r = r.binarize()
+        >>> g = g.binarize()
+        >>> b = b.binarize()
+        >>> result = img.mergeChannels(r,g,b)
+        >>> result.show()
+
+
+        **SEE ALSO**
+        :py:meth:`splitChannels`
+
         """
         if( r is None and g is None and b is None ):
             warnings.warn("ImageClass.mergeChannels - we need at least one valid channel")
@@ -2410,20 +2711,32 @@ class Image:
         cv.Merge(b,g,r,None,retVal)
         return Image(retVal);
 
-
-
-        
-
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
         """
-        Apply 3 ColorCurve corrections applied in HSL space
-        Parameters are: 
-        * Hue ColorCurve 
-        * Lightness (brightness/value) ColorCurve
-        * Saturation ColorCurve
+        **SUMMARY**
+        
+        Apply a color correction curve in HSL space. This method can be used 
+        to change values for each channel. The curves are :py:class:`ColorCurve` class objects.
+        
+        **PARAMETERS**
+        
+        * *hCurve* - the hue ColorCurve object.
+        * *lCurve* - the lightnes / value ColorCurve object.
+        * *sCurve* - the saturation ColorCurve object
 
+        **RETURNS**
+        A SimpleCV Image
 
-        Returns: IMAGE
+        **EXAMPLE**
+        >>> img = Image("lenna")
+        >>> hc = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+        >>> lc = ColorCurve([[0,0], [90, 120], [180, 230], [255, 255]])
+        >>> sc = ColorCurve([[0,0], [70, 110], [180, 230], [240, 255]])
+        >>> img2 = img.applyHLSCurve(hc,lc,sc)
+
+        **SEE ALSO**
+        :py:class:`ColorCurve`
+        
         """
   
   
