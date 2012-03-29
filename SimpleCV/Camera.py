@@ -320,7 +320,7 @@ class Camera(FrameSource):
         "exposure": cv.CV_CAP_PROP_EXPOSURE}
     #human readable to CV constant property mapping
 
-    def __init__(self, camera_index = 0, prop_set = {}, threaded = True, calibrationfile = ''):
+    def __init__(self, camera_index = -1, prop_set = {}, threaded = True, calibrationfile = ''):
         global _cameras
         global _camera_polling_thread
         """
