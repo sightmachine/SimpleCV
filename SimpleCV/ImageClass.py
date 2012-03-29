@@ -2266,7 +2266,7 @@ class Image:
 
         * *mindistance* - The minimum distance, in pixels, between successive corners. 
 
-        ** RETURNS **
+        **RETURNS**
 
         A featureset of :py:class:`Corner` features or None if no corners are found.
 
@@ -2324,7 +2324,7 @@ class Image:
         
         
         **PARAMETERS**
-
+        
         * *threshval* - the threshold as an integer or an (r,g,b) tuple , where pixels below (darker) than thresh are set to to max value,
           and all values above this value are set to black. If this parameter is -1 we use Otsu's method.
 
@@ -2333,9 +2333,10 @@ class Image:
         * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
 
         * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
-          .. Warning:: 
-            This parameter must be an odd number.
-
+    
+        .. Warning:: 
+          This parameter must be an odd number.
+          
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
  
     
@@ -2362,7 +2363,7 @@ class Image:
         if (maxsize == 0):  
             maxsize = self.width * self.height / 2
         #create a single channel image, thresholded to parameters
-    
+            
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
             self, minsize = minsize, maxsize = maxsize)
@@ -2499,15 +2500,16 @@ class Image:
         **SUMMARY**
         Draw a line on the image.
         
-     
+        
         **PARAMETERS**
-    
+        
         * *pt1* - the first point for the line (tuple).
         * *pt2* - the second point on the line (tuple).
         * *color* - a color tuple (default black).
         * *thickness* the thickness of the line in pixels.
 
         **RETURNS**
+
         .. Warning:: 
           This is an inline operation. Nothing is returned, but a circle is drawn on the images's 
           drawing layer. 
@@ -2517,11 +2519,11 @@ class Image:
         >>> img = Image("lenna")
         >>> img.drawLine((0,0),(img.width,img.height),color=Color.RED,thickness=3)
         >>> img.show()
-
+        
         **NOTES**
 
-        ..Warning:: 
-          Note that this function is depricated, try to use DrawingLayer.line() instead.
+        .. Warning:: 
+           Note that this function is depricated, try to use DrawingLayer.line() instead.
 
         **SEE ALSO**
         
@@ -2529,14 +2531,11 @@ class Image:
         :py:meth:`dl`
         :py:meth:`drawCircle`
         :py:meth:`drawRectangle`
-
+        
         """
         pt1 = (int(pt1[0]), int(pt1[1]))
         pt2 = (int(pt2[0]), int(pt2[1]))
         self.getDrawingLayer().line(pt1, pt2, color, thickness)
-    
-    
-
 
     def size(self):
         """
@@ -2725,9 +2724,11 @@ class Image:
         * *sCurve* - the saturation ColorCurve object
 
         **RETURNS**
+
         A SimpleCV Image
 
         **EXAMPLE**
+
         >>> img = Image("lenna")
         >>> hc = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
         >>> lc = ColorCurve([[0,0], [90, 120], [180, 230], [255, 255]])
@@ -2735,8 +2736,9 @@ class Image:
         >>> img2 = img.applyHLSCurve(hc,lc,sc)
 
         **SEE ALSO**
+
         :py:class:`ColorCurve`
-        
+        :py:meth:`applyRGBCurve`
         """
   
   
@@ -2762,14 +2764,34 @@ class Image:
 
     def applyRGBCurve(self, rCurve, gCurve, bCurve):
         """
-        Apply 3 ColorCurve corrections applied in rgb channels 
-        Parameters are: 
-        * Red ColorCurve 
-        * Green ColorCurve
-        * Blue ColorCurve
+        **SUMMARY**
+        
+        Apply a color correction curve in RGB space. This method can be used 
+        to change values for each channel. The curves are :py:class:`ColorCurve` class objects.
+        
+        **PARAMETERS**
+        
+        * *rCurve* - the red ColorCurve object.
+        * *gCurve* - the green ColorCurve object.
+        * *bCurve* - the blue ColorCurve object.
 
+        **RETURNS**
 
-        Returns: IMAGE
+        A SimpleCV Image
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> rc = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+        >>> gc = ColorCurve([[0,0], [90, 120], [180, 230], [255, 255]])
+        >>> bc = ColorCurve([[0,0], [70, 110], [180, 230], [240, 255]])
+        >>> img2 = img.applyRGBCurve(rc,gc,bc)
+
+        **SEE ALSO**
+
+        :py:class:`ColorCurve`
+        :py:meth:`applyHSLCurve`
+
         """
         tempMat = np.array(self.getMatrix()).copy()
         tempMat[:, :, 0] = np.take(bCurve.mCurve, tempMat[:, :, 0])
@@ -2783,18 +2805,39 @@ class Image:
 
     def applyIntensityCurve(self, curve):
         """
+        **SUMMARY**
+
         Intensity applied to all three color channels
 
-        Parameters:
-            curve - ColorCurve object
-        Returns:
-            Image
+        **PARAMETERS**
+        
+        * *curve* - a ColorCurve object.
+
+        **RETURNS**
+
+        A SimpleCV Image
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> rc = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+        >>> gc = ColorCurve([[0,0], [90, 120], [180, 230], [255, 255]])
+        >>> bc = ColorCurve([[0,0], [70, 110], [180, 230], [240, 255]])
+        >>> img2 = img.applyRGBCurve(rc,gc,bc)
+
+        **SEE ALSO**
+
+        :py:class:`ColorCurve`
+        :py:meth:`applyHSLCurve`
+
         """
         return self.applyRGBCurve(curve, curve, curve)
       
       
     def colorDistance(self, color = Color.BLACK):
         """
+        **SUMMARY**
+      
         Returns an image representing the distance of each pixel from a given color
         tuple, scaled between 0 (the given color) and 255.  Pixels distant from the 
         given tuple will appear as brighter and pixels closest to the target color 
@@ -2803,10 +2846,26 @@ class Image:
     
         By default this will give image intensity (distance from pure black)
 
-        Parameters:
-            color - Color object or Color Tuple
-        Returns:
-            Image
+        **Parameters**
+      
+        * *color*  - Color object or Color Tuple
+
+        **RETURNS**
+        
+        A SimpleCV Image.
+        
+        **EXAMPLE** 
+        
+        >>> img = Image("logo")
+        >>> img2 = img.colorDistance(color=Color.BLACK)
+        >>> img2.show()
+
+        
+        **SEE ALSO**
+
+        :py:meth:`binarize`
+        :py:meth:`hueDistance`
+        :py:meth:`findBlobsFromMask`
         """ 
         pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
         distances = spsd.cdist(pixels, [color]) #calculate the distance each pixel is
@@ -2815,6 +2874,8 @@ class Image:
     
     def hueDistance(self, color = Color.BLACK, minsaturation = 20, minvalue = 20):
         """
+        **SUMMARY**
+
         Returns an image representing the distance of each pixel from the given hue
         of a specific color.  The hue is "wrapped" at 180, so we have to take the shorter
         of the distances between them -- this gives a hue distance of max 90, which we'll 
@@ -2823,13 +2884,31 @@ class Image:
         The minsaturation and minvalue are optional parameters to weed out very weak hue
         signals in the picture, they will be pushed to max distance [255]
 
-        Parameters:
-            color = Color object or Color Tuple
-            minsaturation - Integer
-            minvalue - Integer
-        Returns:
-            Image
+        
+        **Parameters**
 
+        * *color* - Color object or Color Tuple.
+        * *minsaturation*  - the minimum saturation value for color (from 0 to 255).
+        * *minvalue*  - the minimum hue value for the color (from 0 to 255).
+ 
+        **RETURNS**
+
+        A simpleCV image.
+
+        **EXAMPLE** 
+        
+        >>> img = Image("logo")
+        >>> img2 = img.hueDistance(color=Color.BLACK)
+        >>> img2.show()
+        
+        **SEE ALSO**
+
+        :py:meth:`binarize`
+        :py:meth:`hueDistance`
+        :py:meth:`morphOpen`
+        :py:meth:`morphClose`
+        :py:meth:`morphGradient`
+        :py:meth:`findBlobsFromMask`
         
         """
         if isinstance(color,  (float,int,long,complex)):
@@ -2860,21 +2939,47 @@ class Image:
         
     def erode(self, iterations=1):
         """
+        **SUMMARY**
+
         Apply a morphological erosion. An erosion has the effect of removing small bits of noise
         and smothing blobs. 
+
         This implementation uses the default openCV 3X3 square kernel 
+        
         Erosion is effectively a local minima detector, the kernel moves over the image and
         takes the minimum value inside the kernel. 
         iterations - this parameters is the number of times to apply/reapply the operation
-        See: http://en.wikipedia.org/wiki/Erosion_(morphology).
-        See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode 
-        Example Use: A threshold/blob image has 'salt and pepper' noise. 
-        Example Code: ./examples/MorphologyExample.py
+        
+        * See: http://en.wikipedia.org/wiki/Erosion_(morphology).
+        
+        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-erode 
+        
+        * Example Use: A threshold/blob image has 'salt and pepper' noise. 
+        
+        * Example Code: /examples/MorphologyExample.py
 
-        Parameters:
-            iterations - Int
-        Returns:
-            IMAGE
+        **PARAMETERS**
+        
+        * *iterations* - the number of times to run the erosion operation. 
+        
+        **RETURNS**
+
+        A SimpleCV image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> derp = img.binarize()
+        >>> derp.erode(3).show()
+        
+        **SEE ALSO**
+        :py:meth:`dilate`
+        :py:meth:`binarize`
+        :py:meth:`morphOpen`
+        :py:meth:`morphClose`
+        :py:meth:`morphGradient`
+        :py:meth:`findBlobsFromMask`
+        
         """
         retVal = self.getEmpty() 
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
@@ -2884,26 +2989,45 @@ class Image:
 
     def dilate(self, iterations=1):
         """
+        **SUMMARY**
+
         Apply a morphological dilation. An dilation has the effect of smoothing blobs while
         intensifying the amount of noise blobs. 
         This implementation uses the default openCV 3X3 square kernel 
         Erosion is effectively a local maxima detector, the kernel moves over the image and
         takes the maxima value inside the kernel. 
 
+        * See: http://en.wikipedia.org/wiki/Dilation_(morphology)
 
-        iterations - this parameters is the number of times to apply/reapply the operation
+        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate
 
+        * Example Use: A part's blob needs to be smoother 
 
-        See: http://en.wikipedia.org/wiki/Dilation_(morphology)
-        See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-dilate
-        Example Use: A part's blob needs to be smoother 
-        Example Code: ./examples/MorphologyExample.py
+        * Example Code: ./examples/MorphologyExample.py
 
+        **PARAMETERS**
+        
+        * *iterations* - the number of times to run the dilation operation. 
+        
+        **RETURNS**
 
-        Parameters:
-            iterations - Integer
-        Returns:
-            IMAGE
+        A SimpleCV image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> derp = img.binarize()
+        >>> derp.dilate(3).show()
+        
+        **SEE ALSO**
+
+        :py:meth:`erode`
+        :py:meth:`binarize`
+        :py:meth:`morphOpen`
+        :py:meth:`morphClose`
+        :py:meth:`morphGradient`
+        :py:meth:`findBlobsFromMask`
+        
         """
         retVal = self.getEmpty() 
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
@@ -2913,18 +3037,40 @@ class Image:
 
     def morphOpen(self):
         """
+        **SUMMARY**
+
         morphologyOpen applies a morphological open operation which is effectively
         an erosion operation followed by a morphological dilation. This operation
         helps to 'break apart' or 'open' binary regions which are close together. 
 
 
-        See: http://en.wikipedia.org/wiki/Opening_(morphology)
-        See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
-        Example Use: two part blobs are 'sticking' together.
-        Example Code: ./examples/MorphologyExample.py
+        * See: http://en.wikipedia.org/wiki/Opening_(morphology)
+       
+        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+        
+        * Example Use: two part blobs are 'sticking' together.
+        
+        * Example Code: ./examples/MorphologyExample.py
 
-        Returns:
-            IMAGE
+        **RETURNS**
+
+        A SimpleCV image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> derp = img.binarize()
+        >>> derp.morphOpen.show()
+        
+        **SEE ALSO**
+
+        :py:meth:`erode`
+        :py:meth:`dilate`
+        :py:meth:`binarize`
+        :py:meth:`morphClose`
+        :py:meth:`morphGradient`
+        :py:meth:`findBlobsFromMask`
+        
         """
         retVal = self.getEmpty() 
         temp = self.getEmpty()
@@ -2934,29 +3080,48 @@ class Image:
         except:
             cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
             #OPENCV 2.2 vs 2.3 compatability 
-            
-            
+                        
         return( Image(retVal) )
-
-
 
 
     def morphClose(self):
         """
+        **SUMMARY**
+        
         morphologyClose applies a morphological close operation which is effectively
         a dilation operation followed by a morphological erosion. This operation
         helps to 'bring together' or 'close' binary regions which are close together. 
 
 
-        See: http://en.wikipedia.org/wiki/Closing_(morphology)
-        See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
-        Example Use: Use when a part, which should be one blob is really two blobs.   
-        Example Code: ./examples/MorphologyExample.py
+        * See: http://en.wikipedia.org/wiki/Closing_(morphology)
+       
+        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+        
+        * Example Use: Use when a part, which should be one blob is really two blobs.   
+        
+        * Example Code: ./examples/MorphologyExample.py
 
+        **RETURNS**
 
-        Returns:
-            IMAGE
+        A SimpleCV image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> derp = img.binarize()
+        >>> derp.morphClose.show()
+        
+        **SEE ALSO**
+
+        :py:meth:`erode`
+        :py:meth:`dilate`
+        :py:meth:`binarize`
+        :py:meth:`morphOpen`
+        :py:meth:`morphGradient`
+        :py:meth:`findBlobsFromMask`
+        
         """
+
         retVal = self.getEmpty() 
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
@@ -2971,19 +3136,41 @@ class Image:
 
     def morphGradient(self):
         """
+        **SUMMARY**
+
         The morphological gradient is the difference betwen the morphological
         dilation and the morphological gradient. This operation extracts the 
         edges of a blobs in the image. 
 
 
-        See: http://en.wikipedia.org/wiki/Morphological_Gradient
-        See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
-        Example Use: Use when you have blobs but you really just want to know the blob edges.
-        Example Code: ./examples/MorphologyExample.py
+        * See: http://en.wikipedia.org/wiki/Morphological_Gradient
+     
+        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+        
+        * Example Use: Use when you have blobs but you really just want to know the blob edges.
+        
+        * Example Code: ./examples/MorphologyExample.py
 
 
-        Returns:
-            IMAGE
+        **RETURNS**
+
+        A SimpleCV image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> derp = img.binarize()
+        >>> derp.morphGradient.show()
+        
+        **SEE ALSO**
+
+        :py:meth:`erode`
+        :py:meth:`dilate`
+        :py:meth:`binarize`
+        :py:meth:`morphOpen`
+        :py:meth:`morphClose`
+        :py:meth:`findBlobsFromMask`
+        
         """
         retVal = self.getEmpty() 
         retVal = self.getEmpty() 
@@ -2998,15 +3185,24 @@ class Image:
 
     def histogram(self, numbins = 50):
         """
+        **SUMMARY**
+
         Return a numpy array of the 1D histogram of intensity for pixels in the image
         Single parameter is how many "bins" to have.
 
 
-        Parameters:
-            numbins - Integer
+        **PARAMETERS**
+
+            * *numbins* - An interger number of bins in a histogram. 
         
-        Returns:
-            LIST
+        **RETURNS**
+
+            A list of histogram bin values. 
+
+        **SEE ALSO**
+
+        :py:meth:`hueHistogram`
+
         """
         gray = self._getGrayscaleBitmap()
 
@@ -3016,19 +3212,32 @@ class Image:
         
     def hueHistogram(self, bins = 179):
         """
+        **SUMMARY**
+        
         Returns the histogram of the hue channel for the image
 
-        Parameters:
-            bins - Integer
-        Returns:
-            Numpy Histogram
+
+        **PARAMETERS**
+
+            * *numbins* - An interger number of bins in a histogram. 
+        
+        **RETURNS**
+
+            A list of histogram bin values. 
+
+        **SEE ALSO**
+
+        :py:meth:`histogram`
+
         """
         return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
 
     def huePeaks(self, bins = 179):
         """
+        **SUMMARY**
+
         Takes the histogram of hues, and returns the peak hue values, which
-        can be useful for determining what the "main colors" in a picture now.
+        can be useful for determining what the "main colors" in a picture.
         
         The bins parameter can be used to lump hues together, by default it is 179
         (the full resolution in OpenCV's HSV format)
@@ -3039,33 +3248,34 @@ class Image:
         Returns a list of tuples, each tuple contains the hue, and the fraction
         of the image that has it.
 
-        Parameters:
-            bins - Integer
-        Returns:
-            list of tuples
+        **PARAMETERS**
+
+        * *bins* - the integer number of bins, between 0 and 179.
+
+        **RETURNS** 
+        
+        A list of (hue,fraction) tuples. 
         
         """
-        """
-        keyword arguments:
-        y_axis -- A list containg the signal over which to find peaks
-        x_axis -- A x-axis whose values correspond to the 'y_axis' list and is used
-            in the return to specify the postion of the peaks. If omitted the index
-            of the y_axis is used. (default: None)
-        lookahead -- (optional) distance to look ahead from a peak candidate to
-            determine if it is the actual peak (default: 500) 
-            '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
-        delta -- (optional) this specifies a minimum difference between a peak and
-            the following points, before a peak may be considered a peak. Useful
-            to hinder the algorithm from picking up false peaks towards to end of
-            the signal. To work well delta should be set to 'delta >= RMSnoise * 5'.
-            (default: 0)
-                Delta function causes a 20% decrease in speed, when omitted
-                Correctly used it can double the speed of the algorithm
-        
-        return --  Each cell of the lists contains a tupple of:
-            (position, peak_value) 
-            to get the average peak value do 'np.mean(maxtab, 0)[1]' on the results
-        """
+        #         keyword arguments:
+        #         y_axis -- A list containg the signal over which to find peaks
+        #         x_axis -- A x-axis whose values correspond to the 'y_axis' list and is used
+        #             in the return to specify the postion of the peaks. If omitted the index
+        #             of the y_axis is used. (default: None)
+        #         lookahead -- (optional) distance to look ahead from a peak candidate to
+        #             determine if it is the actual peak (default: 500) 
+        #             '(sample / period) / f' where '4 >= f >= 1.25' might be a good value
+        #         delta -- (optional) this specifies a minimum difference between a peak and
+        #             the following points, before a peak may be considered a peak. Useful
+        #             to hinder the algorithm from picking up false peaks towards to end of
+        #             the signal. To work well delta should be set to 'delta >= RMSnoise * 5'.
+        #             (default: 0)
+        #                 Delta function causes a 20% decrease in speed, when omitted
+        #                 Correctly used it can double the speed of the algorithm
+        #         return --  Each cell of the lists contains a tupple of:
+        #             (position, peak_value) 
+        #             to get the average peak value do 'np.mean(maxtab, 0)[1]' on the results
+
         y_axis, x_axis = np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)
         x_axis = x_axis[0:bins]
         lookahead = int(bins / 17)
@@ -3229,7 +3439,6 @@ class Image:
         cv.Pow(self.getBitmap(), newbitmap, other)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
-
     def __neg__(self):
         newbitmap = self.getEmpty() 
         cv.Not(self.getBitmap(), newbitmap)
@@ -3238,13 +3447,19 @@ class Image:
 
     def max(self, other):
         """
+        **SUMMARY**
+
         The maximum value of my image, and the other image, in each channel
         If other is a number, returns the maximum of that and the number
 
-        Parameters:
-            other - Image
-        Returns:
-            IMAGE
+        **Parameters**
+        
+        * *other* - Image or a number.
+
+        **RETURNS**
+ 
+        A SimpelCV image.
+
         """ 
         newbitmap = self.getEmpty() 
         if is_number(other):
@@ -3256,13 +3471,18 @@ class Image:
 
     def min(self, other):
         """
+        **SUMMARY**
+
         The minimum value of my image, and the other image, in each channel
         If other is a number, returns the minimum of that and the number
 
-        Parameters:
-            other - Image
-        Returns:
-            IMAGE
+        **Parameter**
+
+            * *other* - Image
+
+        **Returns**
+
+        IMAGE
         """ 
         newbitmap = self.getEmpty() 
         if is_number(other):
@@ -3281,6 +3501,8 @@ class Image:
 
     def findBarcode(self, zxing_path = ""):
         """
+        **SUMMARY**
+
         If you have the python-zxing library installed, you can find 2d and 1d
         barcodes in your image.  These are returned as Barcode feature objects
         in a FeatureSet.  The single parameter is the ZXing_path, if you 
@@ -3316,20 +3538,33 @@ class Image:
         
         #. Go grab some barcodes!
 
-        WARNING:
-        Users on OSX may see the following error:
+        .. WARNING::
+          Users on OSX may see the following error:
+          
+          RuntimeWarning: tmpnam is a potential security risk to your program        
+          
+          We are working to resolve this issue. For normal use this should not be a problem.
 
-        RuntimeWarning: tmpnam is a potential security risk to your program        
+        **Parameters**
         
-        We are working to resolve this issue. For normal use this should not be a problem.
-
-        Parameters:
-        
-        zxing_path - String
+        * *zxing_path* - The path to lib zxing.
             
-        Returns:
+        **Returns**
         
-        BARCODE
+        A :py:class:`FeatureSet` of :py:class:`Barcode` objects. If no barcodes are detected the method returns None.
+
+        **EXAMPLE**
+
+        >>> bc = cam.getImage()
+        >>> barcodes = img.findBarcodes()
+        >>> for b in barcodes:
+        >>>     b.draw()
+
+        **SEE ALSO**
+
+        :py:class:`FeatureSet` 
+        :py:class:`Barcode`
+
         """
         if not ZXING_ENABLED:
             warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
@@ -3359,25 +3594,37 @@ class Image:
     #and then a function to break the lines down given a threshold parameter
     def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
         """
-        findLines will find line segments in your image and returns Line feature 
-        objects in a FeatureSet. The parameters are:
-        * threshold, which determies the minimum "strength" of the line
-        * min line length -- how many pixels long the line must be to be returned
-        * max line gap -- how much gap is allowed between line segments to consider them the same line 
-        * cannyth1 and cannyth2 are thresholds used in the edge detection step, refer to _getEdgeMap() for details
+        **SUMMARY**
 
+        findLines will find line segments in your image and returns line feature 
+        objects in a FeatureSet. This method uses the Hough (pronounced "HUFF") transform.
 
-        For more information, consult the cv.HoughLines2 documentation
+        See http://en.wikipedia.org/wiki/Hough_transform
 
-        Parameters:
-            threshold - Int
-            minlinelength - Int
-            maxlinegap - Int
-            cannyth1 - Int
-            cannyth2 - Int
+        **PARAMETERS**
+        
+        * *threshold* - which determines the minimum "strength" of the line.
+        * *minlinelength* - how many pixels long the line must be to be returned.
+        * *maxlinegap* - how much gap is allowed between line segments to consider them the same line .
+        * *cannyth1* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
+        * *cannyth2* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
             
-        Returns:
-            FEATURESET
+        **RETURNS**
+        
+        Returns a :py:class:`FeatureSet` of :py:class:`Line` objects. If no lines are found the method returns None.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> lines = img.findLines()
+        >>> lines.draw()
+        >>> img.show()
+        
+        **SEE ALSO**
+        :py:class:`FeatureSet` 
+        :py:class:`Line` 
+        :py:meth:`edges`
+        
         """
         em = self._getEdgeMap(cannyth1, cannyth2)
     
@@ -3395,18 +3642,34 @@ class Image:
     
     def findChessboard(self, dimensions = (8, 5), subpixel = True):
         """
+        **SUMMARY**
+
         Given an image, finds a chessboard within that image.  Returns the Chessboard featureset.
         The Chessboard is typically used for calibration because of its evenly spaced corners.
-    
-    
+        
+        
         The single parameter is the dimensions of the chessboard, typical one can be found in \SimpleCV\tools\CalibGrid.png
    
-        Parameters:
-            dimensions - Tuple
-            subpixel - Boolean
+        **Parameters**
 
-        Returns:
-            FeatureSet
+        * *dimensions* - A tuple of the size of the chessboard in width and height in grid objects.
+        * *subpixel* - Boolean if True use sub-pixel accuracy, otherwise use regular pixel accuracy.
+
+        **RETURNS** 
+        
+        A :py:class:`FeatureSet` of :py:class:`Chessboard` objects. If no chessboards are found None is returned.
+
+        **EXAMPLE**
+        
+        >>> img = cam.getImage()
+        >>> cb = img.findChessboard()
+        >>> cb.draw()
+
+        **SEE ALSO**
+        
+        :py:class:`FeatureSet` 
+        :py:class:`Chessboard` 
+
         """
         corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
@@ -3421,21 +3684,38 @@ class Image:
 
     def edges(self, t1=50, t2=100):
         """
+        **SUMMARY**
+
         Finds an edge map Image using the Canny edge detection method.  Edges will be brighter than the surrounding area.
 
+        The t1 parameter is roughly the "strength" of the edge required, and the value between t1 and t2 is used for edge linking.  
+        
+        For more information:
 
-        The t1 parameter is roughly the "strength" of the edge required, and the value between t1 and t2 is used for edge linking.  For more information:
+        * <http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html>
 
+        * <http://en.wikipedia.org/wiki/Canny_edge_detector>
 
-        <http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html>
-        <http://en.wikipedia.org/wiki/Canny_edge_detector>
+        **Parameters**
 
-        Parameters:
-            t1 - Int
-            t2 - Int
+        * *t1* - Int - the lower Canny threshold.
+        * *t2* - Int - the upper Canny threshold.
             
-        Returns:
-            IMAGE
+        **RETURNS** 
+
+        A SimpleCV image where the edges are white on a black background.
+
+        **EXAMPLE**
+
+        >>> cam = Camera()
+        >>> while True:
+        >>>    cam.getImage().edges().show()
+        
+
+        **SEE ALSO**
+
+        :py:meth:`findLines`
+
         """
         return Image(self._getEdgeMap(t1, t2), colorSpace=self._colorSpace)
 
