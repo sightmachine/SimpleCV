@@ -3746,22 +3746,40 @@ class Image:
 
     def rotate(self, angle, fixed=True, point=[-1, -1], scale = 1.0):
         """
+        **SUMMARY***
+
         This function rotates an image around a specific point by the given angle 
         By default in "fixed" mode, the returned Image is the same dimensions as the original Image, and the contents will be scaled to fit.  In "full" mode the
         contents retain the original size, and the Image object will scale
         by default, the point is the center of the image. 
         you can also specify a scaling parameter
 
-        Note that when fixed is set to false selecting a rotation point has no effect since the image is move to fit on the screen.
+        .. Note:
+          that when fixed is set to false selecting a rotation point has no effect since the image is move to fit on the screen.
 
-        Parameters:
-            angle - angle in degrees positive is clockwise, negative is counter clockwise 
-            fixed - if fixed is true,keep the original image dimensions, otherwise scale the image to fit the rotation 
-            point - the point about which we want to rotate, if none is defined we use the center.
-            scale - and optional floating point scale parameter. 
+        **PARAMETERS**
+
+        * *angle* - angle in degrees positive is clockwise, negative is counter clockwise 
+        * *fixed* - if fixed is true,keep the original image dimensions, otherwise scale the image to fit the rotation 
+        * *point* - the point about which we want to rotate, if none is defined we use the center.
+        * *scale* - and optional floating point scale parameter. 
             
-        Returns:
-            IMAGE
+        **RETURNS**
+        
+        The rotated SimpleCV image. 
+
+        **EXAMPLE**
+        
+        >>> img = Image('logo')
+        >>> img2 = rotate( 73.00, point=(img.width/2,img.height/2))
+        >>> img3 = rotate( 73.00, fixex=False, point=(img.width/2,img.height/2))
+        >>> img4 = img2.sideBySide(img3)
+        >>> img4.show()
+
+        **SEE ALSO**
+
+        :py:meth:`rotate90`
+
         """
         if( point[0] == -1 or point[1] == -1 ):
             point[0] = (self.width-1)/2
@@ -3835,13 +3853,31 @@ class Image:
 
     def rotate90(self):
         """
-        Does a fast 90 degree rotation to the right.
-        Note that subsequent calls to this function *WILL NOT* keep rotating it to the right!!!
-        This function just does a matrix transpose so following one transpose by another will 
-        just yield the original image.  
+        **SUMMARY**
+        
+        Does a fast 90 degree rotation to the right. Generally this method should be faster than img.rotate(90)
 
-        Returns:
-            Image
+        .. Note::
+          Subsequent calls to this function *WILL NOT* keep rotating it to the right!!!
+          This function just does a matrix transpose so following one transpose by another will 
+          just yield the original image.  
+
+         **RETURNS**
+         
+         The rotated SimpleCV Image.
+
+         **EXAMPLE**
+         
+         >>> img = Image("logo")
+         >>> img2 = img.rotate90()
+         >>> img2.show()
+
+         **SEE ALSO**
+         
+         :py:meth:`rotate`
+         
+         http://en.wikipedia.org/wiki/Transformation_matrix
+
         """
         retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
         cv.Transpose(self.getBitmap(), retVal)
@@ -3850,15 +3886,34 @@ class Image:
     
     def shear(self, cornerpoints):
         """
-        Given a set of new corner points in clockwise order, return a shear-ed Image
-        that transforms the Image contents.  The returned image is the same
-        dimensions.
+        **SUMMARY**
 
+        Given a set of new corner points in clockwise order, return a shear-ed image
+        that transforms the image contents.  The returned image is the same
+        dimensions. 
 
-        cornerpoints is a 2x4 array of point tuples
+        **PARAMETERS**
 
-        Returns:
-            IMAGE
+        * *cornerpoints* - a 2x4 tuple of points. The order is (top_left,top_right,bottom_left,bottom_right)
+
+        **RETURNS**
+        
+        A simpleCV image. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> points = ((50,0),(img.width+50,0),(img.width,img.height),(0,img.height))
+        >>> img.shear(points).show()
+
+        **SEE ALSO**
+
+        :py:meth:`transformAffine`
+        :py:meth`warp`
+        :py:meth:`rotate`
+
+        http://en.wikipedia.org/wiki/Transformation_matrix
+
         """
         src =  ((0, 0), (self.width-1, 0), (self.width-1, self.height-1))
         #set the original points
@@ -3872,15 +3927,39 @@ class Image:
 
     def transformAffine(self, rotMatrix):
         """
+        **SUMMARY**
+
         This helper function for shear performs an affine rotation using the supplied matrix. 
         The matrix can be a either an openCV mat or an np.ndarray type. 
         The matrix should be a 2x3
 
-        Parameters:
-            rotMatrix - Numpy Array or CvMat
+        **PARAMETERS**
+        
+        * *rotMatrix* - A 2x3 numpy array or CvMat of the affine transform. 
             
-        Returns:
-            IMAGE
+        **RETURNS**
+
+        The rotated image. Note that the rotation is done in place, i.e. the image is not enlarged to fit the transofmation.
+        
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> points = ((50,0),(img.width+50,0),(img.width,img.height),(0,img.height))
+        >>> src =  ((0, 0), (img.width-1, 0), (img.width-1, img.height-1))
+        >>> result = cv.createMat(2,3,cv.CV_32FC1)
+        >>> cv.GetAffineTransform(src,points,result)
+        >>> img.transformAffine(result).show()
+
+
+        **SEE ALSO**
+ 
+        :py:meth:`shear`
+        :py:meth`warp`
+        :py:meth:`transformPerspective`
+        :py:meth:`rotate`
+
+        http://en.wikipedia.org/wiki/Transformation_matrix
+        
         """
         retVal = self.getEmpty()
         if(type(rotMatrix) == np.ndarray ):
@@ -3891,21 +3970,40 @@ class Image:
 
     def warp(self, cornerpoints):
         """
-        Given a new set of corner points in clockwise order, return an Image with 
+        **SUMMARY**
+        
+        This method performs and arbitrary perspective transform. 
+        Given a new set of corner points in clockwise order frin top left, return an Image with 
         the images contents warped to the new coordinates.  The returned image
         will be the same size as the original image
 
 
-        Parameters:
-            cornerpoints - List of Tuples
+        **PARAMETERS**
+        
+        * *cornerpoints* - A list of four tuples corresponding to the destination corners in the order of (top_left,top_right,bottom_left,bottom_right) 
 
-        Returns:
-            IMAGE
+        **RETURNS**
+
+        A simpleCV Image with the warp applied. Note that this operation does not enlarge the image. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> points = ((30, 30), (img.width-10, 70), (img.width-1-40, img.height-1+30),(20,img.height+10))
+        >>> img.warp(points).show()
+        
+        **SEE ALSO**
+
+        :py:meth:`shear`
+        :py:meth`transformAffine`
+        :py:meth:`transformPerspective`
+        :py:meth:`rotate`
+
+        http://en.wikipedia.org/wiki/Transformation_matrix
+        
         """
         #original coordinates
-        src = ((0, 0), (self.width-1, 0), (self.width-1, self.height-1), (0, self.height-1))
-    
-    
+        src = ((0, 0), (self.width-1, 0), (self.width-1, self.height-1), (0, self.height-1))    
         pWarp = cv.CreateMat(3, 3, cv.CV_32FC1) #create an empty 3x3 matrix
         cv.GetPerspectiveTransform(src, cornerpoints, pWarp) #figure out the warp matrix
 
@@ -3915,15 +4013,38 @@ class Image:
 
     def transformPerspective(self, rotMatrix):
         """
+        **SUMMARY**
+       
         This helper function for warp performs an affine rotation using the supplied matrix. 
         The matrix can be a either an openCV mat or an np.ndarray type. 
         The matrix should be a 3x3
 
-        Parameters:
-            rotMatrix - Numpy Array or CvMat
+       **PARAMETERS**
+            * *rotMatrix* - Numpy Array or CvMat
 
-        Returns:
-            IMAGE
+        **RETURNS**
+
+        The rotated image. Note that the rotation is done in place, i.e. the image is not enlarged to fit the transofmation.
+        
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> points = ((50,0),(img.width+50,0),(img.width,img.height),(0,img.height))
+        >>> src = ((30, 30), (img.width-10, 70), (img.width-1-40, img.height-1+30),(20,img.height+10))
+        >>> result = cv.createMat(3,3,cv.CV_32FC1)
+        >>> cv.GetPerspectiveTransform(src,points,result)
+        >>> img.transformPerspective(result).show()
+
+
+        **SEE ALSO**
+ 
+        :py:meth:`shear`
+        :py:meth`warp`
+        :py:meth:`transformPerspective`
+        :py:meth:`rotate`
+
+        http://en.wikipedia.org/wiki/Transformation_matrix
+        
         """
         retVal = self.getEmpty()
         if(type(rotMatrix) == np.ndarray ):
@@ -3934,17 +4055,31 @@ class Image:
   
     def getPixel(self, x, y):
         """
+        **SUMMARY**
+
         This function returns the RGB value for a particular image pixel given a specific row and column.
         
-        NOTE:
-        this function will always return pixels in RGB format even if the image is BGR format. 
+        ..NOTE::
+          this function will always return pixels in RGB format even if the image is BGR format. 
         
-        Parameters:
-            x - Int
-            y - Int
+        **PARAMETERS**
+        
+            * *x* - Int the x pixel coordinate.
+            * *y* - Int the y pixel coordinate.
 
-        Returns:
-            Int
+        **RETURNS**
+
+        A color value that is a three element integer tuple.
+
+        **EXAMPLE**
+        
+        >>> img = Image(logo)
+        >>> color = img.getPixel(10,10)
+
+
+        .. Warning::
+          We suggest that this method be used sparingly. For repeated pixel access use python array notation. I.e. img[x][y].
+
         """
         c = None
         retVal = None
@@ -3964,14 +4099,32 @@ class Image:
   
     def getGrayPixel(self, x, y):
         """
-        This function returns the Gray value for a particular image pixel given a specific row and column.
+        **SUMMARY**
 
-        Parameters:
-            x - Int
-            y - Int
+        This function returns the gray value for a particular image pixel given a specific row and column.
+        
+        
+        ..NOTE::
+          this function will always return pixels in RGB format even if the image is BGR format. 
+        
+        **PARAMETERS**
+        
+            * *x* - Int the x pixel coordinate.
+            * *y* - Int the y pixel coordinate.
 
-        Returns:
-            Int
+        **RETURNS**
+
+        A gray value integer between 0 and 255.
+
+        **EXAMPLE**
+        
+        >>> img = Image(logo)
+        >>> color = img.getGrayPixel(10,10)
+
+
+        .. Warning::
+          We suggest that this method be used sparingly. For repeated pixel access use python array notation. I.e. img[x][y].
+
         """
         retVal = None
         if( x < 0 or x >= self.width ):
@@ -3986,13 +4139,36 @@ class Image:
       
     def getVertScanline(self, column):
         """
-        This function returns a single column of RGB values from the image.
+        **SUMMARY**
+        
+        This function returns a single column of RGB values from the image as a numpy array. This is handy if you 
+        want to crawl the image looking for an edge. 
 
-        Parameters:
-            column - Int
+        **PARAMETERS**
+        
+        * *column* - the column number working from left=0 to right=img.width.
 
-        Returns:
-            Numpy Array
+        **RETURNS**
+
+        A numpy array of the pixel values. Ususally this is in BGR format. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> myColor = [0,0,0]
+        >>> sl = img.getVertScanline(423)
+        >>> sll = sl.tolist()
+        >>> for p in sll:
+        >>>    if( p == myColor ):
+        >>>        # do something
+
+        **SEE ALSO**
+
+        :py:meth:`getHorzScalineGray`
+        :py:meth:`getHorzScanline`
+        :py:meth:`getVertScalineGray`
+        :py:meth:`getVertScanline`
+
         """
         retVal = None
         if( column < 0 or column >= self.width ):
@@ -4006,13 +4182,34 @@ class Image:
   
     def getHorzScanline(self, row):
         """
+        **SUMMARY**
         This function returns a single row of RGB values from the image.
+        This is handy if you want to crawl the image looking for an edge. 
 
-        Parameters:
-            row - Int
+        **PARAMETERS**
+        
+        * *row* - the row number working from top=0 to bottom=img.height.
 
-        Returns:
-            Numpy Array
+        **RETURNS**
+
+        A a lumpy numpy array of the pixel values. Ususally this is in BGR format. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> myColor = [0,0,0]
+        >>> sl = img.getHorzScanline(422)
+        >>> sll = sl.tolist()
+        >>> for p in sll:
+        >>>    if( p == myColor ):
+        >>>        # do something
+
+        **SEE ALSO**
+
+        :py:meth:`getHorzScalineGray`
+        :py:meth:`getVertScalineGray`
+        :py:meth:`getVertScanline`
+
         """
         retVal = None
         if( row < 0 or row >= self.height ):
@@ -4026,13 +4223,35 @@ class Image:
   
     def getVertScanlineGray(self, column):
         """
-        This function returns a single column of gray values from the image.
+        **SUMMARY**
+        
+        This function returns a single column of gray values from the image as a numpy array. This is handy if you 
+        want to crawl the image looking for an edge. 
 
-        Parameters:
-            row - Int
+        **PARAMETERS**
+        
+        * *column* - the column number working from left=0 to right=img.width.
 
-        Return:
-            Numpy Array
+        **RETURNS**
+
+        A a lumpy numpy array of the pixel values.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> myColor = [255]
+        >>> sl = img.getVertScanlineGray(421)
+        >>> sll = sl.tolist()
+        >>> for p in sll:
+        >>>    if( p == myColor ):
+        >>>        # do something
+
+        **SEE ALSO**
+
+        :py:meth:`getHorzScalineGray`
+        :py:meth:`getHorzScanline`
+        :py:meth:`getVertScanline`
+
         """
         retVal = None
         if( column < 0 or column >= self.width ):
@@ -4046,13 +4265,36 @@ class Image:
   
     def getHorzScanlineGray(self, row):
         """
-        This function returns a single row of RGB values from the image.
+        **SUMMARY**
+        
+        This function returns a single row of gray values from the image as a numpy array. This is handy if you 
+        want to crawl the image looking for an edge. 
 
-        Parameters:
-            row - Int
+        **PARAMETERS**
 
-        Returns:
-            Numpy Array
+        * *row* - the row number working from top=0 to bottom=img.height. 
+
+        **RETURNS**
+
+        A a lumpy numpy array of the pixel values. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> myColor = [255]
+        >>> sl = img.getHorzScanlineGray(420)
+        >>> sll = sl.tolist()
+        >>> for p in sll:
+        >>>    if( p == myColor ):
+        >>>        # do something
+
+        **SEE ALSO**
+
+        :py:meth:`getHorzScalineGray`
+        :py:meth:`getHorzScanline`
+        :py:meth:`getVertScalineGray`
+        :py:meth:`getVertScanline`
+
         """
         retVal = None
         if( row < 0 or row >= self.height ):
@@ -4066,6 +4308,8 @@ class Image:
 
     def crop(self, x , y = None, w = None, h = None, centered=False):
         """
+        **SUMMARY***
+
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
         define the top and left of the cropped rectangle. When centered is true
@@ -4075,15 +4319,28 @@ class Image:
         the cropped image within the bounding outside area of that feature
     
     
-        Parameters:
-            x - Int or Image
-            y - Int
-            w - Int
-            h - Int
-            centered - Boolean
+        **PARAMETERS**
 
-        Returns:
-            Image
+        * *x* - An integer or feature. If it is a feature we crop to the features dimensions. 
+          Otherwise this is either the top left corner of the image or the center cooridnate of the the crop region.
+        * *y* - The y coordinate of the center, or top left corner  of the crop region.
+        * *w* - Int - the width of the cropped region in pixels.
+        * *h* - Int - the height of the cropped region in pixels.
+        * *centered*  - Boolean - if True we treat the crop region as being the center 
+          coordinate and a width and height. If false we treat it as the top left corner of the crop region.
+
+        **RETURNS**
+        A SimpleCV Image cropped to the specified width and height.
+
+        **EXAMPLE**
+        
+        >>> img = Image('lenna')
+        >>> img.crop(50,40,128,128).show()
+
+        **SEE ALSO**
+        
+        :py:meth:`embiggen`
+        :py:meth:`regionSelect`
         """
 
         #If it's a feature extract what we need
@@ -4128,19 +4385,34 @@ class Image:
     
     def regionSelect(self, x1, y1, x2, y2 ):
         """
+        **SUMMARY**
+
         Region select is similar to crop, but instead of taking a position and width
         and height values it simply takes to points on the image and returns the selected
         region. This is very helpful for creating interactive scripts that require
         the user to select a region.
 
-        Parameters:
-            x1 - Int
-            y1 - Int
-            x2 - Int
-            y2 - Int
+        **PARAMETERS**
 
-        Returns:
-            Image
+        * *x1* - Int - Point one x coordinate.
+        * *y1* - Int  - Point one y coordinate.
+        * *x2* - Int  - Point two x coordinate.
+        * *y2* - Int  - Point two y coordinate.
+
+        **RETURNS**
+
+        A cropped SimpleCV Image.
+        
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> subreg = img.regionSelect(10,10,100,100) # often this comes from a mouse click
+        >>> subreg.show()
+
+        **SEE ALSO**
+        
+        :py:meth:`crop`
+
         """
         w = abs(x1-x2)
         h = abs(y1-y2)
@@ -4164,9 +4436,15 @@ class Image:
   
     def clear(self):
         """
+        **SUMMARY**
+
         This is a slightly unsafe method that clears out the entire image state
         it is usually used in conjunction with the drawing blobs to fill in draw
-        only a single large blob in the image. 
+        a single large blob in the image. 
+        
+        .. Warning: 
+          Do not use this method unless you have a particularly compelling reason.
+        
         """
         cv.SetZero(self._bitmap)
         self._clearBuffers()
@@ -4178,22 +4456,39 @@ class Image:
     
     def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
         """
-        This function draws the string that is passed on the screen at the specified coordinates
+        **SUMMARY**
 
+        This function draws the string that is passed on the screen at the specified coordinates.
 
         The Default Color is blue but you can pass it various colors
+
         The text will default to the center of the screen if you don't pass it a value
 
 
-        Parameters:
-            text - String
-            x - Int
-            y - Int
-            color - Color object or Color Tuple
-            fontsize - Int
-            
-        Returns:
-            Image
+        **PARAMETERS**
+
+        * *text* - String - the text you want to write. ASCII only please.
+        * *x* - Int - the x position in pixels.
+        * *y* - Int - the y position in pixels. 
+        * *color* - Color object or Color Tuple
+        * *fontsize* - Int - the font size - roughly in points. 
+
+        **RETURNS**
+        
+        Nothing. This is an in place function. Text is added to the Images drawing layer. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img.writeText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontSize=48)
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`dl`
+        :py:meth:`drawCircle`
+        :py:meth:`drawRectangle`
+ 
         """
         if(x == None):
             x = (self.width / 2)
@@ -4207,19 +4502,39 @@ class Image:
     
     def drawRectangle(self,x,y,w,h,color=Color.RED,width=1,alpha=255):
         """
+        **SUMMARY**
+
         Draw a rectangle on the screen given the upper left corner of the rectangle
         and the width and height. 
         
-        x - the x position
-        y - the y position
-        w - the width of the rectangle
-        h - the height of the rectangle
-        color - an RGB tuple indicating the desired color.
-        width - the width of the rectangle, a value less than or equal to zero means filled in completely.
-        alpha - the alpha value on the interval from 255 to 0, 255 is opaque, 0 is completely transparent. 
+        **PARAMETERS**
 
-        returns:
-        None - this operation is in place. 
+        * *x* - the x position.
+        * *y* - the y position.
+        * *w* - the width of the rectangle.
+        * *h* - the height of the rectangle.
+        * *color* - an RGB tuple indicating the desired color.
+        * *width* - the width of the rectangle, a value less than or equal to zero means filled in completely.
+        * *alpha* - the alpha value on the interval from 255 to 0, 255 is opaque, 0 is completely transparent. 
+
+        **RETURNS**
+
+        None - this operation is in place and adds the rectangle to the drawing layer. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img.drawREctange( 50,50,100,123)
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`dl`
+        :py:meth:`drawCircle`
+        :py:meth:`drawRectangle`
+        :py:meth:`applyLayers`
+        :py:class:`DrawingLayer`
+
         """
         if( width < 1 ):
             self.getDrawingLayer().rectangle((x,y),(w,h),color,filled=True,alpha=alpha)
@@ -4232,17 +4547,31 @@ class Image:
 
     def show(self, type = 'window'):
         """
-        This function automatically pops up a window and shows the current image
+        **SUMMARY**
 
-        Types:
-            window
-            browser
+        This function automatically pops up a window and shows the current image.
 
-        Parameters:
-            type - String
+        **PARAMETERS**
 
-        Return:
-            Display
+        * *type* - this string can have one of two values, either 'window', or 'browser'. Window opens 
+          a display window, while browser opens the default web browser to show an image. 
+
+        **RETURNS**
+
+        This method returns the display object. In the case of the window this is a JpegStreamer
+        object. In the case of a window a display object is returned. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img.show()
+        >>> img.show('browser')
+
+        **SEE ALSO**
+
+        :py:class:`JpegStreamer`
+        :py:class:`Display`
+
         """
         if(type == 'browser'):
           import webbrowser
@@ -4270,22 +4599,80 @@ class Image:
 
     def toPygameSurface(self):
         """
+        **SUMMARY**
+
         Converts this image to a pygame surface. This is useful if you want
         to treat an image as a sprite to render onto an image. An example
-        would be rendering blobs on to an image. THIS IS EXPERIMENTAL.
+        would be rendering blobs on to an image. 
+
+        .. Warning: 
+          *THIS IS EXPERIMENTAL*. We are plannng to remove this functionality sometime in the near future.
+
+        **RETURNS**
+
+        The image as a pygame surface. 
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:class:`DrawingLayer`
+        :py:meth:`insertDrawinglayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`clearLayers`
+        :py:meth:`layers`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+          
         """
         return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB") 
     
         
     def addDrawingLayer(self, layer = None):
         """
+        **SUMMARY**
+
         Push a new drawing layer onto the back of the layer stack
 
-        Parameters:
-            layer - String
+        **PARAMETERS**
+        
+        * *layer* - String
 
-        Returns:
-            Int
+        **RETURNS**
+        
+        The index of the new layer as an integer.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("Lenna")
+        >>> myLayer = DrawingLayer((img.width,img.height))
+        >>> img.addDrawingLayer(myLayer)
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`insertDrawinglayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`clearLayers`
+        :py:meth:`layers`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+
         """
 
         if not isinstance(layer, DrawingLayer):
@@ -4299,11 +4686,45 @@ class Image:
     
     def insertDrawingLayer(self, layer, index):
         """
-        Insert a new layer into the layer stack at the specified index
+        **SUMMARY**
+        
+        Insert a new layer into the layer stack at the specified index.
 
-        Parameters:
-            layer - DrawingLayer
-            index - Int
+        **PARAMETERS**
+
+        * *layer* - A drawing layer with crap you want to draw.
+        * *index* - The index at which to insert the layer. 
+
+        **RETURNS** 
+        
+        None - that's right - nothing.
+
+        **EXAMPLE**
+        
+        >>> img = Image("Lenna")
+        >>> myLayer1 = DrawingLayer((img.width,img.height))
+        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> #Draw on the layers
+        >>> img.insertDrawingLayer(myLayer1,1) # on top
+        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`clearLayers`
+        :py:meth:`layers`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
 
         """
         self._mLayers.insert(index, layer)
@@ -4312,21 +4733,104 @@ class Image:
   
     def removeDrawingLayer(self, index):
         """
+        **SUMMARY**
+
         Remove a layer from the layer stack based on the layer's index.
 
-        Parameters:
-            index - Int
+        **PARAMETERS**
+        
+        * *index* - Int - the index of the layer to remove. 
+
+        **RETURNS**
+        
+        This method returns the removed drawing layer.
+
+        **SUMMARY**
+        
+        Insert a new layer into the layer stack at the specified index.
+
+        **PARAMETERS**
+
+        * *layer* - A drawing layer with crap you want to draw.
+        * *index* - The index at which to insert the layer. 
+
+        **RETURNS** 
+        
+        None - that's right - nothing.
+
+        **EXAMPLE**
+        
+        >>> img = Image("Lenna")
+        >>> myLayer1 = DrawingLayer((img.width,img.height))
+        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> #Draw on the layers
+        >>> img.insertDrawingLayer(myLayer1,1) # on top
+        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`clearLayers`
+        :py:meth:`layers`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+
         """
         return self._mLayers.pop(index)
     
     
     def getDrawingLayer(self, index = -1):
         """
+        **SUMMARY**
+
         Return a drawing layer based on the provided index.  If not provided, will
         default to the top layer.  If no layers exist, one will be created
 
-        Parameters:
-            index - Int
+        **PARAMETERS**
+        
+        * *index* - returns the drawing layer at the specified index. 
+       
+        **RETURNS**
+        
+        A drawing layer.
+
+        **EXAMPLE**
+       
+        >>> img = Image("Lenna")
+        >>> myLayer1 = DrawingLayer((img.width,img.height))
+        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> #Draw on the layers
+        >>> img.insertDrawingLayer(myLayer1,1) # on top
+        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        >>> layer2 =img.getDrawingLayer(2) 
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`clearLayers`
+        :py:meth:`layers`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+ 
         """
         if not len(self._mLayers):
             layer = DrawingLayer(self.size())
@@ -4338,14 +4842,49 @@ class Image:
     
     def dl(self, index = -1):
         """
-        Alias for getDrawingLayer()
+        **SUMMARY**
+
+        Alias for :py:meth:`getDrawingLayer`
+
         """
         return self.getDrawingLayer(index)
   
   
     def clearLayers(self):
         """
+        **SUMMARY**
+
         Remove all of the drawing layers. 
+
+        **RETURNS**
+
+        NONE
+
+        **EXAMPLE**
+       
+        >>> img = Image("Lenna")
+        >>> myLayer1 = DrawingLayer((img.width,img.height))
+        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> img.insertDrawingLayer(myLayer1,1) # on top
+        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        >>> img.clearLayers()
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`layers`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+         
         """
         for i in self._mLayers:
             self._mLayers.remove(i)
@@ -4355,12 +4894,35 @@ class Image:
 
     def layers(self):
         """
-        Return the array of DrawingLayer objects associated with the image
+        **SUMMARY**
+
+        Return the array of DrawingLayer objects associated with the image.
+
+        **RETURNS**
+        
+        A list of of drawing layers. 
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`mergedLayers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+
         """
         return self._mLayers
 
 
         #render the image. 
+
     def _renderImage(self, layer):
         imgSurf = self.getPGSurface(self).copy()
         imgSurf.blit(layer._mSurface, (0, 0))
@@ -4368,10 +4930,38 @@ class Image:
     
     def mergedLayers(self):
         """
-        Return all DrawingLayer objects as a single DrawingLayer
+        **SUMMARY**
 
-        Returns:
-            DrawingLayer
+        Return all DrawingLayer objects as a single DrawingLayer.
+        
+        **RETURNS**
+        
+        Returns a drawing layer with all of the drawing layers of this image merged into one.
+
+        **EXAMPLE**
+       
+        >>> img = Image("Lenna")
+        >>> myLayer1 = DrawingLayer((img.width,img.height))
+        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> img.insertDrawingLayer(myLayer1,1) # on top
+        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        >>> derp = img.mergedLayers()
+
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`layers`
+        :py:meth:`applyLayers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+
         """
         final = DrawingLayer(self.size())
         for layers in self._mLayers: #compose all the layers
@@ -4380,11 +4970,43 @@ class Image:
         
     def applyLayers(self, indicies=-1):
         """
+        **SUMMARY**
+       
         Render all of the layers onto the current image and return the result.
         Indicies can be a list of integers specifying the layers to be used.
 
-        Parameters:
-            indicies - Int
+        **PARAMETERS**
+
+        * *indicies* -  Indicies can be a list of integers specifying the layers to be used.
+
+        **RETURNS**
+
+        The image after applying the drawing layers. 
+
+        **EXAMPLE**
+       
+        >>> img = Image("Lenna")
+        >>> myLayer1 = DrawingLayer((img.width,img.height))
+        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> #Draw some stuff
+        >>> img.insertDrawingLayer(myLayer1,1) # on top
+        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        >>> derp = img.applyLayers()
+        
+        **SEE ALSO**
+
+        :py:class:`DrawingLayer`
+        :py:meth:`addDrawinglayer`
+        :py:meth:`dl`
+        :py:meth:`toPygameSurface`
+        :py:meth:`getDrawingLayer`
+        :py:meth:`removeDrawingLayer`
+        :py:meth:`layers`
+        :py:meth:`drawText`
+        :py:meth:`drawRectangle`
+        :py:meth:`drawCircle`
+        :py:meth:`blit`
+
         """
         if not len(self._mLayers):
             return self
@@ -4407,8 +5029,25 @@ class Image:
             
     def adaptiveScale(self, resolution,fit=True):
         """
+        **SUMMARY**
+
         Adapative Scale is used in the Display to automatically
-        adjust image size to match the display size.
+        adjust image size to match the display size. This method attempts to scale
+        an image to the desired resolution while keeping the aspect ratio the same. 
+        If fit is False we simply crop and center the image to the resolution.
+        In general this method should look a lot better than arbitrary cropping and scaling. 
+        
+        **PARAMETERS**
+
+        * *resolution* - The size of the returned image as a (width,height) tuple.
+        * *fit* - If fit is true we try to fit the image while maintaining the aspect ratio.
+          If fit is False we crop and center the image to fit the resolution. 
+
+        **RETURNS**
+        
+        A SimpleCV Image. 
+        
+        **EXAMPLE**
 
         This is typically used in this instance:
 
@@ -4418,12 +5057,6 @@ class Image:
 
         Where this would scale the image to match the display size of 800x600
 
-        Parameters:
-            resolution - Tuple
-            fit - Boolean
-
-        Returns:
-            Image
         """
         
         wndwAR = float(resolution[0])/float(resolution[1])
