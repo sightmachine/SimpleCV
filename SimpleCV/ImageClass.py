@@ -281,6 +281,16 @@ Valid options: 'thumb', 'small', 'medium', 'large'
           else:
             self.filelist[tmp.filename.split('/')[-1]] = tmp
           self.append(tmp)
+          
+      def pickleDump(self,filename):
+		"""
+		Specify the file name (Including the path).
+		This function will write the object to the specified filename. 
+		"""
+    		string = pickle.dumps(self)
+		fout = open(filename, 'w')
+		fout.write(string)
+		fout.close()        
       
   
 class Image:
@@ -6679,8 +6689,16 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
         
- 
-
+    def pickleDump(self,filename):
+	"""
+	Specify the file name (Including the path).
+	This function will write the object to the specified filename. 
+	"""
+    	string = pickle.dumps(self)
+	fout = open(filename, 'w')
+	fout.write(string)
+	fout.close()
+    
 
 Image.greyscale = Image.grayscale
 
