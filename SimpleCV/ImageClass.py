@@ -6722,14 +6722,13 @@ class Image:
           A good primer on how feature/keypoint extractiors can be found here:
           http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
           http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+
         
           * "SURF" - extract the SURF features and descriptors. If you don't know
             what to use, use this. 
-            See: http://en.wikipedia.org/wiki/SURF
-        
+            See: http://en.wikipedia.org/wiki/SURF        
           * "STAR" - The STAR feature extraction algorithm
             See: http://pr.willowgarage.com/wiki/Star_Detector
-        
           * "FAST" - The FAST keypoint extraction algorithm
             See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
         
@@ -6820,6 +6819,9 @@ class Image:
         >>> img2.show()
 
         **SEE ALSO**
+        
+        :py:class:`Motion`
+        :py:class:`FeatureSet`
 
         """
         if( self.width != previous_frame.width or self.height != previous_frame.height):
@@ -6900,18 +6902,21 @@ class Image:
     
     def _generatePalette(self,bins,hue):
         """
-        Summary:
+        **SUMMARY**
+
         This is the main entry point for palette generation. A palette, for our purposes,
         is a list of the main colors in an image. Creating a palette with 10 bins, tries 
         to cluster the colors in rgb space into ten distinct groups. In hue space we only
         look at the hue channel. All of the relevant palette data is cached in the image 
         class. 
 
-        Parameters:
+        **PARAMETERS**
+
         bins - an integer number of bins into which to divide the colors in the image.
         hue  - if hue is true we do only cluster on the image hue values. 
 
-        Returns:
+        **RETURNS**
+
         Nothing, but creates the image's cached values for: 
         
         self._mDoHuePalette
@@ -6921,11 +6926,12 @@ class Image:
         self._mPalettePercentages
 
 
-        Example:
+        **EXAMPLE**
         
         >>> img._generatePalette(bins=42)
 
-        Notes:
+        **NOTES**
+
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
         it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
         about k-means initialization with the following warning:
@@ -6934,7 +6940,8 @@ class Image:
 
         This shouldn't be a real problem. 
         
-        See Also:
+        **SEE ALSO**
+
         ImageClass.getPalette(self,bins=10,hue=False
         ImageClass.rePalette(self,palette,hue=False):
         ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
@@ -6977,44 +6984,84 @@ class Image:
 
     def getPalette(self,bins=10,hue=False):
         """
-        Summary:
+        **SUMMARY**
+
         This method returns the colors in the palette of the image. A palette is the 
         set of the most common colors in an image. This method is helpful for segmentation.
 
-        Parameters:
-        bins - an integer number of bins into which to divide the colors in the image.
-        hue  - if hue is true we do only cluster on the image hue values. 
+        **PARAMETERS**
 
-        Returns:
-        an numpy array of the BGR color tuples. 
+        * *bins* - an integer number of bins into which to divide the colors in the image.
+        * *hue*  - if hue is true we do only cluster on the image hue values. 
 
-        Example:
+        **RETURNS**
+
+        A numpy array of the BGR color tuples. 
+
+        **EXAMPLE**
         
         >>> p = img.getPalette(bins=42)
         >>> print p[2]
        
-        Notes:
+        **NOTES**
+       
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
         it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
         about k-means initialization with the following warning:
         
-        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
-
-        This shouldn't be a real problem. 
+        .. Warning::
+          One of the clusters is empty. Re-run kmean with a different initialization.
+          This shouldn't be a real problem. 
         
-        See Also:
+        **SEE ALSO**
+               
+        :py:meth:`rePalette`
+        :py:meth:`drawPaletteColors`
+        :py:meth:`palettize`
+        :py:meth:`getPalette`
+        :py:meth:`binarizeFromPalette`
+        :py:meth:`findBlobsFromPalette`
         
-        ImageClass.rePalette(self,palette,hue=False):
-        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
-        ImageClass.palettize(self,bins=10,hue=False)
-        ImageClass.binarizeFromPalette(self, palette_selection)
-        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
         """
         self._generatePalette(bins,hue)
         return self._mPalette
 
 
     def rePalette(self,palette,hue=False):
+        """
+        **SUMMARY**
+        
+        rePalette takes in the palette from another image and attempts to apply it to this image.
+        This is helpful if you want to speed up the palette computation for a series of images (like those in a
+        video stream.
+
+        **PARAMETERS**
+        
+        * *palette* - The pre-computed palette from another image.
+        * *hue* - Boolean Hue - if hue is True we use a hue palette, otherwise we use a BGR palette.
+
+        **RETURNS**
+
+        A SimpleCV Image.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img2 = Image("logo")
+        >>> p = img.getPalette()
+        >>> result = img2.rePalette(p)
+        >>> result.show()
+
+        **SEE ALSO**
+               
+        :py:meth:`rePalette`
+        :py:meth:`drawPaletteColors`
+        :py:meth:`palettize`
+        :py:meth:`getPalette`
+        :py:meth:`binarizeFromPalette`
+        :py:meth:`findBlobsFromPalette`
+        
+        """
         retVal = None
         if(hue):
             hsv = self
@@ -7036,7 +7083,8 @@ class Image:
 
     def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
         """
-        Summary:
+        **SUMMARY**
+
         This method returns the visual representation (swatches) of the palette in an image. The palette 
         is orientated either horizontally or vertically, and each color is given an area 
         proportional to the number of pixels that have that color in the image. The palette 
@@ -7045,41 +7093,46 @@ class Image:
         orientation, and then be 10% of the other dimension. E.g. if our image is 640X480 the horizontal
         palette will be (640x48) likewise the vertical palette will be (480x64)
         
-        If a Hue palette is used this method will return a grayscale palette
+        If a Hue palette is used this method will return a grayscale palette.
         
-        Parameters:
-        bins      - an integer number of bins into which to divide the colors in the image.
-        hue       - if hue is true we do only cluster on the image hue values. 
-        size      - The size of the generated palette as a (width,height) tuple, if left default we select 
-        a size based on the image so it can be nicely displayed with the 
-        image. 
-        horizontal- If true we orientate our palette horizontally, otherwise vertically. 
+        **PARAMETERS**
 
-        Returns:
+        * *bins* - an integer number of bins into which to divide the colors in the image.
+        * *hue* - if hue is true we do only cluster on the image hue values. 
+        * *size* - The size of the generated palette as a (width,height) tuple, if left default we select 
+          a size based on the image so it can be nicely displayed with the 
+          image. 
+        * *horizontal* - If true we orientate our palette horizontally, otherwise vertically. 
+
+        **RETURNS**
+
         A palette swatch image. 
 
-        Example:
+        **EXAMPLE**
         
         >>> p = img1.drawPaletteColors()
         >>> img2 = img1.sideBySide(p,side="bottom")
         >>> img2.show()
 
-        Notes:
+        **NOTES**
+
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
         it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
         about k-means initialization with the following warning:
         
-        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+        .. Warning::
+          One of the clusters is empty. Re-run kmean with a different initialization.
+          This shouldn't be a real problem. 
 
-        This shouldn't be a real problem. 
+        **SEE ALSO**
+               
+        :py:meth:`rePalette`
+        :py:meth:`drawPaletteColors`
+        :py:meth:`palettize`
+        :py:meth:`getPalette`
+        :py:meth:`binarizeFromPalette`
+        :py:meth:`findBlobsFromPalette`
         
-        See Also:
-        ImageClass.getPalette(self,bins=10,hue=False)
-        ImageClass.rePalette(self,palette,hue=False)
-        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
-        ImageClass.palettize(self,bins=10,hue=False)
-        ImageClass.binarizeFromPalette(self, palette_selection)
-        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
         """
         self._generatePalette(bins,hue)
         retVal = None
@@ -7152,41 +7205,46 @@ class Image:
 
     def palettize(self,bins=10,hue=False):
         """
-        Summary:
+        **SUMMARY**
+
         This method analyzes an image and determines the most common colors using a k-means algorithm.
         The method then goes through and replaces each pixel with the centroid of the clutsters found
         by k-means. This reduces the number of colors in an image to the number of bins. This can be particularly
         handy for doing segementation based on color.
 
-        Parameters:
-        bins      - an integer number of bins into which to divide the colors in the image.
-        hue       - if hue is true we do only cluster on the image hue values. 
+        **PARAMETERS**
+
+        * *bins* - an integer number of bins into which to divide the colors in the image.
+        * *hue* - if hue is true we do only cluster on the image hue values. 
         
 
-        Returns:
+        **RETURNS**
+
         An image matching the original where each color is replaced with its palette value.  
 
-        Example:
+        **EXAMPLE**
         
         >>> img2 = img1.palettize()
         >>> img2.show()
 
-        Notes:
+        **NOTES**
+
         The hue calculations should be siginificantly faster than the generic RGB calculation as 
         it works in a one dimensional space. Sometimes the underlying scipy method freaks out 
         about k-means initialization with the following warning:
         
-        UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+        .. Warning:: 
+          UserWarning: One of the clusters is empty. Re-run kmean with a different initialization.
+          This shouldn't be a real problem. 
 
-        This shouldn't be a real problem. 
-        
-        See Also:
-        ImageClass.getPalette(self,bins=10,hue=False
-        ImageClass.rePalette(self,palette,hue=False):
-        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
-        ImageClass.palettize(self,bins=10,hue=False)
-        ImageClass.binarizeFromPalette(self, palette_selection)
-        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0)
+        **SEE ALSO**
+               
+        :py:meth:`rePalette`
+        :py:meth:`drawPaletteColors`
+        :py:meth:`palettize`
+        :py:meth:`getPalette`
+        :py:meth:`binarizeFromPalette`
+        :py:meth:`findBlobsFromPalette`        
 
         """
         retVal = None
@@ -7202,26 +7260,28 @@ class Image:
 
     def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
         """
-        Description:
+        **DESCRIPTION**
+
         This method attempts to use palettization to do segmentation and behaves similar to the 
         findBlobs blob in that it returs a feature set of blob objects. Once a palette has been 
         extracted using getPalette() we can then select colors from that palette to be labeled 
         white within our blobs. 
 
-        Parameters:
-        palette_selection - color triplets selected from our palette that will serve turned into blobs
-        These values can either be a 3xN numpy array, or a list of RGB triplets.
-                            
-        dilate            - the optional number of dilation operations to perform on the binary image
-        prior to performing blob extraction.
-        minsize           - the minimum blob size in pixels
-        maxsize           - the maximim blob size in pixels.
+        **PARAMETERS**
+        
+        * *palette_selection* - color triplets selected from our palette that will serve turned into blobs
+          These values can either be a 3xN numpy array, or a list of RGB triplets.                            
+        * *dilate* - the optional number of dilation operations to perform on the binary image
+          prior to performing blob extraction.
+        * *minsize* - the minimum blob size in pixels
+        * *maxsize* - the maximim blob size in pixels.
 
-        Returns:
+        **RETURNS***
+
         If the method executes successfully a FeatureSet of Blobs is returned from the image. If the method 
         fails a value of None is returned. 
 
-        Example:
+       **EXAMPLE**
 
         >>> img = Image("lenna")
         >>> p = img.getPalette()
@@ -7229,16 +7289,15 @@ class Image:
         >>> blobs.draw()
         >>> img.show()
 
-        Notes: 
-
-        See Also:
-        ImageClass.getPalette(self,bins=10,hue=False
-        ImageClass.rePalette(self,palette,hue=False):
-        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
-        ImageClass.palettize(self,bins=10,hue=False)
-        ImageClass.binarizeFromPalette(self, palette_selection)
-        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
-        
+        **SEE ALSO**
+               
+        :py:meth:`rePalette`
+        :py:meth:`drawPaletteColors`
+        :py:meth:`palettize`
+        :py:meth:`getPalette`
+        :py:meth:`binarizeFromPalette`
+        :py:meth:`findBlobsFromPalette`        
+               
         """
 
         #we get the palette from find palete 
@@ -7262,34 +7321,38 @@ class Image:
 
     def binarizeFromPalette(self, palette_selection):
         """
-        Description:
+        **SUMMARY**
+
         This method uses the color palette to generate a binary (black and white) image. Palaette selection
         is a list of color tuples retrieved from img.getPalette(). The provided values will be drawn white
         while other values will be black. 
 
-        Parameters:
+        **PARAMETERS**
+
         palette_selection - color triplets selected from our palette that will serve turned into blobs
         These values can either be a 3xN numpy array, or a list of RGB triplets.
 
-        Returns:
+        **RETURNS**
+
         This method returns a black and white images, where colors that are close to the colors
         in palette_selection are set to white
 
-        Example:
+        **EXAMPLE**
 
         >>> img = Image("lenna")
         >>> p = img.getPalette()
         >>> b = img.binarizeFromPalette( (p[0],p[1],[6]) )
         >>> b.show()
 
-        Notes: 
-
-        See Also:
-        ImageClass.getPalette(self,bins=10,hue=False)
-        ImageClass.rePalette(self,palette,hue=False)
-        ImageClass.drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False)
-        ImageClass.palettize(self,bins=10,hue=False)
-        ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,)
+        **SEE ALSO**
+               
+        :py:meth:`rePalette`
+        :py:meth:`drawPaletteColors`
+        :py:meth:`palettize`
+        :py:meth:`getPalette`
+        :py:meth:`binarizeFromPalette`
+        :py:meth:`findBlobsFromPalette`        
+               
         """
 
         #we get the palette from find palete 
@@ -7324,7 +7387,7 @@ class Image:
 
     def skeletonize(self, radius = 5):
         """
-        Summary:
+        **SUMMARY**
 
         Skeletonization is the process of taking in a set of blobs (here blobs are white
         on a black background) and finding a squigly line that would be the back bone of
@@ -7334,13 +7397,13 @@ class Image:
         A good summary can be found here:
         http://www.inf.u-szeged.hu/~palagyi/skel/skel.html
 
-        Parameters:
+        **PARAMETERS**
         
-        radius - an intenger that defines how roughly how wide a blob must be to be added 
-                 to the skeleton, lower values give more skeleton lines, higher values give
-                 fewer skeleton lines. 
+        * *radius* - an intenger that defines how roughly how wide a blob must be to be added 
+          to the skeleton, lower values give more skeleton lines, higher values give
+          fewer skeleton lines. 
         
-        Example:
+        **EXAMPLE**
        
         >>> cam = Camera()
         >>> while True:
@@ -7350,13 +7413,12 @@ class Image:
         >>>     r = b-s
         >>>     r.show()
 
-        Notes:
+        
+        **NOTES**
+
         This code was a suggested improvement by Alex Wiltchko, check out his awesome blog here:
         http://alexbw.posterous.com/
 
-        See Also:
-        None
-        
         """
         img = self.toGray().getNumpy()[:,:,0]
         distance_img = ndimage.distance_transform_edt(img)
@@ -7368,7 +7430,8 @@ class Image:
 
     def smartThreshold(self, mask=None, rect=None):
         """
-        Summary:
+        **SUMMARY**
+
         smartThreshold uses a method called grabCut, also called graph cut, to 
         automagically generate a grayscale mask image. The dumb version of threshold
         just uses color, smartThreshold looks at
@@ -7381,18 +7444,21 @@ class Image:
         values can be found in the color class as Color.BACKGROUND, Color.FOREGROUND, 
         Color.MAYBE_BACKGROUND, and Color.MAYBE_FOREGROUND. 
 
-        Parameters:
-        mask         - A grayscale mask the same size as the image using the 4 mask color values
-        rect         - A rectangle tuple of the form (x_position,y_position,width,height)
+        **PARAMETERS**
 
-        Returns:
+        * *mask* - A grayscale mask the same size as the image using the 4 mask color values
+        * *rect* - A rectangle tuple of the form (x_position,y_position,width,height)
+
+        **RETURNS** 
+
         A grayscale image with the foreground / background values assigned to:
-        BACKGROUND = (0,0,0)
-        MAYBE_BACKGROUND = (64,64,64)
-        MAYBE_FOREGROUND =  (192,192,192)
-        FOREGROUND = (255,255,255)
+        * BACKGROUND = (0,0,0)
+        * MAYBE_BACKGROUND = (64,64,64)
+        * MAYBE_FOREGROUND =  (192,192,192)
+        * FOREGROUND = (255,255,255)
         
-        Example:
+        **EXAMPLE**
+
         >>> img = Image("RatTop.png")
         >>> mask = Image((img.width,img.height))
         >>> mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
@@ -7402,11 +7468,14 @@ class Image:
         >>> new_mask = img.smartThreshold(mask=mask)
         >>> new_mask.show()
 
-        Notes:
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
 
-        See Also:
-        ImageClass.smartFindBlobs()
+        **SEE ALSO**
+
+        :py:meth:`smartFindBlobs`
+
         """
         try:
             import cv2
@@ -7463,7 +7532,8 @@ class Image:
             
     def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):
         """
-        Summary:
+        **SUMMARY**
+
         smartFindBlobs uses a method called grabCut, also called graph cut, to 
         automagically determine the boundary of a blob in the image. The dumb find
         blobs just uses color threshold to find the boundary, smartFindBlobs looks at
@@ -7476,20 +7546,23 @@ class Image:
         values can be found in the color class as Color.BACKGROUND, Color.FOREGROUND, 
         Color.MAYBE_BACKGROUND, and Color.MAYBE_FOREGROUND. 
 
-        Parameters:
-        mask         - A grayscale mask the same size as the image using the 4 mask color values
-        rect         - A rectangle tuple of the form (x_position,y_position,width,height)
-        thresh_level - This represents what grab cut values to use in the mask after the
-        graph cut algorithm is run, 
-        1  - means use the foreground, maybe_foreground, and maybe_background values
-        2  - means use the foreground and maybe_foreground values.
-        3+ - means use just the foreground
+        **PARAMETERS**
+
+        * *mask* - A grayscale mask the same size as the image using the 4 mask color values
+        * *rect* - A rectangle tuple of the form (x_position,y_position,width,height)
+        * *thresh_level* - This represents what grab cut values to use in the mask after the
+          graph cut algorithm is run, 
         
-        Returns:
+          * 1  - means use the foreground, maybe_foreground, and maybe_background values
+          * 2  - means use the foreground and maybe_foreground values.
+          * 3+ - means use just the foreground
+        
+        **RETURNS**
+
         A featureset of blobs. If everything went smoothly only a couple of blobs should
         be present. 
         
-        Example:
+        **EXAMPLE**
         
         >>> img = Image("RatTop.png")
         >>> mask = Image((img.width,img.height))
@@ -7501,11 +7574,13 @@ class Image:
         >>> blobs.draw()
         >>> blobs.show()
 
-        Notes:
+        **NOTES**
+
         http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
 
-        See Also:
-        ImageClass.smartThreshold(self, mask=None, rect=None)
+        **SEE ALSO**
+        :py:meth:`smartThreshold`
+
         """
         result = self.smartThreshold(mask, rect)
         binary = None
@@ -7525,28 +7600,35 @@ class Image:
 
     def threshold(self, value):
         """
-        Summary:
+        **SUMMARY**
+
         We roll old school with this vanilla threshold function. It takes your image
         converts it to grayscale, and applies a threshold. Values above the threshold 
         are white, values below the threshold are black (note this is in contrast to 
         binarize... which is a stupid function that drives me up a wall). The resulting
         black and white image is returned.
         
-        Parameters:
-        value - the threshold, goes between 0 and 255
+        **PARAMETERS**
 
-        Returns:
-        A black and white image.
+        * *value* - the threshold, goes between 0 and 255.
+
+        **RETURNS**
+
+        A black and white SimpleCV image.
         
-        Example:
+        **EXAMPLE**
+
         >>> img = Image("purplemonkeydishwasher.png")
         >>> result = img.threshold(42)
        
-        Notes:
+        **NOTES**
+
         THRESHOLD RULES BINARIZE DROOLS!
         
-        See Also:
-        ImageClass.binarize()
+        **SEE ALSO**
+
+        :py:meth:`binarize`
+
         """
         gray = self._getGrayscaleBitmap()
         result = self.getEmpty(1)
@@ -7557,8 +7639,9 @@ class Image:
 
     def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True):
         """
-        Summary:
-        floodFill works just like ye olde paint bucket tool in your favorite image manipulation
+        **SUMMARY**
+
+        FloodFill works just like ye olde paint bucket tool in your favorite image manipulation
         program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
         point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
         tolerance, we will convert it to your color, otherwise the method will leave the pixel alone.
@@ -7569,35 +7652,35 @@ class Image:
         method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
         be with repsect to adjacent pixels. 
 
-        Parameters:
-        points      - A tuple, list of tuples, or np.array of seed points for flood fill
-        tolerance   - The color tolerance as a single value or a triplet.
-        color       - The color to replace the floodFill pixels with
-        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
-        around the seed pixel. This value can be a single value or a triplet. This will override
-        the tolerance variable.
-        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
-        around the seed pixel. This value can be a single value or a triplet. This will override
-        the tolerance variable.
-        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
-        If fixed_range is false, the tolerance is +/- tolerance of the values of 
-        the adjacent pixels to the pixel under test.
+        **PARAMETERS**
 
-        Returns:
+        * *points* - A tuple, list of tuples, or np.array of seed points for flood fill
+        * *tolerance* - The color tolerance as a single value or a triplet.
+        * *color* - The color to replace the floodFill pixels with
+        * *lower* - If tolerance does not provide enough control you can optionally set the upper and lower values
+          around the seed pixel. This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *upper* - If tolerance does not provide enough control you can optionally set the upper and lower values
+          around the seed pixel. This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *fixed_range* - If fixed_range is true we use the seed_pixel +/- tolerance
+          If fixed_range is false, the tolerance is +/- tolerance of the values of 
+          the adjacent pixels to the pixel under test.
+
+        **RETURNS**
         
         An Image where the values similar to the seed pixel have been replaced by the input color. 
 
-        Example:
+        **EXAMPLE**
         
         >>> img = Image("lenna")
         >>> img2 = img.floodFill(((10,10),(54,32)),tolerance=(10,10,10),color=Color.RED)
         >>> img2.show()
 
-        Notes:
+        **SEE ALSO**
 
-        See Also:
-        ImageClass.floodFillToMask()
-        ImageClass.findFloodFillBlobs()
+        :py:meth:`floodFillToMask`
+        :py:meth:`findFloodFillBlobs`
         
         """
         if( isinstance(points,tuple) ):
@@ -7646,7 +7729,8 @@ class Image:
 
     def floodFillToMask(self, points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True,mask=None):
         """
-        Summary:
+        **SUMMARY**
+
         floodFillToMask works sorta paint bucket tool in your favorite image manipulation
         program. You select a point (or a list of points), a color, and a tolerance, and floodFill will start at that
         point, looking for pixels within the tolerance from your intial pixel. If the pixel is in
@@ -7664,38 +7748,38 @@ class Image:
         method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
         be with repsect to adjacent pixels. 
 
-        Parameters:
-        points      - A tuple, list of tuples, or np.array of seed points for flood fill
-        tolerance   - The color tolerance as a single value or a triplet.
-        color       - The color to replace the floodFill pixels with
-        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
-        around the seed pixel. This value can be a single value or a triplet. This will override
-        the tolerance variable.
-        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
-        around the seed pixel. This value can be a single value or a triplet. This will override
-        the tolerance variable.
-        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
-        If fixed_range is false, the tolerance is +/- tolerance of the values of 
-        the adjacent pixels to the pixel under test.
-        mask        - An optional mask image that can be used to control the flood fill operation. 
-        the output of this function will include the mask data in the input mask. 
+        **PARAMETERS**
+
+        * *points* - A tuple, list of tuples, or np.array of seed points for flood fill
+        * *tolerance* - The color tolerance as a single value or a triplet.
+        * *color* - The color to replace the floodFill pixels with
+        * *lower* - If tolerance does not provide enough control you can optionally set the upper and lower values
+          around the seed pixel. This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *upper* - If tolerance does not provide enough control you can optionally set the upper and lower values
+          around the seed pixel. This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *fixed_range* - If fixed_range is true we use the seed_pixel +/- tolerance
+          If fixed_range is false, the tolerance is +/- tolerance of the values of 
+          the adjacent pixels to the pixel under test.
+        * *mask* - An optional mask image that can be used to control the flood fill operation. 
+          the output of this function will include the mask data in the input mask. 
         
-        Returns:
+        **RETURNS**
+
         An Image where the values similar to the seed pixel have been replaced by the input color. 
 
-        Example:
-        
+        **EXAMPLE**
+
         >>> img = Image("lenna")
         >>> mask = img.edges()
         >>> mask= img.floodFillToMask(((10,10),(54,32)),tolerance=(10,10,10),mask=mask)
         >>> mask.show
 
-        Notes:
-        None
+        **SEE ALSO**
 
-        See Also:
-        ImageClass.floodFill()
-        ImageClass.findFloodFillBlobs()
+        :py:meth:`floodFill`
+        :py:meth:`findFloodFillBlobs`
         
         """
         mask_flag = 255 # flag weirdness
@@ -7752,39 +7836,41 @@ class Image:
 
     def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
         """
-        Summary:
+        **SUMMARY**
+
         This method acts like findBlobs, but it lets you specifiy blobs directly by
         providing a mask image. The mask image must match the size of this image, and 
         the mask should have values > threshold where you want the blobs selected. This 
         method can be used with binarize, dialte, erode, floodFill, edges etc to 
         get really nice segmentation. 
         
-        Parameters:
-        mask      - The mask image, areas lighter than threshold will be counted as blobs.
-        Mask should be the same size as this image. 
-        threshold - A single threshold value used when we binarize the mask. 
-        minsize   - The minimum size of the returned blobs.
-        maxsize   - The maximum size of the returned blobs, if none is specified we peg 
-        this to the image size. 
+        **PARAMETERS**
 
-        Returns:
+        * *mask* - The mask image, areas lighter than threshold will be counted as blobs.
+          Mask should be the same size as this image. 
+        * *threshold* - A single threshold value used when we binarize the mask. 
+        * *minsize* - The minimum size of the returned blobs.
+        * *maxsize*  - The maximum size of the returned blobs, if none is specified we peg 
+          this to the image size. 
+
+        **RETURNS**
+
         A featureset of blobs. If no blobs are found None is returned. 
 
-        Example:
+        **EXAMPLE**
         
         >>> img = Image("Foo.png")
         >>> mask = img.binarize().dilate(2)
         >>> blobs = img.findBlobsFromMask(mask)
         >>> blobs.show()
         
-        Notes:
+        **SEE ALSO**
 
-        See Also:
-        ImageClass.findBlobs()
-        ImageClass.binarize()
-        ImageClass.threshold()
-        ImageClass.dilate()
-        ImageClass.erode()
+        :py:meth:`findBlobs`
+        :py:meth:`binarize`
+        :py:meth:`threshold`
+        :py:meth:`dilate`
+        :py:meth:`erode`
         """
         if (maxsize == 0):  
             maxsize = self.width * self.height / 2
@@ -7809,7 +7895,8 @@ class Image:
                            fixed_range=True,minsize=30,maxsize=-1):
         """
 
-        Summary:
+        **SUMMARY**
+
         This method lets you use a flood fill operation and pipe the results to findBlobs. You provide
         the points to seed floodFill and the rest is taken care of. 
         
@@ -7824,47 +7911,40 @@ class Image:
         method will set its tolerance with respect to the seed pixel, otherwise the tolerance will
         be with repsect to adjacent pixels. 
 
-        Parameters:
-        points      - A tuple, list of tuples, or np.array of seed points for flood fill
-        
-        tolerance   - The color tolerance as a single value or a triplet.
-        
-        color       - The color to replace the floodFill pixels with
-        
-        lower       - If tolerance does not provide enough control you can optionally set the upper and lower values
-        around the seed pixel. This value can be a single value or a triplet. This will override
-        the tolerance variable.
-        
-        upper       - If tolerance does not provide enough control you can optionally set the upper and lower values
-        around the seed pixel. This value can be a single value or a triplet. This will override
-        the tolerance variable.
-        
-        fixed_range - If fixed_range is true we use the seed_pixel +/- tolerance
-        If fixed_range is false, the tolerance is +/- tolerance of the values of 
-        the adjacent pixels to the pixel under test.
-        
-        minsize     - The minimum size of the returned blobs.
-        
-        maxsize     - The maximum size of the returned blobs, if none is specified we peg 
-                      this to the image size. 
+        **PARAMETERS**
 
-        Returns:
-        
+        * *points* - A tuple, list of tuples, or np.array of seed points for flood fill.        
+        * *tolerance* - The color tolerance as a single value or a triplet.
+        * *color* - The color to replace the floodFill pixels with        
+        * *lower* - If tolerance does not provide enough control you can optionally set the upper and lower values
+          around the seed pixel. This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *upper* - If tolerance does not provide enough control you can optionally set the upper and lower values
+          around the seed pixel. This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *fixed_range* - If fixed_range is true we use the seed_pixel +/- tolerance
+          If fixed_range is false, the tolerance is +/- tolerance of the values of 
+          the adjacent pixels to the pixel under test.
+        * *minsize* - The minimum size of the returned blobs.
+        * *maxsize* - The maximum size of the returned blobs, if none is specified we peg 
+          this to the image size. 
+
+        **RETURNS**        
+
         A featureset of blobs. If no blobs are found None is returned. 
         
         An Image where the values similar to the seed pixel have been replaced by the input color. 
 
-        Example:
+        **EXAMPLE**
 
         >>> img = Image("lenna")
         >>> blerbs = img.findFloodFillBlobs(((10,10),(20,20),(30,30)),tolerance=30)
         >>> blerbs.show()
 
-        Notes:
+        **SEE ALSO**
 
-        See Also:
-        ImageClass.findBlobs()
-        ImageClass.floodFill()
+        :py:meth:`findBlobs`
+        :py:meth:`floodFill`
         
         """
         mask = self.floodFillToMask(points,tolerance,color=Color.WHITE,lower=lower,upper=upper,fixed_range=fixed_range)
@@ -7883,13 +7963,13 @@ class Image:
         
         **PARAMETERS**
 
-        grayscale - If grayscale is True we first covert the image to grayscale, otherwise
-                    we perform the operation on each channel. 
+        * *grayscale* - If grayscale is True we first covert the image to grayscale, otherwise
+          we perform the operation on each channel. 
         
         **RETURNS**
 
         nothing - but creates a locally cached list of IPL imgaes corresponding to the real
-                  and imaginary components of each channel. 
+        and imaginary components of each channel. 
         
         **EXAMPLE**
 
@@ -7950,6 +8030,11 @@ class Image:
         This method works just like _doDFT but returns a deep copy
         of the resulting array which can be used in destructive operations.
 
+        **PARAMETERS**
+
+        * *grayscale* - If grayscale is True we first covert the image to grayscale, otherwise
+          we perform the operation on each channel. 
+
         **RETURNS**
         
         A deep copy of the cached DFT real/imaginary image list. 
@@ -7994,6 +8079,11 @@ class Image:
         component and the second channel is teh imaginary component. If the operation 
         is performed on an RGB image and grayscale is False the result is a list of 
         these images of the form [b,g,r].
+
+        **PARAMETERS**
+
+        * *grayscale* - If grayscale is True we first covert the image to grayscale, otherwise
+          we perform the operation on each channel. 
 
         **RETURNS**
         
@@ -8630,8 +8720,8 @@ class Image:
 
         **PARAMETERS**
 
-        raw_dft_image - A list object with either one or three IPL images. Each image should 
-        have a 64f depth and contain two channels (the real and the imaginary).
+        * *raw_dft_image* - A list object with either one or three IPL images. Each image should 
+          have a 64f depth and contain two channels (the real and the imaginary).
         
         **RETURNS**
 
@@ -8722,10 +8812,10 @@ class Image:
         
         **PARAMETERS**
 
-        dia - int Diameter of Butterworth low pass filter
-        order - int Order of butterworth lowpass filter
-        highpass: BOOL True: highpass filterm False: lowpass filter
-        grayscale: BOOL
+        * *dia* - int Diameter of Butterworth low pass filter
+        * *order* - int Order of butterworth lowpass filter
+        * *highpass*: BOOL True: highpass filterm False: lowpass filter
+        * *grayscale*: BOOL
     
         **EXAMPLE**
     
@@ -8791,9 +8881,9 @@ class Image:
         
         **PARAMETERS**
 
-        dia -  int - diameter of Gaussian filter
-        highpass: BOOL True: highpass filter False: lowpass filter
-        grayscale: BOOL
+        * *dia* -  int - diameter of Gaussian filter
+        * *highpass*: BOOL True: highpass filter False: lowpass filter
+        * *grayscale*: BOOL
     
         **EXAMPLE**
     
@@ -8865,9 +8955,9 @@ class Image:
         
         **PARAMETERS**
     
-        boost: int  boost = 1 => unsharp masking, boost > 1 => highboost filtering
-        dia - int Diameter of Gaussian low pass filter
-        grayscale - BOOL
+        * *boost* - int  boost = 1 => unsharp masking, boost > 1 => highboost filtering
+        * *dia* - int Diameter of Gaussian low pass filter
+        * *grayscale* - BOOL
     
         **EXAMPLE**
 
