@@ -5171,11 +5171,45 @@ class Image:
 
     def blit(self, img, pos=None,alpha=None,mask=None,alphaMask=None):
         """
-        img - an image to place ontop of this image.
-        pos - an xy position tuple of the top left corner of img on this image.
-        alpha - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
-        mask - a binary mask the same size as the input image. White areas are blitted, black areas are not blitted.
-        alphaMask - an alpha mask where each grayscale value maps how much of each image is shown.
+        **SUMMARY**
+
+        Blit aka bit blit - which in ye olden days was an acronym for bit-block transfer. In other words blit is
+        when you want to smash two images together, or add one image to another. This method takes in a second 
+        SimpleCV image, and then allows you to add to some point on the calling image. A general blit command
+        will just copy all of the image. You can also copy the image with an alpha value to the source image
+        is semi-transparent. A binary mask can be used to blit non-rectangular image onto the souce image.
+        An alpha mask can be used to do and arbitrarily transparent image to this image. Both the mask and 
+        alpha masks are SimpleCV Images. 
+
+        **PARAMETERS**
+
+        * *img* - an image to place ontop of this image.
+        * *pos* - an (x,y) position tuple of the top left corner of img on this image. Note that these values 
+          can be negative. 
+        * *alpha* - a single floating point alpha value (0=see the bottom image, 1=see just img, 0.5 blend the two 50/50).
+        * *mask* - a binary mask the same size as the input image. White areas are blitted, black areas are not blitted.
+        * *alphaMask* - an alpha mask where each grayscale value maps how much of each image is shown.
+        
+        **RETURNS**
+        
+        A SimpleCV Image. The size will remain the same. 
+
+        **EXAMPLE**
+        
+        >>> topImg = Image("top.png")
+        >>> bottomImg = Image("bottom.png")
+        >>> mask = Image("mask.png")
+        >>> aMask = Image("alpphaMask.png")
+        >>> bottomImg.blit(top,pos=(100,100)).show()
+        >>> bottomImg.blit(top,alpha=0.5).show()
+        >>> bottomImg.blit(top,pos=(100,100),mask=mask).show()
+        >>> bottomImg.blit(top,pos=(-10,-10)alphaMask=aMask).show()
+        
+        **SEE ALSO**
+
+        :py:meth:`createBinaryMask`
+        :py:meth:`createAlphaMask`
+
         """
         retVal = Image(self.getEmpty())
         cv.Copy(self.getBitmap(),retVal.getBitmap())
@@ -5274,15 +5308,32 @@ class Image:
 
     def sideBySide(self, image, side="right", scale=True ):
         """
-        Combine two images as a side by side. Great for before and after images.
+        **SUMMARY**
 
+        Combine two images as a side by side images. Great for before and after images.
 
-        side - what side of this image to place the other image on.
-               choices are (left/right/top/bottom). 
+        **PARAMETERS**
+
+        * *side* - what side of this image to place the other image on.
+          choices are ('left'/'right'/'top'/'bottom'). 
                
-        scale - if true scale the smaller of the two sides to match the 
-                edge touching the other image. If false we center the smaller
-                of the two images on the edge touching the larger image. 
+        * *scale* - if true scale the smaller of the two sides to match the 
+          edge touching the other image. If false we center the smaller
+          of the two images on the edge touching the larger image. 
+
+        **RETURNS**
+        
+        A new image that is a combination of the two images.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = Image("orson_welles.jpg")
+        >>> img3 = img.sideBySide(img2)
+
+        **TODO**
+
+        Make this accept a list of images.
 
         """
         #there is probably a cleaner way to do this, but I know I hit every case when they are enumerated
@@ -5412,14 +5463,29 @@ class Image:
 
     def embiggen(self, size=None, color=Color.BLACK, pos=None):
         """
+        **SUMMARY**
+
         Make the canvas larger but keep the image the same size. 
 
-        size - width and heigt tuple of the new canvas. 
+        **PARAMETERS**
+        
+        * *size* - width and heigt tuple of the new canvas. 
 
-        color - the color of the canvas 
+        * *color* - the color of the canvas 
 
-        pos - the position of the top left corner of image on the new canvas, 
-              if none the image is centered.
+        * *pos* - the position of the top left corner of image on the new canvas, 
+          if none the image is centered.
+          
+        **RETURNS**
+        
+        The enlarged SimpleCV Image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img = img.embiggen((1024,1024),color=Color.BLUE)
+        >>> img.show()
+
         """
         
         if( size == None or size[0] < self.width or size[1] < self.height ):
@@ -5507,6 +5573,8 @@ class Image:
 
     def createBinaryMask(self,color1=(0,0,0),color2=(255,255,255)):
         """
+        **SUMMARY**
+
         Generate a binary mask of the image based on a range of rgb values.
         A binary mask is a black and white image where the white area is kept and the
         black area is removed. 
@@ -5514,10 +5582,28 @@ class Image:
         This method is used by specifying two colors as the range between the minimum and maximum
         values that will be masked white.
 
-        example:
+        **PARAMETERS**
+
+        * *color1* - The starting color range for the mask..
+        * *color2* - The end of the color range for the mask. 
+
+        **RETURNS**
+
+        A binary (black/white) image mask as a SimpleCV Image.
+
+        **EXAMPLE**
         
-        >>> img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
-       
+        >>> img = Image("lenna")
+        >>> mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
+        >>> mask.show()
+
+        **SEE ALSO**
+        
+        :py:meth:`createBinaryMask`
+        :py:meth:`createAlphaMask`
+        :py:meth:`blit`
+        :py:meth:`threshold`
+
         """
         if( color1[0]-color2[0] == 0 or 
             color1[1]-color2[1] == 0 or
@@ -5596,12 +5682,37 @@ class Image:
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
         """
+        **SUMMARY**
+
         Apply a binary mask to the image. The white areas of the mask will be kept,
         and the black areas removed. The removed areas will be set to the color of 
         bg_color. 
 
-        mask - the binary mask image. White areas are kept, black areas are removed.
-        bg_color - the color of the background on the mask.
+        **PARAMETERS**
+
+        * *mask* - the binary mask image. White areas are kept, black areas are removed.
+        * *bg_color* - the color of the background on the mask.
+
+        **RETURNS**
+        
+        A binary (black/white) image mask as a SimpleCV Image.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
+        >>> result = img.applyBinaryMask(mask)
+        >>> result.show()
+
+        **SEE ALSO**
+        
+        :py:meth:`createBinaryMask`
+        :py:meth:`createAlphaMask`
+        :py:meth:`applyBinaryMask`
+        :py:meth:`applyAlphaMaks`
+        :py:meth:`blit`
+        :py:meth:`threshold`
+
         """
         newCanvas = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_8U, 3)
         cv.SetZero(newCanvas)
@@ -5615,6 +5726,8 @@ class Image:
 
     def createAlphaMask(self, hue=60, hue_lb=None,hue_ub=None):
         """
+        **SUMMARY**
+
         Generate a grayscale or binary mask image based either on a hue or an RGB triplet that can be used
         like an alpha channel. In the resulting mask, the hue/rgb_color will be treated as transparent (black). 
 
@@ -5626,10 +5739,28 @@ class Image:
 
         Invert flips the mask values.
 
-        Parameters:
-             hue = a hue used to generate the alpha mask.
-             rgb_color = an rgb triplet used to generate a mask
-             rgb_thresh = an integer distance from the rgb_color that will also be added to the mask. 
+        **PARAMETERS**
+
+        * *hue* - a hue used to generate the alpha mask.
+        * *hue_lb* - the upper value  of a range of hue values to use.
+        * *hue_ub* - the lower value  of a range of hue values to use.
+
+        **RETURNS**
+
+        A grayscale alpha mask as a SimpleCV Image. 
+
+        >>> img = Image("lenna")
+        >>> mask = img.createAlphaMask(hue_lb=50,hue_ub=70)
+        >>> mask.show()
+
+        **SEE ALSO**
+        
+        :py:meth:`createBinaryMask`
+        :py:meth:`createAlphaMask`
+        :py:meth:`applyBinaryMask`
+        :py:meth:`blit`
+        :py:meth:`threshold`
+
         """
 
         if( hue<0 or hue > 180 ):
@@ -5655,8 +5786,27 @@ class Image:
 
     def applyPixelFunction(self, theFunc):
         """
+        **SUMMARY**
+
         apply a function to every pixel and return the result
         The function must be of the form int (r,g,b)=func((r,g,b))
+
+        **PARAMETERS** 
+        
+        * *theFunc* - a function pointer to a function of the form (r,g.b) = theFunc((r,g,b))
+        
+        **RETURNS**
+        
+        A simpleCV image after mapping the function to the image.
+
+        **EXAMPLE**
+        
+        >>> def derp(pixels):
+        >>>     return (int(b*.2),int(r*.3),int(g*.5))
+        >>> 
+        >>> img = Image("lenna")
+        >>> img2 = img.applyPixelFunction(derp)
+
         """
         #there should be a way to do this faster using numpy vectorize
         #but I can get vectorize to work with the three channels together... have to split them
@@ -5668,6 +5818,8 @@ class Image:
 
     def integralImage(self,tilted=False):
         """
+        **SUMMARY** 
+
         Calculate the integral image and return it as a numpy array.
         The integral image gives the sum of all of the pixels above and to the
         right of a given pixel location. It is useful for computing Haar cascades.
@@ -5675,11 +5827,22 @@ class Image:
         image requires 32Bit values which are not easily supported by the SimpleCV
         Image class.
 
-        Parameters:
-            tilted - Boolean
+        **PARAMETERS**
+        
+        * *tilted*  - if tilted is true we tilt the image 45 degrees and then calculate the results.
 
-        Returns:
-            Numpy Array
+        **RETURNS**
+        
+        A numpy array of the values.
+
+        **EXAMPLE**
+        
+        >>> img = Image("logo")
+        >>> derp = img.integralImage()
+        
+        **SEE ALSO**
+        
+        http://en.wikipedia.org/wiki/Summed_area_table
         """
         
         if(tilted):
@@ -5694,23 +5857,29 @@ class Image:
         
     def convolve(self,kernel = [[1,0,0],[0,1,0],[0,0,1]],center=None):
         """
+        **SUMMARY**
+
         Convolution performs a shape change on an image.  It is similiar to
         something like a dilate.  You pass it a kernel in the form of a list, np.array, or cvMat
 
+        **PARAMETERS**
 
-        Example:
+        * *kernel* - The convolution kernel. As a cvArray, cvMat, or Numpy Array.
+        * *center* - If true we use the center of the kernel.
+
+        **RETURNS**
+        The image after we apply the convolution.
+
+        **EXAMPLE**
         
         >>> img = Image("sampleimages/simplecv.png")
         >>> kernel = [[1,0,0],[0,1,0],[0,0,1]]
         >>> conv = img.convolve()
 
+        **SEE ALSO**
+        
+        http://en.wikipedia.org/wiki/Convolution
 
-        Parameters:
-            kernel - Array, Numpy Array, CvMat
-            center - Boolean
-
-        Returns:
-            Image
         """
         if(isinstance(kernel, list)):
             kernel = np.array(kernel)
@@ -5734,12 +5903,13 @@ class Image:
 
     def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM"):
         """
+        **SUMMARY**
+
         This function searches an image for a template image.  The template
         image is a smaller image that is searched for in the bigger image.
         This is a basic pattern finder in an image.  This uses the standard
         OpenCV template (pattern) matching and cannot handle scaling or rotation
 
-        
         Template matching returns a match score for every pixel in the image.
         Often pixels that are near to each other and a close match to the template
         are returned as a match. If the threshold is set too low expect to get
@@ -5756,30 +5926,32 @@ class Image:
         find the centroid of all of these values. We suggest using an iterative
         k-means approach to find the centroids.
         
-        methods:
-        SQR_DIFF_NORM - Normalized square difference
-        SQR_DIFF      - Square difference
-        CCOEFF        -
-        CCOEFF_NORM   -
-        CCORR         - Cross correlation
-        CCORR_NORM    - Normalize cross correlation
 
-        Example:
+        **PARAMETERS**
+
+        * *template_image* - The template image. 
+        * *threshold* - Int
+        * *method* -
+
+          * SQR_DIFF_NORM - Normalized square difference
+          * SQR_DIFF      - Square difference
+          * CCOEFF        -
+          * CCOEFF_NORM   -
+          * CCORR         - Cross correlation
+          * CCORR_NORM    - Normalize cross correlation
+
+        **EXAMPLE**
         
         >>> image = Image("/path/to/img.png")
         >>> pattern_image = image.crop(100,100,100,100)
         >>> found_patterns = image.findTemplate(pattern_image)
         >>> found_patterns.draw()
         >>> image.show()
-
-
-        Parameters:
-            template_image - Image
-            threshold - Int
-            method - String
         
         **RETURNS**
-            FeatureSet
+
+        This method returns a FeatureSet of TemplateMatch objects.
+        
         """
         if(template_image == None):
             print "Need image for matching"
@@ -5856,6 +6028,8 @@ class Image:
 
     def readText(self):
         """
+        **SUMMARY**
+
         This function will return any text it can find using OCR on the
         image.
 
@@ -5863,14 +6037,23 @@ class Image:
         it in your application try to rotate and/or crop the area so that
         the text would be the same way a document is read
 
-        **RETURNS** String
+        **RETURNS** 
+        
+        A String
+
+        **EXAMPLE**
+        
+        >>> img = Imgae("somethingwithtext.png")
+        >>> text = img.readText()
+        >>> print text
+
+        **NOTE**
 
         If you're having run-time problems I feel bad for your son,
         I've got 99 problems but dependencies ain't one:
 
         http://code.google.com/p/tesseract-ocr/
         http://code.google.com/p/python-tesseract/
-
 
         """
 
@@ -5892,20 +6075,36 @@ class Image:
 
     def findCircle(self,canny=100,thresh=350,distance=-1):
         """
+        **SUMMARY**
+
         Perform the Hough Circle transform to extract _perfect_ circles from the image
         canny - the upper bound on a canny edge detector used to find circle edges.
 
-        thresh - the threshold at which to count a circle. Small parts of a circle get
-        added to the accumulator array used internally to the array. This value is the
-        minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
-
-        Warning: if this threshold is too high, and no circles are found the underlying OpenCV
-        routine fails and causes a segfault. 
+        **PARAMETERS**
         
-        distance - the minimum distance between each successive circle in pixels. 10 is a good
-        starting value.
+        * *thresh* - the threshold at which to count a circle. Small parts of a circle get
+          added to the accumulator array used internally to the array. This value is the
+          minimum threshold. Lower thresholds give more circles, higher thresholds give fewer circles.
 
-        returns: a circle feature set. 
+        .. ::Warning: 
+          If this threshold is too high, and no circles are found the underlying OpenCV
+          routine fails and causes a segfault. 
+        
+        * *distance* - the minimum distance between each successive circle in pixels. 10 is a good
+          starting value.
+
+        **RETURNS**
+
+        A feature set of Circle objects. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> circs = img.findCircles()
+        >>> for c in circs:
+        >>>    print c
+        
+
         """
         storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
         #a distnace metric for how apart our circles should be - this is sa good bench mark
@@ -5923,13 +6122,29 @@ class Image:
 
     def whiteBalance(self,method="Simple"):
         """
+        **SUMMARY**
+        
         Attempts to perform automatic white balancing. 
-        Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
-        Robust AWB: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html
-        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/Papers/Robust%20Automatic%20White%20Balance%20Algorithm%20using%20Gray%20Color%20Points%20in%20Images.pdf
-        Simple AWB:
-        http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
-        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
+
+        **PARAMETERS**
+        
+        The method can be one of the following:
+        * Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
+        * Robust AWB: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html
+          `Robust <http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/Papers/Robust%20Automatic%20White%20Balance%20Algorithm%20using%20Gray%20Color%20Points%20in%20Images.pdf>`
+        * Simple AWB:
+          http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
+          http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
+
+        **RETURNS**
+        
+        A SimpleCV Image.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> img2 = img.whiteBalance()
+                
         """
         img = self
         if(method=="GrayWorld"):           
@@ -6066,28 +6281,35 @@ class Image:
         
     def applyLUT(self,rLUT=None,bLUT=None,gLUT=None):
         """
+        **SUMMARY**
+
         Apply LUT allows you to apply a LUT (look up table) to the pixels in a image. Each LUT is just 
         an array where each index in the array points to its value in the result image. For example 
         rLUT[0]=255 would change all pixels where the red channel is zero to the value 255.
         
-        params:
-        rLUT = a tuple or np.array of size (256x1) with dtype=uint8
-        gLUT = a tuple or np.array of size (256x1) with dtype=uint8
-        bLUT = a tuple or np.array of size (256x1) with dtype=uint8
-        !The dtype is very important. Will throw the following error without it:
+        **PARAMETERS**
+
+        * *rLUT* - a tuple or np.array of size (256x1) with dtype=uint8.
+        * *gLUT* - a tuple or np.array of size (256x1) with dtype=uint8.
+        * *bLUT* - a tuple or np.array of size (256x1) with dtype=uint8.
+
+        .. warning::
+          The dtype is very important. Will throw the following error without it:
+          error: dst.size() == src.size() && dst.type() == CV_MAKETYPE(lut.depth(), src.channels())
         
-        error: dst.size() == src.size() && dst.type() == CV_MAKETYPE(lut.depth(), src.channels())
         
+        **RETURNS**
+
+        The SimpleCV image remapped using the LUT.
         
-        returns:
-        The image remapped using the LUT.
+        **EXAMPLE**
+
+        This example saturates the red channel:
         
-        example:
-        This example saturates the red channel
-       
->>> rlut = np.ones((256,1),dtype=uint8)*255
+        >>> rlut = np.ones((256,1),dtype=uint8)*255
         >>> img=img.applyLUT(rLUT=rlut)
        
+        
         """
         r = self.getEmpty(1)
         g = self.getEmpty(1)
@@ -6274,34 +6496,36 @@ class Image:
 
     def drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1):
         """
-        Summary:
+        **SUMMARY**
+
         Draw keypoints draws a side by side representation of two images, calculates
         keypoints for both images, determines the keypoint correspondences, and then draws
         the correspondences. This method is helpful for debugging keypoint calculations
         and also looks really cool :) .  The parameters mirror the parameters used 
         for findKeypointMatches to assist with debugging 
 
-        Parameters:
-        template - A template image. 
+        **PARAMETERS**
 
-        quality - The feature quality metric. This can be any value between about 300 and 500. Higher
-        values should return fewer, but higher quality features. 
+        * *template* - A template image. 
+        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features. 
+        * *minDist* - The value below which the feature correspondence is considered a match. This 
+          is the distance between two feature vectors. Good values are between 0.05 and 0.3
+        * *width* - The width of the drawn line.
 
-        minDist - The value below which the feature correspondence is considered a match. This 
-                  is the distance between two feature vectors. Good values are between 0.05 and 0.3
+        **RETURNS**
 
-        width    - The width of the drawn line.
-
-        Returns:
         A side by side image of the template and source image with each feature correspondence 
         draw in a different color. 
 
-        Example:
+        **EXAMPLE**
+
         >>> img = cam.getImage()
         >>> template = Image("myTemplate.png")
         >>> result = img.drawKeypointMatches(self,template,300.00,0.4):
 
-        Notes:
+        **NOTES**
+
         If you would prefer to work with the raw keypoints and descriptors each image keeps
         a local cache of the raw values. These are named:
         
@@ -6310,12 +6534,11 @@ class Image:
         self._mKPDescriptors # The descriptor as a floating point numpy array
         self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
 
-        See:
-         ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
-         ImageClass._getFLANNMatches(self,sd,td)
-         ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
-         ImageClass.findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ) 
-         ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointsMatch`
 
         """
         if template == None:
@@ -6368,13 +6591,10 @@ class Image:
         **PARAMETERS**
 
         * *template* - A template image. 
-
         * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
           values should return fewer, but higher quality features. 
-
         * *minDist* - The value below which the feature correspondence is considered a match. This 
           is the distance between two feature vectors. Good values are between 0.05 and 0.3
-
         * *minMatch* - The percentage of features which must have matches to proceed with homography calculation.
           A value of 0.4 means 40% of features must match. Higher values mean better matches
           are used. Good values are between about 0.3 and 0.7
@@ -6399,7 +6619,6 @@ class Image:
         If you would prefer to work with the raw keypoints and descriptors each image keeps
         a local cache of the raw values. These are named:
         
-
         | self._mKeyPoints # A Tuple of keypoint objects
         | self._mKPDescriptors # The descriptor as a floating point numpy array
         | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
@@ -6411,7 +6630,6 @@ class Image:
         :py:meth:`_getFLANNMatches`
         :py:meth:`drawKeypointMatches`
         :py:meth:`findKeypoints`
-
 
         """
         
@@ -6484,6 +6702,8 @@ class Image:
 
     def findKeypoints(self,min_quality=300.00,flavor="SURF",highQuality=False ): 
         """
+        **SUMMARY**
+
         This method finds keypoints in an image and returns them as a feature set.
         Keypoints are unique regions in an image that demonstrate some degree of 
         invariance to changes in camera pose and illumination. They are helpful
@@ -6493,60 +6713,54 @@ class Image:
         We support four keypoint detectors and only one form of keypoint descriptors.
         Only the surf flavor of keypoint returns feature and descriptors at this time.
        
-        Parameters:
+        **PARAMETERS**
         
-        min_quality - The minimum quality metric for SURF descriptors. Good values
-        range between about 300.00 and 600.00
+        * *min_quality* - The minimum quality metric for SURF descriptors. Good values
+          range between about 300.00 and 600.00
         
-        flavor - a string indicating the method to use to extract features.
-        A good primer on how feature/keypoint extractiors can be found here:
+        * *flavor* - a string indicating the method to use to extract features.
+          A good primer on how feature/keypoint extractiors can be found here:
+          http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
+          http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
         
-        http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
-        http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+          * "SURF" - extract the SURF features and descriptors. If you don't know
+            what to use, use this. 
+            See: http://en.wikipedia.org/wiki/SURF
         
-        * "SURF" - extract the SURF features and descriptors. If you don't know
-          what to use, use this. 
-          See: http://en.wikipedia.org/wiki/SURF
+          * "STAR" - The STAR feature extraction algorithm
+            See: http://pr.willowgarage.com/wiki/Star_Detector
         
-        * "STAR" - The STAR feature extraction algorithm
-          See: http://pr.willowgarage.com/wiki/Star_Detector
+          * "FAST" - The FAST keypoint extraction algorithm
+            See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
         
-        * "FAST" - The FAST keypoint extraction algorithm
-          See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
-        
-        highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
-        values and a vector of 128 descriptor values. The latter are "high" 
-        quality descriptors. 
+        * *highQuality* - The SURF descriptor comes in two forms, a vector of 64 descriptor 
+          values and a vector of 128 descriptor values. The latter are "high" 
+          quality descriptors. 
                       
-        Returns:
+        **RETURNS**
+
         A feature set of KeypointFeatures. These KeypointFeatures let's you draw each 
         feature, crop the features, get the feature descriptors, etc. 
 
-        Example:
-        
+        **EXAMPLE**
+
         >>> img = Image("aerospace.jpg")
         >>> fs = img.findKeypoints(flavor="SURF",min_quality=500,highQuality=True)
         >>> fs = fs.sortArea()
         >>> fs[-1].draw()
         >>> img.draw()
 
-        Notes:
+        **NOTES**
+
         If you would prefer to work with the raw keypoints and descriptors each image keeps
         a local cache of the raw values. These are named:
-        
-        self._mKeyPoints # A tuple of keypoint objects
-        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
 
-        See Also:
-        ImageClass._getRawKeypoints(self,thresh=500.00,forceReset=False,flavor="SURF",highQuality=1)
-        ImageClass._getFLANNMatches(self,sd,td)
-        ImageClass.findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4)
-        ImageClass.drawKeypointMatches(self,template,thresh=500.00,minDist=0.15,width=1)
+        :py:meth:`_getRawKeypoints` 
+        :py:meth:`_getFLANNMatches`
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
 
-        
-         """
+        """
         fs = FeatureSet()
         kp = []
         d = []
@@ -6569,27 +6783,44 @@ class Image:
 
     def findMotion(self, previous_frame, window=11, method='BM', aggregate=True):
         """
-        findMotion - perform an optical flow calculation. This method attempts to find 
-                     motion between two subsequent frames of an image. You provide it 
-                     with the previous frame image and it returns a feature set of motion
-                     fetures that are vectors in the direction of motion.
+        **SUMMARY**
 
-        previous_frame - The last frame as an Image. 
+        findMotion performs an optical flow calculation. This method attempts to find 
+        motion between two subsequent frames of an image. You provide it 
+        with the previous frame image and it returns a feature set of motion
+        fetures that are vectors in the direction of motion.
 
-        window         - The block size for the algorithm. For the the HS and LK methods 
-                         this is the regular sample grid at which we return motion samples.
-                         For the block matching method this is the matching window size.
+        **PARAMETERS**
 
-        method         - The algorithm to use as a string. Your choices are:
-                         'BM' - default block matching robust but slow - if you are unsure use this.
-                         'LK' - Lucas-Kanade method - http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method 
-                         'HS' - Horn-Schunck method - http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method
+        * *previous_frame* - The last frame as an Image. 
+        * *window* - The block size for the algorithm. For the the HS and LK methods 
+          this is the regular sample grid at which we return motion samples.
+          For the block matching method this is the matching window size.
+        * *method* - The algorithm to use as a string. 
+          Your choices are:
+          * 'BM' - default block matching robust but slow - if you are unsure use this.
+          * 'LK' - Lucas-Kanade method - http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method 
+          * 'HS' - Horn-Schunck method - http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method
+        * aggregate - If aggregate is true, each of our motion features is the average of
+          motion around the sample grid defined by window. If aggregate is false
+          we just return the the value as sampled at the window grid interval. For 
+          block matching this flag is ignored.
 
+        **RETURNS**
 
-        aggregate      - If aggregate is true, each of our motion features is the average of
-                         motion around the sample grid defined by window. If aggregate is false
-                         we just return the the value as sampled at the window grid interval. For 
-                         block matching this flag is ignored.
+        A featureset of motion objects. 
+
+        **EXAMPLES**
+        
+        >>> cam = Camera()
+        >>> img1 = cam.getImage()
+        >>> img2 = cam.getImage()
+        >>> motion = img2.findMotion(img1)
+        >>> motion.draw()
+        >>> img2.show()
+
+        **SEE ALSO**
+
         """
         if( self.width != previous_frame.width or self.height != previous_frame.height):
             warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
