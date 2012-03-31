@@ -59,7 +59,7 @@ def plot(arg):
   try:
     import matplotlib.pyplot as plt
   except:
-    warnings.warn("Matplotlib is not installed and required")
+    logger.warning("Matplotlib is not installed and required")
     return
 
 

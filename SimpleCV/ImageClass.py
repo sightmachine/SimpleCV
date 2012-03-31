@@ -534,7 +534,7 @@ class Image:
                 try:
                     from webm import decode as webmDecode
                 except ImportError:
-                      warnings.warn('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      logger.warning('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
                       return
 
                 WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
@@ -5335,7 +5335,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
+            logger.warning("Can't Do GrabCut without OpenCV >= 2.3.0")
             return
         retVal = []
         if( mask is not None ):
@@ -5382,7 +5382,7 @@ class Image:
             cv.LUT(bmp,bmp,cv.fromarray(LUT))
             retVal = Image(bmp)
         else:
-            warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
+            logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
         return retVal
             
     def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):

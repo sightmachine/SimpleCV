@@ -524,7 +524,7 @@ class Feature(object):
         elif( isinstance(object,float) or isinstance(object,int) ):
             return( self.maxY() < object )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to feature.above(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to feature.above(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
     
     def below(self,object):
@@ -538,7 +538,7 @@ class Feature(object):
         elif( isinstance(object,float) or isinstance(object,int) ):
             return( self.minY() > object )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to feature.below(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to feature.below(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
  
      
@@ -553,7 +553,7 @@ class Feature(object):
         elif( isinstance(object,float) or isinstance(object,int) ):
             return( self.minX() > object )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to feature.right(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to feature.right(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
 
     def left(self,object):
@@ -567,7 +567,7 @@ class Feature(object):
         elif( isinstance(object,float) or isinstance(object,int) ):
             return( self.maxX() < object )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
 
     def contains(self,other,simple=True):
@@ -579,7 +579,7 @@ class Feature(object):
         if( not simple ):
             bounds = self.points
         if( len(bounds) < 3 ):
-                warnings.warn("BAD NEWS BEARS")
+                logger.warning("BAD NEWS BEARS")
 
         #print("doing test")
         if( isinstance(other,Feature) ):# A feature
@@ -620,7 +620,7 @@ class Feature(object):
                     retVal = False
                     break
         else:
-            warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return False  
 
         return retVal
@@ -635,7 +635,7 @@ class Feature(object):
         if( not simple ):
             bounds = self.points
         if( len(bounds) < 3 ):
-                warnings.warn("BAD NEWS BEARS")
+                logger.warning("BAD NEWS BEARS")
         if( isinstance(other,Feature) ):# A feature
             retVal = True
             
@@ -673,7 +673,7 @@ class Feature(object):
                     retVal = True
                     break
         else:
-            warnings.warn("SimpleCV did not recognize the input type to features.overlaps. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to features.overlaps. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return False  
 
         return retVal
@@ -734,7 +734,7 @@ class Feature(object):
                     break
 
         else:
-            warnings.warn("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             retVal = False
         return retVal
 
@@ -751,7 +751,7 @@ class Feature(object):
         http://paulbourke.net/geometry/insidepoly/
         """
         if( len(polygon) < 3 ):
-            warnings.warn("feature._pointInsidePolygon - this is not a valid polygon")
+            logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
             return False 
  
         counter = 0
