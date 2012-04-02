@@ -15,7 +15,8 @@ import copy # for deep copy
 
 class ColorSpace:
     """
-    This class is used to encapsulates the color space of a given image.
+    **SUMMARY**
+    The colorspace  class is used to encapsulate the color space of a given image.
     This class acts like C/C++ style enumerated type.
 
 
@@ -32,6 +33,8 @@ class ColorSpace:
   
 class ImageSet(list):
     """
+    **SUMMARY**
+
     This is an abstract class for keeping a list of images.  It has a few
     advantages in that you can use it to auto load data sets from a directory
     or the net.
@@ -39,7 +42,7 @@ class ImageSet(list):
     Keep in mind it inherits from a list too, so all the functionality a
     normal python list has this will too.
 
-    Example:
+    **EXAMPLES**
     
 
     >>> imgs = ImageSet()
@@ -63,6 +66,12 @@ class ImageSet(list):
     >>> imgs.filelist
     >>> logo = imgs.find('simplecv.png')
     
+    **TO DO**
+
+    Eventually this should allow us to pull image urls / paths from csv files.
+    The method also allow us to associate an arbitraty bunch of data with each
+    image, and on load/save pickle that data or write it to a CSV file. 
+
     """
 
     filelist = None
@@ -88,14 +97,41 @@ class ImageSet(list):
 
     def download(self, tag=None, number=10, size='thumb'):
       """
+      **SUMMARY** 
+
       This function downloads images from Google Image search based
       on the tag you provide. The number is the number of images you
       want to have in the list. Valid values for size are 'thumb', 'small',
       'medium', 'large' or a tuple of exact dimensions i.e. (640,480).
       Note that 'thumb' is exceptionally faster than others.
 
-      Also note: This requires the python library Beautiful Soup to be installed
-      http://www.crummy.com/software/BeautifulSoup/
+      .. Warning:
+        This requires the python library Beautiful Soup to be installed
+        http://www.crummy.com/software/BeautifulSoup/
+
+      **PARAMETERS**
+
+      * *tag* - A string of tag values you would like to download.
+      * *number* - An integer of the number of images to try and download.
+      * *size* - the size of the images to download. Valid options a tuple
+        of the exact size or a string of the following approximate sizes:
+        
+        * thumb ~ less than 128x128
+        * small  ~ approximately less than 640x480 but larger than 128x128
+        * medium ~  approximately less than 1024x768 but larger than 640x480.
+        * large ~ > 1024x768
+
+      **RETURNS**
+      
+      Nothing - but caches local copy of images. 
+
+      **EXAMPLE**
+
+      >>> imgs = ImageSet()
+      >>> imgs.download("ninjas")
+      >>> imgs.show(ninjas)
+
+
       """
 
       try:
@@ -187,11 +223,29 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
     def show(self, showtime = 0.25):
       """
+      **SUMMARY**
+
       This is a quick way to show all the items in a ImageSet.
       The time is in seconds. You can also provide a decimal value, so
       showtime can be 1.5, 0.02, etc.
       to show each image.
-      """
+
+      **PARAMETERS**
+
+      * *showtime* - the time, in seconds, to show each image in the set. 
+ 
+      **RETURNS**
+      
+      Nothing.
+      
+      **EXAMPLE**
+
+      >>> imgs = ImageSet()
+      >>> imgs.download("ninjas")
+      >>> imgs.show()
+      
+      
+     """
 
       for i in self:
         i.show()
@@ -199,12 +253,38 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
     def save(self, verbose = False, displaytype=None):
       """
+      **SUMMARY**
+
       This is a quick way to save all the images in a data set.
       Or to Display in webInterface.
 
       If you didn't specify a path one will randomly be generated.
       To see the location the files are being saved to then pass
-      verbose = True
+      verbose = True.
+
+      **PARAMETERS**
+      
+      * *verbose* - print the path of the saved files to the console. 
+      * *displaytype* - the method use for saving or displaying images.
+        valid values are:
+        
+        * 'notebook' - display to the ipython notebook.
+        * None - save to a temporary file. 
+
+      **RETURNS**
+
+      Nothing.
+
+      **EXAMPLE**
+
+      >>> imgs = ImageSet()
+      >>> imgs.download("ninjas")
+      >>> imgs.save(True)
+
+      **TO DO**
+
+      This should save to a specified path.
+
       """
       if displaytype=='notebook':
         try:
@@ -226,10 +306,28 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       
     def showPaths(self):
       """
-      This shows the file paths of all the images in the set
+      **SUMMARY**
+      This shows the file paths of all the images in the set.
 
-      if they haven't been saved to disk then they will not have a filepath
-     
+      If they haven't been saved to disk then they will not have a filepath
+      
+
+      **RETURNS** 
+      
+      Nothing.
+
+      **EXAMPLE**
+
+      >>> imgs = ImageSet()
+      >>> imgs.download("ninjas")
+      >>> imgs.save(True)
+      >>> imgs.showPaths()
+      
+
+      **TO DO**
+
+      This should return paths as a list too.
+
       """
 
       for i in self:
@@ -237,6 +335,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
     def load(self, directory = None, extension = None):
       """
+      **SUMMARY**
+
       This function loads up files automatically from the directory you pass
       it.  If you give it an extension it will only load that extension
       otherwise it will try to load all know file types in that directory.
@@ -244,7 +344,16 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       extension should be in the format:
       extension = 'png'
 
-      Example:
+      **PARAMETERS**
+      
+      * *directory* - The path or directory from which to load images. 
+      * *extension* - The extension to use. If none is given png is the default.
+
+      **RETURNS**
+
+      The number of images in the image set.
+
+      **EXAMPLE**
 
       >>> imgs = ImageSet()
       >>> imgs.load("images/faces")
@@ -281,7 +390,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
           else:
             self.filelist[tmp.filename.split('/')[-1]] = tmp
           self.append(tmp)
-      
+          
+      return len(self)
   
 class Image:
     """
@@ -297,8 +407,8 @@ class Image:
     automatically handle conversion from other representations into this
     standard format.  If dimensions are passed, an empty image is created.
 
-    Examples:
-
+    **EXAMPLE**
+    
     >>> i = Image("/path/to/image.png")
     >>> i = Camera().getImage()
 
