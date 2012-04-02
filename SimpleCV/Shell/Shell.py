@@ -5,7 +5,7 @@
 # a kinder, gentler machine vision python library
 #-----------------------------------------------------------------------
 # SimpleCV is an interface for Open Source machine
-# vision libraries in Python. 
+# vision libraries in Python.
 # It provides a consise, readable interface for cameras,
 # image manipulation, feature extraction, and format conversion.
 # Our mission is to give casual users a comprehensive interface
@@ -59,7 +59,7 @@ def plot(arg):
   try:
     import matplotlib.pyplot as plt
   except:
-    warnings.warn("Matplotlib is not installed and required")
+    logger.warning("Matplotlib is not installed and required")
     return
 
 
@@ -82,14 +82,14 @@ def magic_editor(self, arg):
         print "Currently windows can't auto install the editor"
         print "this is a limitation of git on windows"
         return
-        
+
     else:
         cmd = "git submodule update --init --recursive"
         call(["git","submodule","update","--init","--recursive"])
         path = "./SimpleCV/utils/cloud9/bin/cloud9.sh"
 
 
-    
+
     #~ call(cmd) # update the editor
 
     print "...checking for updates complete"
@@ -103,7 +103,7 @@ If you run SimpleCV directly, it will launch an ipython shell
 """
 
 def setup_shell():
-  
+
   banner = '+----------------------------------------------------+\n'
   banner += ' SimpleCV [interactive shell] - http://simplecv.org\n'
   banner += '+----------------------------------------------------+\n'
@@ -112,7 +112,7 @@ def setup_shell():
   banner += '\t"exit()" or press "Ctrl+ D" to exit the shell\n'
   banner += '\t"clear" to clear the shell screen\n'
   banner += '\t"tutorial" to begin the SimpleCV interactive tutorial\n'
-  banner += '\t"cheatsheet" gives a cheatsheet of all the shell functions\n' 
+  banner += '\t"cheatsheet" gives a cheatsheet of all the shell functions\n'
   banner += '\t"example" gives a list of examples you can run'
   banner += '\n'
   banner += 'Usage:\n'
@@ -147,7 +147,7 @@ def setup_shell():
     scvShell.IP.api.expose_magic("cheatsheet", magic_cheatsheet)
     scvShell.IP.api.expose_magic("example", magic_examples)
     scvShell.IP.api.expose_magic("editor", magic_editor)
-    
+
     return scvShell
 
   #IPython version 0.11 or higher
@@ -168,17 +168,25 @@ def setup_shell():
 
 
 
-
 def main(*args):
 
-    if len(args) > 1:
-      if args[0][1] == '--headless' or args[0][1] == 'headless':
-        # set SDL to use the dummy NULL video driver, 
-        #   so it doesn't need a windowing system.
-        os.environ["SDL_VIDEODRIVER"] = "dummy"
-    
+    log_level = logging.WARNING
+    if len(args) and len(args[0]) > 1:
+      for flag in args[0]:
+        if flag in ["--headless","headless"]:
+          # set SDL to use the dummy NULL video driver,
+          #   so it doesn't need a windowing system.
+          os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+        elif flag in ['--nowarnings','nowarnings']:
+          log_level = logging.INFO
+
+        elif flag in ['--debug','debug']:
+          log_level = logging.DEBUG
+
+    init_logging(log_level)
     shellclear()
-    
+
     scvShell = setup_shell()
     #Note that all loaded libraries are inherited in the embedded ipython shell
     sys.exit(scvShell())

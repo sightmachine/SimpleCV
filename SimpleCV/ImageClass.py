@@ -552,7 +552,7 @@ class Image:
                     scvImg = pil.fromstring("RGB", (118,118), SIMPLECV)
 
                 except:
-                    warnings.warn("Couldn't load Image")
+                    logger.warning("Couldn't load Image")
                     return None
 
                 im = StringIO(SIMPLECV)
@@ -563,7 +563,7 @@ class Image:
                     scvImg = pil.fromstring("RGB", (64,64), LOGO)
 
                 except:
-                    warnings.warn("Couldn't load Image")
+                    logger.warning("Couldn't load Image")
                     return None
 
                 im = StringIO(LOGO)
@@ -574,7 +574,7 @@ class Image:
                     scvImg = pil.fromstring("RGB", (64,64), LOGO_INVERTED)
 
                 except:
-                    warnings.warn("Couldn't load Image")
+                    logger.warning("Couldn't load Image")
                     return None
 
                 im = StringIO(LOGO_INVERTED)
@@ -585,7 +585,7 @@ class Image:
                     scvImg = pil.fromstring("RGB", (64,64), LOGO_TRANSPARENT)
 
                 except:
-                    warnings.warn("Couldn't load Image")
+                    logger.warning("Couldn't load Image")
                     return None
 
                 im = StringIO(LOGO_TRANSPARENT)
@@ -595,7 +595,7 @@ class Image:
                 try:
                     scvImg = pil.fromstring("RGB", (512, 512), LENNA)
                 except:
-                    warnings.warn("Couldn't Load Image")
+                    logger.warning("Couldn't Load Image")
                     return None
                     
                 im = StringIO(LENNA)
@@ -658,7 +658,7 @@ class Image:
                 try:
                     from webm import decode as webmDecode
                 except ImportError:
-                      warnings.warn('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      logger.warning('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
                       return
 
                 WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
@@ -752,14 +752,14 @@ class Image:
         import os, string
         if( len(self.filename) < 5 or self.filename is None ):
             #I am not going to warn, better of img sets
-            #warnings.warn("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
+            #logger.warning("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
             return {}
 
         fileName, fileExtension = os.path.splitext(self.filename)
         fileExtension = string.lower(fileExtension)
         if( fileExtension != '.jpeg' and fileExtension != '.jpg' and
             fileExtension != 'tiff' and fileExtension != '.tif'):
-            #warnings.warn("ImageClass.getEXIFData: This image format does not support EXIF")
+            #logger.warning("ImageClass.getEXIFData: This image format does not support EXIF")
             return {}
 
         raw = open(self.filename,'rb')
@@ -1018,7 +1018,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.RGB ):
             retVal = self.getBitmap()
         else:
-            warnings.warn("Image.toRGB: There is no supported conversion to RGB colorspace")
+            logger.warning("Image.toRGB: There is no supported conversion to RGB colorspace")
             return None
         return Image(retVal, colorSpace=ColorSpace.RGB )
 
@@ -1058,7 +1058,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.BGR ):
             retVal = self.getBitmap()    
         else:
-            warnings.warn("Image.toBGR: There is no supported conversion to BGR colorspace")
+            logger.warning("Image.toBGR: There is no supported conversion to BGR colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.BGR )
   
@@ -1101,7 +1101,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.HLS ):
             retVal = self.getBitmap()      
         else:
-            warnings.warn("Image.toHSL: There is no supported conversion to HSL colorspace")
+            logger.warning("Image.toHSL: There is no supported conversion to HSL colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.HLS )
     
@@ -1143,7 +1143,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = self.getBitmap()      
         else:
-            warnings.warn("Image.toHSV: There is no supported conversion to HSV colorspace")
+            logger.warning("Image.toHSV: There is no supported conversion to HSV colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.HSV )
     
@@ -1186,7 +1186,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = self.getBitmap()      
         else:
-            warnings.warn("Image.toXYZ: There is no supported conversion to XYZ colorspace")
+            logger.warning("Image.toXYZ: There is no supported conversion to XYZ colorspace")
             return None
         return Image(retVal, colorSpace=ColorSpace.XYZ )
     
@@ -1230,7 +1230,7 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)  
         else:
-            warnings.warn("Image.toGray: There is no supported conversion to gray colorspace")
+            logger.warning("Image.toGray: There is no supported conversion to gray colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.GRAY )    
     
@@ -1506,7 +1506,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.GRAY):
             cv.Split(self.getBitmap(), self._graybitmap, self._graybitmap, self._graybitmap, None)
         else:
-            warnings.warn("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
+            logger.warning("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
             return None    
         return self._graybitmap
 
@@ -1684,7 +1684,7 @@ class Image:
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
-                warnings.warn("You need the python image library to save by filehandle")
+                logger.warning("You need the python image library to save by filehandle")
                 return 0
 
 
@@ -1754,7 +1754,7 @@ class Image:
                 from webm import encode as webmEncode
                 from webm.handlers import BitmapHandler, WebPHandler
               except:
-                warnings.warn('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
                 return 0
 
               #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
@@ -1919,7 +1919,7 @@ class Image:
           w = int(self.width * width)
           h = int(self.height * width)
           if( w > MAX_DIMENSION or h > MAX_DIMENSION or h < 1 or w < 1 ):
-              warnings.warn("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
+              logger.warning("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
               return self
            
 
@@ -1957,7 +1957,7 @@ class Image:
         """
         retVal = None
         if( w is None and h is None ):
-            warnings.warn("Image.resize has no parameters. No operation is performed")
+            logger.warning("Image.resize has no parameters. No operation is performed")
             return None
         elif( w is not None and h is None):
             sfactor = float(w)/float(self.width)
@@ -1966,7 +1966,7 @@ class Image:
             sfactor = float(h)/float(self.height)
             w = int( sfactor*float(self.width) )
         if( w > MAX_DIMENSION or h > MAX_DIMENSION ):
-            warnings.warn("Image.resize Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
+            logger.warning("Image.resize Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
             return retVal           
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
@@ -2564,7 +2564,7 @@ class Image:
         if type(cascade) == str:
             
           if (not os.path.exists(cascade)):
-              warnings.warn("Could not find Haar Cascade file " + cascade)
+              logger.warning("Could not find Haar Cascade file " + cascade)
               return None
 
           from SimpleCV.Features.HaarCascade import HaarCascade
@@ -2809,7 +2809,7 @@ class Image:
 
         """
         if( r is None and g is None and b is None ):
-            warnings.warn("ImageClass.mergeChannels - we need at least one valid channel")
+            logger.warning("ImageClass.mergeChannels - we need at least one valid channel")
             return None
         if( r is None ):
             r = self.getEmpty(1)
@@ -3707,7 +3707,7 @@ class Image:
 
         """
         if not ZXING_ENABLED:
-            warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
+            logger.warning("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
             return None
 
 
@@ -4223,9 +4223,9 @@ class Image:
         c = None
         retVal = None
         if( x < 0 or x >= self.width ):
-            warnings.warn("getRGBPixel: X value is not valid.")
+            logger.warning("getRGBPixel: X value is not valid.")
         elif( y < 0 or y >= self.height ):
-            warnings.warn("getRGBPixel: Y value is not valid.")
+            logger.warning("getRGBPixel: Y value is not valid.")
         else:
             c = cv.Get2D(self.getBitmap(), y, x)
             if( self._colorSpace == ColorSpace.BGR ): 
@@ -4267,9 +4267,9 @@ class Image:
         """
         retVal = None
         if( x < 0 or x >= self.width ):
-            warnings.warn("getGrayPixel: X value is not valid.") 
+            logger.warning("getGrayPixel: X value is not valid.") 
         elif( y < 0 or y >= self.height ):
-            warnings.warn("getGrayPixel: Y value is not valid.")
+            logger.warning("getGrayPixel: Y value is not valid.")
         else:
             retVal = cv.Get2D(self._getGrayscaleBitmap(), y, x)
             retVal = retVal[0]
@@ -4311,7 +4311,7 @@ class Image:
         """
         retVal = None
         if( column < 0 or column >= self.width ):
-            warnings.warn("getVertRGBScanline: column value is not valid.")
+            logger.warning("getVertRGBScanline: column value is not valid.")
         else:
             retVal = cv.GetCol(self.getBitmap(), column)
             retVal = np.array(retVal)
@@ -4353,7 +4353,7 @@ class Image:
         """
         retVal = None
         if( row < 0 or row >= self.height ):
-            warnings.warn("getHorzRGBScanline: row value is not valid.")
+            logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
             retVal = cv.GetRow(self.getBitmap(), row)
             retVal = np.array(retVal)
@@ -4395,7 +4395,7 @@ class Image:
         """
         retVal = None
         if( column < 0 or column >= self.width ):
-            warnings.warn("getHorzRGBScanline: row value is not valid.")
+            logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
             retVal = cv.GetCol(self._getGrayscaleBitmap(), column )
             retVal = np.array(retVal)
@@ -4438,7 +4438,7 @@ class Image:
         """
         retVal = None
         if( row < 0 or row >= self.height ):
-            warnings.warn("getHorzRGBScanline: row value is not valid.")
+            logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
             retVal = cv.GetRow(self._getGrayscaleBitmap(), row )
             retVal = np.array(retVal)
@@ -4496,12 +4496,12 @@ class Image:
             print "Please provide an x, y, width, height to function"
 
         if( w <= 0 or h <= 0 ):
-            warnings.warn("Can't do a negative crop!")
+            logger.warning("Can't do a negative crop!")
             return None
         
         retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
         if( x < 0 or y < 0 ):
-            warnings.warn("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
+            logger.warning("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
 
 
         if( centered ):
@@ -4513,7 +4513,7 @@ class Image:
         (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
 
         if( bottomROI is None ):
-            warnings.warn("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
+            logger.warning("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
             return None
 
         retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
@@ -4561,7 +4561,7 @@ class Image:
 
         retVal = None
         if( w <= 0 or h <= 0 or w > self.width or h > self.height ):
-            warnings.warn("regionSelect: the given values will not fit in the image or are too small.")
+            logger.warning("regionSelect: the given values will not fit in the image or are too small.")
         else:
             xf = x2 
             if( x1 < x2 ):
@@ -5382,7 +5382,7 @@ class Image:
             cv.ResetImageROI(retVal.getBitmap());
         elif( alphaMask is not None ):
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
-                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
+                logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
 
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
@@ -5437,7 +5437,7 @@ class Image:
 
         elif( mask is not None):
             if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
-                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
+                logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
                 return None            
             cv.SetImageROI(img.getBitmap(),topROI)
             cv.SetImageROI(mask.getBitmap(),topROI)
@@ -5638,7 +5638,7 @@ class Image:
         """
         
         if( size == None or size[0] < self.width or size[1] < self.height ):
-            warnings.warn("image.embiggenCanvas: the size provided is invalid")
+            logger.warning("image.embiggenCanvas: the size provided is invalid")
             return None
 
         newCanvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
@@ -5652,7 +5652,7 @@ class Image:
 
         (topROI, bottomROI) = self._rectOverlapROIs((self.width,self.height),size,pos)
         if( topROI is None or bottomROI is None):
-            warnings.warn("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
+            logger.warning("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
             return None
 
         cv.SetImageROI(newCanvas, bottomROI)
@@ -5757,7 +5757,7 @@ class Image:
         if( color1[0]-color2[0] == 0 or 
             color1[1]-color2[1] == 0 or
             color1[2]-color2[2] == 0 ):
-            warnings.warn("No color range selected, the result will be black, returning None instead.")
+            logger.warning("No color range selected, the result will be black, returning None instead.")
             return None
         if( color1[0] > 255 or color1[0] < 0 or
             color1[1] > 255 or color1[1] < 0 or
@@ -5765,7 +5765,7 @@ class Image:
             color2[0] > 255 or color2[0] < 0 or
             color2[1] > 255 or color2[1] < 0 or
             color2[2] > 255 or color2[2] < 0 ):
-            warnings.warn("One of the tuple values falls outside of the range of 0 to 255")
+            logger.warning("One of the tuple values falls outside of the range of 0 to 255")
             return None 
 
         r = self.getEmpty(1)
@@ -5867,7 +5867,7 @@ class Image:
         newBG = cv.RGB(bg_color[0],bg_color[1],bg_color[2])
         cv.AddS(newCanvas,newBG,newCanvas)
         if( mask.width != self.width or mask.height != self.height ):
-            warnings.warn("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
+            logger.warning("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
             return None
         cv.Copy(self.getBitmap(),newCanvas,mask.getBitmap());
         return Image(newCanvas,colorSpace=self._colorSpace);
@@ -5912,7 +5912,7 @@ class Image:
         """
 
         if( hue<0 or hue > 180 ):
-            warnings.warn("Invalid hue color, valid hue range is 0 to 180.")
+            logger.warning("Invalid hue color, valid hue range is 0 to 180.")
 
         if( self._colorSpace != ColorSpace.HSV ):
             hsv = self.toHSV()
@@ -6041,7 +6041,7 @@ class Image:
         elif(type(kernel)==cv.mat):
             myKernel = kernel
         else:
-            warnings.warn("Convolution uses numpy arrays or cv.mat type.")
+            logger.warning("Convolution uses numpy arrays or cv.mat type.")
             return None
         retVal = self.getEmpty(3)
         if(center is None):
@@ -6130,7 +6130,7 @@ class Image:
         elif(method == "CCORR_NORM"): #maximal 
             method = cv.CV_TM_CCORR_NORMED
         else:
-            warnings.warn("ooops.. I don't know what template matching method you are looking for.")
+            logger.warning("ooops.. I don't know what template matching method you are looking for.")
             return None
         #create new image for template matching computation
         matches = cv.CreateMat( (self.height - template_image.height + 1),
@@ -6540,7 +6540,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
+            logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
         
         if( forceReset ):
@@ -6583,7 +6583,7 @@ class Image:
                 del starer
           
             else:
-                warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
                 return None, None
 
         return self._mKeyPoints,self._mKPDescriptors 
@@ -6635,7 +6635,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't run FLANN Matches without OpenCV >= 2.3.0")
+            logger.warning("Can't run FLANN Matches without OpenCV >= 2.3.0")
             return
         FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
         flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
@@ -6699,7 +6699,7 @@ class Image:
         skp,sd = self._getRawKeypoints(thresh)
         tkp,td = template._getRawKeypoints(thresh)
         if( td == None or sd == None ):
-            warnings.warn("We didn't get any descriptors. Image might be too uniform or blurry." )
+            logger.warning("We didn't get any descriptors. Image might be too uniform or blurry." )
             return resultImg
         template_points = float(td.shape[0])
         sample_points = float(sd.shape[0])
@@ -6786,7 +6786,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
+            logger.warning("Can't Match Keypoints without OpenCV >= 2.3.0")
             return
             
         if template == None:
@@ -6795,7 +6795,7 @@ class Image:
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
-            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
+            logger.warning("I didn't get any keypoints. Image might be too uniform or blurry." )
             return None
 
         template_points = float(td.shape[0])
@@ -6931,7 +6931,7 @@ class Image:
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],None,flavor))
         else:
-            warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+            logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
             return None
 
         return fs
@@ -6985,7 +6985,7 @@ class Image:
 
         """
         if( self.width != previous_frame.width or self.height != previous_frame.height):
-            warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
+            logger.warning("ImageClass.getMotion: To find motion the current and previous frames must match")
             return None
         fs = FeatureSet()
         max_mag = 0.00
@@ -7049,7 +7049,7 @@ class Image:
                     if(mag > max_mag):
                         max_mag = mag
         else:
-            warnings.warn("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ") 
+            logger.warning("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ") 
             return None
 	
         max_mag = math.sqrt(max_mag) # do the normalization
@@ -7646,7 +7646,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
+            logger.warning("Can't Do GrabCut without OpenCV >= 2.3.0")
             return
         retVal = []
         if( mask is not None ):
@@ -7693,7 +7693,7 @@ class Image:
             cv.LUT(bmp,bmp,cv.fromarray(LUT))
             retVal = Image(bmp)
         else:
-            warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
+            logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
         return retVal
             
     def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):
@@ -8420,7 +8420,7 @@ class Image:
         """
         if( flt.width != self.width and 
             flt.height != self.height ):
-            warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
+            logger.warning("Image.applyDFTFilter - Your filter must match the size of the image")
         dft = []
         if( grayscale ):
             dft = self._getDFTClone(grayscale)

@@ -204,7 +204,7 @@ class VideoStream():
         self.fourcc = cv.CV_FOURCC('I', 'Y', 'U', 'V')
             #self.fourcc = 0
         #else:
-        #  warning.warn(extension + " is not supported for video writing on this platform, sorry");
+        #  logger.warning(extension + " is not supported for video writing on this platform, sorry");
         #  return False
 
 

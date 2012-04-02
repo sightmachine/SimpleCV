@@ -1674,7 +1674,7 @@ def test_image_webp_load():
     import webm
   except:
     if( SHOW_WARNING_TESTS ):
-      warnings.warn("Couldn't run the webp test as optional webm library required")
+      logger.warning("Couldn't run the webp test as optional webm library required")
     pass
 
   else:
@@ -1692,7 +1692,7 @@ def test_image_webp_save():
     import webm
   except:
     if( SHOW_WARNING_TESTS ):
-      warnings.warn("Couldn't run the webp test as optional webm library required")
+      logger.warning("Couldn't run the webp test as optional webm library required")
     pass
 
   else:

@@ -15,7 +15,7 @@ class HaarCascade():
                self._mName = name
                
           if (not os.path.exists(fname)):
-               warnings.warn("Could not find Haar Cascade file " + fname)
+               logger.warning("Could not find Haar Cascade file " + fname)
                return None
           self._mCascade = cv.Load(fname)
 
@@ -26,7 +26,7 @@ class HaarCascade():
                self._mName = name
                
           if (not os.path.exists(fname)):
-               warnings.warn("Could not find Haar Cascade file " + fname)
+               logger.warning("Could not find Haar Cascade file " + fname)
                return None
 
           self._mCascade = cv.Load(fname)

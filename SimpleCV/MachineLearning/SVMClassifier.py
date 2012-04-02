@@ -49,7 +49,7 @@ class SVMClassifier:
     def __init__(self,featureExtractors,properties=None):
 
         if not ORANGE_ENABLED:
-            warnings.warn("The required orange machine learning library is not installed")
+            logger.warning("The required orange machine learning library is not installed")
             return None
         
         self.mKernelType = {
@@ -231,7 +231,7 @@ class SVMClassifier:
             colNames.extend(extractor.getFieldNames())
         
         if(count <= 0):
-            warnings.warn("No features extracted - bailing")
+            logger.warning("No features extracted - bailing")
             return None
         
         # push our data into an orange example table

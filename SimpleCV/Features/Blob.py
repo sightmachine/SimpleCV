@@ -383,7 +383,7 @@ class Blob(Feature):
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.minY() > blob[1] )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.above(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to blob.above(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None
 
  
@@ -400,7 +400,7 @@ class Blob(Feature):
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.maxY() < blob[1] )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.below(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to blob.below(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None
      
     def right(self,blob):
@@ -414,7 +414,7 @@ class Blob(Feature):
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.maxX() < blob[0] )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.right(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to blob.right(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None   
      
     
@@ -429,7 +429,7 @@ class Blob(Feature):
         elif(blob.__class__.__name__ == 'ndarray'):
             return( self.minX() > blob[0] )
         else:
-            warnings.warn("SimpleCV did not recognize the input type to blob.left(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning("SimpleCV did not recognize the input type to blob.left(). This method only takes another blob, an (x,y) tuple, or a ndarray type.")
             return None  
     
 
@@ -451,7 +451,7 @@ class Blob(Feature):
 #                     other[1] <= self.maxY() and
 #                     other[1] >= self.minY() )
 #         else:
-#             warnings.warn("SimpleCV did not recognize the input type to blob.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+#             logger.warning("SimpleCV did not recognize the input type to blob.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
 #             return None  
     
 #     def overlaps(self, other):
@@ -465,7 +465,7 @@ class Blob(Feature):
 #                 self.contains(other.bottomLeftCorner()) or self.contains(other.bottomRightCorner())):    
 #                 retVal = True            
 #         else:
-#             warnings.warn("SimpleCV did not recognize the input type to blob.overlap. This method only takes another blob.")
+#             logger.warning("SimpleCV did not recognize the input type to blob.overlap. This method only takes another blob.")
 #             retVal = None
 
 #         return retVal;
