@@ -1,4 +1,4 @@
-#load required libraries
+ #Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
@@ -16,6 +16,7 @@ import copy # for deep copy
 class ColorSpace:
     """
     **SUMMARY**
+
     The colorspace  class is used to encapsulate the color space of a given image.
     This class acts like C/C++ style enumerated type.
 
@@ -105,7 +106,7 @@ class ImageSet(list):
       'medium', 'large' or a tuple of exact dimensions i.e. (640,480).
       Note that 'thumb' is exceptionally faster than others.
 
-      .. Warning:
+      .. Warning::
         This requires the python library Beautiful Soup to be installed
         http://www.crummy.com/software/BeautifulSoup/
 
@@ -307,6 +308,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
     def showPaths(self):
       """
       **SUMMARY**
+
       This shows the file paths of all the images in the set.
 
       If they haven't been saved to disk then they will not have a filepath
@@ -395,7 +397,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
   
 class Image:
     """
-    **DESCRIPTION**
+    **SUMMARY**
 
     The Image class is the heart of SimpleCV and allows you to convert to and 
     from a number of source types with ease.  It also has intelligent buffer
@@ -493,7 +495,7 @@ class Image:
     #todo: handle camera/capture from file cases (detect on file extension)
     def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True):
         """ 
-        **DESCRIPTION**
+        **SUMMARY**
 
         The constructor takes a single polymorphic parameter, which it tests
         to see how it should convert into an RGB image.  Supported types include:
@@ -723,7 +725,7 @@ class Image:
     
     def getEXIFData(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This function extracts the exif data from an image file like JPEG or TIFF. The data is returned as a dict. 
 
@@ -739,13 +741,13 @@ class Image:
 
         **NOTES**
 
-        Compliments of: http://exif-py.sourceforge.net/
+        * Compliments of: http://exif-py.sourceforge.net/
 
-        http://en.wikipedia.org/wiki/Exchangeable_image_file_format
+        * See also: http://en.wikipedia.org/wiki/Exchangeable_image_file_format
 
         **See Also**
 
-        :py:meth:`EXIF.py`
+        :py:class:`EXIF`
         """
         import os, string
         if( len(self.filename) < 5 or self.filename is None ):
@@ -766,13 +768,18 @@ class Image:
 
     def live(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This shows a live view of the camera. 
         * Left click will show mouse coordinates and color.
         * Right click will kill the live image.
 
+        **RETURNS**
+        
+        Nothing. In place method. 
+
         **EXAMPLE** 
+
         >>> cam = Camera()
         >>> cam.live()
 
@@ -817,7 +824,7 @@ class Image:
 
     def getColorSpace(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         Returns the value matched in the color space class
         
@@ -830,6 +837,7 @@ class Image:
         >>> if(image.getColorSpace() == ColorSpace.RGB)
 
         **SEE ALSO** 
+
         :py:class:`ColorSpace` 
 
         """
@@ -838,7 +846,7 @@ class Image:
   
     def isRGB(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns true if this image uses the RGB colorspace.
         
@@ -862,7 +870,7 @@ class Image:
 
     def isBGR(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns true if this image uses the BGR colorspace.
         
@@ -885,7 +893,7 @@ class Image:
     
     def isHSV(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns true if this image uses the HSV colorspace.
         
@@ -908,7 +916,7 @@ class Image:
     
     def isHLS(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns true if this image uses the HLS colorspace.
         
@@ -931,7 +939,7 @@ class Image:
   
     def isXYZ(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns true if this image uses the XYZ colorspace.
         
@@ -954,7 +962,7 @@ class Image:
     
     def isGray(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns true if this image uses the BGR colorspace.
         
@@ -976,7 +984,7 @@ class Image:
 
     def toRGB(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attemps to convert the image to the RGB colorspace. 
         If the color space is unknown we assume it is in the BGR format
@@ -1017,7 +1025,7 @@ class Image:
 
     def toBGR(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attemps to convert the image to the BGR colorspace. 
         If the color space is unknown we assume it is in the BGR format.
@@ -1057,7 +1065,7 @@ class Image:
   
     def toHLS(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attempts to convert the image to the HLS colorspace. 
         If the color space is unknown we assume it is in the BGR format.
@@ -1100,7 +1108,7 @@ class Image:
     
     def toHSV(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attempts to convert the image to the HSV colorspace. 
         If the color space is unknown we assume it is in the BGR format
@@ -1142,7 +1150,7 @@ class Image:
     
     def toXYZ(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attemps to convert the image to the XYZ colorspace. 
         If the color space is unknown we assume it is in the BGR format
@@ -1185,7 +1193,7 @@ class Image:
     
     def toGray(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attemps to convert the image to the grayscale colorspace. 
         If the color space is unknown we assume it is in the BGR format
@@ -1229,7 +1237,7 @@ class Image:
     
     def getEmpty(self, channels = 3):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         Create a new, empty OpenCV bitmap with the specified number of channels (default 3).
         This method basically creates an empty copy of the image. This is handy for 
@@ -1254,7 +1262,7 @@ class Image:
 
         :py:meth:`getBitmap`
         :py:meth:`getFPMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         :py:meth:`getGrayscaleMatrix`
@@ -1267,7 +1275,7 @@ class Image:
 
     def getBitmap(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Retrieve the bitmap (iplImage) of the Image.  This is useful if you want
         to use functions from OpenCV with SimpleCV's image class
@@ -1287,7 +1295,7 @@ class Image:
 
         :py:meth:`getEmpty`
         :py:meth:`getFPMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         :py:meth:`getGrayscaleMatrix`
@@ -1302,7 +1310,7 @@ class Image:
 
     def getMatrix(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Get the matrix (cvMat) version of the image, required for some OpenCV algorithms.
         
@@ -1322,7 +1330,7 @@ class Image:
         :py:meth:`getEmpty`
         :py:meth:`getBitmap`
         :py:meth:`getFPMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         :py:meth:`getGrayscaleMatrix`
@@ -1337,7 +1345,7 @@ class Image:
 
     def getFPMatrix(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Converts the standard int bitmap to a floating point bitmap. 
         This is handy for some OpenCV functions. 
@@ -1359,7 +1367,7 @@ class Image:
         :py:meth:`getEmpty`
         :py:meth:`getBitmap`
         :py:meth:`getMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         :py:meth:`getGrayscaleMatrix`
@@ -1371,7 +1379,7 @@ class Image:
     
     def getPIL(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Get a PIL Image object for use with the Python Image Library
         This is handy for some PIL functions. 
@@ -1409,7 +1417,7 @@ class Image:
   
     def getGrayNumpy(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Return a grayscale Numpy array of the image. 
         
@@ -1427,7 +1435,7 @@ class Image:
         :py:meth:`getEmpty`
         :py:meth:`getBitmap`
         :py:meth:`getMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         :py:meth:`getGrayscaleMatrix`
@@ -1442,7 +1450,7 @@ class Image:
 
     def getNumpy(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Get a Numpy array of the image in width x height x RGB dimensions
         
@@ -1460,7 +1468,7 @@ class Image:
         :py:meth:`getEmpty`
         :py:meth:`getBitmap`
         :py:meth:`getMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getGrayNumpy`
         :py:meth:`getGrayscaleMatrix`
         
@@ -1505,7 +1513,7 @@ class Image:
 
     def getGrayscaleMatrix(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
        
         Get the grayscale matrix (cvMat) version of the image, required for some OpenCV algorithms.
         
@@ -1525,7 +1533,7 @@ class Image:
         :py:meth:`getEmpty`
         :py:meth:`getBitmap`
         :py:meth:`getFPMatrix`
-        :py:meth:`getPil`
+        :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         :py:meth:`getMatrix`
@@ -1552,7 +1560,7 @@ class Image:
 
     def equalize(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Perform a histogram equalization on the image. 
 
@@ -1571,7 +1579,7 @@ class Image:
     
     def getPGSurface(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Returns the image as a pygame surface.  This is used for rendering the display
 
@@ -1589,7 +1597,7 @@ class Image:
     
     def toString(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         Returns the image as a string, useful for moving data around.
 
@@ -1604,7 +1612,7 @@ class Image:
     
     def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False, **params):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Save the image to the specified filename.  If no filename is provided then
         then it will use the filename the Image was loaded from or the last
@@ -1785,7 +1793,7 @@ class Image:
 
     def copy(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Return a full copy of the Image's bitmap.  Note that this is different
         from using python's implicit copy function in that only the bitmap itself
@@ -1808,7 +1816,7 @@ class Image:
 
     def upload(self,api_key, verbose = True):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Uploads this image to imgur an image sharing website. 
         If the upload is successful then the method returns the URLs
@@ -1876,7 +1884,7 @@ class Image:
 
     def scale(self, width, height = -1):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Scale the image to a new width and height.
 
@@ -1922,7 +1930,7 @@ class Image:
     
     def resize(self, w=None,h=None):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method resizes an image based on a width, a height, or both. 
         If either width or height is not provided the value is inferred by keeping the aspect ratio. 
@@ -1967,7 +1975,7 @@ class Image:
 
     def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Smooth the image, by default with the Gaussian blur.  If desired,
         additional algorithms and aperatures can be specified.  Optional parameters
@@ -1980,9 +1988,12 @@ class Image:
         **PARAMETERS**
 
         * *algorithm_name* - valid options are 'blur' or gaussian, 'bilateral', and 'median'.
-          * `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`
-          * `Gaussian Blur <http://en.wikipedia.org/wiki/Gaussian_blur>`
-          * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`
+          
+          * `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`_
+          
+          * `Gaussian Blur <http://en.wikipedia.org/wiki/Gaussian_blur>`_
+          
+          * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`_
 
         * *aperature* - A tuple for the aperature of the gaussian blur as an (x,y) tuple. 
        
@@ -2008,6 +2019,7 @@ class Image:
         >>> img3 = img.smooth('median')
 
         **SEE ALSO**
+
         :py:meth:`bilateralFilter`
         :py:meth:`medianFilter`
         
@@ -2061,15 +2073,15 @@ class Image:
 
     def medianFilter(self, window=''):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Convience function derived from the :py:meth:`smooth` method
         Perform a median filtering operation to denoise/despeckle the image.
         The optional parameter is the window size.
           
-        *NOTES*
+        **NOTES**
 
-        `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`
+        `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`_
         
 
         """
@@ -2078,15 +2090,15 @@ class Image:
     
     def bilateralFilter(self, window = ''):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Convience function derived from the :py:meth:`smooth` method
         Perform a bilateral filtering operation to denoise/despeckle the image.
         The optional parameter is the window size.
         
-        *NOTES* 
+        **NOTES** 
 
-        `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`
+        Bilateral Filter http://en.wikipedia.org/wiki/Bilateral_filter
 
         """
         return self.smooth(algorithm_name='bilateral', aperature=window)
@@ -2094,7 +2106,7 @@ class Image:
     
     def invert(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Invert (negative) the image note that this can also be done with the
         unary minus (-) operator. For binary image this turns black into white and white into black (i.e. white is the new black). 
@@ -2118,7 +2130,7 @@ class Image:
 
     def grayscale(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method returns a gray scale version of the image. It makes everything look like an old movie.
 
@@ -2140,7 +2152,7 @@ class Image:
 
     def flipHorizontal(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         Horizontally mirror an image.
         
@@ -2170,7 +2182,7 @@ class Image:
     
     def flipVertical(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         Vertically mirror an image.
         
@@ -2202,7 +2214,7 @@ class Image:
     
     def stretch(self, thresh_low = 0, thresh_high = 255):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         The stretch filter works on a greyscale image, if the image
         is color, it returns a greyscale image.  The filter works by
@@ -2234,6 +2246,7 @@ class Image:
         TODO - make this work on RGB images with thresholds for each channel. 
 
         **SEE ALSO**
+
         :py:meth:`binarize`
         :py:meth:`equalize`
 
@@ -2250,7 +2263,7 @@ class Image:
       
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         Do a binary threshold the image, changing all values below thresh to maxv
         and all above to black.  If a color tuple is provided, each color channel
@@ -2342,7 +2355,7 @@ class Image:
   
     def meanColor(self):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         This method finds the average color of all the pixels in the image.
         
@@ -2350,7 +2363,7 @@ class Image:
         
         A tuple of the average image values. Tuples are in the channel order. *For most images this means the results are (B,G,R).*
 
-        ** EXAMPLE ** 
+        **EXAMPLE** 
 
         >>> img = Image('lenna')
         >>> colors = img.meanColor()
@@ -2361,7 +2374,7 @@ class Image:
 
     def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         This will find corner Feature objects and return them as a FeatureSet
         strongest corners first.  The parameters give the number of corners to look
@@ -2423,7 +2436,7 @@ class Image:
 
     def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
         """
-        **DESCRIPTION**
+        **SUMMARY**
         
         Find blobs  will look for continuous
         light regions and return them as Blob features in a FeatureSet.  Parameters
@@ -2538,7 +2551,9 @@ class Image:
         **NOTES**
 
         http://en.wikipedia.org/wiki/Haar-like_features
+
         The video on this pages shows how Haar features and cascades work to located faces:
+
         http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
         
         """
@@ -2655,9 +2670,9 @@ class Image:
 
         **RETURNS**
         
-        The width and height.
+        The width and height as a tuple.
 
-        Returns: TUPLE
+        
         """
         return cv.GetSize(self.getBitmap())
 
@@ -2733,6 +2748,7 @@ class Image:
         >>>    time.sleep(1)
 
         **SEE ALSO**
+
         :py:meth:`mergeChannels`
         """
         r = self.getEmpty(1) 
@@ -2761,6 +2777,7 @@ class Image:
     def mergeChannels(self,r=None,b=None,g=None):
         """
         **SUMMARY**
+
         Merge channels is the oposite of splitChannels. The image takes one image for each
         of the R,G,B channels and then recombines them into a single image. Optionally any of these
         channels can be None.
@@ -2900,7 +2917,7 @@ class Image:
         **SEE ALSO**
 
         :py:class:`ColorCurve`
-        :py:meth:`applyHSLCurve`
+        :py:meth:`applyHLSCurve`
 
         """
         tempMat = np.array(self.getMatrix()).copy()
@@ -2938,7 +2955,7 @@ class Image:
         **SEE ALSO**
 
         :py:class:`ColorCurve`
-        :py:meth:`applyHSLCurve`
+        :py:meth:`applyHLSCurve`
 
         """
         return self.applyRGBCurve(curve, curve, curve)
@@ -2956,7 +2973,7 @@ class Image:
     
         By default this will give image intensity (distance from pure black)
 
-        **Parameters**
+        **PARAMETERS**
       
         * *color*  - Color object or Color Tuple
 
@@ -2995,7 +3012,7 @@ class Image:
         signals in the picture, they will be pushed to max distance [255]
 
         
-        **Parameters**
+        **PARAMETERS**
 
         * *color* - Color object or Color Tuple.
         * *minsaturation*  - the minimum saturation value for color (from 0 to 255).
@@ -3154,10 +3171,10 @@ class Image:
         helps to 'break apart' or 'open' binary regions which are close together. 
 
 
-        * See: http://en.wikipedia.org/wiki/Opening_(morphology)
-       
-        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
-        
+        * `Morphological opening on Wikipedia <http://en.wikipedia.org/wiki/Opening_(morphology)>`_
+
+        * `OpenCV documentation <http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex>`_       
+      
         * Example Use: two part blobs are 'sticking' together.
         
         * Example Code: ./examples/MorphologyExample.py
@@ -3203,9 +3220,9 @@ class Image:
         helps to 'bring together' or 'close' binary regions which are close together. 
 
 
-        * See: http://en.wikipedia.org/wiki/Closing_(morphology)
+        * See: `Closing <http://en.wikipedia.org/wiki/Closing_(morphology)>`_
        
-        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+        * See: `Morphology from OpenCV <http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex>`_
         
         * Example Use: Use when a part, which should be one blob is really two blobs.   
         
@@ -3253,9 +3270,9 @@ class Image:
         edges of a blobs in the image. 
 
 
-        * See: http://en.wikipedia.org/wiki/Morphological_Gradient
+        * `See Morph Gradient of Wikipedia <http://en.wikipedia.org/wiki/Morphological_Gradient>`_
      
-        * See: http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex
+        * `OpenCV documentation <http://opencv.willowgarage.com/documentation/cpp/image_filtering.html#cv-morphologyex>`_
         
         * Example Use: Use when you have blobs but you really just want to know the blob edges.
         
@@ -3303,11 +3320,16 @@ class Image:
 
         **PARAMETERS**
 
-            * *numbins* - An interger number of bins in a histogram. 
+        * *numbins* - An interger number of bins in a histogram. 
         
         **RETURNS**
 
-            A list of histogram bin values. 
+        A list of histogram bin values. 
+
+        **EXAMPLE**
+        
+        >>> img = Image('lenna')
+        >>> hist = img.histogram()
 
         **SEE ALSO**
 
@@ -3329,11 +3351,11 @@ class Image:
 
         **PARAMETERS**
 
-            * *numbins* - An interger number of bins in a histogram. 
+        * *numbins* - An interger number of bins in a histogram. 
         
         **RETURNS**
 
-            A list of histogram bin values. 
+        A list of histogram bin values. 
 
         **SEE ALSO**
 
@@ -3562,7 +3584,7 @@ class Image:
         The maximum value of my image, and the other image, in each channel
         If other is a number, returns the maximum of that and the number
 
-        **Parameters**
+        **PARAMETERS**
         
         * *other* - Image or a number.
 
@@ -3588,7 +3610,7 @@ class Image:
 
         **Parameter**
 
-            * *other* - Image
+        * *other* - Image
 
         **Returns**
 
@@ -3618,44 +3640,52 @@ class Image:
         in a FeatureSet.  The single parameter is the ZXing_path, if you 
         don't have the ZXING_LIBRARY env parameter set.
 
-        You can clone python-zxing at http://github.com/oostendo/python-zxing
+        You can clone python-zxing at:
 
-        INSTALLING ZEBRA CROSSING
-        #. Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
-        #. unpack the zip file where ever you see fit
+        http://github.com/oostendo/python-zxing
 
-        >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
-        >>> ant -f core/build.xml
-        >>> ant -f javase/build.xml 
+        **INSTALLING ZEBRA CROSSING**
+
+        * Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
+      
+        * unpack the zip file where ever you see fit
+
+          >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
+          >>> ant -f core/build.xml
+          >>> ant -f javase/build.xml 
         
-        This should build the library, but double check the readme
-        #. Get our helper library 
+          This should build the library, but double check the readme
+        
+        * Get our helper library 
 
-        >>> git clone git://github.com/oostendo/python-zxing.git
-        >>> cd python-zxing
-        >>> python setup.py install
-        #. Our library does not have a setup file. You will need to add
+          >>> git clone git://github.com/oostendo/python-zxing.git
+          >>> cd python-zxing
+          >>> python setup.py install
+
+        * Our library does not have a setup file. You will need to add
            it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
         
-        export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-        for example: export ZXING_LIBRARY=/my/install/path/zxing-x.x/
-        
-        
-        On windows you will need to add these same variables to the system variable, e.g.
-        http://www.computerhope.com/issues/ch000549.htm
-        
-        #. On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
-        
-        #. Go grab some barcodes!
+          export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+          for example: 
 
-        .. WARNING::
+          export ZXING_LIBRARY=/my/install/path/zxing-x.x/   
+        
+          On windows you will need to add these same variables to the system variable, e.g.
+          
+          http://www.computerhope.com/issues/ch000549.htm
+        
+        * On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        * Go grab some barcodes!
+
+        .. Warning::
           Users on OSX may see the following error:
           
           RuntimeWarning: tmpnam is a potential security risk to your program        
           
           We are working to resolve this issue. For normal use this should not be a problem.
 
-        **Parameters**
+        **PARAMETERS**
         
         * *zxing_path* - The path to lib zxing.
             
@@ -3760,7 +3790,7 @@ class Image:
         
         The single parameter is the dimensions of the chessboard, typical one can be found in \SimpleCV\tools\CalibGrid.png
    
-        **Parameters**
+        **PARAMETERS**
 
         * *dimensions* - A tuple of the size of the chessboard in width and height in grid objects.
         * *subpixel* - Boolean if True use sub-pixel accuracy, otherwise use regular pixel accuracy.
@@ -3802,11 +3832,11 @@ class Image:
         
         For more information:
 
-        * <http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html>
+        * http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html
 
-        * <http://en.wikipedia.org/wiki/Canny_edge_detector>
+        * http://en.wikipedia.org/wiki/Canny_edge_detector
 
-        **Parameters**
+        **PARAMETERS**
 
         * *t1* - Int - the lower Canny threshold.
         * *t2* - Int - the upper Canny threshold.
@@ -3967,26 +3997,25 @@ class Image:
         
         Does a fast 90 degree rotation to the right. Generally this method should be faster than img.rotate(90)
 
-        .. Note::
+        .. Warning::
           Subsequent calls to this function *WILL NOT* keep rotating it to the right!!!
           This function just does a matrix transpose so following one transpose by another will 
           just yield the original image.  
 
-         **RETURNS**
+        **RETURNS**
          
-         The rotated SimpleCV Image.
+        The rotated SimpleCV Image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("logo")
+        >>> img2 = img.rotate90()
+        >>> img2.show()
 
-         **EXAMPLE**
+        **SEE ALSO**
+        
+        :py:meth:`rotate`
          
-         >>> img = Image("logo")
-         >>> img2 = img.rotate90()
-         >>> img2.show()
-
-         **SEE ALSO**
-         
-         :py:meth:`rotate`
-         
-         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
         retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
@@ -4004,7 +4033,7 @@ class Image:
 
         **PARAMETERS**
 
-        * *cornerpoints* - a 2x4 tuple of points. The order is (top_left,top_right,bottom_left,bottom_right)
+        * *cornerpoints* - a 2x4 tuple of points. The order is (top_left, top_right, bottom_left, bottom_right)
 
         **RETURNS**
         
@@ -4019,7 +4048,7 @@ class Image:
         **SEE ALSO**
 
         :py:meth:`transformAffine`
-        :py:meth`warp`
+        :py:meth:`warp`
         :py:meth:`rotate`
 
         http://en.wikipedia.org/wiki/Transformation_matrix
@@ -4105,7 +4134,7 @@ class Image:
         **SEE ALSO**
 
         :py:meth:`shear`
-        :py:meth`transformAffine`
+        :py:meth:`transformAffine`
         :py:meth:`transformPerspective`
         :py:meth:`rotate`
 
@@ -4149,7 +4178,7 @@ class Image:
         **SEE ALSO**
  
         :py:meth:`shear`
-        :py:meth`warp`
+        :py:meth:`warp`
         :py:meth:`transformPerspective`
         :py:meth:`rotate`
 
@@ -4169,7 +4198,7 @@ class Image:
 
         This function returns the RGB value for a particular image pixel given a specific row and column.
         
-        ..NOTE::
+        .. Warning::
           this function will always return pixels in RGB format even if the image is BGR format. 
         
         **PARAMETERS**
@@ -4214,13 +4243,13 @@ class Image:
         This function returns the gray value for a particular image pixel given a specific row and column.
         
         
-        ..NOTE::
-          this function will always return pixels in RGB format even if the image is BGR format. 
+        .. Warning::
+          This function will always return pixels in RGB format even if the image is BGR format. 
         
         **PARAMETERS**
         
-            * *x* - Int the x pixel coordinate.
-            * *y* - Int the y pixel coordinate.
+        * *x* - Int the x pixel coordinate.
+        * *y* - Int the y pixel coordinate.
 
         **RETURNS**
 
@@ -4274,9 +4303,9 @@ class Image:
 
         **SEE ALSO**
 
-        :py:meth:`getHorzScalineGray`
+        :py:meth:`getHorzScanlineGray`
         :py:meth:`getHorzScanline`
-        :py:meth:`getVertScalineGray`
+        :py:meth:`getVertScanlineGray`
         :py:meth:`getVertScanline`
 
         """
@@ -4293,6 +4322,7 @@ class Image:
     def getHorzScanline(self, row):
         """
         **SUMMARY**
+
         This function returns a single row of RGB values from the image.
         This is handy if you want to crawl the image looking for an edge. 
 
@@ -4316,8 +4346,8 @@ class Image:
 
         **SEE ALSO**
 
-        :py:meth:`getHorzScalineGray`
-        :py:meth:`getVertScalineGray`
+        :py:meth:`getHorzScanlineGray`
+        :py:meth:`getVertScanlineGray`
         :py:meth:`getVertScanline`
 
         """
@@ -4358,7 +4388,7 @@ class Image:
 
         **SEE ALSO**
 
-        :py:meth:`getHorzScalineGray`
+        :py:meth:`getHorzScanlineGray`
         :py:meth:`getHorzScanline`
         :py:meth:`getVertScanline`
 
@@ -4400,9 +4430,9 @@ class Image:
 
         **SEE ALSO**
 
-        :py:meth:`getHorzScalineGray`
+        :py:meth:`getHorzScanlineGray`
         :py:meth:`getHorzScanline`
-        :py:meth:`getVertScalineGray`
+        :py:meth:`getVertScanlineGray`
         :py:meth:`getVertScanline`
 
         """
@@ -4418,7 +4448,7 @@ class Image:
 
     def crop(self, x , y = None, w = None, h = None, centered=False):
         """
-        **SUMMARY***
+        **SUMMARY**
 
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
@@ -4440,6 +4470,7 @@ class Image:
           coordinate and a width and height. If false we treat it as the top left corner of the crop region.
 
         **RETURNS**
+
         A SimpleCV Image cropped to the specified width and height.
 
         **EXAMPLE**
@@ -4652,7 +4683,17 @@ class Image:
             self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
             
     def drawRotatedRectangle(self,boundingbox,color=Color.RED,width=1):
-        cv.EllipseBox(self.getBitmap(),boundingbox,color,width)
+        """
+        **SUMMARY**
+
+        Draw the minimum bouding rectangle. This rectangle is a series of four points.
+
+        **TODO**
+
+        **KAT FIX THIS**
+        """
+
+        cv.EllipseBox(self.getBitmap(),box=boundingbox,color=color,thicness=width)
 
 
     def show(self, type = 'window'):
@@ -4715,7 +4756,7 @@ class Image:
         to treat an image as a sprite to render onto an image. An example
         would be rendering blobs on to an image. 
 
-        .. Warning: 
+        .. Warning:: 
           *THIS IS EXPERIMENTAL*. We are plannng to remove this functionality sometime in the near future.
 
         **RETURNS**
@@ -4724,10 +4765,10 @@ class Image:
 
         **SEE ALSO**
 
+
         :py:class:`DrawingLayer`
-        :py:class:`DrawingLayer`
-        :py:meth:`insertDrawinglayer`
-        :py:meth:`addDrawinglayer`
+        :py:meth:`insertDrawingLayer`
+        :py:meth:`addDrawingLayer`
         :py:meth:`dl`
         :py:meth:`toPygameSurface`
         :py:meth:`getDrawingLayer`
@@ -4753,7 +4794,7 @@ class Image:
 
         **PARAMETERS**
         
-        * *layer* - String
+        * *layer* - The new drawing layer to add. 
 
         **RETURNS**
         
@@ -4968,7 +5009,7 @@ class Image:
 
         **RETURNS**
 
-        NONE
+        None.
 
         **EXAMPLE**
        
@@ -4982,7 +5023,6 @@ class Image:
         **SEE ALSO**
 
         :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
         :py:meth:`dl`
         :py:meth:`toPygameSurface`
         :py:meth:`getDrawingLayer`
@@ -5015,7 +5055,7 @@ class Image:
         **SEE ALSO**
 
         :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
+        :py:meth:`addDrawingLayer`
         :py:meth:`dl`
         :py:meth:`toPygameSurface`
         :py:meth:`getDrawingLayer`
@@ -5060,7 +5100,7 @@ class Image:
         **SEE ALSO**
 
         :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
+        :py:meth:`addDrawingLayer`
         :py:meth:`dl`
         :py:meth:`toPygameSurface`
         :py:meth:`getDrawingLayer`
@@ -5106,7 +5146,6 @@ class Image:
         **SEE ALSO**
 
         :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
         :py:meth:`dl`
         :py:meth:`toPygameSurface`
         :py:meth:`getDrawingLayer`
@@ -5819,7 +5858,6 @@ class Image:
         :py:meth:`createBinaryMask`
         :py:meth:`createAlphaMask`
         :py:meth:`applyBinaryMask`
-        :py:meth:`applyAlphaMaks`
         :py:meth:`blit`
         :py:meth:`threshold`
 
@@ -5978,6 +6016,7 @@ class Image:
         * *center* - If true we use the center of the kernel.
 
         **RETURNS**
+
         The image after we apply the convolution.
 
         **EXAMPLE**
@@ -6238,13 +6277,14 @@ class Image:
 
         **PARAMETERS**
         
-        The method can be one of the following:
-        * Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
-        * Robust AWB: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html
-          `Robust <http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/Papers/Robust%20Automatic%20White%20Balance%20Algorithm%20using%20Gray%20Color%20Points%20in%20Images.pdf>`
-        * Simple AWB:
-          http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
-          http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
+        * *method* - The method to use for white balancing. Can be one of the following:
+
+          * `Gray World <http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html>`_
+
+          * `Robust AWB <http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html>`_
+
+          * `Simple AWB <http://www.ipol.im/pub/algo/lmps_simplest_color_balance/>`_
+         
 
         **RETURNS**
         
@@ -6648,7 +6688,7 @@ class Image:
 
         :py:meth:`drawKeypointMatches`
         :py:meth:`findKeypoints`
-        :py:meth:`findKeypointsMatch`
+        :py:meth:`findKeypointMatch`
 
         """
         if template == None:
@@ -6680,7 +6720,7 @@ class Image:
 
     def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         findKeypointMatch allows you to match a template image with another image using 
         SURF keypoints. The method extracts keypoints from each image, uses the Fast Local
@@ -6829,17 +6869,23 @@ class Image:
           range between about 300.00 and 600.00
         
         * *flavor* - a string indicating the method to use to extract features.
-          A good primer on how feature/keypoint extractiors can be found here:
-          http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)
-          http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf
+          A good primer on how feature/keypoint extractiors can be found in
+          `feature detection on wikipedia <http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)>`_ 
+          and 
+          `this tutorial. <http://www.cg.tu-berlin.de/fileadmin/fg144/Courses/07WS/compPhoto/Feature_Detection.pdf>`_
 
         
           * "SURF" - extract the SURF features and descriptors. If you don't know
             what to use, use this. 
+
             See: http://en.wikipedia.org/wiki/SURF        
+
           * "STAR" - The STAR feature extraction algorithm
+
             See: http://pr.willowgarage.com/wiki/Star_Detector
+
           * "FAST" - The FAST keypoint extraction algorithm
+
             See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
         
         * *highQuality* - The SURF descriptor comes in two forms, a vector of 64 descriptor 
@@ -6907,10 +6953,14 @@ class Image:
           For the block matching method this is the matching window size.
         * *method* - The algorithm to use as a string. 
           Your choices are:
+
           * 'BM' - default block matching robust but slow - if you are unsure use this.
-          * 'LK' - Lucas-Kanade method - http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method 
-          * 'HS' - Horn-Schunck method - http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method
-        * aggregate - If aggregate is true, each of our motion features is the average of
+
+          * 'LK' - `Lucas-Kanade method <http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method>`_ 
+
+          * 'HS' - `Horn-Schunck method <http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method>`_
+
+        * *aggregate* - If aggregate is true, each of our motion features is the average of
           motion around the sample grid defined by window. If aggregate is false
           we just return the the value as sampled at the window grid interval. For 
           block matching this flag is ignored.
@@ -7370,7 +7420,7 @@ class Image:
 
     def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
         """
-        **DESCRIPTION**
+        **SUMMARY**
 
         This method attempts to use palettization to do segmentation and behaves similar to the 
         findBlobs blob in that it returs a feature set of blob objects. Once a palette has been 
@@ -7386,7 +7436,7 @@ class Image:
         * *minsize* - the minimum blob size in pixels
         * *maxsize* - the maximim blob size in pixels.
 
-        **RETURNS***
+        **RETURNS**
 
         If the method executes successfully a FeatureSet of Blobs is returned from the image. If the method 
         fails a value of None is returned. 
@@ -7505,6 +7555,7 @@ class Image:
         skeletonization is that it finds a series of lines that approximates a blob's shape.
 
         A good summary can be found here:
+
         http://www.inf.u-szeged.hu/~palagyi/skel/skel.html
 
         **PARAMETERS**
@@ -7527,6 +7578,7 @@ class Image:
         **NOTES**
 
         This code was a suggested improvement by Alex Wiltchko, check out his awesome blog here:
+
         http://alexbw.posterous.com/
 
         """
@@ -7562,9 +7614,13 @@ class Image:
         **RETURNS** 
 
         A grayscale image with the foreground / background values assigned to:
+
         * BACKGROUND = (0,0,0)
+
         * MAYBE_BACKGROUND = (64,64,64)
+
         * MAYBE_FOREGROUND =  (192,192,192)
+
         * FOREGROUND = (255,255,255)
         
         **EXAMPLE**
@@ -7689,6 +7745,7 @@ class Image:
         http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
 
         **SEE ALSO**
+
         :py:meth:`smartThreshold`
 
         """
@@ -8219,9 +8276,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
         
@@ -8259,8 +8316,8 @@ class Image:
         
         **NOTES**
 
-        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
-        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
+        * http://en.wikipedia.org/wiki/Discrete_Fourier_transform
+        * http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
 
         **SEE ALSO**
 
@@ -8270,9 +8327,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
 
@@ -8351,9 +8408,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
 
@@ -8437,8 +8494,8 @@ class Image:
         **NOTES**
 
         This filter is far from perfect and will generate a lot of ringing artifacts.
-        See: http://en.wikipedia.org/wiki/Ringing_(signal)
-        See: http://en.wikipedia.org/wiki/High-pass_filter#Image
+        * See: http://en.wikipedia.org/wiki/Ringing_(signal)
+        * See: http://en.wikipedia.org/wiki/High-pass_filter#Image
 
         **SEE ALSO**
 
@@ -8448,9 +8505,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
         
@@ -8563,9 +8620,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
         
@@ -8692,9 +8749,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
         
@@ -8855,9 +8912,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
 
@@ -8955,9 +9012,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
         
@@ -9023,9 +9080,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
 
@@ -9099,9 +9156,9 @@ class Image:
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyButterworthFilter`
-        :py:meth:`inverseDFT`
+        :py:meth:`InverseDFT`
         :py:meth:`applyGaussianFilter`
         :py:meth:`applyUnsharpMask`
 
