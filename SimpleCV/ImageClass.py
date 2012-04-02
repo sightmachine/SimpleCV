@@ -9184,7 +9184,54 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
         
- 
+class FlickrAPI:
+	#token for the FlickrAPI :
+	flickr = None
+	
+	#initialisation of flickrapi, with api_key and secret :
+	def __init__(self,api_key,secret):
+		"""
+		1st step is Authentication. Users need to Authenticate, later can upload images to the there respective accounts.
+		syntax : def authenticate(api_key,secret):
+			where :
+				api_key and secret key are got form the flickr website.
+		For more information vist : http://www.flickr.com/services/api/misc.api_keys.html		
+		"""
+		self.flickr = flickrapi.FlickrAPI(api_key,secret)
+		self.flickr.token.path = '/tmp/flickrtokens'
+		(token, frob) = self.flickr.get_token_part_one(perms='write')
+		if not token: raw_input("Press ENTER after you authorized this program")
+		self.flickr.get_token_part_two((token, frob))
+
+	def uploadAll(self,path,title='SimpleCV'):
+		"""
+		Specify a path (Folder) containing images, which are to be uploaded to flickr.
+		""" 
+		Files = SimpleCV.ImageClass.ImageSet(path)
+		srcImg = []
+		if len(Files)==0 :
+			print "No image files or wrong path"
+		else :		
+			for i in Files :
+				srcImg.append(i.filename)
+			for i in range(len(srcImg)):
+				print "uploading..."
+				filename=srcImg[i]
+				self.flickr.upload(filename,title,is_public="1")
+				print "Files Uploaded : " + str(i+1)+ " Out of " + str(len(srcImg))
+	
+	def uploadImage(self,path,title='SimpleCV'):
+		"""
+		Specify a path (Folder) containing images, which are to be uploaded to flickr.
+		"""
+		try :
+		    img = SimpleCV.Image(path)
+		except IOError:	
+		    print "The path mentioned is not Image."
+		filename=path	
+		print "uploading..."
+		self.flickr.upload(filename,title,is_public="1")
+		sys.stdout.write( "File Uploaded !") 
 
 
 Image.greyscale = Image.grayscale
