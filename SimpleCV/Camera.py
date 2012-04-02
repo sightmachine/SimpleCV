@@ -275,6 +275,7 @@ class FrameSource:
             i.dl().text(txt, (10,i.height / 2), color=col)
             txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
             i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+            print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
 
 
           if elapsed_time > 0 and elapsed_time < 5:
@@ -282,10 +283,11 @@ class FrameSource:
             i.dl().text("In live mode", (10,10), color=col)
             i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
             i.dl().text("Right click will kill the live image", (10,30), color=col)
-            
+
           
           i.save(d)
           if d.mouseRight:
+            print "Closing Window"
             d.done = True
 
         
@@ -318,7 +320,7 @@ class Camera(FrameSource):
         "exposure": cv.CV_CAP_PROP_EXPOSURE}
     #human readable to CV constant property mapping
 
-    def __init__(self, camera_index = 0, prop_set = {}, threaded = True, calibrationfile = ''):
+    def __init__(self, camera_index = -1, prop_set = {}, threaded = True, calibrationfile = ''):
         global _cameras
         global _camera_polling_thread
         """
@@ -338,6 +340,8 @@ class Camera(FrameSource):
             import pygame.camera
             pygame.camera.init()
             threaded = True  #pygame must be threaded
+            if camera_index == -1:
+              camera_index = 0
             if(prop_set.has_key("height") and prop_set.has_key("width")):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
@@ -383,6 +387,11 @@ class Camera(FrameSource):
         Retrieve the value of a given property, wrapper for cv.GetCaptureProperty
         """
         if self.pygame_camera:
+          if prop.lower() == 'width':
+            return self.capture.get_size()[0]
+          elif prop.lower() == 'height':
+            return self.capture.get_size()[1]
+          else:
             return False
             
         if prop in self.prop_map:
@@ -600,17 +609,16 @@ class JpegStreamReader(threading.Thread):
 class JpegStreamCamera(FrameSource):
     """
     The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage() 
-
-    Requires the [Python Imaging Library](http://www.pythonware.com/library/pil/handbook/index.htm)
     
-    Example:
-    -------
+    Requires the Python Imaging Library: http://www.pythonware.com/library/pil/handbook/index.htm
     
+        
     Using your Android Phone as a Camera. Softwares like IP Webcam can be used.
     
     >>> cam = JpegStreamCamera("http://192.168.65.101:8080/videofeed") # your IP may be different.
     >>> img = cam.getImages()
     >>> img.show()
+    
     """
     url = ""
     camthread = ""

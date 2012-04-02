@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import sys, os
+import os, sys, glob, fnmatch
 
 #from SimpleCV import __version__
 
@@ -25,10 +25,12 @@ setup(name="SimpleCV",
   author_email='support@ingenuitas.com',
   url='http://simplecv.org',
   license='BSD',
-  packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'sampleimages']),
+  packages = find_packages(exclude=['ez_setup']),
   zip_safe = True,
-
   requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
-
+  package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE IMAGES
+            'SimpleCV': ['sampleimages/*']
+  },
   scripts=['scripts/simplecv']
+
   )

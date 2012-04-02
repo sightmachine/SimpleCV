@@ -621,7 +621,7 @@ class KeyPoint(Feature):
     def __init__(self, i, keypoint, descriptor=None, flavor="SURF" ):
 #i, point, diameter, descriptor=None,angle=-1, octave=0,response=0.00,flavor="SURF"):
         self.mKeyPoint = keypoint
-        self.x = keypoint.pt[1]
+        self.x = keypoint.pt[1] #KAT
         self.y = keypoint.pt[0]
         self.r = keypoint.size/2.0
         self.avgColor = None

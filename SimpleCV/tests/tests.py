@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup
 
-VISUAL_TEST = True
+VISUAL_TEST = False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -1875,6 +1875,14 @@ def test_bandPassFilter():
     e.save("DFT-bpf-E.png")
     f.save("DFT-bpf-F.png")
 
+def test_image_slice():
+  img = Image("../sampleimages/blockhead.png")
+  I = img.findLines()
+  I2 = I[0:10]
+  if type(I2) == list:
+    assert False
+  else:
+    pass
 
 def test_blob_spatial_relationships():
   img = Image("../sampleimages/spatial_relationships.png")
