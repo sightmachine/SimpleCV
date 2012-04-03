@@ -1871,7 +1871,7 @@ class Image:
 
         match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
         if match:
-            if(vertbose):
+            if(verbose):
                 print "Imgur page: http://imgur.com/" + match.group(1)
                 print "Original image: " + match.group(3)
                 print "Delete page: http://imgur.com/delete/" + match.group(2)
