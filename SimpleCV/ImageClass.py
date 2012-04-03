@@ -9163,6 +9163,10 @@ class Image:
         :py:meth:`applyUnsharpMask`
 
         """
+        if type(boost) != int:
+            print "boost must be an integer"
+            return None
+            
         if boost < 0:
             print "boost >= 1"
             return None
