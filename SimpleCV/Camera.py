@@ -446,6 +446,8 @@ class Camera(FrameSource):
             import pygame.camera
             pygame.camera.init()
             threaded = True  #pygame must be threaded
+            if camera_index == -1:
+              camera_index = 0
             if(prop_set.has_key("height") and prop_set.has_key("width")):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
@@ -510,6 +512,11 @@ class Camera(FrameSource):
         >>> prop = cam.getProperty("width")
         """
         if self.pygame_camera:
+          if prop.lower() == 'width':
+            return self.capture.get_size()[0]
+          elif prop.lower() == 'height':
+            return self.capture.get_size()[1]
+          else:
             return False
             
         if prop in self.prop_map:
