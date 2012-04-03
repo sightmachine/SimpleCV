@@ -9184,9 +9184,77 @@ class Image:
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
         
- 
+class FlickrAPI :
+	"""
+	**SUMMARY**
+	This is a quick way to upload a image or set of images from the folder, to your flickr account.
+	
+	**PARAMETERS**
+	api_key and secret 
+	For more info please visit : http://www.flickr.com/services/api/
+	
+	**RETURNS**
+	Nothing.
+	
+	**EXAMPLE**
+	>>> token = FlickrAPI(api_key,secret)
+	- Default Browser will open for authentication. Once the login details are entered, FlickrAPI is activated.
+	>>> token.upload(path,title="SimpleCV",public="1")
+	
+	**Details**
+	If the path specified is a folder, then all the image files from the folder are uploaded to your account.
+	If the path name is image, only the image is uploaded to the specified account.
+	"""
+	#token for the FlickrAPI :
+	flickr = None
+	
+	#initialisation of flickrapi, with api_key and secret :
+	def __init__(self,api_key,secret):
+		"""
+		1st step is Authentication.
+		For more information vist : http://www.flickr.com/services/api/misc.api_keys.html
+		"""
+		try :
+			import flickrapi
+		except ImportError:
+			print "Please install FlickrAPI from http://pypi.python.org/pypi/flickrapi"
+		self.flickr = flickrapi.FlickrAPI(api_key,secret)
+		self.flickr.token.path = '/tmp/flickrtokens'
+		(token, frob) = self.flickr.get_token_part_one(perms='write')
+		if not token: raw_input("Press ENTER after you authorized this program")
+		self.flickr.get_token_part_two((token, frob))
 
-
+	def upload(self,path,title='SimpleCV',public="1"):
+		"""
+		Parameters
+		----------
+		path : Path to image or the folder containing images.
+		title : Title for the image.
+		public : The photo is made public on "1" and private on "0".
+		"""
+		if os.path.isdir(path):
+			Files = ImageSet(path)
+			srcImg = [
+			if len(Files)==0 :
+				print "No image files or wrong path"
+			else :
+				for i in Files :
+					srcImg.append(i.filename)
+				for i in range(len(srcImg)):
+					print "uploading..."
+					filename=srcImg[i]
+					self.flickr.upload(filename,title,is_public=public)
+					print "Files Uploaded : " + str(i+1)+ " Out of " + str(len(srcImg))
+		else :
+			try :
+				img = Image(path)
+			except IOError:	
+				print "Error : Not a Image."
+	        	filename=path
+	        	print "uploading..."
+	        	self.flickr.upload(filename,title,is_public=public)
+	        	print "File Uploaded !" 
+  
 Image.greyscale = Image.grayscale
 
 
