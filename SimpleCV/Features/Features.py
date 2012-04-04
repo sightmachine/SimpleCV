@@ -11,11 +11,14 @@ import types
 
 class FeatureSet(list):
     """
+    **SUMMARY**
+
     FeatureSet is a class extended from Python's list which has special functions so that it is useful for handling feature metadata on an image.
     
     In general, functions dealing with attributes will return numpy arrays, and functions dealing with sorting or filtering will return new FeatureSets.
     
-    Example:
+    **EXAMPLE**
+
     >>> image = Image("/path/to/image.png")
     >>> lines = image.findLines()  #lines are the feature set
     >>> lines.draw()
@@ -24,9 +27,12 @@ class FeatureSet(list):
     """
     def __getitem__(self,key):
         """
+        **SUMMARY**
+
         Returns a FeatureSet when sliced. Previously used to
         return list. Now it is possible to use FeatureSet member
         functions on sub-lists
+
         """
         if type(key) is types.SliceType: #Or can use 'try:' for speed
             return FeatureSet(list.__getitem__(self, key))
@@ -41,7 +47,27 @@ class FeatureSet(list):
         
     def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
-        Call draw() on each feature in the FeatureSet. 
+        **SUMMARY**
+
+        Call the draw() method on each feature in the FeatureSet. 
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
+        * *autocolor* - If true a color is randomly selected for each feature. 
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> feats.draw(color=Color.PUCE, width=3)
+        >>> img.show()
+
         """
         for f in self:
             if(autocolor):
@@ -50,9 +76,23 @@ class FeatureSet(list):
     
     def show(self, color = Color.GREEN, autocolor = False,width=1):
         """
+        **EXAMPLE**
+
         This function will automatically draw the features on the image and show it.
         It is a basically a shortcut function for development and is the same as:
+
+        **PARAMETERS**
         
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
+        * *autocolor* - If true a color is randomly selected for each feature. 
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+
+        **EXAMPLE**
         >>> img = Image("logo")
         >>> feat = img.findBlobs()
         >>> if feat: feat.draw()
@@ -65,26 +105,85 @@ class FeatureSet(list):
   
     def x(self):
         """
+        **SUMMARY**
+
         Returns a numpy array of the x (horizontal) coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> xs = feats.x()
+        >>> print xs
+        
         """
         return np.array([f.x for f in self])
   
     def y(self):
         """
+        **SUMMARY**
+
         Returns a numpy array of the y (vertical) coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> xs = feats.y()
+        >>> print xs
+
         """
         return np.array([f.y for f in self])
   
     def coordinates(self):
         """
+        **SUMMARY**
+
         Returns a 2d numpy array of the x,y coordinates of each feature.  This 
         is particularly useful if you want to use Scipy's Spatial Distance module 
+        
+        **RETURNS**
+        
+        A numpy array of all the positions in the featureset. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> xs = feats.coordinates()
+        >>> print xs
+
+
         """
         return np.array([[f.x, f.y] for f in self]) 
   
     def area(self):
         """
+        **SUMMARY**
+
         Returns a numpy array of the area of each feature in pixels.
+
+        **RETURNS**
+        
+        A numpy array of all the positions in the featureset. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> xs = feats.coordinates()
+        >>> print xs
+
+
+
         """
         return np.array([f.area() for f in self]) 
   
