@@ -1871,7 +1871,7 @@ class Image:
 
         match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
         if match:
-            if(vertbose):
+            if(verbose):
                 print "Imgur page: http://imgur.com/" + match.group(1)
                 print "Original image: " + match.group(3)
                 print "Delete page: http://imgur.com/delete/" + match.group(2)
@@ -5887,6 +5887,7 @@ class Image:
 
         Invert flips the mask values.
 
+
         **PARAMETERS**
 
         * *hue* - a hue used to generate the alpha mask.
@@ -6159,7 +6160,7 @@ class Image:
             for f in fs:
                 match = False
                 for f2 in finalfs:
-                    if( f2.overlaps(f) ): #if they overlap
+                    if( f2._templateOverlaps(f) ): #if they overlap
                         f2.consume(f) #merge them
                         match = True 
                         break
@@ -6274,6 +6275,14 @@ class Image:
         **SUMMARY**
         
         Attempts to perform automatic white balancing. 
+        Gray World see: http://scien.stanford.edu/pages/labsite/2000/psych221/projects/00/trek/GWimages.html
+        Robust AWB: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/robustawb.html
+        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/Papers/Robust%20Automatic%20White%20Balance%20Algorithm%20using%20Gray%20Color%20Points%20in%20Images.pdf
+        Simple AWB:
+        http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
+        http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
+
+
 
         **PARAMETERS**
         
@@ -6459,7 +6468,12 @@ class Image:
         >>> rlut = np.ones((256,1),dtype=uint8)*255
         >>> img=img.applyLUT(rLUT=rlut)
        
-        
+
+        NOTE:
+
+        -==== BUG NOTE ====- 
+        This method seems to error on the LUT map for some versions of OpenCV.
+        I am trying to figure out why. -KAS
         """
         r = self.getEmpty(1)
         g = self.getEmpty(1)
@@ -6541,7 +6555,7 @@ class Image:
             import cv2
         except:
             warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
-            return
+            return 
         
         if( forceReset ):
             self._mKeyPoints = None
@@ -6916,6 +6930,12 @@ class Image:
         :py:meth:`findKeypoints`
 
         """
+        try:
+            import cv2
+        except:
+            warnings.warn("Can't use Keypoints without OpenCV >= 2.3.0")
+            return None
+
         fs = FeatureSet()
         kp = []
         d = []

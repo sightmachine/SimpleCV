@@ -933,23 +933,12 @@ def test_blob_methods():
         b.getHullImage()
         b.getHullMask()
         b.angle()
-        if(not b.contains((b.x,b.y))):
-           assert False
-        if(b.below((0,0))):
-           assert False
-        if(not b.left((0,0))):
-            assert False
-        if(b.above(BL)):
-            assert False
-        if( not b.right(BL)):
-            assert False
-        b.overlaps(first)
         b.above(first)
         b.below(first)
         b.left(first)
         b.right(first)
-        b.contains(first)
-        b.overlaps(first)
+        #b.contains(first)
+        #b.overlaps(first)
 
 def test_image_convolve():
     img = Image(testimageclr)
@@ -1340,49 +1329,6 @@ def test_BlobRect():
    
   pass
 
-def test_blob_spatial_relationships():
-  img = Image("../sampleimages/blockhead.png")
-  #please see the image
-  blobs = img.findBlobs()
-  blobs = blobs.sortArea()
-  t1 = blobs[-2].above(blobs[-1])
-  f1 = blobs[-1].above(blobs[-2])
-  t2 = blobs[-1].below(blobs[-2])
-  f2 = blobs[-2].below(blobs[-1])
-  t3 = blobs[-2].contains(blobs[-3])
-  f3 = blobs[-3].contains(blobs[-2])
-  t4 = blobs[-2].overlaps(blobs[-3])
-  f4 = blobs[-3].overlaps(blobs[-2])
-  f5 = blobs[-3].overlaps(blobs[-1])
-  t5 = blobs[-2].overlaps(blobs[-3])
-  #-4 right -5 left
-  f6 = blobs[-4].right(blobs[-5])
-  t6 = blobs[-5].right(blobs[-4])  
-  f7 = blobs[-5].left(blobs[-4]) 
-  t7 = blobs[-4].left(blobs[-5])
-  
-  myTuple = (0,0)
-  t8 = blobs[-1].above(myTuple)
-  f8 = blobs[-1].below(myTuple)
-  t9 = blobs[-1].left(myTuple)
-  f9 = blobs[-1].right(myTuple)
-  f10 = blobs[-1].contains(myTuple)
-  f11 = blobs[-1].contains(myTuple)
-
-  myNPA = np.array([0,0])
-  t10 = blobs[-1].above(myNPA)
-  f12 = blobs[-1].below(myNPA)
-  t11 = blobs[-1].left(myNPA)
-  f13 = blobs[-1].right(myNPA)
-  f14 = blobs[-1].contains(myNPA)
-
-  myTrue = ( t1 and t2 and t3 and t4 and t5 and t6 and t7 and t8 and t9 and t10 and t11 )
-  myFalse = (f1 or f2 or f3 or f4 or f5 or f6 or f7 or f8 or f9 or f10 or f11 or f12 or f13 or f14)
-
-  if( myTrue and not myFalse ):
-    pass
-  else:
-    assert False
   
 def test_BlobPickle():
   img = Image(testimageclr)
@@ -1410,6 +1356,11 @@ def test_blob_isa_methods():
     assert False
 
 def test_findKeypoints():
+  try:
+    import cv2
+  except:
+    pass
+    return 
   img = Image(testimage2)
   kp = img.findKeypoints()
   for k in kp:
@@ -1482,6 +1433,12 @@ def test_movement_feature():
   pass 
 
 def test_keypoint_extraction():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+
   img = Image("../sampleimages/KeypointTemplate2.png")
   kp1 = img.findKeypoints()
   kp2 = img.findKeypoints(highQuality=True)
@@ -1499,6 +1456,12 @@ def test_keypoint_extraction():
 
 
 def test_keypoint_match():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   match1 = Image("../sampleimages/kptest1.png")
@@ -1528,7 +1491,12 @@ def test_keypoint_match():
   else:
     assert False
 
-def test_draw_keypointt_matches():
+def test_draw_keypoint_matches():
+  try:
+    import cv2
+  except:
+    pass
+    return
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
@@ -1703,6 +1671,57 @@ def test_image_webp_save():
     else:
       assert False
 
+def test_detection_spatial_relationships():
+  img = Image(testimageclr)
+  template = img.crop(200,200,50,50)
+  motion = img.embiggen((img.width+10,img.height+10),pos=(10,10))
+  motion = motion.crop(0,0,img.width,img.height)
+  blobFS = img.findBlobs()
+  lineFS = img.findLines()
+  circFS = img.findCircle(thresh=100)
+  cornFS = img.findCorners()
+  moveFS = img.findMotion(motion)
+  moveFS = FeatureSet(moveFS[42:52]) # l337 s5p33d h4ck - okay not really
+  tempFS = img.findTemplate(template,threshold=1)
+  aCirc = (img.width/2,img.height/2,np.min([img.width/2,img.height/2]))
+  aRect = (50,50,200,200)
+  aPoint = (img.width/2,img.height/2)
+  aPoly =  [(0,0),(img.width/2,0),(0,img.height/2)] # a triangle
+
+  
+  feats  = [blobFS,lineFS,circFS,cornFS,tempFS,moveFS]
+
+  for f in feats:
+    print str(len(f))
+
+  for f in feats:
+    for g in feats:
+      sample = f[0]
+      sample2 = f[1]
+      g.above(sample)
+      g.below(sample)
+      g.left(sample)
+      g.right(sample)
+      g.overlaps(sample)
+      g.inside(sample)
+      g.outside(sample)
+
+      g.inside(aRect)
+      g.outside(aRect)
+
+      g.inside(aCirc)
+      g.outside(aCirc)
+
+      g.inside(aPoly)
+      g.outside(aPoly)
+
+      g.above(aPoint)
+      g.below(aPoint)
+      g.left(aPoint)
+      g.right(aPoint)
+
+
+  pass
 
 def test_getEXIFData():
   img = Image("../sampleimages/OWS.jpg")
@@ -1865,3 +1884,75 @@ def test_image_slice():
   else:
     pass
 
+def test_blob_spatial_relationships():
+  img = Image("../sampleimages/spatial_relationships.png")
+  #please see the image
+  blobs = img.findBlobs(threshval=1)
+  blobs = blobs.sortArea()
+  print(len(blobs))
+
+  center = blobs[-1]
+  top = blobs[-2]
+  right = blobs[-3]
+  bottom = blobs[-4]
+  left = blobs[-5]
+  inside = blobs[-7]
+  overlap = blobs[-6]
+
+  if( not top.above(center) ):
+    assert False
+  if( not bottom.below(center)):
+    assert False
+  if( not right.right(center)):
+    assert False
+  if( not left.left(center)):
+    assert False
+
+  if( not center.contains(inside)):
+    assert False
+  
+  if( center.contains(left) ):
+    assert False
+  
+  if( not center.overlaps(overlap) ):
+    assert False
+
+  if( not overlap.overlaps(center) ):
+    assert False
+
+  myTuple = (img.width/2,img.height/2)
+
+  if( not top.above(myTuple) ):
+    assert False
+  if( not bottom.below(myTuple)):
+    assert False
+  if( not right.right(myTuple)):
+    assert False
+  if( not left.left(myTuple)):
+    assert False
+
+  if( not top.above(myTuple) ):
+    assert False
+  if( not bottom.below(myTuple)):
+    assert False
+  if( not right.right(myTuple)):
+    assert False
+  if( not left.left(myTuple)):
+    assert False
+  if( not center.contains(myTuple)):
+    assert False
+
+  myNPA = np.array([img.width/2,img.height/2])
+  if( not top.above(myNPA) ):
+    assert False
+  if( not bottom.below(myNPA)):
+    assert False
+  if( not right.right(myNPA)):
+    assert False
+  if( not left.left(myNPA)):
+    assert False
+  if( not center.contains(myNPA)):
+    assert False
+
+  if( not center.contains(inside) ):
+    assert False

@@ -414,7 +414,7 @@ class TemplateMatch(Feature):
                 self.x,
                 self.y)
 
-    def overlaps(self,other):
+    def _templateOverlaps(self,other):
         """
         Returns true if this feature overlaps another template feature.
         """

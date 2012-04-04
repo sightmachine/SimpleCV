@@ -300,7 +300,7 @@ class FeatureSet(list):
         """
         return np.array([f.crop() for f in self])  
 
-    def inside(self,region,simple=True):
+    def inside(self,region):
         """
         Return only the features inside the region, where region can be
         
@@ -315,28 +315,28 @@ class FeatureSet(list):
         """
         fs = FeatureSet()
         for f in self:
-            if(f.isContainedWithin(region,simple)):
+            if(f.isContainedWithin(region)):
                 fs.append(f)
         return fs
 
         
-    def outside(self,region,simple=True):
+    def outside(self,region):
         """
         Returns the oposite of inside
         """
         fs = FeatureSet()
         for f in self:
-            if(f.isNotContainedWithin(region,simple)):
+            if(f.isNotContainedWithin(region)):
                 fs.append(f)
         return fs
 
-    def overlaps(self,region,simple=True):
+    def overlaps(self,region):
         """
         returns all features that overlap the region
         """
         fs = FeatureSet()
         for f in self: 
-            if( f.overlaps(region,simple) ):
+            if( f.overlaps(region) ):
                 fs.append(f)
         return fs
 
@@ -669,27 +669,20 @@ class Feature(object):
             warnings.warn("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
             return None
 
-    def contains(self,other,simple=True):
+    def contains(self,other):
         """
         Returns true if this blob contains the point, all of a collection of points, or the entire other blo in other
         """
         retVal = False
         bounds = self.boundingBox
-        if( not simple ):
-            bounds = self.points
-        if( len(bounds) < 3 ):
-                warnings.warn("BAD NEWS BEARS")
-
-        #print("doing test")
         if( isinstance(other,Feature) ):# A feature
             retVal = True
             for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.            
                 p2 = (int(p[0]),int(p[1]))
                 retVal = self._pointInsidePolygon(p2,bounds)
                 if( not retVal ):
-                    #print(p)
                     break
-                
+        # a single point        
         elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
             retVal = self._pointInsidePolygon(other,bounds)
 
@@ -714,7 +707,7 @@ class Feature(object):
             #everything else .... 
             retVal = True
             for p in other:
-                test = self.pointInsidePolygon(p,bounds)
+                test = self._pointInsidePolygon(p,bounds)
                 if(not test):
                     retVal = False
                     break
@@ -724,21 +717,16 @@ class Feature(object):
 
         return retVal
 
-    def overlaps(self, other, simple=True):
+    def overlaps(self, other):
         """
         Returns true if this blob contains at least one point, part of a collection
         of points, or any part of a blob.        
         """
         retVal = False
         bounds = self.boundingBox
-        if( not simple ):
-            bounds = self.points
-        if( len(bounds) < 3 ):
-                warnings.warn("BAD NEWS BEARS")
         if( isinstance(other,Feature) ):# A feature
-            retVal = True
-            
-            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
+            retVal = True            
+            for p in other.boundingBox: # this isn't completely correct - only tests if points lie in poly, not edges. 
                 retVal = self._pointInsidePolygon(p,bounds)
                 if( retVal ):
                     break
@@ -746,7 +734,7 @@ class Feature(object):
         elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
             retVal = self._pointInsidePolygon(other,bounds)
 
-        elif( isinstance(other,tuple) and len(other)==3 ): # A circle
+        elif( isinstance(other,tuple) and len(other)==3 and not isinstance(other[0],tuple)): # A circle
             #assume we are in x,y, r format 
             retVal = False
             rr = other[2]*other[2]
@@ -763,11 +751,11 @@ class Feature(object):
                        self.contains( (other[0]+other[2],other[1] ) ) or
                        self.contains( (other[0],other[1]+other[3] ) ) or
                        self.contains( (other[0]+other[2],other[1]+other[3] ) ) )
-        elif(isinstance(other,list) and len(other)  >= 4): # an arbitrary polygon
+        elif(isinstance(other,list) and len(other)  >= 3): # an arbitrary polygon
             #everything else .... 
             retVal = False
             for p in other:
-                test = self.pointInsidePolygon(p,bounds)
+                test = self._pointInsidePolygon(p,bounds)
                 if(test):
                     retVal = True
                     break
@@ -777,20 +765,20 @@ class Feature(object):
 
         return retVal
 
-    def doesNotContain(self, other,simple=True):
+    def doesNotContain(self, other):
         """
         Returns true if all of features points are inside this point.
         """
-        return not self.contains(other,simple)
+        return not self.contains(other)
 
-    def doesNotOverlap( self, other,simple=True):
+    def doesNotOverlap( self, other):
         """
         Returns true if none of the feature's points overlap with the other feature.
         """
-        return not self.overlaps( other, simple)
+        return not self.overlaps( other)
 
 
-    def isContainedWithin(self,other,simple=True):
+    def isContainedWithin(self,other):
         """
         Returns true if this feature is contained within the structure stored in other. Other can be one of the following 
         types:
@@ -800,16 +788,13 @@ class Feature(object):
         A list of (x,y) tuples defining a polygon.
         """
         retVal = True
-
         bounds = self.boundingBox
-        if( not simple ):
-            bounds = self.points
 
-        if( isinstance(other,Feature) ):
-            retVal = other.contains(self,simple)
-        elif( isinstance(other,tuple) and len(other)==3 ):
+        if( isinstance(other,Feature) ): # another feature do the containment test
+            retVal = other.contains(self)
+        elif( isinstance(other,tuple) and len(other)==3 ): # a circle
             #assume we are in x,y, r format 
-            rr = other[2]*other[2]
+            rr = other[2]*other[2] # radius squared
             x = other[0]
             y = other[1]
             for p in bounds:
@@ -817,17 +802,17 @@ class Feature(object):
                 if( test > rr ):
                     retVal = False
                     break
-        elif( isinstance(other,tuple) and len(other)==4 and 
+        elif( isinstance(other,tuple) and len(other)==4 and  # a bounding box
             ( isinstance(other[0],float) or isinstance(other[0],int))): # we assume a tuple of four is (x,y,w,h)
             retVal = ( self.maxX() <= other[0]+other[2] and
                        self.minX() >= other[0] and
                        self.maxY() <= other[1]+other[3] and
                        self.minY() >= other[1] )
-        elif(isinstance(other,tuple) >= 4):
+        elif(isinstance(other,list) and len(other) > 2 ): # an arbitrary polygon
             #everything else .... 
             retVal = True
             for p in bounds:
-                test = self.pointInsidePolygon(p,other)
+                test = self._pointInsidePolygon(p,other)
                 if(not test):
                     retVal = False
                     break
@@ -838,16 +823,16 @@ class Feature(object):
         return retVal
 
 
-    def isNotContainedWithin(self,shape,simple=True):
+    def isNotContainedWithin(self,shape):
         """
         """
-        return not self.isContainedWithin(shape,simple)
+        return not self.isContainedWithin(shape)
 
     def _pointInsidePolygon(self,point,polygon):
         """
         returns true if tuple point (x,y) is inside polygon of the form ((a,b),(c,d),...,(a,b)) the polygon should be closed
         Adapted for python from:
-        http://paulbourke.net/geometry/insidepoly/
+        Http://paulbourke.net/geometry/insidepoly/
         """
         if( len(polygon) < 3 ):
             warnings.warn("feature._pointInsidePolygon - this is not a valid polygon")
@@ -856,22 +841,22 @@ class Feature(object):
         counter = 0
         retVal = True
         p1 = None
-        #print(point)
         
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
-        for p2 in poly:
-            if( p1 is None ):
-                p1 = p2
-            else:
-                if( point[1] > np.min((p1[1],p2[1])) ):
-                    if( point[1] <= np.max((p1[1],p2[1])) ):
-                        if( point[0] <= np.max((p1[0],p2[0])) ):
-                            if( p1[1] != p2[1] ):
-                                test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
-                                if( p1[0] == p2[0] or point[0] <= test ):
-                                    counter = counter + 1
-                p1 = p2                
+   #     for p2 in poly:
+        N = len(poly)
+        p1 = poly[0]
+        for i in range(1,N+1):
+            p2 = poly[i%N]
+            if( point[1] > np.min((p1[1],p2[1])) ):
+                if( point[1] <= np.max((p1[1],p2[1])) ):
+                    if( point[0] <= np.max((p1[0],p2[0])) ):
+                        if( p1[1] != p2[1] ):
+                            test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
+                            if( p1[0] == p2[0] or point[0] <= test ):
+                                counter = counter + 1
+            p1 = p2                
                                     
         if( counter % 2 == 0 ):
             retVal = False
