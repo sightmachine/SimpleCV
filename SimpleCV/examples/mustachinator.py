@@ -10,8 +10,8 @@ time.sleep(.1) # uhg
 display = Display((800,600))
 counter = 0
 # load the cascades
-face_cascade = cv.Load("./../Features/HaarCascades/face.xml")
-nose_cascade = cv.Load("./../Features/HaarCascades/nose.xml")
+face_cascade = cv.Load("/usr/local/share/SimpleCV/haarcascades/face.xml")#from the root to folder
+nose_cascade = cv.Load("/usr/local/share/SimpleCV/haarcascades/nose.xml")#from the root to the folder
 stache = Image("./stache.png") # load the stache
 mask = stache.createAlphaMask() # load the stache mask
 count = 0
