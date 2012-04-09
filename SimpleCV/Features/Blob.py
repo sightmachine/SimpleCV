@@ -907,14 +907,29 @@ class Blob(Feature):
     #draw the actual pixels inside the contour to the layer
     def drawMaskToLayer(self, layer = None, offset=(0,0)):
         """
+        **SUMMARY**
+
         Draw the actual pixels of the blob to another layer. This is handy if you
         want to examine just the pixels inside the contour. 
-            
-        offset = The offset from the top left corner where we want to place the mask.
 
-        Parameters:
-            layer - DrawingLayer
-            offset - Tuple
+        **PARAMETERS**
+
+        * *layer* - A drawing layer upon which to apply the mask.
+        * *offset* -  The offset from the top left corner where we want to place the mask.
+        
+        **RETURNS**
+
+        This method either works on the original source image, or on the drawing layer provided. 
+        The method does not modify object itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs(128)
+        >>> dl = DrawingLayer((img.width,img.height))
+        >>> blobs[-1].drawMaskToLayer(layer = dl)
+        >>> dl.show()
+
         """
         if( layer is not None ):
             layer = self.image.dl()
@@ -926,12 +941,27 @@ class Blob(Feature):
     
     def isSquare(self, tolerance = 0.05, ratiotolerance = 0.05):
         """
-        Given a tolerance, test if the blob is a rectangle, and how close its
-        bounding rectangle's aspect ratio is to 1.0
+        **SUMMARY**
 
-        Parameters:
-            tolerance - Float
-            ratiotolerance - Float
+        Given a tolerance, test if the blob is a rectangle, and how close its
+        bounding rectangle's aspect ratio is to 1.0.
+
+        **PARAMETERS**
+        
+        * *tolerance* - A percentage difference between an ideal rectangle and our hull mask.
+        * *ratiotolerance - A percentage difference of the aspect ratio of our blob and an ideal square.
+        
+        **RETURNS**
+
+        Boolean True if our object falls within tolerance, false otherwise.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs(128)
+        >>> if(blobs[-1].isSquare() ):
+        >>>     print "it is hip to be square." 
+        
         """
         if self.isRectangle(tolerance) and abs(1 - self.aspectRatio()) < ratiotolerance:
             return True
@@ -940,11 +970,26 @@ class Blob(Feature):
     
     def isRectangle(self, tolerance = 0.05):
         """
-        Given a tolerance, test the blob against the rectangle distance to see if
-        it is rectangular
+        **SUMMARY**
 
-        Parameters:
-            tolerance - Float
+        Given a tolerance, test the blob against the rectangle distance to see if
+        it is rectangular.
+
+        **PARAMETERS**
+
+        * *tolerance* - The percentage difference between our blob and its idealized bounding box.
+
+        **RETURNS**
+
+        Boolean True if the blob is withing the rectangle tolerage, false otherwise.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs(128)
+        >>> if(blobs[-1].isRecangle() ):
+        >>>     print "it is hip to be square." 
+
         """
         if self.rectangleDistance() < tolerance:
             return True
@@ -952,8 +997,15 @@ class Blob(Feature):
     
     def rectangleDistance(self):
         """
+        **SUMMARY**
+
         This compares the hull mask to the bounding rectangle.  Returns the area
-        of the blob's hull as a fraction of the bounding rectangle
+        of the blob's hull as a fraction of the bounding rectangle.
+
+        **RETURNS**
+        
+        The number of pixels in the blobs hull mask over the number of pixels in its bounding box. 
+
         """
         blackcount, whitecount = self.mHullMask.histogram(2)
         return abs(1.0 - float(whitecount) / (self.minRectWidth() * self.minRectHeight()))
@@ -961,7 +1013,18 @@ class Blob(Feature):
     
     def isCircle(self, tolerance = 0.05):
         """
-        Test circlde distance against a tolerance to see if the blob is circlular
+        **SUMMARY**
+
+        Test circle distance against a tolerance to see if the blob is circlular.
+
+        **PARAMETERS**
+
+        * *tolerance* - the percentage difference between our blob and an ideal circle. 
+
+        **RETURNS**
+
+        True if the feature is within tolerance for being a circle, false otherwise. 
+        
         """
         if self.circleDistance() < tolerance:
             return True
@@ -969,8 +1032,16 @@ class Blob(Feature):
     
     def circleDistance(self):
         """
+        **SUMMARY**
+
         Compare the hull mask to an ideal circle and count the number of pixels
-        that deviate as a fraction of total area of the ideal circle
+        that deviate as a fraction of total area of the ideal circle.
+
+        **RETURNS**
+
+        The difference, as a percentage, between the hull of our blob and an idealized
+        circle of our blob. 
+
         """
         idealcircle = Image((self.width(), self.height()))
         radius = min(self.width(), self.height()) / 2
@@ -983,68 +1054,151 @@ class Blob(Feature):
 
     def centroid(self):
         """
-        Return the centroid (mass-determined center) of the blob
+        **SUMMARY**
+
+        Return the centroid (mass-determined center) of the blob. Note that this is differnt from the bounding box center. 
+
+        **RETURNS**
+        
+        An (x,y) tuple that is the center of mass of the blob. 
+
+        **EXAMPLE**
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> img.drawCircle((blobs[-1].x,blobs[-1].y),10,color=Color.RED)
+        >>> img.drawCircle((blobs[-1].centroid()),10,color=Color.BLUE)
+        >>> img.show()
+        
         """
         return (self.m10 / self.m00, self.m01 / self.m00)
         
     def radius(self):
         """
+        **SUMMARY**
+
         Return the radius, the avg distance of each contour point from the centroid
         """
         return np.mean(spsd.cdist(self.mContour, [self.centroid()]))
         
     def hullRadius(self):
         """
+        **SUMMARY**
+
         Return the radius of the convex hull contour from the centroid
         """
         return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
 
     def getHullImage(self):
         """
+        **SUMMARY**
+
         The convex hull of a blob is the shape that would result if you snapped a rubber band around
         the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
         This method returns an image where the source image around the convex hull of the blob is copied 
         ontop a black background.
 
-        Returns an image of the convex hull. 
+        **RETURNS**
+        Returns a SimpleCV Image of the convex hull, cropped to fit. 
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-1].getHullImage().show()
+
         """
         return self.mHullImg
 
     def getHullMask(self):
         """
+        **SUMMARY**
+
         The convex hull of a blob is the shape that would result if you snapped a rubber band around
         the blob. So if you had the letter "C" as your blob the convex hull would be the letter "O."
         This method returns an image where the area of the convex hull is white and the rest of the image 
         is black. This image is cropped to the size of the blob.
 
-        Returns an image of the convex hull mask. 
+        **RETURNS**
+
+        Returns a binary SimpleCV image of the convex hull mask, cropped to fit the blob. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-1].getHullMask().show()
+        
         """
         return self.mHullMask
         
     def getBlobImage(self):
         """
+        **SUMMARY**
+
         This method automatically copies all of the image data around the blob and puts it in a new 
         image. The resulting image has the size of the blob, with the blob data copied in place. 
         Where the blob is not present the background is black.
 
-        Returns and image of blob.
+        **RETURNS**
+ 
+        Returns just the image of the blob (cropped to fit).
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-1].getBlobImage().show()
+
+        
         """
         return self.mImg
 
     def getBlobMask(self):
         """
+        **SUMMARY**
+
         This method returns an image of the blob's mask. Areas where the blob are present are white
         while all other areas are black. The image is cropped to match the blob area.
+ 
+        **RETURNS**       
+
+        Returns a SimplecV image of the blob's mask, cropped to fit. 
+
+        **EXAMPLE**
         
-        Returns an image of the mask blob. 
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-1].getBlobMask().show()
+
+        
 
         """
         return self.mMask
 
     def match(self, otherblob):
         """
+        **SUMMARY**
+        
         Compare the Hu moments between two blobs to see if they match.  Returns
-        a comparison factor -- lower numbers are a closer match
+        a comparison factor -- lower numbers are a closer match.
+
+        **PARAMETERS**
+
+        * *otherblob* - The other blob to compare this one to. 
+
+        **RETURNS**
+
+        A single floating point value that is the match quality.
+
+        **EXAMPLE**
+
+        >>> cam = Camera()
+        >>> img1 = cam.getImage()
+        >>> img2 = cam.getImage()
+        >>> b1 = img1.findBlobs()
+        >>> b2 = img2.findBlobs()
+        >>> for ba in b1:
+        >>>     for bb in b2:
+        >>>         print ba.match(bb)
+       
         """
         #note: this should use cv.MatchShapes -- but that seems to be
         #broken in OpenCV 2.2  Instead, I reimplemented in numpy
