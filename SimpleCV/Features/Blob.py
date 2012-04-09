@@ -6,6 +6,8 @@ from math import sin, cos, pi
 
 class Blob(Feature):
     """
+    **SUMMARY**
+
     A blob is a typicall a cluster of pixels that form a feature or unique
     shape that allows it to be distinguished from the rest of the image
     Blobs typically are computed very quickly so they are used often to
@@ -13,7 +15,20 @@ class Blob(Feature):
     things like color, shape, size, etc.   Since blobs are computed quickly
     they are typically used to narrow down search regions in an image, where
     you quickly find a blob and then that blobs region is used for more
-    computational intensive type image processing
+    computational intensive type image processing.
+
+    **EXAMPLE**
+
+    >>> img = Image("lenna")
+    >>> blobs = img.findBlobs()
+    >>> blobs[-1].draw()
+    >>> img.show()
+
+    **SEE ALSO**
+    :py:meth:`findBlobs`
+    :py:class:`BlobMaker`
+    :py:meth:`findBlobsFromMask`
+
     """
     seq = '' #the cvseq object that defines this blob
     mContour = [] # the blob's outer perimeter as a set of (x,y) tuples 
@@ -108,10 +123,20 @@ class Blob(Feature):
 
     def meanColor(self):
         """
-        This function returns a tuple representing the average color of the blob
+        **SUMMARY**
 
-        Returns:
-            Tuple
+        This function returns a tuple representing the average color of the blob. 
+
+        **RETURNS**
+          
+        A RGB triplet of the average blob colors. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].meanColor()
+
         """
         cv.SetImageROI(self.image.getBitmap(),self.mBoundingBox)
         #may need the offset paramete
@@ -122,24 +147,60 @@ class Blob(Feature):
 
     def minX(self):
         """
+        **SUMMARY**
+
         This method return the minimum x value of the bounding box of the
         the blob. 
+        
+        **RETURNS**
+
+        A integer of the minimum x value of the bounding box.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].minX()
+        
         """
         return self.mBoundingBox[0]
         
     def maxX(self):
         """
+        **SUMMARY**
+
         This method return the maximum x value of the bounding box of the
         the blob. 
+**RETURNS**
+
+        A integer of the maximum value of the bounding box.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].maxX()
+        
+        
         """        
         return self.mBoundingBox[0]+self.mBoundingBox[2]
 
     def center(self):
         """
-        This mehtod returns the center of the blob's bounding box
+        **SUMMARY**
 
-        Returns:
-            Tuple
+        This method returns the center of the blob's bounding box.
+
+        **RETURNS**
+
+        A tuple that is the center of the blob's bounding box.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].center()
+        
         """
         x = self.mBoundingBox[0]+(self.mBoundingBox[2]/2)
         y = self.mBoundingBox[1]+(self.mBoundingBox[3]/2)
@@ -147,68 +208,201 @@ class Blob(Feature):
 
     def minY(self):
         """
+        **SUMMARY**
+
         This method return the minimum y value of the bounding box of the
         the blob. 
+
+        **RETURNS**
+
+        An integer that is the blob's bounding box's minimum y dimension.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].minY()
+        
         """
         return self.mBoundingBox[1]
         
     def maxY(self):
         """
+        **SUMMARY**
+
         This method return the maximum y value of the bounding box of the
         the blob. 
+
+        **RETURNS**
+
+        An integer that is the blob's bounding box's maximum y dimension.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].maxY()
+
         """        
         return self.mBoundingBox[1]+self.mBoundingBox[3]
 
     def width(self):
         """
+        **SUMMARY**
+
         This method returns the width of the bounding box of the blob. 
+
+        **RETURNS**
+        
+        The width of the blob's bounding box as an integer.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].width()
+
         """
         return(self.mBoundingBox[2])
 
     def height(self):
         """
-        This method returs the height of the bounding box of the blob. 
+        **SUMMARY**
+
+        This method returns the height of the bounding box of the blob. 
+
+        **RETURNS**
+        
+        The height of the blob's bounding box as an integer.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].height()
         """
         return(self.mBoundingBox[3])
         
     def topLeftCorner(self):
         """
+        **SUMMARY**
+
         This method returns the top left corner of the bounding box of
         the blob as an (x,y) tuple.
+
+        **RETURNS**
+        
+        An (x,y) tuple of the top left corner of the blob's bounding box. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].topLeftCorner()
+
         """
         return (self.mBoundingBox[0],self.mBoundingBox[1])
 
     def bottomRightCorner(self):
         """
+        **SUMMARY** 
+
         This method returns the bottom right corner of the bounding box of
         the blob as an (x,y) tuple.
+
+       **RETURNS**
+        
+        An (x,y) tuple of the bottom right corner of the blob's bounding box. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].bottomRightCorner()
+
+ 
         """        
         return (self.mBoundingBox[0]+self.mBoundingBox[2],self.mBoundingBox[1]+self.mBoundingBox[3])
         
     def bottomLeftCorner(self):
         """
+        **SUMMARY**
+
         This method returns the bottom left corner of the bounding box of
         the blob as an (x,y) tuple.
+
+        **RETURNS**
+        
+        An (x,y) tuple of the bottom left corner of the blob's bounding box. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].bottomLeftCorner()
+ 
         """ 
         return (self.mBoundingBox[0],self.mBoundingBox[1]+self.mBoundingBox[3])
         
     def topRightCorner(self):
         """
+        **SUMMARY**
+
         This method returns the top right corner of the bounding box of
         the blob as an (x,y) tuple.
+
+        **RETURNS**
+        
+        An (x,y) tuple of the top right corner of the blob's bounding box. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].topRightCorner()
+
         """       
         return (self.mBoundingBox[0]+self.mBoundingBox[2],self.mBoundingBox[1])
 
     def area(self):
         """
+        **SUMMARY**
+
         This method returns the area of the blob in terms of the number of
         pixels inside the contour. 
+        
+        **RETURNS**
+
+        An integer of the area of the blob in pixels. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].area()
+        >>> print blobs[0].area()
+        
         """
         return(self.mArea)
     
     def length(self):
         """
         Length returns the longest dimension of the X/Y bounding box 
+
+        **RETURNS**
+
+        Returns the longest the dimension of the blob's bounding box. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].length()
+        
+        **TODO**
+        
+        Should this be the diag length?
+
         """
         return max(self.mBoundingBox[2],self.mBoundingBox[3])
 
@@ -239,13 +433,29 @@ class Blob(Feature):
     
     def drawRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
         """
+        **SUMMARY**
+        
         Draws the bounding rectangle for the blob. 
-        color = The color to render the blob's box.
-        alpha = The alpha value of the rendered blob 0 = transparent 255 = opaque.
-        width = The width of the drawn blob in pixels
-        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+        
+        **PARAMETERS**
 
-        Returns none, this operation works on the supplied layer or the source image. 
+        * *color* - The color to render the blob's box.
+        * *alpha* - The alpha value of the rendered blob 0 = transparent 255 = opaque.
+        * *width* - The width of the drawn blob in pixels
+        * *layer* - if layer is not None, the blob is rendered to the layer versus the source image.
+
+        **RETURNS** 
+
+        Returns None, this operation works on the supplied layer or the source image. 
+
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-1].drawRect(color=Color.RED, width=-1,alpha=128)
+        >>> img.show()
+      
         """
         if( layer is None ):
             layer = self.image.dl()
@@ -258,13 +468,30 @@ class Blob(Feature):
 
     def drawMinRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
         """
-        Draws the minimum bounding rectangle for the blob. 
-        color = The color to render the blob's box.
-        alpha = The alpha value of the rendered blob 0 = transparent 255 = opaque.
-        width = The width of the drawn blob in pixels
-        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+        **SUMMARY**
+        
+        Draws the minimum bounding rectangle for the blob. The minimum bounding rectangle is the smallest
+        rotated rectangle that can enclose the blob. 
 
+        **PARAMETERS**
+
+        * *color* - The color to render the blob's box.
+        * *alpha* - The alpha value of the rendered blob 0 = transparent 255 = opaque.
+        * *width* - The width of the drawn blob in pixels
+        * *layer* - If layer is not None, the blob is rendered to the layer versus the source image.
+
+        **RETURNS**
+        
         Returns none, this operation works on the supplied layer or the source image. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> for b in blobs:
+        >>>      b.drawMinRect(color=Color.RED, width=-1,alpha=128)
+        >>> img.show()
+        
         """
         if( layer is None ):
             layer = self.image.dl()
@@ -276,11 +503,24 @@ class Blob(Feature):
 
     def angle(self):
         """
+        **SUMMARY**
+        
         This method returns the angle between the horizontal and the minimum enclosing
         rectangle of the blob. The minimum enclosing rectangle IS NOT not the bounding box.
         Use the bounding box for situations where you need only an approximation of the objects
         dimensions. The minimum enclosing rectangle is slightly harder to maninpulate but
-        gives much better information about the blobs dimensions. 
+        gives much better information about the blobs dimensions.
+
+        **RETURNS**
+
+        Returns the angle between the minimum bounding rectangle and the horizontal.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blob[-1].angle()
+        
         """
         if self.mMinRectangle[1][0] < self.mMinRectangle[1][1]:
             return self.mMinRectangle[2] 
@@ -289,39 +529,126 @@ class Blob(Feature):
         
     def minRectX(self):
         """
+        **SUMMARY**
+
         This is the x coordinate of the centroid for the minimum bounding rectangle
+
+        **RETURNS**
+
+        An integer that is the x position of the centrod of the minimum bounding rectangle. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].minRectX()
+
         """
         return(self.mMinRectangle[0][0])
         
     def minRectY(self):
         """
+        **SUMMARY**
+
         This is the y coordinate of the centroid for the minimum bounding rectangle
+
+        **RETURNS**
+
+        An integer that is the y position of the centrod of the minimum bounding rectangle. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].minRectY()
+
         """
         return(self.mMinRectangle[0][1])
 
     def minRectWidth(self):
         """
-        This is the y coordinate of the centroid for the minimum bounding rectangle
+        **SUMMARY**
+
+        This is the width of the minimum bounding rectangle for the blob.
+
+        **RETURNS**
+
+        An integer that is the width of the minimum bounding rectangle for this blob. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].minRectWidth()
+
         """
         return(self.mMinRectangle[1][0])
     
     def minRectHeight(self):
         """
-        This is the y coordinate of the centroid for the minimum bounding rectangle
+        **SUMMARY**
+
+        This is the height, in pixels, of the minimum bounding rectangle. 
+
+        **RETURNS**
+
+        An integer that is the height of the minimum bounding rectangle for this blob.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].minRectHeight()
+
+
         """
         return(self.mMinRectangle[1][1])
 
     def aspectRatio(self):
         """
-        This method returns the aspect ration (W/H) of the bounding box of the
+        **SUMMARY**
+
+        This method returns the aspect ratio (W/H) of the bounding box of the
         blob. 
+
+        **RETURNS**
+        
+        A float corresponding to the aspect ratio of the blob's bounding box. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].aspectRatio()
+       
         """
         return( float(self.mBoundingBox[2])/float(self.mBoundingBox[3]))
     
     def rectifyMajorAxis(self,axis=0):
         """
+        **SUMMARY**
+
         Rectify the blob image and the contour such that the major
-        axis is aligned to either vertical=0 or horizontal=1 
+        axis is aligned to either vertical=0 or horizontal=1. This is to say, we take the blob,
+        find the longest axis, and rotate the blob such that the axis is either vertical or horizontal. 
+
+        **PARAMETERS**
+         
+        * *axis* - if axis is zero we rotate the blobs to fit along the vertical axis, otherwise we use the horizontal axis.
+
+        **RETURNS**
+        
+        This method works in place, i.e. it rotates the blob's internal data structures. This method is experimetnal. 
+        Use at your own risk. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-2].mImg.show()
+        >>> blobs[-2].rectifyToMajorAxis(1)
+        >>> blobs[-2].mImg.show()
+
         """
         finalRotation = self.angle() 
         w = self.minRectWidth()
@@ -338,13 +665,32 @@ class Blob(Feature):
     
     def rotate(self,angle):
         """
-        Rotate the blob given the angle in degrees most of the blob elements will
-        be rotated, not however this will "break" drawing back to the original image.
-        To draw the blob create a new layer and draw to that layer.
+        **SUMMARY**
 
-        Parameters:
-            angle - Int or Float
+        Rotate the blob given an  angle in degrees. If you use this method 
+        most of the blob elements will
+        be rotated in place , however, this will "break" drawing back to the original image.
+        To draw the blob create a new layer and draw to that layer. Positive rotations
+        are counter clockwise. 
+
+        **PARAMETERS**
+        
+        * *angle* - A floating point angle in degrees. Positive is anti-clockwise.  
             
+        **RETURNS**
+        
+        .. Warning:
+          Nothing. All rotations are performed in place. This modifies the blob's data
+          and will break any image write back capabilities. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-2].mImg.show()
+        >>> blobs[-2].rotate(90)
+        >>> blobs[-2].mImg.show()
+        
         """
         #FIXME: This function should return a blob
         theta = 2*np.pi*(angle/360.0)
@@ -375,21 +721,32 @@ class Blob(Feature):
 
     def draw(self, color = Color.GREEN, width=-1, alpha=-1, layer=None):
         """
+        **SUMMARY**
+
         Draw the blob, in the given color, to the appropriate layer
         
         By default, this draws the entire blob filled in, with holes.  If you
         provide a width, an outline of the exterior and interior contours is drawn.
         
-        color = The color to render the blob.
-        alpha = The alpha value of the rendered blob.
-        width = The width of the drawn blob in pixels, if -1 then filled then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+        **PARAMETERS**
 
-        Parameters:
-            color - Color object or Color tuple
-            alpha - Int
-            width - Int
-            layer - DrawingLayer
+        * *color* -The color to render the blob as a color tuple.
+        * *alpha* - The alpha value of the rendered blob 0=transparent 255=opaque.
+        * *width* - The width of the drawn blob in pixels, if -1 then filled then the polygon is filled.
+        * *layer* - A source layer, if layer is not None, the blob is rendered to the layer versus the source image. 
+
+        **RETURNS**
+        
+        This method either works on the original source image, or on the drawing layer provided. 
+        The method does not modify object itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-2].draw(color=Color.PUCE,width=-1,alpha=128)
+        >>> img.show()
+
         """
         if not layer:
             layer = self.image.dl()
@@ -420,19 +777,33 @@ class Blob(Feature):
                    
     def drawOutline(self, color=Color.GREEN, alpha=128, width=1, layer=None):
         """
-        Draw the blob contour the given layer -- if no layer is provided, draw
-        to the source image
-        
-        color = The color to render the blob.
-        alpha = The alpha value of the rendered blob.
-        width = The width of the drawn blob in pixels, -1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+        **SUMMARY**
 
-        Parameters:
-            color - Color object or Color tuple
-            alpha - Int
-            width - Int
-            layer - DrawingLayer
+        Draw the blob contour the provided layer -- if no layer is provided, draw
+        to the source image.
+
+        
+        **PARAMETERS**
+
+        * *color* - The color to render the blob.
+        * *alpha* - The alpha value of the rendered blob.
+        * *width* - The width of the drawn blob in pixels, -1 then the polygon is filled.
+        * *layer* - if layer is not None, the blob is rendered to the layer versus the source image.
+
+
+        **RETURNS**
+
+        This method either works on the original source image, or on the drawing layer provided. 
+        The method does not modify object itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-2].drawOutline(color=Color.GREEN,width=3,alpha=128)
+        >>> img.show()
+        
+         
         """
         
         if( layer is None ):
@@ -451,18 +822,29 @@ class Blob(Feature):
     
     def drawHoles(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
-        This method renders all of the holes (if any) that are present in the blob
-        
-        color = The color to render the blob's holes.
-        alpha = The alpha value of the rendered blob hole.
-        width = The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+        **SUMMARY** 
 
-        Parameters:
-            color - Color object or Color tuple
-            alpha - Int
-            width - Int
-            layer - DrawingLayer
+        This method renders all of the holes (if any) that are present in the blob.
+
+        **PARAMETERS**
+
+        * *color* - The color to render the blob's holes.
+        * *alpha* - The alpha value of the rendered blob hole.
+        * *width* - The width of the drawn blob hole in pixels, if w=-1 then the polygon is filled.
+        * *layer* - If layer is not None, the blob is rendered to the layer versus the source image.
+        
+        **RETURNS**
+
+        This method either works on the original source image, or on the drawing layer provided. 
+        The method does not modify object itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs(128)
+        >>> blobs[-1].drawHoles(color=Color.GREEN,width=3,alpha=128)
+        >>> img.show()
+  
         """
         if(self.mHoleContour is None):
             return
@@ -483,19 +865,30 @@ class Blob(Feature):
 
     def drawHull(self, color=Color.GREEN, alpha=-1, width=-1, layer=None ):
         """
+        **SUMMARY**
+
         Draw the blob's convex hull to either the source image or to the
         specified layer given by layer.
         
-        color = The color to render the blob's convex hull.
-        alpha = The alpha value of the rendered blob.
-        width = The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
-        layer = if layer is not None, the blob is rendered to the layer versus the source image.
+        **PARAMETERS**
+        
+        * *color* - The color to render the blob's convex hull as an RGB triplet.
+        * *alpha* - The alpha value of the rendered blob.
+        * *width* - The width of the drawn blob in pixels, if w=-1 then the polygon is filled.
+        * *layer* - if layer is not None, the blob is rendered to the layer versus the source image.
 
-        Parameters:
-            color - Color object or Color tuple
-            alpha - Int
-            width - Int
-            layer - DrawingLayer
+        **RETURNS**
+
+        This method either works on the original source image, or on the drawing layer provided. 
+        The method does not modify object itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs(128)
+        >>> blobs[-1].drawHoles(color=Color.GREEN,width=3,alpha=128)
+        >>> img.show()
+
         """
         if( layer is None ):
             layer = self.image.dl()
