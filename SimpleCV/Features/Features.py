@@ -361,9 +361,8 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> l = img.findLines()
-        >>> lengt = l.length()
-        >>> lengt[0] # length of the 0th element. 
+        >>> l = img.findLines().sortLength()
+        >>> lengt[-1] # length of the 0th element. 
         
         """
         return FeatureSet(sorted(self, key = lambda f: f.length()))
@@ -655,7 +654,7 @@ class FeatureSet(list):
         >>> blobs = img.findBlobs()
         >>> b = blobs[-1]
         >>> lines = img.findLines()
-        >>> outside = lines.overlaps(b)
+        >>> outside = lines.above(b)
 
         **NOTE**
         
@@ -733,7 +732,7 @@ class FeatureSet(list):
         >>> blobs = img.findBlobs()
         >>> b = blobs[-1]
         >>> lines = img.findLines()
-        >>> inside = lines.inside(b)
+        >>> left = lines.left(b)
 
         **NOTE**
         
@@ -772,7 +771,7 @@ class FeatureSet(list):
         >>> blobs = img.findBlobs()
         >>> b = blobs[-1]
         >>> lines = img.findLines()
-        >>> inside = lines.inside(b)
+        >>> right = lines.right(b)
 
         **NOTE**
         
@@ -1671,12 +1670,12 @@ class Feature(object):
         """
         **SUMMARY**
         
-        Return true if the feature is above the object, where object can be a bounding box,
+        Return true if the feature does not contain  the other object, where other can be a bounding box,
         bounding circle, a list of tuples in a closed polygon, or any other featutres. 
         
         **PARAMETERS**
         
-        * *object*
+        * *other*
 
           * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
           * A bounding circle of the form (x,y,r)
@@ -1685,14 +1684,14 @@ class Feature(object):
           
         **RETURNS**
 
-        Returns a Boolean, True if the feature is above the object, False otherwise.
+        Returns a Boolean, True if the feature does not contain the object, False otherwise.
 
         **EXAMPLE**
         
         >>> img = Image("Lenna")
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
-        >>> if( blobs[-1].above(b) ):
+        >>> if( blobs[-1].doesNotContain(b) ):
         >>>    Print "above the biggest blob"
 
         Returns true if all of features points are inside this point.
@@ -1703,12 +1702,12 @@ class Feature(object):
         """
         **SUMMARY**
         
-        Return true if the feature is above the object, where object can be a bounding box,
+        Return true if the feature does not overlap the object other, where other can be a bounding box,
         bounding circle, a list of tuples in a closed polygon, or any other featutres. 
         
         **PARAMETERS**
         
-        * *object*
+        * *other*
 
           * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
           * A bounding circle of the form (x,y,r)
@@ -1717,17 +1716,17 @@ class Feature(object):
           
         **RETURNS**
 
-        Returns a Boolean, True if the feature is above the object, False otherwise.
+        Returns a Boolean, True if the feature does not Overlap  the object, False otherwise.
 
         **EXAMPLE**
         
         >>> img = Image("Lenna")
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
-        >>> if( blobs[-1].above(b) ):
-        >>>    Print "above the biggest blob"
+        >>> if( blobs[-1].doesNotOverlap(b) ):
+        >>>    Print "does not over overlap biggest blob"
 
-        Returns true if none of the feature's points overlap with the other feature.
+
         """
         return not self.overlaps( other)
 
@@ -1736,12 +1735,12 @@ class Feature(object):
         """
         **SUMMARY**
         
-        Return true if the feature is above the object, where object can be a bounding box,
+        Return true if the feature is contained withing  the object other, where other can be a bounding box,
         bounding circle, a list of tuples in a closed polygon, or any other featutres. 
         
         **PARAMETERS**
         
-        * *object*
+        * *other*
 
           * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
           * A bounding circle of the form (x,y,r)
@@ -1757,15 +1756,9 @@ class Feature(object):
         >>> img = Image("Lenna")
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
-        >>> if( blobs[-1].above(b) ):
-        >>>    Print "above the biggest blob"
+        >>> if( blobs[-1].isContainedWithin(b) ):
+        >>>    Print "inside the blob"
 
-        Returns true if this feature is contained within the structure stored in other. Other can be one of the following 
-        types:
-        Any feature type
-        A bounding box tuple of the form (x,y,w,h)
-        A bounding circle tuple of the form (x,y,r)
-        A list of (x,y) tuples defining a polygon.
         """
         retVal = True
         bounds = self.boundingBox
@@ -1807,12 +1800,12 @@ class Feature(object):
         """
         **SUMMARY**
         
-        Return true if the feature is above the object, where object can be a bounding box,
+        Return true if the feature is not contained within the shape, where shape can be a bounding box,
         bounding circle, a list of tuples in a closed polygon, or any other featutres. 
         
         **PARAMETERS**
         
-        * *object*
+        * *shape*
 
           * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
           * A bounding circle of the form (x,y,r)
@@ -1821,15 +1814,15 @@ class Feature(object):
           
         **RETURNS**
 
-        Returns a Boolean, True if the feature is above the object, False otherwise.
+        Returns a Boolean, True if the feature is not contained within the shape, False otherwise.
 
         **EXAMPLE**
         
         >>> img = Image("Lenna")
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
-        >>> if( blobs[-1].above(b) ):
-        >>>    Print "above the biggest blob"
+        >>> if( blobs[-1].isNotContainedWithin(b) ):
+        >>>    Print "Not inside the biggest blob"
 
         """
         return not self.isContainedWithin(shape)
