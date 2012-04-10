@@ -2066,7 +2066,7 @@ class Image:
             cv.Smooth(r, ro, algorithm, win_x, win_y, sigma, spatial_sigma)            
             cv.Smooth(g, go, algorithm, win_x, win_y, sigma, spatial_sigma)
             cv.Smooth(b, bo, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Merge(ro,go,bo, None, newimg)
+            cv.Merge(bo,go,ro, None, newimg)
 
         return Image(newimg, colorSpace=self._colorSpace)
 
