@@ -4,7 +4,7 @@ import csv
 from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
 from SimpleCV.Display import Display
 
-cam = Camera(0)
+cam = Camera(1)
 time.sleep(.1) # uhg
 display = Display((800,600))
 data = "None"
