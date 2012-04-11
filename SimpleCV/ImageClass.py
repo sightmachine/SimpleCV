@@ -509,6 +509,13 @@ class Image:
  
         * *colorspace* - A default camera color space. If none is specified this will usually default to the BGR colorspace.
         
+
+        **EXAMPLES**
+
+        >>> img = Image('simplecv')
+        >>> img = Image('test.png')
+        >>> img = Image('http://www.website.com/my_image.jpg')
+        >>> img.show()
   
         **NOTES**
 
@@ -547,59 +554,18 @@ class Image:
 
         #This section loads custom built-in images    
         if type(source) == str:
-            if source.lower() == "simplecv":
-                try:
-                    scvImg = pil.fromstring("RGB", (118,118), SIMPLECV)
 
-                except:
-                    warnings.warn("Couldn't load Image")
-                    return None
+            tmpname = source.lower()
 
-                im = StringIO(SIMPLECV)
-                source = scvImg
-
-            elif source.lower() == "logo":
-                try:
-                    scvImg = pil.fromstring("RGB", (64,64), LOGO)
-
-                except:
-                    warnings.warn("Couldn't load Image")
-                    return None
-
-                im = StringIO(LOGO)
-                source = scvImg
-
-            elif source.lower() == "logo_inverted":
-                try:
-                    scvImg = pil.fromstring("RGB", (64,64), LOGO_INVERTED)
-
-                except:
-                    warnings.warn("Couldn't load Image")
-                    return None
-
-                im = StringIO(LOGO_INVERTED)
-                source = scvImg
-
-            elif source.lower() == "logo_transparent":
-                try:
-                    scvImg = pil.fromstring("RGB", (64,64), LOGO_TRANSPARENT)
-
-                except:
-                    warnings.warn("Couldn't load Image")
-                    return None
-
-                im = StringIO(LOGO_TRANSPARENT)
-                source = scvImg
-            
-            elif source.lower() == "lenna":
-                try:
-                    scvImg = pil.fromstring("RGB", (512, 512), LENNA)
-                except:
-                    warnings.warn("Couldn't Load Image")
-                    return None
-                    
-                im = StringIO(LENNA)
-                source = scvImg
+            if tmpname == "simplecv" or tmpname == "logo":
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','simplecv.png')
+                source = imgpth
+            elif tmpname == "simplecv_inverted" or tmpname == "inverted" or tmpname == "logo_inverted":
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','simplecv_inverted.png')
+                source = imgpth
+            elif tmpname == "lenna":
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','lenna.png')
+                source = imgpth
         
         if (type(source) == tuple):
             w = int(source[0])
