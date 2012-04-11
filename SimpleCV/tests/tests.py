@@ -35,8 +35,8 @@ testbarcode = "../sampleimages/barcode.png"
 testoutput = "../sampleimages/9d4l.jpg"
 tmpimg = "../sampleimages/tmpimg.jpg"
 greyscaleimage = "../sampleimages/greyscale.jpg"
-logo = "../sampleimages/logo.png"
-logo_inverted = "../sampleimages/logo_inverted.png"
+logo = "../sampleimages/simplecv.png"
+logo_inverted = "../sampleimages/simplecv_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 circles = "../sampleimages/circles.png"
 webp = "../sampleimages/simplecv.webp"
@@ -250,49 +250,33 @@ def test_detection_lines():
         assert False
 
 def test_detection_feature_measures():
-    img = Image(testimage2)
-  
-    fs = FeatureSet()
-    fs.append(Corner(img, 5, 5))
-    fs.append(Line(img, ((2, 2), (3,3))))
-    print(fs)
-    bm = BlobMaker()
-    result = bm.extract(img)
-    fs.extend(result)
-    print(fs)
-    #fs.append(img.findBlobs()[0])
-
-    #if ZXING_ENABLED:
-    # fake_barcode = Barcode(img, zxing.BarCode("""
-    #file:default.png (format: FAKE_DATA, type: TEXT):
-    #Raw result:
-    #foo-bar|the bar of foo
-    #Parsed result:
-    #foo-bar 
-    #the bar of foo
-    #Also, there were 4 result points:
-    #  Point 0: (24.0,18.0)
-    #  Point 1: (21.0,196.0)
-    #  Point 2: (201.0,198.0)
-    #  Point 3: (205.23952,21.0)
-    #"""))
-    #fs.append(fake_barcode) 
-
-    for f in fs:
-        a = f.area()
-        l = f.length()
-        c = f.meanColor()
-        d = f.colorDistance()
-        th = f.angle()
-        pts = f.coordinates()
-        dist = f.distanceFrom() #distance from center of image 
-
+    try:
+      img = Image(testimage2)
     
-    fs2 = fs.sortAngle()
-    fs3 = fs.sortLength()
-    fs4 = fs.sortColorDistance()
-    fs5 = fs.sortArea()
-    fs1 = fs.sortDistance() 
+      fs = FeatureSet()
+      fs.append(Corner(img, 5, 5))
+      fs.append(Line(img, ((2, 2), (3,3))))
+      bm = BlobMaker()
+      result = bm.extract(img)
+      fs.extend(result)
+
+      for f in fs:
+          a = f.area()
+          l = f.length()
+          c = f.meanColor()
+          d = f.colorDistance()
+          th = f.angle()
+          pts = f.coordinates()
+          dist = f.distanceFrom() #distance from center of image 
+
+      fs2 = fs.sortAngle()
+      fs3 = fs.sortLength()
+      fs4 = fs.sortColorDistance()
+      fs5 = fs.sortArea()
+      fs1 = fs.sortDistance()
+      pass
+    except:
+      assert False
 
 def test_detection_blobs():
     img = Image(testbarcode)

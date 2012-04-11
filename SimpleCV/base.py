@@ -182,3 +182,4 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
 IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
 #maximum image size - 
 MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.  
+LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__))) 
