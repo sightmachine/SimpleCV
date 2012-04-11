@@ -379,9 +379,9 @@ class Display:
         
         * *img* -  the SimpleCV image to save to the display. 
         * *fit* - When fit=False write frame will crop and center the image as best it can.
-         If the image is too big it is cropped and centered. If it is too small
-         it is centered. If it is too big along one axis that axis is cropped and
-         the other axis is centered if necessary.
+          If the image is too big it is cropped and centered. If it is too small
+          it is centered. If it is too big along one axis that axis is cropped and
+          the other axis is centered if necessary.
 
         
         **RETURNS**

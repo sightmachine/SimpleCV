@@ -171,7 +171,8 @@ class Blob(Feature):
 
         This method return the maximum x value of the bounding box of the
         the blob. 
-**RETURNS**
+
+        **RETURNS**
 
         A integer of the maximum value of the bounding box.
 
@@ -310,7 +311,7 @@ class Blob(Feature):
         This method returns the bottom right corner of the bounding box of
         the blob as an (x,y) tuple.
 
-       **RETURNS**
+        **RETURNS**
         
         An (x,y) tuple of the bottom right corner of the blob's bounding box. 
 
@@ -949,7 +950,7 @@ class Blob(Feature):
         **PARAMETERS**
         
         * *tolerance* - A percentage difference between an ideal rectangle and our hull mask.
-        * *ratiotolerance - A percentage difference of the aspect ratio of our blob and an ideal square.
+        * *ratiotolerance* - A percentage difference of the aspect ratio of our blob and an ideal square.
         
         **RETURNS**
 

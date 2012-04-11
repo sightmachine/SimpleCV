@@ -179,7 +179,7 @@ class FeatureSet(list):
 
         >>> img = Image("lenna")
         >>> feats = img.findBlobs()
-        >>> xs = feats.coordinates()
+        >>> xs = feats.area()
         >>> print xs
 
         """
