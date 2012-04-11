@@ -2,16 +2,16 @@
 
 import time, webbrowser
 from operator import add
-from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
+from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv, HaarCascade
 from SimpleCV.Display import Display
 
-cam = Camera(0)
+cam = Camera(1)
 time.sleep(.1) # uhg
 display = Display((800,600))
 counter = 0
 # load the cascades
-face_cascade = cv.Load("./../Features/HaarCascades/face.xml")
-nose_cascade = cv.Load("./../Features/HaarCascades/nose.xml")
+face_cascade = HaarCascade("./../Features/HaarCascades/face.xml")
+nose_cascade = HaarCascade("./../Features/HaarCascades/nose.xml")
 stache = Image("./stache.png") # load the stache
 mask = stache.createAlphaMask() # load the stache mask
 count = 0
