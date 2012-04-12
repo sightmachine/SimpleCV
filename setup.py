@@ -26,7 +26,7 @@ setup(name="SimpleCV",
   url='http://simplecv.org',
   license='BSD',
   packages = find_packages(exclude=['ez_setup']),
-  zip_safe = True,
+  zip_safe = False,
   requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
   package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE IMAGES
             'SimpleCV': ['sampleimages/*']
