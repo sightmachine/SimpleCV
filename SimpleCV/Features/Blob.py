@@ -770,7 +770,7 @@ class Blob(Feature):
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
-            layer._mSurface.blit(masksurface, self.points[0]) #KAT HERE
+            layer._mSurface.blit(masksurface, (self.mBoundingBox[0], self.mBoundingBox[1])) #KAT HERE
         else:
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)

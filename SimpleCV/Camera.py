@@ -744,6 +744,7 @@ class JpegStreamReader(threading.Thread):
     """
     url = ""
     currentframe = ""
+    _threadcapturetime = ""
   
     def run(self):
       
@@ -838,7 +839,7 @@ class JpegStreamCamera(FrameSource):
     Using your Android Phone as a Camera. Softwares like IP Webcam can be used.
     
     >>> cam = JpegStreamCamera("http://192.168.65.101:8080/videofeed") # your IP may be different.
-    >>> img = cam.getImages()
+    >>> img = cam.getImage()
     >>> img.show()
     
     """
@@ -849,7 +850,8 @@ class JpegStreamCamera(FrameSource):
         if not PIL_ENABLED:
             warnings.warn("You need the Python Image Library (PIL) to use the JpegStreamCamera")
             return
-    
+        if not url.startswith('http://'):
+            url = "http://" + url
         self.url = url
         self.camthread = JpegStreamReader()
         self.camthread.url = self.url
@@ -863,7 +865,15 @@ class JpegStreamCamera(FrameSource):
         Return the current frame of the JpegStream being monitored
 
         """
-        self.capturetime = self._threadcapturetime
+        if not self.camthread._threadcapturetime:
+            now = time.time()
+            while not self.camthread._threadcapturetime:
+                if time.time() - now > 5:
+                    warnings.warn("Timeout fetching JpegStream at " + self.url)
+                    return
+                time.sleep(0.1)
+                
+        self.capturetime = self.camthread._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
 
 

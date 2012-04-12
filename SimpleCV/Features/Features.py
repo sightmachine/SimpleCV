@@ -783,7 +783,17 @@ class FeatureSet(list):
             if(f.right(region)):
                 fs.append(f)
         return fs
-       
+    
+    @property
+    def image(self):
+        if not len(self):
+            return None
+        return self[0].image
+    
+    @image.setter
+    def image(self, i):
+        for f in self:
+            f.image = i
 
 
 class Feature(object):
