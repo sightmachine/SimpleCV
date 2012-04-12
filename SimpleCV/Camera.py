@@ -628,7 +628,8 @@ class JpegStreamCamera(FrameSource):
         if not PIL_ENABLED:
             warnings.warn("You need the Python Image Library (PIL) to use the JpegStreamCamera")
             return
-    
+        if not url.startswith('http://'):
+            url = "http://" + url
         self.url = url
         self.camthread = JpegStreamReader()
         self.camthread.url = self.url
