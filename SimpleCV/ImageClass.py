@@ -1576,7 +1576,7 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False, **params):
+    def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False,  **params):
         """
         **SUMMARY**
 
@@ -1601,7 +1601,9 @@ class Image:
 
         * *temp* - If temp is True we save the image as a temporary file and return the path
 
-        * *params* - This object is used for overloading the PIL save methods. 
+        * *params* - This object is used for overloading the PIL save methods. In particular 
+          this method is useful for setting the jpeg compression level. For JPG see this documentation:
+          http://www.pythonware.com/library/pil/handbook/format-jpeg.htm          
 
         **EXAMPLES**
 
@@ -1737,7 +1739,12 @@ class Image:
 
               file(filename.format("RGB"), "wb").write(result.data)
               return 1
-        
+        #if the user is passing kwargs use the PIL save method.
+        if( params ): #usually this is just the compression rate for the image
+            if (not mode):
+                mode = "jpeg"
+            saveimg.getPIL().save(filename, mode, **params)
+            return 1
         
         if (filename):
             cv.SaveImage(filename, saveimg.getBitmap())  

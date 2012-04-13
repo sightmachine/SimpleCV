@@ -1940,3 +1940,30 @@ def test_blob_spatial_relationships():
 
   if( not center.contains(inside) ):
     assert False
+
+def test_save_kwargs():
+  img = Image("lenna")
+  l95 = "l95.jpg"
+  l90 = "l90.jpg"
+  l80 ="l80.jpg"
+  l70="l70.jpg"
+  
+  img.save(l95,quality=95)
+  img.save(l90,quality=90)
+  img.save(l80,quality=80)
+  img.save(l70,quality=75)
+  
+  s95 = os.stat(l95).st_size
+  s90 = os.stat(l90).st_size
+  s80 = os.stat(l80).st_size
+  s70 = os.stat(l70).st_size
+
+  print s70
+  print s80
+  print s90
+  print s95
+  
+  if( s70 < s80 and s80 < s90 and s90 < s95 ):
+    pass
+  else:
+    assert False
