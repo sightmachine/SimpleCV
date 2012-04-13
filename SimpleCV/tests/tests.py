@@ -11,10 +11,11 @@
 
 import os, sys, pickle
 from SimpleCV import * 
-from nose.tools import with_setup
+from nose.tools import with_setup, nottest
 
 VISUAL_TEST = False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
+foo = False
 
 #colors
 black = Color.BLACK
@@ -23,6 +24,14 @@ red = Color.RED
 green = Color.GREEN
 blue = Color.BLUE
 
+###############
+# TODO -
+# Examples of how to do profiling
+# Examples of how to do a single test - 
+# UPDATE THE VISUAL TESTS WITH EXAMPLES. 
+# Fix exif data
+# Turn off test warnings using decorators. 
+# Write a use the tests doc. 
 
 #images
 barcode = "../sampleimages/barcode.png"
@@ -47,6 +56,22 @@ bottomImg = "../sampleimages/RatBottom.png"
 maskImg = "../sampleimages/RatMask.png"
 alphaMaskImg = "../sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../sampleimages/GreenMaskSource.png"
+
+
+
+def imgDiffs(test_imgs,referrence_imgs,tolerance=0.1):
+  if( len(test_imgs) !=  len(referrence_imgs) ):
+    return False 
+  count = len(test_imgs)
+  for idx in range(0,count):
+    lhs = test_imgs[idx]
+    rhs = Image(referrence_imgs[idx])
+    if( lhs.width == rhs.width and lhs.height == rhs.height ):
+      diff = (lhs-rhs)
+      val = np.average(diff.getNumpy())
+      if( val > tolerance ):
+        return False
+  return True
 
 
 #These function names are required by nose test, please leave them as is
@@ -82,13 +107,23 @@ def test_image_numpy_constructor():
     assert False 
 
 
-def test_image_bitmap():
-  img = Image(testimage)
-  bmp = img.getBitmap();
-  if bmp.width > 0:
-    pass
-  else:
-    assert False
+def test_image_bitmap(do_vt=foo,fname=['lenna1.jpg','lenna2.jpg']): #we might want this to be a list
+  # do our test in general
+  #main body of test
+  img1 = Image("lenna")
+  img2 = Image("lenna")
+
+
+  if(do_vt): # save the correct images for a visual test
+    img1.save(fname[0])
+    img2.smooth().save(fname[1])
+  else: # otherwise we test our output against the visual test
+    img = img1.smooth()
+    if( imgDiffs([img1,img],fname) ):
+      pass
+    else:
+      assert False
+
 
 
 # Image Class Test
