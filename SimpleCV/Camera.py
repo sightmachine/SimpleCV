@@ -14,6 +14,8 @@ _camera_polling_thread = ""
 
 class FrameBufferThread(threading.Thread):
     """
+    **SUMMARY**
+
     This is a helper thread which continually debuffers the camera frames.  If
     you don't do this, cameras may constantly give you a frame behind, which
     causes problems at low sample rates.  This makes sure the frames returned
@@ -34,8 +36,11 @@ class FrameBufferThread(threading.Thread):
 
 class FrameSource:
     """
+    **SUMMARY**
+
     An abstract Camera-type class, for handling multiple types of video input.
     Any sources of images inheirit from it
+
     """
     _calibMat = "" #Intrinsic calibration matrix 
     _distCoeff = "" #Distortion matrix
@@ -56,20 +61,33 @@ class FrameSource:
 
     def calibrate(self, imageList, grid_sz=0.03, dimensions=(8, 5)):
         """
+        **SUMMARY**
+
         Camera calibration will help remove distortion and fisheye effects
         It is agnostic of the imagery source, and can be used with any camera
-    
-        imageList is a list of images of color calibration images. 
-    
-        grid_sz - is the actual grid size of the calibration grid, the unit used will be 
-        the calibration unit value (i.e. if in doubt use meters, or U.S. standard)
-    
-        dimensions - is the the count of the *interior* corners in the calibration grid.
-        So for a grid where there are 4x4 black grid squares has seven interior corners.
 
         The easiest way to run calibration is to run the
         calibrate.py file under the tools directory for SimpleCV.
         This will walk you through the calibration process.
+    
+        **PARAMETERS**
+
+        * *imageList* - is a list of images of color calibration images. 
+    
+        * *grid_sz* - is the actual grid size of the calibration grid, the unit used will be 
+          the calibration unit value (i.e. if in doubt use meters, or U.S. standard)
+    
+        * *dimensions* - is the the count of the *interior* corners in the calibration grid.
+          So for a grid where there are 4x4 black grid squares has seven interior corners.
+          
+        **RETURNS**
+
+        The camera's intrinsic matrix.
+
+        **EXAMPLE**
+        
+        See :py:module:calibrate.py
+
         """
         # This routine was adapted from code originally written by:
         # Abid. K  -- abidrahman2@gmail.com
@@ -156,17 +174,37 @@ class FrameSource:
 
     def getCameraMatrix(self):
         """
+        **SUMMARY**
+
         This function returns a cvMat of the camera's intrinsic matrix. 
         If there is no matrix defined the function returns None. 
+
         """
         return self._calibMat
 
     def undistort(self, image_or_2darray):
         """
-        If given an image, apply the undistortion given my the camera's matrix and return the result
+        **SUMMARY**
+
+        If given an image, apply the undistortion given my the camera's matrix and return the result.
         
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
         measurement and return them in the original coordinate system.
+        
+        **PARAMETERS**
+        
+        * *image_or_2darray* - an image or an ndarray.
+        
+        **RETURNS**
+        
+        The undistorted image or the undistorted points. If the camera is un-calibrated 
+        we return None.
+
+        **EXAMPLE**
+        
+        >>> img = cam.getImage()
+        >>> result = cam.undistort(img)
+
         
         """
         if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
@@ -198,17 +236,48 @@ class FrameSource:
 
     def getImageUndistort(self):
         """
+        **SUMMARY**
+
         Using the overridden getImage method we retrieve the image and apply the undistortion
         operation. 
+
+
+        **RETURNS**
+        
+        The latest image from the camera after applying undistortion.
+
+        **EXAMPLE**
+        
+        >>> cam = Camera()
+        >>> cam.loadCalibration("mycam.xml")
+        >>> while True:
+        >>>    img = cam.getImageUndistort()
+        >>>    img.show()
+
         """
         return self.undistort(self.getImage())
   
   
     def saveCalibration(self, filename):
         """
+        **SUMMARY**
+
         Save the calibration matrices to file. The file name should be without the extension.
-        The default extension is .xml
-        Returns true if the file was successful loaded, false otherwise. 
+        The default extension is .xml.
+
+        **PARAMETERS**
+        
+        * *fileneame* - The file name, without an extension, to which to save the calibration data.
+        
+        **RETURNS**
+
+        Returns true if the file was saved , false otherwise. 
+
+        **EXAMPLE**
+
+        See :py:module:calibrate.py
+        
+
         """
         if( type(self._calibMat) != cv.cvmat ):
             warnings.warn("FrameSource.saveCalibration: No calibration matrix present, can't save.")
@@ -226,13 +295,25 @@ class FrameSource:
 
     def loadCalibration(self, filename):
         """
+        **SUMMARY**
+
         Load a calibration matrix from file.
         The filename should be the stem of the calibration files names.
         e.g. If the calibration files are MyWebcamIntrinsic.xml and MyWebcamDistortion.xml
         then load the calibration file "MyWebcam"
-    
-    
-        Returns true if the file was successful loaded, false otherwise. 
+
+        **PARAMETERS**
+        
+        * *fileneame* - The file name, without an extension, to which to save the calibration data.
+        
+        **RETURNS**
+
+        Returns true if the file was loaded , false otherwise. 
+
+        **EXAMPLE**
+
+        See :py:module:calibrate.py
+ 
         """
         retVal = False
         intrFName = filename + "Intrinsic.xml"
@@ -247,7 +328,12 @@ class FrameSource:
     
     def live(self):
         """
+        **SUMMARY**
+
         This shows a live view of the camera.
+
+        **EXAMPLE**
+
         To use it's as simple as:
 
         >>> cam = Camera()
@@ -295,6 +381,8 @@ class FrameSource:
  
 class Camera(FrameSource):
     """
+    **SUMMARY**
+
     The Camera class is the class for managing input from a basic camera.  Note
     that once the camera is initialized, it will be locked from being used 
     by other processes.  You can check manually if you have compatable devices
@@ -324,6 +412,8 @@ class Camera(FrameSource):
         global _cameras
         global _camera_polling_thread
         """
+        **SUMMARY**
+
         In the camera onstructor, camera_index indicates which camera to connect to
         and props is a dictionary which can be used to set any camera attributes
         Supported props are currently: height, width, brightness, contrast,
@@ -332,6 +422,22 @@ class Camera(FrameSource):
         You can also specify whether you want the FrameBufferThread to continuously
         debuffer the camera.  If you specify True, the camera is essentially 'on' at
         all times.  If you specify off, you will have to manage camera buffers.
+
+        **PARAMETERS**
+
+        * *camera_index* - The index of the camera, these go from 0 upward, and are system specific. 
+        * *prop_set* - The property set for the camera (i.e. a dict of camera properties). 
+
+        .. Warning::
+          For most web cameras only the width and height properties are supported. Support 
+          for all of the other parameters varies by camera and operating system. 
+
+        * *threaded* - If True we constantly debuffer the camera, otherwise the user 
+          must do this manually.
+
+        * *calibrationfile* - A calibration file to load. 
+
+   
         """
 
         #This fixes bug with opencv not being able to grab frames from webcams on linux
@@ -384,7 +490,26 @@ class Camera(FrameSource):
     #todo -- make these dynamic attributes of the Camera class
     def getProperty(self, prop):
         """
+        **SUMMARY**
+
         Retrieve the value of a given property, wrapper for cv.GetCaptureProperty
+
+        .. Warning::
+          For most web cameras only the width and height properties are supported. Support 
+          for all of the other parameters varies by camera and operating system. 
+
+        **PARAMETERS**
+
+        * *prop* - The property to retrive.
+
+        **RETURNS**
+
+        The specified property. If it can't be found the method returns False.
+
+        **EXAMPLE**
+
+        >>> cam = Camera()
+        >>> prop = cam.getProperty("width")
         """
         if self.pygame_camera:
           if prop.lower() == 'width':
@@ -400,7 +525,14 @@ class Camera(FrameSource):
 
     def getAllProperties(self):
         """
-        Return all properties from the camera 
+        **SUMMARY**
+
+        Return all properties from the camera.
+
+        **RETURNS**
+        
+        A dict of all the camera properties. 
+
         """
         if self.pygame_camera:
             return False
@@ -412,11 +544,24 @@ class Camera(FrameSource):
  
     def getImage(self):
         """
+        **SUMMARY**
+
         Retrieve an Image-object from the camera.  If you experience problems
         with stale frames from the camera's hardware buffer, increase the flushcache
         number to dequeue multiple frames before retrieval
 
         We're working on how to solve this problem.
+
+        **RETURNS**
+        
+        A SimpleCV Image from the camera.
+
+        **EXAMPLES**
+        
+        >>> cam = Camera()
+        >>> while True:
+        >>>    cam.getImage().show()
+
         """
         
         if self.pygame_camera:
@@ -437,14 +582,18 @@ class Camera(FrameSource):
           
 class VirtualCamera(FrameSource):
     """
+    **SUMMARY**
+
     The virtual camera lets you test algorithms or functions by providing 
     a Camera object which is not a physically connected device.
     
     Currently, VirtualCamera supports "image", "imageset" and "video" source types.
-    
-    For image, pass the filename or URL to the image
-    For the video, the filename
-    For imageset, you can pass either a path or a list of [path, extension]
+   
+    **USAGE**
+
+    * For image, pass the filename or URL to the image
+    * For the video, the filename
+    * For imageset, you can pass either a path or a list of [path, extension]
     
     """
     source = ""
@@ -452,8 +601,24 @@ class VirtualCamera(FrameSource):
   
     def __init__(self, s, st):
         """
-        The constructor takes a source, and source type.  ie:
-        VirtualCamera("img.jpg", "image") or VirtualCamera("video.mpg", "video")
+        **SUMMARY**
+
+        The constructor takes a source, and source type. 
+        
+        **PARAMETERS**
+        
+        * *s* - the source of the imagery.
+        * *st* - the type of the virtual camera. Valid strings include:
+          
+          * "image" - a single still image.
+          * "video" - a video file.
+          * "imageset" - a SimpleCV image set. 
+
+        **EXAMPLE**
+          
+        >>> vc = VirtualCamera("img.jpg", "image")
+        >>> vc = VirtualCamera("video.mpg", "video")
+
         """
         self.source = s
         self.sourcetype = st
@@ -471,7 +636,19 @@ class VirtualCamera(FrameSource):
     
     def getImage(self):
         """
-        Retrieve the next frame of the video, or just a copy of the image
+        **SUMMARY**
+
+        Retrieve an Image-object from the virtual camera.
+        **RETURNS**
+        
+        A SimpleCV Image from the camera.
+
+        **EXAMPLES**
+        
+        >>> cam = VirtualCamera()
+        >>> while True:
+        >>>    cam.getImage().show()
+
         """
         if (self.sourcetype == 'image'):
             return Image(self.source, self)
@@ -486,8 +663,11 @@ class VirtualCamera(FrameSource):
  
 class Kinect(FrameSource):
     """
-      This is an experimental wrapper for the Freenect python libraries
-      you can getImage() and getDepth() for separate channel images
+    **SUMMARY**
+    
+    This is an experimental wrapper for the Freenect python libraries
+    you can getImage() and getDepth() for separate channel images
+    
     """
     def __init__(self):
         if not FREENECT_ENABLED:
@@ -496,6 +676,22 @@ class Kinect(FrameSource):
     #this code was borrowed from
     #https://github.com/amiller/libfreenect-goodies
     def getImage(self):
+        """
+        **SUMMARY**
+        
+        This method returns the Kinect camera image. 
+
+        **RETURNS**
+        
+        The Kinect's color camera image. 
+
+        **EXAMPLE**
+
+        >>> k = Kinect()
+        >>> while True:
+        >>>   k.getImage().show()
+
+        """
         video = freenect.sync_get_video()[0]
         self.capturetime = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
@@ -503,6 +699,25 @@ class Kinect(FrameSource):
   
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def getDepth(self):
+        """
+        **SUMMARY**
+        
+        This method returns the Kinect depth image. 
+
+        **RETURNS**
+        
+        The Kinect's depth camera image as a grayscale image. 
+
+        **EXAMPLE**
+
+        >>> k = Kinect()
+        >>> while True:
+        >>>   d = k.getDepth()
+        >>>   img = k.getImage()
+        >>>   result = img.sideBySide(d)
+        >>>   result.show()
+        """
+
         depth = freenect.sync_get_depth()[0]
         self.capturetime = time.time()
         np.clip(depth, 0, 2**10 - 1, depth)
@@ -521,10 +736,15 @@ class Kinect(FrameSource):
 
 class JpegStreamReader(threading.Thread):
     """
-    Threaded class for pulling down JPEG streams and breaking up the images
+    **SUMMARY**
+
+    A Threaded class for pulling down JPEG streams and breaking up the images. This
+    is handy for reading the stream of images from a IP CAmera.
+
     """
     url = ""
     currentframe = ""
+    _threadcapturetime = ""
   
     def run(self):
       
@@ -608,15 +828,18 @@ class JpegStreamReader(threading.Thread):
 
 class JpegStreamCamera(FrameSource):
     """
+    **SUMMARY**
+
     The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage() 
     
     Requires the Python Imaging Library: http://www.pythonware.com/library/pil/handbook/index.htm
     
-        
+    **EXAMPLE**  
+  
     Using your Android Phone as a Camera. Softwares like IP Webcam can be used.
     
     >>> cam = JpegStreamCamera("http://192.168.65.101:8080/videofeed") # your IP may be different.
-    >>> img = cam.getImages()
+    >>> img = cam.getImage()
     >>> img.show()
     
     """
@@ -637,9 +860,20 @@ class JpegStreamCamera(FrameSource):
   
     def getImage(self):
         """
+        **SUMMARY**
+
         Return the current frame of the JpegStream being monitored
+
         """
-        self.capturetime = self._threadcapturetime
+        if not self.camthread._threadcapturetime:
+            now = time.time()
+            while not self.camthread._threadcapturetime:
+                if time.time() - now > 5:
+                    warnings.warn("Timeout fetching JpegStream at " + self.url)
+                    return
+                time.sleep(0.1)
+                
+        self.capturetime = self.camthread._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
 
 
