@@ -966,14 +966,10 @@ def test_feature_width():
 
 def test_feature_crop():
   imgA = Image(logo)
-  lines = imgA.findLines(1)
+
+  lines = imgA.findLines()
+
   croppedImages = lines.crop()
-
-#TODO FIGURE OUT WHAT IS GOING WRONG HERE
-
-#  results = croppedImages.tolist()
-#  name_stem = "test_feature_crop" 
-#  perform_diff(results,name_stem)
 
   if(len(croppedImages) <= 0):
     assert False
@@ -1994,7 +1990,7 @@ def test_detection_spatial_relationships():
   pass
 
 def test_getEXIFData():
-  img = Image("../sampleimages/OWS.jpg")
+  img = Image("../sampleimages/cat.jpg")
   img2 = Image(testimage)
   d1 = img.getEXIFData()
   d2 = img2.getEXIFData()

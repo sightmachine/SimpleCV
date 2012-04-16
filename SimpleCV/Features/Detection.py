@@ -134,6 +134,22 @@ class Line(Feature):
         """
         return spsd.euclidean(self.points[0], self.points[1])  
  
+    def crop(self):
+        xmax = np.max([self.points[0][0],self.points[1][0]])
+        ymax = np.max([self.points[0][1],self.points[1][1]])
+        xmin = np.min([self.points[0][0],self.points[1][0]])
+        ymin = np.min([self.points[0][1],self.points[1][1]])
+        w = xmax-xmin
+        h = ymax-ymin
+        #catch horizontal and vertical lines
+        if(w <= 0):
+            w = 1
+
+        if(h <= 0):
+            h = 1
+
+        return self.image.crop( xmin,ymin,w,h )
+
     def meanColor(self):
         """
 
