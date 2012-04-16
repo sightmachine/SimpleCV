@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = True
+VISUAL_TEST = False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -65,12 +65,13 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
   count = len(test_imgs)
   for idx in range(0,count):
     lhs = test_imgs[idx].applyLayers() # this catches drawing methods 
-    fname = standard_path+name_stem+str(idx)+".png"
+    fname = standard_path+name_stem+str(idx)+".jpg"
     rhs = Image(fname)
     if( lhs.width == rhs.width and lhs.height == rhs.height ):
       diff = (lhs-rhs)
       val = np.average(diff.getNumpy())
       if( val > tolerance ):
+        print val
         return True
   return False
 
@@ -78,11 +79,11 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
 def imgSaves(test_imgs, name_stem, path=standard_path):
   count = len(test_imgs)
   for idx in range(0,count):
-    fname = standard_path+name_stem+str(idx)+".png"
-    test_imgs[idx].save(fname)
+    fname = standard_path+name_stem+str(idx)+".jpg"
+    test_imgs[idx].save(fname,quality=95)
 
 #perform the actual image save and image diffs. 
-def perform_diff(result,name_stem,tolerance=0.1,path=standard_path):
+def perform_diff(result,name_stem,tolerance=2.0,path=standard_path):
   if(VISUAL_TEST): # save the correct images for a visual test
     imgSaves(result,name_stem,path)
   else: # otherwise we test our output against the visual test
@@ -713,7 +714,8 @@ def test_image_affine():
   c=test.meanColor()
 
   results = [atrans,atrans2]
-  name_stem = "test_image_shear_warp"
+
+  name_stem = "test_image_affine"
   perform_diff(results,name_stem)
 
   if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
@@ -735,7 +737,7 @@ def test_image_perspective():
   c=test.meanColor()
 
   results = [ptrans,ptrans2]
-  name_stem = "test_image_shear_warp"
+  name_stem = "test_image_perspective"
   perform_diff(results,name_stem)
 
 
@@ -1087,7 +1089,7 @@ def test_blob_holes():
     blobs.draw()
     results = [img]
     name_stem = "test_blob_holes"
-    perform_diff(results,name_stem)
+    perform_diff(results,name_stem,tolerance=3.0)
 
 
     for b in blobs:
@@ -1104,7 +1106,7 @@ def test_blob_hull():
     
     results = [img]
     name_stem = "test_blob_holes"
-    perform_diff(results,name_stem)
+    perform_diff(results,name_stem,tolerance=3.0)
 
     for b in blobs:
       if( len(b.mConvexHull) < 3 ):
@@ -1153,7 +1155,7 @@ def test_blob_render():
     img.addDrawingLayer(dl)
     results = [img]
     name_stem = "test_blob_render"
-    perform_diff(results,name_stem)
+    perform_diff(results,name_stem,tolerance=4.0)
 
     pass
 
@@ -1323,7 +1325,7 @@ def test_applyBinaryMask():
   results.append(img.applyBinaryMask(mask,bg_color=Color.RED))
 
   name_stem = "test_applyBinaryMask"
-  perform_diff(results,name_stem)    
+  perform_diff(results,name_stem,tolerance=3.0)    
 
   pass
 
@@ -1450,7 +1452,6 @@ def test_blit_alpha():
   results.append(bottom.blit(top,alpha=a,pos=(-50,50)))
   results.append(bottom.blit(top,alpha=a,pos=(50,-50)))
   results.append(bottom.blit(top,alpha=a,pos=(50,50)))
-
   name_stem = "test_blit_alpha"
   perform_diff(results,name_stem)    
 
@@ -1530,689 +1531,742 @@ def test_hough_circles():
   else:
     assert False
 
-# def test_drawRectangle():
-#   img = Image(testimage2)
-#   img.drawRectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
-#   img.drawRectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
-#   img.drawRectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
-#   img.drawRectangle(2,2,100,100,color=Color.BLUE,width=1,alpha=255)
-#   img.drawRectangle(3,3,100,100,color=Color.BLUE)
-#   img.drawRectangle(4,4,100,100,color=Color.BLUE,width=12)
-#   img.drawRectangle(5,5,100,100,color=Color.BLUE,width=-1)
-#   pass
+def test_drawRectangle():
+  img = Image(testimage2)
+  img.drawRectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
+  img.drawRectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
+  img.drawRectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
+  img.drawRectangle(2,2,100,100,color=Color.BLUE,width=1,alpha=255)
+  img.drawRectangle(3,3,100,100,color=Color.BLUE)
+  img.drawRectangle(4,4,100,100,color=Color.BLUE,width=12)
+  img.drawRectangle(5,5,100,100,color=Color.BLUE,width=-1)
+
+  results = [img]
+  name_stem = "test_drawRectangle"
+  perform_diff(results,name_stem)    
+
+  pass
 
 
-# def test_BlobMinRect():
-#   img = Image(testimageclr)
-#   blobs = img.findBlobs()
-#   for b in blobs:
-#     b.drawMinRect(color=Color.BLUE,width=3,alpha=123)
-#   if VISUAL_TEST:
-#     img.save("blobMinRect.png")
+def test_BlobMinRect():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    b.drawMinRect(color=Color.BLUE,width=3,alpha=123)
+  results = [img]
+  name_stem = "test_BlobMinRect"
+  perform_diff(results,name_stem)    
+  pass
+
+def test_BlobRect():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    b.drawRect(color=Color.BLUE,width=3,alpha=123)
+
+  results = [img]
+  name_stem = "test_BlobRect"
+  perform_diff(results,name_stem)    
+  pass
+
+  
+def test_BlobPickle():
+  img = Image(testimageclr)
+  blobs = img.findBlobs()
+  for b in blobs:
+    p = pickle.dumps(b)
+    ub = pickle.loads(p)
+    if (ub.mMask - b.mMask).meanColor() != Color.BLACK:
+      assert False 
    
-#   pass
+  pass
 
-# def test_BlobRect():
-#   img = Image(testimageclr)
-#   blobs = img.findBlobs()
-#   for b in blobs:
-#     b.drawRect(color=Color.BLUE,width=3,alpha=123)
-#   if VISUAL_TEST:
-#     img.save("blobRect.png")
-   
-#   pass
+def test_blob_isa_methods():
+  img1 = Image(circles)
+  img2 = Image("../sampleimages/blockhead.png")
+  blobs = img1.findBlobs().sortArea()
+  t1 = blobs[-1].isCircle()
+  f1 = blobs[-1].isRectangle()
+  blobs = img2.findBlobs().sortArea()
+  f2 = blobs[-1].isCircle()
+  t2 = blobs[-1].isRectangle()
+  if( t1 and t2 and not f1 and not f2):
+    pass
+  else:
+    assert False
+
+def test_findKeypoints():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+  img = Image(testimage2)
+  kp = img.findKeypoints()
+  for k in kp:
+    k.getObject()
+    k.descriptor()
+    k.quality()
+    k.octave()
+    k.flavor()
+    k.angle()
+    k.coordinates()
+    k.draw()
+    k.distanceFrom()
+    k.meanColor()
+    k.area()
+    k.perimeter()
+    k.width()
+    k.height()
+    k.radius()
+    k.crop()
+
+  kp.draw()
+  results = [img]
+  name_stem = "test_findKeypoints"
+  perform_diff(results,name_stem)    
+  
+  pass
+
+def test_movement_feature():
+  current1 = Image("../sampleimages/flow_simple1.png")
+  prev = Image("../sampleimages/flow_simple2.png")
+  
+  fs = current1.findMotion(prev, window=7)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
 
   
-# def test_BlobPickle():
-#   img = Image(testimageclr)
-#   blobs = img.findBlobs()
-#   for b in blobs:
-#     p = pickle.dumps(b)
-#     ub = pickle.loads(p)
-#     if (ub.mMask - b.mMask).meanColor() != Color.BLACK:
-#       assert False 
-   
-#   pass
-
-# def test_blob_isa_methods():
-#   img1 = Image(circles)
-#   img2 = Image("../sampleimages/blockhead.png")
-#   blobs = img1.findBlobs().sortArea()
-#   t1 = blobs[-1].isCircle()
-#   f1 = blobs[-1].isRectangle()
-#   blobs = img2.findBlobs().sortArea()
-#   f2 = blobs[-1].isCircle()
-#   t2 = blobs[-1].isRectangle()
-#   if( t1 and t2 and not f1 and not f2):
-#     pass
-#   else:
-#     assert False
-
-# def test_findKeypoints():
-#   try:
-#     import cv2
-#   except:
-#     pass
-#     return 
-#   img = Image(testimage2)
-#   kp = img.findKeypoints()
-#   for k in kp:
-#     k.getObject()
-#     k.descriptor()
-#     k.quality()
-#     k.octave()
-#     k.flavor()
-#     k.angle()
-#     k.coordinates()
-#     k.draw()
-#     k.distanceFrom()
-#     k.meanColor()
-#     k.area()
-#     k.perimeter()
-#     k.width()
-#     k.height()
-#     k.radius()
-#     k.crop()
-#   pass
-
-# def test_movement_feature():
-#   #~ current = Image("../sampleimages/flow1.png")
-#   #~ prev = Image("../sampleimages/flow2.png")
-#   current = Image("../sampleimages/flow_simple1.png")
-#   prev = Image("../sampleimages/flow_simple2.png")
+  current2 = Image("../sampleimages/flow_simple1.png")
+  fs = current2.findMotion(prev, window=7,method='HS')  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
   
-#   fs = current.findMotion(prev, window=7)  
-#   if( len(fs) > 0 ):
-#     fs.draw(color=Color.RED)
-#     if VISUAL_TEST:
-#       current.save("flowOutBM.png")
-#     img = fs[0].crop()
-#     color = fs[1].meanColor()
-#     wndw = fs[1].windowSz()
-#     for f in fs:
-#       f.vector()
-#       f.magnitude()
-#   else:
-#     assert False
+  current3 = Image("../sampleimages/flow_simple1.png")
+  fs = current3.findMotion(prev, window=7,method='LK',aggregate=False)  
+  if( len(fs) > 0 ):
+    fs.draw(color=Color.RED)
+    img = fs[0].crop()
+    color = fs[1].meanColor()
+    wndw = fs[1].windowSz()
+    for f in fs:
+      f.vector()
+      f.magnitude()
+  else:
+    assert False
+
+  results = [current1,current2,current3]
+  name_stem = "test_movement_feature"
+  perform_diff(results,name_stem,tolerance=4.0)    
+
+  pass 
+
+def test_keypoint_extraction():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+
+  img1 = Image("../sampleimages/KeypointTemplate2.png")
+  img2 = Image("../sampleimages/KeypointTemplate2.png")
+  img3 = Image("../sampleimages/KeypointTemplate2.png")
+
+  kp1 = img1.findKeypoints()
+  kp2 = img2.findKeypoints(highQuality=True)
+  kp3 = img3.findKeypoints(flavor="STAR")
+  kp1.draw()
+  kp2.draw()
+  kp3.draw()
+  #TODO: Fix FAST binding
+  #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
+  if( len(kp1)==190 and 
+      len(kp2)==190 and
+      len(kp3)==37
+      #~ and len(kp4)==521
+    ):
+    pass
+  else:
+    assert False
+  results = [img1,img2,img3]
+  name_stem = "test_keypoint_extraction"
+  perform_diff(results,name_stem,tolerance=3.0)    
+
+
+def test_keypoint_match():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+
+  template = Image("../sampleimages/KeypointTemplate2.png")
+  match0 = Image("../sampleimages/kptest0.png")
+  match1 = Image("../sampleimages/kptest1.png")
+  match2 = Image("../sampleimages/aerospace.jpg")
+
+  fs0 = match0.findKeypointMatch(template)
+  fs1 = match1.findKeypointMatch(template,quality=400.00,minDist=0.15,minMatch=0.2)
+  fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.1,minMatch=0.4)
+  if( fs0 is not None and fs1 is not None and fs2 is None):
+    fs0.draw()
+    fs1.draw()
+    f = fs0[0] 
+    f.drawRect()
+    f.draw()
+    f.getHomography()
+    f.getMinRect()
+    f.meanColor()
+    f.crop()
+    f.x
+    f.y
+    f.coordinates()
+    pass
+  else:
+    assert False
+
+  results = [match0,match1,match2]
+  name_stem = "test_keypoint_match"
+  perform_diff(results,name_stem)    
+
+
+def test_draw_keypoint_matches():
+  try:
+    import cv2
+  except:
+    pass
+    return
+  template = Image("../sampleimages/KeypointTemplate2.png")
+  match0 = Image("../sampleimages/kptest0.png")
+  result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
+
+  results = [result]
+  name_stem = "test_draw_keypoint_matches"
+  perform_diff(results,name_stem,tolerance=4.0)    
+
+
+  pass
+
+
+def test_basic_palette():
+  img = Image(testimageclr)
+  img._generatePalette(10,False)
+  if( img._mPalette is not None and
+      img._mPaletteMembers is not None and
+      img._mPalettePercentages is not None and
+      img._mPaletteBins == 10
+      ):
+    img._generatePalette(20,True)
+    if( img._mPalette is not None and
+        img._mPaletteMembers is not None and
+        img._mPalettePercentages is not None and
+        img._mPaletteBins == 20
+        ):
+      pass
+
+def test_palettize():
+  img = Image(testimageclr)
+  img2 = img.palettize(bins=20,hue=False)
+  img3 = img.palettize(bins=3,hue=True)
+  #UHG@! can't diff because of the kmeans initial conditions causes
+  # things to bounce around... otherwise we need to set a friggin huge tolerance
+
+  #results = [img2,img3]
+  #name_stem = "test_palettize"
+  #perform_diff(results,name_stem)    
+  pass
+
+def test_repalette():
+  img = Image(testimageclr)
+  img2 = Image(bottomImg)
+  p = img.getPalette()
+  img3 = img2.rePalette(p)
+  p = img.getPalette(hue=True)
+  img4 = img2.rePalette(p,hue=True)
+
+  #results = [img3,img4]
+  #name_stem = "test_repalette"
+  #perform_diff(results,name_stem)    
+
+  pass
+
+def test_drawPalette():
+  img = Image(testimageclr)
+  img1 = img.drawPaletteColors()
+  img2 = img.drawPaletteColors(horizontal=False)
+  img3 = img.drawPaletteColors(size=(69,420) )
+  img4 = img.drawPaletteColors(size=(69,420),horizontal=False)
+  img5 = img.drawPaletteColors(hue=True)
+  img6 = img.drawPaletteColors(horizontal=False,hue=True)
+  img7 = img.drawPaletteColors(size=(69,420),hue=True )
+  img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
+
+def test_palette_binarize():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  img2 = img.binarizeFromPalette(p[0:5])
+  p = img.getPalette(hue=True)
+  img2 = img.binarizeFromPalette(p[0:5])
   
-#   fs = current.findMotion(prev, window=7,method='HS')  
-#   if( len(fs) > 0 ):
-#     fs.draw(color=Color.RED)
-#     if VISUAL_TEST:
-#       current.save("flowOutHS.png")
-#     img = fs[0].crop()
-#     color = fs[1].meanColor()
-#     wndw = fs[1].windowSz()
-#     for f in fs:
-#       f.vector()
-#       f.magnitude()
-#   else:
-#     assert False
+  pass
+
+def test_palette_blobs():
+  img = Image(testimageclr)
+  p = img.getPalette()
+  b1 = img.findBlobsFromPalette(p[0:5])
+  b1.draw()
   
-#   fs = current.findMotion(prev, window=7,method='LK',aggregate=False)  
-#   if( len(fs) > 0 ):
-#     fs.draw(color=Color.RED)
-#     if VISUAL_TEST:
-#       current.save("flowOutLK.png")
-#     img = fs[0].crop()
-#     color = fs[1].meanColor()
-#     wndw = fs[1].windowSz()
-#     for f in fs:
-#       f.vector()
-#       f.magnitude()
-#   else:
-#     assert False
 
-#   pass 
-
-# def test_keypoint_extraction():
-#   try:
-#     import cv2
-#   except:
-#     pass
-#     return 
-
-#   img = Image("../sampleimages/KeypointTemplate2.png")
-#   kp1 = img.findKeypoints()
-#   kp2 = img.findKeypoints(highQuality=True)
-#   kp3 = img.findKeypoints(flavor="STAR")
-#   #TODO: Fix FAST binding
-#   #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
-#   if( len(kp1)==190 and 
-#       len(kp2)==190 and
-#       len(kp3)==37
-#       #~ and len(kp4)==521
-#     ):
-#     pass
-#   else:
-#     assert False
-
-
-# def test_keypoint_match():
-#   try:
-#     import cv2
-#   except:
-#     pass
-#     return 
-
-#   template = Image("../sampleimages/KeypointTemplate2.png")
-#   match0 = Image("../sampleimages/kptest0.png")
-#   match1 = Image("../sampleimages/kptest1.png")
-#   match2 = Image("../sampleimages/aerospace.jpg")
-
-#   fs0 = match0.findKeypointMatch(template)
-#   fs1 = match1.findKeypointMatch(template,quality=400.00,minDist=0.15,minMatch=0.2)
-#   fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.1,minMatch=0.4)
-#   if( fs0 is not None and fs1 is not None and fs2 is None):
-#     if VISUAL_TEST:
-#       fs0.draw()
-#       match0.save("KPAffineMatch0.png")
-#     if VISUAL_TEST:
-#       fs1.draw()
-#       match1.save("KPAffineMatch1.png")
-#     f = fs0[0] 
-#     f.drawRect()
-#     f.draw()
-#     f.getHomography()
-#     f.getMinRect()
-#     f.meanColor()
-#     f.crop()
-#     f.x
-#     f.y
-#     f.coordinates()
-#     pass
-#   else:
-#     assert False
-
-# def test_draw_keypoint_matches():
-#   try:
-#     import cv2
-#   except:
-#     pass
-#     return
-#   template = Image("../sampleimages/KeypointTemplate2.png")
-#   match0 = Image("../sampleimages/kptest0.png")
-#   result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
-#   if VISUAL_TEST:
-#     result.save("KPMatch.png")
-#   pass
-
-
-# def test_basic_palette():
-#   img = Image(testimageclr)
-#   img._generatePalette(10,False)
-#   if( img._mPalette is not None and
-#       img._mPaletteMembers is not None and
-#       img._mPalettePercentages is not None and
-#       img._mPaletteBins == 10
-#       ):
-#     img._generatePalette(20,True)
-#     if( img._mPalette is not None and
-#         img._mPaletteMembers is not None and
-#         img._mPalettePercentages is not None and
-#         img._mPaletteBins == 20
-#         ):
-#       pass
-
-# def test_palettize():
-#   img = Image(testimageclr)
-#   img2 = img.palettize(bins=20,hue=False)
-#   img3 = img.palettize(bins=3,hue=True)
-#   pass
-
-# def test_repalette():
-#   img = Image(testimageclr)
-#   img2 = Image(bottomImg)
-#   p = img.getPalette()
-#   img3 = img2.rePalette(p)
-#   p = img.getPalette(hue=True)
-#   img4 = img2.rePalette(p,hue=True)
-#   pass
-
-# def test_drawPalette():
-#   img = Image(testimageclr)
-#   img1 = img.drawPaletteColors()
-#   img2 = img.drawPaletteColors(horizontal=False)
-#   img3 = img.drawPaletteColors(size=(69,420) )
-#   img4 = img.drawPaletteColors(size=(69,420),horizontal=False)
-#   img5 = img.drawPaletteColors(hue=True)
-#   img6 = img.drawPaletteColors(horizontal=False,hue=True)
-#   img7 = img.drawPaletteColors(size=(69,420),hue=True )
-#   img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
-
-# def test_palette_binarize():
-#   img = Image(testimageclr)
-#   p = img.getPalette()
-#   img2 = img.binarizeFromPalette(p[0:5])
-#   if VISUAL_TEST:
-#     img2.save("binary_palette_1.png")
-#   p = img.getPalette(hue=True)
-#   img2 = img.binarizeFromPalette(p[0:5])
-#   if VISUAL_TEST:
-#     img2.save("binary_palette_2.png")
-#   pass
-
-# def test_palette_blobs():
-#   img = Image(testimageclr)
-#   p = img.getPalette()
-#   b1 = img.findBlobsFromPalette(p[0:5])
-#   b1.draw()
-#   if VISUAL_TEST:
-#     img.save("blobs_palette_1.png")
-
-#   p = img.getPalette(hue=True)
-#   b2 = img.findBlobsFromPalette(p[0:5])
-#   b2.draw()
-#   if VISUAL_TEST:
-#     img.save("blobs_palette_2.png")
-
-#   if( len(b1) > 0 and len(b2) > 0 ):
-#     pass
-#   else:
-#     assert False
+  p = img.getPalette(hue=True)
+  b2 = img.findBlobsFromPalette(p[0:5])
+  b2.draw()
+  
+  if( len(b1) > 0 and len(b2) > 0 ):
+    pass
+  else:
+    assert False
 
     
 
-# def test_skeletonize():
-#   img = Image(logo)
-#   s = img.skeletonize()
-#   s2 = img.skeletonize(10)
+def test_skeletonize():
+  img = Image(logo)
+  s = img.skeletonize()
+  s2 = img.skeletonize(10)
 
-#   pass
+  results = [s,s2]
+  name_stem = "test_skelotinze"
+  perform_diff(results,name_stem)    
+
+  pass
 
 
-# def test_threshold():
-#   img = Image(logo)
-#   for t in range(0,255):
-#     img.threshold(t)
-#   pass
+def test_threshold():
+  img = Image(logo)
+  for t in range(0,255):
+    img.threshold(t)
+  pass
 
-# def test_smartThreshold():
-#   img = Image("../sampleimages/RatTop.png")
-#   mask = Image((img.width,img.height))
-#   mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
-#   mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
-#   mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-#   mask = mask.applyLayers()
-#   new_mask = img.smartThreshold(mask=mask)
-#   if VISUAL_TEST:
-#     new_mask.save("SMART_THRESHOLD_MASK.png")
-  
-#   new_mask = img.smartThreshold(rect=(30,30,150,185))
-#   if VISUAL_TEST:
-#     new_mask.save("SMART_THRESHOLD_RECT.png")
+def test_smartThreshold():
+  img = Image("../sampleimages/RatTop.png")
+  mask = Image((img.width,img.height))
+  mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+  mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+  mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+  mask = mask.applyLayers()
+  new_mask1 = img.smartThreshold(mask=mask)  
+  new_mask2 = img.smartThreshold(rect=(30,30,150,185))
+ 
 
-#   pass
+  results = [new_mask1,new_mask2]
+  name_stem = "test_smartThreshold"
+  perform_diff(results,name_stem)    
 
-# def test_smartFindBlobs():
-#   img = Image("../sampleimages/RatTop.png")
-#   mask = Image((img.width,img.height))
-#   mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
-#   mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
-#   mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-#   mask = mask.applyLayers()
-#   blobs = img.smartFindBlobs(mask=mask)
-#   blobs.draw()
-#   if VISUAL_TEST:
-#     img.save("SMART_BLOB_MASK.png")
-#   if( len(blobs) < 1 ):
-#     assert False
+  pass
 
-#   for t in range(2,3):
-#     blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
-#     if(blobs2 is not None):
-#       blobs2.draw()
-#       if VISUAL_TEST:
-#         fname = "SMART_BLOB_RECT" + str(t) + ".png"
-#         img.save(fname)
+def test_smartFindBlobs():
+  img = Image("../sampleimages/RatTop.png")
+  mask = Image((img.width,img.height))
+  mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
+  mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
+  mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
+  mask = mask.applyLayers()
+  blobs = img.smartFindBlobs(mask=mask)
+  blobs.draw()
+  results = [img]
+
+  if( len(blobs) < 1 ):
+    assert False
+
+  for t in range(2,3):
+    img = Image("../sampleimages/RatTop.png")
+    blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
+    if(blobs2 is not None):
+      blobs2.draw()
+      results.append(img)
+
+  name_stem = "test_smartFindBlobs"
+  perform_diff(results,name_stem)    
         
-#   pass
+  pass
 
 
-# def test_image_webp_load():
-#   #only run if webm suppport exist on system
-#   try:
-#     import webm
-#   except:
-#     if( SHOW_WARNING_TESTS ):
-#       warnings.warn("Couldn't run the webp test as optional webm library required")
-#     pass
+def test_image_webp_load():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
+    pass
 
-#   else:
-#     img = Image(webp)
+  else:
+    img = Image(webp)
 
-#     if len(img.toString()) <= 1:
-#       assert False
+    if len(img.toString()) <= 1:
+      assert False
 
-#     else:
-#       pass
+    else:
+      pass
     
-# def test_image_webp_save():
-#   #only run if webm suppport exist on system
-#   try:
-#     import webm
-#   except:
-#     if( SHOW_WARNING_TESTS ):
-#       warnings.warn("Couldn't run the webp test as optional webm library required")
-#     pass
+def test_image_webp_save():
+  #only run if webm suppport exist on system
+  try:
+    import webm
+  except:
+    if( SHOW_WARNING_TESTS ):
+      warnings.warn("Couldn't run the webp test as optional webm library required")
+    pass
 
-#   else:
-#     img = Image('simplecv')
-#     tf = tempfile.NamedTemporaryFile(suffix=".webp")
-#     if img.save(tf.name):
-#       pass
-#     else:
-#       assert False
+  else:
+    img = Image('simplecv')
+    tf = tempfile.NamedTemporaryFile(suffix=".webp")
+    if img.save(tf.name):
+      pass
+    else:
+      assert False
 
-# def test_detection_spatial_relationships():
-#   img = Image(testimageclr)
-#   template = img.crop(200,200,50,50)
-#   motion = img.embiggen((img.width+10,img.height+10),pos=(10,10))
-#   motion = motion.crop(0,0,img.width,img.height)
-#   blobFS = img.findBlobs()
-#   lineFS = img.findLines()
-#   circFS = img.findCircle(thresh=100)
-#   cornFS = img.findCorners()
-#   moveFS = img.findMotion(motion)
-#   moveFS = FeatureSet(moveFS[42:52]) # l337 s5p33d h4ck - okay not really
-#   tempFS = img.findTemplate(template,threshold=1)
-#   aCirc = (img.width/2,img.height/2,np.min([img.width/2,img.height/2]))
-#   aRect = (50,50,200,200)
-#   aPoint = (img.width/2,img.height/2)
-#   aPoly =  [(0,0),(img.width/2,0),(0,img.height/2)] # a triangle
+def test_detection_spatial_relationships():
+  img = Image(testimageclr)
+  template = img.crop(200,200,50,50)
+  motion = img.embiggen((img.width+10,img.height+10),pos=(10,10))
+  motion = motion.crop(0,0,img.width,img.height)
+  blobFS = img.findBlobs()
+  lineFS = img.findLines()
+  circFS = img.findCircle(thresh=100)
+  cornFS = img.findCorners()
+  moveFS = img.findMotion(motion)
+  moveFS = FeatureSet(moveFS[42:52]) # l337 s5p33d h4ck - okay not really
+  tempFS = img.findTemplate(template,threshold=1)
+  aCirc = (img.width/2,img.height/2,np.min([img.width/2,img.height/2]))
+  aRect = (50,50,200,200)
+  aPoint = (img.width/2,img.height/2)
+  aPoly =  [(0,0),(img.width/2,0),(0,img.height/2)] # a triangle
 
   
-#   feats  = [blobFS,lineFS,circFS,cornFS,tempFS,moveFS]
+  feats  = [blobFS,lineFS,circFS,cornFS,tempFS,moveFS]
 
-#   for f in feats:
-#     print str(len(f))
+  for f in feats:
+    print str(len(f))
 
-#   for f in feats:
-#     for g in feats:
-#       sample = f[0]
-#       sample2 = f[1]
-#       g.above(sample)
-#       g.below(sample)
-#       g.left(sample)
-#       g.right(sample)
-#       g.overlaps(sample)
-#       g.inside(sample)
-#       g.outside(sample)
+  for f in feats:
+    for g in feats:
+      sample = f[0]
+      sample2 = f[1]
+      g.above(sample)
+      g.below(sample)
+      g.left(sample)
+      g.right(sample)
+      g.overlaps(sample)
+      g.inside(sample)
+      g.outside(sample)
 
-#       g.inside(aRect)
-#       g.outside(aRect)
+      g.inside(aRect)
+      g.outside(aRect)
 
-#       g.inside(aCirc)
-#       g.outside(aCirc)
+      g.inside(aCirc)
+      g.outside(aCirc)
 
-#       g.inside(aPoly)
-#       g.outside(aPoly)
+      g.inside(aPoly)
+      g.outside(aPoly)
 
-#       g.above(aPoint)
-#       g.below(aPoint)
-#       g.left(aPoint)
-#       g.right(aPoint)
-
-
-#   pass
-
-# def test_getEXIFData():
-#   img = Image("../sampleimages/OWS.jpg")
-#   img2 = Image(testimage)
-#   d1 = img.getEXIFData()
-#   d2 = img2.getEXIFData()
-#   if( len(d1) > 0 and len(d2) == 0 ):
-#     pass
-#   else:
-#     assert False
-
-# def test_get_raw_dft():
-#   img = Image("../sampleimages/RedDog2.jpg")
-#   raw3 = img.rawDFTImage()
-#   raw1 = img.rawDFTImage(grayscale=True)
-#   if( len(raw3) != 3 or
-#       len(raw1) != 1 or
-#       raw1[0].width != img.width or
-#       raw1[0].height != img.height or
-#       raw3[0].height != img.height or
-#       raw3[0].width != img.width or
-#       raw1[0].depth != 64L or
-#       raw3[0].depth != 64L or
-#       raw3[0].channels != 2 or
-#       raw3[0].channels != 2 ):
-#     assert False
-#   else:
-#     pass
-
-# def test_getDFTLogMagnitude():
-#   img = Image("../sampleimages/RedDog2.jpg")  
-#   lm3 = img.getDFTLogMagnitude()
-#   lm1 = img.getDFTLogMagnitude(grayscale=True)
-#   pass
+      g.above(aPoint)
+      g.below(aPoint)
+      g.left(aPoint)
+      g.right(aPoint)
 
 
-# def test_applyDFTFilter():
-#   img = Image("../sampleimages/RedDog2.jpg")
-#   flt = Image("../sampleimages/RedDogFlt.png")
-#   f1 = img.applyDFTFilter(flt)
-#   f2 = img.applyDFTFilter(flt,grayscale=True)
-#   if VISUAL_TEST:
-#     f1.save("DFTFilt.png")
-#     f2.save("DFTFiltGray.png")
-#   pass
+  pass
 
-# def test_highPassFilter():
-#   img = Image("../sampleimages/RedDog2.jpg")
-#   a = img.highPassFilter(0.5)
-#   b = img.highPassFilter(0.5,grayscale=True)
-#   c = img.highPassFilter(0.5,yCutoff=0.4)
-#   d = img.highPassFilter(0.5,yCutoff=0.4,grayscale=True)
-#   e = img.highPassFilter([0.5,0.4,0.3])
-#   f = img.highPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
-#   if VISUAL_TEST:
-#     a.save("DFT-hpf-A.png")
-#     b.save("DFT-hpf-B.png")
-#     c.save("DFT-hpf-C.png")
-#     d.save("DFT-hpf-D.png")
-#     e.save("DFT-hpf-E.png")
-#     f.save("DFT-hpf-F.png")
+def test_getEXIFData():
+  img = Image("../sampleimages/OWS.jpg")
+  img2 = Image(testimage)
+  d1 = img.getEXIFData()
+  d2 = img2.getEXIFData()
+  if( len(d1) > 0 and len(d2) == 0 ):
+    pass
+  else:
+    assert False
+
+def test_get_raw_dft():
+  img = Image("../sampleimages/RedDog2.jpg")
+  raw3 = img.rawDFTImage()
+  raw1 = img.rawDFTImage(grayscale=True)
+  if( len(raw3) != 3 or
+      len(raw1) != 1 or
+      raw1[0].width != img.width or
+      raw1[0].height != img.height or
+      raw3[0].height != img.height or
+      raw3[0].width != img.width or
+      raw1[0].depth != 64L or
+      raw3[0].depth != 64L or
+      raw3[0].channels != 2 or
+      raw3[0].channels != 2 ):
+    assert False
+  else:
+    pass
+
+def test_getDFTLogMagnitude():
+  img = Image("../sampleimages/RedDog2.jpg")  
+  lm3 = img.getDFTLogMagnitude()
+  lm1 = img.getDFTLogMagnitude(grayscale=True)
+
+  results = [lm3,lm1]
+  name_stem = "test_getDFTLogMagnitude"
+  perform_diff(results,name_stem)    
+
+  pass
+
+
+def test_applyDFTFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  flt = Image("../sampleimages/RedDogFlt.png")
+  f1 = img.applyDFTFilter(flt)
+  f2 = img.applyDFTFilter(flt,grayscale=True)
+  results = [f1,f2]
+  name_stem = "test_applyDFTFilter"
+  perform_diff(results,name_stem)    
+  pass
+  
+def test_highPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.highPassFilter(0.5)
+  b = img.highPassFilter(0.5,grayscale=True)
+  c = img.highPassFilter(0.5,yCutoff=0.4)
+  d = img.highPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.highPassFilter([0.5,0.4,0.3])
+  f = img.highPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+
+  results = [a,b,c,d,e,f]
+  name_stem = "test_HighPassFilter"
+  perform_diff(results,name_stem)        
+  pass
+
+def test_lowPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.lowPassFilter(0.5)
+  b = img.lowPassFilter(0.5,grayscale=True)
+  c = img.lowPassFilter(0.5,yCutoff=0.4)
+  d = img.lowPassFilter(0.5,yCutoff=0.4,grayscale=True)
+  e = img.lowPassFilter([0.5,0.4,0.3])
+  f = img.lowPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+
+  results = [a,b,c,d,e,f]
+  name_stem = "test_LowPassFilter"
+  perform_diff(results,name_stem)        
+
+  pass
+
+def test_findHaarFeatures():
+  img = Image("../sampleimages/orson_welles.jpg")
+  face = HaarCascade("../Features/HaarCascades/face.xml")
+  f = img.findHaarFeatures(face)
+  f2 = img.findHaarFeatures("../Features/HaarCascades/face.xml")
+  if( len(f) > 0 and len(f2) > 0 ):
+    f.draw()
+    f2.draw()
+    f[0].width()
+    f[0].height()
+    f[0].draw()
+    f[0].x
+    f[0].y
+    f[0].length()
+    f[0].area()
+    pass
+  else:
+    assert False
+  
+  results = [img]
+  name_stem = "test_findHaarFeatures"
+  perform_diff(results,name_stem)        
     
-#   pass
+    
 
-# def test_lowPassFilter():
-#   img = Image("../sampleimages/RedDog2.jpg")
-#   a = img.lowPassFilter(0.5)
-#   b = img.lowPassFilter(0.5,grayscale=True)
-#   c = img.lowPassFilter(0.5,yCutoff=0.4)
-#   d = img.lowPassFilter(0.5,yCutoff=0.4,grayscale=True)
-#   e = img.lowPassFilter([0.5,0.4,0.3])
-#   f = img.lowPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
-#   if VISUAL_TEST:
-#     a.save("DFT-lpf-A.png")
-#     b.save("DFT-lpf-B.png")
-#     c.save("DFT-lpf-C.png")
-#     d.save("DFT-lpf-D.png")
-#     e.save("DFT-lpf-E.png")
-#     f.save("DFT-lpf-F.png")
-#   pass
+def test_biblical_flood_fill():
+  img = Image(testimage2)
+  b = img.findBlobs()
+  img.floodFill(b.coordinates(),tolerance=3,color=Color.RED)
+  img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.BLUE)
+  img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.GREEN,fixed_range=False)
+  img.floodFill((30,30),lower=3,upper=5,color=Color.ORANGE)
+  img.floodFill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
+  img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
+  img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
 
-# def test_findHaarFeatures():
-#   img = Image("../sampleimages/orson_welles.jpg")
-#   face = HaarCascade("../Features/HaarCascades/face.xml")
-#   f = img.findHaarFeatures(face)
-#   f2 = img.findHaarFeatures("../Features/HaarCascades/face.xml")
-#   if( len(f) > 0 and len(f2) > 0 ):
-#     f[0].width()
-#     f[0].height()
-#     f[0].draw()
-#     f[0].x
-#     f[0].y
-#     f[0].length()
-#     f[0].area()
-#     pass
-#   else:
-#     assert False
+  results = [img]
+  name_stem = "test_biblical_flood_fill"
+  perform_diff(results,name_stem)        
 
-
-# def test_biblical_flood_fill():
-#   img = Image(testimage2)
-#   b = img.findBlobs()
-#   img.floodFill(b.coordinates(),tolerance=3,color=Color.RED)
-#   img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.BLUE)
-#   img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.GREEN,fixed_range=False)
-#   img.floodFill((30,30),lower=3,upper=5,color=Color.ORANGE)
-#   img.floodFill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
-#   img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
-#   img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
-#   if VISUAL_TEST:
-#     img.save("biblical.png")
-#   pass
+  pass
   
-# def test_flood_fill_to_mask():
-#   img = Image(testimage2)
-#   b = img.findBlobs()
-#   imask = img.edges()
-#   omask = img.floodFillToMask(b.coordinates(),tolerance=10)
-#   omask2 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask)
-#   omask3 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask,fixed_range=False)
-#   if VISUAL_TEST:
-#     omask.save("flood_fill_to_mask1.png")
-#     omask2.save("flood_fill_to_mask2.png")
-#     omask3.save("flood_fill_to_mask3.png")
-#   pass
+def test_flood_fill_to_mask():
+  img = Image(testimage2)
+  b = img.findBlobs()
+  imask = img.edges()
+  omask = img.floodFillToMask(b.coordinates(),tolerance=10)
+  omask2 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask)
+  omask3 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask,fixed_range=False)
 
-# def test_findBlobsFromMask():
-#   img = Image(testimage2)
-#   mask = img.binarize().invert()
-#   b1 = img.findBlobsFromMask(mask)
-#   b2 = img.findBlobs()
-#   if(len(b1) == len(b2) ):
-#     pass
-#   else:
-#     assert False
+  results = [omask,omask2,omask3]
+  name_stem = "test_flood_fill_to_mask"
+  perform_diff(results,name_stem)        
+
+  pass
+
+def test_findBlobsFromMask():
+  img = Image(testimage2)
+  mask = img.binarize().invert()
+  b1 = img.findBlobsFromMask(mask)
+  b2 = img.findBlobs()
+  b1.draw()
+  b2.draw()
+
+  results = [img]
+  name_stem = "test_findBlobsFromMask"
+  perform_diff(results,name_stem)        
 
 
-# def test_bandPassFilter():
-#   img = Image("../sampleimages/RedDog2.jpg")
-#   a = img.bandPassFilter(0.1,0.3)
-#   b = img.bandPassFilter(0.1,0.3,grayscale=True)
-#   c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
-#   d = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
-#   e = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5])
-#   f = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
-#   if VISUAL_TEST:
-#     a.save("DFT-bpf-A.png")
-#     b.save("DFT-bpf-B.png")
-#     c.save("DFT-bpf-C.png")
-#     d.save("DFT-bpf-D.png")
-#     e.save("DFT-bpf-E.png")
-#     f.save("DFT-bpf-F.png")
-
-# def test_image_slice():
-#   img = Image("../sampleimages/blockhead.png")
-#   I = img.findLines()
-#   I2 = I[0:10]
-#   if type(I2) == list:
-#     assert False
-#   else:
-#     pass
-
-# def test_blob_spatial_relationships():
-#   img = Image("../sampleimages/spatial_relationships.png")
-#   #please see the image
-#   blobs = img.findBlobs(threshval=1)
-#   blobs = blobs.sortArea()
-#   print(len(blobs))
-
-#   center = blobs[-1]
-#   top = blobs[-2]
-#   right = blobs[-3]
-#   bottom = blobs[-4]
-#   left = blobs[-5]
-#   inside = blobs[-7]
-#   overlap = blobs[-6]
-
-#   if( not top.above(center) ):
-#     assert False
-#   if( not bottom.below(center)):
-#     assert False
-#   if( not right.right(center)):
-#     assert False
-#   if( not left.left(center)):
-#     assert False
-
-#   if( not center.contains(inside)):
-#     assert False
+  if(len(b1) == len(b2) ):
+    pass
+  else:
+    assert False
   
-#   if( center.contains(left) ):
-#     assert False
+
+
+def test_bandPassFilter():
+  img = Image("../sampleimages/RedDog2.jpg")
+  a = img.bandPassFilter(0.1,0.3)
+  b = img.bandPassFilter(0.1,0.3,grayscale=True)
+  c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
+  d = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
+  e = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5])
+  f = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
+  results = [a,b,c,d,e,f]
+  name_stem = "test_bandPassFilter"
+  perform_diff(results,name_stem)        
+
+
+def test_image_slice():
+  img = Image("../sampleimages/blockhead.png")
+  I = img.findLines()
+  I2 = I[0:10]
+  if type(I2) == list:
+    assert False
+  else:
+    pass
+
+def test_blob_spatial_relationships():
+  img = Image("../sampleimages/spatial_relationships.png")
+  #please see the image
+  blobs = img.findBlobs(threshval=1)
+  blobs = blobs.sortArea()
+  print(len(blobs))
+
+  center = blobs[-1]
+  top = blobs[-2]
+  right = blobs[-3]
+  bottom = blobs[-4]
+  left = blobs[-5]
+  inside = blobs[-7]
+  overlap = blobs[-6]
+
+  if( not top.above(center) ):
+    assert False
+  if( not bottom.below(center)):
+    assert False
+  if( not right.right(center)):
+    assert False
+  if( not left.left(center)):
+    assert False
+
+  if( not center.contains(inside)):
+    assert False
   
-#   if( not center.overlaps(overlap) ):
-#     assert False
-
-#   if( not overlap.overlaps(center) ):
-#     assert False
-
-#   myTuple = (img.width/2,img.height/2)
-
-#   if( not top.above(myTuple) ):
-#     assert False
-#   if( not bottom.below(myTuple)):
-#     assert False
-#   if( not right.right(myTuple)):
-#     assert False
-#   if( not left.left(myTuple)):
-#     assert False
-
-#   if( not top.above(myTuple) ):
-#     assert False
-#   if( not bottom.below(myTuple)):
-#     assert False
-#   if( not right.right(myTuple)):
-#     assert False
-#   if( not left.left(myTuple)):
-#     assert False
-#   if( not center.contains(myTuple)):
-#     assert False
-
-#   myNPA = np.array([img.width/2,img.height/2])
-#   if( not top.above(myNPA) ):
-#     assert False
-#   if( not bottom.below(myNPA)):
-#     assert False
-#   if( not right.right(myNPA)):
-#     assert False
-#   if( not left.left(myNPA)):
-#     assert False
-#   if( not center.contains(myNPA)):
-#     assert False
-
-#   if( not center.contains(inside) ):
-#     assert False
-
-# def test_save_kwargs():
-#   img = Image("lenna")
-#   l95 = "l95.jpg"
-#   l90 = "l90.jpg"
-#   l80 ="l80.jpg"
-#   l70="l70.jpg"
+  if( center.contains(left) ):
+    assert False
   
-#   img.save(l95,quality=95)
-#   img.save(l90,quality=90)
-#   img.save(l80,quality=80)
-#   img.save(l70,quality=75)
-  
-#   s95 = os.stat(l95).st_size
-#   s90 = os.stat(l90).st_size
-#   s80 = os.stat(l80).st_size
-#   s70 = os.stat(l70).st_size
+  if( not center.overlaps(overlap) ):
+    assert False
 
-#   print s70
-#   print s80
-#   print s90
-#   print s95
+  if( not overlap.overlaps(center) ):
+    assert False
+
+  myTuple = (img.width/2,img.height/2)
+
+  if( not top.above(myTuple) ):
+    assert False
+  if( not bottom.below(myTuple)):
+    assert False
+  if( not right.right(myTuple)):
+    assert False
+  if( not left.left(myTuple)):
+    assert False
+
+  if( not top.above(myTuple) ):
+    assert False
+  if( not bottom.below(myTuple)):
+    assert False
+  if( not right.right(myTuple)):
+    assert False
+  if( not left.left(myTuple)):
+    assert False
+  if( not center.contains(myTuple)):
+    assert False
+
+  myNPA = np.array([img.width/2,img.height/2])
+  if( not top.above(myNPA) ):
+    assert False
+  if( not bottom.below(myNPA)):
+    assert False
+  if( not right.right(myNPA)):
+    assert False
+  if( not left.left(myNPA)):
+    assert False
+  if( not center.contains(myNPA)):
+    assert False
+
+  if( not center.contains(inside) ):
+    assert False
+
+def test_save_kwargs():
+  img = Image("lenna")
+  l95 = "l95.jpg"
+  l90 = "l90.jpg"
+  l80 ="l80.jpg"
+  l70="l70.jpg"
   
-#   if( s70 < s80 and s80 < s90 and s90 < s95 ):
-#     pass
-#   else:
-#     assert False
+  img.save(l95,quality=95)
+  img.save(l90,quality=90)
+  img.save(l80,quality=80)
+  img.save(l70,quality=75)
+  
+  s95 = os.stat(l95).st_size
+  s90 = os.stat(l90).st_size
+  s80 = os.stat(l80).st_size
+  s70 = os.stat(l70).st_size
+  
+  if( s70 < s80 and s80 < s90 and s90 < s95 ):
+    pass
+  else:
+    assert False
+
+  s95 = os.remove(l95)
+  s90 = os.remove(l90)
+  s80 = os.remove(l80)
+  s70 = os.remove(l70)
+  
