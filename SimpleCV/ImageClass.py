@@ -394,7 +394,54 @@ Valid options: 'thumb', 'small', 'medium', 'large'
           self.append(tmp)
           
       return len(self)
-  
+
+    def pickleDump(self,filename):
+      """
+      **SUMMARY**
+      This function dumps the pickable files automatically from the ImageSet object.
+      
+      **PARAMETERS**
+      * *filename* - Name of the pickable file.
+      
+      **RETURNS**
+      The number of images in the image set.
+      
+      **EXAMPLE**
+      >>> imgs = ImageSet(path)
+      >>> imgs.pickleDump("filename")
+      """
+      arrayOfImages = []
+      for f in self:
+      	data = f.__getstate__()
+      	arrayOfImages.append(data)
+      output = open(filename, 'wb')
+      pickle.dump(arrayOfImages,output)
+      output.close()
+      return 
+		
+    def pickleLoad(self,filename):
+      """
+      **SUMMARY**
+      This function loads the pickable files to ImageSet object.
+      
+      **PARAMETERS**
+      **filename* - Name of the pickable file.
+      
+      **RETURNS**
+      The number of images in the image set.
+      
+      **EXAMPLE**
+      >>> imgs = ImageSet()
+      >>> imgset = imgs.pickleLoad("filename")
+      """
+      arrayOfImages = pickle.load(file(filename))
+      img = Image()
+      imgset = []
+      for f in range(0,len(arrayOfImages)):
+      	img.__setstate__(arrayOfImages[f])
+      	imgset.append(img)
+      return imgset
+	
 class Image:
     """
     **SUMMARY**
