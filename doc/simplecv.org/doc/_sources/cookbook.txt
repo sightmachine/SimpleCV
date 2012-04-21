@@ -101,7 +101,7 @@ The Image class has a builtin `Histogram <http://en.wikipedia.org/wiki/Image_his
     darkpixels = 0
     i = 0
 
-    while i < length(hist):
+    while i < len(hist):
       if (i < 10):
         darkpixels = darkpixels + hist[i]
       else:
