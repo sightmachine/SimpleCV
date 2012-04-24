@@ -1,6 +1,5 @@
 from SimpleCV.base import *
 
-
 class BlobMaker:
     """
     Blob maker encapsulates all of the contour extraction process and data, so
@@ -148,26 +147,25 @@ class BlobMaker:
         retVal.mArea = area
         
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
-        retVal.mBoundingBox = cv.BoundingRect(seq)
-        retVal.x = retVal.mBoundingBox[0]+(retVal.mBoundingBox[2]/2)
-        retVal.y = retVal.mBoundingBox[1]+(retVal.mBoundingBox[3]/2)
+        bb = cv.BoundingRect(seq)
+        retVal.x = bb[0]+(bb[2]/2)
+        retVal.y = bb[1]+(bb[3]/2)
         retVal.mPerimeter = cv.ArcLength(seq)
-        
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
             retVal.points = list(seq)
 
-        # so this is a bit hacky.... need to refactor blobs
-        xx = retVal.mBoundingBox[0]
-        yy = retVal.mBoundingBox[1]
-        ww = retVal.mBoundingBox[2]
-        hh = retVal.mBoundingBox[3]
-        retVal.boundingBox = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
-
+        # so this is a bit hacky....
+        xx = bb[0]
+        yy = bb[1]
+        ww = bb[2]
+        hh = bb[3]
+        retVal.mPoints = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
+        retVal._updateExtents()
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
-        hullMask = self._getHullMask(chull,retVal.mBoundingBox)
-        retVal.mHullImg = self._getBlobAsImage(chull,retVal.mBoundingBox,color.getBitmap(),hullMask)
+        hullMask = self._getHullMask(chull,bb)
+        retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),hullMask)
         retVal.mHullMask = Image(hullMask)
         
         del chull
@@ -195,14 +193,14 @@ class BlobMaker:
             retVal.m12 = cv.GetSpatialMoment(moments,1,2)
             
         retVal.mHu = cv.GetHuMoments(moments)
-        mask = self._getMask(seq,retVal.mBoundingBox)
+        mask = self._getMask(seq,bb)
         retVal.mMask = Image(mask)
 
-        retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
+        retVal.mAvgColor = self._getAvg(color.getBitmap(),bb,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
         #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         #retVal.mAvgColor = retVal.mAvgColor[0:3]
-        retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
+        retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
 
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]

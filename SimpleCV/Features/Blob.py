@@ -38,7 +38,7 @@ class Blob(Feature):
     # mMinRectangle[1] = (w,h)
     # mMinRectangle[2] = angle
     
-    mBoundingBox = [] #get W/H and X/Y from this
+    #mBoundingBox = [] #get W/H and X/Y from this
     mHu = [] # The seven Hu Moments
     mPerimeter = 0 # the length of the perimeter in pixels 
     mArea = 0 # the area in pixels
@@ -66,7 +66,7 @@ class Blob(Feature):
         self.mContour = []
         self.mConvexHull = []
         self.mMinRectangle = [-1,-1,-1,-1,-1] #angle from this
-        self.mBoundingBox = [-1,-1,-1,-1] #get W/H and X/Y from this
+        #self.mBoundingBox = [-1,-1,-1,-1] #get W/H and X/Y from this
         self.mHu = [-1,-1,-1,-1,-1,-1,-1]
         self.mPerimeter = 0
         self.mArea = 0
@@ -144,227 +144,6 @@ class Blob(Feature):
         cv.ResetImageROI(self.image.getBitmap())
         
         return tuple(reversed(avg[0:3]))
-
-    def minX(self):
-        """
-        **SUMMARY**
-
-        This method return the minimum x value of the bounding box of the
-        the blob. 
-        
-        **RETURNS**
-
-        A integer of the minimum x value of the bounding box.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].minX()
-        
-        """
-        return self.mBoundingBox[0]
-        
-    def maxX(self):
-        """
-        **SUMMARY**
-
-        This method return the maximum x value of the bounding box of the
-        the blob. 
-
-        **RETURNS**
-
-        A integer of the maximum value of the bounding box.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].maxX()
-        
-        
-        """        
-        return self.mBoundingBox[0]+self.mBoundingBox[2]
-
-    def center(self):
-        """
-        **SUMMARY**
-
-        This method returns the center of the blob's bounding box.
-
-        **RETURNS**
-
-        A tuple that is the center of the blob's bounding box.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].center()
-        
-        """
-        x = self.mBoundingBox[0]+(self.mBoundingBox[2]/2)
-        y = self.mBoundingBox[1]+(self.mBoundingBox[3]/2)
-        return ([x,y])
-
-    def minY(self):
-        """
-        **SUMMARY**
-
-        This method return the minimum y value of the bounding box of the
-        the blob. 
-
-        **RETURNS**
-
-        An integer that is the blob's bounding box's minimum y dimension.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].minY()
-        
-        """
-        return self.mBoundingBox[1]
-        
-    def maxY(self):
-        """
-        **SUMMARY**
-
-        This method return the maximum y value of the bounding box of the
-        the blob. 
-
-        **RETURNS**
-
-        An integer that is the blob's bounding box's maximum y dimension.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].maxY()
-
-        """        
-        return self.mBoundingBox[1]+self.mBoundingBox[3]
-
-    def width(self):
-        """
-        **SUMMARY**
-
-        This method returns the width of the bounding box of the blob. 
-
-        **RETURNS**
-        
-        The width of the blob's bounding box as an integer.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].width()
-
-        """
-        return(self.mBoundingBox[2])
-
-    def height(self):
-        """
-        **SUMMARY**
-
-        This method returns the height of the bounding box of the blob. 
-
-        **RETURNS**
-        
-        The height of the blob's bounding box as an integer.
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].height()
-        """
-        return(self.mBoundingBox[3])
-        
-    def topLeftCorner(self):
-        """
-        **SUMMARY**
-
-        This method returns the top left corner of the bounding box of
-        the blob as an (x,y) tuple.
-
-        **RETURNS**
-        
-        An (x,y) tuple of the top left corner of the blob's bounding box. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].topLeftCorner()
-
-        """
-        return (self.mBoundingBox[0],self.mBoundingBox[1])
-
-    def bottomRightCorner(self):
-        """
-        **SUMMARY** 
-
-        This method returns the bottom right corner of the bounding box of
-        the blob as an (x,y) tuple.
-
-        **RETURNS**
-        
-        An (x,y) tuple of the bottom right corner of the blob's bounding box. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].bottomRightCorner()
-
- 
-        """        
-        return (self.mBoundingBox[0]+self.mBoundingBox[2],self.mBoundingBox[1]+self.mBoundingBox[3])
-        
-    def bottomLeftCorner(self):
-        """
-        **SUMMARY**
-
-        This method returns the bottom left corner of the bounding box of
-        the blob as an (x,y) tuple.
-
-        **RETURNS**
-        
-        An (x,y) tuple of the bottom left corner of the blob's bounding box. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].bottomLeftCorner()
- 
-        """ 
-        return (self.mBoundingBox[0],self.mBoundingBox[1]+self.mBoundingBox[3])
-        
-    def topRightCorner(self):
-        """
-        **SUMMARY**
-
-        This method returns the top right corner of the bounding box of
-        the blob as an (x,y) tuple.
-
-        **RETURNS**
-        
-        An (x,y) tuple of the top right corner of the blob's bounding box. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].topRightCorner()
-
-        """       
-        return (self.mBoundingBox[0]+self.mBoundingBox[2],self.mBoundingBox[1])
-
     def area(self):
         """
         **SUMMARY**
@@ -386,27 +165,6 @@ class Blob(Feature):
         """
         return(self.mArea)
     
-    def length(self):
-        """
-        Length returns the longest dimension of the X/Y bounding box 
-
-        **RETURNS**
-
-        Returns the longest the dimension of the blob's bounding box. 
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].length()
-        
-        **TODO**
-        
-        Should this be the diag length?
-
-        """
-        return max(self.mBoundingBox[2],self.mBoundingBox[3])
-
 
     def getMinRectPoints(self):
         """
@@ -605,25 +363,7 @@ class Blob(Feature):
         """
         return(self.mMinRectangle[1][1])
 
-    def aspectRatio(self):
-        """
-        **SUMMARY**
 
-        This method returns the aspect ratio (W/H) of the bounding box of the
-        blob. 
-
-        **RETURNS**
-        
-        A float corresponding to the aspect ratio of the blob's bounding box. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].aspectRatio()
-       
-        """
-        return( float(self.mBoundingBox[2])/float(self.mBoundingBox[3]))
     
     def rectifyMajorAxis(self,axis=0):
         """

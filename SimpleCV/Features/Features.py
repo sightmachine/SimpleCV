@@ -795,7 +795,11 @@ class FeatureSet(list):
         for f in self:
             f.image = i
 
-
+### ----------------------------------------------------------------------------
+### ----------------------------------------------------------------------------
+### ----------------------------FEATURE CLASS-----------------------------------
+### ----------------------------------------------------------------------------
+### ----------------------------------------------------------------------------
 class Feature(object):
     """
     **SUMMARY**
@@ -816,15 +820,28 @@ class Feature(object):
     mMaxY = None
     mMinX = None
     mMinY = None
+    mWidth = None
+    mHeight = None
+    mSrcImgW = None
+    mSrcImgH = None
+    mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
+    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
+    mPoints = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
     image = "" #parent image
-    points = []
-    boundingBox = []
+    #points = []
+    #boundingBox = []
 
-    def __init__(self, i, at_x, at_y):
+    def __init__(self, i, at_x, at_y, points):
+        #THE COVENANT IS THAT YOU PROVIDE THE POINTS IN THE SPECIFIED FORMAT AND ALL OTHER VALUES SHALT FLOW
         self.x = at_x
         self.y = at_y
         self.image = i
+        self 
   
+    def getCorners(self):
+        self._updateExtents()
+        return self.mPoints
+
     def coordinates(self):
         """
         **SUMMARY**
@@ -1013,6 +1030,13 @@ class Feature(object):
         """
         return 1
   
+    def aspectRatio(self):
+        """
+        ####################################################################################################
+        """
+        self._updateExtents()
+        return self.mAspectRatio
+
     def area(self):
         """
         **SUMMARY** 
@@ -1055,18 +1079,9 @@ class Feature(object):
         >>> img.show()
 
         """
-        maxX = float("-infinity")
-        minX = float("infinity")
-        if(len(self.points) <= 0):
-            return 1
-        
-        for p in self.points:
-            if(p[0] > maxX):
-                maxX = p[0]
-            if(p[0] < minX):
-                minX = p[0]
-            
-        return maxX - minX
+        self._updateExtents()
+        return self.mWidth
+
   
     def height(self):
         """
@@ -1088,19 +1103,8 @@ class Feature(object):
         >>>       b.draw()
         >>> img.show()
         """
-        maxY = float("-infinity")
-        minY = float("infinity")
-        if(len(self.points) <= 0):
-            return 1
-      
-        for p in self.points:
-            if(p[1] > maxY):
-                maxY = p[1]
-            if(p[1] < minY):
-                minY = p[1]
-        
-        return maxY - minY
-
+        self._updateExtents()
+        return self.mWidth
    
     def crop(self):
         """
@@ -1129,13 +1133,20 @@ class Feature(object):
 
 
     def _updateExtents(self):
+#    mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
+#    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
+#    mPoints = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+
         if( self.mMaxX is None or self.mMaxY is None or 
-            self.mMinX is None or self.mMinY is None):
+            self.mMinX is None or self.mMinY is None or
+            self.mWidth is None or self.mHeight is None or 
+            self.mExtents is None or self.mBoundingBox is None
+            ):
             self.mMaxX = float("-infinity")
             self.mMaxY = float("-infinity")
             self.mMinX = float("infinity")
             self.mMinY = float("infinity")
-            for p in self.points:
+            for p in self.mPoints:
                 if( p[0] > self.mMaxX):
                     self.mMaxX = p[0] 
                 if( p[0] < self.mMinX):
@@ -1144,8 +1155,11 @@ class Feature(object):
                     self.mMaxY = p[1]
                 if( p[1] < self.mMinY):
                     self.mMinY = p[1]
-            
-            self.boundingBox = [(self.mMinX,self.mMinY),(self.mMinX,self.mMaxY),(self.mMaxX,self.mMaxY),(self.mMaxX,self.mMinY)]
+            self.mWidth = self.mMaxX-self.mMinX
+            self.mHeight = self.mMaxY-self.mMinY
+            self.mBoundingBox = [self.mMinX,self.mMinY,self.mWidth,self.mHeight]
+            self.mExtents = [self.mMaxX,self.mMinX,self.mMaxY,self.mMinY]
+            self.mAspectRatio = float(np.max([self.mWidth,self.mHeight]))/float(np.min([self.mWidth,self.mHeight]))
             
     def boundingBox(self):
         """
@@ -1169,7 +1183,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return self.boundingBox
+        return self.mBoundingBox
 
     def extents(self):
         """
@@ -1190,7 +1204,7 @@ class Feature(object):
         
         """
         self._updateExtents()
-        return (self.mMaxX,self.mMaxY,self.mMinX,self.mMinY)
+        return self.mExtents
 
     def minY(self):
         """
@@ -1554,7 +1568,7 @@ class Feature(object):
 
         """
         retVal = False
-        bounds = self.boundingBox
+        bounds = self.mPoints
         if( isinstance(other,Feature) ):# A feature
             retVal = True
             for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.            
@@ -1634,7 +1648,7 @@ class Feature(object):
  
        """
         retVal = False
-        bounds = self.boundingBox
+        bounds = self.mPoints
         if( isinstance(other,Feature) ):# A feature
             retVal = True            
             for p in other.boundingBox: # this isn't completely correct - only tests if points lie in poly, not edges. 
@@ -1771,7 +1785,7 @@ class Feature(object):
 
         """
         retVal = True
-        bounds = self.boundingBox
+        bounds = self.mPoints
 
         if( isinstance(other,Feature) ): # another feature do the containment test
             retVal = other.contains(self)
