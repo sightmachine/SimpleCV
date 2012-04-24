@@ -1647,6 +1647,8 @@ class Image:
         else:
             saveimg = self
 
+        if( self._colorSpace != ColorSpace.BGR ):
+            saveimg = saveimg.toBGR()
 
         if (type(filehandle_or_filename) != str):
             fh = filehandle_or_filename
