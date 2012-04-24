@@ -381,7 +381,7 @@ def test_detection_feature_measures():
 def test_detection_blobs():
     img = Image(testbarcode)
     blobs = img.findBlobs()
-    blobs.draw()
+    blobs.draw(color=Color.RED)
     result = [img]
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs"
@@ -394,7 +394,7 @@ def test_detection_blobs():
 def test_detection_blobs_adaptive():
     img = Image(testimage)
     blobs = img.findBlobs(-1, threshblocksize=99)
-    blobs.draw()
+    blobs.draw(color=Color.RED)
     result = [img]
     name_stem = "test_detection_blobs_adaptive"
     perform_diff(result,name_stem)
@@ -651,8 +651,10 @@ def test_image_rotate_fixed():
   img2=img.rotate(180, scale = 1)
   img3=img.flipVertical()
   img4=img3.flipHorizontal()
+  img5 = img.rotate(70)
+  img6 = img.rotate(70,scale=0.5)
 
-  results = [img2,img3,img4]
+  results = [img2,img3,img4,img5,img6]
   name_stem = "test_image_rotate_fixed"
   perform_diff(results,name_stem)
 
@@ -886,10 +888,11 @@ def test_image_divide():
   perform_diff(results,name_stem)
   
 def test_image_and():
-  imgA = Image(logo)
-  imgB = Image(logo_inverted)
+  imgA = Image(barcode)
+  imgB = imgA.invert() 
 
-  imgC = imgA and imgB
+
+  imgC = imgA & imgB # should be all black
 
   results = [imgC]
   name_stem = "test_image_and"
@@ -897,10 +900,10 @@ def test_image_and():
   
   
 def test_image_or():
-  imgA = Image(logo)
-  imgB = Image(logo_inverted)
+  imgA = Image(barcode)
+  imgB = imgA.invert()
 
-  imgC = imgA or imgB
+  imgC = imgA | imgB #should be all white
 
   results = [imgC]
   name_stem = "test_image_or"
@@ -917,13 +920,16 @@ def test_image_edgemap():
 
 def test_color_colormap_build():
   cm = ColorModel()
-  cm.add(Image(testimage))
+  cm.add(Image(logo))
   cm.add((127,127,127))
   if(cm.contains((127,127,127))):
     cm.remove((127,127,127))
   else:
     assert False
 
+  cm.remove((0,0,0))
+  cm.remove((255,255,255))
+  
   img = cm.threshold(Image(testimage))
   c=img.meanColor()
  
@@ -1222,7 +1228,7 @@ def test_detection_ocr():
 def test_template_match():
     source = Image("../sampleimages/templatetest.png")
     template = Image("../sampleimages/template.png")
-    t = 4
+    t = 2
     fs = source.findTemplate(template,threshold=t)
     fs.draw()
     results = [source]
@@ -1322,7 +1328,7 @@ def test_applyBinaryMask():
 
   name_stem = "test_applyBinaryMask"
   perform_diff(results,name_stem,tolerance=3.0)    
-
+ 
   pass
 
 def test_applyPixelFunc():
@@ -1715,7 +1721,7 @@ def test_keypoint_match():
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   match1 = Image("../sampleimages/kptest1.png")
-  match2 = Image("../sampleimages/aerospace.jpg")
+  match2 = Image("../sampleimages/aerospace.jpg")# should be none 
 
   fs0 = match0.findKeypointMatch(template)
   fs1 = match1.findKeypointMatch(template,quality=400.00,minDist=0.15,minMatch=0.2)
@@ -1738,7 +1744,7 @@ def test_keypoint_match():
     assert False
 
   results = [match0,match1,match2]
-  name_stem = "test_keypoint_match"
+  name_stem = "test_find_keypoint_match"
   perform_diff(results,name_stem)    
 
 
