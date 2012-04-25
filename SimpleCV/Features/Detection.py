@@ -32,11 +32,9 @@ class Corner(Feature):
     :py:meth:`findCorners`
     """
     def __init__(self, i, at_x, at_y):
-        super(Corner, self).__init__(i, at_x, at_y)
-        self.points = [(at_x,at_y)]
-        #not sure if we need all four
-        self.boundingBox = [(at_x-1,at_y-1),(at_x-1,at_y+1),(at_x+1,at_y+1),(at_x+1,at_y-1)]
-        self.points = self.boundingBox
+
+        points = [(at_x-1,at_y-1),(at_x-1,at_y+1),(at_x+1,at_y+1),(at_x+1,at_y-1)]
+        super(Corner, self).__init__(i, at_x, at_y,points)
         #can we look at the eigenbuffer and find direction?
   
     def draw(self, color = (255, 0, 0),width=1):
@@ -83,13 +81,13 @@ class Line(Feature):
 
     def __init__(self, i, line):
         self.image = i
-        #coordinate of the line object is the midpoint
-        self.x = (line[0][0] + line[1][0]) / 2
-        self.y = (line[0][1] + line[1][1]) / 2
         self.points = copy(line)
-        #not sure if this is going to work
-        self.boundingBox = self.points
- 
+        #coordinate of the line object is the midpoint
+        at_x = (line[0][0] + line[1][0]) / 2
+        at_y = (line[0][1] + line[1][1]) / 2
+        points = [(line[0][0],line[0][1]),(line[1][0],line[0][1]),(line[1][0],line[1][1]),(line[0][0],line[0][1])]
+        super(Line, self).__init__(i, at_x, at_y,points)
+
     def draw(self, color = (0, 0, 255),width=1):
         """
         Draw the line, default color is blue
@@ -135,12 +133,9 @@ class Line(Feature):
         return spsd.euclidean(self.points[0], self.points[1])  
  
     def crop(self):
-        xmax = np.max([self.points[0][0],self.points[1][0]])
-        ymax = np.max([self.points[0][1],self.points[1][1]])
-        xmin = np.min([self.points[0][0],self.points[1][0]])
-        ymin = np.min([self.points[0][1],self.points[1][1]])
-        w = xmax-xmin
-        h = ymax-ymin
+        w = self.width()
+        h = self.height()
+        tl = self.topLeftCorner()
         #catch horizontal and vertical lines
         if(w <= 0):
             w = 1
@@ -148,7 +143,7 @@ class Line(Feature):
         if(h <= 0):
             h = 1
 
-        return self.image.crop( xmin,ymin,w,h )
+        return self.image.crop( tl[0],w,h )
 
     def meanColor(self):
         """
@@ -170,15 +165,10 @@ class Line(Feature):
         >>> c = kp[0].meanColor()
 
         """
-     
+        (pt1, pt2) = self.points     
         #we're going to walk the line, and take the mean color from all the px
         #points -- there's probably a much more optimal way to do this
-        #also note, if you've already called "draw()" you've destroyed this info
-        (pt1, pt2) = self.points
-        maxy = max(pt1[1], pt2[1])
-        miny = min(pt1[1], pt2[1])
-        maxx = max(pt1[0], pt2[0])
-        minx = min(pt1[0], pt2[0])
+        (maxx,minx,maxy,miny) = self.extents()
     
         d_x = maxx - minx
         d_y = maxy - miny 
@@ -304,9 +294,12 @@ class Barcode(Feature):
     #given a ZXing bar
     def __init__(self, i, zxbc):
         self.image = i 
+        #KAT CHECK HERE
+        points = copy(zxbc.points) # hopefully this is in tl clockwise order
+        super(Barcode, self).__init__(i, at_x, at_y,points)        
         self.data = zxbc.data 
         self.points = copy(zxbc.points)
-        self.boundingBox = self.points 
+
         numpoints = len(self.points)
         self.x = 0
         self.y = 0
@@ -342,10 +335,10 @@ class Barcode(Feature):
 
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color,width)
-        self.image.drawLine(self.points[1], self.points[2], color,width)
-        self.image.drawLine(self.points[2], self.points[3], color,width)
-        self.image.drawLine(self.points[3], self.points[0], color,width)
+        self.image.drawLine(self.mPoints[0], self.mPoints[1], color,width)
+        self.image.drawLine(self.mPoints[1], self.mPoints[2], color,width)
+        self.image.drawLine(self.mPoints[2], self.mPoints[3], color,width)
+        self.image.drawLine(self.mPoints[3], self.mPoints[0], color,width)
   
     def length(self):
         """
@@ -364,7 +357,7 @@ class Barcode(Feature):
         >>> print bc[-1].length()
 
         """
-        sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+        sqform = spsd.squareform(spsd.pdist(self.mPoints, "euclidean"))
         #get pairwise distances for all points
         #note that the code is a quadrilateral
         return max(sqform[0][1], sqform[1][2], sqform[2][3], sqform[3][0])
@@ -389,7 +382,7 @@ class Barcode(Feature):
 
         """
         #calc the length of each side in a square distance matrix
-        sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
+        sqform = spsd.squareform(spsd.pdist(self.mPoints, "euclidean"))
     
         #squareform returns a N by N matrix 
         #boundry line lengths
@@ -429,15 +422,18 @@ class HaarFeature(Feature):
     
     def __init__(self, i, haarobject, haarclassifier = None):
         self.image = i
-        ((x, y, self._width, self._height), self.neighbors) = haarobject
-        self.x = x + self._width/2
-        self.y = y + self._height/2 #set location of feature to middle of rectangle
-        self.points = ((x, y), (x + self._width, y), (x + self._width, y + self._height), (x, y + self._height))
-        self.boundingBox = self.points
-        #set bounding points of the rectangle
+        ((x, y, width, height), self.neighbors) = haarobject
+        at_x = x + width/2
+        at_y = y + height/2 #set location of feature to middle of rectangle
+        points = ((x, y), (x + width, y), (x + width, y + height), (x, y + height))
+ 
+         #set bounding points of the rectangle
         self.classifier = haarclassifier
         if( haarclassifier is not None ):
             self.featureName = haarclassifier.getName()
+            
+        super(HaarFeature, self).__init__(i, at_x, at_y, points)                
+
     
     def draw(self, color = (0, 255, 0),width=1):
         """
@@ -457,10 +453,10 @@ class HaarFeature(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color,width)
-        self.image.drawLine(self.points[1], self.points[2], color,width)
-        self.image.drawLine(self.points[2], self.points[3], color,width)
-        self.image.drawLine(self.points[3], self.points[0], color,width)
+        self.image.drawLine(self.mPoints[0], self.mPoints[1], color,width)
+        self.image.drawLine(self.mPoints[1], self.mPoints[2], color,width)
+        self.image.drawLine(self.mPoints[2], self.mPoints[3], color,width)
+        self.image.drawLine(self.mPoints[3], self.mPoints[0], color,width)
       
     def __getstate__(self):
         dict = self.__dict__.copy()
@@ -485,31 +481,10 @@ class HaarFeature(Feature):
         >>> print faces[-1].meanColor()
 
         """
-        crop = self.image[self.points[0][0]:self.points[1][0], self.points[0][1]:self.points[2][1]]
+        crop = self.image[self.mPoints[0][0]:self.mPoints[1][0], self.mPoints[0][1]:self.mPoints[2][1]]
         return crop.meanColor()
   
-    def length(self):
-        """
-        Returns the longest dimension of the HaarFeature, either width or height
-
-        **SUMMARY**
-        
-        This method returns the longest dimension of the feature (i.e max(width,height)). 
-        
-        **RETURNS**
-        
-        A floating point length value. 
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> face = HaarCascade("face.xml")
-        >>> faces = img.findHaarFeatures(face)
-        >>> print faces[-1].length()
-
-        """
-        return max(self._width, self._height)
-  
+   
     def area(self):
         """
 
@@ -529,56 +504,8 @@ class HaarFeature(Feature):
         >>> print faces[-1].area()
 
         """
-        return self._width * self._height
+        return self.width() * self.height()
   
-#     def angle(self):
-#         """
-
-
-#         **SUMMARY**
-
-#         Return the angle (theta) in degrees of the feature. The default is 0 (horizontal).
-        
-#         .. Warning:: 
-#           This is not a valid operation for all features.
-
-         
-#         **RETURNS**
-        
-#         An angle value in degrees. 
-
-#         **EXAMPLE**
-        
-#         >>> img = Image("OWS.jpg")
-#         >>> blobs = img.findBlobs(128)
-#         >>> for b in blobs:
-#         >>>    if b.angle() == 0:
-#         >>>       print "I AM HORIZONTAL."
-
-
-#         """
-#         #Note this is misleading
-#         # I am not sure I like this 
-#         if (self._width > self._height):
-#             return 0.00
-#         else:
-#             return 90.00
-  
-    def width(self):
-        """
-        **SUMMARY**
-
-        Get the width of the feature.
-        """
-        return self._width
-      
-    def height(self):
-        """
-        **SUMMARY**
-
-        Get the height of the feature.
-        """    
-        return self._height
 ######################################################################  
 class Chessboard(Feature):
     """
@@ -593,19 +520,18 @@ class Chessboard(Feature):
     def __init__(self, i, dim, subpixelCorners):
         self.dimensions = dim
         self.spCorners = subpixelCorners
-        self.image = i
-        self.x = np.average(np.array(self.spCorners)[:, 0])
-        self.y = np.average(np.array(self.spCorners)[:, 1])
+        at_x = np.average(np.array(self.spCorners)[:, 0])
+        at_y = np.average(np.array(self.spCorners)[:, 1])
         
         posdiagsorted = sorted(self.spCorners, key = lambda corner: corner[0] + corner[1])
         #sort corners along the x + y axis
         negdiagsorted = sorted(self.spCorners, key = lambda corner: corner[0] - corner[1])
         #sort corners along the x - y axis
         
-        self.points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1], negdiagsorted[0])
-        self.boundingBox = self.points
-      #return the exterior points in clockwise order
-      
+        points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1], negdiagsorted[0])
+        super(Chessboard, self).__init__(i, at_x, at_y, points)                        
+
+        
     def draw(self, no_needed_color = None):
         """
         **SUMMARY**
@@ -675,45 +601,21 @@ class TemplateMatch(Feature):
         self.template_image = template
         self.image = image
         self.quality = quality
-        self.x = location[0]
-        self.y = location[1]
-        self.points = [location,
-                        (location[0] + template.width, location[1]),
-                        (location[0] + template.width, location[1] + template.height),
-                        (location[0], location[1] + template.height)]
-        self.boundingBox = self.points
-
-    def getExtents(self):
-        """
-        **SUMMARY**
-        
-        This method returns the minimum and maximum x and y positions of the feature.
-
-        **RETURNS**
-        
-        Returns max x, max y, min x, min y as a tuple.
-
-        **EXAMPLE**
-        
-        >>> template = Image("template.png")
-        >>> img = Image("someimg.png")
-        >>> stuff = img.findTemplate(template)
-        >>> print stuff[0].getExtents()
-        """
-        w = self.width()
-        h = self.height()
-        return (self.x+w, 
-                self.y+w,
-                self.x,
-                self.y)
+        w = template.width
+        h = template.height
+        at_x = location[0]
+        at_y = location[1]
+        points = [(at_x,at_y),(at_x+w,at_y),(at_x+w,at_y+h),(at_x,at_y+h)]
+ 
+        super(TemplateMatch, self).__init__(image, at_x, at_y, points)                        
 
     def _templateOverlaps(self,other):
         """
         Returns true if this feature overlaps another template feature.
         """
-        (maxx,maxy,minx,miny) = self.getExtents()
+        (maxx,minx,maxy,miny) = self.extents()
         overlap = False
-        for p in other.points:
+        for p in other.mPoints:
             if( p[0] <= maxx and p[0] >= minx and p[1] <= maxy and p[1] >= miny ):
                overlap = True 
                break 
@@ -722,11 +624,11 @@ class TemplateMatch(Feature):
     
 
     def consume(self, other):
-        """
+        """ 
         Given another template feature, make this feature the size of the two features combined.
         """
-        (maxx,maxy,minx,miny) = self.getExtents()
-        (maxx0,maxy0,minx0,miny0) = other.getExtents()
+        (maxx,minx,maxy,miny) = self.extents()
+        (maxx0,minx0,maxy0,miny0) = other.extents()
 
         maxx = max(maxx,maxx0)
         minx = min(minx,minx0)
@@ -741,7 +643,7 @@ class TemplateMatch(Feature):
         """
         This method keeps the feature's center the same but sets a new width and height
         """
-        (maxx,maxy,minx,miny) = self.getExtents()
+        (maxx,minx,maxy,miny) = self.extents()
         xc = minx+((maxx-minx)/2)
         yc = miny+((maxy-miny)/2)
         x = xc-(w/2)
@@ -786,12 +688,10 @@ class Circle(Feature):
     avgColor = None
   
     def __init__(self, i, at_x, at_y, r):
-        self.x = at_x
-        self.y = at_y
         self.r = r
         self.avgColor = None
-        self.image = i
-        self.boundingBox = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
+        points = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
+        super(Circle, self).__init__(i, at_x, at_y, points)                                
         segments = 18
         rng = range(1,segments+1)
         self.points = []
@@ -800,6 +700,7 @@ class Circle(Feature):
             x = (r*math.sin(rp))+at_x
             y = (r*math.cos(rp))+at_y
             self.points.append((x,y))
+   
   
   
     def draw(self, color = Color.GREEN,width=1):
@@ -819,7 +720,7 @@ class Circle(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.drawCircle((self.x,self.y),self.r,color=color,thickness=width)
+        self.image.dl().circle((self.x,self.y),self.r,color,width)
     
     def show(self, color = Color.GREEN):
         """
@@ -897,13 +798,6 @@ class Circle(Feature):
             temp = cv.Avg(self.image.getBitmap(),mask)
             self.avgColor = (temp[0],temp[1],temp[2])
         return self.avgColor
-  
-#    def colorDistance(self, color = (0, 0, 0)): 
-#        """
-#          Return the euclidean color distance of the color tuple at x,y from a given color (default black)
-#        """
-#        return spsd.euclidean(np.array(color), np.array(self.meanColor())) 
-  
   
     def area(self):
         """
@@ -1024,8 +918,8 @@ class KeyPoint(Feature):
     def __init__(self, i, keypoint, descriptor=None, flavor="SURF" ):
 #i, point, diameter, descriptor=None,angle=-1, octave=0,response=0.00,flavor="SURF"):
         self.mKeyPoint = keypoint
-        self.x = keypoint.pt[1] #KAT
-        self.y = keypoint.pt[0]
+        x = keypoint.pt[1] #KAT
+        y = keypoint.pt[0]
         self.r = keypoint.size/2.0
         self.avgColor = None
         self.image = i
@@ -1034,10 +928,10 @@ class KeyPoint(Feature):
         self.mResponse = keypoint.response
         self.mFlavor = flavor
         self.mDescriptor = descriptor
-        x = self.x
-        y = self.y
         r = self.r
-        self.boundingBox = ((x+r,y+r),(x+r,y-r),(x-r,y-r),(x-r,y+r))
+        points  = ((x+r,y+r),(x+r,y-r),(x-r,y-r),(x-r,y+r))
+        super(KeyPoint, self).__init__(i, x, y, points)                                
+
         segments = 18
         rng = range(1,segments+1)
         self.points = []
@@ -1125,11 +1019,11 @@ class KeyPoint(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.drawCircle((self.x,self.y),self.r,color=color,thickness=width)
+        self.image.dl().circle((self.x,self.y),self.r,color,width)
         pt1 = (int(self.x),int(self.y))
         pt2 = (int(self.x+(self.radius()*sin(radians(self.angle())))),
                int(self.y+(self.radius()*cos(radians(self.angle())))))
-        self.image.drawLine(pt1,pt2,color,thickness=width)
+        self.image.dl().line(pt1,pt2,color,width)
     
     def show(self, color = Color.GREEN):
         """
@@ -1290,16 +1184,13 @@ class Motion(Feature):
         dy   - the y component of the optical flow vector.
         wndw - the size of the sample window (we assume it is square).
         """
-        self.x = at_x # the sample point of the flow vector
-        self.y = at_y
         self.dx = dx  # the direction of the vector
         self.dy = dy 
-        self.image = i # the source image
         self.window = wndw # the size of the sample window
         sz = wndw/2
         # so we center at the flow vector
-        self.points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y-sz),(at_x-sz,at_y-sz)]
-        self.bounds = self.points
+        points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y+sz),(at_x+sz,at_y-sz)]
+        super(Motion, self).__init__(i, at_x, at_y, points)                                        
 
     def draw(self, color = Color.GREEN, width=1,normalize=True):
         """        
@@ -1331,7 +1222,7 @@ class Motion(Feature):
             new_x = self.x + self.dx
             new_y = self.y + self.dy
 
-        self.image.drawLine((self.x,self.y),(new_x,new_y),color,width)
+        self.image.dl().line((self.x,self.y),(new_x,new_y),color,width)
 
     
     def normalizeTo(self, max_mag):
@@ -1429,7 +1320,6 @@ class KeypointMatch(Feature):
     homography = []
     template = None
     def __init__(self, image,template,minRect,homography):
-        self.image = image
         self.template = template
         self.minRect = minRect
         self.homography = homography
@@ -1447,12 +1337,13 @@ class KeypointMatch(Feature):
             if( p[1] < xmin ):
                 ymin = p[1]
 
-        self.points = ((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin))
+ 
         self.width = (xmax-xmin)
         self.height = (ymax-ymin)
-        self.x = xmin + (self.width/2)
-        self.y = ymin + (self.height/2)
-   
+        at_x = xmin + (self.width/2)
+        at_y = ymin + (self.height/2)
+        points = ((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin))  
+        super(KeypointMatch, self).__init__(image, at_x, at_y, points)                                        
   
     def draw(self, color = Color.GREEN,width=1):
         """
@@ -1476,10 +1367,10 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.drawLine(self.minRect[0],self.minRect[1],color=color,thickness=width)
-        self.image.drawLine(self.minRect[1],self.minRect[2],color=color,thickness=width)
-        self.image.drawLine(self.minRect[2],self.minRect[3],color=color,thickness=width)
-        self.image.drawLine(self.minRect[3],self.minRect[0],color=color,thickness=width)
+        self.image.dl().line(self.minRect[0],self.minRect[1],color,width)
+        self.image.dl().line(self.minRect[1],self.minRect[2],color,width)
+        self.image.dl().line(self.minRect[2],self.minRect[3],color,width)
+        self.image.dl().line(self.minRect[3],self.minRect[0],color,width)
 
     def drawRect(self, color = Color.GREEN,width=1):
         """
@@ -1488,10 +1379,10 @@ class KeypointMatch(Feature):
         the object. If the minimum bounding rectangle is axes aligned
         then the two bounding rectangles will match. 
         """
-        self.image.drawLine(self.points[0],self.points[1],color=color,thickness=width)
-        self.image.drawLine(self.points[1],self.points[2],color=color,thickness=width)
-        self.image.drawLine(self.points[2],self.points[3],color=color,thickness=width)
-        self.image.drawLine(self.points[3],self.points[0],color=color,thickness=width)
+        self.image.dl().line(self.mPoints[0],self.mPoints[1],color,width)
+        self.image.dl().line(self.mPoints[1],self.mPoints[2],color,width)
+        self.image.dl().line(self.mPoints[2],self.mPoints[3],color,width)
+        self.image.dl().line(self.mPoints[3],self.mPoints[0],color,width)
         
     
     def crop(self):
@@ -1500,7 +1391,7 @@ class KeypointMatch(Feature):
         axes aligned box masked to just include the image data of the minimum bounding
         rectangle.
         """
-        TL = self.points[0]
+        TL = self.topLeftCorner()
         raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
         mask = Image((self.width,self.height))
         mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
@@ -1527,7 +1418,7 @@ class KeypointMatch(Feature):
 
         """
         if( self.avgColor is None ):
-            TL = self.points[0]
+            TL = self.topLeftCorner()
             raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
             mask = Image((self.width,self.height))
             mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)

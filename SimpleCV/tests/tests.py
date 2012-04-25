@@ -350,33 +350,30 @@ def test_detection_lines():
         assert False
 
 def test_detection_feature_measures():
-    try:
-      img = Image(testimage2)
-    
-      fs = FeatureSet()
-      fs.append(Corner(img, 5, 5))
-      fs.append(Line(img, ((2, 2), (3,3))))
-      bm = BlobMaker()
-      result = bm.extract(img)
-      fs.extend(result)
+  img = Image(testimage2)
+  
+  fs = FeatureSet()
+  fs.append(Corner(img, 5, 5))
+  fs.append(Line(img, ((2, 2), (3,3))))
+  bm = BlobMaker()
+  result = bm.extract(img)
+  fs.extend(result)
+  
+  for f in fs:
+    a = f.area()
+    l = f.length()
+    c = f.meanColor()
+    d = f.colorDistance()
+    th = f.angle()
+    pts = f.coordinates()
+    dist = f.distanceFrom() #distance from center of image 
 
-      for f in fs:
-          a = f.area()
-          l = f.length()
-          c = f.meanColor()
-          d = f.colorDistance()
-          th = f.angle()
-          pts = f.coordinates()
-          dist = f.distanceFrom() #distance from center of image 
-
-      fs2 = fs.sortAngle()
-      fs3 = fs.sortLength()
-      fs4 = fs.sortColorDistance()
-      fs5 = fs.sortArea()
-      fs1 = fs.sortDistance()
-      pass
-    except:
-      assert False
+  fs2 = fs.sortAngle()
+  fs3 = fs.sortLength()
+  fs4 = fs.sortColorDistance()
+  fs5 = fs.sortArea()
+  fs1 = fs.sortDistance()
+  pass
 
 def test_detection_blobs():
     img = Image(testbarcode)
@@ -2198,10 +2195,10 @@ def test_blob_spatial_relationships():
 
   if( not center.contains(inside)):
     assert False
-  
+
   if( center.contains(left) ):
     assert False
-  
+
   if( not center.overlaps(overlap) ):
     assert False
 

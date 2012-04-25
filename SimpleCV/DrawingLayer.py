@@ -331,9 +331,9 @@ class DrawingLayer:
         if(filled):
             width = 0
         if antialias == False or width > 1 or filled:
-            pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, radius, width)
+            pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, int(radius), int(width))
         else:
-            pg.gfxdraw.aacircle(self._mSurface, center[0], center[1], radius, self._csvRGB2pgColor(color, alpha))
+            pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]), int(radius), self._csvRGB2pgColor(color, alpha))
         return None
     
     def ellipse(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1):

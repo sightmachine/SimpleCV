@@ -827,6 +827,8 @@ class Feature(object):
     mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
     mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
     mPoints = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+    points = None # this is the optional contour
+
     image = "" #parent image
     #points = []
     #boundingBox = []
@@ -836,7 +838,8 @@ class Feature(object):
         self.x = at_x
         self.y = at_y
         self.image = i
-        self 
+        self.mPoints = points
+        self._updateExtents()
   
     def getCorners(self):
         self._updateExtents()
@@ -1157,6 +1160,10 @@ class Feature(object):
                     self.mMinY = p[1]
             self.mWidth = self.mMaxX-self.mMinX
             self.mHeight = self.mMaxY-self.mMinY
+            if( self.mWidth <= 0 ):
+                self.mWidth = 1
+            if( self.mHeight <= 0 ):
+                self.mHeight = 1
             self.mBoundingBox = [self.mMinX,self.mMinY,self.mWidth,self.mHeight]
             self.mExtents = [self.mMaxX,self.mMinX,self.mMaxY,self.mMinY]
             self.mAspectRatio = float(np.max([self.mWidth,self.mHeight]))/float(np.min([self.mWidth,self.mHeight]))
@@ -1571,7 +1578,7 @@ class Feature(object):
         bounds = self.mPoints
         if( isinstance(other,Feature) ):# A feature
             retVal = True
-            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.            
+            for p in other.mPoints: # this isn't completely correct - only tests if points lie in poly, not edges.            
                 p2 = (int(p[0]),int(p[1]))
                 retVal = self._pointInsidePolygon(p2,bounds)
                 if( not retVal ):
@@ -1651,7 +1658,7 @@ class Feature(object):
         bounds = self.mPoints
         if( isinstance(other,Feature) ):# A feature
             retVal = True            
-            for p in other.boundingBox: # this isn't completely correct - only tests if points lie in poly, not edges. 
+            for p in other.mPoints: # this isn't completely correct - only tests if points lie in poly, not edges. 
                 retVal = self._pointInsidePolygon(p,bounds)
                 if( retVal ):
                     break
@@ -1864,7 +1871,8 @@ class Feature(object):
         counter = 0
         retVal = True
         p1 = None
-        
+        print "point: " + str(point)
+        print(polygon)
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
    #     for p2 in poly:

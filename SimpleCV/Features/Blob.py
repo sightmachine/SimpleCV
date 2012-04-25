@@ -138,12 +138,15 @@ class Blob(Feature):
         >>> print blobs[-1].meanColor()
 
         """
-        cv.SetImageROI(self.image.getBitmap(),self.mBoundingBox)
+        print self.mBoundingBox
+        hack = (self.mBoundingBox[0],self.mBoundingBox[1],self.mBoundingBox[2],self.mBoundingBox[3])
+        cv.SetImageROI(self.image.getBitmap(),hack)
         #may need the offset paramete
         avg = cv.Avg(self.image.getBitmap(),self.mMask._getGrayscaleBitmap())
         cv.ResetImageROI(self.image.getBitmap())
         
         return tuple(reversed(avg[0:3]))
+
     def area(self):
         """
         **SUMMARY**
@@ -784,11 +787,19 @@ class Blob(Feature):
         circle of our blob. 
 
         """
-        idealcircle = Image((self.width(), self.height()))
-        radius = min(self.width(), self.height()) / 2
-        idealcircle.dl().circle((self.width()/2, self.height()/2), radius, filled= True, color=Color.WHITE)
-        idealcircle = idealcircle.applyLayers()
+        w = self.mHullMask.width
+        h = self.mHullMask.height
         
+        idealcircle = Image((w,h))
+        radius = min(w,h) / 2
+        idealcircle.dl().circle((w/2, h/2), radius, filled= True, color=Color.WHITE)
+        idealcircle = idealcircle.applyLayers()
+        print self.mHullMask
+        print idealcircle
+        print self.mHullMask.width
+        print self.mHullMask.height
+        print idealcircle.width
+        print idealcircle.height
         netdiff = (idealcircle - self.mHullMask) + (self.mHullMask - idealcircle)
         numblack, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
