@@ -13,7 +13,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = True
+VISUAL_TEST = True # if TRUE we save the images - otherwise we DIFF against them
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -1149,7 +1149,7 @@ def test_blob_render():
         b.draw(color=Color.RED, alpha=128,layer=dl)
         b.drawHoles(width=2,color=Color.BLUE,layer=dl)
         b.drawHull(color=Color.ORANGE,width=2,layer=dl)
-        b.drawMaskToLayer(reimg,offset=b.topLeftCorner())
+        b.drawMaskToLayer(reimg)
 
     img.addDrawingLayer(dl)
     results = [img]
@@ -2269,3 +2269,46 @@ def test_save_kwargs():
   s80 = os.remove(l80)
   s70 = os.remove(l70)
   
+def test_on_edge():
+  img1 = "./../sampleimages/EdgeTest1.png"
+  img2 = "./../sampleimages/EdgeTest2.png"
+  imgA = Image(img1)
+  imgB = Image(img2)
+  imgC = Image(img2)
+  imgD = Image(img2)
+  imgE = Image(img2)
+  
+  blobs = imgA.findBlobs()
+  circs = imgB.findCircle()
+  corners = imgC.findCorners()
+  kp = imgD.findKeypoints()
+  lines = imgE.findLines()
+  
+  rim =  blobs.onImageEdge()
+  inside = blobs.notOnImageEdge()
+  rim.draw(color=Color.RED)
+  inside.draw(color=Color.BLUE)
+
+  rim =  circs.onImageEdge()
+  inside = circs.notOnImageEdge()
+  rim.draw(color=Color.RED)
+  inside.draw(color=Color.BLUE)
+
+  rim =  corners.onImageEdge()
+  inside = corners.notOnImageEdge()
+  rim.draw(color=Color.RED)
+  inside.draw(color=Color.BLUE)
+
+  rim =  kp.onImageEdge()
+  inside = kp.notOnImageEdge()
+  rim.draw(color=Color.RED)
+  inside.draw(color=Color.BLUE)
+
+  rim =  lines.onImageEdge()
+  inside = lines.notOnImageEdge()
+  rim.draw(color=Color.RED)
+  inside.draw(color=Color.BLUE)
+  
+  results = [imgA,imgB,imgC,imgD,imgE]
+  name_stem = "test_onEdge_Features"
+  perform_diff(results,name_stem)        

@@ -783,7 +783,27 @@ class FeatureSet(list):
             if(f.right(region)):
                 fs.append(f)
         return fs
-    
+
+    def onImageEdge(self):
+        """
+        ########################################################################
+        """
+        fs = FeatureSet()
+        for f in self:
+            if(f.onImageEdge()):
+                fs.append(f)
+        return fs 
+
+    def notOnImageEdge(self):
+        """
+        ########################################################################
+        """
+        fs = FeatureSet()
+        for f in self:
+            if(f.notOnImageEdge()):
+                fs.append(f)
+        return fs
+
     @property
     def image(self):
         if not len(self):
@@ -1033,6 +1053,21 @@ class Feature(object):
         """
         return 1
   
+    def distanceToNearestEdge(self):
+        """
+        ####################################################################################################
+        """    
+        w = self.image.width
+        h = self.image.height
+        return np.min([self.mMinX,self.mMinY, w-self.mMaxX,h-self.mMaxY])
+    
+    def onImageEdge(self):
+        return ( self.distanceToNearestEdge() <= 0 )
+
+    def notOnImageEdge(self):
+        return ( self.distanceToNearestEdge() > 0 )
+    
+    
     def aspectRatio(self):
         """
         ####################################################################################################

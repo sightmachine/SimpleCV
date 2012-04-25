@@ -42,7 +42,6 @@ class Blob(Feature):
     mHu = [] # The seven Hu Moments
     mPerimeter = 0 # the length of the perimeter in pixels 
     mArea = 0 # the area in pixels
-    mAspectRatio = 0
     m00 = 0
     m01 = 0
     m10 = 0
@@ -70,7 +69,6 @@ class Blob(Feature):
         self.mHu = [-1,-1,-1,-1,-1,-1,-1]
         self.mPerimeter = 0
         self.mArea = 0
-        self.mAspectRatio = 0
         self.m00 = 0
         self.m01 = 0
         self.m10 = 0
@@ -120,6 +118,64 @@ class Blob(Feature):
             self.__dict__[realkey] = cv.CreateImageHeader((self.width(), self.height()), cv.IPL_DEPTH_8U, 1)
             cv.SetData(self.__dict__[realkey], mydict[k])
         
+    def getPerimeter(self):
+        """
+        **SUMMARY**
+
+        This function returns the perimeter as an integer number of pixel lengths. 
+
+        **RETURNS**
+          
+        Integer
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].getPerimeter()
+
+        """
+
+        return self.mPerimeter
+
+    def getHullPoints(self):
+        """
+        **SUMMARY**
+
+        This function returns the convex hull points as a list of x,y tuples. 
+
+        **RETURNS**
+          
+        A list of x,y tuples. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].getHullPoints()
+
+        """
+        return self.mConvexHull
+    
+    def getContourPoints(self):
+        """
+        **SUMMARY**
+
+        This function returns the contour points as a list of x,y tuples. 
+
+        **RETURNS**
+          
+        A list of x,y tuples. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].getContourPoints()
+
+        """
+
+        return self.mContour 
 
     def meanColor(self):
         """
@@ -513,7 +569,7 @@ class Blob(Feature):
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
-            layer._mSurface.blit(masksurface, (self.mBoundingBox[0], self.mBoundingBox[1])) #KAT HERE
+            layer._mSurface.blit(masksurface, self.topLeftCorner()) #KAT HERE
         else:
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)

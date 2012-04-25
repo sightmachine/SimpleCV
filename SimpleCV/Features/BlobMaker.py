@@ -156,8 +156,8 @@ class BlobMaker:
             retVal.points = list(seq)
 
         # so this is a bit hacky....
-        xx = bb[0]
-        yy = bb[1]
+        xx = bb[0]-1
+        yy = bb[1]-1
         ww = bb[2]
         hh = bb[3]
         retVal.mPoints = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
@@ -204,8 +204,7 @@ class BlobMaker:
 
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
-    
-        
+
         return retVal
     
     def _getHoles(self,seq):
