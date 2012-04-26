@@ -340,11 +340,17 @@ class Blob(Feature):
         >>> blob[-1].angle()
         
         """
+        #return self.mMinRectangle[2]+90.00
+        retVal = 0.00
         if self.mMinRectangle[1][0] < self.mMinRectangle[1][1]:
-            return self.mMinRectangle[2] 
+            retVal = self.mMinRectangle[2] 
         else:
-            return 90 + self.mMinRectangle[2]
-        
+            retVal = 90.00 + self.mMinRectangle[2]
+        retVal = retVal + 90.00
+        if( retVal > 90.00 ):
+            retVal = -180.00 + retVal
+        return retVal
+
     def minRectX(self):
         """
         **SUMMARY**

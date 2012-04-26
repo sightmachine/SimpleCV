@@ -2374,3 +2374,28 @@ def test_on_edge():
   results = [imgA,imgB,imgC,imgD,imgE]
   name_stem = "test_onEdge_Features"
   perform_diff(results,name_stem)        
+
+def test_feature_angles():
+  img = Image("../sampleimages/rotation.jpg")
+  img2 = Image("../sampleimages/rotation.jpg")
+  img3 = Image("../sampleimages/rotation.jpg")
+  img = img.invert()
+  b = img.findBlobs()
+  l = img2.findLines()
+  k = img3.findKeypoints()
+
+  for bs in b:
+    tl = bs.topLeftCorner()
+    img.drawText(str(bs.angle()),tl[0],tl[1],color=Color.RED)
+  
+  for ls in l:
+    tl = ls.topLeftCorner()
+    img2.drawText(str(ls.angle()),tl[0],tl[1],color=Color.GREEN)
+
+  for ks in k:
+    tl = ks.topLeftCorner()
+    img3.drawText(str(ks.angle()),tl[0],tl[1],color=Color.BLUE)
+
+  results = [img,img2,img3]
+  name_stem = "test_feature_angles"
+  perform_diff(results,name_stem)        
