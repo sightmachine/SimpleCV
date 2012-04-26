@@ -2242,6 +2242,33 @@ def test_blob_spatial_relationships():
   if( not center.contains(inside) ):
     assert False
 
+def test_get_corners():
+  img = Image("../sampleimages/EdgeTest1.png")
+  img2 = Image("../sampleimages/EdgeTest2.png")
+  b = img.findBlobs()
+  tl = b.topLeftCorners()
+  tr = b.topRightCorners()
+  bl = b.bottomLeftCorners()
+  br = b.bottomRightCorners()
+
+  l = img2.findLines()
+  tl2 = l.topLeftCorners()
+  tr2 = l.topRightCorners()
+  bl2 = l.bottomLeftCorners()
+  br2 = l.bottomRightCorners()
+  
+  if( tl is not None and
+      tr is not None and
+      bl is not None and
+      br is not None and
+      tl2 is not None and
+      tr2 is not None and
+      bl2 is not None and
+      br2 is not None ):
+    pass
+  else:
+    assert False
+
 def test_save_kwargs():
   img = Image("lenna")
   l95 = "l95.jpg"
@@ -2279,7 +2306,7 @@ def test_on_edge():
   imgE = Image(img2)
   
   blobs = imgA.findBlobs()
-  circs = imgB.findCircle()
+  circs = imgB.findCircle(thresh=200)
   corners = imgC.findCorners()
   kp = imgD.findKeypoints()
   lines = imgE.findLines()
@@ -2294,14 +2321,14 @@ def test_on_edge():
   rim.draw(color=Color.RED)
   inside.draw(color=Color.BLUE)
 
-  rim =  corners.onImageEdge()
+  #rim =  corners.onImageEdge()
   inside = corners.notOnImageEdge()
-  rim.draw(color=Color.RED)
+  #rim.draw(color=Color.RED)
   inside.draw(color=Color.BLUE)
 
-  rim =  kp.onImageEdge()
+  #rim =  kp.onImageEdge()
   inside = kp.notOnImageEdge()
-  rim.draw(color=Color.RED)
+  #rim.draw(color=Color.RED)
   inside.draw(color=Color.BLUE)
 
   rim =  lines.onImageEdge()

@@ -2448,7 +2448,15 @@ class Image:
         >>> fs = img.findBlobs() 
         >>> if( fs is not None ):
         >>>     fs.draw()
-        
+
+        **NOTES**
+
+        .. Warning:: 
+          For blobs that live right on the edge of the image OpenCV reports the position and width
+          height as being one over for the true position. E.g. if a blob is at (0,0) OpenCV reports 
+          its position as (1,1). Likewise the width and height for the other corners is reported as
+          being one less than the width and height. This is a known bug. 
+
         **SEE ALSO**
         :py:meth:`threshold`
         :py:meth:`binarize`

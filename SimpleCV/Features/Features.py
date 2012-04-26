@@ -784,25 +784,173 @@ class FeatureSet(list):
                 fs.append(f)
         return fs
 
-    def onImageEdge(self):
+    def onImageEdge(self, tolerance=1):
         """
-        ########################################################################
+        **SUMMARY**
+        
+        The method returns a feature set of features that are on or "near" the edge of 
+        the image. This is really helpful for removing features that are edge effects. 
+        
+        **PARAMETERS**
+        
+        * *tolerance* - the distance in pixels from the edge at which a feature 
+          qualifies as being "on" the edge of the image. 
+          
+        **RETURNS**
+
+        Returns a featureset of features that are on the edge of the image.
+
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> es = blobs.onImageEdge()
+        >>> es.draw(color=Color.RED)
+        >>> img.show()
+
         """
         fs = FeatureSet()
         for f in self:
-            if(f.onImageEdge()):
+            if(f.onImageEdge(tolerance)):
                 fs.append(f)
         return fs 
 
-    def notOnImageEdge(self):
+    def notOnImageEdge(self, tolerance=1):
         """
-        ########################################################################
+        **SUMMARY**
+        
+        The method returns a feature set of features that are not on or "near" the edge of 
+        the image. This is really helpful for removing features that are edge effects. 
+        
+        **PARAMETERS**
+        
+        * *tolerance* - the distance in pixels from the edge at which a feature 
+          qualifies as being "on" the edge of the image. 
+          
+        **RETURNS**
+
+        Returns a featureset of features that are not on the edge of the image.
+
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> es = blobs.notOnImageEdge()
+        >>> es.draw(color=Color.RED)
+        >>> img.show()
+
         """
         fs = FeatureSet()
         for f in self:
-            if(f.notOnImageEdge()):
+            if(f.notOnImageEdge(tolerance)):
                 fs.append(f)
         return fs
+
+
+    def topLeftCorners(self):
+        """
+        **SUMMARY**
+        
+        This method returns the top left corner of each feature's bounding box.
+
+        **RETURNS**
+
+        A numpy array of x,y position values.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> tl = img.topLeftCorners()
+        >>> print tl[0] 
+        """
+        return np.array([f.topLeftCorner() for f in self])  
+
+    
+
+    def bottomLeftCorners(self):
+        """
+        **SUMMARY**
+        
+        This method returns the bottom left corner of each feature's bounding box.
+
+        **RETURNS**
+
+        A numpy array of x,y position values.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> bl = img.bottomLeftCorners()
+        >>> print bl[0] 
+
+        """
+        return np.array([f.bottomLeftCorner() for f in self])  
+
+    def topLeftCorners(self):
+        """
+        **SUMMARY**
+        
+        This method returns the top left corner of each feature's bounding box.
+
+        **RETURNS**
+
+        A numpy array of x,y position values.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> tl = img.bottomLeftCorners()
+        >>> print tl[0] 
+
+        """
+        return np.array([f.topLeftCorner() for f in self])  
+        
+    
+    def topRightCorners(self):
+        """
+        **SUMMARY**
+        
+        This method returns the top right corner of each feature's bounding box.
+
+        **RETURNS**
+
+        A numpy array of x,y position values.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> tr = img.topRightCorners()
+        >>> print tr[0] 
+
+        """
+        return np.array([f.topRightCorner() for f in self])  
+        
+    
+
+    def bottomRightCorners(self):
+        """
+        **SUMMARY**
+        
+        This method returns the bottom right corner of each feature's bounding box.
+
+        **RETURNS**
+
+        A numpy array of x,y position values.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("./sampleimages/EdgeTest1.png")
+        >>> blobs = img.findBlobs()
+        >>> br = img.bottomRightCorners()
+        >>> print br[0] 
+
+        """
+        return np.array([f.bottomRightCorner() for f in self])  
+
 
     @property
     def image(self):
@@ -1061,11 +1209,13 @@ class Feature(object):
         h = self.image.height
         return np.min([self.mMinX,self.mMinY, w-self.mMaxX,h-self.mMaxY])
     
-    def onImageEdge(self):
-        return ( self.distanceToNearestEdge() <= 0 )
+    def onImageEdge(self,tolerance=1):
+        # this has to be one to deal with blob library weirdness that goes deep down to opencv
+        return ( self.distanceToNearestEdge() <= tolerance )
 
-    def notOnImageEdge(self):
-        return ( self.distanceToNearestEdge() > 0 )
+    def notOnImageEdge(self,tolerance=1):
+        # this has to be one to deal with blob library weirdness that goes deep down to opencv
+        return ( self.distanceToNearestEdge() > tolerance )
     
     
     def aspectRatio(self):

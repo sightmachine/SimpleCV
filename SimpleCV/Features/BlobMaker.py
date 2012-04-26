@@ -156,8 +156,14 @@ class BlobMaker:
             retVal.points = list(seq)
 
         # so this is a bit hacky....
-        xx = bb[0]-1
-        yy = bb[1]-1
+     
+        # For blobs that live right on the edge of the image OpenCV reports the position and width
+        #   height as being one over for the true position. E.g. if a blob is at (0,0) OpenCV reports 
+        #   its position as (1,1). Likewise the width and height for the other corners is reported as
+        #   being one less than the width and height. This is a known bug. 
+
+        xx = bb[0]
+        yy = bb[1]
         ww = bb[2]
         hh = bb[3]
         retVal.mPoints = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
