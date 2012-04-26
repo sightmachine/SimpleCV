@@ -2242,6 +2242,30 @@ def test_blob_spatial_relationships():
   if( not center.contains(inside) ):
     assert False
 
+def test_get_aspectratio():
+  img = Image("../sampleimages/EdgeTest1.png")
+  img2 = Image("../sampleimages/EdgeTest2.png")
+  b = img.findBlobs()
+  l = img2.findLines()
+  c = img2.findCircle(thresh=200)
+  c2 = img2.findCorners()
+  kp = img2.findKeypoints()
+  bb = b.aspectRatios()
+  ll = l.aspectRatios()
+  cc = c.aspectRatios()
+  c22 = c2.aspectRatios()
+  kp2 = kp.aspectRatios()
+
+  if( len(bb) > 0 and
+      len(ll) > 0 and
+      len(cc) > 0 and
+      len(c22) > 0 and
+      len(kp2) > 0 ):
+    pass
+  else:
+    assert False
+
+
 def test_get_corners():
   img = Image("../sampleimages/EdgeTest1.png")
   img2 = Image("../sampleimages/EdgeTest2.png")

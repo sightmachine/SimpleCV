@@ -951,6 +951,25 @@ class FeatureSet(list):
         """
         return np.array([f.bottomRightCorner() for f in self])  
 
+    def aspectRatios(self):
+        """
+        **SUMMARY**
+        
+        Return the aspect ratio of all the features in the feature set, For our purposes
+        aspect ration is max(width,height)/min(width,height).
+
+        **RETURNS**
+        
+        A numpy array of the aspect ratio of the features in the featureset.
+
+        **EXAMPLE**
+
+        >>> img = Image("OWS.jpg")
+        >>> blobs = img.findBlobs(128)
+        >>> print blobs.aspectRatio()
+        
+        """
+        return np.array([f.aspectRatio() for f in self])
 
     @property
     def image(self):
@@ -1203,24 +1222,98 @@ class Feature(object):
   
     def distanceToNearestEdge(self):
         """
-        ####################################################################################################
+        **SUMMARY**
+        
+        This method returns the distance, in pixels, from the nearest image edge. 
+        
+        **RETURNS**
+
+        The integer distance to the nearest edge.
+
+        **EXAMPLE**
+
+        >>> img = Image("../sampleimages/EdgeTest1.png")
+        >>> b = img.findBlobs()
+        >>> b[0].distanceToNearestEdge()
+
         """    
         w = self.image.width
         h = self.image.height
         return np.min([self.mMinX,self.mMinY, w-self.mMaxX,h-self.mMaxY])
     
     def onImageEdge(self,tolerance=1):
+        """
+        **SUMMARY**
+        
+        This method returns True if the feature is less than `tolerance` 
+        pixels away from the nearest edge.  
+        
+        **PARAMETERS**
+        
+        * *tolerance* - the distance in pixels at which a feature qualifies 
+          as being on the image edge. 
+       
+        **RETURNS**
+
+        True if the feature is on the edge, False otherwise. 
+
+        **EXAMPLE**
+
+        >>> img = Image("../sampleimages/EdgeTest1.png")
+        >>> b = img.findBlobs()
+        >>> if(b[0].onImageEdge()):
+        >>>     print "HELP! I AM ABOUT TO FALL OFF THE IMAGE"
+
+        """    
         # this has to be one to deal with blob library weirdness that goes deep down to opencv
         return ( self.distanceToNearestEdge() <= tolerance )
 
     def notOnImageEdge(self,tolerance=1):
+        """
+        **SUMMARY**
+        
+        This method returns True if the feature is greate than `tolerance` 
+        pixels away from the nearest edge.  
+        
+        **PARAMETERS**
+        
+        * *tolerance* - the distance in pixels at which a feature qualifies 
+          as not being on the image edge. 
+       
+        **RETURNS**
+
+        True if the feature is not on the edge of the image, False otherwise. 
+
+        **EXAMPLE**
+
+        >>> img = Image("../sampleimages/EdgeTest1.png")
+        >>> b = img.findBlobs()
+        >>> if(b[0].notOnImageEdge()):
+        >>>     print "I am safe and sound."
+
+        """    
+
         # this has to be one to deal with blob library weirdness that goes deep down to opencv
         return ( self.distanceToNearestEdge() > tolerance )
     
     
     def aspectRatio(self):
         """
-        ####################################################################################################
+        **SUMMARY**
+        
+        Return the aspect ratio of the feature, which for our purposes
+        is max(width,height)/min(width,height).
+
+        **RETURNS**
+        
+        A single floating point value of the aspect ration.
+
+        **EXAMPLE**
+
+        >>> img = Image("OWS.jpg")
+        >>> blobs = img.findBlobs(128)
+        >>> b[0].aspectRatio()
+        
         """
         self._updateExtents()
         return self.mAspectRatio
