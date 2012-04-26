@@ -2265,6 +2265,17 @@ def test_get_aspectratio():
   else:
     assert False
 
+def test_line_crop():
+  img = Image("../sampleimages/EdgeTest2.png")
+  l = img.findLines().sortArea()
+  l = l[-5:-1]
+  results = []
+  for ls in l:
+    results.append( ls.crop() )
+  print results 
+  name_stem = "test_lineCrop"
+  perform_diff(results,name_stem)        
+
 
 def test_get_corners():
   img = Image("../sampleimages/EdgeTest1.png")

@@ -85,7 +85,11 @@ class Line(Feature):
         #coordinate of the line object is the midpoint
         at_x = (line[0][0] + line[1][0]) / 2
         at_y = (line[0][1] + line[1][1]) / 2
-        points = [(line[0][0],line[0][1]),(line[1][0],line[0][1]),(line[1][0],line[1][1]),(line[0][0],line[0][1])]
+        xmin = np.min([line[0][0],line[1][0]])
+        xmax = np.max([line[0][0],line[1][0]])
+        ymax = np.min([line[0][1],line[1][1]])
+        ymin = np.max([line[0][1],line[1][1]])
+        points = [(xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin)]
         super(Line, self).__init__(i, at_x, at_y,points)
 
     def draw(self, color = (0, 0, 255),width=1):
@@ -131,24 +135,30 @@ class Line(Feature):
 
         """
         return spsd.euclidean(self.points[0], self.points[1])  
- 
+
     def crop(self):
-        w = self.width()
-        h = self.height()
+        """
+        **SUMMARY**
+
+        This function crops the source image to the location of the feature and returns 
+        a new SimpleCV image.
+        
+        **RETURNS**
+        
+        A SimpleCV image that is cropped to the feature position and size.
+
+        **EXAMPLE**
+
+        >>> img = Image("../sampleimages/EdgeTest2.png")
+        >>> l = img.findLines()
+        >>> myLine = l[0].crop()
+
+        """
         tl = self.topLeftCorner()
-        #catch horizontal and vertical lines
-        if(w <= 0):
-            w = 1
-
-        if(h <= 0):
-            h = 1
-
-        return self.image.crop( tl[0],w,h )
+        return self.image.crop(tl[0],tl[1],self.width(),self.height())
 
     def meanColor(self):
         """
-
-
         **SUMMARY**
 
         Returns the mean color of pixels under the line.  Note that when the line falls "between" pixels, each pixels color contributes to the weighted average.
@@ -484,10 +494,9 @@ class HaarFeature(Feature):
         crop = self.image[self.mPoints[0][0]:self.mPoints[1][0], self.mPoints[0][1]:self.mPoints[2][1]]
         return crop.meanColor()
   
-   
+
     def area(self):
         """
-
         **SUMMARY**
 
         Returns the area of the feature in pixels.

@@ -1385,7 +1385,7 @@ class Feature(object):
         >>> img.show()
         """
         self._updateExtents()
-        return self.mWidth
+        return self.mHeight
    
     def crop(self):
         """
