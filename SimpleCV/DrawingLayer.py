@@ -519,6 +519,8 @@ class DrawingLayer:
         """
         if(img.__class__.__name__=='str'):
             image = pg.image.load(img, "RGB")
+        elif(img.__class__.__name__=='Image' ):
+            image = img.getPGSurface()
         else:
             image = img # we assume we have a surface
         image = image.convert(self._mSurface)
