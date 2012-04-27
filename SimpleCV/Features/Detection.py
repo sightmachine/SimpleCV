@@ -72,9 +72,6 @@ class Line(Feature):
     
     Returns a tuple of the two points
 
-    **SEE ALSO**
-    
-    :py:ref:`ImageClass.findLines()`
 
     """
     #TODO - A nice feature would be to calculate the endpoints of the line.
@@ -171,8 +168,8 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> kp = img.findLines()
-        >>> c = kp[0].meanColor()
+        >>> l = img.findLines()
+        >>> c = l[0].meanColor()
 
         """
         (pt1, pt2) = self.points     

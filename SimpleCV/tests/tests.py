@@ -2376,10 +2376,9 @@ def test_on_edge():
   perform_diff(results,name_stem)        
 
 def test_feature_angles():
-  img = Image("../sampleimages/rotation.jpg")
+  img = Image("../sampleimages/rotation2.png")
   img2 = Image("../sampleimages/rotation.jpg")
   img3 = Image("../sampleimages/rotation.jpg")
-  img = img.invert()
   b = img.findBlobs()
   l = img2.findLines()
   k = img3.findKeypoints()
@@ -2398,4 +2397,19 @@ def test_feature_angles():
 
   results = [img,img2,img3]
   name_stem = "test_feature_angles"
+  perform_diff(results,name_stem)        
+
+def test_feature_angles_rotate():
+  img = Image("../sampleimages/rotation2.png")
+  b = img.findBlobs()
+  results = []
+
+  for bs in b:
+    temp = bs.crop() 
+    results.append(temp)
+    derp = temp.rotate(bs.angle(),fixed=False)
+    derp.drawText(str(bs.angle()),10,10,color=Color.RED)
+    results.append(derp)
+
+  name_stem = "test_feature_angles_rotate"
   perform_diff(results,name_stem)        

@@ -3911,6 +3911,7 @@ class Image:
 
         if (fixed):
             retVal = self.getEmpty()
+            cv.Zero(retVal)
             rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
             cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
             cv.WarpAffine(self.getBitmap(), retVal, rotMat)
@@ -3970,7 +3971,10 @@ class Image:
         #calculate the translation of the corners to center the image
         #use these new corner positions as the input to cvGetAffineTransform
         retVal = cv.CreateImage((int(newWidth), int(newHeight)), 8, int(3))
+        cv.Zero(retVal)
+
         cv.WarpAffine(self.getBitmap(), retVal, rotMat)
+        #cv.AddS(retVal,(0,255,0),retVal)
         return Image(retVal, colorSpace=self._colorSpace) 
 
 

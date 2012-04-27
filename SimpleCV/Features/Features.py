@@ -2149,7 +2149,7 @@ class Feature(object):
         counter = 0
         retVal = True
         p1 = None
-        print "point: " + str(point)
+        #print "point: " + str(point)
         print(polygon)
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
