@@ -687,3 +687,16 @@ class Display:
         if(y < 0 ):
             ry = 0   
         return (rx,ry)
+        
+    def quit(self):
+        """
+        quit the pygame instance
+
+        Example:
+        >>> img = Image("simplecv")
+        >>> d = img.show()
+        >>> time.sleep(5)
+        >>> d.quit()
+        """
+        pg.display.quit()
+        pg.quit()
