@@ -1,3 +1,4 @@
+
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -13,7 +14,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = True # if TRUE we save the images - otherwise we DIFF against them
+VISUAL_TEST = False # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -999,7 +1000,7 @@ def test_color_conversion_func_BGR():
   results.append(bgr.toXYZ())
   
   name_stem = "test_color_conversion_func_BGR"
-  perform_diff(results,name_stem)
+  perform_diff(results,name_stem,tolerance=4.0)
 
   
 def test_color_conversion_func_RGB():
@@ -1038,7 +1039,7 @@ def test_color_conversion_func_HSV():
   results.append(hsv.toHSV())
   results.append(hsv.toXYZ())
   name_stem = "test_color_conversion_func_HSV"
-  perform_diff(results,name_stem)
+  perform_diff(results,name_stem,tolerance=4.0 )
   
 
 def test_color_conversion_func_HLS():
@@ -1054,7 +1055,7 @@ def test_color_conversion_func_HLS():
   results.append(hls.toXYZ())   
 
   name_stem = "test_color_conversion_func_HLS"
-  perform_diff(results,name_stem)
+  perform_diff(results,name_stem,tolerance=4.0)
 
 
 def test_color_conversion_func_XYZ():
@@ -1069,7 +1070,7 @@ def test_color_conversion_func_XYZ():
   results.append(xyz.toXYZ()) 
 
   name_stem = "test_color_conversion_func_XYZ"
-  perform_diff(results,name_stem)
+  perform_diff(results,name_stem,tolerance=8.0)
 
 
 def test_blob_maker():
@@ -2272,11 +2273,10 @@ def test_line_crop():
   results = []
   for ls in l:
     results.append( ls.crop() )
-  print results 
   name_stem = "test_lineCrop"
-  perform_diff(results,name_stem)        
-
-
+  perform_diff(results,name_stem,tolerance=3.0)        
+  pass
+  
 def test_get_corners():
   img = Image("../sampleimages/EdgeTest1.png")
   img2 = Image("../sampleimages/EdgeTest2.png")
@@ -2373,7 +2373,7 @@ def test_on_edge():
   
   results = [imgA,imgB,imgC,imgD,imgE]
   name_stem = "test_onEdge_Features"
-  perform_diff(results,name_stem)        
+  perform_diff(results,name_stem,tolerance=6.0)        
 
 def test_feature_angles():
   img = Image("../sampleimages/rotation2.png")
@@ -2397,7 +2397,7 @@ def test_feature_angles():
 
   results = [img,img2,img3]
   name_stem = "test_feature_angles"
-  perform_diff(results,name_stem)        
+  perform_diff(results,name_stem,tolerance=5.0)        
 
 def test_feature_angles_rotate():
   img = Image("../sampleimages/rotation2.png")
@@ -2413,4 +2413,4 @@ def test_feature_angles_rotate():
     results.append(bs.getBlobImage())
 
   name_stem = "test_feature_angles_rotate"
-  perform_diff(results,name_stem)        
+  perform_diff(results,name_stem,tolerance=5.0)        
