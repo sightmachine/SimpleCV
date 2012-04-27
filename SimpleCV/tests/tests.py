@@ -1155,7 +1155,7 @@ def test_blob_render():
     img.addDrawingLayer(dl)
     results = [img]
     name_stem = "test_blob_render"
-    perform_diff(results,name_stem,tolerance=4.0)
+    perform_diff(results,name_stem,tolerance=5.0)
 
     pass
 
@@ -2397,7 +2397,7 @@ def test_feature_angles():
 
   results = [img,img2,img3]
   name_stem = "test_feature_angles"
-  perform_diff(results,name_stem,tolerance=5.0)        
+  perform_diff(results,name_stem,tolerance=9.0)        
 
 def test_feature_angles_rotate():
   img = Image("../sampleimages/rotation2.png")
@@ -2413,4 +2413,4 @@ def test_feature_angles_rotate():
     results.append(bs.getBlobImage())
 
   name_stem = "test_feature_angles_rotate"
-  perform_diff(results,name_stem,tolerance=5.0)        
+  perform_diff(results,name_stem,tolerance=7.0)        
