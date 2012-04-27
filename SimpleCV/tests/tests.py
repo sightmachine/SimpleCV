@@ -2406,10 +2406,11 @@ def test_feature_angles_rotate():
 
   for bs in b:
     temp = bs.crop() 
-    results.append(temp)
     derp = temp.rotate(bs.angle(),fixed=False)
     derp.drawText(str(bs.angle()),10,10,color=Color.RED)
     results.append(derp)
+    bs.rectifyMajorAxis()
+    results.append(bs.getBlobImage())
 
   name_stem = "test_feature_angles_rotate"
   perform_diff(results,name_stem)        

@@ -435,7 +435,7 @@ class Blob(Feature):
         **SUMMARY**
 
         Rectify the blob image and the contour such that the major
-        axis is aligned to either vertical=0 or horizontal=1. This is to say, we take the blob,
+        axis is aligned to either horizontal=0 or vertical=1. This is to say, we take the blob,
         find the longest axis, and rotate the blob such that the axis is either vertical or horizontal. 
 
         **PARAMETERS**
