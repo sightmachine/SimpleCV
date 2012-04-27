@@ -6814,8 +6814,8 @@ class Image:
             rhs = []
             for i in range(0,len(idx)):
                 if( result[i] ):
-                    lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
+                    lhs.append((tkp[i].pt[1], tkp[i].pt[0]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
@@ -6845,6 +6845,8 @@ class Image:
             #construct the feature set and return it. 
             fs = FeatureSet()
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
+            #the homography matrix is necessary for many purposes like image stitching.
+            fs.append(homography)
             return fs
         else:
             return None 
