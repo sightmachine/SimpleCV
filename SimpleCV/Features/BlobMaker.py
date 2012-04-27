@@ -93,9 +93,9 @@ class BlobMaker:
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
             retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
         except RuntimeError,e:
-            warnings.warn("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
+            logger.warning("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
         except:
-            warnings.warn("SimpleCV Find Blobs Failed - This could be an OpenCV python binding issue")
+            logger.warning("SimpleCV Find Blobs Failed - This could be an OpenCV python binding issue")
         del seq
         return FeatureSet(retVal)
     

@@ -51,7 +51,7 @@ class ColorModel:
         elif (data.__class__.__name__=='tuple'):
             ret = np.array([data])
         else:
-            warnings.warn("ColorModel: color is not in an accepted format!")
+            logger.warning("ColorModel: color is not in an accepted format!")
             return None
     
         rs = np.right_shift(ret, self.mBits)  #right shift 4 bits

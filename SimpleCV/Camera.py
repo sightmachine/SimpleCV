@@ -101,7 +101,7 @@ class FrameSource:
         board_n = board_w * board_h		# no of total corners
         board_sz = (board_w, board_h)	#size of board
         if( n_boards < warn_thresh ):
-            warnings.warn("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" ) 
+            logger.warning("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" ) 
     
         #  creation of memory storages
         image_points = cv.CreateMat(n_boards * board_n, 2, cv.CV_32FC1)
@@ -145,7 +145,7 @@ class FrameSource:
     
         # now assigning new matrices according to view_count
         if( successes < warn_thresh ):
-            warnings.warn("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes, warn_thresh)) 
+            logger.warning("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes, warn_thresh)) 
     
         object_points2 = cv.CreateMat(successes * board_n, 3, cv.CV_32FC1)
         image_points2 = cv.CreateMat(successes * board_n, 2, cv.CV_32FC1)
@@ -208,7 +208,7 @@ class FrameSource:
         
         """
         if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
-            warnings.warn("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
+            logger.warning("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
             return None
            
         if (type(image_or_2darray) == InstanceType and image_or_2darray.__class__ == Image):
@@ -280,13 +280,13 @@ class FrameSource:
 
         """
         if( type(self._calibMat) != cv.cvmat ):
-            warnings.warn("FrameSource.saveCalibration: No calibration matrix present, can't save.")
+            logger.warning("FrameSource.saveCalibration: No calibration matrix present, can't save.")
         else:
             intrFName = filename + "Intrinsic.xml"
             cv.Save(intrFName, self._calibMat)
 
         if( type(self._distCoeff) != cv.cvmat ):
-            warnings.warn("FrameSource.saveCalibration: No calibration distortion present, can't save.")
+            logger.warning("FrameSource.saveCalibration: No calibration distortion present, can't save.")
         else:      
             distFName = filename + "Distortion.xml"
             cv.Save(distFName, self._distCoeff)
@@ -456,7 +456,7 @@ class Camera(FrameSource):
             try:
               self.capture.start()
             except:
-              warnings.warn("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
+              logger.warning("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
               return
             time.sleep(0)
             self.pygame_buffer = self.capture.get_image()
@@ -671,7 +671,7 @@ class Kinect(FrameSource):
     """
     def __init__(self):
         if not FREENECT_ENABLED:
-            warnings.warn("You don't seem to have the freenect library installed.  This will make it hard to use a Kinect.")
+            logger.warning("You don't seem to have the freenect library installed.  This will make it hard to use a Kinect.")
   
     #this code was borrowed from
     #https://github.com/amiller/libfreenect-goodies
@@ -772,12 +772,12 @@ class JpegStreamReader(threading.Thread):
             headers['Content-type'] = headers['content-type'] #force ucase first char
     
         if not headers.has_key("Content-type"):
-            warnings.warn("Tried to load a JpegStream from " + self.url + ", but didn't find a content-type header!")
+            logger.warning("Tried to load a JpegStream from " + self.url + ", but didn't find a content-type header!")
             return
     
         (multipart, boundary) = headers['Content-type'].split("boundary=")
         if not re.search("multipart", multipart, re.I):
-            warnings.warn("Tried to load a JpegStream from " + self.url + ", but the content type header was " + multipart + " not multipart/replace!")
+            logger.warning("Tried to load a JpegStream from " + self.url + ", but the content type header was " + multipart + " not multipart/replace!")
             return 
     
         buff = ''
@@ -848,7 +848,7 @@ class JpegStreamCamera(FrameSource):
     
     def __init__(self, url):
         if not PIL_ENABLED:
-            warnings.warn("You need the Python Image Library (PIL) to use the JpegStreamCamera")
+            logger.warning("You need the Python Image Library (PIL) to use the JpegStreamCamera")
             return
         if not url.startswith('http://'):
             url = "http://" + url

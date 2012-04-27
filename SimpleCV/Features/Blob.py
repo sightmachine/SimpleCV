@@ -427,8 +427,6 @@ class Blob(Feature):
 
         """
         return(self.mMinRectangle[1][1])
-
-
     
     def rectifyMajorAxis(self,axis=0):
         """
@@ -523,7 +521,6 @@ class Blob(Feature):
                      x[0]*np.sin(theta)+x[1]*np.cos(theta)),
                      h)
             
-
 
     def draw(self, color = Color.GREEN, width=-1, alpha=-1, layer=None):
         """
