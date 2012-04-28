@@ -304,7 +304,7 @@ class Barcode(Feature):
         #KAT CHECK HERE
         points = copy(zxbc.points) # hopefully this is in tl clockwise order
         super(Barcode, self).__init__(i, at_x, at_y,points)        
-        self.data = zxbc.data 
+        self.data = zxbc.data.rstrip()
         self.points = copy(zxbc.points)
 
         numpoints = len(self.points)
