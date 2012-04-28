@@ -1025,6 +1025,7 @@ class Feature(object):
         self.x = at_x
         self.y = at_y
         self.image = i
+        self.points = points
         self.mPoints = points
         self._updateExtents()
   
