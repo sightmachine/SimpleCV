@@ -2503,7 +2503,8 @@ class Image:
 
         * *cascade* - The Haar Cascade file, this can be either the path to a cascade
           file or a HaarCascased SimpleCV object that has already been
-          loaded. 
+          loaded. This also has a shortcut where you can use 'face' or 'faces' to auto
+          matically load the face detection library.
 
         * *scale_factor* - The scaling factor for subsequent rounds of the Haar cascade 
           (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
@@ -2543,11 +2544,15 @@ class Image:
 
         #lovely.  This segfaults if not present
         if type(cascade) == str:
-            
+          tmpname = cascade.lower()
+
+          if tmpname == "face" or tmpname == "faces":
+              cascade = os.path.join(LAUNCH_PATH, 'Features','HaarCascades','face.xml')
+              
           if (not os.path.exists(cascade)):
               logger.warning("Could not find Haar Cascade file " + cascade)
               return None
-
+              
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
   
