@@ -2089,9 +2089,9 @@ def test_lowPassFilter():
 
 def test_findHaarFeatures():
   img = Image("../sampleimages/orson_welles.jpg")
-  face = HaarCascade("../Features/HaarCascades/face.xml")
+  face = HaarCascade("face.xml")
   f = img.findHaarFeatures(face)
-  f2 = img.findHaarFeatures("../Features/HaarCascades/face.xml")
+  f2 = img.findHaarFeatures("face.xml")
   if( len(f) > 0 and len(f2) > 0 ):
     f.draw()
     f2.draw()

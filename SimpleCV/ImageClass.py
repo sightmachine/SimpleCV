@@ -2493,8 +2493,8 @@ class Image:
 
         For more information, consult the cv.HaarDetectObjects documentation.
    
-        You will need to provide your own cascade file - these are usually found in
-        /SimpleCV/Features/HaarCascades/ and specify a number of body parts.
+        To see what features are available run img.listHaarFeatures() or you can
+        provide your own haarcascade file if you have one available.
         
         Note that the cascade parameter can be either a filename, or a HaarCascade
         loaded with cv.Load(), or a SimpleCV HaarCascade object. 
@@ -2503,8 +2503,7 @@ class Image:
 
         * *cascade* - The Haar Cascade file, this can be either the path to a cascade
           file or a HaarCascased SimpleCV object that has already been
-          loaded. This also has a shortcut where you can use 'face' or 'faces' to auto
-          matically load the face detection library.
+          loaded.
 
         * *scale_factor* - The scaling factor for subsequent rounds of the Haar cascade 
           (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
@@ -2544,18 +2543,11 @@ class Image:
 
         #lovely.  This segfaults if not present
         if type(cascade) == str:
-          tmpname = cascade.lower()
-
-          if tmpname == "face" or tmpname == "faces":
-              cascade = os.path.join(LAUNCH_PATH, 'Features','HaarCascades','face.xml')
-              
-          if (not os.path.exists(cascade)):
-              logger.warning("Could not find Haar Cascade file " + cascade)
-              return None
-              
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
-  
+          if not cascade.getCascade(): return None
+          
+    
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
@@ -9185,6 +9177,24 @@ class Image:
         for i in range(boost):
             img = img + mask
         return img
+
+    def listHaarFeatures(self):
+        '''
+        This is used to list the built in features available for HaarCascade feature
+        detection.  Just run this function as:
+
+        >>> img.listHaarFeatures()
+
+        Then use one of the file names returned as the input to the findHaarFeature()
+        function.  So you should get a list, more than likely you will see face.xml,
+        to use it then just
+
+        >>> img.findHaarFeatures('face.xml')
+        '''
+        
+        features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
+        features = os.listdir(features_directory)
+        print features
 
 
     def __getstate__(self):
