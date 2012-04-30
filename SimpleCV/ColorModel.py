@@ -47,16 +47,25 @@ class ColorModel:
         elif(data.__class__.__name__ == 'cvmat'):
             ret = np.array(data).reshape(-1, 3)
         elif(data.__class__.__name__ == 'list'  ):
-            ret = np.array(data)
+            temp = []
+            for d in data: #do the bgr conversion
+                t = (d[2],d[1],d[0])
+                temp.append(t)                
+            ret = np.array(temp,dtype='uint8')
         elif (data.__class__.__name__=='tuple'):
-            ret = np.array([data])
+            ret = np.array((data[2],data[1],data[0]),'uint8')
+        elif(data.__class__.__name__=='np.array'):
+            ret = data
         else:
             logger.warning("ColorModel: color is not in an accepted format!")
             return None
     
         rs = np.right_shift(ret, self.mBits)  #right shift 4 bits
         
-        uniques = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1, 3)
+        if( len(rs.shape) > 1 ):
+            uniques = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1, 3)
+        else:
+            uniques = [rs]
         #create a unique set of colors.  I had to look this one up
         
         #create a dict of encoded strings
