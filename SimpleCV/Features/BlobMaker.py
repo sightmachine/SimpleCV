@@ -153,7 +153,7 @@ class BlobMaker:
         retVal.mPerimeter = cv.ArcLength(seq)
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
-            retVal.points = list(seq)
+            #retVal.points = list(seq) KAS 4/30
 
         # so this is a bit hacky....
      
@@ -166,7 +166,7 @@ class BlobMaker:
         yy = bb[1]
         ww = bb[2]
         hh = bb[3]
-        retVal.mPoints = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
+        retVal.points = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
         retVal._updateExtents()
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)

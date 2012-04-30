@@ -1013,7 +1013,7 @@ class Feature(object):
     mSrcImgH = None
     mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
     mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
-    mPoints = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+    points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
     points = None # this is the optional contour
 
     image = "" #parent image
@@ -1026,12 +1026,11 @@ class Feature(object):
         self.y = at_y
         self.image = i
         self.points = points
-        self.mPoints = points
         self._updateExtents()
   
     def getCorners(self):
         self._updateExtents()
-        return self.mPoints
+        return self.points
 
     def coordinates(self):
         """
@@ -1417,7 +1416,7 @@ class Feature(object):
     def _updateExtents(self):
 #    mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
 #    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
-#    mPoints = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+#    points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
 
         if( self.mMaxX is None or self.mMaxY is None or 
             self.mMinX is None or self.mMinY is None or
@@ -1428,7 +1427,7 @@ class Feature(object):
             self.mMaxY = float("-infinity")
             self.mMinX = float("infinity")
             self.mMinY = float("infinity")
-            for p in self.mPoints:
+            for p in self.points:
                 if( p[0] > self.mMaxX):
                     self.mMaxX = p[0] 
                 if( p[0] < self.mMinX):
@@ -1688,7 +1687,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].above(b) ):
-        >>>    Print "above the biggest blob"
+        >>>    print "above the biggest blob"
 
         """
         if( isinstance(object,Feature) ): 
@@ -1727,7 +1726,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].below(b) ):
-        >>>    Print "above the biggest blob"
+        >>>    print "above the biggest blob"
 
         """    
         if( isinstance(object,Feature) ): 
@@ -1767,7 +1766,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].right(b) ):
-        >>>    Print "right of the the blob"
+        >>>    print "right of the the blob"
 
         """
         if( isinstance(object,Feature) ): 
@@ -1806,7 +1805,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].left(b) ):
-        >>>    Print "left of  the biggest blob"
+        >>>    print "left of  the biggest blob"
 
 
         """           
@@ -1846,7 +1845,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].contains(b) ):
-        >>>    Print "this blob is contained in the biggest blob"
+        >>>    print "this blob is contained in the biggest blob"
 
         **NOTE**
         
@@ -1855,10 +1854,10 @@ class Feature(object):
         """
         retVal = False
 
-        bounds = self.mPoints
+        bounds = self.points
         if( isinstance(other,Feature) ):# A feature
             retVal = True
-            for p in other.mPoints: # this isn't completely correct - only tests if points lie in poly, not edges.            
+            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.            
                 p2 = (int(p[0]),int(p[1]))
                 retVal = self._pointInsidePolygon(p2,bounds)
                 if( not retVal ):
@@ -1924,7 +1923,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].overlaps(b) ):
-        >>>    Print "This blob overlaps the biggest blob"
+        >>>    print "This blob overlaps the biggest blob"
 
         Returns true if this blob contains at least one point, part of a collection
         of points, or any part of a blob.        
@@ -1935,11 +1934,11 @@ class Feature(object):
  
        """
         retVal = False
-        bounds = self.mPoints
+        bounds = self.points
 
         if( isinstance(other,Feature) ):# A feature
             retVal = True            
-            for p in other.mPoints: # this isn't completely correct - only tests if points lie in poly, not edges. 
+            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges. 
                 retVal = self._pointInsidePolygon(p,bounds)
                 if( retVal ):
                     break
@@ -2004,7 +2003,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].doesNotContain(b) ):
-        >>>    Print "above the biggest blob"
+        >>>    print "above the biggest blob"
 
         Returns true if all of features points are inside this point.
         """
@@ -2036,7 +2035,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].doesNotOverlap(b) ):
-        >>>    Print "does not over overlap biggest blob"
+        >>>    print "does not over overlap biggest blob"
 
 
         """
@@ -2069,11 +2068,11 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].isContainedWithin(b) ):
-        >>>    Print "inside the blob"
+        >>>    print "inside the blob"
 
         """
         retVal = True
-        bounds = self.mPoints
+        bounds = self.points
 
         if( isinstance(other,Feature) ): # another feature do the containment test
             retVal = other.contains(self)
@@ -2134,7 +2133,7 @@ class Feature(object):
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].isNotContainedWithin(b) ):
-        >>>    Print "Not inside the biggest blob"
+        >>>    print "Not inside the biggest blob"
 
         """
         return not self.isContainedWithin(shape)
@@ -2149,14 +2148,17 @@ class Feature(object):
             logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
             return False 
  
+        if( not isinstance(polygon,list)):
+            logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
+            return False 
+            
         counter = 0
         retVal = True
         p1 = None
         #print "point: " + str(point)
-        print(polygon)
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
-   #     for p2 in poly:
+        #for p2 in poly:
         N = len(poly)
         p1 = poly[0]
         for i in range(1,N+1):

@@ -78,7 +78,7 @@ class Line(Feature):
 
     def __init__(self, i, line):
         self.image = i
-        self.points = copy(line)
+        self.end_points = copy(line)
         #coordinate of the line object is the midpoint
         at_x = (line[0][0] + line[1][0]) / 2
         at_y = (line[0][1] + line[1][1]) / 2
@@ -108,7 +108,7 @@ class Line(Feature):
 
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color,width)
+        self.image.drawLine(self.end_points[0], self.end_points[1], color,width)
       
     def length(self):
         """
@@ -131,7 +131,7 @@ class Line(Feature):
         >>>       print "---I bet you say that to all the lines."
 
         """
-        return spsd.euclidean(self.points[0], self.points[1])  
+        return spsd.euclidean(self.end_points[0], self.end_points[1])  
 
     def crop(self):
         """
@@ -172,7 +172,7 @@ class Line(Feature):
         >>> c = l[0].meanColor()
 
         """
-        (pt1, pt2) = self.points     
+        (pt1, pt2) = self.end_points     
         #we're going to walk the line, and take the mean color from all the px
         #points -- there's probably a much more optimal way to do this
         (maxx,minx,maxy,miny) = self.extents()
@@ -272,12 +272,12 @@ class Line(Feature):
         #first find the leftmost point 
         a = 0
         b = 1
-        if (self.points[a][0] > self.points[b][0]):
+        if (self.end_points[a][0] > self.end_points[b][0]):
             b = 0 
             a = 1
           
-        d_x = self.points[b][0] - self.points[a][0]
-        d_y = self.points[b][1] - self.points[a][1]
+        d_x = self.end_points[b][0] - self.end_points[a][0]
+        d_y = self.end_points[b][1] - self.end_points[a][1]
         #our internal standard is degrees
         return (360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
   
@@ -342,10 +342,10 @@ class Barcode(Feature):
 
 
         """
-        self.image.drawLine(self.mPoints[0], self.mPoints[1], color,width)
-        self.image.drawLine(self.mPoints[1], self.mPoints[2], color,width)
-        self.image.drawLine(self.mPoints[2], self.mPoints[3], color,width)
-        self.image.drawLine(self.mPoints[3], self.mPoints[0], color,width)
+        self.image.drawLine(self.points[0], self.points[1], color,width)
+        self.image.drawLine(self.points[1], self.points[2], color,width)
+        self.image.drawLine(self.points[2], self.points[3], color,width)
+        self.image.drawLine(self.points[3], self.points[0], color,width)
   
     def length(self):
         """
@@ -364,7 +364,7 @@ class Barcode(Feature):
         >>> print bc[-1].length()
 
         """
-        sqform = spsd.squareform(spsd.pdist(self.mPoints, "euclidean"))
+        sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
         #get pairwise distances for all points
         #note that the code is a quadrilateral
         return max(sqform[0][1], sqform[1][2], sqform[2][3], sqform[3][0])
@@ -389,7 +389,7 @@ class Barcode(Feature):
 
         """
         #calc the length of each side in a square distance matrix
-        sqform = spsd.squareform(spsd.pdist(self.mPoints, "euclidean"))
+        sqform = spsd.squareform(spsd.pdist(self.points, "euclidean"))
     
         #squareform returns a N by N matrix 
         #boundry line lengths
@@ -460,10 +460,10 @@ class HaarFeature(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.drawLine(self.mPoints[0], self.mPoints[1], color,width)
-        self.image.drawLine(self.mPoints[1], self.mPoints[2], color,width)
-        self.image.drawLine(self.mPoints[2], self.mPoints[3], color,width)
-        self.image.drawLine(self.mPoints[3], self.mPoints[0], color,width)
+        self.image.drawLine(self.points[0], self.points[1], color,width)
+        self.image.drawLine(self.points[1], self.points[2], color,width)
+        self.image.drawLine(self.points[2], self.points[3], color,width)
+        self.image.drawLine(self.points[3], self.points[0], color,width)
       
     def __getstate__(self):
         dict = self.__dict__.copy()
@@ -488,7 +488,7 @@ class HaarFeature(Feature):
         >>> print faces[-1].meanColor()
 
         """
-        crop = self.image[self.mPoints[0][0]:self.mPoints[1][0], self.mPoints[0][1]:self.mPoints[2][1]]
+        crop = self.image[self.points[0][0]:self.points[1][0], self.points[0][1]:self.points[2][1]]
         return crop.meanColor()
   
 
@@ -621,7 +621,7 @@ class TemplateMatch(Feature):
         """
         (maxx,minx,maxy,miny) = self.extents()
         overlap = False
-        for p in other.mPoints:
+        for p in other.points:
             if( p[0] <= maxx and p[0] >= minx and p[1] <= maxy and p[1] >= miny ):
                overlap = True 
                break 
@@ -642,8 +642,9 @@ class TemplateMatch(Feature):
         miny = min(miny,miny0)
         self.x = minx
         self.y = miny
-        self.points = ((minx,miny),(minx,maxy),(maxx,maxy),(maxx,miny))
-    
+        self.points = [(minx,miny),(minx,maxy),(maxx,maxy),(maxx,miny)]
+        self._updateExtents()
+   
  
     def rescale(self,w,h):
         """
@@ -656,10 +657,11 @@ class TemplateMatch(Feature):
         y = yc-(h/2)
         self.x = x
         self.y = y
-        self.points = ((x,y),
+        self.points = [(x,y),
                        (x+w,y),
                        (x+w,y+h),
-                       (x,y+h))
+                       (x,y+h)]
+        self._updateExtents()
 
     def draw(self, color = Color.GREEN, width = 1):      
         """  
@@ -700,12 +702,12 @@ class Circle(Feature):
         super(Circle, self).__init__(i, at_x, at_y, points)                                
         segments = 18
         rng = range(1,segments+1)
-        self.points = []
+        self.mContour = []
         for theta in rng:
             rp = 2.0*math.pi*float(theta)/float(segments)
             x = (r*math.sin(rp))+at_x
             y = (r*math.cos(rp))+at_y
-            self.points.append((x,y))
+            self.mContour.append((x,y))
    
   
   
@@ -1385,10 +1387,10 @@ class KeypointMatch(Feature):
         the object. If the minimum bounding rectangle is axes aligned
         then the two bounding rectangles will match. 
         """
-        self.image.dl().line(self.mPoints[0],self.mPoints[1],color,width)
-        self.image.dl().line(self.mPoints[1],self.mPoints[2],color,width)
-        self.image.dl().line(self.mPoints[2],self.mPoints[3],color,width)
-        self.image.dl().line(self.mPoints[3],self.mPoints[0],color,width)
+        self.image.dl().line(self.points[0],self.points[1],color,width)
+        self.image.dl().line(self.points[1],self.points[2],color,width)
+        self.image.dl().line(self.points[2],self.points[3],color,width)
+        self.image.dl().line(self.points[3],self.points[0],color,width)
         
     
     def crop(self):
