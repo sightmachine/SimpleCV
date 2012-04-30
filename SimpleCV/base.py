@@ -166,15 +166,23 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """
     if( type(inputMat) == np.ndarray ):
         sz = len(inputMat.shape)
+        temp_mat = None
+        if( dataType == cv.CV_32FC1 or dataType == cv.CV_32FC2 or dataType == cv.CV_32FC3 or dataType == cv.CV_32FC4 ):
+            temp_mat = np.array(inputMat, dtype='float32')
+        elif( dataType == cv.CV_8UC1 or  dataType == cv.CV_8UC2 or dataType == cv.CV_8UC3 or dataType == cv.CV_8UC3):
+            temp_mat = np.array(inputMat,dtype='uint8')
+        else:
+            logger.warning("MatrixConversionUtil: the input matrix type is not supported")
+            return None
         if( sz == 1 ): #this needs to be changed so we can do row/col vectors
             retVal = cv.CreateMat(inputMat.shape[0], 1, dataType)
-            cv.SetData(retVal, inputMat.tostring(), inputMat.dtype.itemsize * inputMat.shape[0])
+            cv.SetData(retVal, temp_mat.tostring(), temp_mat.dtype.itemsize * temp_mat.shape[0])
         elif( sz == 2 ):
-            retVal = cv.CreateMat(inputMat.shape[0], inputMat.shape[1], dataType)
-            cv.SetData(retVal, inputMat.tostring(), inputMat.dtype.itemsize * inputMat.shape[1])
+            retVal = cv.CreateMat(temp_mat.shape[0], temp_mat.shape[1], dataType)
+            cv.SetData(retVal, temp_mat.tostring(), temp_mat.dtype.itemsize * temp_mat.shape[1])
         elif( sz > 2 ):
-            retVal = cv.CreateMat(inputMat.shape, dataType)
-            #I am going to hold off on this..... no good approach... may not be needed
+            logger.warning("MatrixConversionUtil: the input matrix type is not supported")
+            return None
         return retVal
     else:
         logger.warning("MatrixConversionUtil: the input matrix type is not supported")

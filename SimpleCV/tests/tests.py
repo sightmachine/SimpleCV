@@ -2429,3 +2429,19 @@ def test_feature_angles_rotate():
 
   name_stem = "test_feature_angles_rotate"
   perform_diff(results,name_stem,tolerance=7.0)        
+
+
+def test_nparray2cvmat():
+  img = Image('logo')
+  gray = img.getGrayNumpy()
+  gf32 = np.array(gray,dtype='float32')
+  gf64 = np.array(gray,dtype='float64')
+
+  a = npArray2cvMat(gray)
+  b = npArray2cvMat(gf32)
+  c = npArray2cvMat(gf64)
+
+  a = npArray2cvMat(gray,cv.CV_8UC1)
+  b = npArray2cvMat(gf32,cv.CV_8UC1)
+  c = npArray2cvMat(gf64,cv.CV_8UC1)
+
