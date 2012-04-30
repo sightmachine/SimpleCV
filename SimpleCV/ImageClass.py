@@ -5903,16 +5903,17 @@ class Image:
             hsv = self
         h = hsv.getEmpty(1)
         s = hsv.getEmpty(1)
+        retVal = hsv.getEmpty(1)
         mask = hsv.getEmpty(1)
-        cv.Split(hsv.getBitmap(),None,s,h,None)
+        cv.Split(hsv.getBitmap(),h,None,s,None)
         hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation 
         if(hue_lb is not None and hue_ub is not None):
             hlut[hue_lb:hue_ub]=255
         else:
             hlut[hue] = 255
         cv.LUT(h,mask,cv.fromarray(hlut))
-        cv.Copy(s,h,mask) #we'll save memory using hue
-        return Image(h).invert() 
+        cv.Copy(s,retVal,mask) #we'll save memory using hue
+        return Image(retVal) 
 
 
     def applyPixelFunction(self, theFunc):
