@@ -17,29 +17,35 @@ class HaarCascade():
           #     fname = MY_CASCADES_DIR + fname + ".xml"
      
           if( name is None ):
-               self._mName = fname
+              self._mName = fname
           else:
-               self._mName = name
+              self._mName = name
           
           if HaarCascade._cache.has_key(fname):
-               self._mCascade = HaarCascade._cache[fname]
-               return
-          
-          if (not os.path.exists(fname)):
-               logger.warning("Could not find Haar Cascade file " + fname)
-               return None
-          self._mCascade = cv.Load(fname)
-          HaarCascade._cache[fname] = self._mCascade
+              self._mCascade = HaarCascade._cache[fname]
+              return
+
+          if fname.isalpha():
+             fname = fname + ".xml"
+
+          fhandle = os.path.join(LAUNCH_PATH, 'Features','HaarCascades',fname)
+
+          if (not os.path.exists(fhandle)):
+              logger.warning("Could not find Haar Cascade file " + fname)
+              logger.warning("Try running the function img.listHaarFeatures() to see what is available")
+              return None
+          self._mCascade = cv.Load(fhandle)
+          HaarCascade._cache[fhandle] = self._mCascade
 
      def load(self, fname, name = None):
           if( name is None ):
-               self._mName = fname
+              self._mName = fname
           else:
-               self._mName = name
+              self._mName = name
                
           if (not os.path.exists(fname)):
-               logger.warning("Could not find Haar Cascade file " + fname)
-               return None
+              logger.warning("Could not find Haar Cascade file " + fname)
+              return None
 
           self._mCascade = cv.Load(fname)
 
