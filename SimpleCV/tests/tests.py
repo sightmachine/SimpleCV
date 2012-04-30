@@ -1966,8 +1966,12 @@ def test_detection_spatial_relationships():
 
   for f in feats:
     for g in feats:
+      
       sample = f[0]
       sample2 = f[1]
+      print type(f[0])
+      print type(g[0])
+  
       g.above(sample)
       g.below(sample)
       g.left(sample)
