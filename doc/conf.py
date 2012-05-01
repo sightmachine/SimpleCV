@@ -43,6 +43,7 @@ if on_rtd:
                   'scipy',
                   'scipy.spatial',
                   'scipy.spatial.distance',
+                  'scipy.ndimage',
                   'distance',
                   'scipy.cluster',
                   'scipy.cluster.vq',
