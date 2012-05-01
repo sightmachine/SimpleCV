@@ -65,6 +65,14 @@ Features Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`HaarCascade` Module
+-------------------------
+
+.. automodule:: SimpleCV.Features.HaarCascade
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`HaarLikeFeature` Module
 -----------------------------
 
