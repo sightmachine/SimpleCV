@@ -1786,72 +1786,111 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-
-    def upload(self,api_key, verbose = True):
+    def upload(self,dest,api_key,api_secret=None, verbose = True):
         """
         **SUMMARY**
-
-        Uploads this image to imgur an image sharing website. 
-        If the upload is successful then the method returns the URLs
-        for the image, the original image, and url to delete the image.
-        In verbose mode these values are also printed. 
-
+        This function is used to upload image to both imgur and flickr.
+        
+        If dest is 'imgur' :
+          Uploads this image to imgur an image sharing website.
+          If the upload is successful then the method returns the URLs
+          for the image, the original image, and url to delete the image.
+          In verbose mode these values are also printed.
+          
+        If dest is 'flickr' :
+          Uploads this image to flickr an image sharing website.
+          If successful "Uploaded!!" is printed on the terminal.
         
         **PARAMETERS**
-
-        * *api_key* - a string of the imgur API key. You must register
+        If dest is 'imgur' :
+          * *api_key* - a string of the API key. You must register
           with imgur to get an API key.
-
-        * *verbose* - If verbose is true all values are printed to the
-          screen
-
-        **RETURNS**
-        
-        If uploading is successful we return a list of the upload URL, the original 
-        image URL, and the delete image URL. If the upload fails we return None. 
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> result = img.upload( "MY_API_KEY1234567890" )
-        >>> print "Uploaded To: " + result[0]
-        
-        **NOTES**
-        
-        .. Warning:: 
-          This method requires that you have PyCurl installed.
           
-        .. Warning:: 
-          You must supply your own API key. See here: http://imgur.com/register/api_anon
-
+          * *verbose* - If verbose is true all values are printed to the
+          screen
+          
+        If dest is 'flickr' :
+          * *api_key* - a string of the API key. You must register
+          with flickr to get an API key.
+          
+          * *api_secret (Only for Flickr) * - a string of the API secret. You must register
+          with Flickr to get an API secret key.
+          
+        **RETURNS**
+        if dest is 'imgur' :
+        If uploading is successful we return a list of the upload URL, the original
+        image URL, and the delete image URL. If the upload fails we return None.
+        
+        if dest is 'flick :
+          Return None.
+          
+        **EXAMPLE**
+        
+        If dest is 'imgur' :
+           >>> img = Image("lenna")
+           >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
+           >>> print "Uploaded To: " + result[0] 
+           
+        If dest is 'flickr' :
+           >>> img.upload('flickr','ccfa805e5c7693b96fb548fa0f7a36da','db1479dbba974633')
+           
+        **NOTES**
+        .. Warning::
+           This method requires that you have PyCurl installed as well as Flickr.
+           
+        .. Warning::
+           You must supply your own API key. See here: http://imgur.com/register/api_anon 
+           or http://www.flickr.com/services/api/misc.api_keys.html
         """
-        try:
-          import pycurl
-        except ImportError:
-          print "PycURL Library not installed."
-          return
-
-        response = StringIO()
-        c = pycurl.Curl()
-        values = [
-                  ("key", api_key),
-                  ("image", (c.FORM_FILE, self.filename))]
-        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
-        c.setopt(c.HTTPPOST, values)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-
-        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
-        if match:
-            if(verbose):
-                print "Imgur page: http://imgur.com/" + match.group(1)
-                print "Original image: " + match.group(3)
-                print "Delete page: http://imgur.com/delete/" + match.group(2)
-            return [match.group(1),match.group(3),match.group(2)]
-        else:
-            if(verbose):
-                print "The API Key given is not valid"
+        if ( dest=='imgur' ) :
+            try:
+                import pycurl
+            except ImportError:
+                print "PycURL Library not installed."
+                return
+                    
+            response = StringIO()
+            c = pycurl.Curl()
+            values = [("key", api_key),
+                      ("image", (c.FORM_FILE, self.filename))]
+            c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+            c.setopt(c.HTTPPOST, values)
+            c.setopt(c.WRITEFUNCTION, response.write)
+            c.perform()
+            c.close()
+                
+            match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+            if match:
+                if(verbose):
+               	    print "Imgur page: http://imgur.com/" + match.group(1)
+                    print "Original image: " + match.group(3)
+                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                return [match.group(1),match.group(3),match.group(2)]
+            else :
+                if(verbose):
+                    print "The API Key given is not valid"
+                return None
+        
+        elif (dest=='flickr'):
+            flickr = None
+            try :
+                import flickrapi
+            except ImportError:
+            	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
+            return
+            try :
+            	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
+            	self.flickr.authenticate_console('write')
+            except :
+            	print "The API Key given is not valid
+            	return None
+            title = self.filename.split('/')[-1
+            try :
+            	print "uploading..."
+            	self.flickr.upload(self.filename,title)
+            	print "File Uploaded !"
+            except :
+            	print "Uploading Failed !"
             return None
 
 
