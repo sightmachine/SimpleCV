@@ -1730,14 +1730,18 @@ def test_keypoint_match():
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   match1 = Image("../sampleimages/kptest1.png")
+  match3 = Image("../sampleimages/kptest2.png")
   match2 = Image("../sampleimages/aerospace.jpg")# should be none 
 
-  fs0 = match0.findKeypointMatch(template)
-  fs1 = match1.findKeypointMatch(template,quality=400.00,minDist=0.15,minMatch=0.2)
-  fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.1,minMatch=0.4)
-  if( fs0 is not None and fs1 is not None and fs2 is None):
+  fs0 = match0.findKeypointMatch(template)#test zero
+  fs1 = match1.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
+  fs3 = match3.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
+  print "This should fail"
+  fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.2,minMatch=0.1)
+  if( fs0 is not None and fs1 is not None and fs2 is None and  fs3 is not None):
     fs0.draw()
     fs1.draw()
+    fs3.draw()
     f = fs0[0] 
     f.drawRect()
     f.draw()
@@ -1748,14 +1752,13 @@ def test_keypoint_match():
     f.x
     f.y
     f.coordinates()
-    pass
   else:
     assert False
 
-  results = [match0,match1,match2]
+  results = [match0,match1,match2,match3]
   name_stem = "test_find_keypoint_match"
   perform_diff(results,name_stem)    
-
+ 
 
 def test_draw_keypoint_matches():
   try:
@@ -2458,6 +2461,6 @@ def test_minrect_blobs():
     results.append(t)
 
   name_stem = "test_minrect_blobs"
-  perform_diff(results,name_stem,tolerance=6.0)        
+  perform_diff(results,name_stem,tolerance=11.0)        
     
     

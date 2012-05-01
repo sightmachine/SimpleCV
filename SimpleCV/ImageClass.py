@@ -1882,9 +1882,9 @@ class Image:
             	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
             	self.flickr.authenticate_console('write')
             except :
-            	print "The API Key given is not valid
+            	print "The API Key given is not valid"
             	return None
-            title = self.filename.split('/')[-1
+            title = self.filename.split('/')[-1]
             try :
             	print "uploading..."
             	self.flickr.upload(self.filename,title)
@@ -6852,7 +6852,7 @@ class Image:
             for i in range(0,len(idx)):
                 if( result[i] ):
                     lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
@@ -6879,6 +6879,12 @@ class Image:
             pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
             pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
             pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            #print "--------------------------"
+            #print str(pt0)+"--->"+str(pt0p)+"--->"+str(pt0i)
+            #print str(pt1)+"--->"+str(pt1p)+"--->"+str(pt1i)
+            #print str(pt2)+"--->"+str(pt2p)+"--->"+str(pt2i)
+            #print str(pt3)+"--->"+str(pt3p)+"--->"+str(pt3i)
+
             #construct the feature set and return it. 
             fs = FeatureSet()
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
