@@ -301,7 +301,6 @@ class Barcode(Feature):
     #given a ZXing bar
     def __init__(self, i, zxbc):
         self.image = i 
-        #KAT CHECK HERE
         points = copy(zxbc.points) # hopefully this is in tl clockwise order
         super(Barcode, self).__init__(i, at_x, at_y,points)        
         self.data = zxbc.data.rstrip()
@@ -916,7 +915,7 @@ class KeyPoint(Feature):
     r = 0.00
     image = "" #parent image
     points = []
-    avgColor = None
+    __avgColor = None
     mAngle = 0
     mOctave = 0
     mResponse = 0.00
@@ -929,7 +928,7 @@ class KeyPoint(Feature):
         x = keypoint.pt[1] #KAT
         y = keypoint.pt[0]
         self._r = keypoint.size/2.0
-        self.avgColor = None
+        self._avgColor = None
         self.image = i
         self.mAngle = keypoint.angle
         self.mOctave = keypoint.octave
@@ -1077,13 +1076,13 @@ class KeyPoint(Feature):
 
         """
         #generate the mask
-        if( self.avgColor is None):
+        if( self._avgColor is None):
             mask = self.image.getEmpty(1)
             cv.Zero(mask)
             cv.Circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
             temp = cv.Avg(self.image.getBitmap(),mask)
-            self.avgColor = (temp[0],temp[1],temp[2])
-        return self.avgColor
+            self._avgColor = (temp[0],temp[1],temp[2])
+        return self._avgColor
   
     def colorDistance(self, color = (0, 0, 0)): 
         """
@@ -1323,14 +1322,14 @@ class KeypointMatch(Feature):
     y = 0.00 
     image = "" #parent image
     points = []
-    minRect = []
-    avgColor = None
-    homography = []
-    template = None
-    def __init__(self, image,template,minRect,homography):
-        self.template = template
-        self.minRect = minRect
-        self.homography = homography
+    _minRect = []
+    _avgColor = None
+    _homography = []
+    _template = None
+    def __init__(self, image,template,minRect,_homography):
+        self._template = template
+        self._minRect = minRect
+        self._homography = _homography
         xmax = 0
         ymax = 0
         xmin = image.width
@@ -1375,10 +1374,10 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.dl().line(self.minRect[0],self.minRect[1],color,width)
-        self.image.dl().line(self.minRect[1],self.minRect[2],color,width)
-        self.image.dl().line(self.minRect[2],self.minRect[3],color,width)
-        self.image.dl().line(self.minRect[3],self.minRect[0],color,width)
+        self.image.dl().line(self._minRect[0],self._minRect[1],color,width)
+        self.image.dl().line(self._minRect[1],self._minRect[2],color,width)
+        self.image.dl().line(self._minRect[2],self._minRect[3],color,width)
+        self.image.dl().line(self._minRect[3],self._minRect[0],color,width)
 
     def drawRect(self, color = Color.GREEN,width=1):
         """
@@ -1402,7 +1401,7 @@ class KeypointMatch(Feature):
         TL = self.topLeftCorner()
         raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
         mask = Image((self.width,self.height))
-        mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+        mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
         mask = mask.applyLayers()
         mask.blit(raw,(0,0),alpha=None,mask=mask) 
         return mask
@@ -1425,16 +1424,16 @@ class KeypointMatch(Feature):
         >>> c = kp.meanColor()
 
         """
-        if( self.avgColor is None ):
+        if( self._avgColor is None ):
             TL = self.topLeftCorner()
             raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
             mask = Image((self.width,self.height))
-            mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+            mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
             mask = mask.applyLayers()
             retVal = cv.Avg(raw.getBitmap(),mask._getGrayscaleBitmap())
-            self.avgColor = retVal
+            self._avgColor = retVal
         else:
-            retVal = self.avgColor
+            retVal = self._avgColor
         return retVal 
 
   
@@ -1443,11 +1442,11 @@ class KeypointMatch(Feature):
         Returns the minimum bounding rectangle of the feature as a list
         of (x,y) tuples. 
         """
-        return self.minRect
+        return self._minRect
     
     def getHomography(self):
         """
-        Returns the homography matrix used to calulate the minimum bounding
+        Returns the _homography matrix used to calulate the minimum bounding
         rectangle. 
         """
-        return self.homography
+        return self._homography

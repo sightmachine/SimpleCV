@@ -6963,7 +6963,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't use Keypoints without OpenCV >= 2.3.0")
+            logger.warning("Can't use Keypoints without OpenCV >= 2.3.0")
             return None
 
         fs = FeatureSet()
@@ -7568,7 +7568,7 @@ class Image:
         #we get the palette from find palete 
         #ASSUME: GET PALLETE WAS CALLED!
         if( self._mPalette == None ):
-            warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
+            logger.warning("Image.binarizeFromPalette: No palette exists, call getPalette())")
             return None
         retVal = None
         img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
@@ -8093,7 +8093,7 @@ class Image:
             maxsize = self.width * self.height / 2
         #create a single channel image, thresholded to parameters
         if( mask.width != self.width or mask.height != self.height ):
-            warning.warn("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            logger.warning("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
             return None
 
         blobmaker = BlobMaker()
