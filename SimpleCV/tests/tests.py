@@ -14,7 +14,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = True # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = False # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -2445,3 +2445,19 @@ def test_nparray2cvmat():
   b = npArray2cvMat(gf32,cv.CV_8UC1)
   c = npArray2cvMat(gf64,cv.CV_8UC1)
 
+def test_minrect_blobs():
+  img = Image("../sampleimages/bolt.png")
+  img = img.invert()
+  results = []
+  for i in range(-10,10):
+    ang = float(i*18.00)
+    print ang
+    t = img.rotate(ang)
+    b = t.findBlobs(threshval=128)
+    b[-1].drawMinRect(color=Color.RED,width=5)
+    results.append(t)
+
+  name_stem = "test_minrect_blobs"
+  perform_diff(results,name_stem,tolerance=6.0)        
+    
+    
