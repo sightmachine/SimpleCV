@@ -9243,7 +9243,43 @@ class Image:
         features = os.listdir(features_directory)
         print features
 
+        
+    def pixelize(self, block_size = 10, region = None ):
+        """
+        Pixelation blur, like the kind used to hide naughty bits on your favorite tv show. 
+        """
+        if( isinstance(block_size, int) ):
+            block_size = (block_size,block_size)
 
+        retVal = self.getEmpty()
+
+        if( region is None ):
+            hc = self.width / block_size[0] #number of horizontal blocks
+            vc = self.height / block_size[1] #number of vertical blocks
+            #when we fit in the blocks, we're going to spread the round off
+            #over the edges 0->x_0, 0->y_0  and x_0+hc*block_size
+            x_0 = int(np.ceil(float(self.width%block_size[0])/2.0))
+            y_0 = int(np.ceil(float(self.height%block_size[1])/2.0))
+            x_f = self.width-(x_0+(block_size[0]*hc))
+            y_f = self.height-(y_0+(block_size[1]*vc))
+            #print (hc,x_0,x_f)
+            #print (vc,y_0,y_f)
+            
+            for i in range(0,hc):
+                for j in range(0,vc):
+                    xt = x_0+(block_size[0]*i)
+                    yt = y_0+(block_size[1]*j)
+                    roi = (xt,yt,block_size[0],block_size[1])
+                    cv.SetImageROI(self.getBitmap(),roi)
+                    cv.SetImageROI(retVal,roi)
+                    avg = cv.Avg(self.getBitmap())
+                    test = (int(avg[0]/51)*51.00,int(avg[1]/51)*51.00,int(avg[2]/51)*51.00,0)
+                    cv.AddS(retVal,test,retVal)
+                    cv.ResetImageROI(retVal)
+                    cv.ResetImageROI(self.getBitmap())
+
+        return Image(retVal) 
+                    
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
