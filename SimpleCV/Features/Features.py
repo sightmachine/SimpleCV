@@ -1,6 +1,16 @@
 # SimpleCV Feature library
 #
 # Tools return basic features in feature sets
+# #    x = 0.00
+#     y = 0.00 
+#     _mMaxX = None
+#     _mMaxY = None
+#     _mMinX = None
+#     _mMinY = None
+#     _mWidth = None
+#     _mHeight = None
+#     _mSrcImgW = None
+#     mSrcImgH = None
 
 
 #load system libraries
@@ -1003,18 +1013,19 @@ class Feature(object):
     """
     x = 0.00
     y = 0.00 
-    mMaxX = None
-    mMaxY = None
-    mMinX = None
-    mMinY = None
-    mWidth = None
-    mHeight = None
-    mSrcImgW = None
-    mSrcImgH = None
+    _mMaxX = None
+    _mMaxY = None
+    _mMinX = None
+    _mMinY = None
+    _mWidth = None
+    _mHeight = None
+    _mSrcImgW = None
+    _mSrcImgH = None
+
+    # This is 2.0 refactoring 
     mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
     mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
     points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
-    points = None # this is the optional contour
 
     image = "" #parent image
     #points = []
@@ -1239,7 +1250,7 @@ class Feature(object):
         """    
         w = self.image.width
         h = self.image.height
-        return np.min([self.mMinX,self.mMinY, w-self.mMaxX,h-self.mMaxY])
+        return np.min([self._mMinX,self._mMinY, w-self._mMaxX,h-self._mMaxY])
     
     def onImageEdge(self,tolerance=1):
         """
@@ -1361,7 +1372,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return self.mWidth
+        return self._mWidth
 
   
     def height(self):
@@ -1385,7 +1396,7 @@ class Feature(object):
         >>> img.show()
         """
         self._updateExtents()
-        return self.mHeight
+        return self._mHeight
    
     def crop(self):
         """
@@ -1418,33 +1429,33 @@ class Feature(object):
 #    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
 #    points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
 
-        if( self.mMaxX is None or self.mMaxY is None or 
-            self.mMinX is None or self.mMinY is None or
-            self.mWidth is None or self.mHeight is None or 
+        if( self._mMaxX is None or self._mMaxY is None or 
+            self._mMinX is None or self._mMinY is None or
+            self._mWidth is None or self._mHeight is None or 
             self.mExtents is None or self.mBoundingBox is None
             ):
-            self.mMaxX = float("-infinity")
-            self.mMaxY = float("-infinity")
-            self.mMinX = float("infinity")
-            self.mMinY = float("infinity")
+            self._mMaxX = float("-infinity")
+            self._mMaxY = float("-infinity")
+            self._mMinX = float("infinity")
+            self._mMinY = float("infinity")
             for p in self.points:
-                if( p[0] > self.mMaxX):
-                    self.mMaxX = p[0] 
-                if( p[0] < self.mMinX):
-                    self.mMinX = p[0]
-                if( p[1] > self.mMaxY):
-                    self.mMaxY = p[1]
-                if( p[1] < self.mMinY):
-                    self.mMinY = p[1]
-            self.mWidth = self.mMaxX-self.mMinX
-            self.mHeight = self.mMaxY-self.mMinY
-            if( self.mWidth <= 0 ):
-                self.mWidth = 1
-            if( self.mHeight <= 0 ):
-                self.mHeight = 1
-            self.mBoundingBox = [self.mMinX,self.mMinY,self.mWidth,self.mHeight]
-            self.mExtents = [self.mMaxX,self.mMinX,self.mMaxY,self.mMinY]
-            self.mAspectRatio = float(np.max([self.mWidth,self.mHeight]))/float(np.min([self.mWidth,self.mHeight]))
+                if( p[0] > self._mMaxX):
+                    self._mMaxX = p[0] 
+                if( p[0] < self._mMinX):
+                    self._mMinX = p[0]
+                if( p[1] > self._mMaxY):
+                    self._mMaxY = p[1]
+                if( p[1] < self._mMinY):
+                    self._mMinY = p[1]
+            self._mWidth = self._mMaxX-self._mMinX
+            self._mHeight = self._mMaxY-self._mMinY
+            if( self._mWidth <= 0 ):
+                self._mWidth = 1
+            if( self._mHeight <= 0 ):
+                self._mHeight = 1
+            self.mBoundingBox = [self._mMinX,self._mMinY,self._mWidth,self._mHeight]
+            self.mExtents = [self._mMaxX,self._mMinX,self._mMaxY,self._mMinY]
+            self.mAspectRatio = float(np.max([self._mWidth,self._mHeight]))/float(np.min([self._mWidth,self._mHeight]))
             
     def boundingBox(self):
         """
@@ -1510,7 +1521,7 @@ class Feature(object):
         
         """
         self._updateExtents()
-        return self.mMinY
+        return self._mMinY
         
     def maxY(self):
         """
@@ -1531,7 +1542,7 @@ class Feature(object):
 
         """       
         self._updateExtents()
-        return self.mMaxY
+        return self._mMaxY
 
 
     def minX(self):
@@ -1553,7 +1564,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return self.mMinX
+        return self._mMinX
         
     def maxX(self):
         """
@@ -1574,7 +1585,7 @@ class Feature(object):
 
         """       
         self._updateExtents()
-        return self.mMaxX
+        return self._mMaxX
 
     def topLeftCorner(self):
         """
@@ -1595,7 +1606,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return (self.mMinX,self.mMinY)
+        return (self._mMinX,self._mMinY)
 
     def bottomRightCorner(self):
         """
@@ -1616,7 +1627,7 @@ class Feature(object):
 
         """        
         self._updateExtents()
-        return (self.mMaxX,self.mMaxY)
+        return (self._mMaxX,self._mMaxY)
         
     def bottomLeftCorner(self):
         """
@@ -1637,7 +1648,7 @@ class Feature(object):
 
         """ 
         self._updateExtents()
-        return (self.mMinX,self.mMaxY)
+        return (self._mMinX,self._mMaxY)
         
     def topRightCorner(self):
         """
@@ -1658,7 +1669,7 @@ class Feature(object):
 
         """        
         self._updateExtents()
-        return (self.mMaxX,self.mMinY)
+        return (self._mMaxX,self._mMinY)
 
 
     def above(self,object):

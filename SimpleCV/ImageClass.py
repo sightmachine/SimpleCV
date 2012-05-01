@@ -427,6 +427,7 @@ class Image:
     >>> img = Image("http://www.simplecv.org/image.png")
 
     """
+    
     width = 0    #width and height in px
     height = 0
     depth = 0
