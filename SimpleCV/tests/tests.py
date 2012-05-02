@@ -14,7 +14,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -2462,5 +2462,19 @@ def test_minrect_blobs():
 
   name_stem = "test_minrect_blobs"
   perform_diff(results,name_stem,tolerance=11.0)        
-    
+
+def test_pixelize():
+  img = Image("../sampleimages/The1970s.png")
+  img1 = img.pixelize(4)
+  img2 = img.pixelize((5,13))
+  img3 = img.pixelize((img.width/10,img.height))
+  img4 = img.pixelize((img.width,img.height/10))
+  img5 = img.pixelize((12,12),(200,180,250,250))
+  img6 = img.pixelize((12,12),(600,80,250,250))
+  img7 = img.pixelize((12,12),(600,80,250,250),levels=4)
+  img8 = img.pixelize((12,12),levels=6)
+  results = [img1,img2,img3,img4,img5,img6,img7,img8]
+  name_stem = "test_pixelize"
+  perform_diff(results,name_stem,tolerance=6.0)        
+  
     

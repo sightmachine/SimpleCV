@@ -9255,11 +9255,31 @@ class Image:
 
     def pixelize(self, block_size = 10, region = None, levels=None ):
         """
+        **SUMMARY**
+
         Pixelation blur, like the kind used to hide naughty bits on your favorite tv show. 
+
+        **PARAMETERS**
+
+        * *block_size* - the blur block size in pixels, an integer is an square blur, a tuple is rectangular.
+        * *region* - do the blur in a region in format (x_position,y_position,width,height)
+        * *levels* - the number of levels per color channel. This makes the image look like an 8-bit video game.
+        
+        **RETURNS**
+        
+        Returns the image with the pixelation blur applied. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> result = img.pixelize( 16, (200,180,250,250), levels=4)
+        >>> img.show()
+
         """
         if( isinstance(block_size, int) ):
             block_size = (block_size,block_size)
 
+        
         retVal = self.getEmpty()
 
         levels_f = 0.00
@@ -9305,8 +9325,6 @@ class Image:
                 roi = (xt,yt,block_size[0],block_size[1])
                 self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
 
-#        xr = w-(block_size[0]*hc)-x_0-xs
-#        yr = h-(block_size[1]*vc)-y_0-ys
 
         if( x_lhs > 0 ): # add a left strip
             xt = xs 
