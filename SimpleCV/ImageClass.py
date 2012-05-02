@@ -1918,7 +1918,7 @@ class Image:
             	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
             	self.flickr.authenticate_console('write')
             except :
-            	print "The API Key given is not valid"
+            	print "The API Key and Secret Key is not valid"
             	return False
             title = self.filename.split('/')[-1]
             try :
