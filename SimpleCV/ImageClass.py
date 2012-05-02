@@ -1925,14 +1925,14 @@ class Image:
                 import flickrapi
             except ImportError:
             	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
-            return
+                return
             try :
             	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
             	self.flickr.authenticate_console('write')
             except :
-            	print "The API Key given is not valid
+            	print "The API Key given is not valid"
             	return None
-            title = self.filename.split('/')[-1
+            title = self.filename.split('/')[-1]
             try :
             	print "uploading..."
             	self.flickr.upload(self.filename,title)
