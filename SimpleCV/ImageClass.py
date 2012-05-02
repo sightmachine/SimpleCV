@@ -1837,49 +1837,37 @@ class Image:
     def upload(self,dest,api_key,api_secret=None, verbose = True):
         """
         **SUMMARY**
-        This function is used to upload image to both imgur and flickr.
-        
-        If dest is 'imgur' :
-          Uploads this image to imgur an image sharing website.
-          If the upload is successful then the method returns the URLs
-          for the image, the original image, and url to delete the image.
-          In verbose mode these values are also printed.
+        uploads this image to imgur or flickr. If the method is successful
+        on return of imgur URLs or True from flickr. In verbose mode these 
+        values are also printed.
           
-        If dest is 'flickr' :
-          Uploads this image to flickr an image sharing website.
-          If successful "Uploaded!!" is printed on the terminal.
-        
         **PARAMETERS**
         If dest is 'imgur' :
           * *api_key* - a string of the API key. You must register
           with imgur to get an API key.
-          
           * *verbose* - If verbose is true all values are printed to the
           screen
           
         If dest is 'flickr' :
           * *api_key* - a string of the API key. You must register
           with flickr to get an API key.
-          
           * *api_secret (Only for Flickr) * - a string of the API secret. You must register
           with Flickr to get an API secret key.
           
         **RETURNS**
-        if dest is 'imgur' :
-        If uploading is successful we return a list of the upload URL, the original
-        image URL, and the delete image URL. If the upload fails we return None.
+        if dest is 'imgur' : uploading is successful, it return the original
+        image URL, and If the upload fails we return None.
         
         if dest is 'flick :
-          Return None.
+          Return True on success else returns False.
           
         **EXAMPLE**
-        
-        If dest is 'imgur' :
+        TO upload image to imgur
            >>> img = Image("lenna")
            >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
            >>> print "Uploaded To: " + result[0] 
            
-        If dest is 'flickr' :
+        To upload image to flickr
            >>> img.upload('flickr','ccfa805e5c7693b96fb548fa0f7a36da','db1479dbba974633')
            
         **NOTES**
@@ -1925,21 +1913,19 @@ class Image:
                 import flickrapi
             except ImportError:
             	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
-                return
+                return False
             try :
             	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
             	self.flickr.authenticate_console('write')
             except :
             	print "The API Key given is not valid"
-            	return None
+            	return False
             title = self.filename.split('/')[-1]
             try :
-            	print "uploading..."
             	self.flickr.upload(self.filename,title)
-            	print "File Uploaded !"
             except :
             	print "Uploading Failed !"
-            return None
+            return True
             
             
 		
