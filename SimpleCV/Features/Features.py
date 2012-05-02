@@ -174,6 +174,9 @@ class FeatureSet(list):
 
         """
         return np.array([[f.x, f.y] for f in self]) 
+
+    def center(self):
+        return self.coordinates()
   
     def area(self):
         """
@@ -1039,7 +1042,7 @@ class Feature(object):
         self.points = points
         self._updateExtents()
   
-    def getCorners(self):
+    def corners(self):
         self._updateExtents()
         return self.points
 
@@ -1062,6 +1065,7 @@ class Feature(object):
 
         """
         return np.array([self.x, self.y])  
+
   
     def draw(self, color = Color.GREEN):
         """

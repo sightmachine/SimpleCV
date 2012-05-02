@@ -118,7 +118,7 @@ class Blob(Feature):
             self.__dict__[realkey] = cv.CreateImageHeader((self.width(), self.height()), cv.IPL_DEPTH_8U, 1)
             cv.SetData(self.__dict__[realkey], mydict[k])
         
-    def getPerimeter(self):
+    def perimeter(self):
         """
         **SUMMARY**
 
@@ -132,13 +132,13 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> print blobs[-1].getPerimeter()
+        >>> print blobs[-1].perimeter()
 
         """
 
         return self.mPerimeter
 
-    def getHullPoints(self):
+    def hull(self):
         """
         **SUMMARY**
 
@@ -152,7 +152,7 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> print blobs[-1].getHullPoints()
+        >>> print blobs[-1].hull()
 
         """
         return self.mConvexHull
@@ -225,7 +225,7 @@ class Blob(Feature):
         return(self.mArea)
     
 
-    def getMinRectPoints(self):
+    def minRect(self):
         """
         Returns the corners for the smallest rotated rectangle to enclose the blob. 
         The points are returned as a list of  (x,y) tupples.
@@ -317,7 +317,7 @@ class Blob(Feature):
         """
         if( layer is None ):
             layer = self.image.dl()
-        (tl,tr,bl,br) = self.getMinRectPoints()
+        (tl,tr,bl,br) = self.minRect()
         layer.line(tl,tr,color,width=width,alpha=alpha,antialias = False)
         layer.line(bl,br,color,width=width,alpha=alpha,antialias = False)
         layer.line(tl,bl,color,width=width,alpha=alpha,antialias = False)
@@ -903,7 +903,7 @@ class Blob(Feature):
         """
         return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
 
-    def getHullImage(self):
+    def hullImage(self):
         """
         **SUMMARY**
 
@@ -917,12 +917,12 @@ class Blob(Feature):
         
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> blobs[-1].getHullImage().show()
+        >>> blobs[-1].hullImage().show()
 
         """
         return self.mHullImg
 
-    def getHullMask(self):
+    def hullMask(self):
         """
         **SUMMARY**
 
@@ -939,12 +939,12 @@ class Blob(Feature):
         
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> blobs[-1].getHullMask().show()
+        >>> blobs[-1].hullMask().show()
         
         """
         return self.mHullMask
         
-    def getBlobImage(self):
+    def blobImage(self):
         """
         **SUMMARY**
 
@@ -960,13 +960,13 @@ class Blob(Feature):
         
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> blobs[-1].getBlobImage().show()
+        >>> blobs[-1].blobImage().show()
 
         
         """
         return self.mImg
 
-    def getBlobMask(self):
+    def blobMask(self):
         """
         **SUMMARY**
 
@@ -981,7 +981,7 @@ class Blob(Feature):
         
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> blobs[-1].getBlobMask().show()
+        >>> blobs[-1].blobMask().show()
 
         
 

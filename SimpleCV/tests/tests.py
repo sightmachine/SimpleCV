@@ -1130,7 +1130,7 @@ def test_blob_data():
     for b in blobs:
         if(b.mArea > 0):
             pass
-        if(b.mPerimeter > 0):
+        if(b.perimeter() > 0):
             pass
         if(sum(b.mAvgColor) > 0 ):
             pass
@@ -1188,16 +1188,18 @@ def test_blob_methods():
         b.minRectHeight()
         b.minRectX()
         b.minRectY()
+        b.center()
+        b.contour()
         b.aspectRatio() 
-        b.getBlobImage()
-        b.getBlobMask()
-        b.getHullImage()
-        b.getHullMask()
+        b.blobImage()
+        b.blobMask()
+        b.hullImage()
+        b.hullMask()
         b.rectifyMajorAxis()
-        b.getBlobImage()
-        b.getBlobMask()
-        b.getHullImage()
-        b.getHullMask()
+        b.blobImage()
+        b.blobMask()
+        b.hullImage()
+        b.hullMask()
         b.angle()
         b.above(first)
         b.below(first)
@@ -2428,7 +2430,7 @@ def test_feature_angles_rotate():
     derp.drawText(str(bs.angle()),10,10,color=Color.RED)
     results.append(derp)
     bs.rectifyMajorAxis()
-    results.append(bs.getBlobImage())
+    results.append(bs.blobImage())
 
   name_stem = "test_feature_angles_rotate"
   perform_diff(results,name_stem,tolerance=7.0)        
