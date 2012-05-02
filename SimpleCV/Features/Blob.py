@@ -230,7 +230,11 @@ class Blob(Feature):
         Returns the corners for the smallest rotated rectangle to enclose the blob. 
         The points are returned as a list of  (x,y) tupples.
         """
-        ang = 2*pi*(float(self.angle())/360.00)
+        #if( self.mMinRectangle[1][0] < self.mMinRectangle[1][1]):
+        ang = self.mMinRectangle[2] 
+        #else:
+        #    ang =  90 + self.mMinRectangle[2]
+        ang = 2*pi*(float(ang)/360.00)
         tx = self.minRectX()
         ty = self.minRectY()
         w = self.minRectWidth()/2.0

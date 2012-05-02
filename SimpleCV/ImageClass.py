@@ -427,6 +427,7 @@ class Image:
     >>> img = Image("http://www.simplecv.org/image.png")
 
     """
+    
     width = 0    #width and height in px
     height = 0
     depth = 0
@@ -1786,72 +1787,111 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-
-    def upload(self,api_key, verbose = True):
+    def upload(self,dest,api_key,api_secret=None, verbose = True):
         """
         **SUMMARY**
-
-        Uploads this image to imgur an image sharing website. 
-        If the upload is successful then the method returns the URLs
-        for the image, the original image, and url to delete the image.
-        In verbose mode these values are also printed. 
-
+        This function is used to upload image to both imgur and flickr.
+        
+        If dest is 'imgur' :
+          Uploads this image to imgur an image sharing website.
+          If the upload is successful then the method returns the URLs
+          for the image, the original image, and url to delete the image.
+          In verbose mode these values are also printed.
+          
+        If dest is 'flickr' :
+          Uploads this image to flickr an image sharing website.
+          If successful "Uploaded!!" is printed on the terminal.
         
         **PARAMETERS**
-
-        * *api_key* - a string of the imgur API key. You must register
+        If dest is 'imgur' :
+          * *api_key* - a string of the API key. You must register
           with imgur to get an API key.
-
-        * *verbose* - If verbose is true all values are printed to the
-          screen
-
-        **RETURNS**
-        
-        If uploading is successful we return a list of the upload URL, the original 
-        image URL, and the delete image URL. If the upload fails we return None. 
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> result = img.upload( "MY_API_KEY1234567890" )
-        >>> print "Uploaded To: " + result[0]
-        
-        **NOTES**
-        
-        .. Warning:: 
-          This method requires that you have PyCurl installed.
           
-        .. Warning:: 
-          You must supply your own API key. See here: http://imgur.com/register/api_anon
-
+          * *verbose* - If verbose is true all values are printed to the
+          screen
+          
+        If dest is 'flickr' :
+          * *api_key* - a string of the API key. You must register
+          with flickr to get an API key.
+          
+          * *api_secret (Only for Flickr) * - a string of the API secret. You must register
+          with Flickr to get an API secret key.
+          
+        **RETURNS**
+        if dest is 'imgur' :
+        If uploading is successful we return a list of the upload URL, the original
+        image URL, and the delete image URL. If the upload fails we return None.
+        
+        if dest is 'flick :
+          Return None.
+          
+        **EXAMPLE**
+        
+        If dest is 'imgur' :
+           >>> img = Image("lenna")
+           >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
+           >>> print "Uploaded To: " + result[0] 
+           
+        If dest is 'flickr' :
+           >>> img.upload('flickr','ccfa805e5c7693b96fb548fa0f7a36da','db1479dbba974633')
+           
+        **NOTES**
+        .. Warning::
+           This method requires that you have PyCurl installed as well as Flickr.
+           
+        .. Warning::
+           You must supply your own API key. See here: http://imgur.com/register/api_anon 
+           or http://www.flickr.com/services/api/misc.api_keys.html
         """
-        try:
-          import pycurl
-        except ImportError:
-          print "PycURL Library not installed."
-          return
-
-        response = StringIO()
-        c = pycurl.Curl()
-        values = [
-                  ("key", api_key),
-                  ("image", (c.FORM_FILE, self.filename))]
-        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
-        c.setopt(c.HTTPPOST, values)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-
-        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
-        if match:
-            if(verbose):
-                print "Imgur page: http://imgur.com/" + match.group(1)
-                print "Original image: " + match.group(3)
-                print "Delete page: http://imgur.com/delete/" + match.group(2)
-            return [match.group(1),match.group(3),match.group(2)]
-        else:
-            if(verbose):
-                print "The API Key given is not valid"
+        if ( dest=='imgur' ) :
+            try:
+                import pycurl
+            except ImportError:
+                print "PycURL Library not installed."
+                return
+                    
+            response = StringIO()
+            c = pycurl.Curl()
+            values = [("key", api_key),
+                      ("image", (c.FORM_FILE, self.filename))]
+            c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+            c.setopt(c.HTTPPOST, values)
+            c.setopt(c.WRITEFUNCTION, response.write)
+            c.perform()
+            c.close()
+                
+            match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+            if match:
+                if(verbose):
+               	    print "Imgur page: http://imgur.com/" + match.group(1)
+                    print "Original image: " + match.group(3)
+                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                return [match.group(1),match.group(3),match.group(2)]
+            else :
+                if(verbose):
+                    print "The API Key given is not valid"
+                return None
+        
+        elif (dest=='flickr'):
+            flickr = None
+            try :
+                import flickrapi
+            except ImportError:
+            	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
+            return
+            try :
+            	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
+            	self.flickr.authenticate_console('write')
+            except :
+            	print "The API Key given is not valid"
+            	return None
+            title = self.filename.split('/')[-1]
+            try :
+            	print "uploading..."
+            	self.flickr.upload(self.filename,title)
+            	print "File Uploaded !"
+            except :
+            	print "Uploading Failed !"
             return None
 
 
@@ -2493,8 +2533,8 @@ class Image:
 
         For more information, consult the cv.HaarDetectObjects documentation.
    
-        You will need to provide your own cascade file - these are usually found in
-        /SimpleCV/Features/HaarCascades/ and specify a number of body parts.
+        To see what features are available run img.listHaarFeatures() or you can
+        provide your own haarcascade file if you have one available.
         
         Note that the cascade parameter can be either a filename, or a HaarCascade
         loaded with cv.Load(), or a SimpleCV HaarCascade object. 
@@ -2503,8 +2543,7 @@ class Image:
 
         * *cascade* - The Haar Cascade file, this can be either the path to a cascade
           file or a HaarCascased SimpleCV object that has already been
-          loaded. This also has a shortcut where you can use 'face' or 'faces' to auto
-          matically load the face detection library.
+          loaded.
 
         * *scale_factor* - The scaling factor for subsequent rounds of the Haar cascade 
           (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
@@ -2544,18 +2583,11 @@ class Image:
 
         #lovely.  This segfaults if not present
         if type(cascade) == str:
-          tmpname = cascade.lower()
-
-          if tmpname == "face" or tmpname == "faces":
-              cascade = os.path.join(LAUNCH_PATH, 'Features','HaarCascades','face.xml')
-              
-          if (not os.path.exists(cascade)):
-              logger.warning("Could not find Haar Cascade file " + cascade)
-              return None
-              
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
-  
+          if not cascade.getCascade(): return None
+          
+    
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
@@ -5911,16 +5943,17 @@ class Image:
             hsv = self
         h = hsv.getEmpty(1)
         s = hsv.getEmpty(1)
+        retVal = hsv.getEmpty(1)
         mask = hsv.getEmpty(1)
-        cv.Split(hsv.getBitmap(),None,s,h,None)
+        cv.Split(hsv.getBitmap(),h,None,s,None)
         hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation 
         if(hue_lb is not None and hue_ub is not None):
             hlut[hue_lb:hue_ub]=255
         else:
             hlut[hue] = 255
         cv.LUT(h,mask,cv.fromarray(hlut))
-        cv.Copy(s,h,mask) #we'll save memory using hue
-        return Image(h).invert() 
+        cv.Copy(s,retVal,mask) #we'll save memory using hue
+        return Image(retVal) 
 
 
     def applyPixelFunction(self, theFunc):
@@ -6820,7 +6853,7 @@ class Image:
             for i in range(0,len(idx)):
                 if( result[i] ):
                     lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
@@ -6847,6 +6880,12 @@ class Image:
             pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
             pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
             pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            #print "--------------------------"
+            #print str(pt0)+"--->"+str(pt0p)+"--->"+str(pt0i)
+            #print str(pt1)+"--->"+str(pt1p)+"--->"+str(pt1i)
+            #print str(pt2)+"--->"+str(pt2p)+"--->"+str(pt2i)
+            #print str(pt3)+"--->"+str(pt3p)+"--->"+str(pt3i)
+
             #construct the feature set and return it. 
             fs = FeatureSet()
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
@@ -6924,7 +6963,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't use Keypoints without OpenCV >= 2.3.0")
+            logger.warning("Can't use Keypoints without OpenCV >= 2.3.0")
             return None
 
         fs = FeatureSet()
@@ -7529,7 +7568,7 @@ class Image:
         #we get the palette from find palete 
         #ASSUME: GET PALLETE WAS CALLED!
         if( self._mPalette == None ):
-            warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
+            logger.warning("Image.binarizeFromPalette: No palette exists, call getPalette())")
             return None
         retVal = None
         img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
@@ -8054,7 +8093,7 @@ class Image:
             maxsize = self.width * self.height / 2
         #create a single channel image, thresholded to parameters
         if( mask.width != self.width or mask.height != self.height ):
-            warning.warn("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            logger.warning("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
             return None
 
         blobmaker = BlobMaker()
@@ -9185,6 +9224,24 @@ class Image:
         for i in range(boost):
             img = img + mask
         return img
+
+    def listHaarFeatures(self):
+        '''
+        This is used to list the built in features available for HaarCascade feature
+        detection.  Just run this function as:
+
+        >>> img.listHaarFeatures()
+
+        Then use one of the file names returned as the input to the findHaarFeature()
+        function.  So you should get a list, more than likely you will see face.xml,
+        to use it then just
+
+        >>> img.findHaarFeatures('face.xml')
+        '''
+        
+        features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
+        features = os.listdir(features_directory)
+        print features
 
 
     def __getstate__(self):

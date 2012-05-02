@@ -33,7 +33,7 @@ class NaiveBayesClassifier:
     def __init__(self,featureExtractors):
 
         if not ORANGE_ENABLED:
-            warning.warn("The required orange machine learning library is not installed")
+            logger.warning("The required orange machine learning library is not installed")
             return None
             
         self.mFeatureExtractors =  featureExtractors    

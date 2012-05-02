@@ -918,7 +918,7 @@ def test_image_edgemap():
 
 def test_color_colormap_build():
   cm = ColorModel()
-  cm.add(Image(logo))
+  #cm.add(Image(logo))
   cm.add((127,127,127))
   if(cm.contains((127,127,127))):
     cm.remove((127,127,127))
@@ -927,25 +927,36 @@ def test_color_colormap_build():
 
   cm.remove((0,0,0))
   cm.remove((255,255,255))
-  
+  cm.add((0,0,0))
+  cm.add([(0,0,0),(255,255,255)])
+  cm.add([(255,0,0),(0,255,0)])
   img = cm.threshold(Image(testimage))
   c=img.meanColor()
- 
-  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
-    assert False
+  
+  #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+  #  assert False
 
   cm.save("temp.txt")
   cm2 = ColorModel()
   cm2.load("temp.txt")
-  img2 = cm2.threshold(Image(testimage))
-
-  results = [img,img2]
+  img = Image("logo")
+  img2 = cm2.threshold(img)
+  cm2.add((0,0,255))
+  img3 = cm2.threshold(img)
+  cm2.add((255,255,0))
+  cm2.add((0,255,255))
+  cm2.add((255,0,255))
+  img4 = cm2.threshold(img)
+  cm2.add(img)
+  img5 = cm2.threshold(img)
+  
+  results = [img,img2,img3,img4,img5]
   name_stem = "test_color_colormap_build"
   perform_diff(results,name_stem)
 
-  c=img.meanColor()
-  if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
-    assert False
+  #c=img.meanColor()
+  #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
+  #  assert False
 
 
 def test_feature_height():
@@ -1719,14 +1730,18 @@ def test_keypoint_match():
   template = Image("../sampleimages/KeypointTemplate2.png")
   match0 = Image("../sampleimages/kptest0.png")
   match1 = Image("../sampleimages/kptest1.png")
+  match3 = Image("../sampleimages/kptest2.png")
   match2 = Image("../sampleimages/aerospace.jpg")# should be none 
 
-  fs0 = match0.findKeypointMatch(template)
-  fs1 = match1.findKeypointMatch(template,quality=400.00,minDist=0.15,minMatch=0.2)
-  fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.1,minMatch=0.4)
-  if( fs0 is not None and fs1 is not None and fs2 is None):
+  fs0 = match0.findKeypointMatch(template)#test zero
+  fs1 = match1.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
+  fs3 = match3.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
+  print "This should fail"
+  fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.2,minMatch=0.1)
+  if( fs0 is not None and fs1 is not None and fs2 is None and  fs3 is not None):
     fs0.draw()
     fs1.draw()
+    fs3.draw()
     f = fs0[0] 
     f.drawRect()
     f.draw()
@@ -1737,14 +1752,13 @@ def test_keypoint_match():
     f.x
     f.y
     f.coordinates()
-    pass
   else:
     assert False
 
-  results = [match0,match1,match2]
+  results = [match0,match1,match2,match3]
   name_stem = "test_find_keypoint_match"
   perform_diff(results,name_stem)    
-
+ 
 
 def test_draw_keypoint_matches():
   try:
@@ -2078,9 +2092,9 @@ def test_lowPassFilter():
 
 def test_findHaarFeatures():
   img = Image("../sampleimages/orson_welles.jpg")
-  face = HaarCascade("../Features/HaarCascades/face.xml")
+  face = HaarCascade("face.xml")
   f = img.findHaarFeatures(face)
-  f2 = img.findHaarFeatures("../Features/HaarCascades/face.xml")
+  f2 = img.findHaarFeatures("face.xml")
   if( len(f) > 0 and len(f2) > 0 ):
     f.draw()
     f2.draw()
@@ -2418,3 +2432,35 @@ def test_feature_angles_rotate():
 
   name_stem = "test_feature_angles_rotate"
   perform_diff(results,name_stem,tolerance=7.0)        
+
+
+def test_nparray2cvmat():
+  img = Image('logo')
+  gray = img.getGrayNumpy()
+  gf32 = np.array(gray,dtype='float32')
+  gf64 = np.array(gray,dtype='float64')
+
+  a = npArray2cvMat(gray)
+  b = npArray2cvMat(gf32)
+  c = npArray2cvMat(gf64)
+
+  a = npArray2cvMat(gray,cv.CV_8UC1)
+  b = npArray2cvMat(gf32,cv.CV_8UC1)
+  c = npArray2cvMat(gf64,cv.CV_8UC1)
+
+def test_minrect_blobs():
+  img = Image("../sampleimages/bolt.png")
+  img = img.invert()
+  results = []
+  for i in range(-10,10):
+    ang = float(i*18.00)
+    print ang
+    t = img.rotate(ang)
+    b = t.findBlobs(threshval=128)
+    b[-1].drawMinRect(color=Color.RED,width=5)
+    results.append(t)
+
+  name_stem = "test_minrect_blobs"
+  perform_diff(results,name_stem,tolerance=11.0)        
+    
+    

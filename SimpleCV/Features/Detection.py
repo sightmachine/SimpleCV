@@ -301,7 +301,6 @@ class Barcode(Feature):
     #given a ZXing bar
     def __init__(self, i, zxbc):
         self.image = i 
-        #KAT CHECK HERE
         points = copy(zxbc.points) # hopefully this is in tl clockwise order
         super(Barcode, self).__init__(i, at_x, at_y,points)        
         self.data = zxbc.data.rstrip()
@@ -690,13 +689,13 @@ class Circle(Feature):
     """
     x = 0.00
     y = 0.00 
-    r = 0.00
+    _r = 0.00
     image = "" #parent image
     points = []
     avgColor = None
   
     def __init__(self, i, at_x, at_y, r):
-        self.r = r
+        self._r = r
         self.avgColor = None
         points = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
         super(Circle, self).__init__(i, at_x, at_y, points)                                
@@ -728,7 +727,7 @@ class Circle(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.dl().circle((self.x,self.y),self.r,color,width)
+        self.image.dl().circle((self.x,self.y),self._r,color,width)
     
     def show(self, color = Color.GREEN):
         """
@@ -802,7 +801,7 @@ class Circle(Feature):
         if( self.avgColor is None):
             mask = self.image.getEmpty(1)
             cv.Zero(mask)
-            cv.Circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
+            cv.Circle(mask,(self.x,self.y),self._r,color=(255,255,255),thickness=-1)
             temp = cv.Avg(self.image.getBitmap(),mask)
             self.avgColor = (temp[0],temp[1],temp[2])
         return self.avgColor
@@ -828,7 +827,7 @@ class Circle(Feature):
 
 
         """
-        return self.r*self.r*pi
+        return self._r*self._r*pi
 
     def perimeter(self):
         """
@@ -836,7 +835,7 @@ class Circle(Feature):
         
         Returns the perimeter of the circle feature in pixels.
         """
-        return 2*pi*self.r
+        return 2*pi*self._r
   
     def width(self):
         """
@@ -845,7 +844,7 @@ class Circle(Feature):
         Returns the width of the feature -- for compliance just r*2
 
         """
-        return self.r*2
+        return self._r*2
   
     def height(self):
         """
@@ -853,7 +852,7 @@ class Circle(Feature):
 
         Returns the height of the feature -- for compliance just r*2
         """
-        return self.r*2
+        return self._r*2
   
     def radius(self):
         """
@@ -862,7 +861,7 @@ class Circle(Feature):
         Returns the radius of the circle in pixels.
 
         """
-        return self.r
+        return self._r
     
     def diameter(self):
         """
@@ -871,7 +870,7 @@ class Circle(Feature):
         Returns the diameter of the circle in pixels.
 
         """
-        return self.r*2
+        return self._r*2
     
     def crop(self,noMask=False):
         """
@@ -897,7 +896,7 @@ class Circle(Feature):
             cv.Zero(mask)
             cv.Zero(result)
             #if you want to shave a bit of time we go do the crop before the blit
-            cv.Circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
+            cv.Circle(mask,(self.x,self.y),self._r,color=(255,255,255),thickness=-1)
             cv.Copy(self.image.getBitmap(),result,mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
@@ -916,7 +915,7 @@ class KeyPoint(Feature):
     r = 0.00
     image = "" #parent image
     points = []
-    avgColor = None
+    __avgColor = None
     mAngle = 0
     mOctave = 0
     mResponse = 0.00
@@ -928,15 +927,15 @@ class KeyPoint(Feature):
         self.mKeyPoint = keypoint
         x = keypoint.pt[1] #KAT
         y = keypoint.pt[0]
-        self.r = keypoint.size/2.0
-        self.avgColor = None
+        self._r = keypoint.size/2.0
+        self._avgColor = None
         self.image = i
         self.mAngle = keypoint.angle
         self.mOctave = keypoint.octave
         self.mResponse = keypoint.response
         self.mFlavor = flavor
         self.mDescriptor = descriptor
-        r = self.r
+        r = self._r
         points  = ((x+r,y+r),(x+r,y-r),(x-r,y-r),(x-r,y+r))
         super(KeyPoint, self).__init__(i, x, y, points)                                
 
@@ -1027,7 +1026,7 @@ class KeyPoint(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.dl().circle((self.x,self.y),self.r,color,width)
+        self.image.dl().circle((self.x,self.y),self._r,color,width)
         pt1 = (int(self.x),int(self.y))
         pt2 = (int(self.x+(self.radius()*sin(radians(self.angle())))),
                int(self.y+(self.radius()*cos(radians(self.angle())))))
@@ -1077,13 +1076,13 @@ class KeyPoint(Feature):
 
         """
         #generate the mask
-        if( self.avgColor is None):
+        if( self._avgColor is None):
             mask = self.image.getEmpty(1)
             cv.Zero(mask)
-            cv.Circle(mask,(int(self.x),int(self.y)),int(self.r),color=(255,255,255),thickness=-1)
+            cv.Circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
             temp = cv.Avg(self.image.getBitmap(),mask)
-            self.avgColor = (temp[0],temp[1],temp[2])
-        return self.avgColor
+            self._avgColor = (temp[0],temp[1],temp[2])
+        return self._avgColor
   
     def colorDistance(self, color = (0, 0, 0)): 
         """
@@ -1097,7 +1096,7 @@ class KeyPoint(Feature):
         
         Returns the perimeter of the circle feature in pixels.
         """
-        return 2*pi*self.r
+        return 2*pi*self._r
   
     def width(self):
         """
@@ -1106,7 +1105,7 @@ class KeyPoint(Feature):
         Returns the width of the feature -- for compliance just r*2
 
         """
-        return self.r*2
+        return self._r*2
   
     def height(self):
         """
@@ -1114,7 +1113,7 @@ class KeyPoint(Feature):
 
         Returns the height of the feature -- for compliance just r*2
         """
-        return self.r*2
+        return self._r*2
   
     def radius(self):
         """
@@ -1123,7 +1122,7 @@ class KeyPoint(Feature):
         Returns the radius of the circle in pixels.
 
         """
-        return self.r
+        return self._r
     
     def diameter(self):
         """
@@ -1132,7 +1131,7 @@ class KeyPoint(Feature):
         Returns the diameter of the circle in pixels.
 
         """
-        return self.r*2
+        return self._r*2
     
     def crop(self,noMask=False):
         """
@@ -1158,7 +1157,7 @@ class KeyPoint(Feature):
             cv.Zero(mask)
             cv.Zero(result)
             #if you want to shave a bit of time we go do the crop before the blit
-            cv.Circle(mask,(int(self.x),int(self.y)),int(self.r),color=(255,255,255),thickness=-1)
+            cv.Circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
             cv.Copy(self.image.getBitmap(),result,mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
@@ -1323,14 +1322,14 @@ class KeypointMatch(Feature):
     y = 0.00 
     image = "" #parent image
     points = []
-    minRect = []
-    avgColor = None
-    homography = []
-    template = None
-    def __init__(self, image,template,minRect,homography):
-        self.template = template
-        self.minRect = minRect
-        self.homography = homography
+    _minRect = []
+    _avgColor = None
+    _homography = []
+    _template = None
+    def __init__(self, image,template,minRect,_homography):
+        self._template = template
+        self._minRect = minRect
+        self._homography = _homography
         xmax = 0
         ymax = 0
         xmin = image.width
@@ -1375,10 +1374,10 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.dl().line(self.minRect[0],self.minRect[1],color,width)
-        self.image.dl().line(self.minRect[1],self.minRect[2],color,width)
-        self.image.dl().line(self.minRect[2],self.minRect[3],color,width)
-        self.image.dl().line(self.minRect[3],self.minRect[0],color,width)
+        self.image.dl().line(self._minRect[0],self._minRect[1],color,width)
+        self.image.dl().line(self._minRect[1],self._minRect[2],color,width)
+        self.image.dl().line(self._minRect[2],self._minRect[3],color,width)
+        self.image.dl().line(self._minRect[3],self._minRect[0],color,width)
 
     def drawRect(self, color = Color.GREEN,width=1):
         """
@@ -1402,7 +1401,7 @@ class KeypointMatch(Feature):
         TL = self.topLeftCorner()
         raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
         mask = Image((self.width,self.height))
-        mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+        mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
         mask = mask.applyLayers()
         mask.blit(raw,(0,0),alpha=None,mask=mask) 
         return mask
@@ -1425,16 +1424,16 @@ class KeypointMatch(Feature):
         >>> c = kp.meanColor()
 
         """
-        if( self.avgColor is None ):
+        if( self._avgColor is None ):
             TL = self.topLeftCorner()
             raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
             mask = Image((self.width,self.height))
-            mask.dl().polygon(self.minRect,color=Color.WHITE,filled=TRUE)
+            mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
             mask = mask.applyLayers()
             retVal = cv.Avg(raw.getBitmap(),mask._getGrayscaleBitmap())
-            self.avgColor = retVal
+            self._avgColor = retVal
         else:
-            retVal = self.avgColor
+            retVal = self._avgColor
         return retVal 
 
   
@@ -1443,11 +1442,11 @@ class KeypointMatch(Feature):
         Returns the minimum bounding rectangle of the feature as a list
         of (x,y) tuples. 
         """
-        return self.minRect
+        return self._minRect
     
     def getHomography(self):
         """
-        Returns the homography matrix used to calulate the minimum bounding
+        Returns the _homography matrix used to calulate the minimum bounding
         rectangle. 
         """
-        return self.homography
+        return self._homography
