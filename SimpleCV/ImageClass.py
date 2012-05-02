@@ -9243,7 +9243,146 @@ class Image:
         features = os.listdir(features_directory)
         print features
 
+    def _CopyAvg(self, src, dst,roi, levels, levels_f):
+        cv.SetImageROI(src,roi)
+        cv.SetImageROI(dst,roi)
+        avg = cv.Avg(src)
+        if(levels is not None):
+            avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
+        cv.AddS(dst,avg,dst)
+        cv.ResetImageROI(src)
+        cv.ResetImageROI(dst)
 
+    def pixelize(self, block_size = 10, region = None, levels=None ):
+        """
+        **SUMMARY**
+
+        Pixelation blur, like the kind used to hide naughty bits on your favorite tv show. 
+
+        **PARAMETERS**
+
+        * *block_size* - the blur block size in pixels, an integer is an square blur, a tuple is rectangular.
+        * *region* - do the blur in a region in format (x_position,y_position,width,height)
+        * *levels* - the number of levels per color channel. This makes the image look like an 8-bit video game.
+        
+        **RETURNS**
+        
+        Returns the image with the pixelation blur applied. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> result = img.pixelize( 16, (200,180,250,250), levels=4)
+        >>> img.show()
+
+        """
+        if( isinstance(block_size, int) ):
+            block_size = (block_size,block_size)
+
+        
+        retVal = self.getEmpty()
+
+        levels_f = 0.00
+        if( levels is not None ):
+            levels = 255/int(levels)
+            if(levels <= 1 ):
+                levels = 2
+            levels_f = float(levels)
+
+        if( region is not None ):
+            cv.Copy(self.getBitmap(), retVal)
+            cv.SetImageROI(retVal,region)
+            cv.Zero(retVal)
+            cv.ResetImageROI(retVal)
+            xs = region[0]
+            ys = region[1]
+            w = region[2]
+            h = region[3]
+        else:
+            xs = 0
+            ys = 0
+            w = self.width
+            h = self.height
+
+        #if( region is None ):
+        hc = w / block_size[0] #number of horizontal blocks
+        vc = h / block_size[1] #number of vertical blocks
+        #when we fit in the blocks, we're going to spread the round off
+        #over the edges 0->x_0, 0->y_0  and x_0+hc*block_size
+        x_lhs = int(np.ceil(float(w%block_size[0])/2.0)) # this is the starting point
+        y_lhs = int(np.ceil(float(h%block_size[1])/2.0))
+        x_rhs = int(np.floor(float(w%block_size[0])/2.0)) # this is the starting point
+        y_rhs = int(np.floor(float(h%block_size[1])/2.0))
+        x_0 = xs+x_lhs
+        y_0 = ys+y_lhs
+        x_f = (x_0+(block_size[0]*hc)) #this would be the end point
+        y_f = (y_0+(block_size[1]*vc))
+
+        for i in range(0,hc):
+            for j in range(0,vc):
+                xt = x_0+(block_size[0]*i)
+                yt = y_0+(block_size[1]*j)
+                roi = (xt,yt,block_size[0],block_size[1])
+                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+
+
+        if( x_lhs > 0 ): # add a left strip
+            xt = xs 
+            wt = x_lhs 
+            ht = block_size[1]
+            for j in range(0,vc):
+                yt = y_0+(j*block_size[1])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                
+
+        if( x_rhs > 0 ): # add a right strip
+            xt = (x_0+(block_size[0]*hc))
+            wt = x_rhs 
+            ht = block_size[1]
+            for j in range(0,vc):
+                yt = y_0+(j*block_size[1])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+
+        if( y_lhs > 0 ): # add a left strip
+            yt = ys
+            ht = y_lhs 
+            wt = block_size[0]
+            for i in range(0,hc):
+                xt = x_0+(i*block_size[0])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                
+        if( y_rhs > 0 ): # add a right strip
+            yt = (y_0+(block_size[1]*vc)) 
+            ht = y_rhs
+            wt = block_size[0]
+            for i in range(0,hc):
+                xt = x_0+(i*block_size[0])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+
+        #now the corner cases
+        if(x_lhs > 0 and y_lhs > 0 ):
+            roi = (xs,ys,x_lhs,y_lhs)
+            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+
+        if(x_rhs > 0 and y_rhs > 0 ):
+            roi = (x_f,y_f,x_rhs,y_rhs)
+            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+
+        if(x_lhs > 0 and y_rhs > 0 ):
+            roi = (xs,y_f,x_lhs,y_rhs)
+            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+
+        if(x_rhs > 0 and y_lhs > 0 ):
+            roi = (x_f,ys,x_rhs,y_lhs)
+            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            
+
+        return Image(retVal) 
+                    
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
