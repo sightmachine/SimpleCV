@@ -157,7 +157,7 @@ class Blob(Feature):
         """
         return self.mConvexHull
     
-    def getContourPoints(self):
+    def contour(self):
         """
         **SUMMARY**
 
@@ -171,7 +171,7 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs()
-        >>> print blobs[-1].getContourPoints()
+        >>> print blobs[-1].contour()
 
         """
 
