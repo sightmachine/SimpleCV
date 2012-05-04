@@ -1925,6 +1925,7 @@ class Image:
             	self.flickr.upload(self.filename,title)
             except :
             	print "Uploading Failed !"
+            	return False
             return True
             
             
