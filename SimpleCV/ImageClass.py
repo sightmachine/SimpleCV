@@ -1834,7 +1834,7 @@ class Image:
         return Image(newimg, colorSpace=self._colorSpace) 
     
 
-    def upload(self,dest,api_key,api_secret=None, verbose = True):
+    def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
         uploads this image to imgur or flickr. If the method is successful
@@ -1908,6 +1908,7 @@ class Image:
                 return None
         
         elif (dest=='flickr'):
+            global temp_token	
             flickr = None
             try :
                 import flickrapi
@@ -1915,20 +1916,30 @@ class Image:
             	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
                 return False
             try :
-            	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
-            	self.flickr.authenticate_console('write')
+                if (not(api_key==None and api_secret==None)):
+            	    self.flickr = flickrapi.FlickrAPI(api_key,api_secret,cache=True)
+            	    self.flickr.cache = flickrapi.SimpleCache(timeout=3600, max_entries=200)
+            	    self.flickr.authenticate_console('write')
+            	    temp_token = (api_key,api_secret)
+            	else :
+            	    self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
+            	    self.flickr.authenticate_console('write')	    
             except :
             	print "The API Key and Secret Key is not valid"
             	return False
-            title = self.filename.split('/')[-1]
-            try :
-            	self.flickr.upload(self.filename,title)
-            except :
-            	print "Uploading Failed !"
-            	return False
+            if (self.filename) :	
+                try :
+            	    self.flickr.upload(self.filename,self.filehandle)
+                except :
+            	    print "Uploading Failed !"
+            	    return False
+            else :
+            	 import tempfile
+                 tf=tempfile.NamedTemporaryFile(suffix='.jpg')
+                 self.save(tf.name)
+	    	 temp = Image(tf.name)
+	    	 self.flickr.upload(tf.name,temp.filehandle)
             return True
-            
-            
 		
     def scale(self, width, height = -1):
         """
