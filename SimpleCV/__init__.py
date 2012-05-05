@@ -17,6 +17,7 @@ from SimpleCV.MachineLearning import *
 if (__name__ == '__main__'):
     from SimpleCV.Shell import *
     main(sys.argv)
+    
 def system():
     """
     **SUMMARY**
