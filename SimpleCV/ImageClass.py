@@ -2505,7 +2505,7 @@ class Image:
         :py:meth:`smartFindBlobs`
         """
         if (maxsize == 0):  
-            maxsize = self.width * self.height / 2
+            maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
             
         blobmaker = BlobMaker()
@@ -7517,7 +7517,7 @@ class Image:
             bwimg =bwimg.dilate(dilate)
         
         if (maxsize == 0):  
-            maxsize = self.width * self.height / 2
+            maxsize = self.width * self.height 
         #create a single channel image, thresholded to parameters
     
         blobmaker = BlobMaker()
@@ -8090,10 +8090,11 @@ class Image:
         :py:meth:`erode`
         """
         if (maxsize == 0):  
-            maxsize = self.width * self.height / 2
+            maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
         if( mask.width != self.width or mask.height != self.height ):
             logger.warning("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            print "FML"
             return None
 
         blobmaker = BlobMaker()
