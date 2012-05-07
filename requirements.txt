@@ -1,8 +1,9 @@
-SimpleCV
+impleCV
 
-numpy>=2.0.0.dev-3071eab-20110527
-pygame>=1.9.2pre
-PIL>=1.1.7
+numpy>=numpy-2.0.0
+pygame>=1.9.1
+PIL==1.1.7
 nose>=1.0.0
 ipython>=0.12
+
 
