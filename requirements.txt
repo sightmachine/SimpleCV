@@ -1,9 +1,8 @@
 SimpleCV
 
-numpy>=numpy-2.0.0
 pygame>=1.9.1
 PIL==1.1.7
 nose>=1.0.0
 ipython>=0.12
-
-
+numpy>=numpy-2.0.0
+scipy>=0.10.0
