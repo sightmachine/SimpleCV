@@ -10,7 +10,7 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 import copy # for deep copy
-
+#import scipy.stats.mode as spsmode
 
 
 class ColorSpace:
@@ -9244,17 +9244,39 @@ class Image:
         features = os.listdir(features_directory)
         print features
 
-    def _CopyAvg(self, src, dst,roi, levels, levels_f):
-        cv.SetImageROI(src,roi)
-        cv.SetImageROI(dst,roi)
-        avg = cv.Avg(src)
-        if(levels is not None):
-            avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
-        cv.AddS(dst,avg,dst)
-        cv.ResetImageROI(src)
-        cv.ResetImageROI(dst)
+    def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
 
-    def pixelize(self, block_size = 10, region = None, levels=None ):
+        if( mode ):
+            h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
+            myHue = np.argmax(h)
+            c = (float(myHue),float(255),float(255),float(0))
+            cv.SetImageROI(dst,roi)
+            cv.AddS(dst,c,dst)
+            cv.ResetImageROI(dst)
+            
+            #tmp = src.getNumpy()
+            #I wonder if doing this in gray and then remapping is faster?
+            #tmp = tmp[roi[1]:roi[1]+roi[3],roi[0]:roi[0]+roi[2]]
+            #tmp = tmp.reshape(tmp.shape[0]*tmp.shape[1],3)
+            #avg = tuple(sss.mode(tmp)[0][0])
+#            avg = tuple(sss.cmedian(tmp))
+            #if(levels is not None):
+            #    avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
+            #cv.SetImageROI(dst,roi)
+            #cv.AddS(dst,avg,dst)
+            #cv.ResetImageROI(dst) 
+        else:
+            cv.SetImageROI(src.getBitmap(),roi)
+            cv.SetImageROI(dst,roi)
+            avg = cv.Avg(src.getBitmap())
+            avg = (float(avg[0]),float(avg[1]),float(avg[2]),0)
+            if(levels is not None):
+                avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
+            cv.AddS(dst,avg,dst)
+            cv.ResetImageROI(src.getBitmap())
+            cv.ResetImageROI(dst)
+
+    def pixelize(self, block_size = 10, region = None, levels=None, mode=True):
         """
         **SUMMARY**
 
@@ -9277,11 +9299,14 @@ class Image:
         >>> img.show()
 
         """
+#        mode = False
+
         if( isinstance(block_size, int) ):
             block_size = (block_size,block_size)
 
         
         retVal = self.getEmpty()
+        
 
         levels_f = 0.00
         if( levels is not None ):
@@ -9324,7 +9349,7 @@ class Image:
                 xt = x_0+(block_size[0]*i)
                 yt = y_0+(block_size[1]*j)
                 roi = (xt,yt,block_size[0],block_size[1])
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
 
 
         if( x_lhs > 0 ): # add a left strip
@@ -9334,7 +9359,7 @@ class Image:
             for j in range(0,vc):
                 yt = y_0+(j*block_size[1])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
                 
 
         if( x_rhs > 0 ): # add a right strip
@@ -9344,7 +9369,7 @@ class Image:
             for j in range(0,vc):
                 yt = y_0+(j*block_size[1])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
 
         if( y_lhs > 0 ): # add a left strip
             yt = ys
@@ -9353,7 +9378,7 @@ class Image:
             for i in range(0,hc):
                 xt = x_0+(i*block_size[0])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
                 
         if( y_rhs > 0 ): # add a right strip
             yt = (y_0+(block_size[1]*vc)) 
@@ -9362,25 +9387,28 @@ class Image:
             for i in range(0,hc):
                 xt = x_0+(i*block_size[0])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
 
         #now the corner cases
         if(x_lhs > 0 and y_lhs > 0 ):
             roi = (xs,ys,x_lhs,y_lhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
 
         if(x_rhs > 0 and y_rhs > 0 ):
             roi = (x_f,y_f,x_rhs,y_rhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
 
         if(x_lhs > 0 and y_rhs > 0 ):
             roi = (xs,y_f,x_lhs,y_rhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
 
         if(x_rhs > 0 and y_lhs > 0 ):
             roi = (x_f,ys,x_rhs,y_lhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,mode)
             
+        if(mode):
+            cv.CvtColor(retVal,retVal,cv.CV_HSV2BGR)
+
 
         return Image(retVal) 
                     

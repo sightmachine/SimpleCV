@@ -14,7 +14,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = True  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -81,7 +81,7 @@ def imgSaves(test_imgs, name_stem, path=standard_path):
   count = len(test_imgs)
   for idx in range(0,count):
     fname = standard_path+name_stem+str(idx)+".jpg"
-    test_imgs[idx].save(fname,quality=95)
+    test_imgs[idx].save(fname)#,quality=95)
 
 #perform the actual image save and image diffs. 
 def perform_diff(result,name_stem,tolerance=2.0,path=standard_path):
@@ -2475,7 +2475,16 @@ def test_pixelize():
   img6 = img.pixelize((12,12),(600,80,250,250))
   img7 = img.pixelize((12,12),(600,80,250,250),levels=4)
   img8 = img.pixelize((12,12),levels=6)
-  results = [img1,img2,img3,img4,img5,img6,img7,img8]
+  #img9 = img.pixelize(4, )
+  #img10 = img.pixelize((5,13))
+  #img11 = img.pixelize((img.width/10,img.height), mode=True)
+  #img12 = img.pixelize((img.width,img.height/10), mode=True)
+  #img13 = img.pixelize((12,12),(200,180,250,250), mode=True)
+  #img14 = img.pixelize((12,12),(600,80,250,250), mode=True)
+  #img15 = img.pixelize((12,12),(600,80,250,250),levels=4, mode=True)
+  #img16 = img.pixelize((12,12),levels=6, mode=True)
+
+  results = [img1,img2,img3,img4,img5,img6,img7,img8] #img9,img10,img11,img12,img13,img14,img15,img16]
   name_stem = "test_pixelize"
   perform_diff(results,name_stem,tolerance=6.0)        
   

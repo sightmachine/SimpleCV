@@ -33,7 +33,10 @@ class Color:
     BLUE = (0, 0, 255)
     YELLOW = (255, 255, 0)
     RED = (255, 0, 0)
-    
+
+    LEGO_BLUE = (0,50,150)
+    LEGO_ORANGE = (255,150,40)
+
     VIOLET = (181, 126, 220)
     ORANGE = (255, 165, 0)
     GREEN = (0, 128, 0)
