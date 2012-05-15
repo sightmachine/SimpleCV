@@ -2,11 +2,12 @@
 
 from SimpleCV import * 
 import scipy.spatial as ss
-
-disp = Display((1200,600))
-cam = Camera(1)
+dispSz = (640+480,480)
+disp = Display(dispSz)
+cam = Camera(2)
+faceCam = Camera(1)
 tempimg = cam.getImage()
-scale_f = 0.4
+#scale_f = 0.4
 
 def getColorMatrix(t,blobs):
     h = blobs[-1].hullImage()
@@ -16,9 +17,9 @@ def getColorMatrix(t,blobs):
     if( b2 is not None):
         h2 = b2[-1].hullImage()
         h3 = h2.crop( 20,20, h2.width-40,h2.height-40)
-        h4 = h3.pixelize((h3.width/4,h3.height/4),mode=True)
+        #h4 = h3.pixelize((h3.width/4,h3.height/4),mode=True)
         h5 = h3.pixelize((h3.width/4,h3.height/4),mode=False)
-        return(h4,h5)
+        return h5
     else:
         return None
     
@@ -40,6 +41,7 @@ def estimateColorMatrix(t, shape=(4,4), palette = [Color.RED, Color.LEGO_ORANGE,
 
 
 def createOutputImage(colors,template,shape=(4,4)):
+    #write the color matrix to the template for rendering
     w = template.width
     h = template.height
     wstep = w/shape[0]
@@ -63,7 +65,6 @@ def userImageIsCorrect( userImage, truthImage ):
     r180 = np.sum(img180.getNumpy())
     r270 = np.sum(img270.getNumpy())
     threshold = 0.50
-    print [r00,r90,r180,r270]
     retVal = False
     if( r00 < threshold or r90 < threshold or r180 < threshold or r270 < threshold):
         retVal = True
@@ -76,10 +77,44 @@ def renderResult( userImg, isCorrect, correct, correctMask, incorrect, incorrect
         result = userImg.blit(incorrect,pos=(150,150),mask=incorrectMask)
     return result
 
+def play_slideshow( disp, imgset, timestep):
+    for img in imgset:
+        img.save(disp)
+        time.sleep(timestep)
+    return
+
+def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=10):
+    # loop the leader board until we see a face
+    facecount = 0
+    l = len(leaders)
+    i = 0
+    while facecount < thresh:
+        facecount = 0
+        img = leaders[i]
+        i = i + 1
+        if( i >= l  ):
+            i = 0
+        img.save(disp)
+        t0 = time.time()
+        while( time.time()-t0 < 5.0):
+            img = faceCam.getImage().resize(320,240)
+            f = img.findHaarFeatures(face)
+            if( f is not None ):
+                facecount = facecount + 1 
+
+#def madeLeaderBoard( mytime, leaderboard ):
+#    boardlen = len(leaderboard)
+#    for i in range(0,boardlen):
+#        if mytime < leaderboard[i]:
+#            return i
+#    return -1
+
+#def replaceLeader( time, img, place, leaderboard):
+    
+# Load resources
 maskh = 600
 tempimg = tempimg.resize(maskh,maskh)
 template = Image("template.png")
-
 
 redx = Image("redx.png")
 redxm = redx.binarize().invert()
@@ -88,29 +123,64 @@ greencheckm = greencheck.binarize()
 
 gametemplates = ImageSet("./truthdata/")
 
+#screeens 
+directions = ImageSet("./directions/")
+leaders = ImageSet("./leaders/")
+rsg = ImageSet("./rsg/")
+postgame = ImageSet("./postgame/")
+
+
+
+#haar resources
+
+face = HaarCascade("../../Features/HaarCascades/face.xml") 
+
+mode = "leaderboard"
+gamestart = time.time()
+gameOver = False
 while disp.isNotDone():
-    t = cam.getImage().scale(scale_f)
-    mask = t.colorDistance(Color.WHITE).binarize().invert().dilate(4)
-    blobs = t.findBlobsFromMask(mask,minsize=t.width*t.height*0.2)
-    output = t
-    if( blobs is not None ):
-        t = t.applyLayers()
-        (result2,cm) = getColorMatrix(t,blobs)
-        if( cm is not None ):
-            result = estimateColorMatrix(cm)
-            model = createOutputImage(result,template)
-            #model = model.rotate(-90)
-            #output = t
-            good = userImageIsCorrect(result,gametemplates[0])
-            output = renderResult( t, good, greencheck,greencheckm,redx,redxm) 
-            #result = result.resize(50,50)
-            #output = t.blit(result)
-            #output = output.blit(cm.resize(50,50),(0,51))
-            #outut = output.blit(result2.resize(50,50),(0,102))
-            
-            output = model.sideBySide(output)
-            blobs[-1].draw(width=3)
+    if( mode == "leaderboard"):
+        doLeaderBoard(leaders,faceCam, disp, face)
+        mode = "directions"
         
-    output.save(disp)
-    time.sleep(0.1)
+    if( mode == "directions" ):
+        play_slideshow(disp, directions, 5)
+        mode = "rsg"
+
+    if( mode == "rsg" ):
+        play_slideshow(disp, rsg, 1)
+        mode = "playgame"
+        model = createOutputImage(gametemplates[0],template)
+        gameOver = False
+        gamestart = time.time()
+        
+
+    if( mode == "playgame"):
+        t = cam.getImage().resize(640,480)
+        mask = t.colorDistance(Color.WHITE).binarize().invert().dilate(4)
+        blobs = t.findBlobsFromMask(mask,minsize=t.width*t.height*0.2)
+        output = t
+        if( blobs is not None and blobs[-1].area() > (t.width*t.height*.3)):
+            cm = getColorMatrix(t,blobs)
+            if( cm is not None ):
+                result = estimateColorMatrix(cm)
+                
+                good = userImageIsCorrect(result,gametemplates[0])
+                if( good ):
+                    gameOver = True
+                    gameTime = time.time()-gamestart
+                    mode = "postgame"
+                output = renderResult( t, good, greencheck,greencheckm,redx,redxm) 
+                output = model.sideBySide(output)
+        else:        
+            output = model.sideBySide(output)
+        tt = time.time()-gamestart
+        ttstr = "Elapsed Time %2.2f" % (tt,)
+        output.drawText(ttstr,30,30,color=Color.WHITE,fontsize=50)
+        output.save(disp)
+        time.sleep(0.01)
+        
+    if( mode == "postgame" ):
+       play_slideshow(disp, postgame, 5)
+       mode = "leaderboard"
     
