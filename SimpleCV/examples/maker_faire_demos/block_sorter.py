@@ -2,6 +2,7 @@
 
 from SimpleCV import * 
 import scipy.spatial as ss
+import pickle 
 dispSz = (640+480,480)
 disp = Display(dispSz)
 cam = Camera(2)
@@ -90,7 +91,8 @@ def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=10):
     i = 0
     while facecount < thresh:
         facecount = 0
-        img = leaders[i]
+        tmp = leaders[i]
+        img = tmp[1]
         i = i + 1
         if( i >= l  ):
             i = 0
@@ -102,12 +104,40 @@ def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=10):
             if( f is not None ):
                 facecount = facecount + 1 
 
+def saveLeaderBoard( leaderboard, path="./leaders/"):
+    sz = len(leaderboard)
+    times = []
+    for i in range(0,sz):
+        lead = leaderboard[i]
+        times.append(lead[0])
+        fname = path + str(i) + ".png"
+        lead[1].save(fname)
+    fname = path+"leaders.pkl"
+    pickle.dump( times, open(fname,"wb"))
+    
+def loadLeaderBoard(path="./leaders/"):
+    fname = path + "leaders.pkl"
+    times = pickle.load(open(fname,"rb"))
+    leaderboard = []
+    for i in range(0,len(times)):
+        fname = path + str(i) + ".png"
+        img = Image(fname)
+        leaderboard.append((times[i],img))
+    return leaderboard
+
+def placesOnLeaderBoard( leaderboard, mytime):
+    boardlen = len(leaderboard)
+    for i in range(0,boardlen):
+        if mytime < leaderboard[i]:
+            return i
+    return -1
+
+def updateLeaderboard( leaderboard, mytime, myimage, place ):
+    leaderboard.insert(place,(mytime,myimage))
+    if( len(leaderboard) > 10 ):
+        leaderboard  = leaderboard[0:10]
+    return leaderboard
 #def madeLeaderBoard( mytime, leaderboard ):
-#    boardlen = len(leaderboard)
-#    for i in range(0,boardlen):
-#        if mytime < leaderboard[i]:
-#            return i
-#    return -1
 
 #def replaceLeader( time, img, place, leaderboard):
     
@@ -125,7 +155,7 @@ gametemplates = ImageSet("./truthdata/")
 
 #screeens 
 directions = ImageSet("./directions/")
-leaders = ImageSet("./leaders/")
+#leaders = ImageSet("./leaders/")
 rsg = ImageSet("./rsg/")
 postgame = ImageSet("./postgame/")
 
@@ -138,9 +168,11 @@ face = HaarCascade("../../Features/HaarCascades/face.xml")
 mode = "leaderboard"
 gamestart = time.time()
 gameOver = False
+leaderboard = loadLeaderBoard()
+
 while disp.isNotDone():
     if( mode == "leaderboard"):
-        doLeaderBoard(leaders,faceCam, disp, face)
+        doLeaderBoard(leaderboard,faceCam, disp, face)
         mode = "directions"
         
     if( mode == "directions" ):
@@ -181,6 +213,11 @@ while disp.isNotDone():
         time.sleep(0.01)
         
     if( mode == "postgame" ):
-       play_slideshow(disp, postgame, 5)
-       mode = "leaderboard"
+        play_slideshow(disp, postgame, 5)
+        rank = placesOnLeaderBoard(leaderboard,gameTime) 
+        if( rank > -1 ):
+            lbimg = faceCam.getImage().resize(640,480)
+            leaderboard = updateLeaderboard( leaderboard, gameTime, lbimg, rank )
+            saveLeaderBoard( leaderboard )
+        mode = "leaderboard"
     
