@@ -109,7 +109,7 @@ Steps:
 ## SimpleCV Interactive Shell, or how to run SimpleCV
 
 
-Once you have SimpleCV installed, you can use it in a specialized iPython
+Once you have SimpleCV installed, you can use it in a specialized [IPython](http://ipython.org)
 shell.  This pre-loads all the symbols and gives you some extra functions
 and macros for using SimpleCV.
 
@@ -119,7 +119,16 @@ To run the SimpleCV shell, from the installation directory type:
 
 If for some reason the shell doesn't start, you can always do so manually by running:
 
-	python -m SimpleCV.Shell
+  python -c "import SimpleCV.Shell;SimpleCV.Shell.main()"
+
+
+To run SimpleCV within an ipython notebook:
+
+  from SimpleCV import Display, Image
+  display = Display(displaytype='notebook')
+  image = Image('simplecv')
+  image.save(display)
+  
 
 ---------------------------    
 ## Videos - Tutorials and Demos
