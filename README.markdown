@@ -119,15 +119,15 @@ To run the SimpleCV shell, from the installation directory type:
 
 If for some reason the shell doesn't start, you can always do so manually by running:
 
-  python -c "import SimpleCV.Shell;SimpleCV.Shell.main()"
+	python -c "import SimpleCV.Shell;SimpleCV.Shell.main()"
 
 
 To run SimpleCV within an ipython notebook:
 
-  from SimpleCV import Display, Image
-  display = Display(displaytype='notebook')
-  image = Image('simplecv')
-  image.save(display)
+	from SimpleCV import Display, Image
+	display = Display(displaytype='notebook')
+	image = Image('simplecv')
+	image.save(display)
   
 
 ---------------------------    
