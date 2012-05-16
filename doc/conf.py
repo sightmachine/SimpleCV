@@ -60,6 +60,7 @@ if on_rtd:
                   'orngTest',
                   'orngStat',
                   'orngEnsemble',
+                  'stats.stats',
                   ]
 
   for mod_name in MOCK_MODULES:
