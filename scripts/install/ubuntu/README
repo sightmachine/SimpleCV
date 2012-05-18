@@ -1,0 +1,10 @@
+Run the open cv installer first:
+sh opencv-install.sh
+
+Then install SimpleCV with:
+sh simplecv-install.sh
+
+--------------------------------------------------------------------------
+This installer has been tested on:
+Ubuntu 10.10
+
