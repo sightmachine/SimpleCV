@@ -20,7 +20,7 @@ once you've done that, doublecheck and make sure everything you expect is there.
 Then you will need to launch:
 /Developers/Application/Utlilities/PackageMaker
 
-Name is "Ingenuitas Inc"
+Name is "Sight Machine Inc"
 
 Click on the package, tab to components:
  - Package name should be "SimpleCV Superpack Version #"

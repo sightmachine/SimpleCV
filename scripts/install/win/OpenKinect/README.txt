@@ -40,15 +40,10 @@ C:\Program Files\SimpleCV Superpack\simplecv-git\SimpleCV\examples\kinect-colori
 We hope to have an on-line tutorial in a couple of days to help you out if you get stuck.
 If you run into trouble you can just ping the team on Twitter at:
 
-@ingenuitasinc or @simple_cv
+@sightmachine or @simple_cv
 
-We should have a tutorial up on the kinect on our youtube page:
-
-http://www.youtube.com/user/IngenuitasOfficial
-
-Finally if you are really stuck try talking to us personally:
-
-kscott@ingenuitas.com
+Or visit our forums:
+http://help.simplecv.org
 
 *********************************************************************
 Have Fun
