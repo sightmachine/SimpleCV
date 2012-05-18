@@ -29,6 +29,7 @@ import time
 from SimpleCV.Shell.Tutorial import *
 from SimpleCV.Shell.Cheatsheet import *
 from SimpleCV.Shell.Example import *
+from SimpleCV import __version__ as SIMPLECV_VERSION
 
 IPVER = 0
 
@@ -73,40 +74,17 @@ def magic_clear(self, arg):
   shellclear()
 
 
-def magic_editor(self, arg):
-
-    os_type = platform.system().lower()
-    print "please wait while checking for editor updates..."
-    time.sleep(2)
-    if os_type == "windows":
-        print "Currently windows can't auto install the editor"
-        print "this is a limitation of git on windows"
-        return
-
-    else:
-        cmd = "git submodule update --init --recursive"
-        call(["git","submodule","update","--init","--recursive"])
-        path = "./SimpleCV/utils/cloud9/bin/cloud9.sh"
-
-
-
-    #~ call(cmd) # update the editor
-
-    print "...checking for updates complete"
-    print "launching the editor"
-    flags = "-w"
-    args = "../../"
-    Popen([path, flags, args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
 
 def setup_shell():
 
-  banner = '+----------------------------------------------------+\n'
-  banner += ' SimpleCV [interactive shell] - http://simplecv.org\n'
-  banner += '+----------------------------------------------------+\n'
+  banner = '+-----------------------------------------------------------+\n'
+  banner += ' SimpleCV '
+  banner += SIMPLECV_VERSION
+  banner += ' [interactive shell] - http://simplecv.org\n'
+  banner += '+----------------------------------------------------------+\n'
   banner += '\n'
   banner += 'Commands: \n'
   banner += '\t"exit()" or press "Ctrl+ D" to exit the shell\n'
@@ -119,12 +97,8 @@ def setup_shell():
   banner += '\tdot complete works to show library\n'
   banner += '\tfor example: Image().save("/tmp/test.jpg") will dot complete\n'
   banner += '\tjust by touching TAB after typing Image().\n'
-  banner += 'API Documentation:\n'
-  banner += '\t"help function_name" will give in depth documentation of API\n'
-  banner += '\texample: help Image\n'
-  banner += 'Editor:\n'
-  banner += '\t"editor" will run the SimpleCV code editor in a browser\n'
-  banner += '\t\texample:'
+  banner += 'Documentation:\n'
+  banner += '\texample:'
   banner += 'help Image or ?Image\n'
   banner += '\t\twill give the in-depth information about that class\n'
   banner += '\t"?function_name" will give the quick API documentation\n'
@@ -146,7 +120,6 @@ def setup_shell():
     scvShell.IP.api.expose_magic("clear", magic_clear)
     scvShell.IP.api.expose_magic("cheatsheet", magic_cheatsheet)
     scvShell.IP.api.expose_magic("example", magic_examples)
-    scvShell.IP.api.expose_magic("editor", magic_editor)
 
     return scvShell
 
@@ -162,7 +135,6 @@ def setup_shell():
     scvShell.define_magic("clear", magic_clear)
     scvShell.define_magic("cheatsheet", magic_cheatsheet)
     scvShell.define_magic("example", magic_examples)
-    scvShell.define_magic("editor", magic_editor)
 
     return scvShell
 
