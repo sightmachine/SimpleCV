@@ -1188,7 +1188,7 @@ def test_blob_methods():
         b.minRectHeight()
         b.minRectX()
         b.minRectY()
-        b.center()
+        b.centroid()
         b.contour()
         b.aspectRatio() 
         b.blobImage()
