@@ -34,6 +34,10 @@ The easiest way to install SimpleCV is with the packages for your distribution (
 
 then just run 'simplecv' from the shell.
 
+### Arch Linux
+    pacman -S python2-numpy opencv2.3.1_a-4 python-pygame python2-setuptools ipython2 python2-pip
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+
 ### Mac OS X (10.6 and above)
 
 Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
