@@ -1,0 +1,2 @@
+from SimpleCV import *
+system()
