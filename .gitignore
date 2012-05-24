@@ -14,3 +14,4 @@ SimpleCV/utils/*
 SimpleCV/utils/
 SimpleCV/tests/*.pkl
 *.ipynb
+*.komodoproject
