@@ -383,7 +383,7 @@ def test_detection_blobs():
     result = [img]
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs"
-    perform_diff(result,name_stem)
+    perform_diff(result,name_stem,5.00)
 
     if blobs == None:
         assert False
@@ -395,7 +395,7 @@ def test_detection_blobs_adaptive():
     blobs.draw(color=Color.RED)
     result = [img]
     name_stem = "test_detection_blobs_adaptive"
-    perform_diff(result,name_stem)
+    perform_diff(result,name_stem,5.00)
 
     if blobs == None:
         assert False
