@@ -6,6 +6,7 @@ import pickle
 import copy
 dispSz = (640+480,480)
 disp = Display(dispSz)
+pg.display.toggle_fullscreen()
 print "LOADING CAM 2"
 cam = Camera(2)
 time.sleep(1)
@@ -103,7 +104,7 @@ def play_slideshow( disp, imgset, timestep,sound=None):
         sound.play()
     return
 
-def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=30):
+def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=2):
     # loop the leader board until we see a face
     pg.mixer.music.load("final.mid")
     pg.mixer.music.play(-1)
@@ -111,7 +112,7 @@ def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=30):
     l = len(leaders)
     i = 0
     start = time.time()
-    while facecount < thresh or time.time()-start < 30.0 : #Runs for 30s 
+    while facecount < thresh or time.time()-start < 10.0 : #Runs for 30s 
         facecount = 0
         tmp = leaders[i]
         img = tmp[1]
@@ -120,11 +121,12 @@ def doLeaderBoard( leaders, faceCam, disp, haarface,  thresh=30):
             i = 0
         img.save(disp)
         t0 = time.time()
-        while( time.time()-t0 < 5.0):
+        while( time.time()-t0 < 1.0):
             img = faceCam.getImage().resize(320,240)
             f = img.findHaarFeatures(face)
             if( f is not None ):
                 facecount = facecount + 1 
+        
     pg.mixer.music.stop()
 
 def saveLeaderBoard( leaderboard, path="./leaders/"):
@@ -169,7 +171,7 @@ def doConfirmation( faceCam, disp ):
     last = faceCam.getImage().resize(640,480)
     rhs = 0
     lhs = 0 
-    framecount = 3
+    framecount = 7
     lhs_threshold = 300000
     rhs_threshold = 300000
     retVal = False
@@ -195,7 +197,7 @@ def doConfirmation( faceCam, disp ):
             retVal = True
         elif( rhs > framecount ):
             gotResult = True
-            retVal = False
+            retVal = True
 
         if(time.time()-start > 60.00):
             gotResult = True
@@ -235,15 +237,15 @@ leaderboard = loadLeaderBoard()
 while disp.isNotDone():
     if( mode == "leaderboard"):
         doLeaderBoard(leaderboard,faceCam, disp, face)
-        mode = "directions"
+        mode = "confirm"
         
     if( mode == "directions" ):
         play_slideshow(disp, directions, 5,aBeep)
-        mode = "confirm"
+        mode = "rsg"
 
     if( mode == "confirm"):
         if( doConfirmation( cam, disp ) ):
-            mode = "rsg" 
+            mode = "directions" 
         else:
             mode = "leaderboard"
         
@@ -310,15 +312,17 @@ while disp.isNotDone():
         timeScore = postgame[0].copy()
         timeScore.drawText(ts,200,240,color=Color.GREEN,fontsize=150)
         endshow = [timeScore, postgame[1],postgame[2],postgame[3]]
-        play_slideshow(disp, endshow , 3,aBeep)
+        play_slideshow(disp, endshow ,2,aBeep)
         rank = placesOnLeaderBoard(leaderboard,gameTime) 
+        for i in range(0,30):
+            frame = Image("winner.png")
+            frameMask = Image("winnerMask.png")
+            lbimg = faceCam.getImage().resize(640,480)
+            lbimg = lbimg.blit(frame,mask=frameMask)
+            lbimg.drawText(ts,200,420,color=Color.BLACK,fontsize=50)
+            lbimg.save(disp)
+
         shutter.play()
-        frame = Image("winner.png")
-        frameMask = Image("winnerMask.png")
-        lbimg = faceCam.getImage().resize(640,480)
-        lbimg = lbimg.blit(frame,mask=frameMask)
-        lbimg.drawText(ts,200,420,color=Color.BLACK,fontsize=50)
-        lbimg.save(disp)
         time.sleep(5)
         if( rank > -1 ):
             leaderboard = updateLeaderboard( leaderboard, gameTime, lbimg, rank )
