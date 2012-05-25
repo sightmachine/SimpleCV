@@ -10,7 +10,7 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 import copy # for deep copy
-
+#import scipy.stats.mode as spsmode
 
 
 class ColorSpace:
@@ -9244,17 +9244,31 @@ class Image:
         features = os.listdir(features_directory)
         print features
 
-    def _CopyAvg(self, src, dst,roi, levels, levels_f):
-        cv.SetImageROI(src,roi)
-        cv.SetImageROI(dst,roi)
-        avg = cv.Avg(src)
-        if(levels is not None):
-            avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
-        cv.AddS(dst,avg,dst)
-        cv.ResetImageROI(src)
-        cv.ResetImageROI(dst)
+    def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
+        '''
+        Take the value in an ROI, calculate the average / peak hue
+        and then set the output image roi to the value. 
+        '''
 
-    def pixelize(self, block_size = 10, region = None, levels=None ):
+        if( mode ): # get the peak hue for an area
+            h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
+            myHue = np.argmax(h)
+            c = (float(myHue),float(255),float(255),float(0))
+            cv.SetImageROI(dst,roi)
+            cv.AddS(dst,c,dst)
+            cv.ResetImageROI(dst)
+        else: # get the average value for an area optionally set levels
+            cv.SetImageROI(src.getBitmap(),roi)
+            cv.SetImageROI(dst,roi)
+            avg = cv.Avg(src.getBitmap())
+            avg = (float(avg[0]),float(avg[1]),float(avg[2]),0)
+            if(levels is not None):
+                avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
+            cv.AddS(dst,avg,dst)
+            cv.ResetImageROI(src.getBitmap())
+            cv.ResetImageROI(dst)
+
+    def pixelize(self, block_size = 10, region = None, levels=None, doHue=False):
         """
         **SUMMARY**
 
@@ -9265,6 +9279,8 @@ class Image:
         * *block_size* - the blur block size in pixels, an integer is an square blur, a tuple is rectangular.
         * *region* - do the blur in a region in format (x_position,y_position,width,height)
         * *levels* - the number of levels per color channel. This makes the image look like an 8-bit video game.
+        * *doHue* - If this value is true we calculate the peak hue for the area, not the 
+          average color for the area. 
         
         **RETURNS**
         
@@ -9277,11 +9293,13 @@ class Image:
         >>> img.show()
 
         """
+
         if( isinstance(block_size, int) ):
             block_size = (block_size,block_size)
 
         
         retVal = self.getEmpty()
+        
 
         levels_f = 0.00
         if( levels is not None ):
@@ -9324,7 +9342,7 @@ class Image:
                 xt = x_0+(block_size[0]*i)
                 yt = y_0+(block_size[1]*j)
                 roi = (xt,yt,block_size[0],block_size[1])
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
 
         if( x_lhs > 0 ): # add a left strip
@@ -9334,7 +9352,7 @@ class Image:
             for j in range(0,vc):
                 yt = y_0+(j*block_size[1])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
                 
 
         if( x_rhs > 0 ): # add a right strip
@@ -9344,7 +9362,7 @@ class Image:
             for j in range(0,vc):
                 yt = y_0+(j*block_size[1])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if( y_lhs > 0 ): # add a left strip
             yt = ys
@@ -9353,7 +9371,7 @@ class Image:
             for i in range(0,hc):
                 xt = x_0+(i*block_size[0])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
                 
         if( y_rhs > 0 ): # add a right strip
             yt = (y_0+(block_size[1]*vc)) 
@@ -9362,25 +9380,28 @@ class Image:
             for i in range(0,hc):
                 xt = x_0+(i*block_size[0])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         #now the corner cases
         if(x_lhs > 0 and y_lhs > 0 ):
             roi = (xs,ys,x_lhs,y_lhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(x_rhs > 0 and y_rhs > 0 ):
             roi = (x_f,y_f,x_rhs,y_rhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(x_lhs > 0 and y_rhs > 0 ):
             roi = (xs,y_f,x_lhs,y_rhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(x_rhs > 0 and y_lhs > 0 ):
             roi = (x_f,ys,x_rhs,y_lhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
             
+        if(doHue):
+            cv.CvtColor(retVal,retVal,cv.CV_HSV2BGR)
+
 
         return Image(retVal) 
                     
@@ -9391,6 +9412,13 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+
+    def area(self):
+      '''
+      Returns the area of the Image.
+      '''
+
+      return self.width * self.height
         
 
 Image.greyscale = Image.grayscale
