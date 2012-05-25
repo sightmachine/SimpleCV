@@ -9419,6 +9419,13 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+
+    def area(self):
+      '''
+      Returns the area of the Image.
+      '''
+
+      return self.width * self.height
         
 
 Image.greyscale = Image.grayscale

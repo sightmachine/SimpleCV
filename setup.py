@@ -21,7 +21,7 @@ setup(name="SimpleCV",
     'Topic :: Scientific/Engineering :: Image Recognition',
     'Topic :: Software Development :: Libraries :: Python Modules'],
   keywords='opencv, cv, machine vision, computer vision, image recognition, kinect, freenect',
-  author='Ingenuitas Inc',
+  author='Sight Machine Inc',
   author_email='support@ingenuitas.com',
   url='http://simplecv.org',
   license='BSD',
@@ -29,8 +29,7 @@ setup(name="SimpleCV",
   zip_safe = False,
   requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
   package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
-            'SimpleCV': ['sampleimages/*'],
-            'SimpleCV':['Features/HaarCascades/*'],
+            'SimpleCV': ['sampleimages/*','Features/HaarCascades/*'],
   },
   scripts=['scripts/simplecv']
 
