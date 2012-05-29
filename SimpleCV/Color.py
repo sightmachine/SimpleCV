@@ -7,6 +7,7 @@ import random
 from SimpleCV.base import *
 from SimpleCV.ImageClass import * 
 from pickle import *
+from math import cos, radians, ceil
   
 class Color:
     """
@@ -162,6 +163,71 @@ class Color:
         """
         hsv_float = colorsys.rgb_to_hsv(*tuple)
         return (hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2])
+        
+    @classmethod
+    def huetoRGB(self, h):
+        """
+        **SUMMARY**
+
+        Get corresponding RGB values of the given Hue
+        
+        **PARAMETERS**
+        
+        * *int* - a hue int to convert to RGB
+
+        **RETURNS**
+
+        A color tuple in RGB format.
+
+        **EXAMPLE**
+        
+        >>> c = Color.huetoRGB(0)
+        
+        """
+        s = 1.0
+        if 0 <= h <= 120:
+            b = (1-s)/3.0
+            r = (1.0+(s*cos(radians(h))/cos(radians(60-h))))/3.0
+            g = 1 - (b+r)
+
+        if 120 < h <= 240:
+            h = h - 120
+            r = (1-s)/3.0
+            g = (1.0+(s*cos(radians(h))/cos(radians(60-h))))/3.0
+            b = 1 - (r+g)
+
+        if 240 < h <= 360:
+            h = h - 240
+            g = (1-s)/3.0
+            b = (1.0+(s*cos(radians(h))/cos(radians(60-h))))/3.0
+            r = 1 - (g+b)	
+        
+        if h > 360 or h < 0:
+            print "Invalid value of Hue. 0 <= Hue <=360"
+            return None
+        return (round(255.0*r),round(255.0*g),round(255.0*b))
+        
+    @classmethod
+    def huetoBGR(self,h):
+        """
+        **SUMMARY**
+
+        Get corresponding BGR values of the given Hue
+        
+        **PARAMETERS**
+        
+        * *int* - a hue int to convert to BGR
+
+        **RETURNS**
+
+        A color tuple in BGR format.
+
+        **EXAMPLE**
+        
+        >>> c = Color.huetoBGR(0)
+        
+        """
+        return(tuple(reversed(self.huetoRGB(h))))
          
 
 class ColorCurve:
