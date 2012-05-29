@@ -618,6 +618,7 @@ class VirtualCamera(FrameSource):
           
         >>> vc = VirtualCamera("img.jpg", "image")
         >>> vc = VirtualCamera("video.mpg", "video")
+        >>> vc = VirtualCamera("./path_to_images/", "imageset")
 
         """
         self.source = s

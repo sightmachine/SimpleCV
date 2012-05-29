@@ -2635,7 +2635,10 @@ class Image:
         :py:class:`DrawingLayer`
 
         """
-        self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
+        if( thickness < 0):
+            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness),filled=True)
+        else:
+            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
     
     
     def drawLine(self, pt1, pt2, color = (0, 0, 0), thickness = 1):
@@ -9253,7 +9256,7 @@ class Image:
         if( mode ): # get the peak hue for an area
             h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
             myHue = np.argmax(h)
-            c = (float(myHue),float(255),float(255),float(0))
+            C = (float(myHue),float(255),float(255),float(0))
             cv.SetImageROI(dst,roi)
             cv.AddS(dst,c,dst)
             cv.ResetImageROI(dst)
