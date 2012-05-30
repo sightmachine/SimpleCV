@@ -9408,6 +9408,43 @@ class Image:
 
         return Image(retVal) 
                     
+    def edgeIntersection(self, pt0, pt1, width=1, canny1=0, canny2=100):
+        """
+        **SUMMARY** 
+        
+        find the outermost intersection of a line segment and the edge image. 
+        """
+        w = abs(pt0[0]-pt1[0])
+        h = abs(pt0[1]-pt1[1])
+        x = np.min([pt0[0],pt1[0]])
+        y = np.min([pt0[1],pt1[1]])
+        if( w <= 0 ):
+            w = width
+            x = x-(width/2)
+        if( h <= 0 ):
+            h = height 
+            y = y-(width/2)
+        #got some corner cases to catch here
+        p0p = np.array([(pt0[0]-x,pt0[1]-y)])
+        p1p = np.array([(pt1[0]-x,pt1[1]-y)])
+        edges = self.crop(x,y,w,h)._getEdgeMap(canny1, canny2)
+        line = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,1)
+        cv.Zero(line)
+        cv.Line(line,((pt0[0]-x),(pt0[1]-y)),((pt1[0]-x),(pt1[1]-y)),cv.Scalar(255.00),width,8)
+        cv.Mul(line,edges,line)
+        intersections = uint8(np.array(cv.GetMat(line)).transpose())
+        (xs,ys) = np.where(intersections==255)
+        points = zip(xs,ys)
+        A = np.argmin(spsd.cdist(p0p,points,'euclidean'))
+        B = np.argmin(spsd.cdist(p1p,points,'euclidean'))
+        ptA = (xs[A]+x,ys[A]+y)
+        ptB = (xs[B]+x,ys[B]+y)
+        #retVal = Image(self._getEdgeMap(canny1,canny2))
+        #retVal.drawLine(pt0,pt1,color=Color.WHITE)
+        #retVal.drawCircle(ptA,width,color=Color.RED)
+        #retVal.drawCircle(ptB,width,color=Color.RED)
+        return ptA, ptB #, retVal          
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
