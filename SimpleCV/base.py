@@ -57,12 +57,6 @@ except ImportError:
     except ImportError:
         PIL_ENABLED = False
 
-ZXING_ENABLED = True
-try:
-    import zxing
-except ImportError:
-    ZXING_ENABLED = False
-
 FREENECT_ENABLED = True
 try:
     import freenect

@@ -286,7 +286,7 @@ class Barcode(Feature):
     """
     **SUMMARY**
 
-    The Barcode Feature wrappers the object returned by findBarcode(), a python-zxing object.
+    The Barcode Feature wrappers the object returned by findBarcode(), a zbar symbol
   
     * The x,y coordinate is the center of the code.
     * points represents the four boundary points of the feature.  Note: for QR codes, these points are the reference rectangls, and are quadrangular, rather than rectangular with other datamatrix types. 
@@ -299,13 +299,24 @@ class Barcode(Feature):
     data = ""
   
     #given a ZXing bar
-    def __init__(self, i, zxbc):
-        self.image = i 
-        points = copy(zxbc.points) # hopefully this is in tl clockwise order
-        super(Barcode, self).__init__(i, at_x, at_y,points)        
-        self.data = zxbc.data.rstrip()
-        self.points = copy(zxbc.points)
+    def __init__(self, i, zbsymbol):
+        self.image = i
 
+        locs = zbsymbol.location
+        if len(locs) > 4:
+          xs = [l[0] for l in locs]
+          ys = [l[1] for l in locs]
+          xmax = np.max(xs)
+          xmin = np.min(xs)
+          ymax = np.max(ys)
+          ymin = np.min(ys)
+          points = ((xmin, ymin),(xmin,ymax),(xmax, ymax),(xmax,ymin))
+        else:
+          points = copy(locs) # hopefully this is in tl clockwise order
+          
+        super(Barcode, self).__init__(i, 0, 0,points)        
+        self.data = zbsymbol.data
+        self.points = copy(points)
         numpoints = len(self.points)
         self.x = 0
         self.y = 0
