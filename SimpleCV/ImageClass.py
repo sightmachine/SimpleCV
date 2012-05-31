@@ -9408,6 +9408,82 @@ class Image:
 
         return Image(retVal) 
                     
+    def edgeIntersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
+        """
+        **SUMMARY** 
+        
+        Find the outermost intersection of a line segment and the edge image and return
+        a list of the intersection points. If no intersections are found the method returns
+        an empty list. 
+        
+        **PARAMETERS**
+        
+        * *pt0* - an (x,y) tuple of one point on the intersection line.
+        * *pt1* - an (x,y) tuple of the second point on the intersection line.
+        * *width* - the width of the line to use. This approach works better when
+                    for cases where the edges on an object are not always closed 
+                    and may have holes.
+        * *canny1* - the lower bound of the Canny edge detector parameters.
+        * *canny2* - the upper bound of the Canny edge detector parameters.
+
+        **RETURNS**
+        
+        A list of two (x,y) tuples or an empty list.
+
+        **EXAMPLE**
+
+        >>> img = Image("SimpleCV")
+        >>> a = (25,100)
+        >>> b = (225,110)
+        >>> pts = img.edgeIntersections(a,b,width=3)
+        >>> e = img.edges(0,100)
+        >>> e.drawLine(a,b,color=Color.RED)
+        >>> e.drawCircle(pts[0],10,color=Color.GREEN)
+        >>> e.drawCircle(pts[1],10,color=Color.GREEN)
+        >>> e.show()
+
+        img = Image("SimpleCV")
+        a = (25,100)
+        b = (225,100)
+        pts = img.edgeIntersections(a,b,width=3)
+        e = img.edges(0,100)
+        e.drawLine(a,b,color=Color.RED)
+        e.drawCircle(pts[0],10,color=Color.GREEN)
+        e.drawCircle(pts[1],10,color=Color.GREEN)
+        e.show()
+
+
+        """
+        w = abs(pt0[0]-pt1[0])
+        h = abs(pt0[1]-pt1[1])
+        x = np.min([pt0[0],pt1[0]])
+        y = np.min([pt0[1],pt1[1]])
+        if( w <= 0 ):
+            w = width
+            x = np.clip(x-(width/2),0,x-(width/2))
+        if( h <= 0 ):
+            h = width 
+            y = np.clip(y-(width/2),0,y-(width/2))
+        #got some corner cases to catch here
+        p0p = np.array([(pt0[0]-x,pt0[1]-y)])
+        p1p = np.array([(pt1[0]-x,pt1[1]-y)])
+        edges = self.crop(x,y,w,h)._getEdgeMap(canny1, canny2)
+        line = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,1)
+        cv.Zero(line)
+        cv.Line(line,((pt0[0]-x),(pt0[1]-y)),((pt1[0]-x),(pt1[1]-y)),cv.Scalar(255.00),width,8)
+        cv.Mul(line,edges,line)
+        intersections = uint8(np.array(cv.GetMat(line)).transpose())
+        (xs,ys) = np.where(intersections==255)
+        points = zip(xs,ys)
+        if(len(points)==0):
+            return [None,None]
+        A = np.argmin(spsd.cdist(p0p,points,'cityblock'))
+        B = np.argmin(spsd.cdist(p1p,points,'cityblock'))
+        ptA = (xs[A]+x,ys[A]+y)
+        ptB = (xs[B]+x,ys[B]+y)
+        # we might actually want this to be list of all the points
+        return [ptA, ptB]          
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
