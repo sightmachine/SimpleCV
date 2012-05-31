@@ -2487,4 +2487,43 @@ def test_pixelize():
   name_stem = "test_pixelize"
   perform_diff(results,name_stem,tolerance=6.0)        
   
+def test_point_intersection():
+  img = Image("simplecv")
+  e = img.edges(0,100)
+  for x in range(25,225,25):
+    a = (x,25)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
+
+  for x in range(25,225,25):
+    a = (25,x)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
     
+  for x in range(25,225,25):
+    a = (x,225)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
+
+  for x in range(25,225,25):
+    a = (225,x)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
+    
+  results = [e]
+  name_stem = "test_point_intersection"
+  perform_diff(results,name_stem,tolerance=6.0)        
+  
+ 
+
+
+
+  
