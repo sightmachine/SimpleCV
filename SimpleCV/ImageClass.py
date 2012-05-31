@@ -30,7 +30,7 @@ class ColorSpace:
     HLS = 4
     HSV = 5
     XYZ  = 6
-
+    YCrCb = 7
   
 class ImageSet(list):
     """
@@ -947,6 +947,28 @@ class Image:
         """
         return(self._colorSpace==ColorSpace.GRAY)    
 
+    def isYCrCb(self):
+        """
+        **SUMMARY**
+
+        Returns true if this image uses the YCrCb colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the YCrCb colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isYCrCb() ):
+        >>>    Y,Cr,Cb = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toYCrCb`
+        
+        """
+        return(self._colorSpace==ColorSpace.YCrCb)
+    
     def toRGB(self):
         """
         **SUMMARY**
@@ -980,6 +1002,8 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)    
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)    
         elif( self._colorSpace == ColorSpace.RGB ):
             retVal = self.getBitmap()
         else:
@@ -1020,6 +1044,8 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2BGR)    
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2BGR)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2BGR)    
         elif( self._colorSpace == ColorSpace.BGR ):
             retVal = self.getBitmap()    
         else:
@@ -1063,6 +1089,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)        
         elif( self._colorSpace == ColorSpace.HLS ):
             retVal = self.getBitmap()      
         else:
@@ -1105,6 +1134,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)        
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = self.getBitmap()      
         else:
@@ -1148,6 +1180,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.HSV ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)            
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = self.getBitmap()      
         else:
@@ -1181,7 +1216,7 @@ class Image:
 
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
-                self._colorSpace == ColorSpace.UNKNOWN ):
+            	self._colorSpace == ColorSpace.UNKNOWN ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.RGB):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2GRAY)
@@ -1193,11 +1228,61 @@ class Image:
             cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)  
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)        
+        elif( self._colorSpace == ColorSpace.GRAY ):
+            retVal = self.getBitmap()
         else:
             logger.warning("Image.toGray: There is no supported conversion to gray colorspace")
             return None
-        return Image(retVal, colorSpace = ColorSpace.GRAY )    
+        return Image(retVal, colorSpace = ColorSpace.GRAY )   
+        
+    def toYCrCb(self):
+        """
+        **SUMMARY**
+
+        This method attemps to convert the image to the YCrCb colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> RGBImg = img.toYCrCb()
+
+        **SEE ALSO**
+
+        :py:meth:`isYCrCb`
+        
+        """
+
+        retVal = self.getEmpty()
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2YCrCb)
+        elif( self._colorSpace == ColorSpace.RGB ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.HSV ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.HLS ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)    
+        elif( self._colorSpace == ColorSpace.XYZ ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            retVal = self.getBitmap()      
+        else:
+            logger.warning("Image.toYCrCb: There is no supported conversion to YCrCb colorspace")
+            return None
+        return Image(retVal, colorSpace=ColorSpace.YCrCb )     
     
     
     def getEmpty(self, channels = 3):
