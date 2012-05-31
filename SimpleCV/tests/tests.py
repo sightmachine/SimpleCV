@@ -2485,7 +2485,156 @@ def test_pixelize():
 
   results = [img1,img2,img3,img4,img5,img6,img7,img8] #img9,img10,img11,img12,img13,img14,img15,img16]
   name_stem = "test_pixelize"
-  perform_diff(results,name_stem,tolerance=6.0)        
+  perform_diff(results,name_stem,tolerance=6.0)
+  
+def test_hueFromRGB():
+    img = Image("lenna")
+    img_hsv = img.toHSV()
+    h,s,r = img_hsv[100,300]
+    err = 2
+    hue = Color.getHueFromRGB(img[100,300])
+    if hue > h - err and hue < h + err:
+        pass
+    else:
+        assert False
+        
+def test_hueFromBGR():
+    img = Image("lenna")
+    img_hsv = img.toHSV()
+    h,s,r = img_hsv[150,400]
+    err = 2
+    color_tuple = tuple(reversed(img[150,400]))
+    hue = Color.getHueFromBGR(color_tuple)
+    if hue > h - err and hue < h + err:
+        pass
+    else:
+        assert False
+        
+def test_hueToRGB():
+    r,g,b = Color.hueToRGB(0)
+    if (r,g,b)== (255,0,0):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(15)
+    if (r,g,b) == (255,128,0):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(30)
+    if (r,g,b) == (255,255,0):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(45)
+    if (r,g,b) == (128,255,0):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(60)
+    if (r,g,b) == (0,255,0):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(75)
+    if (r,g,b) == (0,255,128):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(90)
+    if (r,g,b) == (0,255,255):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(105)
+    if (r,g,b) == (0,128,255):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(120)
+    if (r,g,b) == (0,0,255):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(135)
+    if (r,g,b) == (128,0,255):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(150)
+    if (r,g,b) == (255,0,255):
+        pass
+    else:
+        assert False
+    r,g,b = Color.hueToRGB(165)
+    if (r,g,b) == (255,0,128):
+        pass
+    else:
+        assert False
+        
+def test_hueToBGR():
+    b,g,r = Color.hueToBGR(0)
+    if (r,g,b)== (255,0,0):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(15)
+    if (r,g,b) == (255,128,0):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(30)
+    if (r,g,b) == (255,255,0):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(45)
+    if (r,g,b) == (128,255,0):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(60)
+    if (r,g,b) == (0,255,0):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(75)
+    if (r,g,b) == (0,255,128):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(90)
+    if (r,g,b) == (0,255,255):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(105)
+    if (r,g,b) == (0,128,255):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(120)
+    if (r,g,b) == (0,0,255):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(135)
+    if (r,g,b) == (128,0,255):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(150)
+    if (r,g,b) == (255,0,255):
+        pass
+    else:
+        assert False
+    b,g,r= Color.hueToBGR(165)
+    if (r,g,b) == (255,0,128):
+        pass
+    else:
+        assert False
+        
+    
   
 def test_point_intersection():
   img = Image("simplecv")
