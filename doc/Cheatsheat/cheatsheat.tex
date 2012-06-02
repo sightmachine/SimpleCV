@@ -16,107 +16,108 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   Reading an image & imread('lenna.png')  & cvLoadImage('lenna.png') & Image('lenna.png')\\ [0.3cm]
-  Converting the image \\ to RGB colorspace & filllllllllllllllllllllllll & CvtColor(bitmap, retVal, CV\_BGR2RGB) & img.toRGB() \\ [0.4cm]
-  Converting the image \\ to BGR colorspace & fill & CvtColor(bitmap, retVal, CV\_RGB2BGR) & img.toBGR()\\ [0.4cm] 
-  Converting the image \\ to HLS colorspace & fill & CvtColor(bitmap, retVal, CV\_RGB2HLS) & img.toHLS()\\ [0.4cm]
-  Converting the image \\ to HSV colorspace & fill & CvtColor(bitmap, retVal, CV\_RGB2HSV) & img.toHSV()\\ [0.4cm]
-  Converting the image \\ to XYZ colorspace & fill & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
+  Converting the image \\ to RGB colorspace & hsv2rgb(hsv\_image) or ind2rgb(X, map) & CvtColor(bitmap, retVal, CV\_BGR2RGB) & img.toRGB() \\ [0.4cm]
+  Converting the image \\ to BGR colorspace & - & CvtColor(bitmap, retVal, CV\_RGB2BGR) & img.toBGR()\\ [0.4cm] 
+  Converting the image \\ to HLS colorspace & - & CvtColor(bitmap, retVal, CV\_RGB2HLS) & img.toHLS()\\ [0.4cm]
+  Converting the image \\ to HSV colorspace & rgb2hsv(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2HSV) & img.toHSV()\\ [0.4cm]
+  Converting the image \\ to XYZ colorspace & cform = makecform('srgb2xyz'); applycform(rgb,cform);  & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
   \end{tabular}
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   
-  Converting the image \\ to GRAY colorspace & fill & CvtColor(bitmap, retVal, CV\_RGB2GRAY) & img.toGray()\\ [0.6cm]
+  Converting the image \\ to GRAY colorspace & rgb2gray(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2GRAY) & img.toGray()\\ [0.6cm]
   
-  Create a new, empty \\ OpenCV bitmap & fill & SetZero(bitmap) & img.getEmpty(channels)\\ [0.8cm]
+  Create a new, empty \\ OpenCV bitmap & zeros(H, W, C) & SetZero(bitmap) & img.getEmpty(channels)\\ [0.8cm]
   
-  Full copy of the image &  fill & Copy(bitmap, newimg) & img.copy()\\ [.4cm]
+  Full copy of the image & newimg = img & Copy(bitmap, newimg) & img.copy()\\ [.4cm]
   
-  Resize the image & filllllllllllllllllllllllll& Resize(bitmap, scaled\_bitmap) & img.resize(x,y) \\ [.4cm]
+  Resize the image & imresize(img, scale) & Resize(bitmap, scaled\_bitmap) & img.resize(x,y) \\ [.4cm]
   
-  Smooth the image & & Smooth(r, ro, algorithm, win\_x, win\_y, &img.smooth(algorithm\_name, aperature,\\
+  Smooth the image & H = fspecial(\textit{type}); imfilter(I,H) & Smooth(r, ro, algorithm, win\_x, win\_y, &img.smooth(algorithm\_name, aperature,\\
   & & sigma, spatial\_sigma) &sigma, spatial\_sigma, grayscale) \\[.4cm]
   
-  Invert image & & & img.invert() \\[.3cm]
+  Invert image & imcomplement(img) & & img.invert() \\[.3cm]
   
-  Horizontally mirror \\ an image & &Flip(bitmap, newimg\_bitmap, 1) & img.flipHorizontal() \\[.3cm]
+  Horizontally mirror \\ an image & flipdim(img,2) &Flip(bitmap, newimg\_bitmap, 1) & img.flipHorizontal() \\[.3cm]
   
-  Vertically mirror \\ an image & &Flip(bitmap, newimg\_bitmap, 0) & img.flipVertical() \\[.3cm] 
+  Vertically mirror \\ an image & flipdim(img,1) &Flip(bitmap, newimg\_bitmap, 0) & img.flipVertical() \\[.3cm] 
   
-  Stretch filter on  & & Threshold(grayscale\_bitmap, \\
-  a greyscale image& & newimg, thresh\_low, 255,CV\_THRESH\_TOZERO) &img.stretch(thresh\_low, thresh\_high) \\[0.3cm]
+  Stretch filter on  & img(img$<$th\_l) = 0; & Threshold(grayscale\_bitmap, \\
+  a greyscale image&  img(img$>$th\_h) = 255 & newimg, thresh\_low, 255,CV\_THRESH\_TOZERO) &img.stretch(thresh\_low, thresh\_high) \\[0.3cm]
   
   Binary threshold & & Threshold(bitmap, bitmap,\\
-  of the image& & thresh, maxv, CV\_THRESH\_BINARY\_INV) &img.binarize(thresh, maxv, blocksize, p)\\[.3cm]
+  of the image& step(vision.Autothresholder,img) & thresh, maxv, CV\_THRESH\_BINARY\_INV) &img.binarize(thresh, maxv, blocksize, p)\\[.3cm]
   
-  Mean color of the image& & cv.Avg(bitmap)[0:3] & img.meanColor()\\[0.3cm]
+  Mean color of the image& mean(reshape(im, size(im,1)*size(im,2), & &\\
+  & size(im,3))) & cv.Avg(bitmap)[0:3] & img.meanColor()\\[0.3cm]
   
   Finds the FeatureSet  & & GoodFeaturesToTrack(GrayscaleBitmap, eig\_image, &img.findCorners(maxnum, minquality,\\ 
-  strongest corners first & & temp\_image, maxnum, minquality, mindistance, None) &mindistance)\\[.4cm]
+  strongest corners first &  corner(img) & temp\_image, maxnum, minquality, mindistance, None) &mindistance)\\[.4cm]
   
   Blobs are continuous & & &img.findBlobs(threshval, minsize, \\
-  light regions& & &maxsize, threshblocksize, threshconstant) \\[0.3cm]
+  light regions&  step(vision.BlobAnalysis, fg\_img)  & &maxsize, threshblocksize, threshconstant) \\[0.3cm]
   
   Finding the location& & HaarDetectObjects(EqualizedGrayscaleBitmap(),  &findHaarFeatures(self, cascade, scale\_factor,\\
-  of a known object& & cascade.getCascade(), storage, scale\_factor, use\_canny) &  min\_neighbors, use\_canny) \\[0.3cm]
+  of a known object& - & cascade.getCascade(), storage, scale\_factor, use\_canny) &  min\_neighbors, use\_canny) \\[0.3cm]
  
   Uploading the Image & & & \\
-  to Imgur or Flickr & & & img.upload(dest,api\_key,api\_secret,verbose) \\[0.3cm]   
+  to Imgur or Flickr & - & & img.upload(dest,api\_key,api\_secret,verbose) \\[0.3cm]   
 
  \hline
 \end{tabular}
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
-  Draw a circle \\ on the Image & & & img.drawCircle(ctr, rad, color, thickness)\\ [0.3cm]
-  Draw a line & & & img.drawLine(pt1, pt2, color, thickness) \\[0.3cm]
-  Size of image & & GetSize(bitmap)&img.size()\\[0.3cm]
-  Split the image into a & & & img.split(cols, rows)\\
+  Draw a circle \\ on the Image & step(vision.MarkerInserter, img, pts) & & img.drawCircle(ctr, rad, color, thickness)\\ [0.3cm]
+  Draw a line & plot(X\_vector, Y\_vector) & & img.drawLine(pt1, pt2, color, thickness) \\[0.3cm]
+  Size of image & [size(img,1) size(img,2)] & GetSize(bitmap)&img.size()\\[0.3cm]
+  Split the image into a & - & & img.split(cols, rows)\\
   series of image chunks \\[0.3cm]
-  Split the channels & & Split(bitmap, b, g, r, None) &img.splitChannels(grayscale) \\
+  Split the channels & r=img(:,:,1); g=img(:,:,2); b=img(:,:,3) & Split(bitmap, b, g, r, None) &img.splitChannels(grayscale) \\
   of an image into RGB \\[0.3cm]
   Images of R,G,B channels \\
-  are recombined into a & &Merge(b,g,r,None,retVal) & img.mergeChannels(r,b,g) \\
+  are recombined into a & cat(3, r, g, b) &Merge(b,g,r,None,retVal) & img.mergeChannels(r,b,g) \\
   single image\\[0.3cm]
   Apply a color correction\\
-  curve in HSL space& & &img.applyHLSCurve(hCurve, lCurve, sCurve)\\[0.3cm]
+  curve in HSL space& - & &img.applyHLSCurve(hCurve, lCurve, sCurve)\\[0.3cm]
   Apply a color correction\\ 
-  curve in RGB space& & &img.applyRGBCurve(rCurve, gCurve, bCurve)\\[0.3cm]
+  curve in RGB space& - & &img.applyRGBCurve(rCurve, gCurve, bCurve)\\[0.3cm]
   Applies Intensity to \\
-  all three color channels & & & img.applyIntensityCurve(curve)\\[0.3cm]
+  all three color channels & - & & img.applyIntensityCurve(curve)\\[0.3cm]
   Returns image representing \\
-  the distance of each pixel & & &img.colorDistance(color) \\ 
+  the distance of each pixel & - & &img.colorDistance(color) \\ 
   from a given color tuple \\ [0.3cm]
   Apply morphological\\ 
-  erosion to a image& & Erode(bitmap, retVal, kern, iterations) &img.erode(iterations) \\[0.3cm]
+  erosion to a image& imerode(img,SE) & Erode(bitmap, retVal, kern, iterations) &img.erode(iterations) \\[0.3cm]
   Apply morphological\\ 
-  dilation to a image& &Dilate(bitmap, retVal, kern, iterations) & img.dilate(iterations) \\[0.3cm]
+  dilation to a image& imdilate(img,SE) &Dilate(bitmap, retVal, kern, iterations) & img.dilate(iterations) \\[0.3cm]
 \end{tabular}
 
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
-  Histogram equalization & & cv.EqualizeHist(GrayscaleBitmap, & img.equalize() \\
+  Histogram equalization & histeq(img, hgram) & cv.EqualizeHist(GrayscaleBitmap, & img.equalize() \\
   on the image& &  Equalizedgraybitmap )  \\[0.3cm]
-  Returns Image of\\ the string& &  &img.toString() \\[0.3cm]
-  Applies erosion operation & & MorphologyEx(bitmap, retVal, & img.morphOpen()\\
-  followed by a &  &  temp, kern, CV\_MOP\_OPEN, 1)  \\
+  Returns Image of\\ the string& - &  &img.toString() \\[0.3cm]
+  Applies erosion operation &  & MorphologyEx(bitmap, retVal, & img.morphOpen()\\
+  followed by a & imerode(img, SE) &  temp, kern, CV\_MOP\_OPEN, 1)  \\
   morphological dilation \\ [0.3cm]
   The difference between the\\
   morphological dilation and& & MorphologyEx(Bitmap, retVal, & img.morphGradient() \\
-  the morphological gradient & & temp, kern, CV\_MOP\_GRADIENT, 1) \\[0.3cm]
+  the morphological gradient & - & temp, kern, CV\_MOP\_GRADIENT, 1) \\[0.3cm]
   1D histogram(numpy array) \\ 
-  of intensity for pixels & & &img.histogram(numbins)\\
+  of intensity for pixels & step(vision.Histogram,img) & &img.histogram(numbins)\\
   in the image \\[0.3cm]
   The histogram of the hue \\
-  channel for the image& & &img.hueHistogram(bins)\\[0.3cm]
+  channel for the image& - & &img.hueHistogram(bins)\\[0.3cm]
   Returns the peak hue \\
-  values histogram of hues& & &img.huePeaks(bins)\\[0.3cm]
-  Add two images& &Add(imgBitmap, otherBitmap, newBitmap) &img.\_\_add\_\_(other) \\[0.3cm]
-  Subtract two images& &Sub(imgBitmap, otherBitmap, newBitmap) &img.\_\_sub\_\_(other)\\[0.3cm]
-  Or two images& &Or(imgBitmap, otherBitmap, newBitmap) &img.\_\_or\_\_(other)\\[0.3cm]
+  values histogram of hues& - & &img.huePeaks(bins)\\[0.3cm]
+  Add two images& imadd(img1,img2) &Add(imgBitmap, otherBitmap, newBitmap) &img.\_\_add\_\_(other) \\[0.3cm]
+  Subtract two images& imsubtract(img1,img2) &Sub(imgBitmap, otherBitmap, newBitmap) &img.\_\_sub\_\_(other)\\[0.3cm]
+  Or two images& - &Or(imgBitmap, otherBitmap, newBitmap) &img.\_\_or\_\_(other)\\[0.3cm]
   Image division operation\\
-  taking two images as input & &Div(imgBitmap, otherBitmap, newBitmap) &img.\_\_div\_\_(other)\\[0.3cm]
+  taking two images as input & imdivide(img1,img2) &Div(imgBitmap, otherBitmap, newBitmap) &img.\_\_div\_\_(other)\\[0.3cm]
   \end{tabular}
 
 \end{flushleft}
