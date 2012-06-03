@@ -1356,12 +1356,16 @@ class KeypointMatch(Feature):
             if( p[1] < xmin ):
                 ymin = p[1]
 
- 
-        self.width = (xmax-xmin)
-        self.height = (ymax-ymin)
-        at_x = xmin + (self.width/2)
-        at_y = ymin + (self.height/2)
-        points = ((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin))  
+        width = (xmax-xmin)
+        height = (ymax-ymin)
+        at_x = xmin + (width/2)
+        at_y = ymin + (height/2)
+        #self.x = at_x
+        #self.y = at_y
+        points = [(xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin)]  
+        #self._updateExtents()
+        #self.image = image
+        #points = 
         super(KeypointMatch, self).__init__(image, at_x, at_y, points)                                        
   
     def draw(self, color = Color.GREEN,width=1):
@@ -1411,8 +1415,8 @@ class KeypointMatch(Feature):
         rectangle.
         """
         TL = self.topLeftCorner()
-        raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
-        mask = Image((self.width,self.height))
+        raw = self.image.crop(TL[0],TL[0],self.width(),self.height()) # crop the minbouding rect
+        mask = Image((self.width(),self.height()))
         mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
         mask = mask.applyLayers()
         mask.blit(raw,(0,0),alpha=None,mask=mask) 
@@ -1438,8 +1442,8 @@ class KeypointMatch(Feature):
         """
         if( self._avgColor is None ):
             TL = self.topLeftCorner()
-            raw = self.image.crop(TL[0],TL[0],self.width,self.height) # crop the minbouding rect
-            mask = Image((self.width,self.height))
+            raw = self.image.crop(TL[0],TL[0],self.width(),self.height()) # crop the minbouding rect
+            mask = Image((self.width(),self.height()))
             mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
             mask = mask.applyLayers()
             retVal = cv.Avg(raw.getBitmap(),mask._getGrayscaleBitmap())
