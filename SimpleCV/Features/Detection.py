@@ -615,7 +615,7 @@ class TemplateMatch(Feature):
     h = 0 
 
     def __init__(self, image, template, location, quality):
-        self.template_image = template
+        self.template_image = template # -- KAT - TRYING SOMETHING
         self.image = image
         self.quality = quality
         w = template.width

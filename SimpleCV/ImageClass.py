@@ -6227,7 +6227,7 @@ class Image:
         mapped = map(tuple, np.column_stack(compute))
         fs = FeatureSet()
         for location in mapped:
-            fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+            fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
 
         #cluster overlapping template matches 
         finalfs = FeatureSet()
