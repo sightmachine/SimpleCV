@@ -194,7 +194,7 @@ class Blob(Feature):
         >>> print blobs[-1].meanColor()
 
         """
-        print self.mBoundingBox
+        #print self.mBoundingBox
         hack = (self.mBoundingBox[0],self.mBoundingBox[1],self.mBoundingBox[2],self.mBoundingBox[3])
         cv.SetImageROI(self.image.getBitmap(),hack)
         #may need the offset paramete
