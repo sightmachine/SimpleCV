@@ -15,12 +15,12 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
-  Reading an image & imread('lenna.png')  & cvLoadImage('lenna.png') & Image('lenna.png')\\ [0.3cm]
+  Reading an image & imread(`lenna.png')  & cvLoadImage('lenna.png') & Image('lenna.png')\\ [0.3cm]
   Converting the image \\ to RGB colorspace & hsv2rgb(hsv\_image) or ind2rgb(X, map) & CvtColor(bitmap, retVal, CV\_BGR2RGB) & img.toRGB() \\ [0.4cm]
   Converting the image \\ to BGR colorspace & - & CvtColor(bitmap, retVal, CV\_RGB2BGR) & img.toBGR()\\ [0.4cm] 
   Converting the image \\ to HLS colorspace & - & CvtColor(bitmap, retVal, CV\_RGB2HLS) & img.toHLS()\\ [0.4cm]
   Converting the image \\ to HSV colorspace & rgb2hsv(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2HSV) & img.toHSV()\\ [0.4cm]
-  Converting the image \\ to XYZ colorspace & cform = makecform('srgb2xyz'); applycform(rgb,cform);  & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
+  Converting the image \\ to XYZ colorspace & cform = makecform(`srgb2xyz'); applycform(rgb,cform);  & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
   \end{tabular}
 \begin{tabular}{llll}
   \hline
@@ -120,7 +120,7 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
   taking two images as input & imdivide(img1,img2) &Div(imgBitmap, otherBitmap, newBitmap) &img.\_\_div\_\_(other)\\[0.3cm]
   
   Raises every array element\\
-  in image array to a power& & Pow(imgBitmap, otherBitmap, other) & img.\_\_pow\_\_(other)\\[0.3cm]
+  in image array to a power& img.\^{}p & Pow(imgBitmap, otherBitmap, other) & img.\_\_pow\_\_(other)\\[0.3cm]
   
   \end{tabular}
 
@@ -129,78 +129,78 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   
  Finds 2d and 1d \\
- barcodes in the image & & & img.findBarcode(zxing\_path)\\[0.3cm]
+ barcodes in the image & - & & img.findBarcode(zxing\_path)\\[0.3cm]
 
- Finds line segments  & & HoughLines2(em, CreateMemStorage(),  &img.findLines(threshold, minlinelength, \\
+ Finds line segments  & hough(BW) & HoughLines2(em, CreateMemStorage(),  &img.findLines(threshold, minlinelength, \\
  in the image & & CV\_HOUGH\_PROBABILISTIC, 1.0, CV\_PI/180.0, &maxlinegap, cannyth1, cannyth2)\\
  & & threshold, minlinelength, maxlinegap)\\[0.3cm]
  
- Finds a chessboard & & FindChessboardCorners(EqualizedGrayscaleBitmap, & img.findChessboard(dimensions, subpixel)\\
+ Finds a chessboard & - & FindChessboardCorners(EqualizedGrayscaleBitmap, & img.findChessboard(dimensions, subpixel)\\
  within that image & & dimensions, CV\_CALIB\_CB\_ADAPTIVE\_THRESH \\
  & & + CV\_CALIB\_CB\_NORMALIZE\_IMAGE )\\[0.3cm]
  
- Canny edge detection method& &Canny(GrayscaleBitmap, edgeMap, t1, t2) & img.edges(t1, t2)\\[0.3cm]
+ Canny edge detection method& edge(img,`canny') &Canny(GrayscaleBitmap, edgeMap, t1, t2) & img.edges(t1, t2)\\[0.3cm]
  
  function rotates an image \\
- around a specific point & & GetRotationMatrix2D(point , angle, & img.rotate(angle, fixed, point, scale)\\ 
+ around a specific point & imrotate(img,angle) & GetRotationMatrix2D(point , angle, & img.rotate(angle, fixed, point, scale)\\ 
  by the given angle & & scale, rotMat)\\ [0.3cm]
  
- return a shear-ed image\\ 
- from the cornerpoints& & GetAffineTransform(src, cornerpoints, aWarp) &img.shear(cornerpoints) \\[0.3cm]
+ return a shear-ed image & tform = maketform(`affine',A);  & &\\ 
+ from the cornerpoints& imtransform(img,tform) & GetAffineTransform(src, cornerpoints, aWarp) &img.shear(cornerpoints) \\[0.3cm]
  
- Function for warp \\
- performs an affine rotation & & cv.WarpPerspective(imgBitmap, retVal, rotMatrix) & img.transformPerspective(rotMatrix) \\[0.3cm]
+ Function for warp & tform = maketform(`projective',A); & & \\
+ performs an affine rotation & imtransform(img,tform) & cv.WarpPerspective(imgBitmap, retVal, rotMatrix) & img.transformPerspective(rotMatrix) \\[0.3cm]
   
  Returns the RGB value for\\
- a particular image pixel & & Get2D(Bitmap, y, x) &img.getPixel(x, y)\\[0.3cm] 
+ a particular image pixel & img(y, x, :) & Get2D(Bitmap, y, x) &img.getPixel(x, y)\\[0.3cm] 
  
  Returns the gray value for \\ 
- a particular image pixel & & Get2D(GrayscaleBitmap(), y, x) & img.getGrayPixel( x, y) \\[0.3cm]
+ a particular image pixel & gray=rgb2gray(img); gray(y,x) & Get2D(GrayscaleBitmap(), y, x) & img.getGrayPixel( x, y) \\[0.3cm]
  Returns a single column of \\
- RGB values from the image& & GetCol(imgBitmap, column) & img.getVertScanline(column) \\[0.3cm]
+ RGB values from the image& squeeze(img(:, column, :)) & GetCol(imgBitmap, column) & img.getVertScanline(column) \\[0.3cm]
  Returns a single row of \\
- RGB values from the image& & GetRow(imgBitmap, row) & img.getHorzScanline(row)\\[0.3cm]
+ RGB values from the image& squeeze(img(row, :, :)) & GetRow(imgBitmap, row) & img.getHorzScanline(row)\\[0.3cm]
  \end{tabular}
 
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
 
- Returns a single column of \\
- gray values from the image& & GetCol(imgGrayscaleBitmap, column) & getVertScanlineGray(column)\\[0.3cm]
+ Returns a single column of & gray=rgb2gray(img);  & & \\
+ gray values from the image& squeeze(gray(:, column, :)) & GetCol(imgGrayscaleBitmap, column) & getVertScanlineGray(column)\\[0.3cm]
  
- Returns a single row of \\
- gray values from the image& & GetRow(imgGrayscaleBitmap, row) & getHorzScanlineGray(row)\\[0.3cm]
+ Returns a single row of & gray=rgb2gray(img); & &\\
+ gray values from the image& squeeze(gray(row, :, :)) & GetRow(imgGrayscaleBitmap, row) & getHorzScanlineGray(row)\\[0.3cm]
  
  Crops the image \\ 
- based on parameters& & & img.crop(x , y, w, h, centered)\\[0.3cm]
+ based on parameters& imcrop(img, rect) & & img.crop(x , y, w, h, centered)\\[0.3cm]
  
- Returns the selected region.&&&img.regionSelect(x1, y1, x2, y2 )\\[0.3cm]
+ Returns the selected region.& imrect(hparent,position) &&img.regionSelect(x1, y1, x2, y2 )\\[0.3cm]
  
- Clears out the entire image & & SetZero(Bitmap) & img.clear()\\[0.3cm]
+ Clears out the entire image & img(:)=0 & SetZero(Bitmap) & img.clear()\\[0.3cm]
  
  Draws the string on the image \\
- at the specified coordinates.&&&img.drawText(text , x , y , color, fontsize)\\[0.3cm]
+ at the specified coordinates.& text(x,y,`string')  &&img.drawText(text , x , y , color, fontsize)\\[0.3cm]
  
- Draw a rectangle on the image & & & img.drawRectangle(x,y,w,h,color,width,alpha)\\[0.3cm]
+ Draw a rectangle on the image & rectangle(`Position',[x,y,w,h]) & & img.drawRectangle(x,y,w,h,color,width,alpha)\\[0.3cm]
  
- Shows the current image& & ShowImage("Image", image)& img.show(type)\\[0.3cm]
+ Shows the current image& imshow(img) & ShowImage("Image", image)& img.show(type)\\[0.3cm]
  
  Push a new drawing layer onto\\
- the back of the layer stack& & & img.addDrawingLayer(layer)\\[0.3cm]
+ the back of the layer stack& - & & img.addDrawingLayer(layer)\\[0.3cm]
  Insert a new layer into the \\
- layer stack at the specified index & & & img.insertDrawingLayer(layer, index)\\[0.3cm]
+ layer stack at the specified index & - & & img.insertDrawingLayer(layer, index)\\[0.3cm]
  Remove a layer from the layer \\
- stack based on the layer's index& & &img.removeDrawingLayer(index)\\[0.3cm]
+ stack based on the layer's index& - & &img.removeDrawingLayer(index)\\[0.3cm]
  Return a drawing layer\\ 
- based on the index& & & img.getDrawingLayer(index)\\[0.3cm]
- Remove all of the drawing layers& & &img.clearLayers()\\[0.3cm]
+ based on the index& - & & img.getDrawingLayer(index)\\[0.3cm]
+ Remove all of the drawing layers& - & &img.clearLayers()\\[0.3cm]
  Return the array of \\
- DrawingLayer objects & & & img.layers()\\[0.3cm]
+ DrawingLayer objects & - & & img.layers()\\[0.3cm]
  Return all DrawingLayer \\
- objects as a single &&&img.mergedLayers()\\
+ objects as a single & - &&img.mergedLayers()\\
  DrawingLayer.\\[0.3cm]
- & & & img.applyLayers(indicies)\\[0.3cm]
+ & - & & img.applyLayers(indicies)\\[0.3cm]
  \end{tabular}
 
 \end{flushleft}
