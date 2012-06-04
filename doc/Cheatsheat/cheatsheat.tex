@@ -207,117 +207,117 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   automatically adjust image size \\
-  to match the display size& & &img.adaptiveScale(resolution,fit=True)\\[0.3cm]
+  to match the display size& imshow(img,`InitialMagnification',`fit') & &img.adaptiveScale(resolution,fit=True)\\[0.3cm]
 
   Combine two images as \\
-  a side by side images  & & & img1.sideBySide(img2, side, scale)\\[0.3cm]
-  Generate a binary mask \\
-  of the image based on a & & & createBinaryMask(self,color1,color2)\\
+  a side by side images  & - & & img1.sideBySide(img2, side, scale)\\[0.3cm]
+  Generate a binary mask & [X,map] = rgb2ind(img, 65536); & & \\
+  of the image based on a & roicolor(X,low,high) & & createBinaryMask(self,color1,color2)\\
   range of rgb values \\[0.3cm]
   Make the canvas larger but \\
-  keep the image the same size & & &img.embiggen(size, color, pos) \\[0.3cm]
-  The white areas of the mask \\
-  will be kept and the black  & & & img.applyBinaryMask(mask,bg\_color)\\
-  areas removed\\[0.3cm] 
+  keep the image the same size & - & &img.embiggen(size, color, pos) \\[0.3cm]
+  The white areas of the mask & X2 = zeros(size(X), `uint16'); & &\\
+  will be kept and the black  & X2(mask) = X(mask); & & img.applyBinaryMask(mask,bg\_color)\\
+  areas removed & ind2rgb(X2, map) & & \\[0.3cm] 
   Generate a grayscale or binary \\
-  mask image based either on a & & & img.createAlphaMask(hue, hue\_lb,hue\_ub) \\
+  mask image based either on a & - & & img.createAlphaMask(hue, hue\_lb,hue\_ub) \\
   hue or an RGB triplet\\[0.3cm]
   Apply a function to every pixel\\ 
-  and return the result & & & img.applyPixelFunction(theFunc)\\[0.3cm] 
+  and return the result & - & & img.applyPixelFunction(theFunc)\\[0.3cm] 
   Calculate the integral image\\ 
-  and return it as a numpy array& & Integral(GrayscaleBitmap,img) & img.integralImage(tilted)\\[0.3cm]
+  and return it as a numpy array& integralImage(img) & Integral(GrayscaleBitmap,img) & img.integralImage(tilted)\\[0.3cm]
   Convolution performs a shape 
-  change on an image. & & Filter2D(Bitmap,retVal,myKernel,center) & img.convolve(,kernel,center)\\[0.3cm]
+  change on an image. & conv2(img,kernel,`shape') & Filter2D(Bitmap,retVal,myKernel,center) & img.convolve(,kernel,center)\\[0.3cm]
   Function searches an image \\ 
-  for a template image &  &  & img.findTemplate(template\_image, threshold, method)\\[0.3cm]
+  for a template image &  step(vision.TemplateMatcher,rgb2gray(img),rgb2gray(T))  &  & img.findTemplate(template\_image, threshold, method)\\[0.3cm]
  \end{tabular} 
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   Return any text it can find \\
-  using OCR on the image & & &img.readText()\\[0.3cm]
+  using OCR on the image & - & &img.readText()\\[0.3cm]
   extract perfect circles\\ 
-  from the image & & & img.findCircle(canny,thresh,distance)\\[0.3cm] 
+  from the image & - & & img.findCircle(canny,thresh,distance)\\[0.3cm] 
   Attempts to perform automatic\\ 
-  white balancing& & &img.whiteBalance(method)\\[0.3cm]
+  white balancing& - & &img.whiteBalance(method)\\[0.3cm]
   Apply a LUT (look up table)\\
-  to the pixels in a image & &LUT(bitmap,bitmap,fromarray(LUT)) &img.applyLUT(rLUT,bLUT,gLUT)\\[0.3cm]
+  to the pixels in a image & intlut(A, LUT) &LUT(bitmap,bitmap,fromarray(LUT)) &img.applyLUT(rLUT,bLUT,gLUT)\\[0.3cm]
   Finds keypoints in an image and &&&img.\_getRawKeypoints(thresh,flavor,\\
-  returns them as the raw keypoints  & & & highQuality, forceReset)\\[0.3cm]
+  returns them as the raw keypoints  & detectSURFFeatures(img) & & highQuality, forceReset)\\[0.3cm]
   Method does a fast local approximate\\ 
-  nearest neighbors (FLANN) calculation& & & img.\_getFLANNMatches(sd,td)\\ 
+  nearest neighbors (FLANN) calculation& matchFeatures(feat1,feat2) & & img.\_getFLANNMatches(sd,td)\\ 
   between two sets of feature vectors\\[0.3cm]
-  Calculates keypoints for both images,& & & img.drawKeypointMatches(template,\\ 
+  Calculates keypoints for both images,& - & & img.drawKeypointMatches(template,\\ 
   determines the keypoint correspondences& & & thresh, minDist,width)\\[0.3cm]
-  Match a template image with another & & &img.findKeypointMatch(template,\\ 
+  Match a template image with another & - & &img.findKeypointMatch(template,\\ 
   image using SURF keypoints.& & &quality,minDist,minMatch)\\[0.3cm]
-  This method finds keypoints in an image & & & img.findKeypoints(min\_quality,\\ 
+  This method finds keypoints in an image & detectSURFFeatures(img) & & img.findKeypoints(min\_quality,\\ 
   and returns them as a feature set& & & flavor,highQuality)\\[0.3cm]
   Performs an optical flow calculation\\
-  and attempts to find motion& & CalcOpticalFlowHS(previousFrameGrayscaleBitmap, & img.findMotion(previous\_frame,\\
+  and attempts to find motion& step(vision.OpticalFlow,img1,img2) & CalcOpticalFlowHS(previousFrameGrayscaleBitmap, & img.findMotion(previous\_frame,\\
   between two subsequent frames & & imgGrayscaleBitmap,block,shift,spread,0,xf,yf)& window, method, aggregate) \\[0.3cm]
   Returns the colors in the \\
-  palette of the image & & & img.getPalette(bins,hue)\\[0.3cm]
+  palette of the image & - & & img.getPalette(bins,hue)\\[0.3cm]
   \end{tabular} 
 
   \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   Takes in the palette from  \\ 
-  another image and attempts to &&&img.rePalette(palette,hue)\\ 
+  another image and attempts to & - &&img.rePalette(palette,hue)\\ 
   apply it to this image\\[0.3cm]
   returns the visual representation \\
-  (swatches) of the palette &&&img.drawPaletteColors(size,horizontal,bins,hue)\\
+  (swatches) of the palette & - &&img.drawPaletteColors(size,horizontal,bins,hue)\\
   in an image \\[0.3cm]
   The method then goes through \\
   and replaces each pixel with \\
-  the centroid of the clutsters &&&img.palettize(bins,hue)\\ 
+  the centroid of the clutsters & - &&img.palettize(bins,hue)\\ 
   found by k-means \\[0.3cm]
-  Palettization and behaves &&&img.findBlobsFromPalette(palette\_selection,\\ 
+  Palettization and behaves & - &&img.findBlobsFromPalette(palette\_selection,\\ 
   similar to the fndBlobs &&& minsize, maxsize)\\[0.3cm]
   Method uses the color palette\\ 
-  to generate a binary image& & & img.binarizeFromPalette(palette\_selection)\\[0.3cm]
-  Skeletonization of the image&&&img.skeletonize(radius)\\[0.3cm]
+  to generate a binary image& - & & img.binarizeFromPalette(palette\_selection)\\[0.3cm]
+  Skeletonization of the image& bwmorph(BW,`skel') &&img.skeletonize(radius)\\[0.3cm]
   smartThreshold uses a method \\
-  graph cut, to automagically &&grabCut(npimg,mask,rect,tmp1,tmp2,10,mode)&img.smartThreshold(mask, rect)\\
+  graph cut, to automagically & - &grabCut(npimg,mask,rect,tmp1,tmp2,10,mode)&img.smartThreshold(mask, rect)\\
   generate a grayscale mask image\\[0.3cm]
   It takes a image converts it \\
-  to grayscale, and applies a threshold&&&img.smartFindBlobs(mask,rect,thresh\_level)\\[0.3cm]
+  to grayscale, and applies a threshold& - &&img.smartFindBlobs(mask,rect,thresh\_level)\\[0.3cm]
   This method is same as Paint\\
-  bucket tool in image&& FloodFill(bmp,tuple(points),color,&img.floodFill(points,tolerance,color,\\
+  bucket tool in image& imfill(BW,locations) & FloodFill(bmp,tuple(points),color,&img.floodFill(points,tolerance,color,\\
   manipulation program&&lower,upper,flags)&lower,upper,fixed\_range)\\[0.3cm]
   Returns Image where the values \\
   similar to the seed pixel have & & &img.floodFillToMask(points,tolerance,\\
-  been replaced by the input color& & & color,lower,upper,fixed\_range,mask)\\[0.3cm]
+  been replaced by the input color& - & & color,lower,upper,fixed\_range,mask)\\[0.3cm]
   
   \end{tabular} 
  
   \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
- A featureset of blobs & & & img.findBlobsFromMask(mask,threshold=128,\\
+ A featureset of blobs & - & & img.findBlobsFromMask(mask,threshold=128,\\
  form the Mask Image & & & minsize=10, maxsize=0 )\\[0.3cm]
   Returns the RAW DFT \\
-  transform of an image&&DFT(src, dst,CV\_DXT\_FORWARD)&img.rawDFTImage(grayscale)\\[0.3cm]
+  transform of an image& fft2(X) &DFT(src, dst,CV\_DXT\_FORWARD)&img.rawDFTImage(grayscale)\\[0.3cm]
   Returns the log value of \\
-  the magnitude image of &&&img.getDFTLogMagnitude(grayscale)\\ 
+  the magnitude image of & - &&img.getDFTLogMagnitude(grayscale)\\ 
   the DFT transform \\[0.3cm]
   Apply an arbitrary filter \\
-  to the DFT of an image& & & img.applyDFTFilter(flt,grayscale)\\[0.3cm]
-  Applies a high pass DFT filter & & & img.highPassFilter(xCutoff,yCutoff,grayscale)\\[0.3cm]
-  Applies a low pass DFT filter&&&img.lowPassFilter(xCutoff,yCutoff,grayscale)\\[0.3cm]
-  Method applies a simple &&& img.bandPassFilter(xCutoffLow, xCutoffHigh,\\
+  to the DFT of an image& - & & img.applyDFTFilter(flt,grayscale)\\[0.3cm]
+  Applies a high pass DFT filter & - & & img.highPassFilter(xCutoff,yCutoff,grayscale)\\[0.3cm]
+  Applies a low pass DFT filter& - &&img.lowPassFilter(xCutoff,yCutoff,grayscale)\\[0.3cm]
+  Method applies a simple &-&& img.bandPassFilter(xCutoffLow, xCutoffHigh,\\
   band pass DFT filter&&& yCutoffLow, yCutoffHigh,grayscale)\\[0.3cm]
   Method performs an inverse \\
-  discrete Fourier transform &&& InverseDFT(raw\_dft\_image)\\[0.3cm]
+  discrete Fourier transform & ifft2(X) && InverseDFT(raw\_dft\_image)\\[0.3cm]
   Creates a butterworth filter\\ 
-  of 64x64 pixels, resizes it &&&img.applyButterworthFilter(dia,order,highpass,grayscale)\\
+  of 64x64 pixels, resizes it &-&&img.applyButterworthFilter(dia,order,highpass,grayscale)\\
   to fit the image \\[0.3cm]
-  Creates a gaussian filter \\
-  of 64x64 pixels, resizes  &&&img.applyGaussianFilter(dia, highpass, grayscale)\\
+  Creates a gaussian filter & H = fspecial(`gaussian',hsize,sigma);  & & \\
+  of 64x64 pixels, resizes  & imfilter(I,H) &&img.applyGaussianFilter(dia, highpass, grayscale)\\
   it to fit image \\[0.3cm]
   DFT is applied on image \\
-  using gaussian lowpass filter&&&img.applyUnsharpMask(boost,dia,grayscale)\\[0.3cm]
+  using gaussian lowpass filter&-&&img.applyUnsharpMask(boost,dia,grayscale)\\[0.3cm]
   \end{tabular} 
  
  \end{flushleft}
