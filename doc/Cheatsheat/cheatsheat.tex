@@ -1,6 +1,8 @@
 \documentclass[a4paper,landscape,8pt]{article}
 \usepackage[landscape]{geometry}
 \usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
 %opening
 \oddsidemargin=2pt
 \title{Switching over to SimpleCV.}
@@ -10,7 +12,7 @@
 
 \maketitle
 
-SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision with SimpleCV by Nathan Oostendorp, Anthony Oliver, and Katherine Scott.}, which stands for Simple Computer Vision, is an easy-to-use Python frame-work that bundles together open source computer vision libraries and algorithms for solving problems. The idea of this document is to provide a quick reference for switching from Matlab and OpenCV to SimpleCV. \\
+SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision with SimpleCV by Nathan Oostendorp, Anthony Oliver, and Katherine Scott.}, which stands for Simple Computer Vision, is an easy-to-use Python frame-work that bundles together open source computer vision libraries and algorithms for solving problems. The idea of this document is to provide a quick reference for switching from Matlab\footnote{Matlab documentation : \url{http://www.mathworks.in/help/techdoc/}} and OpenCV\footnote{OpenCV documentation : \url{http://docs.opencv.org/}}to SimpleCV. \\
 \begin{flushleft}
 \begin{tabular}{llll}
   \hline
@@ -26,12 +28,13 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
   
   Converting the image \\ to HSV colorspace & rgb2hsv(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2HSV) & img.toHSV()\\ [0.4cm]
 
-  Converting the image & cform = makecform(`srgb2xyz');\\ to XYZ colorspace &  applycform(rgb,cform);  & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
 \end{tabular}
   \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
   
+  Converting the image & cform = makecform(`srgb2xyz');\\ to XYZ colorspace &  applycform(rgb,cform);  & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
+
   Converting the image \\ to GRAY colorspace & rgb2gray(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2GRAY) & img.toGray()\\ [0.6cm]
   
   Create a new, empty \\ OpenCV bitmap & zeros(H, W, C) & SetZero(bitmap) & img.getEmpty(channels)\\ [0.8cm]
@@ -58,14 +61,15 @@ SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision w
   Finds the FeatureSet  & & GoodFeaturesToTrack(GrayscaleBitmap, eig\_image, &img.findCorners(maxnum, minquality,\\ 
   strongest corners first &  corner(img) & temp\_image, maxnum, minquality, mindistance, None) &mindistance)\\[.4cm]
   
-  Blobs are continuous & & - &img.findBlobs(threshval, minsize, \\
-  light regions&  step(vision.BlobAnalysis, fg\_img)  & &maxsize, threshblocksize, threshconstant) \\[0.3cm]
   
   \hline
 \end{tabular}
 \begin{tabular}{llll}
   \hline
   Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+  Blobs are continuous & & - &img.findBlobs(threshval, minsize, \\
+  light regions&  step(vision.BlobAnalysis, fg\_img)  & &maxsize, threshblocksize, threshconstant) \\[0.3cm]
   
   Finding the location& & HaarDetectObjects(EqualizedGrayscaleBitmap(),  &findHaarFeatures(self, cascade, \\
   of a known object& - & cascade.getCascade(), storage, scale\_factor, use\_canny) &  scale\_factor, min\_neighbors, use\_canny) \\[0.3cm]
