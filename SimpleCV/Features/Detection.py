@@ -328,6 +328,9 @@ class Barcode(Feature):
         if (numpoints):
             self.x /= numpoints
             self.y /= numpoints
+
+    def __repr__(self):
+        return "%s.%s at (%d,%d), read data: %s" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y, self.data)
   
     def draw(self, color = (255, 0, 0),width=1): 
         """
