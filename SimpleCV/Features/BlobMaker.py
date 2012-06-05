@@ -88,6 +88,7 @@ class BlobMaker:
             return retVal 
         
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+        print(type(seq)) #KAS
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
@@ -171,7 +172,11 @@ class BlobMaker:
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
         hullMask = self._getHullMask(chull,bb)
+
+        # KAS -- FLAG FOR REPLACE
         retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),hullMask)
+
+        # KAS -- FLAG FOR REPLACE
         retVal.mHullMask = Image(hullMask)
         
         del chull
@@ -199,6 +204,9 @@ class BlobMaker:
             retVal.m12 = cv.GetSpatialMoment(moments,1,2)
             
         retVal.mHu = cv.GetHuMoments(moments)
+
+
+        # KAS -- FLAG FOR REPLACE
         mask = self._getMask(seq,bb)
         retVal.mMask = Image(mask)
 
@@ -206,6 +214,8 @@ class BlobMaker:
         retVal.mAvgColor = retVal.mAvgColor[0:3]
         #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         #retVal.mAvgColor = retVal.mAvgColor[0:3]
+
+        # KAS -- FLAG FOR REPLACE
         retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
 
         retVal.mHoleContour = self._getHoles(seq)
