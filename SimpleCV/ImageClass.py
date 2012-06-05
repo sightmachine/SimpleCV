@@ -2601,7 +2601,81 @@ class Image:
             return None
             
         return FeatureSet(blobs).sortArea()
+    
+    def findSkintoneBlobs(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+        """
+        **SUMMARY**
+        
+        Find Skintone blobs will look for continuous
+        regions of Skintone and return them as Blob features in a FeatureSet.  Parameters
+        specify the binarize filter threshold value, and minimum and maximum size for blobs.  
+        If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+        
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
 
+        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
+    
+        .. Warning:: 
+          This parameter must be an odd number.
+          
+        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
+ 
+    
+        **RETURNS**
+        
+        Returns a featureset (basically a list) of :py:class:`blob` features. If no blobs are found this method returns None.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> fs = img.findSkintoneBlobs() 
+        >>> if( fs is not None ):
+        >>>     fs.draw()
+
+        **NOTES**
+
+        .. Warning:: 
+          For blobs that live right on the edge of the image OpenCV reports the position and width
+          height as being one over for the true position. E.g. if a blob is at (0,0) OpenCV reports 
+          its position as (1,1). Likewise the width and height for the other corners is reported as
+          being one less than the width and height. This is a known bug. 
+
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`findBlobsFromPalette`
+        :py:meth:`smartFindBlobs`
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height
+        #create a single channel image, thresholded to parameters
+        img = self.toYCrCb()
+	size = img.size()
+	img_bin = self.copy()
+	for x in range(size[0]):
+            for y in range(size[1]):
+	        (Y,Cr,Cb) =  img.getPixel(x,y)
+		if (Y > 5 and Cb >=77 and Cb <= 135 and Cr >= 140 and Cr <= 180) :
+		    img_dup[x,y] = (255,255,255)
+		else :
+		    img_dup[x,y] = (0,0,0)
+	blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(img_dup, self, minsize = minsize, maxsize = maxsize)
+        if not len(blobs):
+            return None
+         
+        return FeatureSet(blobs).sortArea()    
+    
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
