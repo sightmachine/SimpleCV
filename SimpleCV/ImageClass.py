@@ -2607,9 +2607,9 @@ class Image:
         **SUMMARY**
         
         Find Skintone blobs will look for continuous
-        regions of Skintone and return them as Blob features in a FeatureSet.  Parameters
-        specify the binarize filter threshold value, and minimum and maximum size for blobs.  
-        If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        regions of Skintone in a color image and return them as Blob features in a FeatureSet.  
+        Parameters specify the binarize filter threshold value, and minimum and maximum size for 
+        blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
         more information about thresholding.  The threshblocksize and threshconstant
         parameters are only used for adaptive threshold.
         
