@@ -14,7 +14,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = True  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -387,6 +387,31 @@ def test_detection_blobs():
 
     if blobs == None:
         assert False
+
+def test_detection_blobs_lazy():
+
+  img = Image("lenna")
+  b = img.findBlobs()
+  result = []
+    
+  output = open('testpickle.pkl', 'wb')
+  s = pickle.dumps(b[-1]) # use two otherwise it w
+  output.close()
+  b2 =  pickle.loads(s)
+    
+  result.append(b[-1].mImg)
+  result.append(b[-1].mMask)
+  result.append(b[-1].mHullImg)
+  result.append(b[-1].mHullMask)
+  
+  result.append(b2.mImg)
+  result.append(b2.mMask)
+  result.append(b2.mHullImg)
+  result.append(b2.mHullMask)
+  
+  #TODO - WE NEED BETTER COVERAGE HERE
+  name_stem = "test_detection_blobs_lazy"
+  perform_diff(result,name_stem,5.00)
         
 
 def test_detection_blobs_adaptive():
