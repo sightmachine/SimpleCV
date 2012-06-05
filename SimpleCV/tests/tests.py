@@ -402,9 +402,11 @@ def test_detection_blobs_adaptive():
 
 
 def test_detection_barcode():
-  if not ZXING_ENABLED:
+  try:
+    import zbar
+  except:
     return None
-
+  
   img1 = Image(testimage)
   img2 = Image(testbarcode)
 
