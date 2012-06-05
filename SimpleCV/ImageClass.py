@@ -2640,12 +2640,7 @@ class Image:
         >>>     fs.draw()
 
         **NOTES**
-
-        .. Warning:: 
-          For blobs that live right on the edge of the image OpenCV reports the position and width
-          height as being one over for the true position. E.g. if a blob is at (0,0) OpenCV reports 
-          its position as (1,1). Likewise the width and height for the other corners is reported as
-          being one less than the width and height. This is a known bug. 
+        It will be really awesome for making UI type stuff, where you want to track a hand or a face.
 
         **SEE ALSO**
         :py:meth:`threshold`
