@@ -2666,11 +2666,11 @@ class Image:
             for y in range(size[1]):
 	        (Y,Cr,Cb) =  img.getPixel(x,y)
 		if (Y > 5 and Cb >=77 and Cb <= 135 and Cr >= 140 and Cr <= 180) :
-		    img_dup[x,y] = (255,255,255)
+		    img_bin[x,y] = (255,255,255)
 		else :
-		    img_dup[x,y] = (0,0,0)
+		    img_bin[x,y] = (0,0,0)
 	blobmaker = BlobMaker()
-        blobs = blobmaker.extractFromBinary(img_dup, self, minsize = minsize, maxsize = maxsize)
+        blobs = blobmaker.extractFromBinary(img_bin, self, minsize = minsize, maxsize = maxsize)
         if not len(blobs):
             return None
          
