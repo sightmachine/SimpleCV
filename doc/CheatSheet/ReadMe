@@ -2,7 +2,7 @@
 
 2) It will we be useful if you can download the 'Kile' or 'Gummi' software to edit the latex file. This will install all the supporting libraries to compile the latex file to PDF.
 
-3) Latex files are basically .tex files. In the current cheatsheat.tex file, it begins with defining the properties of the page ( pdf ) i,e Landscape(a4paper). 
+3) Latex files are basically .tex files. In the current cheatsheet.tex file, it begins with defining the properties of the page ( pdf ) i,e Landscape(a4paper). 
 
 4) To add footnote to a Word. use "\footnote{Here write the content.}". EG:  SimpleCV\footnote{O'Reilly Publication, Practical Computer Vision with SimpleCV by Nathan Oostendorp, Anthony Oliver, and Katherine Scott.}  
 
