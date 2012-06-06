@@ -906,27 +906,43 @@ class Blob(Feature):
     @LazyProperty
     def mImg(self):
         #NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND WITH A LAKE STUFF
-        
-        return None
+        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        bmp = self.image.getBitmap()
+        mask = self.mMask 
+        tl = self.topLeftCorner()
+        cv.setImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
+        cv.Copy(bmp,retVal,mask)
+        cv.ResetImageROI(bmp)
+        return Image(bmp)        
 
     @LazyProperty
     def mMask(self):
         #NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND WITH A LAKE STUFF
-        #I AM THE HERO THAT SIGHT MACHINE DESERVES
         #cv.FillPoly(bmp,[[(0,0),(100,0),(100,100),(0,100)],[(10,10),(90,10),(90,90),(10,90)]], (0,0,0),8)
         #gettin fancy
         # cv.FillPoly(bmp,[[(0,0),(100,0),(100,100),(0,100)],[(10,10),(40,10),(40,90),(10,90)],[(20,20),(30,20),(30,80),(20,80)],[(50,10),(90,10),(90,90),(50,90)]], (0,0,0),8)
+        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
+        retVal = cv.FillPoly(retVal,[self.mContour],(255,255,255),8)
+        return Image(retVal)
 
-        return None
 
     @LazyProperty
     def mHullImg(self):
-        
-        return None
+        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        bmp = self.image.getBitmap()
+        mask = self.mHullMask 
+        tl = self.topLeftCorner()
+        cv.setImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
+        cv.Copy(bmp,retVal,mask)
+        cv.ResetImageROI(bmp)
+        return Image(bmp)
+
 
     @LazyProperty
     def mHullMask(self):
-        return None
+        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
+        retVal = cv.FillPoly(retVal,[self.mConvexHull],(255,255,255),8)
+        return Image(retVal)
 
 
     def hullImage(self):   
