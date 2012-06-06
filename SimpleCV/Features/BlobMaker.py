@@ -170,8 +170,13 @@ class BlobMaker:
         retVal._updateExtents()
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
+        # KAS -- FLAG FOR REPLACE 6/6/2012
         hullMask = self._getHullMask(chull,bb)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
         retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),hullMask)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
         retVal.mHullMask = Image(hullMask)
         
         del chull
@@ -199,14 +204,19 @@ class BlobMaker:
             retVal.m12 = cv.GetSpatialMoment(moments,1,2)
             
         retVal.mHu = cv.GetHuMoments(moments)
+
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
         mask = self._getMask(seq,bb)
-        retVal.mMask = Image(mask)
+        #retVal.mMask = Image(mask)
 
         retVal.mAvgColor = self._getAvg(color.getBitmap(),bb,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
         #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         #retVal.mAvgColor = retVal.mAvgColor[0:3]
-        retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
+        #retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
 
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
