@@ -53,10 +53,10 @@ class Blob(Feature):
     mLabel = "" # A user label
     mLabelColor = [] # what color to draw the label
     mAvgColor = []#The average color of the blob's area. 
-    mImg =  '' #Image()# the segmented image of the blob
-    mHullImg = '' # Image() the image from the hull.
-    mMask = '' #Image()# A mask of the blob area
-    mHullMask = '' #Image()#A mask of the hull area ... we may want to use this for the image mask. 
+    #mImg =  '' #Image()# the segmented image of the blob
+    #mHullImg = '' # Image() the image from the hull.
+    #mMask = '' #Image()# A mask of the blob area
+    #xmHullMask = '' #Image()#A mask of the hull area ... we may want to use this for the image mask. 
     mHoleContour = []  # list of hole contours
     #mVertEdgeHist = [] #vertical edge histogram
     #mHortEdgeHist = [] #horizontal edge histgram
@@ -80,11 +80,11 @@ class Blob(Feature):
         self.mLabel = "UNASSIGNED"
         self.mLabelColor = [] 
         self.mAvgColor = [-1,-1,-1]
-        self.mImg = None
-        self.mMask = None
-        self.mHullImg = None
+        #self.mImg = None
+        #self.mMask = None
+        #self.mHullImg = None
         self.image = None
-        self.mHullMask = None
+        #self.mHullMask = None
         self.mHoleContour = [] 
         self.mVertEdgeHist = [] #vertical edge histogram
         self.mHortEdgeHist = [] #horizontal edge histgram
@@ -907,13 +907,14 @@ class Blob(Feature):
     def mImg(self):
         #NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND WITH A LAKE STUFF
         retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        cv.Zero(retVal)
         bmp = self.image.getBitmap()
-        mask = self.mMask 
+        mask = self.mMask.getBitmap() 
         tl = self.topLeftCorner()
-        cv.setImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
+        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
         cv.Copy(bmp,retVal,mask)
         cv.ResetImageROI(bmp)
-        return Image(bmp)        
+        return Image(retVal)        
 
     @LazyProperty
     def mMask(self):
@@ -921,18 +922,33 @@ class Blob(Feature):
         #cv.FillPoly(bmp,[[(0,0),(100,0),(100,100),(0,100)],[(10,10),(90,10),(90,90),(10,90)]], (0,0,0),8)
         #gettin fancy
         # cv.FillPoly(bmp,[[(0,0),(100,0),(100,100),(0,100)],[(10,10),(40,10),(40,90),(10,90)],[(20,20),(30,20),(30,80),(20,80)],[(50,10),(90,10),(90,90),(50,90)]], (0,0,0),8)
+        
+        # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
+
+        #Alas - OpenCV does not provide an offset in the fillpoly method for 
+        #the cv bindings (only cv2 -- which I am trying to avoid). Have to
+        #manually do the offset for the ROI shift. 
+
         retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
-        retVal = cv.FillPoly(retVal,[self.mContour],(255,255,255),8)
+        cv.Zero(retVal)
+        tl = self.topLeftCorner()
+        thull = []
+        for p in self.mContour:
+            t = (p[0]-tl[0],p[1]-tl[1])
+            thull.append(t)
+    
+        cv.FillPoly(retVal,[thull],(255,255,255),8)
         return Image(retVal)
 
 
     @LazyProperty
     def mHullImg(self):
         retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        cv.Zero(retVal)
         bmp = self.image.getBitmap()
-        mask = self.mHullMask 
+        mask = self.mHullMask.getBitmap() 
         tl = self.topLeftCorner()
-        cv.setImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
+        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
         cv.Copy(bmp,retVal,mask)
         cv.ResetImageROI(bmp)
         return Image(bmp)
@@ -940,8 +956,17 @@ class Blob(Feature):
 
     @LazyProperty
     def mHullMask(self):
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
-        retVal = cv.FillPoly(retVal,[self.mConvexHull],(255,255,255),8)
+        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        cv.Zero(retVal)
+        #Alas - OpenCV does not provide an offset in the fillpoly method for 
+        #the cv bindings (only cv2 -- which I am trying to avoid). Have to
+        #manually do the offset for the ROI shift. 
+        thull = []
+        tl = self.topLeftCorner()
+        for p in self.mConvexHull:
+            t = (p[0]-tl[0],p[1]-tl[1])
+            thull.append(t)
+        cv.FillPoly(retVal,[thull],(255,255,255),8)
         return Image(retVal)
 
 
