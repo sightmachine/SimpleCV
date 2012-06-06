@@ -704,13 +704,13 @@ class Circle(Feature):
     """
     x = 0.00
     y = 0.00 
-    _r = 0.00
+    r = 0.00
     image = "" #parent image
     points = []
     avgColor = None
   
     def __init__(self, i, at_x, at_y, r):
-        self._r = r
+        self.r = r
         self.avgColor = None
         points = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
         super(Circle, self).__init__(i, at_x, at_y, points)                                
@@ -742,7 +742,7 @@ class Circle(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer. 
 
         """
-        self.image.dl().circle((self.x,self.y),self._r,color,width)
+        self.image.dl().circle((self.x,self.y),self.r,color,width)
     
     def show(self, color = Color.GREEN):
         """
@@ -816,7 +816,7 @@ class Circle(Feature):
         if( self.avgColor is None):
             mask = self.image.getEmpty(1)
             cv.Zero(mask)
-            cv.Circle(mask,(self.x,self.y),self._r,color=(255,255,255),thickness=-1)
+            cv.Circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
             temp = cv.Avg(self.image.getBitmap(),mask)
             self.avgColor = (temp[0],temp[1],temp[2])
         return self.avgColor
@@ -842,7 +842,7 @@ class Circle(Feature):
 
 
         """
-        return self._r*self._r*pi
+        return self.r*self.r*pi
 
     def perimeter(self):
         """
@@ -850,7 +850,7 @@ class Circle(Feature):
         
         Returns the perimeter of the circle feature in pixels.
         """
-        return 2*pi*self._r
+        return 2*pi*self.r
   
     def width(self):
         """
@@ -859,7 +859,7 @@ class Circle(Feature):
         Returns the width of the feature -- for compliance just r*2
 
         """
-        return self._r*2
+        return self.r*2
   
     def height(self):
         """
@@ -867,7 +867,7 @@ class Circle(Feature):
 
         Returns the height of the feature -- for compliance just r*2
         """
-        return self._r*2
+        return self.r*2
   
     def radius(self):
         """
@@ -876,7 +876,7 @@ class Circle(Feature):
         Returns the radius of the circle in pixels.
 
         """
-        return self._r
+        return self.r
     
     def diameter(self):
         """
@@ -885,7 +885,7 @@ class Circle(Feature):
         Returns the diameter of the circle in pixels.
 
         """
-        return self._r*2
+        return self.r*2
     
     def crop(self,noMask=False):
         """
