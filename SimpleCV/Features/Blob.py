@@ -60,6 +60,8 @@ class Blob(Feature):
     mHoleContour = []  # list of hole contours
     #mVertEdgeHist = [] #vertical edge histogram
     #mHortEdgeHist = [] #horizontal edge histgram
+    pickle_skip_properties = set(
+        ('image', 'mImg', 'mHullImg', 'mMask', 'xmHullMask', 'mHullMask'))
     
     def __init__(self):
         self.mContour = []
@@ -95,12 +97,13 @@ class Blob(Feature):
         # the default way we calculate for area. 
         
     def __getstate__(self):
+        skip = self.pickle_skip_properties
         newdict = {}
-        for k in self.__dict__.keys():
-            if k == "image":
+        for k,v in self.__dict__.items():
+            if k in skip:
                 continue
             else:
-                newdict[k] = self.__dict__[k]
+                newdict[k] = v
         return newdict
         
         
