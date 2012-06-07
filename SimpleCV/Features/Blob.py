@@ -61,7 +61,7 @@ class Blob(Feature):
     #mVertEdgeHist = [] #vertical edge histogram
     #mHortEdgeHist = [] #horizontal edge histgram
     pickle_skip_properties = set(
-        ('image', 'mImg', 'mHullImg', 'mMask', 'xmHullMask', 'mHullMask'))
+        ('mImg', 'mHullImg', 'mMask', 'xmHullMask', 'mHullMask'))
     
     def __init__(self):
         self.mContour = []
@@ -935,12 +935,27 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
         cv.Zero(retVal)
         tl = self.topLeftCorner()
-        thull = []
-        for p in self.mContour:
-            t = (p[0]-tl[0],p[1]-tl[1])
-            thull.append(t)
-    
-        cv.FillPoly(retVal,[thull],(255,255,255),8)
+
+        # construct the exterior contour - these are tuples 
+        contour = []
+        if self.mContour is not None:
+            for p in self.mContour:
+                t = (p[0]-tl[0],p[1]-tl[1])
+                contour.append(t)
+
+            cv.FillPoly(retVal,[contour],(255,255,255),8)
+
+        #construct the hole contoursb
+        holes = []
+        if self.mHoleContour is not None:
+            for h in self.mHoleContour: # -- these are lists
+                thole = []
+                for h2 in h:
+                    t = (h2[0]-tl[0],h2[1]-tl[1])
+                    thole.append(t)
+                    holes.append(thole)
+                    
+            cv.FillPoly(retVal,holes,(0,0,0),8)
         return Image(retVal)
 
 

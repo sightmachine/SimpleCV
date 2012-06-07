@@ -911,7 +911,7 @@ class Circle(Feature):
             cv.Zero(mask)
             cv.Zero(result)
             #if you want to shave a bit of time we go do the crop before the blit
-            cv.Circle(mask,(self.x,self.y),self._r,color=(255,255,255),thickness=-1)
+            cv.Circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
             cv.Copy(self.image.getBitmap(),result,mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)

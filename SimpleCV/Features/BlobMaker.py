@@ -223,6 +223,7 @@ class BlobMaker:
 
         return retVal
     
+
     def _getHoles(self,seq):
         """
         This method returns the holes associated with a blob as a list of tuples.
@@ -237,7 +238,8 @@ class BlobMaker:
                 if( len(temp) >= 3 ): #exclude single pixel holes 
                     retVal.append(temp)
         return retVal
-        
+                
+
     def _getMask(self,seq,bb):
         """
         Return a binary image of a particular contour sequence. 
