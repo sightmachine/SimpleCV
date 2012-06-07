@@ -1928,6 +1928,9 @@ class Image:
            You must supply your own API key. See here: http://imgur.com/register/api_anon 
            or http://www.flickr.com/services/api/misc.api_keys.html
         """
+        if self.filename == None or self.filename == '':
+            self.save(temp=True)
+            
         if ( dest=='imgur' ) :
             try:
                 import pycurl
