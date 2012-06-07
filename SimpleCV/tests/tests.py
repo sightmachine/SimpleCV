@@ -376,6 +376,24 @@ def test_detection_feature_measures():
   fs1 = fs.sortDistance()
   pass
 
+def test_detection_blobs_appx():
+    img = Image("lenna")
+    blobs = img.findBlobs()   
+    blobs[-1].draw(color=Color.RED)
+    blobs[-1].drawAppx(color=Color.BLUE)
+    result = [img]
+
+    img2 = Image("lenna")
+    blobs = img2.findBlobs(appx_level=11)   
+    blobs[-1].draw(color=Color.RED)
+    blobs[-1].drawAppx(color=Color.BLUE)
+    result.append(img2)
+
+    name_stem = "test_detection_blobs_appx"
+    perform_diff(result,name_stem,5.00)
+    if blobs == None:
+        assert False
+
 def test_detection_blobs():
     img = Image(testbarcode)
     blobs = img.findBlobs()

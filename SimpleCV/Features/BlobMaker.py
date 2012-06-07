@@ -1,4 +1,5 @@
 from SimpleCV.base import *
+#import cv2 as cv2
 
 class BlobMaker:
     """
@@ -54,14 +55,15 @@ class BlobMaker:
         retVal = sorted(blobs,key=lambda x: x.mArea, reverse=True)
         return FeatureSet(retVal)    
     
-    def extractFromBinary(self,binaryImg,colorImg, minsize = 5, maxsize = -1):
+    def extractFromBinary(self,binaryImg,colorImg, minsize = 5, maxsize = -1,appx_level=3):
         """
         This method performs blob extraction given a binary source image that is used
         to get the blob images, and a color source image.
-        binaryImg- The binary image with the blobs.
+        binarymg- The binary image with the blobs.
         colorImg - The color image.
         minSize  - The minimum size of the blobs in pixels.
         maxSize  - The maximum blob size in pixels. 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the approximation edge - lower numbers yield better approximation. 
         """
         #If you hit this recursion limit may god have mercy on your soul.
         #If you really are having problems set the value higher, but this means
@@ -91,15 +93,15 @@ class BlobMaker:
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
-            retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
+            retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize,appx_level)
         except RuntimeError,e:
             logger.warning("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
-        except:
+        except e:
             logger.warning("SimpleCV Find Blobs Failed - This could be an OpenCV python binding issue")
         del seq
         return FeatureSet(retVal)
     
-    def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize):
+    def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize,appx_level):
         """
         The recursive entry point for the blob extraction. The blobs and holes are presented
         as a tree and we traverse up and across the tree. 
@@ -112,7 +114,7 @@ class BlobMaker:
         nextLayerDown = []
         while True:
             if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress
-                temp =  self._extractData(seq,colorImg,minsize,maxsize)
+                temp =  self._extractData(seq,colorImg,minsize,maxsize,appx_level)
                 if( temp is not None ):
                     retVal.append(temp)
             
@@ -127,11 +129,11 @@ class BlobMaker:
                 break
         
         for nextLayer in nextLayerDown:
-            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize)
+            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize,appx_level)
         
         return retVal
     
-    def _extractData(self,seq,color,minsize,maxsize):
+    def _extractData(self,seq,color,minsize,maxsize,appx_level):
         """
         Extract the bulk of the data from a give blob. If the blob's are is too large
         or too small the method returns none. 
@@ -145,7 +147,7 @@ class BlobMaker:
         retVal = Blob()
         retVal.image = color 
         retVal.mArea = area
-        
+
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
         bb = cv.BoundingRect(seq)
         retVal.x = bb[0]+(bb[2]/2)
@@ -153,7 +155,15 @@ class BlobMaker:
         retVal.mPerimeter = cv.ArcLength(seq)
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
-            #retVal.points = list(seq) KAS 4/30
+            try:
+                import cv2 
+                if( retVal.mContour is not None):
+                    retVal.mContourAppx = []
+                    appx = cv2.approxPolyDP(np.array([retVal.mContour],'float32'),appx_level,True)
+                    for p in appx:           
+                        retVal.mContourAppx.append((int(p[0][0]),int(p[0][1])))
+            except:
+                pass
 
         # so this is a bit hacky....
      
@@ -171,13 +181,13 @@ class BlobMaker:
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        hullMask = self._getHullMask(chull,bb)
+        #hullMask = self._getHullMask(chull,bb)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),hullMask)
+        #retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),hullMask)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        retVal.mHullMask = Image(hullMask)
+        #retVal.mHullMask = Image(hullMask)
         
         del chull
         

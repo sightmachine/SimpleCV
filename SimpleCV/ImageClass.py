@@ -2535,7 +2535,7 @@ class Image:
         return FeatureSet(corner_features)
 
 
-    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5,appx_level=3):
         """
         **SUMMARY**
         
@@ -2558,7 +2558,10 @@ class Image:
 
         * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
     
-        .. Warning:: 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+        
+          .. Warning:: 
           This parameter must be an odd number.
           
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
@@ -2598,7 +2601,7 @@ class Image:
             
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
-            self, minsize = minsize, maxsize = maxsize)
+            self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
@@ -7524,7 +7527,7 @@ class Image:
         return retVal 
 
 
-    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,appx_level=3):
         """
         **SUMMARY**
 
@@ -7541,6 +7544,8 @@ class Image:
           prior to performing blob extraction.
         * *minsize* - the minimum blob size in pixels
         * *maxsize* - the maximim blob size in pixels.
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
 
         **RETURNS**
 
@@ -7578,7 +7583,7 @@ class Image:
     
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(bwimg,
-            self, minsize = minsize, maxsize = maxsize)
+            self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
@@ -7802,7 +7807,7 @@ class Image:
             logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
         return retVal
             
-    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):
+    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2,appx_level=3):
         """
         **SUMMARY**
 
@@ -7828,7 +7833,11 @@ class Image:
           * 1  - means use the foreground, maybe_foreground, and maybe_background values
           * 2  - means use the foreground and maybe_foreground values.
           * 3+ - means use just the foreground
-        
+
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+
+
         **RETURNS**
 
         A featureset of blobs. If everything went smoothly only a couple of blobs should
@@ -7867,7 +7876,7 @@ class Image:
           elif( thresh_level > 2 ):
               result = result.threshold(1)
           bm = BlobMaker()
-          retVal = bm.extractFromBinary(result,self)
+          retVal = bm.extractFromBinary(result,self,appx_level)
         
         return retVal
 
@@ -8107,7 +8116,7 @@ class Image:
         retVal = retVal.crop(1,1,self.width,self.height)
         return retVal
 
-    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
+    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0,appx_level=3 ):
         """
         **SUMMARY**
 
@@ -8125,6 +8134,9 @@ class Image:
         * *minsize* - The minimum size of the returned blobs.
         * *maxsize*  - The maximum size of the returned blobs, if none is specified we peg 
           this to the image size. 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+
 
         **RETURNS**
 
@@ -8157,7 +8169,7 @@ class Image:
         gray = mask._getGrayscaleBitmap()
         result = mask.getEmpty(1)
         cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
-        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize)
+        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None

@@ -50,6 +50,7 @@ class Blob(Feature):
     m02 = 0
     m21 = 0
     m12 = 0
+    mContourAppx = None
     mLabel = "" # A user label
     mLabelColor = [] # what color to draw the label
     mAvgColor = []#The average color of the blob's area. 
@@ -61,13 +62,14 @@ class Blob(Feature):
     #mVertEdgeHist = [] #vertical edge histogram
     #mHortEdgeHist = [] #horizontal edge histgram
     pickle_skip_properties = set(
-        ('mImg', 'mHullImg', 'mMask', 'xmHullMask', 'mHullMask'))
+        ('mImg', 'mHullImg', 'mMask', 'mHullMask'))
     
     def __init__(self):
         self.mContour = []
         self.mConvexHull = []
         self.mMinRectangle = [-1,-1,-1,-1,-1] #angle from this
         #self.mBoundingBox = [-1,-1,-1,-1] #get W/H and X/Y from this
+        self.mContourAppx = []
         self.mHu = [-1,-1,-1,-1,-1,-1,-1]
         self.mPerimeter = 0
         self.mArea = 0
@@ -529,6 +531,18 @@ class Blob(Feature):
                      h)
             
 
+    def drawAppx(self, color = Color.HOTPINK,width=-1,alpha=-1,layer=None):
+        if( self.mContourAppx is None or len(self.mContourAppx)==0 ):
+            return
+
+        if not layer:
+            layer = self.image.dl()
+            
+        if width < 1:
+            layer.polygon(self.mContourAppx,color,width,True,True,alpha)
+        else:
+            layer.polygon(self.mContourAppx,color,width,False,True,alpha)
+        
     def draw(self, color = Color.GREEN, width=-1, alpha=-1, layer=None):
         """
         **SUMMARY**
