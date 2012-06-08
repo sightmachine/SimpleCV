@@ -2654,22 +2654,35 @@ class Image:
         if (maxsize == 0):  
             maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
-        img = self.toYCrCb()
-	size = img.size()
-	img_bin = self.copy()
-	for x in range(size[0]):
-            for y in range(size[1]):
-	        (Y,Cr,Cb) =  img.getPixel(x,y)
-		if (Y > 5 and Cb >=77 and Cb <= 135 and Cr >= 140 and Cr <= 180) :
-		    img_bin[x,y] = (255,255,255)
-		else :
-		    img_bin[x,y] = (0,0,0)
+        if( self._colorSpace != ColorSpace.YCrCb ):
+            YCrCb = self.toYCrCb()
+        else:
+            YCrCb = self
+    
+        Y =  np.ones((256,1),dtype=uint8)*0
+	Y[5:] = 255
+	Cr =  np.ones((256,1),dtype=uint8)*0
+        Cr[140:180] = 255
+	Cb =  np.ones((256,1),dtype=uint8)*0
+	Cb[77:135] = 255
+	Y_img = YCrCb.getEmpty(1)
+	Cr_img = YCrCb.getEmpty(1)
+	Cb_img = YCrCb.getEmpty(1)
+	cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+	cv.LUT(Y_img,Y_img,cv.fromarray(Y))
+	cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+	cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+	temp = self.getEmpty()
+	cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+	mask = mask.binarize((128,128,128))
+	mask = mask.toRGB().binarize()
 	blobmaker = BlobMaker()
-        blobs = blobmaker.extractFromBinary(img_bin, self, minsize = minsize, maxsize = maxsize)
+        blobs = blobmaker.extractFromBinary(mask, YCrCb, minsize = minsize, maxsize = maxsize)
         if not len(blobs):
             return None
-         
         return FeatureSet(blobs).sortArea()    
+    
     
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
