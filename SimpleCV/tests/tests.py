@@ -2532,7 +2532,7 @@ def test_findSkintoneBlobs():
     time.sleep(3)
     img.crop(blobs[-1]).show()
     time.sleep(3)
-    img = sv.Image('../sampleimages/04000.jpg')
+    img = Image('../sampleimages/04000.jpg')
     blobs = img.findSkintoneBlobs()
     img.show()
     time.sleep(3)
@@ -2545,8 +2545,18 @@ def test_getSkintoneMask():
     mask = img.getSkintoneMask()
     mask.show()
     time.sleep(3)
-    img = sv.Image('../sampleimages/04000.jpg')
+    img = Image('../sampleimages/04000.jpg')
     mask = img.getSkintoneMask()
+    mask.show()
+    time.sleep(3)
+    import time
+    print "with dilation as 10"
+    img = Image('../sampleimages/04001.jpg')
+    mask = img.getSkintoneMask(dilate=10)
+    mask.show()
+    time.sleep(3)
+    img = Image('../sampleimages/04000.jpg')
+    mask = img.getSkintoneMask(dilate=10)
     mask.show()
     time.sleep(3)
 
