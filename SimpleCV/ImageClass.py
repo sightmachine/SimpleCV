@@ -2607,7 +2607,89 @@ class Image:
             return None
             
         return FeatureSet(blobs).sortArea()
+    
+    def findSkintoneBlobs(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+        """
+        **SUMMARY**
+        
+        Find Skintone blobs will look for continuous
+        regions of Skintone in a color image and return them as Blob features in a FeatureSet.  
+        Parameters specify the binarize filter threshold value, and minimum and maximum size for 
+        blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+        
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
 
+        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
+    
+        .. Warning:: 
+          This parameter must be an odd number.
+          
+        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
+ 
+    
+        **RETURNS**
+        
+        Returns a featureset (basically a list) of :py:class:`blob` features. If no blobs are found this method returns None.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> fs = img.findSkintoneBlobs() 
+        >>> if( fs is not None ):
+        >>>     fs.draw()
+
+        **NOTES**
+        It will be really awesome for making UI type stuff, where you want to track a hand or a face.
+
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`findBlobsFromPalette`
+        :py:meth:`smartFindBlobs`
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height
+        #create a single channel image, thresholded to parameters
+        if( self._colorSpace != ColorSpace.YCrCb ):
+            YCrCb = self.toYCrCb()
+        else:
+            YCrCb = self
+    
+        Y =  np.ones((256,1),dtype=uint8)*0
+	Y[5:] = 255
+	Cr =  np.ones((256,1),dtype=uint8)*0
+        Cr[140:180] = 255
+	Cb =  np.ones((256,1),dtype=uint8)*0
+	Cb[77:135] = 255
+	Y_img = YCrCb.getEmpty(1)
+	Cr_img = YCrCb.getEmpty(1)
+	Cb_img = YCrCb.getEmpty(1)
+	cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+	cv.LUT(Y_img,Y_img,cv.fromarray(Y))
+	cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+	cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+	temp = self.getEmpty()
+	cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+	mask = mask.binarize((128,128,128))
+	mask = mask.toRGB().binarize()
+	blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(mask, YCrCb, minsize = minsize, maxsize = maxsize)
+        if not len(blobs):
+            return None
+        return FeatureSet(blobs).sortArea()    
+    
+    
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
