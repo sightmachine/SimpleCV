@@ -2524,8 +2524,31 @@ def test_point_intersection():
   name_stem = "test_point_intersection"
   perform_diff(results,name_stem,tolerance=6.0)        
   
- 
+def test_findSkintoneBlobs():
+    import time
+    img = Image('../sampleimages/04001.jpg')
+    blobs = img.findSkintoneBlobs()
+    img.show()
+    time.sleep(3)
+    img.crop(blobs[-1]).show()
+    time.sleep(3)
+    img = sv.Image('../sampleimages/04000.jpg')
+    blobs = img.findSkintoneBlobs()
+    img.show()
+    time.sleep(3)
+    img.crop(blobs[-1]).show()
+    time.sleep(3)
 
+def test_getSkintoneMask():
+    import time
+    img = Image('../sampleimages/04001.jpg')
+    mask = img.getSkintoneMask()
+    mask.show()
+    time.sleep(3)
+    img = sv.Image('../sampleimages/04000.jpg')
+    mask = img.getSkintoneMask()
+    mask.show()
+    time.sleep(3)
 
 
   

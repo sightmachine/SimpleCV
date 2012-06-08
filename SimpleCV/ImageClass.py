@@ -2683,7 +2683,7 @@ class Image:
             return None
         return FeatureSet(blobs).sortArea()    
     
-    def getSkintoneMask(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5, dilate=0):
+    def getSkintoneMask(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5, dilate_iter=0):
         """
         **SUMMARY**
         
@@ -2708,7 +2708,7 @@ class Image:
           
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
  
-    
+    	* *dilate_iter* - the number of times to run the dilation operation.  
         **RETURNS**
         
         Returns a binary mask.
@@ -2746,7 +2746,7 @@ class Image:
 	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
 	mask = mask.binarize((128,128,128))
 	mask = mask.toRGB().binarize()
-	mask.dilate(dilate)
+	mask.dilate(dilate_iter)
 	return mask    
         
     #this code is based on code that's based on code from
