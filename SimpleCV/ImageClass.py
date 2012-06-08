@@ -2683,7 +2683,7 @@ class Image:
             return None
         return FeatureSet(blobs).sortArea()    
     
-    def findSkintoneMask(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+    def getSkintoneMask(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5, dilate=0):
         """
         **SUMMARY**
         
@@ -2746,6 +2746,7 @@ class Image:
 	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
 	mask = mask.binarize((128,128,128))
 	mask = mask.toRGB().binarize()
+	mask.dilate(dilate)
 	return mask    
         
     #this code is based on code that's based on code from
