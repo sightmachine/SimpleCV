@@ -2688,7 +2688,7 @@ class Image:
         **SUMMARY**
         
         Find Skintone mask will look for continuous
-        regions of Skintone in a color image and return a binary mask.  
+        regions of Skintone in a color image and return a binary mask where the white pixels denote Skintone region.  
         Parameters specify the binarize filter threshold value, and minimum and maximum size for 
         blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
         more information about thresholding.  The threshblocksize and threshconstant
