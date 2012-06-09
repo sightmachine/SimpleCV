@@ -82,10 +82,10 @@ class Line(Feature):
         #coordinate of the line object is the midpoint
         at_x = (line[0][0] + line[1][0]) / 2
         at_y = (line[0][1] + line[1][1]) / 2
-        xmin = np.min([line[0][0],line[1][0]])
-        xmax = np.max([line[0][0],line[1][0]])
-        ymax = np.min([line[0][1],line[1][1]])
-        ymin = np.max([line[0][1],line[1][1]])
+        xmin = int(min(line[0][0],line[1][0]))
+        xmax = int(max(line[0][0],line[1][0]))
+        ymax = int(min(line[0][1],line[1][1]))
+        ymin = int(max(line[0][1],line[1][1]))
         points = [(xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin)]
         super(Line, self).__init__(i, at_x, at_y,points)
 

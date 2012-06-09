@@ -4740,10 +4740,10 @@ class Image:
         :py:meth:`applyLayers`
         :py:class:`DrawingLayer`
         """
-        xmax = np.max((pt0[0],pt1[0]))
-        xmin = np.min((pt0[0],pt1[0]))
-        ymax = np.max((pt0[1],pt1[1]))
-        ymin = np.min((pt0[1],pt1[1]))
+        xmax = max(pt0[0],pt1[0])
+        xmin = min(pt0[0],pt1[0])
+        ymax = max(pt0[1],pt1[1])
+        ymin = min(pt0[1],pt1[1])
         
         self.drawRectangle(xmin,ymin,xmax-xmin,ymax-ymin,color,width,alpha)
         return xmin,ymin,xmax,ymax
