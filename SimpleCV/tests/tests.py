@@ -2525,40 +2525,29 @@ def test_point_intersection():
   perform_diff(results,name_stem,tolerance=6.0)        
   
 def test_findSkintoneBlobs():
-    import time
-    img = Image('../sampleimages/04001.jpg')
-    blobs = img.findSkintoneBlobs()
-    img.show()
-    time.sleep(3)
-    img.crop(blobs[-1]).show()
-    time.sleep(3)
     img = Image('../sampleimages/04000.jpg')
+    
     blobs = img.findSkintoneBlobs()
-    img.show()
-    time.sleep(3)
-    img.crop(blobs[-1]).show()
-    time.sleep(3)
-
+    for b in blobs:
+        if(b.mArea > 0):
+            pass
+        if(b.perimeter() > 0):
+            pass
+        if(b.mAvgColor[0] > 5 and b.mAvgColor[1]>140 and b.mAvgColor[1]<180 and b.mAvgColor[2]>77 and b.mAvgColor[2]<135):
+            pass	
+        
+    
 def test_getSkintoneMask():
-    import time
-    img = Image('../sampleimages/04001.jpg')
-    mask = img.getSkintoneMask()
-    mask.show()
-    time.sleep(3)
-    img = Image('../sampleimages/04000.jpg')
-    mask = img.getSkintoneMask()
-    mask.show()
-    time.sleep(3)
-    import time
-    print "with dilation as 10"
-    img = Image('../sampleimages/04001.jpg')
-    mask = img.getSkintoneMask(dilate=10)
-    mask.show()
-    time.sleep(3)
-    img = Image('../sampleimages/04000.jpg')
-    mask = img.getSkintoneMask(dilate=10)
-    mask.show()
-    time.sleep(3)
-
-
-  
+    imgSet = []
+    imgSet.append(Image('../sampleimages/040000.jpg'))
+    imgSet.append(Image('../sampleimages/040001.jpg'))
+    imgSet.append(Image('../sampleimages/040002.jpg'))
+    imgSet.append(Image('../sampleimages/040003.jpg'))
+    imgSet.append(Image('../sampleimages/040004.jpg'))
+    imgSet.append(Image('../sampleimages/040005.jpg'))
+    imgSet.append(Image('../sampleimages/040006.jpg'))
+    imgSet.append(Image('../sampleimages/040007.jpg'))
+    masks = [img.getSkintoneMask() for img in imgSet]
+    VISUAL_TEST = True
+    name_stem = 'test_skintone'
+    perform_diff(masks,name_stem,tolerance=17)
