@@ -2689,7 +2689,72 @@ class Image:
             return None
         return FeatureSet(blobs).sortArea()    
     
+    def getSkintoneMask(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5, dilate_iter=0):
+        """
+        **SUMMARY**
+        
+        Find Skintone mask will look for continuous
+        regions of Skintone in a color image and return a binary mask where the white pixels denote Skintone region.  
+        Parameters specify the binarize filter threshold value, and minimum and maximum size for 
+        blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+        
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
+
+        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
     
+        .. Warning:: 
+          This parameter must be an odd number.
+          
+        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
+ 
+    	* *dilate_iter* - the number of times to run the dilation operation.  
+        **RETURNS**
+        
+        Returns a binary mask.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> mask = img.findSkintoneMask() 
+        >>> mask.show()
+        
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height
+
+        if( self._colorSpace != ColorSpace.YCrCb ):
+            YCrCb = self.toYCrCb()
+        else:
+            YCrCb = self
+    
+        Y =  np.ones((256,1),dtype=uint8)*0
+	Y[5:] = 255
+	Cr =  np.ones((256,1),dtype=uint8)*0
+        Cr[140:180] = 255
+	Cb =  np.ones((256,1),dtype=uint8)*0
+	Cb[77:135] = 255
+	Y_img = YCrCb.getEmpty(1)
+	Cr_img = YCrCb.getEmpty(1)
+	Cb_img = YCrCb.getEmpty(1)
+	cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+	cv.LUT(Y_img,Y_img,cv.fromarray(Y))
+	cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+	cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+	temp = self.getEmpty()
+	cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+	mask = mask.binarize((128,128,128))
+	mask = mask.toRGB().binarize()
+	mask.dilate(dilate_iter)
+	return mask    
+        
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
