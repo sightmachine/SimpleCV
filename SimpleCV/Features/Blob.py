@@ -948,26 +948,17 @@ class Blob(Feature):
 
         retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
         cv.Zero(retVal)
-        tl = self.topLeftCorner()
+        l,t = self.topLeftCorner()
 
         # construct the exterior contour - these are tuples 
-        contour = []
-        if self.mContour is not None:
-            for p in self.mContour:
-                t = (p[0]-tl[0],p[1]-tl[1])
-                contour.append(t)
-
-            cv.FillPoly(retVal,[contour],(255,255,255),8)
+        
+        cv.FillPoly(retVal,[[(p[0] - l, p[1] - t) for p in self.mContour]],(255,255,255),8)
 
         #construct the hole contoursb
         holes = []
         if self.mHoleContour is not None:
             for h in self.mHoleContour: # -- these are lists
-                thole = []
-                for h2 in h:
-                    t = (h2[0]-tl[0],h2[1]-tl[1])
-                    thole.append(t)
-                    holes.append(thole)
+                holes.append([(h2[0]-l,h2[1]-t) for h2 in h])
                     
             cv.FillPoly(retVal,holes,(0,0,0),8)
         return Image(retVal)
