@@ -163,9 +163,60 @@ class Color:
         """
         hsv_float = colorsys.rgb_to_hsv(*tuple)
         return (hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2])
+    
+    @classmethod
+    def getHueFromRGB(cls, tuple):
+        """
+        **SUMMARY**
+
+        Get corresponding Hue value of the given RGB values
+        
+        **PARAMETERS**
+        
+        * *tuple* - an rgb tuple to convert to HSV.
+
+        **RETURNS**
+
+        floating value of Hue ranging from 0 to 180
+
+        **EXAMPLE**
+        
+        >>> i = Image("lenna")
+        >>> hue = Color.getHueFromRGB(i[100,300])
+        
+        """
+        h_float = colorsys.rgb_to_hsv(*tuple)[0]
+        return h_float*180
+        
+    @classmethod    
+    def getHueFromBGR(self,color_tuple):
+        """
+        **SUMMARY**
+
+        Get corresponding Hue value of the given BGR values
+        
+        **PARAMETERS**
+        
+        * *tuple* - a BGR tuple to convert to HSV.
+
+        **RETURNS**
+
+        floating value of Hue ranging from 0 to 180
+
+        **EXAMPLE**
+        
+        >>> i = Image("lenna")
+        >>> color_tuple = tuple(reversed(i[100,300]))
+        >>> hue = Color.getHueFromRGB(color_tuple)
+        
+        """
+        a = color_tuple
+        print a
+        h_float = colorsys.rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
+        return h_float*180
         
     @classmethod
-    def huetoRGB(self, h):
+    def hueToRGB(self, h):
         """
         **SUMMARY**
 
@@ -184,31 +235,12 @@ class Color:
         >>> c = Color.huetoRGB(0)
         
         """
-        s = 1.0
-        if 0 <= h <= 120:
-            b = (1-s)/3.0
-            r = (1.0+(s*cos(radians(h))/cos(radians(60-h))))/3.0
-            g = 1 - (b+r)
-
-        if 120 < h <= 240:
-            h = h - 120
-            r = (1-s)/3.0
-            g = (1.0+(s*cos(radians(h))/cos(radians(60-h))))/3.0
-            b = 1 - (r+g)
-
-        if 240 < h <= 360:
-            h = h - 240
-            g = (1-s)/3.0
-            b = (1.0+(s*cos(radians(h))/cos(radians(60-h))))/3.0
-            r = 1 - (g+b)	
-        
-        if h > 360 or h < 0:
-            print "Invalid value of Hue. 0 <= Hue <=360"
-            return None
+        h = h/180.0
+        r,g,b = colorsys.hsv_to_rgb(h,1,1)
         return (round(255.0*r),round(255.0*g),round(255.0*b))
         
     @classmethod
-    def huetoBGR(self,h):
+    def hueToBGR(self,h):
         """
         **SUMMARY**
 
@@ -227,7 +259,7 @@ class Color:
         >>> c = Color.huetoBGR(0)
         
         """
-        return(tuple(reversed(self.huetoRGB(h))))
+        return(tuple(reversed(self.hueToRGB(h))))
          
 
 class ColorCurve:
