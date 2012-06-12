@@ -1642,7 +1642,10 @@ class Image:
         if (self._pgsurface):
             return self._pgsurface
         else:
-            self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
+            if self.isGray():
+                self._pgsurface = pg.image.fromstring(self.getBitmap().tostring(), self.size(), "RGB")
+            else:
+                self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
     def toString(self):
@@ -1731,7 +1734,7 @@ class Image:
         else:
             saveimg = self
 
-        if( self._colorSpace != ColorSpace.BGR ):
+        if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
 
         if (type(filehandle_or_filename) != str):
