@@ -1557,7 +1557,10 @@ class Image:
         if (self._pgsurface):
             return self._pgsurface
         else:
-            self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
+            if self.isGray():
+                self._pgsurface = pg.image.fromstring(self.getBitmap().tostring(), self.size(), "RGB")
+            else:
+                self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
     def toString(self):
@@ -1646,7 +1649,7 @@ class Image:
         else:
             saveimg = self
 
-        if( self._colorSpace != ColorSpace.BGR ):
+        if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
 
         if (type(filehandle_or_filename) != str):
@@ -4704,50 +4707,6 @@ class Image:
         else:
             self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
             
-    def drawBB(self,pt0,pt1,color=Color.RED,width=1,alpha=255):
-        """
-        **SUMMARY**
-        
-        Draw a bounding box in the screen given any two diagonal corners of the box
-        
-        **PARAMETERS**
-        
-        * *pt0* - one corner - tuple (x,y) co-ordinates
-        * *pt1* - diagonally opposite corner - tuple (x,y) co-ordinates
-        * *color* - an RGB tuple indicating the desired color.
-        * *width* - the width of the rectangle, a value less than or equal to zero means filled in completely.
-        * *alpha* - the alpha value on the interval from 255 to 0, 255 is opaque, 0 is completely transparent.
-        
-        **RETURNS**
-        
-        xmin - x co-ordinate of the nearest corner (from the origin)
-        ymin - y co-ordinate of the nearest corner (from the origin)
-        xmax - x co-ordinate of the farthest corner(from the origin)
-        ymax - y co-ordinate of the farthest corner(from the origin) 
-        
-        **EXAMPLE**
-        
-        >>> img = Image("lenna")
-        >>> bb = img.drawBB( (50,50),(100,150))
-        >>> img.show()
-
-        **SEE ALSO**
-
-        :py:meth:`dl`
-        :py:meth:`drawCircle`
-        :py:meth:`drawRectangle`
-        :py:meth:`drawBB`
-        :py:meth:`applyLayers`
-        :py:class:`DrawingLayer`
-        """
-        xmax = max(pt0[0],pt1[0])
-        xmin = min(pt0[0],pt1[0])
-        ymax = max(pt0[1],pt1[1])
-        ymin = min(pt0[1],pt1[1])
-        
-        self.drawRectangle(xmin,ymin,xmax-xmin,ymax-ymin,color,width,alpha)
-        return xmin,ymin,xmax,ymax
-        
     def drawRotatedRectangle(self,boundingbox,color=Color.RED,width=1):
         """
         **SUMMARY**
