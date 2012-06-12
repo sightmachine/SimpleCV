@@ -9646,8 +9646,8 @@ class Image:
             return [None,None]
         A = np.argmin(spsd.cdist(p0p,points,'cityblock'))
         B = np.argmin(spsd.cdist(p1p,points,'cityblock'))
-        ptA = (xs[A]+x,ys[A]+y)
-        ptB = (xs[B]+x,ys[B]+y)
+        ptA = (int(xs[A]+x),int(ys[A]+y))
+        ptB = (int(xs[B]+x),int(ys[B]+y))
         # we might actually want this to be list of all the points
         return [ptA, ptB]          
 
