@@ -1233,7 +1233,7 @@ class Feature(object):
 
         Should this be sqrt(x*x+y*y)?
         """
-        return mp.max([self.width(),self.height()])
+        return np.max([self.width(),self.height()])
   
     def distanceToNearestEdge(self):
         """
