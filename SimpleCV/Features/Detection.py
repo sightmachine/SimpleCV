@@ -131,7 +131,7 @@ class Line(Feature):
         >>>       print "---I bet you say that to all the lines."
 
         """
-        return spsd.euclidean(self.end_points[0], self.end_points[1])  
+        return float(spsd.euclidean(self.end_points[0], self.end_points[1]))
 
     def crop(self):
         """
@@ -246,8 +246,9 @@ class Line(Feature):
         weighted_clrs = np.transpose(np.transpose(clr_arr) * weight_arr) 
         #multiply each color tuple by its weight
     
-        return sum(weighted_clrs) / sum(weight_arr)  #return the weighted avg
- 
+        temp = sum(weighted_clrs) / sum(weight_arr)  #return the weighted avg
+        return (float(temp[0]),float(temp[1]),float(temp[2]))
+
     def angle(self):
         """
         **SUMMARY**
@@ -279,7 +280,7 @@ class Line(Feature):
         d_x = self.end_points[b][0] - self.end_points[a][0]
         d_y = self.end_points[b][1] - self.end_points[a][1]
         #our internal standard is degrees
-        return (360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
+        return float(360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
   
 ######################################################################
 class Barcode(Feature):
