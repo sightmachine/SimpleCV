@@ -618,6 +618,7 @@ class VirtualCamera(FrameSource):
           
         >>> vc = VirtualCamera("img.jpg", "image")
         >>> vc = VirtualCamera("video.mpg", "video")
+        >>> vc = VirtualCamera("./path_to_images/", "imageset")
 
         """
         self.source = s
@@ -805,7 +806,7 @@ class JpegStreamReader(threading.Thread):
                 (header, length) = data.split(":")
                 length = int(length.strip())
                
-            if (re.search("JFIF", data, re.I) or re.search("\xff\xd8\xff\xdb", data) or len(data) > 50):
+            if (re.search("JFIF", data, re.I) or re.search("\xff\xd8\xff\xdb", data) or len(data) > 55):
                 # we have reached the start of the image 
                 buff = '' 
                 if length and length > len(data):

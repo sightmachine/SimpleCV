@@ -81,7 +81,7 @@ def imgSaves(test_imgs, name_stem, path=standard_path):
   count = len(test_imgs)
   for idx in range(0,count):
     fname = standard_path+name_stem+str(idx)+".jpg"
-    test_imgs[idx].save(fname,quality=95)
+    test_imgs[idx].save(fname)#,quality=95)
 
 #perform the actual image save and image diffs. 
 def perform_diff(result,name_stem,tolerance=2.0,path=standard_path):
@@ -376,6 +376,24 @@ def test_detection_feature_measures():
   fs1 = fs.sortDistance()
   pass
 
+def test_detection_blobs_appx():
+    img = Image("lenna")
+    blobs = img.findBlobs()   
+    blobs[-1].draw(color=Color.RED)
+    blobs[-1].drawAppx(color=Color.BLUE)
+    result = [img]
+
+    img2 = Image("lenna")
+    blobs = img2.findBlobs(appx_level=11)   
+    blobs[-1].draw(color=Color.RED)
+    blobs[-1].drawAppx(color=Color.BLUE)
+    result.append(img2)
+
+    name_stem = "test_detection_blobs_appx"
+    perform_diff(result,name_stem,5.00)
+    if blobs == None:
+        assert False
+
 def test_detection_blobs():
     img = Image(testbarcode)
     blobs = img.findBlobs()
@@ -383,10 +401,33 @@ def test_detection_blobs():
     result = [img]
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs"
-    perform_diff(result,name_stem)
+    perform_diff(result,name_stem,5.00)
 
     if blobs == None:
         assert False
+
+def test_detection_blobs_lazy():
+
+  img = Image("lenna")
+  b = img.findBlobs()
+  result = []
+    
+  s = pickle.dumps(b[-1]) # use two otherwise it w
+  b2 =  pickle.loads(s)
+
+  result.append(b[-1].mImg)
+  result.append(b[-1].mMask)
+  result.append(b[-1].mHullImg)
+  result.append(b[-1].mHullMask)
+  
+  result.append(b2.mImg)
+  result.append(b2.mMask)
+  result.append(b2.mHullImg)
+  result.append(b2.mHullMask)
+  
+  #TODO - WE NEED BETTER COVERAGE HERE
+  name_stem = "test_detection_blobs_lazy"
+  perform_diff(result,name_stem,6.00)
         
 
 def test_detection_blobs_adaptive():
@@ -395,16 +436,18 @@ def test_detection_blobs_adaptive():
     blobs.draw(color=Color.RED)
     result = [img]
     name_stem = "test_detection_blobs_adaptive"
-    perform_diff(result,name_stem)
+    perform_diff(result,name_stem,5.00)
 
     if blobs == None:
         assert False
 
 
 def test_detection_barcode():
-  if not ZXING_ENABLED:
+  try:
+    import zbar
+  except:
     return None
-
+  
   img1 = Image(testimage)
   img2 = Image(testbarcode)
 
@@ -1188,7 +1231,6 @@ def test_blob_methods():
         b.minRectHeight()
         b.minRectX()
         b.minRectY()
-        b.center()
         b.contour()
         b.aspectRatio() 
         b.blobImage()
@@ -2475,7 +2517,16 @@ def test_pixelize():
   img6 = img.pixelize((12,12),(600,80,250,250))
   img7 = img.pixelize((12,12),(600,80,250,250),levels=4)
   img8 = img.pixelize((12,12),levels=6)
-  results = [img1,img2,img3,img4,img5,img6,img7,img8]
+  #img9 = img.pixelize(4, )
+  #img10 = img.pixelize((5,13))
+  #img11 = img.pixelize((img.width/10,img.height), mode=True)
+  #img12 = img.pixelize((img.width,img.height/10), mode=True)
+  #img13 = img.pixelize((12,12),(200,180,250,250), mode=True)
+  #img14 = img.pixelize((12,12),(600,80,250,250), mode=True)
+  #img15 = img.pixelize((12,12),(600,80,250,250),levels=4, mode=True)
+  #img16 = img.pixelize((12,12),levels=6, mode=True)
+
+  results = [img1,img2,img3,img4,img5,img6,img7,img8] #img9,img10,img11,img12,img13,img14,img15,img16]
   name_stem = "test_pixelize"
   perform_diff(results,name_stem,tolerance=6.0)
   
@@ -2628,4 +2679,65 @@ def test_hueToBGR():
         
     
   
+def test_point_intersection():
+  img = Image("simplecv")
+  e = img.edges(0,100)
+  for x in range(25,225,25):
+    a = (x,25)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
+
+  for x in range(25,225,25):
+    a = (25,x)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
     
+  for x in range(25,225,25):
+    a = (x,225)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
+
+  for x in range(25,225,25):
+    a = (225,x)
+    b = (125,125)
+    pts = img.edgeIntersections(a,b,width=1)
+    e.drawLine(a,b,color=Color.RED)
+    e.drawCircle(pts[0],10,color=Color.GREEN)
+    
+  results = [e]
+  name_stem = "test_point_intersection"
+  perform_diff(results,name_stem,tolerance=6.0)        
+  
+def test_findSkintoneBlobs():
+    img = Image('../sampleimages/04000.jpg')
+    
+    blobs = img.findSkintoneBlobs()
+    for b in blobs:
+        if(b.mArea > 0):
+            pass
+        if(b.perimeter() > 0):
+            pass
+        if(b.mAvgColor[0] > 5 and b.mAvgColor[1]>140 and b.mAvgColor[1]<180 and b.mAvgColor[2]>77 and b.mAvgColor[2]<135):
+            pass	
+        
+    
+def test_getSkintoneMask():
+    imgSet = []
+    imgSet.append(Image('../sampleimages/040000.jpg'))
+    imgSet.append(Image('../sampleimages/040001.jpg'))
+    imgSet.append(Image('../sampleimages/040002.jpg'))
+    imgSet.append(Image('../sampleimages/040003.jpg'))
+    imgSet.append(Image('../sampleimages/040004.jpg'))
+    imgSet.append(Image('../sampleimages/040005.jpg'))
+    imgSet.append(Image('../sampleimages/040006.jpg'))
+    imgSet.append(Image('../sampleimages/040007.jpg'))
+    masks = [img.getSkintoneMask() for img in imgSet]
+    VISUAL_TEST = True
+    name_stem = 'test_skintone'
+    perform_diff(masks,name_stem,tolerance=17)

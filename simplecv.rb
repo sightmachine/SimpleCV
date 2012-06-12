@@ -24,7 +24,7 @@ class Simplecv < Formula
     #  sudo ARCHFLAGS="-arch i386 -arch x86_64" pip install  --ignore-installed --install-option="--prefix=/usr/local" --verbose hg+http://bitbucket.org/pygame/pygame
 
     #
-    #Archflags="-arch i386 -arch x86_64"
+    #ARCHFLAGS="-arch i386 -arch x86_64"
     #sudo pip install hg+http://bitbucket.org/pygame/pygame
     #looks like we need to append python setup.py install --home=HOMEBREW_PREFIX/lib/python2.7/site-packages
     system "sudo ARCHFLAGS=\"-arch i386 -arch x86_64\" pip install  --ignore-installed --install-option=\"--prefix=#{HOMEBREW_PREFIX}\" --verbose -r requirements.txt"

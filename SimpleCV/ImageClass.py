@@ -10,7 +10,7 @@ import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
 import math # math... who does that 
 import copy # for deep copy
-
+#import scipy.stats.mode as spsmode
 
 
 class ColorSpace:
@@ -30,7 +30,7 @@ class ColorSpace:
     HLS = 4
     HSV = 5
     XYZ  = 6
-
+    YCrCb = 7
   
 class ImageSet(list):
     """
@@ -947,6 +947,28 @@ class Image:
         """
         return(self._colorSpace==ColorSpace.GRAY)    
 
+    def isYCrCb(self):
+        """
+        **SUMMARY**
+
+        Returns true if this image uses the YCrCb colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the YCrCb colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isYCrCb() ):
+        >>>    Y,Cr,Cb = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toYCrCb`
+        
+        """
+        return(self._colorSpace==ColorSpace.YCrCb)
+    
     def toRGB(self):
         """
         **SUMMARY**
@@ -980,6 +1002,8 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)    
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)    
         elif( self._colorSpace == ColorSpace.RGB ):
             retVal = self.getBitmap()
         else:
@@ -1020,6 +1044,8 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2BGR)    
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2BGR)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2BGR)    
         elif( self._colorSpace == ColorSpace.BGR ):
             retVal = self.getBitmap()    
         else:
@@ -1063,6 +1089,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)        
         elif( self._colorSpace == ColorSpace.HLS ):
             retVal = self.getBitmap()      
         else:
@@ -1105,6 +1134,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)        
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = self.getBitmap()      
         else:
@@ -1148,6 +1180,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.HSV ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)            
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = self.getBitmap()      
         else:
@@ -1181,7 +1216,7 @@ class Image:
 
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
-                self._colorSpace == ColorSpace.UNKNOWN ):
+            	self._colorSpace == ColorSpace.UNKNOWN ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.RGB):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2GRAY)
@@ -1193,11 +1228,61 @@ class Image:
             cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)  
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)        
+        elif( self._colorSpace == ColorSpace.GRAY ):
+            retVal = self.getBitmap()
         else:
             logger.warning("Image.toGray: There is no supported conversion to gray colorspace")
             return None
-        return Image(retVal, colorSpace = ColorSpace.GRAY )    
+        return Image(retVal, colorSpace = ColorSpace.GRAY )   
+        
+    def toYCrCb(self):
+        """
+        **SUMMARY**
+
+        This method attemps to convert the image to the YCrCb colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> RGBImg = img.toYCrCb()
+
+        **SEE ALSO**
+
+        :py:meth:`isYCrCb`
+        
+        """
+
+        retVal = self.getEmpty()
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2YCrCb)
+        elif( self._colorSpace == ColorSpace.RGB ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.HSV ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.HLS ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)    
+        elif( self._colorSpace == ColorSpace.XYZ ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            retVal = self.getBitmap()      
+        else:
+            logger.warning("Image.toYCrCb: There is no supported conversion to YCrCb colorspace")
+            return None
+        return Image(retVal, colorSpace=ColorSpace.YCrCb )     
     
     
     def getEmpty(self, channels = 3):
@@ -1846,6 +1931,9 @@ class Image:
            You must supply your own API key. See here: http://imgur.com/register/api_anon 
            or http://www.flickr.com/services/api/misc.api_keys.html
         """
+        if self.filename == None or self.filename == '':
+            self.save(temp=True)
+            
         if ( dest=='imgur' ) :
             try:
                 import pycurl
@@ -2450,7 +2538,7 @@ class Image:
         return FeatureSet(corner_features)
 
 
-    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5,appx_level=3):
         """
         **SUMMARY**
         
@@ -2473,7 +2561,10 @@ class Image:
 
         * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
     
-        .. Warning:: 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+        
+          .. Warning:: 
           This parameter must be an odd number.
           
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
@@ -2513,13 +2604,160 @@ class Image:
             
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
-            self, minsize = minsize, maxsize = maxsize)
+            self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
             
         return FeatureSet(blobs).sortArea()
+    
+    def findSkintoneBlobs(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+        """
+        **SUMMARY**
+        
+        Find Skintone blobs will look for continuous
+        regions of Skintone in a color image and return them as Blob features in a FeatureSet.  
+        Parameters specify the binarize filter threshold value, and minimum and maximum size for 
+        blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+        
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
 
+        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
+    
+        .. Warning:: 
+          This parameter must be an odd number.
+          
+        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
+ 
+    
+        **RETURNS**
+        
+        Returns a featureset (basically a list) of :py:class:`blob` features. If no blobs are found this method returns None.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> fs = img.findSkintoneBlobs() 
+        >>> if( fs is not None ):
+        >>>     fs.draw()
+
+        **NOTES**
+        It will be really awesome for making UI type stuff, where you want to track a hand or a face.
+
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`findBlobsFromPalette`
+        :py:meth:`smartFindBlobs`
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height
+        #create a single channel image, thresholded to parameters
+        if( self._colorSpace != ColorSpace.YCrCb ):
+            YCrCb = self.toYCrCb()
+        else:
+            YCrCb = self
+    
+        Y =  np.ones((256,1),dtype=uint8)*0
+	Y[5:] = 255
+	Cr =  np.ones((256,1),dtype=uint8)*0
+        Cr[140:180] = 255
+	Cb =  np.ones((256,1),dtype=uint8)*0
+	Cb[77:135] = 255
+	Y_img = YCrCb.getEmpty(1)
+	Cr_img = YCrCb.getEmpty(1)
+	Cb_img = YCrCb.getEmpty(1)
+	cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+	cv.LUT(Y_img,Y_img,cv.fromarray(Y))
+	cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+	cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+	temp = self.getEmpty()
+	cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+	mask = mask.binarize((128,128,128))
+	mask = mask.toRGB().binarize()
+	blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(mask, YCrCb, minsize = minsize, maxsize = maxsize)
+        if not len(blobs):
+            return None
+        return FeatureSet(blobs).sortArea()    
+    
+    def getSkintoneMask(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5, dilate_iter=0):
+        """
+        **SUMMARY**
+        
+        Find Skintone mask will look for continuous
+        regions of Skintone in a color image and return a binary mask where the white pixels denote Skintone region.  
+        Parameters specify the binarize filter threshold value, and minimum and maximum size for 
+        blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+        
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
+
+        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
+    
+        .. Warning:: 
+          This parameter must be an odd number.
+          
+        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
+ 
+    	* *dilate_iter* - the number of times to run the dilation operation.  
+        **RETURNS**
+        
+        Returns a binary mask.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> mask = img.findSkintoneMask() 
+        >>> mask.show()
+        
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height
+
+        if( self._colorSpace != ColorSpace.YCrCb ):
+            YCrCb = self.toYCrCb()
+        else:
+            YCrCb = self
+    
+        Y =  np.ones((256,1),dtype=uint8)*0
+	Y[5:] = 255
+	Cr =  np.ones((256,1),dtype=uint8)*0
+        Cr[140:180] = 255
+	Cb =  np.ones((256,1),dtype=uint8)*0
+	Cb[77:135] = 255
+	Y_img = YCrCb.getEmpty(1)
+	Cr_img = YCrCb.getEmpty(1)
+	Cb_img = YCrCb.getEmpty(1)
+	cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+	cv.LUT(Y_img,Y_img,cv.fromarray(Y))
+	cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+	cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+	temp = self.getEmpty()
+	cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+	mask = mask.binarize((128,128,128))
+	mask = mask.toRGB().binarize()
+	mask.dilate(dilate_iter)
+	return mask    
+        
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
     def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
@@ -2638,7 +2876,10 @@ class Image:
         :py:class:`DrawingLayer`
 
         """
-        self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
+        if( thickness < 0):
+            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness),filled=True)
+        else:
+            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
     
     
     def drawLine(self, pt1, pt2, color = (0, 0, 0), thickness = 1):
@@ -3652,64 +3893,17 @@ class Image:
             self.__dict__[k] = v
 
 
-    def findBarcode(self, zxing_path = ""):
+    def findBarcode(self):
         """
         **SUMMARY**
+        This function requires zbar and the zbar python wrapper to be installed.
 
-        If you have the python-zxing library installed, you can find 2d and 1d
-        barcodes in your image.  These are returned as Barcode feature objects
-        in a FeatureSet.  The single parameter is the ZXing_path, if you 
-        don't have the ZXING_LIBRARY env parameter set.
+        To install please visit:
+        http://zbar.sourceforge.net/
 
-        You can clone python-zxing at:
-
-        http://github.com/oostendo/python-zxing
-
-        **INSTALLING ZEBRA CROSSING**
-
-        * Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
-      
-        * unpack the zip file where ever you see fit
-
-          >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
-          >>> ant -f core/build.xml
-          >>> ant -f javase/build.xml 
+        On Ubuntu Linux 12.04 or greater:
+        sudo apt-get install python-zbar
         
-          This should build the library, but double check the readme
-        
-        * Get our helper library 
-
-          >>> git clone git://github.com/oostendo/python-zxing.git
-          >>> cd python-zxing
-          >>> python setup.py install
-
-        * Our library does not have a setup file. You will need to add
-           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
-        
-          export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-          for example: 
-
-          export ZXING_LIBRARY=/my/install/path/zxing-x.x/   
-        
-          On windows you will need to add these same variables to the system variable, e.g.
-          
-          http://www.computerhope.com/issues/ch000549.htm
-        
-        * On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
-        
-        * Go grab some barcodes!
-
-        .. Warning::
-          Users on OSX may see the following error:
-          
-          RuntimeWarning: tmpnam is a potential security risk to your program        
-          
-          We are working to resolve this issue. For normal use this should not be a problem.
-
-        **PARAMETERS**
-        
-        * *zxing_path* - The path to lib zxing.
-            
         **Returns**
         
         A :py:class:`FeatureSet` of :py:class:`Barcode` objects. If no barcodes are detected the method returns None.
@@ -3727,26 +3921,38 @@ class Image:
         :py:class:`Barcode`
 
         """
-        if not ZXING_ENABLED:
-            logger.warning("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
-            return None
+        try:
+          import zbar
+        except:
+          logger.warning('The zbar library is not installed, please install to read barcodes')
+          return None
 
+        #configure zbar
+        scanner = zbar.ImageScanner()
+        scanner.parse_config('enable')
+        raw = self.getPIL().convert('L').tostring()
+        width = self.width
+        height = self.height
 
-        if (not self._barcodeReader):
-            if not zxing_path:
-                self._barcodeReader = zxing.BarCodeReader()
-            else:
-                self._barcodeReader = zxing.BarCodeReader(zxing_path)
+        # wrap image data
+        image = zbar.Image(width, height, 'Y800', raw)
 
+        # scan the image for barcodes
+        scanner.scan(image)
 
-        tmp_filename = os.tmpnam() + ".png"
-        self.save(tmp_filename)
-        barcode = self._barcodeReader.decode(tmp_filename)
-        os.unlink(tmp_filename)
+        barcode = None
+        # extract results
+        for symbol in image:
+            # do something useful with results
+            barcode = symbol
 
-
+        # clean up
+        del(image)
+        
         if barcode:
-            return Barcode(self, barcode)
+            f = Barcode(self, barcode)
+            return FeatureSet([f])
+            #~ return f
         else:
             return None
 
@@ -6177,7 +6383,7 @@ class Image:
         mapped = map(tuple, np.column_stack(compute))
         fs = FeatureSet()
         for location in mapped:
-            fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+            fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
 
         #cluster overlapping template matches 
         finalfs = FeatureSet()
@@ -7471,7 +7677,7 @@ class Image:
         return retVal 
 
 
-    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,appx_level=3):
         """
         **SUMMARY**
 
@@ -7488,6 +7694,8 @@ class Image:
           prior to performing blob extraction.
         * *minsize* - the minimum blob size in pixels
         * *maxsize* - the maximim blob size in pixels.
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
 
         **RETURNS**
 
@@ -7525,7 +7733,7 @@ class Image:
     
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(bwimg,
-            self, minsize = minsize, maxsize = maxsize)
+            self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
@@ -7749,7 +7957,7 @@ class Image:
             logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
         return retVal
             
-    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):
+    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2,appx_level=3):
         """
         **SUMMARY**
 
@@ -7775,7 +7983,11 @@ class Image:
           * 1  - means use the foreground, maybe_foreground, and maybe_background values
           * 2  - means use the foreground and maybe_foreground values.
           * 3+ - means use just the foreground
-        
+
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+
+
         **RETURNS**
 
         A featureset of blobs. If everything went smoothly only a couple of blobs should
@@ -7814,7 +8026,7 @@ class Image:
           elif( thresh_level > 2 ):
               result = result.threshold(1)
           bm = BlobMaker()
-          retVal = bm.extractFromBinary(result,self)
+          retVal = bm.extractFromBinary(result,self,appx_level)
         
         return retVal
 
@@ -8054,7 +8266,7 @@ class Image:
         retVal = retVal.crop(1,1,self.width,self.height)
         return retVal
 
-    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
+    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0,appx_level=3 ):
         """
         **SUMMARY**
 
@@ -8072,6 +8284,9 @@ class Image:
         * *minsize* - The minimum size of the returned blobs.
         * *maxsize*  - The maximum size of the returned blobs, if none is specified we peg 
           this to the image size. 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+
 
         **RETURNS**
 
@@ -8104,7 +8319,7 @@ class Image:
         gray = mask._getGrayscaleBitmap()
         result = mask.getEmpty(1)
         cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
-        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize)
+        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
@@ -9247,17 +9462,31 @@ class Image:
         features = os.listdir(features_directory)
         print features
 
-    def _CopyAvg(self, src, dst,roi, levels, levels_f):
-        cv.SetImageROI(src,roi)
-        cv.SetImageROI(dst,roi)
-        avg = cv.Avg(src)
-        if(levels is not None):
-            avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
-        cv.AddS(dst,avg,dst)
-        cv.ResetImageROI(src)
-        cv.ResetImageROI(dst)
+    def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
+        '''
+        Take the value in an ROI, calculate the average / peak hue
+        and then set the output image roi to the value. 
+        '''
 
-    def pixelize(self, block_size = 10, region = None, levels=None ):
+        if( mode ): # get the peak hue for an area
+            h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
+            myHue = np.argmax(h)
+            C = (float(myHue),float(255),float(255),float(0))
+            cv.SetImageROI(dst,roi)
+            cv.AddS(dst,c,dst)
+            cv.ResetImageROI(dst)
+        else: # get the average value for an area optionally set levels
+            cv.SetImageROI(src.getBitmap(),roi)
+            cv.SetImageROI(dst,roi)
+            avg = cv.Avg(src.getBitmap())
+            avg = (float(avg[0]),float(avg[1]),float(avg[2]),0)
+            if(levels is not None):
+                avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
+            cv.AddS(dst,avg,dst)
+            cv.ResetImageROI(src.getBitmap())
+            cv.ResetImageROI(dst)
+
+    def pixelize(self, block_size = 10, region = None, levels=None, doHue=False):
         """
         **SUMMARY**
 
@@ -9268,6 +9497,8 @@ class Image:
         * *block_size* - the blur block size in pixels, an integer is an square blur, a tuple is rectangular.
         * *region* - do the blur in a region in format (x_position,y_position,width,height)
         * *levels* - the number of levels per color channel. This makes the image look like an 8-bit video game.
+        * *doHue* - If this value is true we calculate the peak hue for the area, not the 
+          average color for the area. 
         
         **RETURNS**
         
@@ -9280,11 +9511,13 @@ class Image:
         >>> img.show()
 
         """
+
         if( isinstance(block_size, int) ):
             block_size = (block_size,block_size)
 
         
         retVal = self.getEmpty()
+        
 
         levels_f = 0.00
         if( levels is not None ):
@@ -9327,7 +9560,7 @@ class Image:
                 xt = x_0+(block_size[0]*i)
                 yt = y_0+(block_size[1]*j)
                 roi = (xt,yt,block_size[0],block_size[1])
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
 
         if( x_lhs > 0 ): # add a left strip
@@ -9337,7 +9570,7 @@ class Image:
             for j in range(0,vc):
                 yt = y_0+(j*block_size[1])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
                 
 
         if( x_rhs > 0 ): # add a right strip
@@ -9347,7 +9580,7 @@ class Image:
             for j in range(0,vc):
                 yt = y_0+(j*block_size[1])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if( y_lhs > 0 ): # add a left strip
             yt = ys
@@ -9356,7 +9589,7 @@ class Image:
             for i in range(0,hc):
                 xt = x_0+(i*block_size[0])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
                 
         if( y_rhs > 0 ): # add a right strip
             yt = (y_0+(block_size[1]*vc)) 
@@ -9365,28 +9598,107 @@ class Image:
             for i in range(0,hc):
                 xt = x_0+(i*block_size[0])
                 roi = (xt,yt,wt,ht)
-                self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         #now the corner cases
         if(x_lhs > 0 and y_lhs > 0 ):
             roi = (xs,ys,x_lhs,y_lhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(x_rhs > 0 and y_rhs > 0 ):
             roi = (x_f,y_f,x_rhs,y_rhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(x_lhs > 0 and y_rhs > 0 ):
             roi = (xs,y_f,x_lhs,y_rhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(x_rhs > 0 and y_lhs > 0 ):
             roi = (x_f,ys,x_rhs,y_lhs)
-            self._CopyAvg(self.getBitmap(),retVal,roi,levels,levels_f)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
             
+        if(doHue):
+            cv.CvtColor(retVal,retVal,cv.CV_HSV2BGR)
+
 
         return Image(retVal) 
                     
+    def edgeIntersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
+        """
+        **SUMMARY** 
+        
+        Find the outermost intersection of a line segment and the edge image and return
+        a list of the intersection points. If no intersections are found the method returns
+        an empty list. 
+        
+        **PARAMETERS**
+        
+        * *pt0* - an (x,y) tuple of one point on the intersection line.
+        * *pt1* - an (x,y) tuple of the second point on the intersection line.
+        * *width* - the width of the line to use. This approach works better when
+                    for cases where the edges on an object are not always closed 
+                    and may have holes.
+        * *canny1* - the lower bound of the Canny edge detector parameters.
+        * *canny2* - the upper bound of the Canny edge detector parameters.
+
+        **RETURNS**
+        
+        A list of two (x,y) tuples or an empty list.
+
+        **EXAMPLE**
+
+        >>> img = Image("SimpleCV")
+        >>> a = (25,100)
+        >>> b = (225,110)
+        >>> pts = img.edgeIntersections(a,b,width=3)
+        >>> e = img.edges(0,100)
+        >>> e.drawLine(a,b,color=Color.RED)
+        >>> e.drawCircle(pts[0],10,color=Color.GREEN)
+        >>> e.drawCircle(pts[1],10,color=Color.GREEN)
+        >>> e.show()
+
+        img = Image("SimpleCV")
+        a = (25,100)
+        b = (225,100)
+        pts = img.edgeIntersections(a,b,width=3)
+        e = img.edges(0,100)
+        e.drawLine(a,b,color=Color.RED)
+        e.drawCircle(pts[0],10,color=Color.GREEN)
+        e.drawCircle(pts[1],10,color=Color.GREEN)
+        e.show()
+
+
+        """
+        w = abs(pt0[0]-pt1[0])
+        h = abs(pt0[1]-pt1[1])
+        x = np.min([pt0[0],pt1[0]])
+        y = np.min([pt0[1],pt1[1]])
+        if( w <= 0 ):
+            w = width
+            x = np.clip(x-(width/2),0,x-(width/2))
+        if( h <= 0 ):
+            h = width 
+            y = np.clip(y-(width/2),0,y-(width/2))
+        #got some corner cases to catch here
+        p0p = np.array([(pt0[0]-x,pt0[1]-y)])
+        p1p = np.array([(pt1[0]-x,pt1[1]-y)])
+        edges = self.crop(x,y,w,h)._getEdgeMap(canny1, canny2)
+        line = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,1)
+        cv.Zero(line)
+        cv.Line(line,((pt0[0]-x),(pt0[1]-y)),((pt1[0]-x),(pt1[1]-y)),cv.Scalar(255.00),width,8)
+        cv.Mul(line,edges,line)
+        intersections = uint8(np.array(cv.GetMat(line)).transpose())
+        (xs,ys) = np.where(intersections==255)
+        points = zip(xs,ys)
+        if(len(points)==0):
+            return [None,None]
+        A = np.argmin(spsd.cdist(p0p,points,'cityblock'))
+        B = np.argmin(spsd.cdist(p1p,points,'cityblock'))
+        ptA = (xs[A]+x,ys[A]+y)
+        ptB = (xs[B]+x,ys[B]+y)
+        # we might actually want this to be list of all the points
+        return [ptA, ptB]          
+
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
         
@@ -9394,6 +9706,13 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+
+    def area(self):
+      '''
+      Returns the area of the Image.
+      '''
+
+      return self.width * self.height
         
 
 Image.greyscale = Image.grayscale

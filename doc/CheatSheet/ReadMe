@@ -1,0 +1,20 @@
+1) LaTeX markup language, is a tool useful for the preparation of all kinds of reports. 
+
+2) It will we be useful if you can download the 'Kile' or 'Gummi' software to edit the latex file. This will install all the supporting libraries to compile the latex file to PDF.
+
+3) Latex files are basically .tex files. In the current cheatsheet.tex file, it begins with defining the properties of the page ( pdf ) i,e Landscape(a4paper). 
+
+4) To add footnote to a Word. use "\footnote{Here write the content.}". EG:  SimpleCV\footnote{O'Reilly Publication, Practical Computer Vision with SimpleCV by Nathan Oostendorp, Anthony Oliver, and Katherine Scott.}  
+
+5) {tabular} tag is used to define a table. To add contents to this table, append the text in the following format:
+	Description & Matlab & OpenCV & SimpleCV \\ \hline
+	\\ puts in a new line in the generated pdf
+        \hline puts a horizontal line in the generated pdf	  
+	
+6) More references :     
+	http://en.wikibooks.org/wiki/LaTeX/
+	
+7) More reference on tabular format :
+	http://en.wikibooks.org/wiki/LaTeX/Tables
+	
+8) If you have any queries please contact me at vijaym123@gmail.com

@@ -57,12 +57,6 @@ except ImportError:
     except ImportError:
         PIL_ENABLED = False
 
-ZXING_ENABLED = True
-try:
-    import zxing
-except ImportError:
-    ZXING_ENABLED = False
-
 FREENECT_ENABLED = True
 try:
     import freenect
@@ -293,6 +287,71 @@ def set_logging(log_level,myfilename = None):
 
     logger.setLevel(level)
 
+def system():
+    """
+    **SUMMARY**
+    Output of this function includes various informations related to system and library. 
+    Main purpose :
+       1) While submiting a bug, report the output of this function
+       2) Checking the current version and later upgrading the library based on the output 
+   
+    **RETURNS**
+    None  
+    
+    **EXAMPLE**
+    >>> import SimpleCV
+    >>> SimpleCV.system()
+    """         	
+    try :
+        import platform
+        print "System : ", platform.system()
+        print "OS version : ", platform.version()
+        print "Python version :", platform.python_version()
+        try :
+            from cv2 import __version__
+            print "Open CV version : " + __version__
+        except ImportError :
+            print "Open CV2 version : " + "2.1"
+        if (PIL_ENABLED) :
+            print "PIL version : ", pil.VERSION
+        else : 
+            print "PIL module not installed"
+        if (ORANGE_ENABLED) :   
+            print "Orange Version : " + orange.version
+        else :
+            print "Orange module not installed"
+        try :
+            import pygame as pg	
+            print "PyGame Version : " + pg.__version__
+        except ImportError:
+            print "PyGame module not installed"	
+        try :
+            import pickle
+            print "Pickle Version : " + pickle.__version__
+        except :    	    
+            print "Pickle module not installed"
+        
+    except ImportError :
+        print "You need to install Platform to use this function"
+        print "to install you can use:"
+        print "easy_install platform"
+    return
+
+
+class LazyProperty(object):
+
+    def __init__(self, func):
+        self._func = func
+        self.__name__ = func.__name__
+        self.__doc__ = func.__doc__
+
+    def __get__(self, obj, klass=None):
+        if obj is None: return None
+        result = obj.__dict__[self.__name__] = self._func(obj)
+        return result
+
+
+    
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
 #maximum image size - 
