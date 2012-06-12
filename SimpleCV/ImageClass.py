@@ -2611,7 +2611,7 @@ class Image:
             
         return FeatureSet(blobs).sortArea()
     
-    def findSkintoneBlobs(self, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+    def findSkintoneBlobs(self, minsize=10, maxsize=0,dilate_iter=1):
         """
         **SUMMARY**
         
@@ -2628,13 +2628,6 @@ class Image:
         * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
         
         * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
-
-        * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
-    
-        .. Warning:: 
-          This parameter must be an odd number.
-          
-        * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
 
     	* *dilate_iter* - the number of times to run the dilation operation.   
     
@@ -2663,7 +2656,7 @@ class Image:
         """
         if (maxsize == 0):  
             maxsize = self.width * self.height
-        mask = self.getSkintoneMask(0)
+        mask = self.getSkintoneMask(dilate_iter)
 	blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(mask, self, minsize = minsize, maxsize = maxsize)
         if not len(blobs):

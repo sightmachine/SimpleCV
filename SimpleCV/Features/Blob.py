@@ -985,11 +985,8 @@ class Blob(Feature):
         #the cv bindings (only cv2 -- which I am trying to avoid). Have to
         #manually do the offset for the ROI shift. 
         thull = []
-        tl = self.topLeftCorner()
-        for p in self.mConvexHull:
-            t = (p[0]-tl[0],p[1]-tl[1])
-            thull.append(t)
-        cv.FillPoly(retVal,[thull],(255,255,255),8)
+        l,t = self.topLeftCorner()
+        cv.FillPoly(retVal,[[(p[0] - l, p[1] - t) for p in self.mConvexHull]],(255,255,255),8)
         return Image(retVal)
 
 

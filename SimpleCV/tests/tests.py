@@ -2435,7 +2435,7 @@ def test_on_edge():
   
   results = [imgA,imgB,imgC,imgD,imgE]
   name_stem = "test_onEdge_Features"
-  perform_diff(results,name_stem,tolerance=6.0)        
+  perform_diff(results,name_stem,tolerance=7.0)        
 
 def test_feature_angles():
   img = Image("../sampleimages/rotation2.png")
