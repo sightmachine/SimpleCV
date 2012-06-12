@@ -1233,7 +1233,7 @@ class Feature(object):
 
         Should this be sqrt(x*x+y*y)?
         """
-        return max([self.width(),self.height()])
+        return mp.max([self.width(),self.height()])
   
     def distanceToNearestEdge(self):
         """
@@ -1254,7 +1254,7 @@ class Feature(object):
         """    
         w = self.image.width
         h = self.image.height
-        return min([self._mMinX,self._mMinY, w-self._mMaxX,h-self._mMaxY])
+        return np.min([self._mMinX,self._mMinY, w-self._mMaxX,h-self._mMaxY])
     
     def onImageEdge(self,tolerance=1):
         """
@@ -1459,7 +1459,7 @@ class Feature(object):
                 self._mHeight = 1
             self.mBoundingBox = [self._mMinX,self._mMinY,self._mWidth,self._mHeight]
             self.mExtents = [self._mMaxX,self._mMinX,self._mMaxY,self._mMinY]
-            self.mAspectRatio = float(max([self._mWidth,self._mHeight]))/float(min([self._mWidth,self._mHeight]))
+            self.mAspectRatio = float(np.max([self._mWidth,self._mHeight]))/float(np.min([self._mWidth,self._mHeight]))
             
     def boundingBox(self):
         """
@@ -2178,9 +2178,9 @@ class Feature(object):
         p1 = poly[0]
         for i in range(1,N+1):
             p2 = poly[i%N]
-            if( point[1] > min((p1[1],p2[1])) ):
-                if( point[1] <= max((p1[1],p2[1])) ):
-                    if( point[0] <= max((p1[0],p2[0])) ):
+            if( point[1] > np.min((p1[1],p2[1])) ):
+                if( point[1] <= np.max((p1[1],p2[1])) ):
+                    if( point[0] <= np.max((p1[0],p2[0])) ):
                         if( p1[1] != p2[1] ):
                             test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
                             if( p1[0] == p2[0] or point[0] <= test ):
