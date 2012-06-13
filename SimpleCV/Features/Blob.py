@@ -90,8 +90,8 @@ class Blob(Feature):
         self.image = None
         #self.mHullMask = None
         self.mHoleContour = [] 
-        self.mVertEdgeHist = [] #vertical edge histogram
-        self.mHortEdgeHist = [] #horizontal edge histgram
+#        self.mVertEdgeHist = [] #vertical edge histogram
+#        self.mHortEdgeHist = [] #horizontal edge histgram
         self.points = []
         #TODO 
         # I would like to clean up the Hull mask parameters
@@ -256,7 +256,7 @@ class Blob(Feature):
         trp = derp*tr.transpose()
         blp = derp*bl.transpose()
         brp = derp*br.transpose()
-        return( (tlp[0,0],tlp[1,0]),(trp[0,0],trp[1,0]),(blp[0,0],blp[1,0]),(brp[0,0],brp[1,0]) )
+        return( (float(tlp[0,0]),float(tlp[1,0])),(float(trp[0,0]),float(trp[1,0])),(float(blp[0,0]),float(blp[1,0])),(float(brp[0,0]),float(brp[1,0])) )
     
     def drawRect(self,layer=None,color=Color.DEFAULT,width=1,alpha=128):
         """
@@ -910,7 +910,7 @@ class Blob(Feature):
 
         Return the radius, the avg distance of each contour point from the centroid
         """
-        return np.mean(spsd.cdist(self.mContour, [self.centroid()]))
+        return float(np.mean(spsd.cdist(self.mContour, [self.centroid()])))
         
     def hullRadius(self):
         """
@@ -918,7 +918,7 @@ class Blob(Feature):
 
         Return the radius of the convex hull contour from the centroid
         """
-        return np.mean(spsd.cdist(self.mConvexHull, [self.centroid()]))
+        return float(np.mean(spsd.cdist(self.mConvexHull, [self.centroid()])))
 
     @LazyProperty
     def mImg(self):

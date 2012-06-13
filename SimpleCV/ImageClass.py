@@ -7037,10 +7037,10 @@ class Image:
             pt2p = np.array(pt2*np.matrix(homography))
             pt3p = np.array(pt3*np.matrix(homography))
             #update and clamp the corners to get our template in the other image
-            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo)) 
-            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
-            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
-            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            pt0i = (float(abs(pt0p[0][0]+xo)),float(abs(pt0p[0][1]+yo))) 
+            pt1i = (float(abs(pt1p[0][0]+xo)),float(abs(pt1p[0][1]+yo)))
+            pt2i = (float(abs(pt2p[0][0]+xo)),float(abs(pt2p[0][1]+yo)))
+            pt3i = (float(abs(pt3p[0][0]+xo)),float(abs(pt3p[0][1]+yo)))
             #print "--------------------------"
             #print str(pt0)+"--->"+str(pt0p)+"--->"+str(pt0i)
             #print str(pt1)+"--->"+str(pt1p)+"--->"+str(pt1i)
