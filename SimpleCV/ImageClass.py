@@ -665,6 +665,9 @@ class Image:
                 or source.__class__.__name__ == "JpegImageFile"
                 or source.__class__.__name__ == "WebPPImageFile"
                 or  source.__class__.__name__ == "Image")):
+                
+            if source.mode != 'RGB':
+                source = source.convert('RGB')
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
