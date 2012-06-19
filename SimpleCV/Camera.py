@@ -1113,4 +1113,68 @@ class Scanner(FrameSource):
         >>> scan = Scanner()
         >>> scan.px2mm(scan.device.resolution) #return DPI in DPMM
         """
-        return float(pixels * 25.4 / float(self.device.resolution)) 
+        return float(pixels * 25.4 / float(self.device.resolution))
+
+class DigitalCamera(FrameSource):
+    """
+    **SUMMARY**
+
+    The DigitalCamera takes a point-and-shoot camera or high-end slr and uses it as a Camera.  The current frame can always be accessed with getPreview() 
+    
+    Requires the PiggyPhoto Library: https://github.com/alexdu/piggyphoto
+    
+    **EXAMPLE**  
+    
+    >>> cam = DigitalCamera()
+    >>> img = cam.getImage()
+    >>> img.show()
+    
+    """
+    camera = None
+
+    def __init__(self):
+        import piggyphoto
+        self.camera = piggyphoto.camera()
+
+
+    def getImage(self):
+        """
+        **SUMMARY**
+
+        Retrieve an Image-object from the camera with the highest quality possible.
+        **RETURNS**
+        
+        A SimpleCV Image.
+
+        **EXAMPLES**
+        >>> cam = DigitalCamera()
+        >>> cam.getImage().show()
+        """
+        fd, path = tempfile.mkstemp()
+        self.camera.capture_image(path)
+        img = Image(path)
+        os.remove(path)
+        os.close(fd)
+        
+        return img
+
+    def getPreview(self):
+        """
+        **SUMMARY**
+
+        Retrieve an Image-object from the camera with the preview quality from the camera.
+        **RETURNS**
+        
+        A SimpleCV Image.
+
+        **EXAMPLES**
+        >>> cam = DigitalCamera()
+        >>> cam.getPreview().show()
+        """        
+        fd, path = tempfile.mkstemp()
+        self.camera.capture_preview(path)
+        img = Image(path)
+        os.remove(path)
+        os.close(fd)
+        
+        return img       
