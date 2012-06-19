@@ -13,7 +13,11 @@ lb = "\n" #linebreak
 tb = "\t" #tab
 tutorial_interpreter = InteractiveInterpreter(globals())
 logo = None
-image = None
+img = None
+clone = None
+thumbnail = None
+eroded = None
+cropped = None
 
 #Command to clear the shell screen
 def shellclear():
@@ -30,6 +34,27 @@ def prompt_and_run():
     tutorial_interpreter.runsource(command)
     return command
 
+def request_show_command():
+    while True:
+        if prompt_and_run().endswith('.show()'):
+            return
+
+def end_tutorial():
+    print lb
+    print "Alright!"
+    print "Type 'quit' to leave the tutorials, or press Enter to move on!"
+    print lb
+    command = raw_input("SimpleCV:> ")
+    return command.lower() == 'quit'
+
+def end_of_tutorial():
+    print lb
+    print "This is the end of our tutorial!"
+    print lb
+    print "For more help, go to www.simplecv.org, and don't forget about the"
+    print "help function!"
+    print lb
+
 def command_loop(command, desired_tuple):
     while True:
         print command
@@ -42,7 +67,7 @@ def command_loop(command, desired_tuple):
         print "Oops! %s is still not %s" % (desired_tuple[0], str(desired_tuple[1]))
 
 def tutorial_image():
-    shellclear()
+    #shellclear()
     print "SimpleCV Image tutorial"
     print "-----------------------"
     print lb
@@ -54,17 +79,6 @@ def tutorial_image():
     cmd = "logo = Image(\"simplecv\")"
     desired_tuple = ('logo', Image)
     command_loop(cmd, desired_tuple)
-   
-  #  while True:
-  #      print "logo = Image(\"simplecv\")"
-  #      print lb
-
-  #      if attempt("logo", Image):
-  #          break
-  #      
-  #      print lb
-  #      print "Oops! 'logo' is still not an Image!" 
-  #      print lb
 
     print "Correct! You just loaded SimpleCV logo into memory."
     print "Let's try it to use one of your images. There are different ways to"
@@ -73,7 +87,7 @@ def tutorial_image():
     print "img = Image(URL_TO_MY_PICTURE) or img = Image(PATH_TO_MY_PICTURE)"
     print lb
     cmd =  "Example: img = Image('http://simplecv.org/images/logo.gif')"
-    
+
     desired_tuple = ('img', Image)
     command_loop(cmd, desired_tuple)
 
@@ -83,17 +97,18 @@ def tutorial_image():
     print cmd
     print lb
 
-    while True:
-        if prompt_and_run().endswith('.show()'):
-            break
+    request_show_command()
 
+    if not end_tutorial():
+        tutorial_save()
     return
 
 def tutorial_save():
     shellclear()
+    print "Saving Images"
+    print lb
     print "Once you have an Image Object loaded in memory you can"
-    print "now save it to disk.  If you don't or don't know how then"
-    print "you can run the image tutorial"
+    print "now save it to disk."
     print lb
     raw_input("[Press enter to continue]")
     shellclear()
@@ -107,62 +122,162 @@ def tutorial_save():
     print "Image.save('/any/path/you/want')"
     print lb
     print "So try it now and save an image somewhere on your system"
+    print lb
     print "img.save('/tmp/new.jpg')"
     print lb
-    in_text = ""
-    shouldbe = "img.save('/tmp/new.jpg')"
-    while (in_text != shouldbe):
-        in_text = raw_input("SimpleCV:>")
-        if(in_text != shouldbe):
-            print "sorry, that is incorrect"
-            print "please type:"
-            print shouldbe
 
+    while True:
+        if prompt_and_run().startswith('img.save'):
+            break
+        print "Please try to save img!"
+        print lb
+
+    print "Correct, you just saved a new copy of your image!"
+    print "As you can see in SimpleCV most of the functions are intuitive."
+
+    if not end_tutorial():
+        tutorial_camera()
+    return
+
+
+def tutorial_camera():
     shellclear()
-    print "Correct, you just saved a new copy of the image to /tmp/new.jpg"
-    print "as you can see in SimpleCV most of the functions are intuitive"
+    print "Images from Camera"
     print lb
-    raw_input("[Press enter to continue]")
+    print "As long as your camera driver is supported then you shouldn't have a"
+    print "problem. Type 'skip' to skip the camera tutorial"
+    print lb
+
+    command = raw_input("SimpleCV:> ")
+    if command.lower() != 'skip':
+        print lb
+        print "To load the camera, just type:"
+        print lb
+
+        cmd = "cam = Camera()"
+        desired_tuple = ('cam', Camera)
+        command_loop(cmd, desired_tuple)
+
+        print lb
+        print "Next, to grab an image from the Camera we type:"
+        cmd = "img = cam.getImage()"
+        desired_tuple = ('img', Image)
+        command_loop(cmd, desired_tuple)
+
+        print "Just as before, if we want to display it, we just type:"
+        print lb
+        print "img.show()"
+        print lb
+
+        request_show_command()
+
+    if not end_tutorial():
+        tutorial_copy()
     return
 
 def tutorial_copy():
     shellclear()
-    print "Image Copy"
-    print "If you need a copy of an image, this is also very simple"
-    print "img = Image('./SimpleCV/sampleimages/color.jpg')"
-    print "clonedimage = img.copy()"
+    print "Copying Images"
     print lb
+    print "If you need a copy of an image, this is also very simple:"
+    print "Let's try to clone img, which we already have."
+
+    global img
+    if not img:
+        img = Image("simplecv")
+
     print lb
-    in_text = ""
-    shouldbe = "clone = img.copy()"
-    print "Please type this now:"
-    print shouldbe
+    cmd = "clone = img.copy()"
+    desired_tuple = ('clone', Image)
+
+    while True:
+        command_loop(cmd, desired_tuple)
+        if clone != img: #Returns False if they have different addresses.
+            break
+
+        print "You have to use the copy() function!"
+
     print lb
-    while (in_text != shouldbe):
-        in_text = raw_input("SimpleCV:>")
-        if(in_text != shouldbe):
-            print "sorry, that is incorrect"
-            print "please type:"
-            print shouldbe
-    shellclear()
-    print "Correct, you just cloned an image into memory"
-    print "you need to be careful when using this method though"
-    print "as using a reference vs. a copy.  For instance if you just"
-    print "typed: clone = img"
-    print "then clone is actually pointing at the same thing in memory"
-    print "and if you did clone.binarize() it is the same as img.binarize()"
-    print "so if you want a copy of an image you have to return a copy of"
-    print "not just point a reference to it"
+    print "Correct, you just cloned an image into memory."
+    print "You need to be careful when using this method though as using as a"
+    print "reference vs. a copy.  For instance, if you just typed:"
     print lb
-    raw_input("[Press enter to continue]")
+    print "clone = img"
+    print lb
+    print "clone would actually point at the same thing in memory as img."
+    if not end_tutorial():
+        tutorial_manipulation()
     return
+
+def tutorial_manipulation():
+    shellclear()
+    print "Manipulating Images"
+    print lb
+    print "Now we can easily load and save images. It's time to start doing some"
+    print "image processing with them. Let's make our picture a 90x90 thumbnail:"
+
+    global img
+    if not img:
+        img = Image("simplecv")
+
+    print lb
+    cmd = "thumbnail = img.scale(90,90)"
+    desired_tuple = ('thumbnail', Image)
+
+    while True:
+        command_loop(cmd, desired_tuple)
+        if thumbnail.size() == (90,90):
+            break
+
+        print "Your thumbnail's size isn't 90x90! Try again!"
+
+    print lb
+    print "Now display it with thumbnail.show()"
+    print lb
+    request_show_command()
+
+    print lb
+    print "Now let's erode the picture some:"
+    print lb
+    cmd = "eroded = img.erode()"
+    desired_tuple = ('eroded', Image)
+    command_loop(cmd, desired_tuple)
+
+    print lb
+    print "Display it with eroded.show(). It should look almost as if the image"
+    print "was made if ink and had water spoiled on it."
+    print lb
+    request_show_command()
+
+    print lb
+    print "Last but not least, let's crop a section of the image out:"
+    print lb
+    cmd = "cropped = img.crop(100, 100, 50, 50)"
+    desired_tuple = ('cropped', Image)
+    command_loop(cmd, desired_tuple)
+
+    print lb
+    print "Use cropped.show() to display it."
+    print lb
+    request_show_command()
+    print lb
+    print "That went from the coordinate in (X,Y), which is (0,0) and is the"
+    print "top left corner of the picture, to coordinates (100,100) in the"
+    print "(X,Y) and cropped a picture from that which is 50 pixels by 50 pixels."
+
+    if not end_tutorial():
+        tutorial_features()
+    return
+
+
 
 def tutorial_slicing():
     shellclear()
-    print "Slicing:"
-    print "Slicing is sort of a new paradigm to access parts of an image"
+    print "Slicing Images"
+    print lb
+    print "Slicing is sort of a new paradigm to access parts of an image."
     print "Typically in vision a region of interest (ROI) is given.  "
-    print "In this case slicing is a very powerful way to access parts"
+    print "In this case, slicing is a very powerful way to access parts"
     print "of an image, or basically any matrix in SimpleCV in general."
     print lb
     print "This is done by using:"
@@ -192,50 +307,98 @@ def tutorial_slicing():
     print lb
     return
 
-def tutorial_corners():
+def tutorial_features():
     shellclear()
-    print "Finding corners:"
-    print "This will find corner Feature objects and return them as a FeatureSet"
-    print "the  strongest corners first.  The parameters give the number"
-    print "of corners to look for, the minimum quality of the corner feature"
-    print "and the minimum distance between corners. "
+    print "Features"
     print lb
-    print "This is also very easy to do in SimpleCV, you use:"
-    print "foundcorners = image.findCorners()"
+    print "Features are things you are looking for in the picture. They can be"
+    print "blobs, corners, lines, etc. Features are sometimes referred to as a"
+    print "fidicual in computer vision. These features are something that is"
+    print "measureable, and something that makes images unique. Features are"
+    print "something like when comparing things like fruit. In this case the"
+    print "features could be the shape and the color, amongst others."
     print lb
-    print "Now keep in mind parameters can be passed as a threshold as well"
-    print "to the function so you can use:"
-    print "foundcorners = image.findCorners(2)"
+    print "What features are in SimpleCV is an abstract representation of that."
+    print "You take your image, then perform a function on it, and get back"
+    print "features or another image with them applied. The crop example is"
+    print "a case where an image is returned after we perform something."
     print lb
-    print "If you are unsure what parameters to pass it you can always"
-    print "the built in help support by typing"
-    print "help image.finderCorners"
+    print "In a simple example we will use the famous 'lenna' image, and find"
+    print "corners in the picture."
     print lb
-    print "keep in mind this help works for all of the functions available"
-    print "in SimpleCV"
+    tutorial_interpreter.runsource("img = Image('lenna')")
+    print "img = Image('lenna') (already done for you)"
     print lb
-    raw_input("[Press enter to continue]")
-    shellclear()
-    in_text = ""
-    shouldbe = "corners = img.findCorners()"
-    print "Please type this now:"
-    print shouldbe
+    print "Try it yourself:"
+    print lb 
+   
+    cmd = "corners = img.findCorners()"
+    desired_tuple = ('corners', FeatureSet)
+    command_loop(cmd, desired_tuple)
+
     print lb
-    while (in_text != shouldbe):
-      in_text = raw_input("SimpleCV:>")
-      if(in_text != shouldbe):
-          print "sorry, that is incorrect"
-          print "please type:"
-          print shouldbe
-    shellclear()
-    print "Correct, you just returned a featureset object which contains"
+    print "Correct, you just got a featureset object which contains"
     print "feature objects.  These feature objects contain data from the"
     print "found corners"
     print lb
+    
+    print "Tip: If your are unsure what parameters to pass, you can always use"
+    print "the built in help support by typing help(Image.findCorners). Keep in"
+    print "mind that this help works for all of the functions available in"
+    print "SimpleCV"
+    print lb
+
+    print "We can also do that with blobs. Try it:"
+    print lb
+
+    cmd = "blobs = img.findBlobs()"
+    desired_tuple = ('blobs', FeatureSet)
+    command_loop(cmd, desired_tuple)
+
+    print lb
+    print "Great, but..."
+    print "When we show the image we won't notice anything different. This"
+    print "is because we have to actually tell the blobs to draw themselves"
+    print "on the image:"
+    print lb
+    print "blobs.draw()"
+    print lb
+    
+    while True:
+        if prompt_and_run().endswith('.draw()'):
+            break
+        print "No blobs have been drawn!"
+        print lb
+
+    print "Now use img.show() to see the changes!"
+    print lb
+    request_show_command()
+    print lb
+    raw_input("[Press enter to continue]")
+
+    print lb
+    print lb
+    print "There's also a small trick built into SimpleCV to do this even faster"
+    print lb
+    tutorial_interpreter.runsource("img = Image('lenna')")
+    print "img = Image('lenna') (already done for you)"
+    print lb
+
+    while True:
+        print "img.findBlobs().show()"
+        print lb
+        if prompt_and_run().endswith('.show()'):
+            break
+        print "Nothing has been shown!"
+        print lb
+
     return
 
-      
 def magic_tutorial(self,arg):
+    tutorials_dict = {'image': tutorial_image, 'save': tutorial_save,
+                     'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
+                     'copy': tutorial_copy, 'features': tutorial_features} 
+
     if (arg == ""):
         shellclear()
         print "+--------------------------------+"
@@ -251,19 +414,7 @@ def magic_tutorial(self,arg):
         print lb
         raw_input("[Press enter to continue]")
         tutorial_image()
+        end_of_tutorial()
         return
-      
-    elif (arg == "image"):
-      tutorial_image()
-
-    elif (arg == "save"):
-      tutorial_save()
-      
-    elif (arg == "copy"):
-      tutorial_copy()
-      
-    elif (arg == "slicing"):
-      tutorial_slicing()
-        
-    elif (arg == "corners"):
-      tutorial_corners()
+    else:
+        tutorials_dict[arg]()
