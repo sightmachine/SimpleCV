@@ -3,7 +3,7 @@
 
 Make computers see with SimpleCV, the Open Source Framework for Vision
 
-SimpleCV is an framework for Open Source Machine Vision, using OpenCV and the Python programming language.    
+SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.    
 It provides a concise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
 
 We like SimpleCV because:
