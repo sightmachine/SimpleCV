@@ -1,4 +1,5 @@
 *.pyc
+*.py.swp
 SimpleCV.egg-info/
 build/
 dist/
