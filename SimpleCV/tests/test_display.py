@@ -1,14 +1,8 @@
-
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
-#   nosetest tests.py
+#   nosetest test_display.py
 #
-# *Note: If you add additional test, please prefix the function name
-# to the type of operation being performed.  For instance modifying an
-# image, test_image_erode().  If you are looking for lines, then
-# test_detection_lines().  This makes it easier to verify visually
-# that all the correct test per operation exist
 
 import os, sys, pickle
 from SimpleCV import * 
