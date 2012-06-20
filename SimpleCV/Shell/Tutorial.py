@@ -27,9 +27,23 @@ def shellclear():
 
 def attempt(variable_name, desired_class):
     prompt_and_run()
-    return isinstance(globals().get(variable_name),desired_class)
+    variable = globals().get(variable_name)
+
+    if isinstance(variable,desired_class):
+        if desired_class == Image:
+            if variable.isEmpty():
+                print lb
+                print "Although you can create empty Images on SimpleCV, let's not"
+                print "play with that now!"
+                print lb
+                return False
+
+        return True
+
+    return False 
 
 def prompt_and_run():
+
     command = raw_input("SimpleCV:> ")
     tutorial_interpreter.runsource(command)
     return command
@@ -67,7 +81,7 @@ def command_loop(command, desired_tuple):
         print "Oops! %s is still not %s" % (desired_tuple[0], str(desired_tuple[1]))
 
 def tutorial_image():
-    #shellclear()
+    shellclear()
     print "SimpleCV Image tutorial"
     print "-----------------------"
     print lb
@@ -98,6 +112,7 @@ def tutorial_image():
     print lb
 
     request_show_command()
+
 
     if not end_tutorial():
         tutorial_save()
