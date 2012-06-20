@@ -1,13 +1,8 @@
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
-#   nosetest tests.py
+#   nosetest test_optional.py
 #
-# *Note: If you add additional test, please prefix the function name
-# to the type of operation being performed.  For instance modifying an
-# image, test_image_erode().  If you are looking for lines, then
-# test_detection_lines().  This makes it easier to verify visually
-# that all the correct test per operation exist
 
 import os, sys, pickle
 from SimpleCV import * 
@@ -57,40 +52,6 @@ alphaSrcImg = "../sampleimages/GreenMaskSource.png"
 
 #standards path
 standard_path = "./standard/"
-
-VISUAL_TEST = False
-
-#Given a set of images, a path, and a tolerance do the image diff.
-def imgDiffs(test_imgs,name_stem,tolerance,path):
-  count = len(test_imgs)
-  for idx in range(0,count):
-    lhs = test_imgs[idx].applyLayers() # this catches drawing methods 
-    fname = standard_path+name_stem+str(idx)+".jpg"
-    rhs = Image(fname)
-    if( lhs.width == rhs.width and lhs.height == rhs.height ):
-      diff = (lhs-rhs)
-      val = np.average(diff.getNumpy())
-      if( val > tolerance ):
-        print val
-        return True
-  return False
-
-#Save a list of images to a standard path.
-def imgSaves(test_imgs, name_stem, path=standard_path):
-  count = len(test_imgs)
-  for idx in range(0,count):
-    fname = standard_path+name_stem+str(idx)+".jpg"
-    test_imgs[idx].save(fname)#,quality=95)
-
-#perform the actual image save and image diffs. 
-def perform_diff(result,name_stem,tolerance=2.0,path=standard_path):
-  if(VISUAL_TEST): # save the correct images for a visual test
-    imgSaves(result,name_stem,path)
-  else: # otherwise we test our output against the visual test
-    if( imgDiffs(result,name_stem,tolerance,path) ):
-      assert False
-    else:
-      pass
 
 #These function names are required by nose test, please leave them as is
 def setup_context():
