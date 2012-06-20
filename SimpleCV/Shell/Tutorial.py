@@ -128,7 +128,7 @@ def tutorial_save():
     print "now save it to disk."
     print lb
     raw_input("[Press enter to continue]")
-    shellclear()
+    print lb
     print "Saving an image is very simple, pardon the pun. Once it's loaded"
     print "into memory, it's literally just:"
     print "img.save()"
@@ -187,6 +187,7 @@ def tutorial_camera():
         print lb
         print "Next, to grab an image from the Camera we type:"
         cmd = "img = cam.getImage()"
+        tutorial_interpreter.runsource("del(img)")
         desired_tuple = ('img', Image)
         command_loop(cmd, desired_tuple)
 
@@ -213,7 +214,7 @@ def tutorial_copy():
 
     global img
     if not img:
-        img = Image("simplecv")
+        img = Image("lenna")
 
     print lb
     cmd = "clone = img.copy()"
@@ -247,11 +248,12 @@ def tutorial_manipulation():
     print "Manipulating Images"
     print lb
     print "Now we can easily load and save images. It's time to start doing some"
-    print "image processing with them. Let's make our picture a 90x90 thumbnail:"
+    print "image processing with them. Let's make img, which we already have, a"
+    print "90x90 thumbnail:"
 
     global img
     if not img:
-        img = Image("simplecv")
+        img = Image("lenna")
 
     print lb
     cmd = "thumb = img.scale(90,90)"
