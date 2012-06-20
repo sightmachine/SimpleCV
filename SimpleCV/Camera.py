@@ -1126,16 +1126,31 @@ class DigitalCamera(FrameSource):
     **EXAMPLE**  
     
     >>> cam = DigitalCamera()
+    >>> pre = cam.getPreview()
+    >>> pre.findBlobs().show()
+    >>> 
     >>> img = cam.getImage()
     >>> img.show()
     
     """
     camera = None
+    usbid = None
+    device = None
 
-    def __init__(self):
-        import piggyphoto
+    def __init__(self, id = 0):
+        try:
+            import piggyphoto
+        except:
+            warn("Initializing piggyphoto failed, do you have piggyphoto installed?")
+            return
+
+        devices = piggyphoto.cameraList(autodetect=True).toList()
+        if not len(devices):
+            warn("No compatible digital cameras attached")
+            return            
+
+        self.device, self.usbid = devices[id]
         self.camera = piggyphoto.camera()
-
 
     def getImage(self):
         """
@@ -1153,8 +1168,8 @@ class DigitalCamera(FrameSource):
         fd, path = tempfile.mkstemp()
         self.camera.capture_image(path)
         img = Image(path)
-        os.remove(path)
         os.close(fd)
+        os.remove(path)
         
         return img
 
@@ -1174,7 +1189,7 @@ class DigitalCamera(FrameSource):
         fd, path = tempfile.mkstemp()
         self.camera.capture_preview(path)
         img = Image(path)
-        os.remove(path)
         os.close(fd)
+        os.remove(path)
         
         return img       
