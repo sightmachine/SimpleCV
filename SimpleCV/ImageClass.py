@@ -543,12 +543,12 @@ class Image:
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
         if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
-            try:
-                img_file = urllib2.urlopen(source)
-            except:
-                if verbose:
-                    print "Couldn't open Image from URL:" + source
-                return None
+            #try:
+            img_file = urllib2.urlopen(source)
+            #except:
+            #if verbose:
+                #print "Couldn't open Image from URL:" + source
+            #return None
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
@@ -2891,8 +2891,23 @@ class Image:
 
         
         """
-        return cv.GetSize(self.getBitmap())
+        if self.width and self.height: 
+            return cv.GetSize(self.getBitmap())
+        else:
+            return (0, 0)
 
+    def isEmpty(self):
+        """
+        **SUMMARY**
+        
+        Checks if the image is empty by checking its width and height.
+
+        **RETURNS**
+        
+        True if the image's size is (0, 0), False for any other size.
+        
+        """
+        return self.size() == (0, 0)
 
     def split(self, cols, rows):
         """
