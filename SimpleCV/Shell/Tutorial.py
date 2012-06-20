@@ -138,7 +138,12 @@ def tutorial_save():
     print lb
     print "So try it now and save an image somewhere on your system"
     print lb
-    print "img.save('/tmp/new.jpg')"
+
+    if platform.system() == "Windows":
+        print "img.save('C:/myimg.jpg')"
+    else:
+        print "img.save('/tmp/new.jpg')"
+
     print lb
 
     while True:
