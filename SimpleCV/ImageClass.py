@@ -9692,4 +9692,3 @@ from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature,
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
-
