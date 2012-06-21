@@ -15,7 +15,7 @@ tutorial_interpreter = InteractiveInterpreter(globals())
 logo = None
 img = None
 clone = None
-thumbnail = None
+thumb = None
 eroded = None
 cropped = None
 
@@ -55,9 +55,7 @@ def request_show_command():
 
 def end_tutorial():
     print lb
-    print "Alright!"
     print "Type 'quit' to leave the tutorials, or press Enter to move on!"
-    print lb
     command = raw_input("SimpleCV:> ")
     return command.lower() == 'quit'
 
@@ -94,6 +92,7 @@ def tutorial_image():
     desired_tuple = ('logo', Image)
     command_loop(cmd, desired_tuple)
 
+    print lb
     print "Correct! You just loaded SimpleCV logo into memory."
     print "Let's try it to use one of your images. There are different ways to"
     print "do that. You can try, for example:"
@@ -105,6 +104,7 @@ def tutorial_image():
     desired_tuple = ('img', Image)
     command_loop(cmd, desired_tuple)
 
+    print lb
     print "Perfect! Now we want to see it:"
     print lb
     cmd = "img.show()"
@@ -113,7 +113,9 @@ def tutorial_image():
 
     request_show_command()
 
-
+    print lb
+    print "Alright! This was tutorial 1/6."
+    print "Next tutorial: Saving Images"
     if not end_tutorial():
         tutorial_save()
     return
@@ -126,15 +128,15 @@ def tutorial_save():
     print "now save it to disk."
     print lb
     raw_input("[Press enter to continue]")
-    shellclear()
-    print "Saving an image is very simple, pardon the pun."
-    print "but once it's loaded into memory, it's literally just:"
-    print "image.save()"
+    print lb
+    print "Saving an image is very simple, pardon the pun. Once it's loaded"
+    print "into memory, it's literally just:"
+    print "img.save()"
     print lb
     print "This will save the image back to the location it was loaded from"
-    print "so if you did img = Image('/tmp/test.jpg'), then it will save"
+    print "so if you did img = Image('/tmp/test.jpg'), then it would save"
     print "it back there, otherwise you can do:"
-    print "Image.save('/any/path/you/want')"
+    print "img.save('/any/path/you/want')"
     print lb
     print "So try it now and save an image somewhere on your system"
     print lb
@@ -155,6 +157,9 @@ def tutorial_save():
     print "Correct, you just saved a new copy of your image!"
     print "As you can see in SimpleCV most of the functions are intuitive."
 
+    print lb
+    print "Alright! This was tutorial 2/6."
+    print "Next tutorial: Camera"
     if not end_tutorial():
         tutorial_camera()
     return
@@ -162,10 +167,11 @@ def tutorial_save():
 
 def tutorial_camera():
     shellclear()
-    print "Images from Camera"
+    print "Camera"
     print lb
     print "As long as your camera driver is supported then you shouldn't have a"
-    print "problem. Type 'skip' to skip the camera tutorial"
+    print "problem. Type 'skip' to skip the camera tutorial, or press Enter to"
+    print "continue."
     print lb
 
     command = raw_input("SimpleCV:> ")
@@ -181,6 +187,7 @@ def tutorial_camera():
         print lb
         print "Next, to grab an image from the Camera we type:"
         cmd = "img = cam.getImage()"
+        tutorial_interpreter.runsource("del(img)")
         desired_tuple = ('img', Image)
         command_loop(cmd, desired_tuple)
 
@@ -191,6 +198,9 @@ def tutorial_camera():
 
         request_show_command()
 
+    print lb
+    print "Alright! This was tutorial 3/6."
+    print "Next tutorial: Copying Images"
     if not end_tutorial():
         tutorial_copy()
     return
@@ -204,7 +214,7 @@ def tutorial_copy():
 
     global img
     if not img:
-        img = Image("simplecv")
+        img = Image("lenna")
 
     print lb
     cmd = "clone = img.copy()"
@@ -225,6 +235,10 @@ def tutorial_copy():
     print "clone = img"
     print lb
     print "clone would actually point at the same thing in memory as img."
+
+    print lb
+    print "Alright! This was tutorial 4/6."
+    print "Next tutorial: Manipulating Images"
     if not end_tutorial():
         tutorial_manipulation()
     return
@@ -234,25 +248,26 @@ def tutorial_manipulation():
     print "Manipulating Images"
     print lb
     print "Now we can easily load and save images. It's time to start doing some"
-    print "image processing with them. Let's make our picture a 90x90 thumbnail:"
+    print "image processing with them. Let's make img, which we already have, a"
+    print "90x90 thumbnail:"
 
     global img
     if not img:
-        img = Image("simplecv")
+        img = Image("lenna")
 
     print lb
-    cmd = "thumbnail = img.scale(90,90)"
-    desired_tuple = ('thumbnail', Image)
+    cmd = "thumb = img.scale(90,90)"
+    desired_tuple = ('thumb', Image)
 
     while True:
         command_loop(cmd, desired_tuple)
-        if thumbnail.size() == (90,90):
+        if thumb.size() == (90,90):
             break
 
         print "Your thumbnail's size isn't 90x90! Try again!"
 
     print lb
-    print "Now display it with thumbnail.show()"
+    print "Now display it with thumb.show()"
     print lb
     request_show_command()
 
@@ -285,6 +300,9 @@ def tutorial_manipulation():
     print "top left corner of the picture, to coordinates (100,100) in the"
     print "(X,Y) and cropped a picture from that which is 50 pixels by 50 pixels."
 
+    print lb
+    print "Alright! This was tutorial 5/6."
+    print "Next tutorial: Features"
     if not end_tutorial():
         tutorial_features()
     return
@@ -412,12 +430,16 @@ def tutorial_features():
         print "Nothing has been shown!"
         print lb
 
+    print lb
+    print "Alright! This was tutorial 6/6."
+    #print "Next tutorial: ..."
     return
 
 def magic_tutorial(self,arg):
     tutorials_dict = {'image': tutorial_image, 'save': tutorial_save,
                      'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
                      'copy': tutorial_copy, 'features': tutorial_features} 
+
 
     if (arg == ""):
         shellclear()
@@ -437,4 +459,7 @@ def magic_tutorial(self,arg):
         end_of_tutorial()
         return
     else:
-        tutorials_dict[arg]()
+        if arg in tutorials_dict:
+            tutorials_dict[arg]()
+        else:
+            print "%s is not a tutorial!" % arg
