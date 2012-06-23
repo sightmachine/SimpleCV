@@ -6720,6 +6720,10 @@ class Image:
                  "FAST" - The FAST keypoint extraction algorithm
                  See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
 
+                 "ORB" - The Oriented FAST and Rotated BRIEF
+                 See: http://www.willowgarage.com/sites/default/files/orb_final.pdf
+                 ORB is used only for OpenCV >= 2.4.0
+
 
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
                       values and a vector of 128 descriptor values. The latter are "high" 
@@ -6755,11 +6759,14 @@ class Image:
         """
         try:
             import cv2
+            ver = cv2.__version__
+            if not ver.startswith('$') :
+	        if int(ver.replace('.','0'))>=20400 :
+                    flavor = "ORB"
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
-
-        
+                    
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
@@ -6799,7 +6806,18 @@ class Image:
                 self._mKPFlavor = "STAR"
                 del starer
           
-            else:
+            elif( flavor == "ORB"):
+               orbFeatureDetector = cv2.FastFeatureDetector(16, True)
+	       orbFeatureDetector = cv2.GridAdaptedFeatureDetector(orbFeatureDetector)
+               orbDescriptorExtractor = cv2.DescriptorExtractor_create("ORB")
+               self._mKeyPoints = orbFeatureDetector.detect(self.getGrayNumpy())
+               self._mKeyPoints,self._mKPDescriptors = orbDescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
+               if( len(self._mKPDescriptors) == 0 ):
+                    return None, None     
+               self._mKPFlavor = "ORB"
+	       del orbFeatureDetector
+	    
+	    else:
                 logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
                 return None, None
 
@@ -7141,6 +7159,11 @@ class Image:
         """
         try:
             import cv2
+            ver = cv2.__version__
+            if not ver.startswith('$') :
+	        if int(ver.replace('.','0'))>=20400 :
+                    flavor = "ORB"
+                    
         except:
             logger.warning("Can't use Keypoints without OpenCV >= 2.3.0")
             return None
@@ -7153,7 +7176,7 @@ class Image:
         else:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
-        if( flavor == "SURF" ):
+        if( flavor == "SURF" or flavor == "ORB" ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
         elif(flavor == "STAR" or flavor == "FAST" ):
@@ -7213,6 +7236,19 @@ class Image:
         :py:class:`FeatureSet`
 
         """
+        try:
+            import cv2
+            ver = cv2.__version__
+            if not ver.startswith('$') :
+	        if int(ver.replace('.','0'))>=20400 :
+              	    FLAG_VER = 1
+            	    if (window > 9):
+            		window = 9
+            else :
+                FLAG_VER = 0    			
+        except :
+            FLAG_VER = 0
+            
         if( self.width != previous_frame.width or self.height != previous_frame.height):
             logger.warning("ImageClass.getMotion: To find motion the current and previous frames must match")
             return None
@@ -7259,14 +7295,28 @@ class Image:
         elif( method == "BM"):
             # In the interest of keep the parameter list short
             # I am pegging these to the window size. 
-            block = (window,window) # block size
-            shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
-            spread = (window*2,window*2) # the search windows.
-            wv = (self.width - block[0]) / shift[0] # the result image size
-            hv = (self.height - block[1]) / shift[1]
-            xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-            yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-            cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            # For versions with OpenCV 2.4.0 and below.
+            if ( FLAG_VER==0):
+            	block = (window,window) # block size
+            	shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
+            	spread = (window*2,window*2) # the search windows.
+            	wv = (self.width - block[0]) / shift[0] # the result image size
+            	hv = (self.height - block[1]) / shift[1]
+            	xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            	yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            	cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            
+            #For versions with OpenCV 2.4.0 and above.
+            elif ( FLAG_VER==1) :
+	        block = (window,window) # block size
+                shift = (int(window*0.2),int(window*0.2)) # how far to shift the block
+                spread = (window,window) # the search windows.
+	        wv = self.width-block[0]+shift[0]
+	        hv = self.height-block[1]+shift[1]
+	        xf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
+                yf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
+	        cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+	        
             for x in range(0,int(wv)): # go through the sample grid
                 for y in range(0,int(hv)):
                     xi = (shift[0]*(x))+block[0] #where on the input image the samples live
