@@ -112,7 +112,34 @@ class FeatureSet(list):
         self.draw(color, width, autocolor)
         self[-1].image.show()
                 
-  
+
+    def reassignImage(self, newImg):
+        """
+        **SUMMARY**
+
+        Return a new featureset where the features are assigned to a new image. 
+        
+        **PARAMETERS**
+        
+        * *img* - the new image to which to assign the feature. 
+
+        .. Warning:: 
+          THIS DOES NOT PERFORM A SIZE CHECK. IF YOUR NEW IMAGE IS NOT THE EXACT SAME SIZE YOU WILL CERTAINLY CAUSE ERRORS. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = img.invert()
+        >>> l = img.findLines()
+        >>> l2 = img.reassignImage(img2)
+        >>> l2.show()
+
+        """
+        retVal = FeatureSet()
+        for i in self:
+            retVal.append(i.reassign(newImg))
+        return retVal
+
     def x(self):
         """
         **SUMMARY**
@@ -1042,6 +1069,35 @@ class Feature(object):
         self.points = points
         self._updateExtents()
   
+    def reassign(self, img):
+        """
+        **SUMMARY**
+
+        Reassign the image of this feature and return an updated copy of the feature.
+        
+        **PARAMETERS**
+        
+        * *img* - the new image to which to assign the feature. 
+
+        .. Warning:: 
+          THIS DOES NOT PERFORM A SIZE CHECK. IF YOUR NEW IMAGE IS NOT THE EXACT SAME SIZE YOU WILL CERTAINLY CAUSE ERRORS. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = img.invert()
+        >>> l = img.findLines()
+        >>> l2 = img.reassignImage(img2)
+        >>> l2.show()
+        """
+        retVal = copy.deepcopy(self)
+        if( self.image.width != img.width or 
+            self.image.height != img.height ):
+            warnings.warn("DON'T REASSIGN IMAGES OF DIFFERENT SIZES")
+        retVal.image = img
+        
+        return retVal
+
     def corners(self):
         self._updateExtents()
         return self.points
