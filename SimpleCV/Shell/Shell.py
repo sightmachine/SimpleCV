@@ -72,7 +72,14 @@ def plot(arg):
   plt.plot(arg)
   plt.show()
 
-
+def hist(arg):
+  try:
+    import pylab
+  except:
+    logger.warning("pylab is not installed and required")
+    return
+  plot(pylab.hist(arg)[1])
+  
 def magic_clear(self, arg):
   shellclear()
 
