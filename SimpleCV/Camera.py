@@ -441,9 +441,14 @@ class Camera(FrameSource):
    
         """
 
-        #This fixes bug with opencv not being able to grab frames from webcams on linux
         
-        self.capture = cv.CaptureFromCAM(camera_index)
+
+        #This is to add support for XIMEA cameras.
+        if isinstance(camera_index, str):
+          if camera_index.lower() == 'ximea':
+            camera_index = 1100
+        
+        self.capture = cv.CaptureFromCAM(camera_index) #This fixes bug with opencv not being able to grab frames from webcams on linux
         
         if "delay" in prop_set:
           time.sleep(prop_set['delay'])
