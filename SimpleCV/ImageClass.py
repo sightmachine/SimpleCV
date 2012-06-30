@@ -6760,7 +6760,8 @@ class Image:
         try:
             import cv2
             ver = cv2.__version__
-            if not ver.startswith('$') :
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:') and flavor!="SURF":
 	        if int(ver.replace('.','0'))>=20400 :
                     flavor = "ORB"
         except:
@@ -6807,8 +6808,7 @@ class Image:
                 del starer
           
             elif( flavor == "ORB"):
-               orbFeatureDetector = cv2.FastFeatureDetector(16, True)
-	       orbFeatureDetector = cv2.GridAdaptedFeatureDetector(orbFeatureDetector)
+               orbFeatureDetector = cv2.FeatureDetector_create("ORB")
                orbDescriptorExtractor = cv2.DescriptorExtractor_create("ORB")
                self._mKeyPoints = orbFeatureDetector.detect(self.getGrayNumpy())
                self._mKeyPoints,self._mKPDescriptors = orbDescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
@@ -7160,7 +7160,8 @@ class Image:
         try:
             import cv2
             ver = cv2.__version__
-            if not ver.startswith('$') :
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:') and flavor!="SURF":
 	        if int(ver.replace('.','0'))>=20400 :
                     flavor = "ORB"
                     
@@ -7239,7 +7240,8 @@ class Image:
         try:
             import cv2
             ver = cv2.__version__
-            if not ver.startswith('$') :
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:') :
 	        if int(ver.replace('.','0'))>=20400 :
               	    FLAG_VER = 1
             	    if (window > 9):
