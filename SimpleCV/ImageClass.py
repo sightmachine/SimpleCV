@@ -3,11 +3,13 @@ from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
+
 from EXIF import *
 import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
+import numpy.linalg as nla  # for linear algebra / least squares
 import math # math... who does that 
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
@@ -9668,6 +9670,88 @@ class Image:
         ptB = (int(xs[B]+x),int(ys[B]+y))
         # we might actually want this to be list of all the points
         return [ptA, ptB]          
+
+
+    def snakeFitPoints(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=2):
+        alpha = [params[0]]
+        beta= [params[1]]
+        gamma = [params[2]]
+        if( window[0]%2 == 0 ):
+            window = (window[0]+1,window[1])
+            logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an odd window size. I fixed it for you, but you may want to take a look at your code.")
+        if( window[1]%2 == 0 ):
+            window = (window[0],window[1]+1)
+            logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an odd window size. I fixed it for you, but you may want to take a look at your code.")
+        raw = cv.SnakeImage(self._getGrayscaleBitmap(),initial_curve,alpha,beta,gamma,window,(cv.CV_TERMCRIT_ITER,10,0.01))
+        if( doAppx ):
+            try:
+                import cv2
+            except:
+                logger.warning("Can't Do snakeFitPoints without OpenCV >= 2.3.0")
+                return
+            appx = cv2.approxPolyDP(np.array([raw],'float32'),appx_level,True)      
+            retVal = []
+            for p in appx:
+                retVal.append((int(p[0][0]),int(p[0][1])))
+        else:
+            retVal = raw
+
+        return retVal
+
+    def findBestFitLines(self,guesses,window=(11,11), samples=20,doPts=False):
+        retVal = FeatureSet()
+        pts = []
+        for g in guesses:
+            #generate the approximation
+            bestGuess = []
+
+            dx = float(g[1][0]-g[0][0])
+            dy = float(g[1][1]-g[0][1])
+            l = np.sqrt((dx*dx)+(dy*dy))
+            if( l <= 0 ):
+                logger.warning("Can't Do snakeFitPoints without OpenCV >= 2.3.0")
+                return 
+
+            dx = dx/l 
+            dy = dy/l
+            for i in range(-1,samples+1):
+                t = i*(l/samples)
+                bestGuess.append((int(g[0][0]+(t*dx)),int(g[0][1]+(t*dy))))
+            # do the snake fitting 
+            self.drawPoints(bestGuess,color=Color.RED)
+            appx = self.snakeFitPoints(bestGuess,window=window,doAppx=False)
+            pts.append(appx)
+            appx = np.array(appx)
+
+            A =  np.vstack([appx[:,0], np.ones(len(appx[:,0]))]).T
+            y = appx[:,1]
+            # now use least squares to pull out the approximation
+            m,c = nla.lstsq(A,y)[0]
+            # now figure out how we want to parameterize it
+            ymin = np.min(appx[:,1])
+            ymax = np.max(appx[:,1])
+            xmin = np.min(appx[:,0])
+            xmax = np.max(appx[:,0])
+            print (xmin,xmax,ymin,ymax)
+            # and shove the results in a line feature
+            if( (xmax-xmin) > (ymax-ymin) ):
+                y0 = int(m*xmin+c)
+                y1 = int(m*xmax+c)
+                retVal.append(Line(self,((xmin,y0),(xmax,y1))))
+            else:
+                x0 = int((ymin-c)/m)
+                x1 = int((ymax-c)/m)
+                retVal.append(Line(self,((x0,ymin),(x1,ymax))))
+        if( doPts ):
+            return pts,retVal
+        else:
+            return retVal
+        
+
+
+    def drawPoints(self, pts, color=Color.RED, sz=3, width=-1):
+        for p in pts:
+           self.drawCircle(p,sz,color,width)
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
