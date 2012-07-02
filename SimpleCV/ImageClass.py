@@ -9672,8 +9672,63 @@ class Image:
         return [ptA, ptB]          
 
 
-    def snakeFitPoints(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
+    def fitContour(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
+        """
+        **SUMMARY** 
         
+        This method tries to fit a list of points to lines in the image. The list of points 
+        is a list of (x,y) tuples that are near (i.e. within the window size) of the line
+        you want to fit in the image. This method uses a binary such as the result of calling
+        edges. 
+
+        This method is based on active contours. Please see this reference:
+        http://en.wikipedia.org/wiki/Active_contour_model
+
+        **PARAMETERS**
+        
+        * *initial_curve* - region of the form [(x0,y0),(x1,y1)...] that are the initial conditions to fit. 
+        * *window* - the search region around each initial point to look for a solution.
+        * *params* - The alpha, beta, and gamma parameters for the active contours 
+          algorithm as a list [alpha,beta,gamma]. 
+        * *doAppx* - post process the snake into a polynomial approximation. Basically
+          this flag will clean up the output of the contour algorithm. 
+        * *appx_level* - how much to approximate the snake, higher numbers mean more approximation. 
+
+        **DISCUSSION**
+        
+        THIS SECTION IS QUOTED FROM: http://users.ecs.soton.ac.uk/msn/book/new_demo/Snakes/
+        There are three components to the Energy Function:
+
+        * Continuity
+        * Curvature
+        * Image (Gradient)
+        Each Weighted by Specified Parameter:
+        
+        Total Energy = Alpha*Continuity + Beta*Curvature + Gamma*Image
+
+        Choose different values dependent on Feature to extract:
+        
+        * Set alpha high if there is a deceptive Image Gradient
+        * Set beta  high if smooth edged Feature, low if sharp edges
+        * Set gamma high if contrast between Background and Feature is low
+
+
+        **RETURNS**
+        
+        A list of (x,y) tuples that approximate the curve. If you do not use
+        approximation the list should be the same length as the input list length.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> edges = img.edges(t1=120,t2=155)
+        >>> guess = [(311,284),(313,270),(320,259),(330,253),(347,245)]
+        >>> result = edges.fitContour(guess)
+        >>> img.drawPoints(guess,color=Color.RED)
+        >>> img.drawPoints(result,color=Color.GREEN)
+        >>> img.show()
+
+        """
         alpha = [params[0]]
         beta= [params[1]]
         gamma = [params[2]]
@@ -9702,6 +9757,7 @@ class Image:
     def fitLines(self,guesses,window=(11,11),threshold=128):
         retVal = FeatureSet()
         for g in guesses:
+            # Guess the size of the crop region from the line guess and the window. 
             ymin = np.min([g[0][1],g[1][1]])
             ymax = np.max([g[0][1],g[1][1]])
             xmin = np.min([g[0][0],g[1][0]])
@@ -9711,11 +9767,15 @@ class Image:
             yminW = np.clip(ymin-window[0],0,self.height)
             ymaxW = np.clip(ymax+window[0],0,self.height)            
             temp = self.crop(xminW,yminW,xmaxW-xminW,ymaxW-yminW).getGrayNumpy()
+            # pick the lines above our threshold
             x,y = np.where(temp>threshold)
+            # do the shift from our crop
             x = x + xminW
             y = y + yminW
+            # do the least squares
             A = np.vstack([x,np.ones(len(x))]).T
-            m,c = nla.lstsq(A,y)[0]            
+            m,c = nla.lstsq(A,y)[0]  
+            # generate the line values 
             if( (xmax-xmin) > (ymax-ymin) ):
                 y0 = int(m*xmin+c)
                 y1 = int(m*xmax+c)
