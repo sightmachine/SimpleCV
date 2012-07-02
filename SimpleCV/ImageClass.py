@@ -6774,7 +6774,7 @@ class Image:
             self._mKPDescriptors = None
             
         if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
-            if (!new_version):
+            if (not new_version):
                 if( flavor == "SURF" ):
                     surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
                     self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
@@ -6810,14 +6810,14 @@ class Image:
                     self._mKPFlavor = "STAR"
                     del starer
           
-            elif( new_version and flavour in ["ORB","FAST","STAR","SIFT","SURF","MSER","GFTT","HARRIS","Dense"] ):
-               FeatureDetector = cv2.FeatureDetector_create(flavour)
-               DescriptorExtractor = cv2.DescriptorExtractor_create(flavour)
+            elif( new_version and flavor in ["ORB","FAST","STAR","SIFT","SURF","MSER","GFTT","HARRIS","Dense"] ):
+               FeatureDetector = cv2.FeatureDetector_create(flavor)
+               DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
                if( len(self._mKPDescriptors) == 0 ):
                     return None, None     
-               self._mKPFlavor = flavour
+               self._mKPFlavor = flavor
 	       del FeatureDetector
 	    
 	    else:
