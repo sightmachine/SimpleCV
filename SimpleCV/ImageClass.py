@@ -9672,7 +9672,7 @@ class Image:
         return [ptA, ptB]          
 
 
-    def snakeFitPoints(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=2):
+    def snakeFitPoints(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
         alpha = [params[0]]
         beta= [params[1]]
         gamma = [params[2]]
@@ -9698,7 +9698,7 @@ class Image:
 
         return retVal
 
-    def findBestFitLines(self,guesses,window=(11,11), samples=20,doPts=False):
+    def findBestFitLines(self,guesses,window=(11,11), samples=20,doPts=False,params=(0.1,0.1,0.1)):
         retVal = FeatureSet()
         pts = []
         for g in guesses:
@@ -9719,7 +9719,7 @@ class Image:
                 bestGuess.append((int(g[0][0]+(t*dx)),int(g[0][1]+(t*dy))))
             # do the snake fitting 
             self.drawPoints(bestGuess,color=Color.RED)
-            appx = self.snakeFitPoints(bestGuess,window=window,doAppx=False)
+            appx = self.snakeFitPoints(bestGuess,window=window,params=params,doAppx=False)
             pts.append(appx)
             appx = np.array(appx)
 
@@ -9732,7 +9732,6 @@ class Image:
             ymax = np.max(appx[:,1])
             xmin = np.min(appx[:,0])
             xmax = np.max(appx[:,0])
-            print (xmin,xmax,ymin,ymax)
             # and shove the results in a line feature
             if( (xmax-xmin) > (ymax-ymin) ):
                 y0 = int(m*xmin+c)
