@@ -9673,6 +9673,7 @@ class Image:
 
 
     def snakeFitPoints(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
+        
         alpha = [params[0]]
         beta= [params[1]]
         gamma = [params[2]]
@@ -9698,13 +9699,39 @@ class Image:
 
         return retVal
 
-    def findBestFitLines(self,guesses,window=(11,11), samples=20,doPts=False,params=(0.1,0.1,0.1)):
+    def fitLines(self,guesses,window=(11,11),threshold=128):
         retVal = FeatureSet()
+        for g in guesses:
+            ymin = np.min([g[0][1],g[1][1]])
+            ymax = np.max([g[0][1],g[1][1]])
+            xmin = np.min([g[0][0],g[1][0]])
+            xmax = np.max([g[0][0],g[1][0]])
+            xminW = np.clip(xmin-window[0],0,self.width)
+            xmaxW = np.clip(xmax+window[0],0,self.width)
+            yminW = np.clip(ymin-window[0],0,self.height)
+            ymaxW = np.clip(ymax+window[0],0,self.height)            
+            temp = self.crop(xminW,yminW,xmaxW-xminW,ymaxW-yminW).getGrayNumpy()
+            x,y = np.where(temp>threshold)
+            x = x + xminW
+            y = y + yminW
+            A = np.vstack([x,np.ones(len(x))]).T
+            m,c = nla.lstsq(A,y)[0]            
+            if( (xmax-xmin) > (ymax-ymin) ):
+                y0 = int(m*xmin+c)
+                y1 = int(m*xmax+c)
+                retVal.append(Line(self,((xmin,y0),(xmax,y1))))
+            else:
+                x0 = int((ymin-c)/m)
+                x1 = int((ymax-c)/m)
+                retVal.append(Line(self,((x0,ymin),(x1,ymax))))
+
+        return retVal
+
+    def fitLinePoints(self,guesses,window=(11,11), samples=20,params=(0.1,0.1,0.1)):
         pts = []
         for g in guesses:
             #generate the approximation
             bestGuess = []
-
             dx = float(g[1][0]-g[0][0])
             dy = float(g[1][1]-g[0][1])
             l = np.sqrt((dx*dx)+(dy*dy))
@@ -9718,33 +9745,10 @@ class Image:
                 t = i*(l/samples)
                 bestGuess.append((int(g[0][0]+(t*dx)),int(g[0][1]+(t*dy))))
             # do the snake fitting 
-            self.drawPoints(bestGuess,color=Color.RED)
             appx = self.snakeFitPoints(bestGuess,window=window,params=params,doAppx=False)
             pts.append(appx)
-            appx = np.array(appx)
 
-            A =  np.vstack([appx[:,0], np.ones(len(appx[:,0]))]).T
-            y = appx[:,1]
-            # now use least squares to pull out the approximation
-            m,c = nla.lstsq(A,y)[0]
-            # now figure out how we want to parameterize it
-            ymin = np.min(appx[:,1])
-            ymax = np.max(appx[:,1])
-            xmin = np.min(appx[:,0])
-            xmax = np.max(appx[:,0])
-            # and shove the results in a line feature
-            if( (xmax-xmin) > (ymax-ymin) ):
-                y0 = int(m*xmin+c)
-                y1 = int(m*xmax+c)
-                retVal.append(Line(self,((xmin,y0),(xmax,y1))))
-            else:
-                x0 = int((ymin-c)/m)
-                x1 = int((ymax-c)/m)
-                retVal.append(Line(self,((x0,ymin),(x1,ymax))))
-        if( doPts ):
-            return pts,retVal
-        else:
-            return retVal
+        return pts
         
 
 
