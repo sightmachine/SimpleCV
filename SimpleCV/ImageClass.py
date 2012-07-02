@@ -6760,10 +6760,11 @@ class Image:
         try:
             import cv2
             ver = cv2.__version__
+            new_version = False
             #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
-            if not ver.startswith('$Rev:') and flavor!="SURF":
+            if not ver.startswith('$Rev:'):
 	        if int(ver.replace('.','0'))>=20400 :
-                    flavor = "ORB"
+                    new_version = True 
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
@@ -6771,51 +6772,53 @@ class Image:
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
-            if( flavor == "SURF" ):
-                surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
-                self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
-                if( len(self._mKPDescriptors) == 0 ):
-                    return None, None                     
-                
-                if( highQuality == 1 ):
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                else:
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-                
-                self._mKPFlavor = "SURF"
-                del surfer
             
-            elif( flavor == "FAST" ):
-                faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = "FAST"
-                del faster
+        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+            if (!new_version):
+                if( flavor == "SURF" ):
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+            
+                elif( flavor == "FAST" ):
+                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "FAST"
+                    del faster
 
-            #elif( flavor == "MSER"):
-            #    mserer = cv2.MSER()
-            #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
-            #    self._mKPDescriptors = None
-            #    self._mKPFlavor = "MSER"
-            #    del mserer
+                #elif( flavor == "MSER"):
+                #    mserer = cv2.MSER()
+                #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+                #    self._mKPDescriptors = None
+                #    self._mKPFlavor = "MSER"
+                #    del mserer
 
-            elif( flavor == "STAR"):
-                starer = cv2.StarDetector()
-                self._mKeyPoints = starer.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = "STAR"
-                del starer
+                elif( flavor == "STAR"):
+                    starer = cv2.StarDetector()
+                    self._mKeyPoints = starer.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "STAR"
+                    del starer
           
-            elif( flavor == "ORB"):
-               orbFeatureDetector = cv2.FeatureDetector_create("ORB")
-               orbDescriptorExtractor = cv2.DescriptorExtractor_create("ORB")
-               self._mKeyPoints = orbFeatureDetector.detect(self.getGrayNumpy())
-               self._mKeyPoints,self._mKPDescriptors = orbDescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
+            elif( new_version and flavour in ["ORB","FAST","STAR","SIFT","SURF","MSER","GFTT","HARRIS","Dense"] ):
+               FeatureDetector = cv2.FeatureDetector_create(flavour)
+               DescriptorExtractor = cv2.DescriptorExtractor_create(flavour)
+               self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
+               self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
                if( len(self._mKPDescriptors) == 0 ):
                     return None, None     
-               self._mKPFlavor = "ORB"
-	       del orbFeatureDetector
+               self._mKPFlavor = flavour
+	       del FeatureDetector
 	    
 	    else:
                 logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
