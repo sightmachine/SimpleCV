@@ -9755,20 +9755,85 @@ class Image:
         return retVal
 
     def fitLines(self,guesses,window=(11,11),threshold=128):
+        """
+        **SUMMARY**
+        
+        Fit lines in a binary/gray image using an initial guess and the least squares method.
+        The lines are returned as a line feature set. 
+
+        **PARAMETERS**
+
+        * *guesses* - A list of tuples of the form ((x0,y0),(x1,y1)) where each of the lines
+          is an approximate guess.
+        * *window* - A window around the guess to search.
+        * *threshold* - the threshold above which we count a pixel as a line 
+
+        **RETURNS**
+
+        A feature set of line features, one per guess. 
+
+        **EXAMPLE**
+        
+
+        >>> img = Image("lsq.png")
+        >>> guesses = [((313,150),(312,332)),((62,172),(252,52)),((102,372),(182,182)),((372,62),(572,162)),((542,362),(462,182)),((232,412),(462,423))]
+        >>> l = img.fitLines(guesses,window=(10,10)) 
+        >>> l.draw(color=Color.RED,width=3)
+        >>> for g in guesses:
+        >>>    img.drawLine(g[0],g[1],color=Color.YELLOW)
+            
+        >>> img.show()
+        """
+   
         retVal = FeatureSet()
+        i =0 
         for g in guesses:
             # Guess the size of the crop region from the line guess and the window. 
             ymin = np.min([g[0][1],g[1][1]])
             ymax = np.max([g[0][1],g[1][1]])
             xmin = np.min([g[0][0],g[1][0]])
             xmax = np.max([g[0][0],g[1][0]])
+
             xminW = np.clip(xmin-window[0],0,self.width)
             xmaxW = np.clip(xmax+window[0],0,self.width)
             yminW = np.clip(ymin-window[0],0,self.height)
             ymaxW = np.clip(ymax+window[0],0,self.height)            
-            temp = self.crop(xminW,yminW,xmaxW-xminW,ymaxW-yminW).getGrayNumpy()
+            temp = self.crop(xminW,yminW,xmaxW-xminW,ymaxW-yminW)
+            temp = temp.getGrayNumpy()
+            
             # pick the lines above our threshold
             x,y = np.where(temp>threshold)
+            pts = zip(x,y)
+            gpv = np.array([float(g[0][0]-xminW),float(g[0][1]-yminW)])
+            gpw = np.array([float(g[1][0]-xminW),float(g[1][1]-yminW)])
+            def lineSegmentToPoint(p):
+                w = gpw
+                v = gpv
+                #print w,v
+                p = np.array([float(p[0]),float(p[1])])
+                l2 = np.sum((w-v)**2)
+                t = float(np.dot((p-v),(w-v))) / float(l2)
+                if( t < 0.00 ):
+                    return np.sqrt(np.sum((p-v)**2))
+                elif(t > 1.0):
+                    return np.sqrt(np.sum((p-w)**2))
+                else:
+                    project = v + (t*(w-v))
+                    return np.sqrt(np.sum((p-project)**2))
+            # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+
+            distances = np.array(map(lineSegmentToPoint,pts))
+            closepoints = np.where(distances<window[0])[0]
+            
+            pts = np.array(pts)
+
+            if( len(closepoints) < 3 ):
+                    continue
+
+            good_pts = pts[closepoints]
+
+            x = good_pts[:,0]
+            y = good_pts[:,1]
             # do the shift from our crop
             x = x + xminW
             y = y + yminW
@@ -9776,6 +9841,10 @@ class Image:
             A = np.vstack([x,np.ones(len(x))]).T
             m,c = nla.lstsq(A,y)[0]  
             # generate the line values 
+            ymin = np.min(y)
+            ymax = np.max(y)
+            xmin = np.min(x)
+            xmax = np.max(x)
             if( (xmax-xmin) > (ymax-ymin) ):
                 y0 = int(m*xmin+c)
                 y1 = int(m*xmax+c)
