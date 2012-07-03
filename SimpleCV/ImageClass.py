@@ -9754,7 +9754,7 @@ class Image:
 
         return retVal
 
-    def fitLines(self,guesses,window=(11,11),threshold=128):
+    def fitLines(self,guesses,window=10,threshold=128):
         """
         **SUMMARY**
         
@@ -9777,7 +9777,7 @@ class Image:
 
         >>> img = Image("lsq.png")
         >>> guesses = [((313,150),(312,332)),((62,172),(252,52)),((102,372),(182,182)),((372,62),(572,162)),((542,362),(462,182)),((232,412),(462,423))]
-        >>> l = img.fitLines(guesses,window=(10,10)) 
+        >>> l = img.fitLines(guesses,window=10) 
         >>> l.draw(color=Color.RED,width=3)
         >>> for g in guesses:
         >>>    img.drawLine(g[0],g[1],color=Color.YELLOW)
@@ -9794,10 +9794,10 @@ class Image:
             xmin = np.min([g[0][0],g[1][0]])
             xmax = np.max([g[0][0],g[1][0]])
 
-            xminW = np.clip(xmin-window[0],0,self.width)
-            xmaxW = np.clip(xmax+window[0],0,self.width)
-            yminW = np.clip(ymin-window[0],0,self.height)
-            ymaxW = np.clip(ymax+window[0],0,self.height)            
+            xminW = np.clip(xmin-window,0,self.width)
+            xmaxW = np.clip(xmax+window,0,self.width)
+            yminW = np.clip(ymin-window,0,self.height)
+            ymaxW = np.clip(ymax+window,0,self.height)            
             temp = self.crop(xminW,yminW,xmaxW-xminW,ymaxW-yminW)
             temp = temp.getGrayNumpy()
             
@@ -9823,7 +9823,7 @@ class Image:
             # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 
             distances = np.array(map(lineSegmentToPoint,pts))
-            closepoints = np.where(distances<window[0])[0]
+            closepoints = np.where(distances<window)[0]
             
             pts = np.array(pts)
 
@@ -9857,6 +9857,38 @@ class Image:
         return retVal
 
     def fitLinePoints(self,guesses,window=(11,11), samples=20,params=(0.1,0.1,0.1)):
+        """
+        **DESCRIPTION**
+
+        This method uses the snakes / active contour approach in an attempt to
+        fit a series of points to a line that may or may not be exactly linear. 
+
+        **PARAMETERS**
+        
+        * *guesses* - A set of lines that we wish to fit to. The lines are specified 
+          as a list of tuples of (x,y) tuples. E.g. [((x0,y0),(x1,y1))....]
+        * *window* - The search window in pixels for the active contours approach.
+        * *samples* - The number of points to sample along the input line, 
+          these are the initial conditions for active contours method. 
+        * *params* - the alpha, beta, and gamma values for the active contours routine.
+
+        **RETURNS**
+
+        A list of fitted contour points. Each contour is a list of (x,y) tuples. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lsq.png")
+        >>> guesses = [((313,150),(312,332)),((62,172),(252,52)),((102,372),(182,182)),((372,62),(572,162)),((542,362),(462,182)),((232,412),(462,423))]
+        >>> r = img.fitLinePoints(guesses) 
+        >>> for rr in r:
+        >>>    img.drawLine(rr[0],rr[1],color=Color.RED,width=3)
+        >>> for g in guesses:
+        >>>    img.drawLine(g[0],g[1],color=Color.YELLOW)
+            
+        >>> img.show()
+        
+        """
         pts = []
         for g in guesses:
             #generate the approximation
@@ -9882,8 +9914,31 @@ class Image:
 
 
     def drawPoints(self, pts, color=Color.RED, sz=3, width=-1):
+        """
+        **DESCRIPTION**
+
+        A quick and dirty points rendering routine.
+
+        **PARAMETERS**
+        
+        * *pts* - pts a list of (x,y) points. 
+        * *color* - a color for our points.
+        * *sz* - the circle radius for our points.
+        * *width* - if -1 fill the point, otherwise the size of point border
+
+        **RETURNS**
+
+        None - This is an inplace operation. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img.drawPoints([(10,10),(30,30)])
+        >>> img.show()
+        """
         for p in pts:
            self.drawCircle(p,sz,color,width)
+        return None
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
