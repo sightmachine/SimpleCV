@@ -7181,6 +7181,22 @@ class Image:
           * "FAST" - The FAST keypoint extraction algorithm
 
             See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+          
+          All the flavour specified below are for OpenCV versions >= 2.4.0 :
+          
+          * "MSER" - Maximally Stable Extremal Regions algorithm
+            
+            See: http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions
+          
+          * "Dense" - 
+          
+          * "ORB" - The Oriented FAST and Rotated BRIEF
+            
+            See: http://www.willowgarage.com/sites/default/files/orb_final.pdf
+            
+          * "SIFT" - Scale-invariant feature transform
+           
+            See: http://en.wikipedia.org/wiki/Scale-invariant_feature_transform      
         
         * *highQuality* - The SURF descriptor comes in two forms, a vector of 64 descriptor 
           values and a vector of 128 descriptor values. The latter are "high" 
@@ -7211,7 +7227,7 @@ class Image:
 
         """
         try:
-            import cv2
+            import cv2                    
         except:
             logger.warning("Can't use Keypoints without OpenCV >= 2.3.0")
             return None
@@ -7224,10 +7240,10 @@ class Image:
         else:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
-        if( flavor == "SURF" ):
+        if( flavor in ["ORB", "SIFT", "SURF"]  ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
-        elif(flavor == "STAR" or flavor == "FAST" ):
+        elif(flavor in ["FAST", "STAR", "MSER", "Dense"] ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],None,flavor))
         else:
