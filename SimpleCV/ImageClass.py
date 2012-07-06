@@ -6807,7 +6807,7 @@ class Image:
                     self._mKPFlavor = "SURF"
                     del surfer
             
-                elif( flavor == "FAST" and not ver.startswith('$Rev:') :
+                elif( flavor == "FAST" and not (int(ver.split(' ')[1])>=4557)) :
                     faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                     self._mKeyPoints = faster.detect(self.getGrayNumpy())
                     self._mKPDescriptors = None
@@ -7240,10 +7240,10 @@ class Image:
         else:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
-        if( flavor in ["ORB", "SIFT", "SURF"]  ):
+        if( flavor in ["ORB", "SIFT", "SURF"]  and kp!=None and d !=None ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
-        elif(flavor in ["FAST", "STAR", "MSER", "Dense"] ):
+        elif(flavor in ["FAST", "STAR", "MSER", "Dense"] and kp!=None ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],None,flavor))
         else:
