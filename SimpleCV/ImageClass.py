@@ -6807,7 +6807,7 @@ class Image:
                     self._mKPFlavor = "SURF"
                     del surfer
             
-                elif( flavor == "FAST" ):
+                elif( flavor == "FAST" and not ver.startswith('$Rev:') :
                     faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                     self._mKeyPoints = faster.detect(self.getGrayNumpy())
                     self._mKPDescriptors = None
