@@ -6721,7 +6721,22 @@ class Image:
 
                  "FAST" - The FAST keypoint extraction algorithm
                  See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
-
+                 
+                 All the flavour specified below are for OpenCV versions >= 2.4.0 :
+                 
+                 "MSER" - Maximally Stable Extremal Regions algorithm
+                 
+                 See: http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions
+                 
+                 "Dense" -
+                 
+                 "ORB" - The Oriented FAST and Rotated BRIEF
+                 
+                 See: http://www.willowgarage.com/sites/default/files/orb_final.pdf
+                 
+                 "SIFT" - Scale-invariant feature transform
+                 
+                 See: http://en.wikipedia.org/wiki/Scale-invariant_feature_transform
 
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
                       values and a vector of 128 descriptor values. The latter are "high" 
@@ -6757,51 +6772,103 @@ class Image:
         """
         try:
             import cv2
+            ver = cv2.__version__
+            new_version = 0
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:'):
+	        if int(ver.replace('.','0'))>=20400 :
+                    new_version = 1
+                if int(ver.replace('.','0'))>=20402 :     
+                    new_version = 2
+                    
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
-
-        
+                    
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
-            if( flavor == "SURF" ):
-                surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
-                self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
-                if( len(self._mKPDescriptors) == 0 ):
-                    return None, None                     
-                
-                if( highQuality == 1 ):
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                else:
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-                
-                self._mKPFlavor = "SURF"
-                del surfer
             
-            elif( flavor == "FAST" ):
-                faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = "FAST"
-                del faster
+        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+            if ( new_version == 0):
+                if( flavor == "SURF" ):
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+            
+                elif( flavor == "FAST" ):
+                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "FAST"
+                    del faster
 
-            #elif( flavor == "MSER"):
-            #    mserer = cv2.MSER()
-            #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
-            #    self._mKPDescriptors = None
-            #    self._mKPFlavor = "MSER"
-            #    del mserer
+                #elif( flavor == "MSER"):
+                #    mserer = cv2.MSER()
+                #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+                #    self._mKPDescriptors = None
+                #    self._mKPFlavor = "MSER"
+                #    del mserer
 
-            elif( flavor == "STAR"):
-                starer = cv2.StarDetector()
-                self._mKeyPoints = starer.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = "STAR"
-                del starer
-          
-            else:
+                elif( flavor == "STAR"):
+                    starer = cv2.StarDetector()
+                    self._mKeyPoints = starer.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "STAR"
+                    del starer
+            
+            
+            elif( new_version == 2 and flavor in ["SURF", "FAST"] ): 
+                if( flavor == "SURF" ):
+                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
+                    #mask = self.getGrayNumpy()                    
+                    #mask.fill(255) 
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,useProvidedKeypoints = False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+            
+                elif( flavor == "FAST" ):
+                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "FAST"
+                    del faster            
+            
+            elif( new_version >=1  and flavor in ["ORB", "SIFT", "SURF"] ):
+               FeatureDetector = cv2.FeatureDetector_create(flavor)
+               DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
+               self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
+               self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
+               if( len(self._mKPDescriptors) == 0 ):
+                    return None, None     
+               self._mKPFlavor = flavor
+	       del FeatureDetector
+
+            elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
+               FeatureDetector = cv2.FeatureDetector_create(flavor)
+               self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
+               self._mKPDescriptors = None
+               self._mKPFlavor = flavor
+               del FeatureDetector   
+               
+	    else:
                 logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
                 return None, None
 
@@ -7215,6 +7282,20 @@ class Image:
         :py:class:`FeatureSet`
 
         """
+        try:
+            import cv2
+            ver = cv2.__version__
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:') :
+	        if int(ver.replace('.','0'))>=20400 :
+              	    FLAG_VER = 1
+            	    if (window > 9):
+            		window = 9
+            else :
+                FLAG_VER = 0    			
+        except :
+            FLAG_VER = 0
+            
         if( self.width != previous_frame.width or self.height != previous_frame.height):
             logger.warning("ImageClass.getMotion: To find motion the current and previous frames must match")
             return None
@@ -7261,14 +7342,28 @@ class Image:
         elif( method == "BM"):
             # In the interest of keep the parameter list short
             # I am pegging these to the window size. 
-            block = (window,window) # block size
-            shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
-            spread = (window*2,window*2) # the search windows.
-            wv = (self.width - block[0]) / shift[0] # the result image size
-            hv = (self.height - block[1]) / shift[1]
-            xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-            yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-            cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            # For versions with OpenCV 2.4.0 and below.
+            if ( FLAG_VER==0):
+            	block = (window,window) # block size
+            	shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
+            	spread = (window*2,window*2) # the search windows.
+            	wv = (self.width - block[0]) / shift[0] # the result image size
+            	hv = (self.height - block[1]) / shift[1]
+            	xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            	yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            	cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            
+            #For versions with OpenCV 2.4.0 and above.
+            elif ( FLAG_VER==1) :
+	        block = (window,window) # block size
+                shift = (int(window*0.2),int(window*0.2)) # how far to shift the block
+                spread = (window,window) # the search windows.
+	        wv = self.width-block[0]+shift[0]
+	        hv = self.height-block[1]+shift[1]
+	        xf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
+                yf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
+	        cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+	        
             for x in range(0,int(wv)): # go through the sample grid
                 for y in range(0,int(hv)):
                     xi = (shift[0]*(x))+block[0] #where on the input image the samples live
