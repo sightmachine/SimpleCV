@@ -2741,3 +2741,38 @@ def test_getSkintoneMask():
     VISUAL_TEST = True
     name_stem = 'test_skintone'
     perform_diff(masks,name_stem,tolerance=17)
+
+def test_findKeypoints_all():
+  try:
+    import cv2
+  except:
+    pass
+    return 
+  img = Image(testimage2)
+  methods = ["ORB", "SIFT", "SURF","FAST", "STAR", "MSER", "Dense"]
+  for i in methods :
+     print i
+     kp = img.findKeypoints(flavor = i)
+     if kp!=None :
+       for k in kp:
+          k.getObject()
+          k.descriptor()
+          k.quality()
+          k.octave()
+          k.flavor()
+          k.angle()
+          k.coordinates()
+          k.draw()
+          k.distanceFrom()
+          k.meanColor()
+          k.area()
+          k.perimeter()
+          k.width()
+          k.height()
+          k.radius()
+          k.crop()
+       kp.draw()
+     results = [img]
+     name_stem = "test_findKeypoints"
+     perform_diff(results,name_stem,tolerance=8)    
+  pass
