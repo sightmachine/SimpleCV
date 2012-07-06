@@ -10052,6 +10052,70 @@ class Image:
         for p in pts:
            self.drawCircle(p,sz,color,width)
         return None
+        
+    def sobel(self,xorder=1,yorder=1,doGray=True,aperature=5):
+        """
+        **DESCRIPTION**
+
+        Sobel operator for edge detection
+
+        **PARAMETERS**
+        
+        * *xorder* - int - Order of the derivative x.
+        * *yorder* - int - Order of the derivative y.
+        * *doGray* - Bool - grayscale or not.
+        * *aperature* - int - Size of the extended Sobel kernel. It must be 1, 3, 5, or 7.
+
+        **RETURNS**
+
+        Image with sobel opeartor applied on it
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> s = img.sobel()
+        >>> s.show()
+        """
+        retVal = None
+        try:
+            import cv2
+        except:
+            logger.warning("Can't do Sobel without OpenCV >= 2.3.0")
+            return None
+
+        if( aperature != 1 and aperature != 3 and aperature != 5 and aperature != 7 ):
+            logger.warning("Bad Sobel Aperature, values are [1,3,5,7].")
+            return None
+
+        if( doGray ):
+            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperature)
+            minv = np.min(dst)
+            maxv = np.max(dst)
+            cscale = 255/(maxv-minv)
+            shift =  -1*(minv)
+
+            t = np.zeros(self.size(),dtype='uint8')
+            t = cv2.convertScaleAbs(dst,t,cscale,shift/255.0)
+            retVal = Image(t)
+            
+        else:
+            layers = self.splitChannels(grayscale=False)
+            sobel_layers = []
+            for layer in layers:
+                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperature)
+            
+                minv = np.min(dst)
+                maxv = np.max(dst)
+                cscale = 255/(maxv-minv)
+                shift =  -1*(minv)
+
+                t = np.zeros(self.size(),dtype='uint8')
+                t = cv2.convertScaleAbs(dst,t,cscale,shift/255.0)
+                sobel_layers.append(Image(t))
+            b,g,r = sobel_layers
+            
+            retVal = self.mergeChannels(b,g,r)
+        return retVal
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )

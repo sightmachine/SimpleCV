@@ -1689,3 +1689,9 @@ def test_getSkintoneMask():
     VISUAL_TEST = True
     name_stem = 'test_skintone'
     perform_diff(masks,name_stem,tolerance=17)  
+    
+def test_sobel():
+    img = Image("lenna")
+    s = img.sobel()
+    name_stem = "test_sobel"
+    perform_diff(s,name_stem)
