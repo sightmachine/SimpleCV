@@ -6728,7 +6728,9 @@ class Image:
                  
                  See: http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions
                  
-                 "Dense" -
+                 "Dense" - Dense Scale Invariant Feature Transform.
+                 
+                 See: http://www.vlfeat.org/api/dsift.html
                  
                  "ORB" - The Oriented FAST and Rotated BRIEF
                  
