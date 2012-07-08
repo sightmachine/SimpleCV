@@ -9,7 +9,7 @@ import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
-import numpy.linalg as nla  # for linear algebra / least squares
+import scipy.linalg as nla  # for linear algebra / least squares
 import math # math... who does that 
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
@@ -9952,7 +9952,7 @@ class Image:
             y = y + yminW
             # do the least squares
             A = np.vstack([x,np.ones(len(x))]).T
-            m,c = nla.lstsq(A,y)[0]  
+            m,c = nla.lstsq(A,y)[0]
             # generate the line values 
             ymin = np.min(y)
             ymax = np.max(y)
@@ -10019,7 +10019,7 @@ class Image:
                 t = i*(l/samples)
                 bestGuess.append((int(g[0][0]+(t*dx)),int(g[0][1]+(t*dy))))
             # do the snake fitting 
-            appx = self.snakeFitPoints(bestGuess,window=window,params=params,doAppx=False)
+            appx = self.fitContour(bestGuess,window=window,params=params,doAppx=False)
             pts.append(appx)
 
         return pts
