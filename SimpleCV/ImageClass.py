@@ -9944,27 +9944,34 @@ class Image:
                     continue
 
             good_pts = pts[closepoints]
+            good_pts = good_pts.astype(float)
+
 
             x = good_pts[:,0]
             y = good_pts[:,1]
             # do the shift from our crop
+            # generate the line values 
             x = x + xminW
             y = y + yminW
-            # do the least squares
-            A = np.vstack([x,np.ones(len(x))]).T
-            m,c = nla.lstsq(A,y)[0]
-            # generate the line values 
+
             ymin = np.min(y)
             ymax = np.max(y)
-            xmin = np.min(x)
             xmax = np.max(x)
+            xmin = np.min(x)
+
             if( (xmax-xmin) > (ymax-ymin) ):
+                # do the least squares
+                A = np.vstack([x,np.ones(len(x))]).T
+                m,c = nla.lstsq(A,y)[0]
                 y0 = int(m*xmin+c)
                 y1 = int(m*xmax+c)
                 retVal.append(Line(self,((xmin,y0),(xmax,y1))))
             else:
-                x0 = int((ymin-c)/m)
-                x1 = int((ymax-c)/m)
+                # do the least squares
+                A = np.vstack([y,np.ones(len(y))]).T
+                m,c = nla.lstsq(A,x)[0]
+                x0 = int(ymin*m+c)
+                x1 = int(ymax*m+c)
                 retVal.append(Line(self,((x0,ymin),(x1,ymax))))
 
         return retVal
