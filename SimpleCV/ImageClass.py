@@ -2755,7 +2755,7 @@ class Image:
           (default yes, set to 0 to disable) 
 
         * *min_size* - Minimum window size. By default, it is set to the size
-          of samples the classifier has been trained on (  for face detection) 
+          of samples the classifier has been trained on ((20,20) for face detection) 
 
         **RETURNS**
 
