@@ -22,7 +22,7 @@ def test_haarcascade():
 
 def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
     img = Image(img_in)
-    faces = img.findHaarFeatures(FACECASCADE)
+    faces = img.findHaarFeatures(FACECASCADE, min_neighbors=20)
     if faces:
         faces.draw()
         img.save(img_out)
