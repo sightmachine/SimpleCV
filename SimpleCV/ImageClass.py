@@ -2793,10 +2793,10 @@ class Image:
           if not cascade.getCascade(): return None
           
          
+        # added all of the arguments
         objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
-                                       cascade=cascade.getCascade(), storage=storage,
-                                       scaleFactor=scale_factor, minNeighbors=min_neighbors,
-                                       flags=use_canny, minSize=min_size)
+                cascade.getCascade(), storage, scale_factor, min_neighbors,
+                flags, min_size)
 
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
