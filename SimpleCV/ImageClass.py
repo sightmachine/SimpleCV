@@ -152,7 +152,7 @@ class ImageSet(list):
 Valid options: 'thumb', 'small', 'medium', 'large'
  or a tuple of exact dimensions i.e. (640,480)."""
 
-      if type(size) == str:
+      if isinstance(size, basestring):
           size = size.lower()
           if size == 'thumb':
               size_param = ''
@@ -544,7 +544,7 @@ class Image:
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
-        if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
+        if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             #try:
             img_file = urllib2.urlopen(source)
             #except:
@@ -556,7 +556,7 @@ class Image:
             source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images    
-        if type(source) == str:
+        if isinstance(source, basestring):
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
@@ -1742,7 +1742,7 @@ class Image:
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
 
-        if (type(filehandle_or_filename) != str):
+        if not isinstance(filehandle_or_filename, basestring):
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
@@ -2780,7 +2780,7 @@ class Image:
 
 
         #lovely.  This segfaults if not present
-        if type(cascade) == str:
+        if isinstance(cascade, basestring):
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
           if not cascade.getCascade(): return None
