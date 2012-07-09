@@ -16,3 +16,5 @@ SimpleCV/utils/
 SimpleCV/tests/*.pkl
 *.ipynb
 *.komodoproject
+SimpleCV/sampleimages/04000_face.jpg
+SimpleCV/sampleimages/orson_welles_face.jpg
