@@ -2717,7 +2717,7 @@ class Image:
         
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(20,20)):
         """
         **SUMMARY**
 
@@ -2754,6 +2754,9 @@ class Image:
         * *use-canny* - Whether or not to use Canny pruning to reject areas with too many edges 
           (default yes, set to 0 to disable) 
 
+        * *min_size* - Minimum window size. By default, it is set to the size
+          of samples the classifier has been trained on ((20,20) for face detection) 
+
         **RETURNS**
 
         A feature set of HaarFeatures 
@@ -2769,11 +2772,15 @@ class Image:
 
         **NOTES**
 
-        http://en.wikipedia.org/wiki/Haar-like_features
+        OpenCV Docs:
+        - http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html
+
+        Wikipedia:
+        - http://en.wikipedia.org/wiki/Viola-Jones_object_detection_framework
+        - http://en.wikipedia.org/wiki/Haar-like_features
 
         The video on this pages shows how Haar features and cascades work to located faces:
-
-        http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
+        - http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
         
         """
         storage = cv.CreateMemStorage(0)
@@ -2785,11 +2792,14 @@ class Image:
           cascade = HaarCascade(cascade)
           if not cascade.getCascade(): return None
           
-    
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
+         
+        # added all of the arguments from the opencv docs arglist
+        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
+                cascade.getCascade(), storage, scale_factor, min_neighbors,
+                use_canny, min_size)
+
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
-    
     
         return None
 
