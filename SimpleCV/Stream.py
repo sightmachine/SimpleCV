@@ -117,7 +117,7 @@ class JpegStreamer():
         if (type(hostandport) == int):
             self.port = hostandport
             self.host = "localhost"
-        elif (type(hostandport) == str and re.search(":", hostandport)):
+        elif (isinstance(hostandport, basestring) and re.search(":", hostandport)):
             (self.host, self.port) = hostandport.split(":")
             self.port = int(self.port)
         elif (type(hostandport) == tuple):
