@@ -1533,7 +1533,7 @@ class Image:
             return self._numpy
     
     
-        self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
+        self._numpy = np.array(self.getMatrix())
         return self._numpy
 
 
