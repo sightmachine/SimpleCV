@@ -636,6 +636,23 @@ class VirtualCamera(FrameSource):
         self.sourcetype = st
         self.counter = 0
         
+        if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset"):
+            print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
+            print '\tVirtualCamera("filename","video")'
+            print '\tVirtualCamera("filename","image")'
+            print '\tVirtualCamera("./path_to_images","imageset")'
+            return None
+        
+        if (type(self.source) == list):
+            for source_file in self.source:
+                if not os.path.exists(source_file):
+                    print 'Error: In VirtualCamera()\n\t"%s" was not found.' % source_file
+                    return None
+        else:
+            if not os.path.exists(self.source):
+                print 'Error: In VirtualCamera()\n\t"%s" was not found.' % self.source
+                return None
+        
         if (self.sourcetype == "imageset"):
             self.source = ImageSet()
             if (type(s) == list):
