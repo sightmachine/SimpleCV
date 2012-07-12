@@ -1883,14 +1883,11 @@ class Image:
     def upload(self,dest,api_key,api_secret=None, verbose = True):
         """
         **SUMMARY**
-        Uploads this image to imgur or flickr. If the method is successful
-         - Imgur returns URLs 
-         - flickr returns True. 
-        In verbose mode URL values are printed.
+        Uploads image to imgur or flickr. In verbose mode URL values are printed.
           
         **PARAMETERS**
         * *api_key* - a string of the API key.
-        * *api_secret* (If dest is flickr) - a string of the API secret.
+        * *api_secret* (required only for flickr) - a string of the API secret.
         * *verbose* - If verbose is true all values are printed to the
           screen
           
