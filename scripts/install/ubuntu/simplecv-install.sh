@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # This script is used to install SimpleCV very quickly on
-# 	* Ubuntu 10.10
+# 	* Ubuntu 12.04
 #		*(Other versions may work)
 #
 # !Warning: Please review this script, you are responsible for anything
@@ -11,13 +11,30 @@
 # http://www.simplecv.org
 #
 
-#download all libraries needed for SimpleCV
-sudo apt-get install -y --force-yes git git python-dev python-numpy python-nose python-imaging python-scipy ipython python-pygame tesseract-ocr
-#may have to reboot after installing libraries
-
-#Download SimpleCV
-cd ~/Code/
-git clone git://github.com/ingenuitas/SimpleCV.git
-cd ~/Code/simplecv
-#Install SimpleCV
+echo "Install SimpleCV"
+echo "Installing pre-reqisites"
+sleep 1
+echo "Installing OpenCV..."
+sudo apt-get install libopencv-*
+sudo apt-get install python-opencv
+echo "OpenCV installed"
+echo "Installing numpy and scipy"
+sudo apt-get install python-numpy python-scipy
+echo "numpy and scipy installed"
+echo "Installing pygame"
+sudo apt-get install python-pygame
+echo "pygame installed"
+echo "Installing python-setuptools"
+sudo apt-get install python-setuptools
+echo "setuptools installed"
+echo "Installing ipython and ipython notebook"
+sudo apt-get install ipython ipython-notebook
+echo "ipython installed"
+ehco "Downloading SimpleCV"
+git clone https://github.com/ingenuitas/SimpleCV.git
+echo "Installing SimpleCV"
+cd SimpleCV/
 sudo python setup.py install
+echo "SimpleCV Installation finished"
+echo "For more info go to http://simplecv.org/"
+echo "$ simplecv"
