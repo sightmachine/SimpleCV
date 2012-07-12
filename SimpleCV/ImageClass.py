@@ -1880,7 +1880,7 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    def upload(self,dest,api_key,api_secret=None, verbose = True):
+    def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
         Uploads image to imgur or flickr. In verbose mode URL values are printed.
