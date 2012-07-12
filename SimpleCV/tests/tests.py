@@ -2781,3 +2781,13 @@ def test_unicode_imageload():
     i = Image(unicode(barcode)) # unicode vs string is irrelevant
     prod = lambda li: reduce(operator.mul, li)
     assert prod(i.size()) > 0, "unicode image loading is broken, got image with zero area"
+    
+def test_upload_flickr()
+  img = Image('lenna')
+  api_key = 'api_key'
+  api_secret = 'api_secret'  
+  ret = img.upload('flickr','api_key','api_secret')
+  if ( ret == True ):
+      assert True
+  else :
+      assert False    
