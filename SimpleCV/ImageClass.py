@@ -152,7 +152,7 @@ class ImageSet(list):
 Valid options: 'thumb', 'small', 'medium', 'large'
  or a tuple of exact dimensions i.e. (640,480)."""
 
-      if type(size) == str:
+      if isinstance(size, basestring):
           size = size.lower()
           if size == 'thumb':
               size_param = ''
@@ -463,6 +463,7 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
+  
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
@@ -497,7 +498,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN, verbose=True, cv2_transpose=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True):
         """ 
         **SUMMARY**
 
@@ -545,7 +546,7 @@ class Image:
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
-        if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
+        if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             #try:
             img_file = urllib2.urlopen(source)
             #except:
@@ -557,7 +558,7 @@ class Image:
             source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images    
-        if type(source) == str:
+        if isinstance(source, basestring):
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
@@ -589,13 +590,11 @@ class Image:
                 #convert to an iplimage bitmap
                 source = source.astype(np.uint8)
                 self._numpy = source
-                if cv2_transpose:
-                    invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
-                else:
-                    invertedsource = source
+
+                invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
                 self._bitmap = cv.CreateImageHeader((invertedsource.shape[1], invertedsource.shape[0]), cv.IPL_DEPTH_8U, 3)
                 cv.SetData(self._bitmap, invertedsource.tostring(), 
-                            invertedsource.dtype.itemsize * 3 * invertedsource.shape[1])
+                    invertedsource.dtype.itemsize * 3 * invertedsource.shape[1])
                 self._colorSpace = ColorSpace.BGR #this is an educated guess
             else:
                 #we have a single channel array, convert to an RGB iplimage
@@ -1538,7 +1537,7 @@ class Image:
     
         self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
         return self._numpy
-    
+
     def getNumpyCv2(self):
         """
         **SUMMARY**
@@ -1807,7 +1806,7 @@ class Image:
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
 
-        if (type(filehandle_or_filename) != str):
+        if not isinstance(filehandle_or_filename, basestring):
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
@@ -1945,65 +1944,43 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    def upload(self,dest,api_key,api_secret=None, verbose = True):
+    def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
-        This function is used to upload image to both imgur and flickr.
-        
-        If dest is 'imgur' :
-          Uploads this image to imgur an image sharing website.
-          If the upload is successful then the method returns the URLs
-          for the image, the original image, and url to delete the image.
-          In verbose mode these values are also printed.
+        Uploads image to imgur or flickr. In verbose mode URL values are printed.
           
-        If dest is 'flickr' :
-          Uploads this image to flickr an image sharing website.
-          If successful "Uploaded!!" is printed on the terminal.
-        
         **PARAMETERS**
-        If dest is 'imgur' :
-          * *api_key* - a string of the API key. You must register
-          with imgur to get an API key.
-          
-          * *verbose* - If verbose is true all values are printed to the
+        * *api_key* - a string of the API key.
+        * *api_secret* (required only for flickr) - a string of the API secret.
+        * *verbose* - If verbose is true all values are printed to the
           screen
           
-        If dest is 'flickr' :
-          * *api_key* - a string of the API key. You must register
-          with flickr to get an API key.
-          
-          * *api_secret (Only for Flickr) * - a string of the API secret. You must register
-          with Flickr to get an API secret key.
-          
         **RETURNS**
-        if dest is 'imgur' :
-        If uploading is successful we return a list of the upload URL, the original
-        image URL, and the delete image URL. If the upload fails we return None.
-        
-        if dest is 'flick :
-          Return None.
+        if uploading is successful, 
+         - Imgur return the original image URL on success and None if it fails.
+         - Flick returns True on success, else returns False.
           
         **EXAMPLE**
-        
-        If dest is 'imgur' :
+        TO upload image to imgur
            >>> img = Image("lenna")
            >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
            >>> print "Uploaded To: " + result[0] 
            
-        If dest is 'flickr' :
-           >>> img.upload('flickr','ccfa805e5c7693b96fb548fa0f7a36da','db1479dbba974633')
+        To upload image to flickr
+           >>> img.upload('flickr','api_key','api_secret')
+           >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
            
         **NOTES**
         .. Warning::
-           This method requires that you have PyCurl installed as well as Flickr.
+           This method requires two packages to be installed 
+           -PyCurl 
+           -flickr api.
            
         .. Warning::
-           You must supply your own API key. See here: http://imgur.com/register/api_anon 
-           or http://www.flickr.com/services/api/misc.api_keys.html
+           You must supply your own API key. See here: 
+           - http://imgur.com/register/api_anon
+           - http://www.flickr.com/services/api/misc.api_keys.html
         """
-        if self.filename == None or self.filename == '':
-            self.save(temp=True)
-            
         if ( dest=='imgur' ) :
             try:
                 import pycurl
@@ -2034,27 +2011,42 @@ class Image:
                 return None
         
         elif (dest=='flickr'):
-            flickr = None
+            global temp_token
+            flickr = None 
             try :
                 import flickrapi
             except ImportError:
-            	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
-            return
+            	print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
+                return False
             try :
-            	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
-            	self.flickr.authenticate_console('write')
+                if (not(api_key==None and api_secret==None)):
+            	    self.flickr = flickrapi.FlickrAPI(api_key,api_secret,cache=True)
+            	    self.flickr.cache = flickrapi.SimpleCache(timeout=3600, max_entries=200)
+            	    self.flickr.authenticate_console('write')
+            	    temp_token = (api_key,api_secret)
+            	else :
+            	    try :
+            	        self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
+            	        self.flickr.authenticate_console('write')
+            	    except NameError :
+            	        print "API key and Secret key are not set."
+            	        return           	            	    
             except :
-            	print "The API Key given is not valid"
-            	return None
-            title = self.filename.split('/')[-1]
-            try :
-            	print "uploading..."
-            	self.flickr.upload(self.filename,title)
-            	print "File Uploaded !"
-            except :
-            	print "Uploading Failed !"
-            return None
-
+            	print "The API Key and Secret Key are not valid"
+            	return False
+            if (self.filename) :	
+                try :
+            	    self.flickr.upload(self.filename,self.filehandle)
+                except :
+            	    print "Uploading Failed !"
+            	    return False
+            else :
+            	 import tempfile
+                 tf=tempfile.NamedTemporaryFile(suffix='.jpg')
+                 self.save(tf.name)
+	    	 temp = Image(tf.name)
+	    	 self.flickr.upload(tf.name,temp.filehandle)
+            return True
 
     def scale(self, width, height = -1):
         """
@@ -2782,7 +2774,7 @@ class Image:
         
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(20,20)):
         """
         **SUMMARY**
 
@@ -2819,6 +2811,9 @@ class Image:
         * *use-canny* - Whether or not to use Canny pruning to reject areas with too many edges 
           (default yes, set to 0 to disable) 
 
+        * *min_size* - Minimum window size. By default, it is set to the size
+          of samples the classifier has been trained on ((20,20) for face detection) 
+
         **RETURNS**
 
         A feature set of HaarFeatures 
@@ -2834,27 +2829,34 @@ class Image:
 
         **NOTES**
 
-        http://en.wikipedia.org/wiki/Haar-like_features
+        OpenCV Docs:
+        - http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html
+
+        Wikipedia:
+        - http://en.wikipedia.org/wiki/Viola-Jones_object_detection_framework
+        - http://en.wikipedia.org/wiki/Haar-like_features
 
         The video on this pages shows how Haar features and cascades work to located faces:
-
-        http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
+        - http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
         
         """
         storage = cv.CreateMemStorage(0)
 
 
         #lovely.  This segfaults if not present
-        if type(cascade) == str:
+        if isinstance(cascade, basestring):
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
           if not cascade.getCascade(): return None
           
-    
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
+         
+        # added all of the arguments from the opencv docs arglist
+        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
+                cascade.getCascade(), storage, scale_factor, min_neighbors,
+                use_canny, min_size)
+
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
-    
     
         return None
 
