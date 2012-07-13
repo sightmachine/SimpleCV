@@ -1,5 +1,8 @@
 from SimpleCV import *
 
+def foo(image):
+    return image.meanColor()
+
 def camshift():
     cam = Camera()
     img = cam.getImage()
@@ -20,6 +23,7 @@ def camshift():
         except KeyboardInterrupt:
             print "Total number of frames tracked",
             print fs1.trackLength()
+            print fs1.processTrack(foo)
             break
 
 def getBBFromUser(cam, d):

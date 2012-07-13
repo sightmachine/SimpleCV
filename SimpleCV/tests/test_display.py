@@ -54,7 +54,18 @@ alphaSrcImg = "../sampleimages/GreenMaskSource.png"
 #standards path
 standard_path = "./standard/"
 
-
+#track images
+trackimgs = ["../sampleimages/tracktest0.jpg",
+        "../sampleimages/tracktest1.jpg",
+        "../sampleimages/tracktest2.jpg",
+        "../sampleimages/tracktest3.jpg",
+        "../sampleimages/tracktest4.jpg",
+        "../sampleimages/tracktest5.jpg",
+        "../sampleimages/tracktest6.jpg",
+        "../sampleimages/tracktest7.jpg",
+        "../sampleimages/tracktest8.jpg",
+        "../sampleimages/tracktest9.jpg",]
+        
 #Given a set of images, a path, and a tolerance do the image diff.
 def imgDiffs(test_imgs,name_stem,tolerance,path):
   count = len(test_imgs)
@@ -1695,3 +1706,13 @@ def test_sobel():
     s = img.sobel()
     name_stem = "test_sobel"
     perform_diff(s,name_stem)
+
+def test_track():
+    ts = []
+    bb = (195, 160, 49, 46)
+    imgs = [Image(img) for img in trackimgs]
+    ts = imgs[0].track("camshift", ts, imgs[1:], bb)
+    if ts:
+        pass
+    else:
+        assert False
