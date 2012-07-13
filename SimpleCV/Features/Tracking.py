@@ -35,7 +35,7 @@ class Tracking(Feature):
         self.image = img
         self.bb_x, self.bb_y, self.w, self.h = self.bb
         self.x, self.y = self.center = self.getCenter()
-        self.z = 1
+        self.sizeRatio = 1
         self.vel = (0,0)
         self.rt_vel = (0,0)
         self.area = self.getArea()
@@ -190,11 +190,11 @@ class Tracking(Feature):
         text = "x = %d  y = %d" % (f.x, f.y)
         img.drawText(text, pos[0], pos[1], color, size)
         
-    def showZ(self, pos=None, color=Color.GREEN, size=None):
+    def showSizeRatio(self, pos=None, color=Color.GREEN, size=None):
         """
         **SUMMARY**
 
-        Shoe the "z" co-ordinates of the object in text on the current frame.
+        Shoe the sizeRatio of the object in text on the current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -210,7 +210,7 @@ class Tracking(Feature):
         >>> while True:
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
-            ... ts[-1].showZ() # For continuous bounding box
+            ... ts[-1].showSizeRatio() # For continuous bounding box
             ... img = img1
         """
         f = self
@@ -220,7 +220,7 @@ class Tracking(Feature):
             pos = (imgsize[0]-120, 30)
         if not size:
             size = 16
-        text = "z = %f" % (f.z)
+        text = "size = %f" % (f.sizeRatio)
         img.drawText(text, pos[0], pos[1], color, size)
     
     def showPixelVelocity(self, pos=None, color=Color.GREEN, size=None):
@@ -292,6 +292,27 @@ class Tracking(Feature):
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
         img.drawText(text, pos[0], pos[1], color, size)
         img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+    
+    def processTrack(self, func):
+        """
+        **SUMMARY**
+
+        This method lets you use your own function on the current image.
+
+        **PARAMETERS**
+        * *func* - some user defined function for SimpleCV.ImageClass.Image object
+
+        **RETURNS**
+        
+        the value returned by the user defined function
+
+        **EXAMPLE**
+
+        >>> def foo(img):
+            ... return img.meanColor()
+        >>> mean_color = ts[-1].processTrack(foo)
+        """
+        return func(self.image)
 
 class CAMShift(Tracking):
     """

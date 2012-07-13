@@ -10202,8 +10202,9 @@ class Image:
         
         * *method* - str - The Tracking Algorithm to be applied
                           * "CAMShift"
-        * *ts* - TrackSet - SimpleCV.Features.TrackSet
-        * *img* - Image - Image to be tracked
+        * *ts* - TrackSet - SimpleCV.Features.TrackSet.
+        * *img* - Image - Image to be tracked.
+                - list - List of Images to be tracked.
         * *bb* - tuple - Bounding Box tuple (x, y, w, h)
         * *num_frames* - int - Number of previous frames to be used for 
                                Forward Backward Error
@@ -10228,7 +10229,7 @@ class Image:
         # The new Tracking feature will be appended to the give trackset
         # and that will be returned.
         # So, to use it in loop
-        ==========================================
+        ==========================================================
         
         img = cam.getImage()
         ts = img.track("camshift", img=img0, bb=bb)
@@ -10236,7 +10237,7 @@ class Image:
             img = cam.getImage()
             ts = img.track("camshift",ts)
         
-        ==========================================
+        ==========================================================
         ts = []
         while (some_condition_here):
             img = cam.getImage()
@@ -10247,6 +10248,15 @@ class Image:
             # After first iteration, ts is not empty and hence the previous
             # image frames and bounding box will be taken from ts and img0
             # and bb will be ignored.
+        ==========================================================
+        # Instead of loop, give a list of images to be tracked.
+
+        ts = []
+        imgs = [img1, img2, img3, ..., imgN]
+        ts = img0.track("camshift", ts, imgs, bb)
+        ts.drawPath()
+        ts[-1].image.show()
+        ==========================================================
         """
         if not ts and not img:
             print "Inavlid. Must provide FeatureSet or Image"
@@ -10266,6 +10276,12 @@ class Image:
         except ImportError:
             print "Tracking is available for OpenCV >= 2.3"
             return None
+            
+        if type(img) == list:
+            ts = self.track(method, ts, img[0], bb, num_frames)
+            for i in img:
+                ts = i.track(method, ts, num_frames=num_frames)
+            return ts
         
         if method.lower() == "camshift":
             hsv = self.toHSV().getNumpyCv2()

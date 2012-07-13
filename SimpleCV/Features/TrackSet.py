@@ -45,16 +45,16 @@ class TrackSet(FeatureSet):
         """
         list.append(self,f)
         ts = self
-        f.z = float(ts[-1].area)/float(ts[0].area)
+        f.sizeRatio = float(ts[-1].area)/float(ts[0].area)
         f.vel = self.__pixelVelocity()
         f.rt_vel = self.__pixleVelocityRealTime()
     
-    def z(self):
+    def areaRatio(self):
         """
         **SUMMARY**
 
-        Returns a numpy array of the z coordinate of each feature.
-        where z is the ratio of the size of the current bounding box to
+        Returns a numpy array of the areaRatio of each feature.
+        where areaRatio is the ratio of the size of the current bounding box to
         the size of the initial bounding box
 
         **RETURNS**
@@ -67,10 +67,10 @@ class TrackSet(FeatureSet):
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
             ... img = img1
-        >>> print ts.z
+        >>> print ts.areaRatio
         
         """
-        return np.array([f.z for f in self])
+        return np.array([f.areaRatio for f in self])
     
     def drawPath(self, color=Color.GREEN, thickness=2):
         """
@@ -357,11 +357,11 @@ class TrackSet(FeatureSet):
         text = "x = %d  y = %d" % (f.x, f.y)
         img.drawText(text, pos[0], pos[1], color, size)
         
-    def showZ(self, pos=None, color=Color.GREEN, size=None):
+    def showSizeRatio(self, pos=None, color=Color.GREEN, size=None):
         """
         **SUMMARY**
 
-        Shoe the "z" co-ordinates of the object in text on the current frame.
+        Shoe the sizeRatio of the object in text on the current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -388,7 +388,7 @@ class TrackSet(FeatureSet):
             pos = (imgsize[0]-120, 30)
         if not size:
             size = 16
-        text = "z = %f" % (f.z)
+        text = "size = %f" % (f.sizeRatio)
         img.drawText(text, pos[0], pos[1], color, size)
     
     def showPixelVelocity(self, pos=None, color=Color.GREEN, size=None):
@@ -462,3 +462,24 @@ class TrackSet(FeatureSet):
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
         img.drawText(text, pos[0], pos[1], color, size)
         img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        
+    def processTrack(self, func):
+        """
+        **SUMMARY**
+
+        This method lets you use your own function on the entire imageset.
+
+        **PARAMETERS**
+        * *func* - some user defined function for SimpleCV.ImageClass.Image object
+
+        **RETURNS**
+        
+        * *list* - list of the values returned by the function when applied on all the images
+
+        **EXAMPLE**
+
+        >>> def foo(img):
+            ... return img.meanColor()
+        >>> mean_color_list = ts.processTrack(foo)
+        """
+        return [func(f.image) for f in self]
