@@ -85,8 +85,8 @@ class BlobMaker:
         # that sits on the edge of an image the whole thing explodes
         # this check catches those bugs. -KAS
         # Also I am submitting a bug report to Willow Garage - please bare with us. 
-        ptest = 510.0/(binaryImg.width*binaryImg.height) # val if two pixels are white
-        if( test[0]<ptest and test[1]<ptest and test[2]<ptest):
+        ptest = (4*255.0)/(binaryImg.width*binaryImg.height) # val if two pixels are white
+        if( test[0]<=ptest and test[1]<=ptest and test[2]<=ptest):
             return retVal 
         
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
