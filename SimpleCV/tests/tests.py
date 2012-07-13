@@ -1,4 +1,3 @@
-
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -2782,7 +2781,7 @@ def test_unicode_imageload():
     prod = lambda li: reduce(operator.mul, li)
     assert prod(i.size()) > 0, "unicode image loading is broken, got image with zero area"
     
-def test_upload_flickr()
+def test_upload_flickr():
   img = Image('lenna')
   api_key = 'api_key'
   api_secret = 'api_secret'  
