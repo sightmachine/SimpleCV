@@ -152,7 +152,7 @@ class ImageSet(list):
 Valid options: 'thumb', 'small', 'medium', 'large'
  or a tuple of exact dimensions i.e. (640,480)."""
 
-      if isinstance(size, basestring):
+      if type(size) == str:
           size = size.lower()
           if size == 'thumb':
               size_param = ''
@@ -461,7 +461,8 @@ class Image:
     _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
-  
+    _cv2Numpy = None #numpy array for OpenCV >= 2.3
+    _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
@@ -496,7 +497,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN, verbose=True, cv2_transpose=True):
         """ 
         **SUMMARY**
 
@@ -544,7 +545,7 @@ class Image:
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
-        if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
+        if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             #try:
             img_file = urllib2.urlopen(source)
             #except:
@@ -556,7 +557,7 @@ class Image:
             source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images    
-        if isinstance(source, basestring):
+        if type(source) == str:
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
@@ -588,11 +589,13 @@ class Image:
                 #convert to an iplimage bitmap
                 source = source.astype(np.uint8)
                 self._numpy = source
-
-                invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
+                if cv2_transpose:
+                    invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
+                else:
+                    invertedsource = source
                 self._bitmap = cv.CreateImageHeader((invertedsource.shape[1], invertedsource.shape[0]), cv.IPL_DEPTH_8U, 3)
                 cv.SetData(self._bitmap, invertedsource.tostring(), 
-                    invertedsource.dtype.itemsize * 3 * invertedsource.shape[1])
+                            invertedsource.dtype.itemsize * 3 * invertedsource.shape[1])
                 self._colorSpace = ColorSpace.BGR #this is an educated guess
             else:
                 #we have a single channel array, convert to an RGB iplimage
@@ -1535,7 +1538,69 @@ class Image:
     
         self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
         return self._numpy
+    
+    def getNumpyCv2(self):
+        """
+        **SUMMARY**
+       
+        Get a Numpy array of the image in width x height x RGB dimensions compatible with OpenCV >= 2.3
+        
+        **RETURNS**
 
+        Returns the  3D numpy array of the image compatible with OpenCV >= 2.3
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpyCv2()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPIL`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpyCv2`
+        
+        """
+        
+        if not self._cv2Numpy:
+            self._cv2Numpy = np.array(self.getMatrix())
+        return self._cv2Numpy
+        
+    def getGrayNumpyCv2(self):
+        """
+        **SUMMARY**
+       
+        Get a Grayscale Numpy array of the image in width x height y compatible with OpenCV >= 2.3
+        
+        **RETURNS**
+
+        Returns the grayscale numpy array compatible with OpenCV >= 2.3 
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpyCv2()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPIL`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpyCv2`
+        
+        """
+        if not self._cv2GrayNumpy:
+            self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
+        return self._cv2GrayNumpy
 
     def _getGrayscaleBitmap(self):
         if (self._graybitmap):
@@ -1742,7 +1807,7 @@ class Image:
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
 
-        if not isinstance(filehandle_or_filename, basestring):
+        if (type(filehandle_or_filename) != str):
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
@@ -1880,43 +1945,65 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-    def upload(self,dest,api_key=None,api_secret=None, verbose = True):
+    def upload(self,dest,api_key,api_secret=None, verbose = True):
         """
         **SUMMARY**
-        Uploads image to imgur or flickr. In verbose mode URL values are printed.
+        This function is used to upload image to both imgur and flickr.
+        
+        If dest is 'imgur' :
+          Uploads this image to imgur an image sharing website.
+          If the upload is successful then the method returns the URLs
+          for the image, the original image, and url to delete the image.
+          In verbose mode these values are also printed.
           
+        If dest is 'flickr' :
+          Uploads this image to flickr an image sharing website.
+          If successful "Uploaded!!" is printed on the terminal.
+        
         **PARAMETERS**
-        * *api_key* - a string of the API key.
-        * *api_secret* (required only for flickr) - a string of the API secret.
-        * *verbose* - If verbose is true all values are printed to the
+        If dest is 'imgur' :
+          * *api_key* - a string of the API key. You must register
+          with imgur to get an API key.
+          
+          * *verbose* - If verbose is true all values are printed to the
           screen
           
+        If dest is 'flickr' :
+          * *api_key* - a string of the API key. You must register
+          with flickr to get an API key.
+          
+          * *api_secret (Only for Flickr) * - a string of the API secret. You must register
+          with Flickr to get an API secret key.
+          
         **RETURNS**
-        if uploading is successful, 
-         - Imgur return the original image URL on success and None if it fails.
-         - Flick returns True on success, else returns False.
+        if dest is 'imgur' :
+        If uploading is successful we return a list of the upload URL, the original
+        image URL, and the delete image URL. If the upload fails we return None.
+        
+        if dest is 'flick :
+          Return None.
           
         **EXAMPLE**
-        TO upload image to imgur
+        
+        If dest is 'imgur' :
            >>> img = Image("lenna")
            >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
            >>> print "Uploaded To: " + result[0] 
            
-        To upload image to flickr
-           >>> img.upload('flickr','api_key','api_secret')
-           >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
+        If dest is 'flickr' :
+           >>> img.upload('flickr','ccfa805e5c7693b96fb548fa0f7a36da','db1479dbba974633')
            
         **NOTES**
         .. Warning::
-           This method requires two packages to be installed 
-           -PyCurl 
-           -flickr api.
+           This method requires that you have PyCurl installed as well as Flickr.
            
         .. Warning::
-           You must supply your own API key. See here: 
-           - http://imgur.com/register/api_anon
-           - http://www.flickr.com/services/api/misc.api_keys.html
+           You must supply your own API key. See here: http://imgur.com/register/api_anon 
+           or http://www.flickr.com/services/api/misc.api_keys.html
         """
+        if self.filename == None or self.filename == '':
+            self.save(temp=True)
+            
         if ( dest=='imgur' ) :
             try:
                 import pycurl
@@ -1947,42 +2034,27 @@ class Image:
                 return None
         
         elif (dest=='flickr'):
-            global temp_token
-            flickr = None 
+            flickr = None
             try :
                 import flickrapi
             except ImportError:
-            	print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
-                return False
+            	print "Flickr API is not installed in your system. please install it from http://pypi.python.org/pypi/flickrapi"
+            return
             try :
-                if (not(api_key==None and api_secret==None)):
-            	    self.flickr = flickrapi.FlickrAPI(api_key,api_secret,cache=True)
-            	    self.flickr.cache = flickrapi.SimpleCache(timeout=3600, max_entries=200)
-            	    self.flickr.authenticate_console('write')
-            	    temp_token = (api_key,api_secret)
-            	else :
-            	    try :
-            	        self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
-            	        self.flickr.authenticate_console('write')
-            	    except NameError :
-            	        print "API key and Secret key are not set."
-            	        return           	            	    
+            	self.flickr = flickrapi.FlickrAPI(api_key,api_secret)
+            	self.flickr.authenticate_console('write')
             except :
-            	print "The API Key and Secret Key are not valid"
-            	return False
-            if (self.filename) :	
-                try :
-            	    self.flickr.upload(self.filename,self.filehandle)
-                except :
-            	    print "Uploading Failed !"
-            	    return False
-            else :
-            	 import tempfile
-                 tf=tempfile.NamedTemporaryFile(suffix='.jpg')
-                 self.save(tf.name)
-	    	 temp = Image(tf.name)
-	    	 self.flickr.upload(tf.name,temp.filehandle)
-            return True
+            	print "The API Key given is not valid"
+            	return None
+            title = self.filename.split('/')[-1]
+            try :
+            	print "uploading..."
+            	self.flickr.upload(self.filename,title)
+            	print "File Uploaded !"
+            except :
+            	print "Uploading Failed !"
+            return None
+
 
     def scale(self, width, height = -1):
         """
@@ -2710,7 +2782,7 @@ class Image:
         
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(20,20)):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
         """
         **SUMMARY**
 
@@ -2747,9 +2819,6 @@ class Image:
         * *use-canny* - Whether or not to use Canny pruning to reject areas with too many edges 
           (default yes, set to 0 to disable) 
 
-        * *min_size* - Minimum window size. By default, it is set to the size
-          of samples the classifier has been trained on ((20,20) for face detection) 
-
         **RETURNS**
 
         A feature set of HaarFeatures 
@@ -2765,34 +2834,27 @@ class Image:
 
         **NOTES**
 
-        OpenCV Docs:
-        - http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html
-
-        Wikipedia:
-        - http://en.wikipedia.org/wiki/Viola-Jones_object_detection_framework
-        - http://en.wikipedia.org/wiki/Haar-like_features
+        http://en.wikipedia.org/wiki/Haar-like_features
 
         The video on this pages shows how Haar features and cascades work to located faces:
-        - http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
+
+        http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
         
         """
         storage = cv.CreateMemStorage(0)
 
 
         #lovely.  This segfaults if not present
-        if isinstance(cascade, basestring):
+        if type(cascade) == str:
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
           if not cascade.getCascade(): return None
           
-         
-        # added all of the arguments from the opencv docs arglist
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
-                cascade.getCascade(), storage, scale_factor, min_neighbors,
-                use_canny, min_size)
-
+    
+        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
+    
     
         return None
 
@@ -10126,6 +10188,107 @@ class Image:
             
             retVal = self.mergeChannels(b,g,r)
         return retVal
+        
+    def track(self, method, ts=None, img=None, bb=None, num_frames=3):
+        """
+        **DESCRIPTION**
+
+        Tracking the object surrounded by the bounding box in the given
+        image or TrackSet.
+
+        **PARAMETERS**
+        
+        * *method* - str - The Tracking Algorithm to be applied
+                          * "CAMShift"
+        * *ts* - TrackSet - SimpleCV.Features.TrackSet
+        * *img* - Image - Image to be tracked
+        * *bb* - tuple - Bounding Box tuple (x, y, w, h)
+        * *num_frames* - int - Number of previous frames to be used for 
+                               Forward Backward Error
+
+        **RETURNS**
+
+        SimpleCV.Features.TrackSet
+        
+        Returns a TrackSet with all the necessary attributes.
+
+        **HOW TO**
+
+        >>> ts = img.track("camshift", img1, bb)
+        # Here TrackSet is returned. img, bb, new bb, and other 
+        # necessary attributes will be included in the trackset.
+        # After getting the trackset you need not provide the bounding box
+        # or image. You provide TrackSet as parameter to track().
+        # Bounding box and image will be taken from the trackset.
+        # So. now
+        >>> ts = new_img.track("camshift",ts, num_frames = 4)
+        
+        # The new Tracking feature will be appended to the give trackset
+        # and that will be returned.
+        # So, to use it in loop
+        ==========================================
+        
+        img = cam.getImage()
+        ts = img.track("camshift", img=img0, bb=bb)
+        While (some_condition_here):
+            img = cam.getImage()
+            ts = img.track("camshift",ts)
+        
+        ==========================================
+        ts = []
+        while (some_condition_here):
+            img = cam.getImage()
+            ts = img.track("camshift",ts,img0,bb)
+            # now here in first loop iteration since ts is empty,
+            # img0 and bb will be considered.
+            # New tracking object will be created and added in ts (TrackSet)
+            # After first iteration, ts is not empty and hence the previous
+            # image frames and bounding box will be taken from ts and img0
+            # and bb will be ignored.
+        """
+        if not ts and not img:
+            print "Inavlid. Must provide FeatureSet or Image"
+            return None
+        
+        if not ts and not bb:
+            print "Inavlid. Must provide Bounding Box with Image"
+            return None
+            
+        if not ts:
+            ts = TrackSet()
+        else:
+            img = ts[-1].image
+            bb = ts[-1].bb
+        try:
+            import cv2
+        except ImportError:
+            print "Tracking is available for OpenCV >= 2.3"
+            return None
+        
+        if method.lower() == "camshift":
+            hsv = self.toHSV().getNumpyCv2()
+            mask = cv2.inRange(hsv, np.array((0., 60., 32.)), np.array((180., 255., 255.)))
+            x0, y0, w, h = bb
+            x1 = x0 + w -1
+            y1 = y0 + h -1
+            hsv_roi = hsv[y0:y1, x0:x1]
+            mask_roi = mask[y0:y1, x0:x1]
+            hist = cv2.calcHist( [hsv_roi], [0], mask_roi, [16], [0, 180] )
+            cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX);
+            hist_flat = hist.reshape(-1)
+            imgs = [hsv]
+            if len(ts) > num_frames and num_frames > 1:
+                for feat in ts[-num_frames:]:
+                    imgs.append(feat.image.toHSV().getNumpyCv2())
+            else:
+                imgs.append(img.toHSV().getNumpyCv2())
+                    
+            prob = cv2.calcBackProject(imgs, [0], hist_flat, [0, 180], 1)
+            prob &= mask
+            term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
+            new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
+            ts.append(CAMShift(self, track_window, new_ellipse))
+            return ts
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -10146,7 +10309,7 @@ class Image:
 Image.greyscale = Image.grayscale
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
