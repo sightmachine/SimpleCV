@@ -1566,7 +1566,7 @@ class Image:
         
         """
         
-        if not self._cv2Numpy:
+        if type(self._cv2Numpy) is not np.ndarray:
             self._cv2Numpy = np.array(self.getMatrix())
         return self._cv2Numpy
         
@@ -1597,7 +1597,7 @@ class Image:
         :py:meth:`getGrayNumpyCv2`
         
         """
-        if not self._cv2GrayNumpy:
+        if not type(self._cv2GrayNumpy) is not np.ndarray:
             self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
         return self._cv2GrayNumpy
 
