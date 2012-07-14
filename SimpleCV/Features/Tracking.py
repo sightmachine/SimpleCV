@@ -114,7 +114,7 @@ class Tracking(Feature):
         """
         **SUMMARY**
 
-        Draw the center of the object on the current frame.
+        Draw the center of the object on the image.
 
         **PARAMETERS**
         
@@ -139,7 +139,7 @@ class Tracking(Feature):
         """
         **SUMMARY**
 
-        Draw the bounding box over the object on the current frame.
+        Draw the bounding box over the object on the image.
 
         **PARAMETERS**
         
@@ -163,7 +163,7 @@ class Tracking(Feature):
         """
         **SUMMARY**
 
-        Shoe the co-ordinates of the object in text on the current frame.
+        Show the co-ordinates of the object in text on the Image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -194,7 +194,7 @@ class Tracking(Feature):
         """
         **SUMMARY**
 
-        Shoe the sizeRatio of the object in text on the current frame.
+        Show the sizeRatio of the object in text on the image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -227,7 +227,7 @@ class Tracking(Feature):
         """
         **SUMMARY**
 
-        Shoe the Pixel Veloctiy (pixel/frame) of the object in text on the current frame.
+        Show the Pixel Veloctiy (pixel/frame) of the object in text on the image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -262,7 +262,7 @@ class Tracking(Feature):
         """
         **SUMMARY**
 
-        Shoe the Pixel Veloctiy (pixels/second) of the object in text on the current frame.
+        Show the Pixel Veloctiy (pixels/second) of the object in text on the image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text

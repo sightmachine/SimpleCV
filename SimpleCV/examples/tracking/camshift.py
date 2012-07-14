@@ -16,7 +16,7 @@ def camshift():
             fs1.drawBB()
             fs1.drawPath()
             fs1.showCoordinates()
-            fs1.showZ()
+            fs1.showSizeRatio()
             fs1.showPixelVelocity()
             fs1.showPixelVelocityRT()
             img1.show()

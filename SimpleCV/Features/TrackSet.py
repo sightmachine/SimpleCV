@@ -7,8 +7,8 @@ class TrackSet(FeatureSet):
     **SUMMARY**
 
     TrackSet is a class extended from FeatureSet which is a class 
-    extended from Python's list which has special functions so that 
-    it is useful for handling feature metadata on an image.
+    extended from Python's list. So, TrackSet has all the properties 
+    of a list as well as all the properties of FeatureSet.
     
     In general, functions dealing with attributes will return 
     numpy arrays.
@@ -201,11 +201,7 @@ class TrackSet(FeatureSet):
             ... img = img1
         >>> imgset = ts.trackImages()
         """
-        ts = self
-        imgset = []
-        for f in ts:
-            imgset.append(f.image)
-        return imgset
+        return [f.image for f in self]
         
     def BBTrack(self):
         """
@@ -229,11 +225,7 @@ class TrackSet(FeatureSet):
             ... img = img1
         >>> print ts.BBTrack()
         """
-        ts = self
-        bbset = []
-        for f in ts:
-            bbset.append(f.bb)
-        return bbset
+        return [f.bb for f in self]
         
     def __pixelVelocity(self):
         """
@@ -327,7 +319,7 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Shoe the co-ordinates of the object in text on the current frame.
+        Show the co-ordinates of the object in text on the current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -361,7 +353,7 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Shoe the sizeRatio of the object in text on the current frame.
+        Show the sizeRatio of the object in text on the current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -395,7 +387,7 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Shoe the Pixel Veloctiy (pixel/frame) of the object in text on the current frame.
+        show the Pixel Veloctiy (pixel/frame) of the object in text on the current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
@@ -431,7 +423,7 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Shoe the Pixel Veloctiy (pixels/second) of the object in text on the current frame.
+        show the Pixel Veloctiy (pixels/second) of the object in text on the current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
