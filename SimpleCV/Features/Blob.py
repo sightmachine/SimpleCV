@@ -599,7 +599,7 @@ class Blob(Feature):
             self.drawHoles(color, alpha, width, layer)
             
                    
-    def drawOutline(self, color=Color.GREEN, alpha=128, width=1, layer=None):
+    def drawOutline(self, color=Color.GREEN, alpha=255, width=1, layer=None):
         """
         **SUMMARY**
 
@@ -610,7 +610,7 @@ class Blob(Feature):
         **PARAMETERS**
 
         * *color* - The color to render the blob.
-        * *alpha* - The alpha value of the rendered blob.
+        * *alpha* - The alpha value of the rendered poly.
         * *width* - The width of the drawn blob in pixels, -1 then the polygon is filled.
         * *layer* - if layer is not None, the blob is rendered to the layer versus the source image.
 
