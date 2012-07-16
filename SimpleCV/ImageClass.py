@@ -934,20 +934,20 @@ class Image:
         """
         **SUMMARY**
 
-        Returns true if this image uses the BGR colorspace.
+        Returns true if this image uses the Gray colorspace.
         
         **RETURNS**
 
-        True if the image uses the BGR colorspace, False otherwise. 
+        True if the image uses the Gray colorspace, False otherwise. 
         
         **EXAMPLE**
         
-        >>> if( img.isBGR() ):
-        >>>    b,g,r = img.splitChannels()
+        >>> if( img.isGray() ):
+        >>>    print "The image is in Grayscale."
 
         **SEE ALSO**
 
-        :py:meth:`toBGR`
+        :py:meth:`toGray`
         
         """
         return(self._colorSpace==ColorSpace.GRAY)    
@@ -1201,21 +1201,22 @@ class Image:
         **SUMMARY**
 
         This method attemps to convert the image to the grayscale colorspace. 
-        If the color space is unknown we assume it is in the BGR format
+        If the color space is unknown we assume it is in the BGR format.
         
         **RETURNS**
 
-        Returns the converted image if the conversion was successful, 
+        A grayscale SimpleCV image if successful.
         otherwise None is returned.
         
         **EXAMPLE**
-        
+
         >>> img = Image("lenna")
-        >>> GrayImg = img.toGray()
+        >>> img.toGray().binarize().show()
 
         **SEE ALSO**
 
         :py:meth:`isGray`
+        :py:meth:`binarize`
         
         """
 
@@ -2086,7 +2087,12 @@ class Image:
         If grayscale is true the smoothing operation is only performed on a single channel
         otherwise the operation is performed on each channel of the image. 
        
-
+        for OpenCV versions >= 2.3.0 it is advisible to take a look at 
+               - :py:meth:`bilateralFilter`
+               - :py:meth:`medianFilter`
+               - :py:meth:`blur`
+               - :py:meth:`gaussianBlur`
+           
         **PARAMETERS**
 
         * *algorithm_name* - valid options are 'blur' or gaussian, 'bilateral', and 'median'.
@@ -2124,17 +2130,19 @@ class Image:
 
         :py:meth:`bilateralFilter`
         :py:meth:`medianFilter`
+        :py:meth:`blur`
         
-
         """
         win_x = 3
         win_y = 3  #set the default aperature window size (3x3)
-
-
+        
         if (is_tuple(aperature)):
-            win_x, win_y = aperature#get the coordinates from parameter
-            #TODO: make sure aperature is valid 
-            #   eg Positive, odd and square for bilateral and median
+            win_x, win_y = aperature
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :  
+                pass
+            else :
+                logger.warning("The aperature (x,y) must be odd number and greater than 0.")
+                return None
 
 
         algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
@@ -2173,39 +2181,249 @@ class Image:
         return Image(newimg, colorSpace=self._colorSpace)
 
 
-    def medianFilter(self, window=''):
+    def medianFilter(self, window='',grayscale=False):
         """
         **SUMMARY**
-
-        Convience function derived from the :py:meth:`smooth` method
-        Perform a median filtering operation to denoise/despeckle the image.
-        The optional parameter is the window size.
-          
-        **NOTES**
-
-        `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`_
         
+        Smooths the image, with the median filter. Performs a median filtering operation to denoise/despeckle the image.
+        The optional parameter is the window size.
+        see : http://en.wikipedia.org/wiki/Median_filter 
 
+        **Parameters**
+        * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y. 
+                   - By default it is set to 3x3, i.e window = (3x3).        
+        
+        **Note**
+        win_x and win_y should be greater than zero, a odd number and equal.  
+        
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        
+        For OpenCV versions >= 2.3.0
+        -- cv2.medianBlur function is called.
         """
-        return self.smooth(algorithm_name='median', aperature=window)
+        try:
+            import cv2
+            new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        
+        if (is_tuple(window)):
+            win_x, win_y = window
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
+                if win_x != win_y :
+                    win_x=win_y
+            else :
+                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                return None
+        
+        elif( is_number(window) ): 
+            win_x = window
+        else :
+            win_x = 3 #set the default aperature window size (3x3)
+
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            return self.smooth(algorithm_name='median', aperature=(win_x,win_y),grayscale=grayscale_)
+        else :
+            if (grayscale) :
+                img_medianBlur = cv2.medianBlur(self.getGrayNumpy(),win_x)
+                return Image(img_medianBlur, colorSpace=ColorSpace.GRAY)
+            else :        
+                img_medianBlur = cv2.medianBlur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),win_x)
+                img_medianBlur = img_medianBlur[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_medianBlur, colorSpace=self._colorSpace)    
     
     
-    def bilateralFilter(self, window = ''):
+    def bilateralFilter(self, diameter=5,sigmaColor=10, sigmaSpace=10,grayscale=False):
         """
         **SUMMARY**
-
-        Convience function derived from the :py:meth:`smooth` method
-        Perform a bilateral filtering operation to denoise/despeckle the image.
-        The optional parameter is the window size.
         
-        **NOTES** 
+        Smooths the image, using bilateral filtering. Potential of bilateral filtering is for the removal of texture.
+        The optional parameter are diameter, sigmaColor, sigmaSpace.
 
-        Bilateral Filter http://en.wikipedia.org/wiki/Bilateral_filter
+        Bilateral Filter 
+        see : http://en.wikipedia.org/wiki/Bilateral_filter
+        see : http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html  
+        
+        **Parameters**
+        
+        * *diameter* - A tuple for the window of the form (diameter,diameter). By default window = (3x3). ( for OpenCV versions <= 2.3.0)
+                     - Diameter of each pixel neighborhood that is used during filtering. ( for OpenCV versions >= 2.3.0)
+                     
 
+        * *sigmaColor* - Filter the specified value in the color space. A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace ) will be mixed together, resulting in larger areas of semi-equal color.
+        
+        * *sigmaSpace* - Filter the specified value in the coordinate space. A larger value of the parameter means that farther pixels will influence each other as long as their colors are close enough
+        
+        **NOTE**
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth.
+        -- where aperature(window) is (diameter,diameter)
+        -- sigmaColor and sigmanSpace become obsolete
+        
+        For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
+        -- cv.bilateralFilter function is called
+        -- If the sigmaColor and sigmaSpace values are small (< 10), the filter will not have much effect, whereas if they are large (> 150), they will have a very strong effect, making the image look 'cartoonish'
+        -- It is recommended to use diamter=5 for real time applications, and perhaps diameter=9 for offile applications that needs heavy noise filtering.
         """
-        return self.smooth(algorithm_name='bilateral', aperature=window)
+        try:
+            import cv2
+            new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        if (is_tuple(diameter)):
+            win_x, win_y = diameter
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
+                if win_x != win_y :
+                    diameter = (win_x, win_y)
+            else :
+                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                return None
+        
+        elif( is_number(diameter) ): 
+            pass
+            
+        else :
+            win_x = 3 #set the default aperature window size (3x3)
+            diameter = (win_x,win_x)
+             
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            if( is_number(diameter) ) :
+                diameter = (diameter,diameter)
+            return self.smooth(algorithm_name='bilateral', aperature=diameter,grayscale=grayscale_)
+        else :
+            if (grayscale) :
+                img_bilateral = cv2.bilateralFilter(self.getGrayNumpy(),diameter,sigmaColor, sigmaSpace)
+                return Image(img_bilateral, colorSpace=ColorSpace.GRAY)
+            else :    
+                img_bilateral = cv2.bilateralFilter(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),diameter,sigmaColor, sigmaSpace)
+                img_bilateral = img_bilateral[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_bilateral,colorSpace=self._colorSpace)    
     
-    
+    def blur(self, window = '', grayscale=False):
+        """
+        **SUMMARY**
+        
+        Smoothes an image using the normalized box filter.
+        The optional parameter is window.
+
+        see : http://en.wikipedia.org/wiki/Blur
+        
+        **Parameters**
+        
+        * *window* - should be in the form a tuple (win_x,win_y).
+                   - By default it is set to 3x3, i.e window = (3x3).        
+
+        **NOTE**
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        
+        For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
+        -- cv.blur function is called
+        """
+        try:
+            import cv2
+            new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        if (is_tuple(window)):
+            win_x, win_y = window
+            if ( win_x<=0 or win_y<=0 ) :
+                logger.warning("win_x and win_y should be greater than 0.")
+                return None          
+        elif( is_number(window) ): 
+            window = (window,window)
+        else :
+            window = (3,3)
+        
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            return self.smooth(algorithm_name='blur', aperature=window, grayscale=grayscale_)
+        else :
+            if grayscale:
+                img_blur = cv2.blur(self.getGrayNumpy(),window)
+                return Image(img_blur,colorSpace=ColorSpace.GRAY)
+            else :
+                img_blur = cv2.blur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window)
+                img_blur = img_blur[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_blur,colorSpace=self._colorSpace)    
+            
+    def gaussianBlur(self, window = '', sigmaX=0 , sigmaY=0 ,grayscale=False):
+        """
+        **SUMMARY**
+        
+        Smoothes an image, typically used to reduce image noise and reduce detail.
+        The optional parameter is window.
+
+        see : http://en.wikipedia.org/wiki/Gaussian_blur
+        
+        **Parameters**
+        
+        * *window* - should be in the form a tuple (win_x,win_y). Where win_x and win_y should be positive and odd.
+                   - By default it is set to 3x3, i.e window = (3x3).
+                           
+        * *sigmaX* - Gaussian kernel standard deviation in X direction.
+        
+        * *sigmaY* - Gaussian kernel standard deviation in Y direction.
+        
+        * *grayscale* - If true, the effect is applied on grayscale images.
+        
+        **NOTE**
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        
+        For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
+        -- cv.GaussianBlur function is called
+        """
+        try:
+            import cv2
+            ver = cv2.__version__
+            new_version = False
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:'):
+	        if int(ver.replace('.','0'))>=20300 :
+                    new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        if (is_tuple(window)):
+            win_x, win_y = window
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
+                pass
+            else :
+                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                return None
+        
+        elif( is_number(window) ): 
+            window = (window, window)
+     
+        else :
+            window = (3,3) #set the default aperature window size (3x3)
+        
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            return self.smooth(algorithm_name='blur', aperature=window, grayscale=grayscale_)
+        else :
+            if grayscale :
+                img_guass = self.getGrayNumpy()
+                cv2.GaussianBlur(self.getGrayNumpy(),window,sigmaX,img_guass,sigmaY)
+                return Image(img_guass, colorSpace=ColorSpace.GRAY)
+            
+            else :    
+                img_guass =  self.getNumpy()[:,:, ::-1].transpose([1,0,2])
+                cv2.GaussianBlur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window,sigmaX,img_guass,sigmaY)
+                img_guass = img_guass[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_guass,colorSpace=self._colorSpace)
+
     def invert(self):
         """
         **SUMMARY**
@@ -2248,8 +2466,8 @@ class Image:
         **SEE ALSO**
 
         :py:meth:`binarize`
-        """
-        return Image(self._getGrayscaleBitmap())
+        """ 
+        return Image(self._getGrayscaleBitmap(), colorSpace = ColorSpace.GRAY)
 
 
     def flipHorizontal(self):
