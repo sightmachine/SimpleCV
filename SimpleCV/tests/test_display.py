@@ -8,7 +8,7 @@ import os, sys, pickle
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = True  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -1694,4 +1694,24 @@ def test_sobel():
     img = Image("lenna")
     s = img.sobel()
     name_stem = "test_sobel"
+    s = [s]
     perform_diff(s,name_stem)
+
+def test_image_new_smooth():
+  img = Image(testimage2)
+  result = []
+  result.append(img.medianFilter())
+  result.append(img.medianFilter((3,3)))
+  result.append(img.medianFilter((5,5),grayscale=True))
+  result.append(img.bilateralFilter())
+  result.append(img.bilateralFilter(diameter=14,sigmaColor=20, sigmaSpace=34))
+  result.append(img.bilateralFilter(grayscale=True))
+  result.append(img.blur())
+  result.append(img.blur((5,5)))
+  result.append(img.blur((3,5),grayscale=True))
+  result.append(img.gaussianBlur())  
+  result.append(img.gaussianBlur((3,7), sigmaX=10 , sigmaY=12))  
+  result.append(img.gaussianBlur((7,9), sigmaX=10 , sigmaY=12, grayscale=True))  
+  name_stem = "test_image_new_smooth"
+  perform_diff(result,name_stem)
+  pass
