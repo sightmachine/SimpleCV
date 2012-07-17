@@ -496,7 +496,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False):
         """ 
         **SUMMARY**
 
@@ -568,6 +568,10 @@ class Image:
             elif tmpname == "lenna":
                 imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','lenna.png')
                 source = imgpth
+            elif sample:
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages', source)
+                source = imgpth
+
         if (type(source) == tuple):
             w = int(source[0])
             h = int(source[1])
