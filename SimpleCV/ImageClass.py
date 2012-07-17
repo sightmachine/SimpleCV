@@ -511,6 +511,8 @@ class Image:
         * *camera* - A camera to pull a live image.
  
         * *colorspace* - A default camera color space. If none is specified this will usually default to the BGR colorspace.
+
+        * *sample* - This is set to true if you want to load some of the included sample images without having to specify the complete path
         
 
         **EXAMPLES**
