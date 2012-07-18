@@ -2776,10 +2776,6 @@ def test_findKeypoints_all():
      perform_diff(results,name_stem,tolerance=8)    
   pass
 
-def test_unicode_imageload():
-    i = Image(unicode(barcode)) # unicode vs string is irrelevant
-    prod = lambda li: reduce(operator.mul, li)
-    assert prod(i.size()) > 0, "unicode image loading is broken, got image with zero area"
     
 def test_upload_flickr():
     try:
