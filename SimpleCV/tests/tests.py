@@ -83,7 +83,7 @@ def imgSaves(test_imgs, name_stem, path=standard_path):
     test_imgs[idx].save(fname)#,quality=95)
 
 #perform the actual image save and image diffs. 
-def perform_diff(result,name_stem,tolerance=2.0,path=standard_path):
+def perform_diff(result,name_stem,tolerance=3.0,path=standard_path):
   if(VISUAL_TEST): # save the correct images for a visual test
     imgSaves(result,name_stem,path)
   else: # otherwise we test our output against the visual test
@@ -2434,7 +2434,7 @@ def test_on_edge():
   
   results = [imgA,imgB,imgC,imgD,imgE]
   name_stem = "test_onEdge_Features"
-  perform_diff(results,name_stem,tolerance=7.0)        
+  perform_diff(results,name_stem,tolerance=8.0)        
 
 def test_feature_angles():
   img = Image("../sampleimages/rotation2.png")
