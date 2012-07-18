@@ -7,12 +7,11 @@ import time
 from SimpleCV import *
 
 cam = Camera() #initialize the camera
-substition_image = "../../sampleimages/troll_face.png"
-troll_face = Image(substition_image)
+troll_face = Image('troll_face.png', sample=True)
 # Loop forever
 while True:
     image = cam.getImage().flipHorizontal().scale(320, 240) # get image, flip it so it looks mirrored, scale to speed things up
-    faces = image.findHaarFeatures("facetrack-training.xml") # load in trained face file
+    faces = image.findHaarFeatures("face") # load in trained face file
     #if there were faces found do something
     if faces:
         face = faces[-1]

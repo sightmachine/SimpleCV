@@ -23,7 +23,7 @@ quarterSize = 24.26 #millimeters
 sizeRatio = 0
 objectSize = 0
 
-img = Image('coins.jpg')
+img = Image('coins.jpg', sample=True)
 segmented = img.hueDistance(Color.BLACK)
 coins = img.invert().findBlobs(minsize=200)
 

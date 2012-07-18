@@ -1,18 +1,19 @@
 #!/usr/bin/python 
-from SimpleCV import *
-from numpy import linspace 
-from scipy.interpolate import UnivariateSpline
-import sys, time, socket
+'''
+This example shows how to perform various rotations and warps on images
+and put back into a display.
+'''
+print __doc__
 
-#settings for the project)
-srcImg  = "../../sampleimages/orson_welles.jpg"
-font_size = 20
+from SimpleCV import *
+
+font_size = 30
 sleep_for = 3 #seconds to sleep for
 draw_color = Color.RED
 
 
 while True:
-    image = Image(srcImg)
+    image = Image("orson_welles.jpg", sample=True)
     image.drawText("Original Size", 10,10, color=draw_color, fontsize=font_size)
     image.show()
     time.sleep(sleep_for)

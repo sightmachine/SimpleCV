@@ -1,7 +1,12 @@
-from SimpleCV import *
+'''
+This program trys to extract the color pallette from an image
+it could be used in machine learning as a color classifier
+'''
+print __doc__
 
+from SimpleCV import *
 disp = Display((640,528))
-cam = Camera(1)
+cam = Camera()
 count = 0
 pal = None
 while disp.isNotDone():
