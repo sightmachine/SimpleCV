@@ -13,6 +13,8 @@ quarter - 24.26 mm
 
 '''
 
+print __doc__
+
 from SimpleCV import *
 # A quarter is 24.26mm or 0.955in
 quarterSize = 24.26 #millimeters
@@ -21,11 +23,10 @@ quarterSize = 24.26 #millimeters
 sizeRatio = 0
 objectSize = 0
 
-img = Image('../../sampleimages/coins.jpg')
+img = Image('coins.jpg', sample=True)
 segmented = img.hueDistance(Color.BLACK)
 coins = img.invert().findBlobs(minsize=200)
 
-#~ coins = blobs.filter([b.isCircle() for b in blobs])
 #Here we compute the scale factor
 if coins:
 		c = coins[-1]

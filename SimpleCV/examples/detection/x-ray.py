@@ -1,17 +1,21 @@
-#!/usr/bin/python 
+#!/usr/bin/python
+'''
+This program basically overlays an edge detector window that gives
+the illusion of X-ray vision.  It is mearly meant to show how to perform
+a basic image operation and overlay back onto the original image
+'''
+print __doc__
 
 import time
 from SimpleCV import *
-from SimpleCV.Display import Display, pg
 
 display_width = 640
 display_height = 480
 display = Display(resolution = (display_width, display_height)) #create a new display to draw images on
 cam = Camera() #initialize the camera
-done = False # setup boolean to stop the program
 
 # Loop until not needed
-while not display.isDone():
+while display.isNotDone():
     image = cam.getImage().flipHorizontal()
     crop_width = 200 #set the width of the crop window
     crop_height = 200 #set the height of the crop window
@@ -32,5 +36,4 @@ while not display.isDone():
     image.getDrawingLayer().blit(xray_image, (crop_x, crop_y)) #draw the cropped image onto the current image
 
     image.save(display)
-    time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
 

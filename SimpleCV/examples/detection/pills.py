@@ -1,13 +1,14 @@
-# This demo is used to find missing pills in a blister type of package
-# it would be used in quality control in manufacturing type of application
-# were you are verifying that the correct number of pills are present
-
+'''
+This demo is used to find missing pills in a blister type of package
+it would be used in quality control in manufacturing type of application
+were you are verifying that the correct number of pills are present
+'''
 
 
 from SimpleCV import *
 
 pillcolor = (153, 198, 252)  #This is set manually, you could either open the image you want and pick the color, or use blob detection to find the blob and do .meanColor() to get the RGB value
-i = Image("../../sampleimages/pills.png")
+i = Image("pills.png", sample=True)
 expected_pillcount = 12
 saturation_threshold = 40  #This is how much saturation to allow in the image
 pill_size = 100 #The size of the expected pills in pixels

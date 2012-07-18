@@ -1,4 +1,3 @@
-
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -2782,12 +2781,22 @@ def test_unicode_imageload():
     prod = lambda li: reduce(operator.mul, li)
     assert prod(i.size()) > 0, "unicode image loading is broken, got image with zero area"
     
-def test_upload_flickr()
-  img = Image('lenna')
-  api_key = 'api_key'
-  api_secret = 'api_secret'  
-  ret = img.upload('flickr','api_key','api_secret')
-  if ( ret == True ):
-      assert True
-  else :
-      assert False    
+def test_upload_flickr():
+    try:
+       import flickrapi
+    except:
+       if( SHOW_WARNING_TESTS ):
+          logger.warning("Couldn't run the upload test as optional pycurl library required")
+       pass
+    else:
+       img = Image('simplecv')
+       api_key = 'ccfa805e5c7693b96fb548fa0f7a36da'
+       api_secret = 'db1479dbba974633'
+       if api_key==None or api_secret==None :
+           pass
+       else :
+           ret=img.upload('flickr',api_key,api_secret)
+           if ret == True :
+               pass
+           else :
+               assert False

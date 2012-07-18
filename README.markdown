@@ -44,7 +44,7 @@ Note: We originally tried to bundle all Mac dependencies in a superpack.  This t
 
 Steps:
 
-* Install Xcode http://itunes.apple.com/us/app/xcode/id448457090?mt=12 and then run the Xcode installer. 
+* Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer. 
 * Install homebrew https://github.com/mxcl/homebrew/wiki/installation
 * Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak), plus the SDL dependencies for pygame
 *  Homebrew puts the libraries in /usr/local/lib/, which by default isn't in the python sys.path -- either add it, or link the files

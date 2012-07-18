@@ -1,11 +1,13 @@
 #!/usr/bin/python 
-import time
-from SimpleCV import *
+'''
+This program is basically the hello world in SimpleCV
+all it does is grab an image from the camera and display it
+'''
+print __doc__
 
-#create JPEG streamers
+from SimpleCV import *
 cam = Camera()
 
-while (1):
-  i = cam.getImage()
-  i.show()
-  time.sleep(0.01) #yield to the webserver
+while True:
+  img = cam.getImage()
+  img.show()
