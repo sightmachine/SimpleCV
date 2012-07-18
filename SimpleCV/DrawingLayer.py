@@ -517,6 +517,10 @@ class DrawingLayer:
         
         alpha = an alpha value 255=opaque 0=transparent. 
         """
+
+        if( not pg.display.get_init() ):
+            pg.display.init()
+
         if(img.__class__.__name__=='str'):
             image = pg.image.load(img, "RGB")
         elif(img.__class__.__name__=='Image' ):
