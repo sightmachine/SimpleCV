@@ -1,46 +1,50 @@
 #!/usr/bin/python 
 import os
 import glob
+from subprocess import call
 from SimpleCV import *
 
 
-def listFiles():
-	files = []
-	for dirname, dirnames, filenames in os.walk('./SimpleCV/examples'):
-		for subdirname in dirnames:
-			#print os.path.join(dirname, subdirname)
-			filenames = [ fi for fi in filenames if fi.endswith(".py") ]
-			for filename in filenames:
-				#print os.path.join(dirname, filename)
-				files.append(filename.replace(".py",""))
+def listFiles(directory):
+	for path, dirs, files in os.walk(directory):
+		for f in files:
+			yield os.path.join(path, f)
 
-	return files
 
 def magic_examples(self, arg):
-	HOMEDIR = os.getcwd()
-	files = listFiles()
+	DIR = os.path.join(LAUNCH_PATH, 'examples')
+	files = [f for f in listFiles(DIR) if f.endswith('.py')]
+	file_names = [file.split('/')[-1] for file in files]
+	iarg = None
+	arg = str(arg)
 
-	if(arg.lower() == "list"):
-		for file in files:
-			print file
-		
-	elif(arg == ""):
-		print "To use examples type:"
-		print "example name"
+	try:
+		iarg = int(arg)
+	except:
+		pass
+
+	if isinstance(arg, str) and arg == "":
+		counter = 0
+		print "Available Examples:"
+		print "--------------------------------------------"
+		for file in file_names:
+			print "[",counter,"]:",file
+			counter += 1
+
+		print "Just type example #, to run the example on the list"
+		print "for instance: example 1"
 		print ""
-		print "to see which examples are available type:"
-		print "example list"
-		print ""
-        
-	elif(arg in files):
-		os.chdir("./SimpleCV/examples")
+		print "Close the window or press ctrl+c to stop the example"
+			
+	elif isinstance(iarg, int):
+		print "running example:", files[iarg]
 		try:
-			__import__(arg)
-		except ImportError:
-			print "Error: can't run example: " + arg
-		
-		os.chdir(HOMEDIR)
-	elif(arg.lower() == "joshua"):
+			call(["python", files[iarg]])
+		except:
+			print "Couldn't run example:", files[iarg]
+
+
+	elif isinstance(arg, str) and arg.lower() == "joshua":
 		print "GREETINGS PROFESSOR FALKEN"
 		print ""
 		print "HELLO"
@@ -52,7 +56,7 @@ def magic_examples(self, arg):
 		print "HOW ABOUT A NICE GAME OF CHESS?"
 		print ""
 		
-
+		
 	else:
 		print "Example: " + arg + " does not exist, or an error occured"
 			
