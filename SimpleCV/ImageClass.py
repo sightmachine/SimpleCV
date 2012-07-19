@@ -1,4 +1,4 @@
- #Load required libraries
+# Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
@@ -461,6 +461,8 @@ class Image:
     _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
+    _cv2Numpy = None #numpy array for OpenCV >= 2.3
+    _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
   
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
@@ -1297,7 +1299,7 @@ class Image:
         return Image(retVal, colorSpace=ColorSpace.YCrCb )     
     
     
-    def getEmpty(self, channels = 3):
+    def getEmpty(self, channels=3):
         """
         **SUMMARY**
         
@@ -1543,6 +1545,68 @@ class Image:
         self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
         return self._numpy
 
+    def getNumpyCv2(self):
+        """
+        **SUMMARY**
+       
+        Get a Numpy array of the image in width x height x RGB dimensions compatible with OpenCV >= 2.3
+        
+        **RETURNS**
+
+        Returns the  3D numpy array of the image compatible with OpenCV >= 2.3
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpyCv2()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPIL`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpyCv2`
+        
+        """
+        
+        if type(self._cv2Numpy) is not np.ndarray:
+            self._cv2Numpy = np.array(self.getMatrix())
+        return self._cv2Numpy
+        
+    def getGrayNumpyCv2(self):
+        """
+        **SUMMARY**
+       
+        Get a Grayscale Numpy array of the image in width x height y compatible with OpenCV >= 2.3
+        
+        **RETURNS**
+
+        Returns the grayscale numpy array compatible with OpenCV >= 2.3 
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpyCv2()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPIL`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpyCv2`
+        
+        """
+        if not type(self._cv2GrayNumpy) is not np.ndarray:
+            self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
+        return self._cv2GrayNumpy
 
     def _getGrayscaleBitmap(self):
         if (self._graybitmap):
@@ -2082,12 +2146,12 @@ class Image:
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
         
 
-    def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
+    def smooth(self, algorithm_name='gaussian', aperture=(3,3), sigma=0, spatial_sigma=0, grayscale=False, aperature=None):
         """
         **SUMMARY**
 
         Smooth the image, by default with the Gaussian blur.  If desired,
-        additional algorithms and aperatures can be specified.  Optional parameters
+        additional algorithms and apertures can be specified.  Optional parameters
         are passed directly to OpenCV's cv.Smooth() function.
 
         If grayscale is true the smoothing operation is only performed on a single channel
@@ -2109,7 +2173,10 @@ class Image:
           
           * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`_
 
-        * *aperature* - A tuple for the aperature of the gaussian blur as an (x,y) tuple. 
+        * *aperture* - A tuple for the aperture of the gaussian blur as an (x,y) tuple. 
+                     - Note there was rampant spelling mistakes in both smooth & sobel,
+                       aperture is spelled as such, and not "aperature". This code is backwards
+                       compatible.
        
         .. Warning:: 
           These must be odd numbers.
@@ -2139,35 +2206,32 @@ class Image:
         :py:meth:`blur`
         
         """
-        win_x = 3
-        win_y = 3  #set the default aperature window size (3x3)
-        
-        if (is_tuple(aperature)):
-            win_x, win_y = aperature
-            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :  
-                pass
-            else :
-                logger.warning("The aperature (x,y) must be odd number and greater than 0.")
+        # see comment on argument documentation (spelling error)
+        aperture = aperature if aperature else aperture
+
+        if is_tuple(aperture):
+            win_x, win_y = aperture
+            if win_x <= 0 or win_y <= 0 or win_x % 2 == 0 or win_y % 2 == 0:  
+                logger.warning("The aperture (x,y) must be odd number and greater than 0.")
                 return None
-
-
-        algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
+        else:
+            raise ValueError("Please provide a tuple to aperture, got: %s" % type(aperture))
 
 
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
         if algorithm_name == "blur":
             algorithm = cv.CV_BLUR
-        if algorithm_name == "bilateral":
+        elif algorithm_name == "bilateral":
             algorithm = cv.CV_BILATERAL
-            win_y = win_x #aperature must be square
-        if algorithm_name == "median":
+            win_y = win_x #aperture must be square
+        elif algorithm_name == "median":
             algorithm = cv.CV_MEDIAN
-            win_y = win_x #aperature must be square
-
-
+            win_y = win_x #aperture must be square
+        else:
+            algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
         
-        if( grayscale ):
+        if grayscale:
             newimg = self.getEmpty(1)
             cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
         else:
@@ -2216,23 +2280,23 @@ class Image:
             pass    
         
         
-        if (is_tuple(window)):
+        if is_tuple(window):
             win_x, win_y = window
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
                 if win_x != win_y :
                     win_x=win_y
             else :
-                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
         
         elif( is_number(window) ): 
             win_x = window
         else :
-            win_x = 3 #set the default aperature window size (3x3)
+            win_x = 3 #set the default aperture window size (3x3)
 
         if ( not new_version ) : 
             grayscale_ = grayscale
-            return self.smooth(algorithm_name='median', aperature=(win_x,win_y),grayscale=grayscale_)
+            return self.smooth(algorithm_name='median', aperture=(win_x,win_y),grayscale=grayscale_)
         else :
             if (grayscale) :
                 img_medianBlur = cv2.medianBlur(self.getGrayNumpy(),win_x)
@@ -2267,7 +2331,7 @@ class Image:
         **NOTE**
         For OpenCV versions <= 2.3.0 
         -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth.
-        -- where aperature(window) is (diameter,diameter)
+        -- where aperture(window) is (diameter,diameter)
         -- sigmaColor and sigmanSpace become obsolete
         
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
@@ -2282,27 +2346,27 @@ class Image:
             new_version = False
             pass    
         
-        if (is_tuple(diameter)):
+        if is_tuple(diameter):
             win_x, win_y = diameter
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
                 if win_x != win_y :
                     diameter = (win_x, win_y)
             else :
-                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
         
         elif( is_number(diameter) ): 
             pass
             
         else :
-            win_x = 3 #set the default aperature window size (3x3)
+            win_x = 3 #set the default aperture window size (3x3)
             diameter = (win_x,win_x)
              
         if ( not new_version ) : 
             grayscale_ = grayscale
             if( is_number(diameter) ) :
                 diameter = (diameter,diameter)
-            return self.smooth(algorithm_name='bilateral', aperature=diameter,grayscale=grayscale_)
+            return self.smooth(algorithm_name='bilateral', aperture=diameter,grayscale=grayscale_)
         else :
             if (grayscale) :
                 img_bilateral = cv2.bilateralFilter(self.getGrayNumpy(),diameter,sigmaColor, sigmaSpace)
@@ -2340,7 +2404,7 @@ class Image:
             new_version = False
             pass    
         
-        if (is_tuple(window)):
+        if is_tuple(window):
             win_x, win_y = window
             if ( win_x<=0 or win_y<=0 ) :
                 logger.warning("win_x and win_y should be greater than 0.")
@@ -2352,7 +2416,7 @@ class Image:
         
         if ( not new_version ) : 
             grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperature=window, grayscale=grayscale_)
+            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
         else :
             if grayscale:
                 img_blur = cv2.blur(self.getGrayNumpy(),window)
@@ -2401,23 +2465,23 @@ class Image:
             new_version = False
             pass    
         
-        if (is_tuple(window)):
+        if is_tuple(window):
             win_x, win_y = window
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
                 pass
             else :
-                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
         
         elif( is_number(window) ): 
             window = (window, window)
      
         else :
-            window = (3,3) #set the default aperature window size (3x3)
+            window = (3,3) #set the default aperture window size (3x3)
         
         if ( not new_version ) : 
             grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperature=window, grayscale=grayscale_)
+            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
         else :
             if grayscale :
                 img_guass = self.getGrayNumpy()
@@ -2643,7 +2707,7 @@ class Image:
         :py:meth:`erode`
 
         """
-        if (is_tuple(thresh)):
+        if is_tuple(thresh):
             r = self.getEmpty(1) 
             g = self.getEmpty(1)
             b = self.getEmpty(1)
@@ -3967,7 +4031,8 @@ class Image:
 
     def __setitem__(self, coord, value):
         value = tuple(reversed(value))  #RGB -> BGR
-        if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
+        # TODO - this needs to be refactored
+        if is_tuple(self.getMatrix()[tuple(reversed(coord))]):
             self.getMatrix()[tuple(reversed(coord))] = value 
         else:
             cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
@@ -10287,7 +10352,7 @@ class Image:
            self.drawCircle(p,sz,color,width)
         return None
         
-    def sobel(self,xorder=1,yorder=1,doGray=True,aperature=5):
+    def sobel(self, xorder=1, yorder=1, doGray=True, aperture=5, aperature=None):
         """
         **DESCRIPTION**
 
@@ -10298,7 +10363,7 @@ class Image:
         * *xorder* - int - Order of the derivative x.
         * *yorder* - int - Order of the derivative y.
         * *doGray* - Bool - grayscale or not.
-        * *aperature* - int - Size of the extended Sobel kernel. It must be 1, 3, 5, or 7.
+        * *aperture* - int - Size of the extended Sobel kernel. It must be 1, 3, 5, or 7.
 
         **RETURNS**
 
@@ -10310,6 +10375,7 @@ class Image:
         >>> s = img.sobel()
         >>> s.show()
         """
+        aperture = aperature if aperature else aperture
         retVal = None
         try:
             import cv2
@@ -10317,12 +10383,12 @@ class Image:
             logger.warning("Can't do Sobel without OpenCV >= 2.3.0")
             return None
 
-        if( aperature != 1 and aperature != 3 and aperature != 5 and aperature != 7 ):
-            logger.warning("Bad Sobel Aperature, values are [1,3,5,7].")
+        if( aperture != 1 and aperture != 3 and aperture != 5 and aperture != 7 ):
+            logger.warning("Bad Sobel Aperture, values are [1,3,5,7].")
             return None
 
         if( doGray ):
-            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperature)
+            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
             minv = np.min(dst)
             maxv = np.max(dst)
             cscale = 255/(maxv-minv)
@@ -10336,7 +10402,7 @@ class Image:
             layers = self.splitChannels(grayscale=False)
             sobel_layers = []
             for layer in layers:
-                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperature)
+                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
             
                 minv = np.min(dst)
                 maxv = np.max(dst)
@@ -10350,6 +10416,124 @@ class Image:
             
             retVal = self.mergeChannels(b,g,r)
         return retVal
+        
+    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3):
+        """
+        **DESCRIPTION**
+
+        Tracking the object surrounded by the bounding box in the given
+        image or TrackSet.
+
+        **PARAMETERS**
+        
+        * *method* - str - The Tracking Algorithm to be applied
+                          * "CAMShift"
+        * *ts* - TrackSet - SimpleCV.Features.TrackSet.
+        * *img* - Image - Image to be tracked.
+                - list - List of Images to be tracked.
+        * *bb* - tuple - Bounding Box tuple (x, y, w, h)
+        * *num_frames* - int - Number of previous frames to be used for 
+                               Forward Backward Error
+
+        **RETURNS**
+
+        SimpleCV.Features.TrackSet
+        
+        Returns a TrackSet with all the necessary attributes.
+
+        **HOW TO**
+
+        >>> ts = img.track("camshift", img1, bb)
+        # Here TrackSet is returned. img, bb, new bb, and other 
+        # necessary attributes will be included in the trackset.
+        # After getting the trackset you need not provide the bounding box
+        # or image. You provide TrackSet as parameter to track().
+        # Bounding box and image will be taken from the trackset.
+        # So. now
+        >>> ts = new_img.track("camshift",ts, num_frames = 4)
+        
+        # The new Tracking feature will be appended to the give trackset
+        # and that will be returned.
+        # So, to use it in loop
+        ==========================================================
+        
+        img = cam.getImage()
+        bb = (img.width/4,img.height/4,img.width/4,img.height/4)
+        ts = img.track( img=img, bb=bb)
+        while (True):
+            img = cam.getImage()
+            ts = img.track(ts)
+        
+        ==========================================================
+        ts = []
+        while (some_condition_here):
+            img = cam.getImage()
+            ts = img.track("camshift",ts,img0,bb)
+            # now here in first loop iteration since ts is empty,
+            # img0 and bb will be considered.
+            # New tracking object will be created and added in ts (TrackSet)
+            # After first iteration, ts is not empty and hence the previous
+            # image frames and bounding box will be taken from ts and img0
+            # and bb will be ignored.
+        ==========================================================
+        # Instead of loop, give a list of images to be tracked.
+
+        ts = []
+        imgs = [img1, img2, img3, ..., imgN]
+        ts = img0.track("camshift", ts, imgs, bb)
+        ts.drawPath()
+        ts[-1].image.show()
+        ==========================================================
+        """
+        if not ts and not img:
+            print "Inavlid. Must provide FeatureSet or Image"
+            return None
+        
+        if not ts and not bb:
+            print "Inavlid. Must provide Bounding Box with Image"
+            return None
+            
+        if not ts:
+            ts = TrackSet()
+        else:
+            img = ts[-1].image
+            bb = ts[-1].bb
+        try:
+            import cv2
+        except ImportError:
+            print "Tracking is available for OpenCV >= 2.3"
+            return None
+            
+        if type(img) == list:
+            ts = self.track(method, ts, img[0], bb, num_frames)
+            for i in img:
+                ts = i.track(method, ts, num_frames=num_frames)
+            return ts
+        
+        if method.lower() == "camshift":
+            hsv = self.toHSV().getNumpyCv2()
+            mask = cv2.inRange(hsv, np.array((0., 60., 32.)), np.array((180., 255., 255.)))
+            x0, y0, w, h = bb
+            x1 = x0 + w -1
+            y1 = y0 + h -1
+            hsv_roi = hsv[y0:y1, x0:x1]
+            mask_roi = mask[y0:y1, x0:x1]
+            hist = cv2.calcHist( [hsv_roi], [0], mask_roi, [16], [0, 180] )
+            cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX);
+            hist_flat = hist.reshape(-1)
+            imgs = [hsv]
+            if len(ts) > num_frames and num_frames > 1:
+                for feat in ts[-num_frames:]:
+                    imgs.append(feat.image.toHSV().getNumpyCv2())
+            else:
+                imgs.append(img.toHSV().getNumpyCv2())
+                    
+            prob = cv2.calcBackProject(imgs, [0], hist_flat, [0, 180], 1)
+            prob &= mask
+            term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
+            new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
+            ts.append(CAMShift(self, track_window, new_ellipse))
+            return ts
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -10370,7 +10554,7 @@ class Image:
 Image.greyscale = Image.grayscale
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
