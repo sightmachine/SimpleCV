@@ -44,7 +44,6 @@ from scipy.interpolate import UnivariateSpline
 import pygame as pg
 
 
-
 #optional libraries
 PIL_ENABLED = True
 try:
@@ -248,9 +247,9 @@ def get_logging_level():
 
 def set_logging(log_level,myfilename = None):
     """
-    This function sets the threshold for the logging system and, if desired, 
+    This function sets the threshold for the logging system and, if desired,
     directs the messages to a logfile. Level options:
-   
+
     'DEBUG' or 1
     'INFO' or 2
     'WARNING' or 3
@@ -290,18 +289,18 @@ def set_logging(log_level,myfilename = None):
 def system():
     """
     **SUMMARY**
-    Output of this function includes various informations related to system and library. 
+    Output of this function includes various informations related to system and library.
     Main purpose :
        1) While submiting a bug, report the output of this function
-       2) Checking the current version and later upgrading the library based on the output 
-   
+       2) Checking the current version and later upgrading the library based on the output
+
     **RETURNS**
-    None  
-    
+    None
+
     **EXAMPLE**
     >>> import SimpleCV
     >>> SimpleCV.system()
-    """         	
+    """
     try :
         import platform
         print "System : ", platform.system()
@@ -314,29 +313,28 @@ def system():
             print "Open CV2 version : " + "2.1"
         if (PIL_ENABLED) :
             print "PIL version : ", pil.VERSION
-        else : 
+        else :
             print "PIL module not installed"
-        if (ORANGE_ENABLED) :   
+        if (ORANGE_ENABLED) :
             print "Orange Version : " + orange.version
         else :
             print "Orange module not installed"
         try :
-            import pygame as pg	
+            import pygame as pg
             print "PyGame Version : " + pg.__version__
         except ImportError:
-            print "PyGame module not installed"	
+            print "PyGame module not installed"
         try :
             import pickle
             print "Pickle Version : " + pickle.__version__
-        except :    	    
+        except :
             print "Pickle module not installed"
-        
+
     except ImportError :
         print "You need to install Platform to use this function"
         print "to install you can use:"
         print "easy_install platform"
     return
-
 
 class LazyProperty(object):
 
@@ -350,10 +348,26 @@ class LazyProperty(object):
         result = obj.__dict__[self.__name__] = self._func(obj)
         return result
 
+class InitOptionsHandler(object):
+    """
+    **SUMMARY**
 
-    
+    This handler is supposed to store global variables. For now, its only value
+    defines if SimpleCV is being run on an IPython notebook.
+
+    """
+
+    def __init__(self):
+        self.on_notebook = False
+
+    def enable_notebook(self):
+        self.on_notebook = True
+
+
+init_options_handler = InitOptionsHandler()
+
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
-#maximum image size - 
-MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.  
-LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__))) 
+#maximum image size -
+MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.
+LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__)))
