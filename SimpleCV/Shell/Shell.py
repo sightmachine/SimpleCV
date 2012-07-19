@@ -160,6 +160,21 @@ def setup_shell():
 
     return scvShell
 
+def run_notebook():
+    'Run the ipython notebook server'
+    from IPython.frontend.html.notebook import notebookapp
+    from IPython.frontend.html.notebook import kernelmanager
+
+    code = ""
+    code += "from SimpleCV import *;"
+
+    kernelmanager.MappingKernelManager.first_beat=30.0
+    app = notebookapp.NotebookApp.instance()
+    app.initialize([
+            '--port', '5050',
+            '--c', code,
+            ])
+    app.start()
 
 
 def main(*args):
@@ -167,6 +182,10 @@ def main(*args):
     log_level = logging.WARNING
     if len(args) and len(args[0]) > 1:
       for flag in args[0]:
+        if flag == "notebook" and IPVER > 10:
+            run_notebook()
+            sys.exit()
+
         if flag in ["--headless","headless"]:
           # set SDL to use the dummy NULL video driver,
           #   so it doesn't need a windowing system.
