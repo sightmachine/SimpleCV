@@ -5219,6 +5219,7 @@ class Image:
         :py:class:`Display`
 
         """
+
         if(type == 'browser'):
           import webbrowser
           js = JpegStreamer(8080)
@@ -5227,7 +5228,10 @@ class Image:
           return js
         elif (type == 'window'):
           from SimpleCV.Display import Display
-          d = Display(self.size())
+          if init_options_handler.on_notebook:
+              d = Display(displaytype='notebook')
+          else:
+              d = Display(self.size())
           self.save(d)
           return d
         else:
