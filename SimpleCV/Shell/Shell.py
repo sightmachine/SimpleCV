@@ -167,6 +167,7 @@ def run_notebook():
 
     code = ""
     code += "from SimpleCV import *;"
+    code += "init_options_handler.enable_notebook();"
 
     kernelmanager.MappingKernelManager.first_beat=30.0
     app = notebookapp.NotebookApp.instance()
