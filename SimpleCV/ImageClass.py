@@ -1,4 +1,4 @@
- #Load required libraries
+# Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
@@ -1299,7 +1299,7 @@ class Image:
         return Image(retVal, colorSpace=ColorSpace.YCrCb )     
     
     
-    def getEmpty(self, channels = 3):
+    def getEmpty(self, channels=3):
         """
         **SUMMARY**
         
@@ -2146,12 +2146,12 @@ class Image:
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
         
 
-    def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
+    def smooth(self, algorithm_name='gaussian', aperture=(3,3), sigma=0, spatial_sigma=0, grayscale=False, aperature=None):
         """
         **SUMMARY**
 
         Smooth the image, by default with the Gaussian blur.  If desired,
-        additional algorithms and aperatures can be specified.  Optional parameters
+        additional algorithms and apertures can be specified.  Optional parameters
         are passed directly to OpenCV's cv.Smooth() function.
 
         If grayscale is true the smoothing operation is only performed on a single channel
@@ -2173,7 +2173,10 @@ class Image:
           
           * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`_
 
-        * *aperature* - A tuple for the aperature of the gaussian blur as an (x,y) tuple. 
+        * *aperture* - A tuple for the aperture of the gaussian blur as an (x,y) tuple. 
+                     - Note there was rampant spelling mistakes in both smooth & sobel,
+                       aperture is spelled as such, and not "aperature". This code is backwards
+                       compatible.
        
         .. Warning:: 
           These must be odd numbers.
@@ -2203,35 +2206,32 @@ class Image:
         :py:meth:`blur`
         
         """
-        win_x = 3
-        win_y = 3  #set the default aperature window size (3x3)
-        
-        if (is_tuple(aperature)):
-            win_x, win_y = aperature
-            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :  
-                pass
-            else :
-                logger.warning("The aperature (x,y) must be odd number and greater than 0.")
+        # see comment on argument documentation (spelling error)
+        aperture = aperature if aperature else aperture
+
+        if is_tuple(aperture):
+            win_x, win_y = aperture
+            if win_x <= 0 or win_y <= 0 or win_x % 2 == 0 or win_y % 2 == 0:  
+                logger.warning("The aperture (x,y) must be odd number and greater than 0.")
                 return None
-
-
-        algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
+        else:
+            raise ValueError("Please provide a tuple to aperture, got: %s" % type(aperture))
 
 
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
         if algorithm_name == "blur":
             algorithm = cv.CV_BLUR
-        if algorithm_name == "bilateral":
+        elif algorithm_name == "bilateral":
             algorithm = cv.CV_BILATERAL
-            win_y = win_x #aperature must be square
-        if algorithm_name == "median":
+            win_y = win_x #aperture must be square
+        elif algorithm_name == "median":
             algorithm = cv.CV_MEDIAN
-            win_y = win_x #aperature must be square
-
-
+            win_y = win_x #aperture must be square
+        else:
+            algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
         
-        if( grayscale ):
+        if grayscale:
             newimg = self.getEmpty(1)
             cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
         else:
@@ -2280,23 +2280,23 @@ class Image:
             pass    
         
         
-        if (is_tuple(window)):
+        if is_tuple(window):
             win_x, win_y = window
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
                 if win_x != win_y :
                     win_x=win_y
             else :
-                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
         
         elif( is_number(window) ): 
             win_x = window
         else :
-            win_x = 3 #set the default aperature window size (3x3)
+            win_x = 3 #set the default aperture window size (3x3)
 
         if ( not new_version ) : 
             grayscale_ = grayscale
-            return self.smooth(algorithm_name='median', aperature=(win_x,win_y),grayscale=grayscale_)
+            return self.smooth(algorithm_name='median', aperture=(win_x,win_y),grayscale=grayscale_)
         else :
             if (grayscale) :
                 img_medianBlur = cv2.medianBlur(self.getGrayNumpy(),win_x)
@@ -2331,7 +2331,7 @@ class Image:
         **NOTE**
         For OpenCV versions <= 2.3.0 
         -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth.
-        -- where aperature(window) is (diameter,diameter)
+        -- where aperture(window) is (diameter,diameter)
         -- sigmaColor and sigmanSpace become obsolete
         
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
@@ -2346,27 +2346,27 @@ class Image:
             new_version = False
             pass    
         
-        if (is_tuple(diameter)):
+        if is_tuple(diameter):
             win_x, win_y = diameter
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
                 if win_x != win_y :
                     diameter = (win_x, win_y)
             else :
-                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
         
         elif( is_number(diameter) ): 
             pass
             
         else :
-            win_x = 3 #set the default aperature window size (3x3)
+            win_x = 3 #set the default aperture window size (3x3)
             diameter = (win_x,win_x)
              
         if ( not new_version ) : 
             grayscale_ = grayscale
             if( is_number(diameter) ) :
                 diameter = (diameter,diameter)
-            return self.smooth(algorithm_name='bilateral', aperature=diameter,grayscale=grayscale_)
+            return self.smooth(algorithm_name='bilateral', aperture=diameter,grayscale=grayscale_)
         else :
             if (grayscale) :
                 img_bilateral = cv2.bilateralFilter(self.getGrayNumpy(),diameter,sigmaColor, sigmaSpace)
@@ -2404,7 +2404,7 @@ class Image:
             new_version = False
             pass    
         
-        if (is_tuple(window)):
+        if is_tuple(window):
             win_x, win_y = window
             if ( win_x<=0 or win_y<=0 ) :
                 logger.warning("win_x and win_y should be greater than 0.")
@@ -2416,7 +2416,7 @@ class Image:
         
         if ( not new_version ) : 
             grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperature=window, grayscale=grayscale_)
+            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
         else :
             if grayscale:
                 img_blur = cv2.blur(self.getGrayNumpy(),window)
@@ -2465,23 +2465,23 @@ class Image:
             new_version = False
             pass    
         
-        if (is_tuple(window)):
+        if is_tuple(window):
             win_x, win_y = window
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
                 pass
             else :
-                logger.warning("The aperature (win_x,win_y) must be odd number and greater than 0.")
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
         
         elif( is_number(window) ): 
             window = (window, window)
      
         else :
-            window = (3,3) #set the default aperature window size (3x3)
+            window = (3,3) #set the default aperture window size (3x3)
         
         if ( not new_version ) : 
             grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperature=window, grayscale=grayscale_)
+            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
         else :
             if grayscale :
                 img_guass = self.getGrayNumpy()
@@ -2707,7 +2707,7 @@ class Image:
         :py:meth:`erode`
 
         """
-        if (is_tuple(thresh)):
+        if is_tuple(thresh):
             r = self.getEmpty(1) 
             g = self.getEmpty(1)
             b = self.getEmpty(1)
@@ -4031,7 +4031,8 @@ class Image:
 
     def __setitem__(self, coord, value):
         value = tuple(reversed(value))  #RGB -> BGR
-        if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
+        # TODO - this needs to be refactored
+        if is_tuple(self.getMatrix()[tuple(reversed(coord))]):
             self.getMatrix()[tuple(reversed(coord))] = value 
         else:
             cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
@@ -5218,6 +5219,7 @@ class Image:
         :py:class:`Display`
 
         """
+
         if(type == 'browser'):
           import webbrowser
           js = JpegStreamer(8080)
@@ -5226,7 +5228,10 @@ class Image:
           return js
         elif (type == 'window'):
           from SimpleCV.Display import Display
-          d = Display(self.size())
+          if init_options_handler.on_notebook:
+              d = Display(displaytype='notebook')
+          else:
+              d = Display(self.size())
           self.save(d)
           return d
         else:
@@ -10351,7 +10356,7 @@ class Image:
            self.drawCircle(p,sz,color,width)
         return None
         
-    def sobel(self,xorder=1,yorder=1,doGray=True,aperature=5):
+    def sobel(self, xorder=1, yorder=1, doGray=True, aperture=5, aperature=None):
         """
         **DESCRIPTION**
 
@@ -10362,7 +10367,7 @@ class Image:
         * *xorder* - int - Order of the derivative x.
         * *yorder* - int - Order of the derivative y.
         * *doGray* - Bool - grayscale or not.
-        * *aperature* - int - Size of the extended Sobel kernel. It must be 1, 3, 5, or 7.
+        * *aperture* - int - Size of the extended Sobel kernel. It must be 1, 3, 5, or 7.
 
         **RETURNS**
 
@@ -10374,6 +10379,7 @@ class Image:
         >>> s = img.sobel()
         >>> s.show()
         """
+        aperture = aperature if aperature else aperture
         retVal = None
         try:
             import cv2
@@ -10381,12 +10387,12 @@ class Image:
             logger.warning("Can't do Sobel without OpenCV >= 2.3.0")
             return None
 
-        if( aperature != 1 and aperature != 3 and aperature != 5 and aperature != 7 ):
-            logger.warning("Bad Sobel Aperature, values are [1,3,5,7].")
+        if( aperture != 1 and aperture != 3 and aperture != 5 and aperture != 7 ):
+            logger.warning("Bad Sobel Aperture, values are [1,3,5,7].")
             return None
 
         if( doGray ):
-            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperature)
+            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
             minv = np.min(dst)
             maxv = np.max(dst)
             cscale = 255/(maxv-minv)
@@ -10400,7 +10406,7 @@ class Image:
             layers = self.splitChannels(grayscale=False)
             sobel_layers = []
             for layer in layers:
-                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperature)
+                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
             
                 minv = np.min(dst)
                 maxv = np.max(dst)
