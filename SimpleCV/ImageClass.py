@@ -550,7 +550,9 @@ class Image:
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
         if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             #try:
-            img_file = urllib2.urlopen(source)
+            # added spoofed user agent for images that are blocking bots (like wikipedia)
+            req = urllib2.Request(source, headers={'User-Agent' : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5"}) 
+            img_file = urllib2.urlopen(req)
             #except:
             #if verbose:
                 #print "Couldn't open Image from URL:" + source
