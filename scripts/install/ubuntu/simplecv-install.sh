@@ -27,32 +27,32 @@ simplecv_auto_install() {
 
 install_opencv(){
 	echo "Installing OpenCV..."
-	sudo apt-get install libopencv-*
-	sudo apt-get install python-opencv
+	sudo apt-get install --force-yes libopencv-*
+	sudo apt-get install --force-yes python-opencv
 	echo "OpenCV installed"
 }
 
 install_numpy_scipy() {
 	echo "Installing numpy and scipy"
-	sudo apt-get install python-numpy python-scipy
+	sudo apt-get install --force-yes python-numpy python-scipy
 	echo "numpy and scipy installed"
 }
 
 install_pygame() {
 	echo "Installing pygame"
-	sudo apt-get install python-pygame
+	sudo apt-get install --force-yes python-pygame
 	echo "pygame installed"
 }
 
 install_setuptools(){
 	echo "Installing python-setuptools"
-	sudo apt-get install python-setuptools python-pip
+	sudo apt-get install --force-yes python-setuptools python-pip
 	echo "setuptools installed"
 }
 
 install_ipython() {
 	echo "Installing ipython and ipython notebook"
-	sudo apt-get install ipython ipython-notebook
+	sudo apt-get install --force-yes ipython ipython-notebook
 	echo "ipython installed"
 }
 
