@@ -1547,7 +1547,7 @@ class StereoCamera:
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
         >>> cam = StereoCamera(img1,img2)
-        >>> projectPoint = cam.projectPoint(point, 1, H)
+        >>> projectPoint = cam.projectPoint(point, 1)
         """
 
         H = np.matrix(self.H)
