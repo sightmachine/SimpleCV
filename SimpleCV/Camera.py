@@ -1396,7 +1396,7 @@ class StereoCamera:
         matched_pts2 = matched_pts2[:, ::-1.00]
         return (H, matched_pts1, matched_pts2)
 
-    def findDisparityMap( self, method='BM', nDisparity=64):
+    def findDisparityMap( self, nDisparity=64 ,method='BM'):
         """
         The method generates disparity map from set of stereo images.
 
@@ -1424,7 +1424,7 @@ class StereoCamera:
         gray_left = self.ImageLeft.getGrayscaleMatrix()
         gray_right = self.ImageRight.getGrayscaleMatrix()
         (r, c) = self.size
-        scale = 8
+        scale = int(self.ImageLeft.depth)
         try :
             if method == 'BM':
                disparity = cv.CreateMat(c, r, cv.CV_16S)
@@ -1441,8 +1441,8 @@ class StereoCamera:
                state.uniquenessRatio=15
                cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
-               cv.Normalize( disparity, disparity_visual, 0, 20, cv.CV_MINMAX )
-               #cv.Scale(disparity, disparity_visual,-scale)
+               #cv.Normalize( disparity, disparity_visual, -10, 0, cv.CV_MINMAX )
+               cv.Scale(disparity, disparity_visual,-scale)
                return Image(disparity_visual)
             
             elif method == 'GC':
@@ -1452,8 +1452,8 @@ class StereoCamera:
                state.minDisparity = 0
                cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
                disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
-               cv.Normalize( disparity_left, disparity_left_visual, 0, 20, cv.CV_MINMAX )
-               #cv.Scale(disparity_left, disparity_left_visual, -scale)
+               #cv.Normalize( disparity_left, disparity_left_visual, -10, 0, cv.CV_MINMAX )
+               cv.Scale(disparity_left, disparity_left_visual, -scale)
                return Image(disparity_left_visual)
 
             elif method == 'SGBM':
