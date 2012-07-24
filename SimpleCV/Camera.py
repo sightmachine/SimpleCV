@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
+from SimpleCV.Features import Line
 import platform
 from warnings import warn
 
@@ -1497,8 +1498,6 @@ class StereoCamera:
 
         * *point* - Input point (x, y)
         * *whichImage* - Index of the image (1 or 2) that contains the point
-        * *F* - Fundamental matrix that can be estimated 
-                using StereoCamera.findFundamentalMat()
 
         **RETURNS**        
 
