@@ -122,19 +122,18 @@ do
     break
 done
 
-while true; do
-    echo "--------------------------------------------------------------------"
-    echo "SimpleCV setup tool"
-    echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    echo "[a]uto install"
-    echo "[m]anual install"
-    echo "e[x]it"
-    echo
-    read -p "which option:" choice
-    case $choice in
-        [a]* ) simplecv_auto_install;;
-        [m]* ) simplecv_manual_install;;
-        [x]* ) echo "exiting...";break;;
-        * ) echo "Please choose an option.";;
-    esac
-done
+
+echo "--------------------------------------------------------------------"
+echo "SimpleCV setup tool"
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo ""
+echo "Auto-Installing SimpleCV in 5 seconds"
+echo "press ctrl+c to cancel"
+echo ""
+echo "to manually install run"
+echo "simplecv-install.sh --manual"
+echo ""
+echo "..."
+sleep 5
+simplecv_auto_install
+
