@@ -105,9 +105,21 @@ Steps:
 * Install Python 2.7 (<http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi>)
 * Install Python Setup Tools for Windows http://pypi.python.org/packages/2.7/s/setuptools/ (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows) 
 * Install the SciPy superpack: (<http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download >)
+* Install the NumPy superpack: (<http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/>)
+* Install Pygame for windows: (<http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi>)
 * Install OpenCV 2.3 Superpack: (<http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/>) (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
-* easy_install.exe simplecv (See: <http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html>)
 
+Once these are installed you need to add Python to your Path, open a command line (start->run->cmd):
+* SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;%PATH%
+* SETX PYTHONPATH C:/OpenCV2.2/Python2.7/Lib/site-packages;%PYTHONPATH%
+
+Exit the command line and reopen so it loads the updated python paths, then run:
+* easy_install pyreadline
+* easy_install PIL
+* easy_install cython
+* easy_install nose
+* easy_install pip
+* pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
 
 ---------------------------
 ## SimpleCV Interactive Shell, or how to run SimpleCV
