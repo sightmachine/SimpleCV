@@ -13,7 +13,7 @@ import os, sys, pickle, operator
 from SimpleCV import * 
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = True  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated. 
 
 #colors
@@ -874,7 +874,7 @@ def test_image_crop():
     crop3 = img.crop(-3,-3,10,20)
     crop4 = img.crop(-10,10,20,20,centered=True)
     crop5 = img.crop(-10,-10,20,20)
-
+  
   results = [crop,crop2,crop6]
   name_stem = "test_image_crop"
   perform_diff(results,name_stem)
@@ -2796,3 +2796,29 @@ def test_upload_flickr():
                pass
            else :
                assert False
+               
+def test_image_new_crop():
+  img = Image(logo)
+  x = 5
+  y = 6
+  w = 10
+  h = 20
+  crop = img.crop((x,y,w,h))
+  crop1 = img.crop([x,y,w,h])
+  crop2 = img.crop((x,y),(x+w,y+h))
+  crop3 = img.crop([(x,y),(x+w,y+h)])
+  if( SHOW_WARNING_TESTS ):
+    crop7 = img.crop((0,0,-10,10))
+    crop8 = img.crop((-50,-50),(10,10))
+    crop3 = img.crop([(-3,-3),(10,20)])
+    crop4 = img.crop((-10,10,20,20),centered=True)
+    crop5 = img.crop([-10,-10,20,20])
+  
+  results = [crop,crop1,crop2,crop3]
+  name_stem = "test_image_new_crop"
+  perform_diff(results,name_stem)
+
+  diff = crop-crop1;
+  c=diff.meanColor()
+  if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
+    assert False               
