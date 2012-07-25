@@ -101,12 +101,12 @@ If you already have Python, OpenCV or SciPy installed and want to keep things th
 
 Steps:
 
-* (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/ 
-* Install Python 2.7 http://www.python.org/getit/releases/2.7.1/
+* (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  (,http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/>)
+* Install Python 2.7 (<http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi>)
 * Install Python Setup Tools for Windows http://pypi.python.org/packages/2.7/s/setuptools/ (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows) 
-* Install the SciPy superpack: http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download 
-* Install OpenCV: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.2/ (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
-* easy_install.exe simplecv (See: http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html)
+* Install the SciPy superpack: (<http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download >)
+* Install OpenCV 2.3 Superpack: (<http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/>) (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
+* easy_install.exe simplecv (See: <http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html>)
 
 
 ---------------------------
@@ -151,13 +151,13 @@ If for some reason the standard installation methods do not work you may have to
 ### Required Libraries
 The installation instructions below should explain more on how to install.  They can also be installed manually.
 
-* Python 2.6+
-* SciPy
-* NumPy
-* Pygame
-* OpenCV 2.3+
-* IPython 10+
-* PIL 1.1.7+
+* Python 2.6+ (<http://www.python.org>)
+* SciPy (<http://www.scipy.org>)
+* NumPy (<http://numpy.scipy.org>)
+* Pygame (<http://www.pygame.org>)
+* OpenCV 2.3+ (<http://opencv.org>)
+* IPython 10+ (<http://ipython.org>)
+* PIL 1.1.7+ (<http://www.pythonware.com/products/pil/>)
 
 
 ### Optional Libraries
