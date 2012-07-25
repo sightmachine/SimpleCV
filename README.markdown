@@ -101,18 +101,28 @@ If you already have Python, OpenCV or SciPy installed and want to keep things th
 
 Steps:
 
+#### Install Prerequisties if they aren't already installed on your system:
+
 * (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  (,http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/>)
 * Install Python 2.7: http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi
 * Install Python Setup Tools for Windows: http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows)
 * Install the SciPy superpack: http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download
 * Install the NumPy superpack: http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/
 * Install Pygame for windows: http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi
-* Install OpenCV 2.3 Superpack: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/ (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
+
+
+
+#### Install OpenCV:
+* Download OpenCV 2.3 Superpack: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/
+* Run the executable file and when it ask where to extract to use::
+
+    C:\OpenCV2.3\
+
 
 Once these are installed you need to add Python to your Path, open a command line (start->run->cmd)::
 
-    SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;%PATH%
-    SETX PYTHONPATH C:/OpenCV2.2/Python2.7/Lib/site-packages;%PYTHONPATH%
+    SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/bin/;%PATH%
+    SETX PYTHONPATH C:/OpenCV2.3/Python2.7/Lib/site-packages;%PYTHONPATH%
 
 Exit the command line and reopen so it loads the updated python paths, then run::
 
@@ -121,6 +131,7 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install cython
     easy_install nose
     easy_install pip
+    pip install ipython
     pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
 
 ---------------------------
@@ -140,7 +151,7 @@ If for some reason the shell doesn't start, you can always do so manually by run
 	python -c "import SimpleCV.Shell;SimpleCV.Shell.main()"
 
 
-To run SimpleCV within an ipython notebook (ipython-notebook are required to be installed):
+To run SimpleCV within an ipython notebook (ipython-notebooks are required to be installed):
 
   simplecv notebook
   
