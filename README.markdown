@@ -126,19 +126,16 @@ If for some reason the shell doesn't start, you can always do so manually by run
 	python -c "import SimpleCV.Shell;SimpleCV.Shell.main()"
 
 
-To run SimpleCV within an ipython notebook:
+To run SimpleCV within an ipython notebook (ipython-notebook are required to be installed):
 
-	from SimpleCV import Display, Image
-	display = Display(displaytype='notebook')
-	image = Image('simplecv')
-	image.save(display)
+  simplecv notebook
   
 
 ---------------------------    
 ## Videos - Tutorials and Demos
 
 Video tutorials and demos can be found at:
-<http://www.simplecv.org/demos/>
+<http://www.simplecv.org/learn/>
 
 -------------------------------
 ## Getting Help
@@ -178,8 +175,7 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 * werkzeug
 * webkit
 * gtk
-* zxing (<http://code.google.com/p/zxing/>)
-* python-zxing (<https://github.com/oostendo/python-zxing>)
+* zbar (<http://zbar.sourceforge.net/>)
 * Tesseract (<http://code.google.com/p/tesseract-ocr/>)
 * python-tesseract (<http://code.google.com/p/python-tesseract/>)
 * Orange (<http://orange.biolab.si>)
