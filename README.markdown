@@ -103,7 +103,7 @@ Steps:
 
 * (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  (,http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/>)
 * Install Python 2.7: http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi
-* Install Python Setup Tools for Windows: http://pypi.python.org/packages/2.7/s/setuptools/ (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows)
+* Install Python Setup Tools for Windows: http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows)
 * Install the SciPy superpack: http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download
 * Install the NumPy superpack: http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/
 * Install Pygame for windows: http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi
