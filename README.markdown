@@ -110,16 +110,16 @@ Steps:
 * Install OpenCV 2.3 Superpack: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/ (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
 
 Once these are installed you need to add Python to your Path, open a command line (start->run->cmd):
-* SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;%PATH%
-* SETX PYTHONPATH C:/OpenCV2.2/Python2.7/Lib/site-packages;%PYTHONPATH%
+    SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.2/bin/;%PATH%
+    SETX PYTHONPATH C:/OpenCV2.2/Python2.7/Lib/site-packages;%PYTHONPATH%
 
 Exit the command line and reopen so it loads the updated python paths, then run:
-* easy_install pyreadline
-* easy_install PIL
-* easy_install cython
-* easy_install nose
-* easy_install pip
-* pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
+    easy_install pyreadline
+    easy_install PIL
+    easy_install cython
+    easy_install nose
+    easy_install pip
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
 
 ---------------------------
 ## SimpleCV Interactive Shell, or how to run SimpleCV
