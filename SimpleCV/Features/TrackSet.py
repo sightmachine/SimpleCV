@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from SimpleCV.Features.Features import Feature, FeatureSet
-
+import cv2.cv as cv
 class TrackSet(FeatureSet):
     """
     **SUMMARY**
@@ -22,6 +22,11 @@ class TrackSet(FeatureSet):
     >>> ts.draw()
     >>> ts.x()
     """
+    
+    def __init__(self):
+        self.kalman = None
+        self.__kalman()
+    
     def append(self, f):
         """
         **SUMMARY**
@@ -48,6 +53,11 @@ class TrackSet(FeatureSet):
         f.sizeRatio = float(ts[-1].area)/float(ts[0].area)
         f.vel = self.__pixelVelocity()
         f.rt_vel = self.__pixleVelocityRealTime()
+        self.__setKalman()
+        self.__changeMeasure()
+        self.__predictKalman()
+        self.__correctKalman()
+        f.predict_pt = self.predict_pt
     
     def areaRatio(self):
         """
@@ -475,3 +485,117 @@ class TrackSet(FeatureSet):
         >>> mean_color_list = ts.processTrack(foo)
         """
         return [func(f.image) for f in self]
+        
+    def __kalman(self):
+        self.kalman = cv.CreateKalman(4, 2, 0)
+        self.kalman_state = cv.CreateMat(4, 1, cv.CV_32FC1)  # (phi, delta_phi)
+        self.kalman_process_noise = cv.CreateMat(4, 1, cv.CV_32FC1)
+        self.kalman_measurement = cv.CreateMat(2, 1, cv.CV_32FC1)
+        
+    def __setKalman(self):
+        ts = self
+        if len(ts) < 2:
+            self.kalman_x = ts[-1].x
+            self.kalman_y = ts[-1].y
+        else:
+            self.kalman_x = ts[-2].x
+            self.kalman_y = ts[-2].y
+        
+        self.kalman.state_pre[0,0]  = self.kalman_x
+        self.kalman.state_pre[1,0]  = self.kalman_y
+        self.kalman.state_pre[2,0]  = 0
+        self.kalman.state_pre[3,0]  = 0
+        
+        self.kalman.transition_matrix[0,0] = 1
+        self.kalman.transition_matrix[0,1] = 0
+        self.kalman.transition_matrix[0,2] = 0
+        self.kalman.transition_matrix[0,3] = 0
+        self.kalman.transition_matrix[1,0] = 0
+        self.kalman.transition_matrix[1,1] = 1
+        self.kalman.transition_matrix[1,2] = 0
+        self.kalman.transition_matrix[1,3] = 0
+        self.kalman.transition_matrix[2,0] = 0
+        self.kalman.transition_matrix[2,1] = 0
+        self.kalman.transition_matrix[2,2] = 0
+        self.kalman.transition_matrix[2,3] = 1
+        self.kalman.transition_matrix[3,0] = 0
+        self.kalman.transition_matrix[3,1] = 0
+        self.kalman.transition_matrix[3,2] = 0
+        self.kalman.transition_matrix[3,3] = 1
+        
+        cv.SetIdentity(self.kalman.measurement_matrix, cv.RealScalar(1))
+        cv.SetIdentity(self.kalman.process_noise_cov, cv.RealScalar(1e-5))
+        cv.SetIdentity(self.kalman.measurement_noise_cov, cv.RealScalar(1e-1))
+        cv.SetIdentity(self.kalman.error_cov_post, cv.RealScalar(1))
+        
+    def __predictKalman(self):
+        self.kalman_prediction = cv.KalmanPredict(self.kalman)
+        #self.predict_angle = self.kalman_prediction[0, 0]
+        #self.predict_pt = (cv.Round(self.image.width/2 + self.image.width/3*cos(self.predict_angle)),
+        #                   cv.Round(self.image.height/2 - self.image.width/3*sin(self.predict_angle)))
+        self.predict_pt  = (self.kalman_prediction[0,0], self.kalman_prediction[1,0])
+                           
+    def __correctKalman(self):
+        self.kalman_estimated = cv.KalmanCorrect(self.kalman, self.kalman_measurement)
+        self.state_pt = (self.kalman_estimated[0,0], self.kalman_estimated[1,0])
+        
+    def __changeMeasure(self):
+        self.kalman_measurement[0, 0] = self.kalman_x
+        self.kalman_measurement[1, 0] = self.kalman_y
+        
+    def drawPredict(self, color=Color.GREEN, rad=1, thickness=1):
+        """
+        **SUMMARY**
+
+        Draw the center of the object on the current frame.
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *thickness* - Thickness of the boundary of the center circle.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... ts.draw() # For continuous tracking of the center
+            ... img = img1
+        """
+        f = self[-1]
+        f.image.drawCircle(f.predict_pt, rad, color, thickness)
+        
+    def drawPredictPath(self, color=Color.GREEN, thickness=2):
+        """
+        **SUMMARY**
+
+        Draw the complete path traced by the center of the object on current frame
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *thickness* - Thickness of the tracing path.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... ts.drawPath() # For continuous tracing
+            ... img = img1
+        >>> ts.drawPath() # draw the path at the end of tracking
+        """
+            
+        ts = self
+        img = self[-1].image
+        for i in range(1, len(ts)-1):
+            img.drawLine((ts[i].predict_pt),(ts[i+1].predict_pt), color=color, thickness=thickness)

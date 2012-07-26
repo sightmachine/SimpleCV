@@ -313,6 +313,34 @@ class Tracking(Feature):
         >>> mean_color = ts[-1].processTrack(foo)
         """
         return func(self.image)
+    
+    def getPredictionPoints(self):
+        return self.predict_pt
+        
+    def drawPredict(self, color=Color.GREEN, rad=1, thickness=1):
+        """
+        **SUMMARY**
+
+        Draw the center of the object on the image.
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *thickness* - Thickness of the boundary of the center circle.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.draw()
+        >>> img.show()
+        """
+        f = self
+        f.image.drawCircle(f.predict_pt, rad, color, thickness)
 
 class CAMShift(Tracking):
     """
