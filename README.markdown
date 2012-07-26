@@ -129,7 +129,6 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install pyreadline
     easy_install PIL
     easy_install cython
-    easy_install nose
     easy_install pip
     pip install ipython
     pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
