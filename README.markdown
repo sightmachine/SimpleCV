@@ -121,8 +121,8 @@ Steps:
 
 Once these are installed you need to add Python to your Path, open a command line (start->run->cmd)::
 
-    SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/bin/;%PATH%
-    SETX PYTHONPATH C:/OpenCV2.3/Python2.7/Lib/site-packages;%PYTHONPATH%
+    SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
+    SETX PYTHONPATH C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
 
 Exit the command line and reopen so it loads the updated python paths, then run::
 
