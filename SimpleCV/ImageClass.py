@@ -4946,6 +4946,15 @@ class Image:
     def crop(self, x , y = None, w = None, h = None, centered=False):
         """
         **SUMMARY**
+        Consider you want to crop a image with the following dimension :
+
+        (x,y) 
+            +--------------+
+            |              |
+            |              |h
+            |              |
+            +--------------+
+                  w      (x1,y1)   
 
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
@@ -4954,13 +4963,20 @@ class Image:
 
         You can also pass a feature into crop and have it automatically return
         the cropped image within the bounding outside area of that feature
-    
-    
+        
+        Or parameters can be in the form of a
+         - tuple or list : (x,y,w,h) or [x,y,w,h]
+         - two points : (x,y),(x1,y1) or [(x,y),(x1,y1)]
+           
         **PARAMETERS**
 
-        * *x* - An integer or feature. If it is a feature we crop to the features dimensions. 
-          Otherwise this is either the top left corner of the image or the center cooridnate of the the crop region.
+        * *x* - An integer or feature. 
+              - If it is a feature we crop to the features dimensions. 
+              - This can be either the top left corner of the image or the center cooridnate of the the crop region.
+              - or in the form of tuple/list. i,e (x,y,w,h) or [x,y,w,h]
+              - Otherwise in two point form. i,e [(x,y),(x1,y1)] or (x,y)
         * *y* - The y coordinate of the center, or top left corner  of the crop region.
+              - Otherwise in two point form. i,e (x1,y1)
         * *w* - Int - the width of the cropped region in pixels.
         * *h* - Int - the height of the cropped region in pixels.
         * *centered*  - Boolean - if True we treat the crop region as being the center 
@@ -4974,7 +4990,10 @@ class Image:
         
         >>> img = Image('lenna')
         >>> img.crop(50,40,128,128).show()
-
+        >>> img.crop((50,40,128,128)).show() #roi
+        >>> img.crop([50,40,128,128]) #roi
+        >>> img.crop((50,40),(178,168)) # two point form
+        >>> img.crop([(50,40),(178,168)]) # two point form
         **SEE ALSO**
         
         :py:meth:`embiggen`
@@ -4988,7 +5007,32 @@ class Image:
             y = theFeature.points[0][1]
             w = theFeature.width()
             h = theFeature.height()
+        
+        # x of the form [(x,y),(x1,y1)]        
+        elif(isinstance(x, list) and isinstance(x[0],tuple) and isinstance(x[1],tuple) and y == None and w == None and h == None):
+            if (len(x[0])==2 and len(x[1])==2):    
+                x,y,w,h = x[0][0],x[0][1],x[1][0]-x[0][0],x[1][1]-x[0][1]
+            else:
+                logger.warning("x should be in the form [(x1,y1),(x2,y2)]") 
+                return None
+                 
+        # x and y of the form (x,y),(x1,y2)     
+        elif(isinstance(x, tuple) and isinstance(y, tuple) and w == None and h == None):
+            if (len(x)==2 and len(y)==2):
+                x,y,w,h = x[0],x[1],y[0]-x[0],y[1]-x[1]
+            else:
+                logger.warning("if x and y are tuple it should be in the form (x1,y1) and (x2,y2)") 
+                return None        
 
+        # x of the form (x,y,x1,y2) or [x,y,x1,y2]        
+        elif(isinstance(x, tuple) or isinstance(x, list) and y == None and w == None and h == None):
+            if (len(x)==4):
+                x,y,w,h = x
+            else:
+                logger.warning("if x is a tuple or list it should be in the form (x,y,w,h) or [x,y,w,h]") 
+                return None        
+                    
+                    
         if(y == None or w == None or h == None):
             print "Please provide an x, y, width, height to function"
 
@@ -5019,8 +5063,7 @@ class Image:
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
         return Image(retVal, colorSpace=self._colorSpace)
-    
-    
+            
     def regionSelect(self, x1, y1, x2, y2 ):
         """
         **SUMMARY**
