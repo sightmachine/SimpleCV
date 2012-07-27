@@ -1,14 +1,22 @@
 @echo off
+echo "Setting System paths"
 SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
 SETX PYTHONPATH C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
 SET PATH=C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
 SET PYTHONPATH=C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
+
 cd "C:\SimpleCV1.3\files\"
+echo "Installing Python 2.7"
 python-2.7.3.msi
+echo "Installing Python Setuptools"
 setuptools-0.6c11.win32-py2.7.exe
+echo "Installing Scipy"
 scipy-0.9.0rc5-win32-superpack-python2.7.exe
+echo "Installing Numpy"
 numpy-1.6.2-win32-superpack-python2.7.exe
+echo "Install Pygame"
 pygame-1.9.1.win32-py2.7.msi
+echo "Installing OpenCV"
 OpenCV-2.3.1-win-superpack.exe
 
 easy_install pyreadline
