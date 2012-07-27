@@ -2,8 +2,8 @@
 echo "Setting System paths"
 SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
 SETX PYTHONPATH C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
-SETX PATH C:/SimpleCV1.3/opencv/build/x86/vc10/bin/;%PATH%
-SETX PYTHONPATH C:/SimpleCV1.3/opencv/build/python/2.7/;%PYTHONPATH%
+SETX PATH C:/SimpleCV1.3/files/opencv/build/x86/vc10/bin/;%PATH%
+SETX PYTHONPATH C:/SimpleCV1.3/files/opencv/build/python/2.7/;%PYTHONPATH%
 SET PATH=C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
 SET PYTHONPATH=C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
 
@@ -13,7 +13,7 @@ echo "Please click next on each of the additional installers"
 echo "unless you don't need that specific library installed,"
 echo "then click cancel on that specific installer"
 
-cd "C:\SimpleCV1.3\"
+cd "C:\SimpleCV1.3\files"
 echo "Installing Python 2.7"
 python-2.7.3.msi
 echo "Installing Python Setuptools"
