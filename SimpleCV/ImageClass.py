@@ -14,6 +14,8 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
+global tfiles
+tfiles = []
 
 class ColorSpace:
     """
@@ -1795,35 +1797,23 @@ class Image:
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
-
         
         if temp and path!=None and fname!=None :
-            #os_files = os.listdir(path)
-            #os_files = [k for k in os_files if k.startswith(fname) and k.endswith('.png')]
-            #file_num = [int(k[len(fname):k.find('.')]) for k in os_files if k[len(fname):k.find('.')].isalnum()]
-            #file_num.sort();
-            #file_num = file_num[-1]+1 if file_num else 0
-            #fname = fname + str(file_num)
-            filename = tempfile.NamedTemporaryFile(prefix=fname, suffix=".png",dir=path,delete=True)
-            #filename.name =  filename.name.split(fname)[0]+fname+'.png'
-            #filehandle_or_filename = filename.name
-            print filename.name
+            tfiles.append(tempfile.NamedTemporaryFile(prefix=fname, suffix=".png",dir=path,delete=True))
+            self.save(tfiles[-1].name)
+            return tfiles[-1].name
             
         elif temp and path!=None :
-            #os_files = os.listdir(path)
-            #os_files = [k for k in os_files if k.startswith('Image') and k.endswith('.png')]
-            #file_num = [int(k[5:k.find('.')]) for k in os_files if k[5:k.find('.')].isalnum()]
-            #file_num.sort();
-            #file_num = file_num[-1]+1 if file_num else 0
             fname = 'Image' #+ str(file_num)
-            filename = tempfile.NamedTemporaryFile(prefix=fname, suffix=".png",dir=path,delete=True) #
-            #filename.name =  filename.name.split(fname)[0]+fname+'.png'
-            print filename.name
-             
+            tfiles.append(tempfile.NamedTemporaryFile(prefix=fname, suffix=".png",dir=path,delete=True))
+            self.save(tfiles[-1].name)
+            return tfiles[-1].name 
+        
         #if it's a temporary file
         elif temp :
-            filename = tempfile.NamedTemporaryFile(suffix=".png")
-            print filename.name
+            tfiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
+            self.save(tfiles[-1].name)
+            return tfiles[-1].name
        
         if (not filehandle_or_filename):
             if (self.filename):
