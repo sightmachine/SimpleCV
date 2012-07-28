@@ -1767,6 +1767,10 @@ class Image:
         * *verbose* - If this flag is true we return the path where we saved the file. 
 
         * *temp* - If temp is True we save the image as a temporary file and return the path
+        
+        * *path* - path where temporary files needed to be stored
+        
+        * *fname* - name(Prefix) of the temporary file.
 
         * *params* - This object is used for overloading the PIL save methods. In particular 
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
@@ -1791,7 +1795,9 @@ class Image:
 
         .. Note::
           You must have IPython notebooks installed for this to work
-       
+          
+          path and fname are valid if and only if temp is set to True.
+          
         .. attention:: 
           We need examples for all save methods as they are unintuitve. 
         """
