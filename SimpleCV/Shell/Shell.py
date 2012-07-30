@@ -180,12 +180,6 @@ def run_notebook():
 
 
 def main(*args):
-
-    print "args:",sys.argv
-
-    #~ args = sys.argv
-    #~ import pdb;pdb.set_trace()
-    #~ import pdb;pdb.set_trace()
     log_level = logging.WARNING
     if len(sys.argv) > 1 and len(sys.argv[1]) > 1:
       flag = sys.argv[1]
