@@ -471,6 +471,9 @@ class Image:
     _mKeyPoints = None
     _mKPDescriptors = None
     _mKPFlavor = "NONE"
+    
+    #temp files
+    _tempFiles = []
 
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
@@ -712,10 +715,13 @@ class Image:
         """
         This is called when the instance is about to be destroyed also called a destructor.
         """
-        for i in self._tempFiles:
-             if (isinstance(i,str)):
-                 os.remove(i)
-        
+        try :
+           for i in self._tempFiles:
+               if (isinstance(i,str)):
+                   os.remove(i)
+        except :
+           pass
+           
     def getEXIFData(self):
         """
         **SUMMARY**
