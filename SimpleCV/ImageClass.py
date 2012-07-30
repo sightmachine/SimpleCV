@@ -1,18 +1,7 @@
 # Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
-from numpy import int32
-from numpy import uint8
 
-from EXIF import *
-import pygame as pg
-import scipy.ndimage as ndimage
-import scipy.stats.stats as sss  #for auto white balance
-import scipy.cluster.vq as scv    
-import scipy.linalg as nla  # for linear algebra / least squares
-import math # math... who does that 
-import copy # for deep copy
-#import scipy.stats.mode as spsmode
 
 
 class ColorSpace:

@@ -5,9 +5,6 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
-from SimpleCV.Features import Line
-import platform
-from warnings import warn
 
 #Globals
 _cameras = [] 
