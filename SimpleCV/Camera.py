@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
+from SimpleCV.Features import Line
 import platform
 from warnings import warn
 
@@ -1215,3 +1216,345 @@ class DigitalCamera(FrameSource):
         os.remove(path)
         
         return img       
+
+class StereoCamera:
+    """
+    **SUMMARY**
+    
+    This class is for binaculor Stereopsis. That is exactrating 3D information from two differing views of a scene. By comparing the two images, the relative depth information can be obtained.
+    
+    - Fundamental Matrix : F : a 3 x 3 numpy matrix, is a relationship between any two images of the same scene that constrains where the projection of points from the scene can occur in both images. see : http://en.wikipedia.org/wiki/Fundamental_matrix_(computer_vision)
+    
+    - Homography Matrix : H : a 3 x 3 numpy matrix, 
+    
+    - ptsLeft : The matched points on the left image. 
+    
+    - ptsRight : The matched points on the right image.
+    
+    -findDisparityMap and findDepthMap - provides 3D information. 
+    
+    for more information on stereo vision, visit : http://en.wikipedia.org/wiki/Computer_stereo_vision 
+    
+    **EXAMPLE**  
+    >>> img1 = Image('sampleimages/stereo_view1.png')
+    >>> img2 = Image('sampleimages/stereo_view2.png')
+    >>> cam = StereoCamera(img1,img2)
+    >>> disp = cam.findDisparityMap(methos="BM",nDisparity=20)
+    >>> disp.show()
+    """
+    def __init__( self, imgLeft , imgRight ):
+        self.ImageLeft = imgLeft
+    	self.ImageRight = imgRight
+        if self.ImageLeft.size() != self.ImageRight.size():
+            logger.warning('Left and Right images should have the same size.')
+            return None
+    	else:
+    	    self.size = self.ImageLeft.size()
+    	
+    	self.F, self.ptsLeft, self.ptsRight = self._findFundamentalMat()
+    	self.H, self.ptsLeft, self.ptsRight = self._findHomography()
+    	
+    def _findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
+        """
+        **SUMMARY**        
+
+        This method returns the fundamental matrix F such that (P_2).T F P_1 = 0
+
+        **PARAMETERS**
+
+        * *thresh* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features. 
+        * *minDist* - The value below which the feature correspondence is considered a match. This 
+          is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        **RETURNS**   
+     
+        Return None if it fails.
+        * *F* -  Fundamental matrix as ndarray. 
+        * *matched_pts1* - the matched points (x, y) in img1
+        * *matched_pts2* - the matched points (x, y) in img2
+
+        **EXAMPLE**
+        >>> img1 = Image("sampleimages/stereo_view1.png")
+        >>> img2 = Image("sampleimages/stereo_view2.png")
+        >>> cam = StereoCamera(img1,img2)
+        >>> F,pts1,pts2 = cam.findFundamentalMat()
+
+        **NOTE**
+        If you deal with the fundamental matrix F directly, be aware of (P_2).T F P_1 = 0 
+        where P_2 and P_1 consist of (y, x, 1)
+        """
+
+        (kpts1, desc1) = self.ImageLeft._getRawKeypoints(thresh)
+        (kpts2, desc2) = self.ImageRight._getRawKeypoints(thresh)
+
+        if desc1 == None or desc2 == None:
+            logger.warning("We didn't get any descriptors. Image might be too uniform or blurry.")
+            return None
+
+        num_pts1 = desc1.shape[0]
+        num_pts2 = desc2.shape[0]
+
+        magic_ratio = 1.00
+        if num_pts1 > num_pts2:
+            magic_ratio = float(num_pts1) / float(num_pts2)
+
+        (idx, dist) = Image()._getFLANNMatches(desc1, desc2)
+        p = dist.squeeze()
+        result = p * magic_ratio < minDist
+
+        try:
+            import cv2
+        except:
+            logger.warning("Can't use fundamental matrix without OpenCV >= 2.3.0")
+            return None
+
+        pts1 = np.array([kpt.pt for kpt in kpts1])
+        pts2 = np.array([kpt.pt for kpt in kpts2])
+
+        matched_pts1 = pts1[idx[result]].squeeze()
+        matched_pts2 = pts2[result]
+        (F, mask) = cv2.findFundamentalMat(matched_pts1, matched_pts2, method=cv.CV_FM_LMEDS)
+
+        inlier_ind = mask.nonzero()[0]
+        matched_pts1 = matched_pts1[inlier_ind, :]
+        matched_pts2 = matched_pts2[inlier_ind, :]
+
+        matched_pts1 = matched_pts1[:, ::-1.00]
+        matched_pts2 = matched_pts2[:, ::-1.00]
+        return (F, matched_pts1, matched_pts2)
+
+    def _findHomography( self, thresh=500.00, minDist=0.15):
+        """
+        **SUMMARY**        
+
+        This method returns the homography H such that P2 ~ H P1
+
+        **PARAMETERS**
+
+        * *thresh* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features. 
+        * *minDist* - The value below which the feature correspondence is considered a match. This 
+          is the distance between two feature vectors. Good values are between 0.05 and 0.3
+
+        **RETURNS**   
+     
+        Return None if it fails.
+        * *H* -  homography as ndarray. 
+        * *matched_pts1* - the matched points (x, y) in img1
+        * *matched_pts2* - the matched points (x, y) in img2
+
+        **EXAMPLE**
+        >>> img1 = Image("sampleimages/stereo_view1.png")
+        >>> img2 = Image("sampleimages/stereo_view2.png")
+        >>> cam = StereoCamera(img1,img2)
+        >>> H = cam.findHomography()
+
+        **NOTE**
+        If you deal with the homography H directly, be aware of P2 ~ H P1
+        where P2 and P1 consist of (y, x, 1)
+        """
+
+        (kpts1, desc1) = self.ImageLeft._getRawKeypoints(thresh)
+        (kpts2, desc2) = self.ImageRight._getRawKeypoints(thresh)
+
+        if desc1 == None or desc2 == None:
+            logger.warning("We didn't get any descriptors. Image might be too uniform or blurry.")
+            return None
+
+        num_pts1 = desc1.shape[0]
+        num_pts2 = desc2.shape[0]
+
+        magic_ratio = 1.00
+        if num_pts1 > num_pts2:
+            magic_ratio = float(num_pts1) / float(num_pts2)
+
+        (idx, dist) = Image()._getFLANNMatches(desc1, desc2)
+        p = dist.squeeze()
+        result = p * magic_ratio < minDist
+
+        try:
+            import cv2
+        except:
+            logger.warning("Can't use homography without OpenCV >= 2.3.0")
+            return None
+
+        pts1 = np.array([kpt.pt for kpt in kpts1])
+        pts2 = np.array([kpt.pt for kpt in kpts2])
+
+        matched_pts1 = pts1[idx[result]].squeeze()
+        matched_pts2 = pts2[result]
+
+        (H, mask) = cv2.findHomography(matched_pts1, matched_pts2,
+                method=cv.CV_LMEDS)
+
+        inlier_ind = mask.nonzero()[0]
+        matched_pts1 = matched_pts1[inlier_ind, :]
+        matched_pts2 = matched_pts2[inlier_ind, :]
+
+        matched_pts1 = matched_pts1[:, ::-1.00]
+        matched_pts2 = matched_pts2[:, ::-1.00]
+        return (H, matched_pts1, matched_pts2)
+
+    def findDisparityMap( self, nDisparity=64 ,method='BM'):
+        """
+        The method generates disparity map from set of stereo images.
+
+        **PARAMETERS**
+
+        * *method* :
+                 *BM* - Block Matching algorithm, this is a real time algorithm. 
+                 *SGBM* - Semi Global Block Matching algorithm, this is not a real time algorithm.
+                 *GC* - Graph Cut algorithm, This is not a real time algorithm.
+             
+        * *nDisparity* - Maximum disparity value.
+        * *scale* - Scale factor 
+        
+        **RETURNS**   
+     
+        Return None if it fails.
+        Returns Disparity Map Image
+        
+        **EXAMPLE**
+        >>> img1 = Image("sampleimages/stereo_view1.png")
+        >>> img2 = Image("sampleimages/stereo_view2.png")
+        >>> cam = StereoCamera(img1, img2)
+        >>> disp = cam.findDisparityMap(method="BM")
+        """
+        gray_left = self.ImageLeft.getGrayscaleMatrix()
+        gray_right = self.ImageRight.getGrayscaleMatrix()
+        (r, c) = self.size
+        scale = int(self.ImageLeft.depth)
+        try :
+            if method == 'BM':
+               disparity = cv.CreateMat(c, r, cv.CV_16S)
+               state = cv.CreateStereoBMState()
+               state.SADWindowSize = 41
+               state.preFilterType = 1.00
+               state.preFilterSize = 41
+               state.preFilterCap = 31
+               state.minDisparity = 0
+               state.numberOfDisparities = nDisparity
+               state.textureThreshold = 10
+               state.speckleRange = 1.00
+               state.speckleWindowSize = 150
+               state.uniquenessRatio=15
+               cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
+               disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
+               #cv.Normalize( disparity, disparity_visual, -10, 0, cv.CV_MINMAX )
+               cv.Scale(disparity, disparity_visual,-scale)
+               return Image(disparity_visual)
+            
+            elif method == 'GC':
+               disparity_left = cv.CreateMat(c, r, cv.CV_16S)
+               disparity_right = cv.CreateMat(c, r, cv.CV_16S)
+               state = cv.CreateStereoGCState(nDisparity, 8)
+               state.minDisparity = 0
+               cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
+               disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
+               #cv.Normalize( disparity_left, disparity_left_visual, -10, 0, cv.CV_MINMAX )
+               cv.Scale(disparity_left, disparity_left_visual, -scale)
+               return Image(disparity_left_visual)
+
+            elif method == 'SGBM':
+               try:
+                   import cv2
+                   ver = cv2.__version__
+                   if ver.startswith("$Rev :"):
+                       logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
+                       return None
+               except:
+                    logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
+                    return None
+               state = cv2.StereoSGBM()    
+               state.SADWindowSize = 3
+               state.preFilterCap = 31
+               state.minDisparity = 0
+               state.numberOfDisparities = nDisparity
+               state.speckleRange = 32
+               state.speckleWindowSize = 100
+               state.disp12MaxDiff = 1
+               state.fullDP=False
+               state.P1 = 216
+               state.P2 = 864
+               disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
+               return Image(disparity)
+            
+            else :     
+               logger.warning("Unknown method. Choose one method amoung BM or SGBM or GC !")
+               return None
+                
+        except :
+           logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
+           return None
+                 
+    def Eline( self, point, whichImage):
+        """
+        **SUMMARY**    
+    
+        This method returns, line feature object.
+
+        **PARAMETERS**
+
+        * *point* - Input point (x, y)
+        * *whichImage* - Index of the image (1 or 2) that contains the point
+
+        **RETURNS**        
+
+        epipolar line, in the form of line feature object. 
+
+        **EXAMPLE**
+
+        >>> img1 = Image("sampleimages/stereo_view1.png")
+        >>> img2 = Image("sampleimages/stereo_view2.png")
+        >>> mapper = StereoCamera(img1,img2)
+        >>> epiline = mapper.Eline(point, 1)
+        """
+        pts1 = (0,0)
+        pts2 = self.size
+        pt_cvmat = cv.CreateMat(1, 1, cv.CV_32FC2)
+        pt_cvmat[0, 0] = (point[1], point[0])  # OpenCV seems to use (y, x) coordinate.
+        line = cv.CreateMat(1, 1, cv.CV_32FC3)
+        cv.ComputeCorrespondEpilines(pt_cvmat, whichImage, npArray2cvMat(self.F), line)
+        line_npArray = np.array(line).squeeze()
+        line_npArray = line_npArray[[1.00, 0, 2]]
+        pts1 = (pts1[0],(-line_npArray[2]-line_npArray[0]*pts1[0])/line_npArray[1] )
+        pts2 = (pts2[0],(-line_npArray[2]-line_npArray[0]*pts2[0])/line_npArray[1] )
+        if whichImage == 1 :
+            return Line( self.ImageLeft, [pts1,pts2] )
+        elif whichImage == 2 :
+            return Line( self.ImageRight, [pts1,pts2] )	     
+
+    def projectPoint( self, point, whichImage):
+        """
+        **SUMMARY**    
+    
+        This method returns the corresponding point (x, y) 
+
+        **PARAMETERS**
+
+        * *point* - Input point (x, y)
+        * *whichImage* - Index of the image (1 or 2) that contains the point
+        * *H* - Homography that can be estimated 
+                using StereoCamera.findHomography()
+
+        **RETURNS**        
+
+        Corresponding point (x, y) as tuple
+
+        **EXAMPLE**
+        
+        >>> img1 = Image("sampleimages/stereo_view1.png")
+        >>> img2 = Image("sampleimages/stereo_view2.png")
+        >>> cam = StereoCamera(img1,img2)
+        >>> projectPoint = cam.projectPoint(point, 1)
+        """
+
+        H = np.matrix(self.H)
+        point = np.matrix((point[1], point[0],1.00))
+        if whichImage == 1.00:
+            corres_pt = self.H * point.T
+        else:
+            corres_pt = np.linalg.inv(self.H) * point.T
+        corres_pt = corres_pt / corres_pt[2]
+        return (float(corres_pt[1]), float(corres_pt[0]))        
