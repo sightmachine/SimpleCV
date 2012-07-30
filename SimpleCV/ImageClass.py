@@ -705,6 +705,18 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
+    
+    def __del__(self):
+        """
+        This is called when the instance is about to be destroyed also called a destructor.
+        """
+        try :
+          for i in tfiles:
+             if (isinstance(i,str)):
+                 os.remove(i)
+        except :
+          pass         
+    
     def getEXIFData(self):
         """
         **SUMMARY**
@@ -1804,17 +1816,25 @@ class Image:
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
         
-        if temp and path!=None and fname!=None :
-            tfiles.append(tempfile.NamedTemporaryFile(prefix=fname, suffix=".png",dir=path,delete=True))
-            self.save(tfiles[-1].name)
-            return tfiles[-1].name
-            
-        elif temp and path!=None :
-            fname = 'Image' #+ str(file_num)
-            tfiles.append(tempfile.NamedTemporaryFile(prefix=fname, suffix=".png",dir=path,delete=True))
-            self.save(tfiles[-1].name)
-            return tfiles[-1].name 
-        
+        if temp and path!=None :
+            import glob
+            if fname==None :
+                fname = 'Image'                
+            if glob.os.path.exists(path):
+                path = glob.os.path.abspath(path) 
+                imagefiles = glob.glob(glob.os.path.join(path,fname+"*.png"))
+                num = [0]
+                for img in imagefiles :
+                    num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
+                num.sort()
+                fnum = num[-1]+1
+                fname = glob.os.path.join(path,fname+str(fnum)+".png") 
+                tfiles.append(fname)
+                self.save(tfiles[-1])
+                return tfiles[-1]
+            else :
+                print "Path does not exist!"
+                        
         #if it's a temporary file
         elif temp :
             tfiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
@@ -1951,7 +1971,7 @@ class Image:
         else:
           return 1
 
-
+    
     def copy(self):
         """
         **SUMMARY**
