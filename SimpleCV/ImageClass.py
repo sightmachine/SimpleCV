@@ -14,8 +14,6 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
-global tfiles
-tfiles = []
 
 class ColorSpace:
     """
@@ -489,6 +487,7 @@ class Image:
         "_grayNumpy":"",
         "_pgsurface": ""}  
     
+   
     def __repr__(self):
         if len(self.filename) == 0:
           fn = "None"
@@ -547,6 +546,9 @@ class Image:
         self._mPalette = None
         self._mPaletteMembers = None
         self._mPalettePercentages = None
+        #Temp files
+        self._tempFiles = []
+    
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -710,13 +712,10 @@ class Image:
         """
         This is called when the instance is about to be destroyed also called a destructor.
         """
-        try :
-          for i in tfiles:
+        for i in self._tempFiles:
              if (isinstance(i,str)):
                  os.remove(i)
-        except :
-          pass         
-    
+        
     def getEXIFData(self):
         """
         **SUMMARY**
@@ -1829,17 +1828,17 @@ class Image:
                 num.sort()
                 fnum = num[-1]+1
                 fname = glob.os.path.join(path,fname+str(fnum)+".png") 
-                tfiles.append(fname)
-                self.save(tfiles[-1])
-                return tfiles[-1]
+                self._tempFiles.append(fname)
+                self.save(self._tempFiles[-1])
+                return self._tempFiles[-1]
             else :
                 print "Path does not exist!"
                         
         #if it's a temporary file
         elif temp :
-            tfiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
-            self.save(tfiles[-1].name)
-            return tfiles[-1].name
+            self._tempFiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
+            self.save(self._tempFiles[-1].name)
+            return self._tempFiles[-1].name
        
         if (not filehandle_or_filename):
             if (self.filename):
