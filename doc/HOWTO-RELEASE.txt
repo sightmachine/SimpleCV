@@ -1,6 +1,6 @@
 make sure tests run clean
 do a git clone (or clean)
-update changelog
+update changelog (use a program like meld to look at differences, copy folder, checkout previous version, then diff the two files and go through the files)
 change version in setup.py
 change version in doc/conf.py
 change version in init.py
