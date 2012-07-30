@@ -487,6 +487,7 @@ class Image:
         "_grayNumpy":"",
         "_pgsurface": ""}  
     
+   
     def __repr__(self):
         if len(self.filename) == 0:
           fn = "None"
@@ -545,6 +546,9 @@ class Image:
         self._mPalette = None
         self._mPaletteMembers = None
         self._mPalettePercentages = None
+        #Temp files
+        self._tempFiles = []
+    
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
@@ -703,6 +707,15 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
+    
+    def __del__(self):
+        """
+        This is called when the instance is about to be destroyed also called a destructor.
+        """
+        for i in self._tempFiles:
+             if (isinstance(i,str)):
+                 os.remove(i)
+        
     def getEXIFData(self):
         """
         **SUMMARY**
@@ -1741,7 +1754,7 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False,  **params):
+    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, fname=None, **params):
         """
         **SUMMARY**
 
@@ -1765,6 +1778,10 @@ class Image:
         * *verbose* - If this flag is true we return the path where we saved the file. 
 
         * *temp* - If temp is True we save the image as a temporary file and return the path
+        
+        * *path* - path where temporary files needed to be stored
+        
+        * *fname* - name(Prefix) of the temporary file.
 
         * *params* - This object is used for overloading the PIL save methods. In particular 
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
@@ -1789,16 +1806,39 @@ class Image:
 
         .. Note::
           You must have IPython notebooks installed for this to work
-       
+          
+          path and fname are valid if and only if temp is set to True.
+          
         .. attention:: 
           We need examples for all save methods as they are unintuitve. 
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
-
+        
+        if temp and path!=None :
+            import glob
+            if fname==None :
+                fname = 'Image'                
+            if glob.os.path.exists(path):
+                path = glob.os.path.abspath(path) 
+                imagefiles = glob.glob(glob.os.path.join(path,fname+"*.png"))
+                num = [0]
+                for img in imagefiles :
+                    num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
+                num.sort()
+                fnum = num[-1]+1
+                fname = glob.os.path.join(path,fname+str(fnum)+".png") 
+                self._tempFiles.append(fname)
+                self.save(self._tempFiles[-1])
+                return self._tempFiles[-1]
+            else :
+                print "Path does not exist!"
+                        
         #if it's a temporary file
-        if temp:
-            filename = tempfile.NamedTemporaryFile(suffix=".png")
+        elif temp :
+            self._tempFiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
+            self.save(self._tempFiles[-1].name)
+            return self._tempFiles[-1].name
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -1930,7 +1970,7 @@ class Image:
         else:
           return 1
 
-
+    
     def copy(self):
         """
         **SUMMARY**
