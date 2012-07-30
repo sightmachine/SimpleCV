@@ -1,12 +1,9 @@
 @echo off
 echo "Setting System paths"
-SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
-SETX PYTHONPATH C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
-SETX PATH C:/SimpleCV1.3/files/opencv/build/x86/vc10/bin/;%PATH%
-SETX PYTHONPATH C:/SimpleCV1.3/files/opencv/build/python/2.7/;%PYTHONPATH%
-SET PATH=C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
-SET PYTHONPATH=C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
-
+SETX PATH C:/SimpleCV1.3/files/opencv/build/x86/vc10/bin/;C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
+SETX PYTHONPATH C:/SimpleCV1.3/files/opencv/build/python/2.7/;C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
+SET PATH=C:/SimpleCV1.3/files/opencv/build/x86/vc10/bin/;C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
+SET PYTHONPATH=C:/SimpleCV1.3/files/opencv/build/python/2.7/;C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
 
 echo "Running System Requirement Installers"
 echo "Please click next on each of the additional installers"
