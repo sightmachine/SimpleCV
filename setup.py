@@ -40,6 +40,11 @@ setup(name="SimpleCV",
                         'examples/tracking/*'
                         ],
   },
-  scripts=['scripts/simplecv']
+  #~ scripts=['scripts/simplecv'],
+  entry_points={
+    'console_scripts': [
+      'simplecv = SimpleCV.Shell:main',
+    ],
+  },
 
   )
