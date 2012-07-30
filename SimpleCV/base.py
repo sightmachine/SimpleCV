@@ -38,7 +38,7 @@ from numpy import linspace
 from scipy.interpolate import UnivariateSpline
 from warnings import warn
 from copy import copy
-from math import sqrt, atan2
+from math import *
 from pkg_resources import load_entry_point
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from types import IntType, LongType, FloatType, InstanceType
@@ -46,18 +46,8 @@ from cStringIO import StringIO
 from numpy import int32
 from numpy import uint8
 from EXIF import *
-from numpy import int32
-from numpy import uint8
 from pygame import gfxdraw
 from pickle import *
-from math import cos, radians, ceil
-from math import sin, cos, pi
-from math import *
-from math import pi
-
-
-#import scipy.stats.mode as spsmode
-
 
 # SimpleCV library includes
 try:
