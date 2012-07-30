@@ -2821,4 +2821,19 @@ def test_image_new_crop():
   diff = crop-crop1;
   c=diff.meanColor()
   if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
-    assert False               
+    assert False
+    
+def test_image_temp_save():
+  img1 = Image("lenna")
+  img2 = Image(logo)
+  path = []
+  path.append(img1.save(temp=True))
+  path.append(img2.save(temp=True, path=".", fname= "Vijay"))
+  path.append(img1.save(temp=True, path=".", fname= "Vijay"))
+  path.append(img2.save(temp=True, path="/home"))
+  path.append(img1.save(temp=True, path="/home", fname= "Vijay"))
+  for i in path :
+      if i==None :
+         assert False
+  assert True
+  
