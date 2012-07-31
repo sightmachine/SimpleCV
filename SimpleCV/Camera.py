@@ -2,7 +2,7 @@
 
 #load system libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image, ImageSet
+from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
 from SimpleCV.Features import Line
@@ -1443,7 +1443,8 @@ class StereoCamera:
                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
                #cv.Normalize( disparity, disparity_visual, -10, 0, cv.CV_MINMAX )
                cv.Scale(disparity, disparity_visual,-scale)
-               return Image(disparity_visual)
+               disparity_visual = Image(disparity_visual)
+               return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
             
             elif method == 'GC':
                disparity_left = cv.CreateMat(c, r, cv.CV_16S)
@@ -1454,7 +1455,8 @@ class StereoCamera:
                disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
                #cv.Normalize( disparity_left, disparity_left_visual, -10, 0, cv.CV_MINMAX )
                cv.Scale(disparity_left, disparity_left_visual, -scale)
-               return Image(disparity_left_visual)
+               disparity_left_visual = Image(disparity_left_visual)
+               return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY) 
 
             elif method == 'SGBM':
                try:
@@ -1485,8 +1487,8 @@ class StereoCamera:
                return None
                 
         except :
-           logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
-           return None
+          logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
+          return None
                  
     def Eline( self, point, whichImage):
         """
