@@ -25,7 +25,9 @@ class HaarCascade():
               self._mCascade = HaarCascade._cache[fname]
               return
 
-          if fname.isalpha():
+          no_underscores = "".join([c for c in fname if c != '_'])
+
+          if no_underscores.isalnum():
              fname = fname + ".xml"
 
           fhandle = os.path.join(LAUNCH_PATH, 'Features','HaarCascades',fname)
