@@ -16,6 +16,7 @@
 #load system libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
+import copy
 
 
 class FeatureSet(list):
