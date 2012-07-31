@@ -10082,7 +10082,66 @@ class Image:
             cv.CvtColor(retVal,retVal,cv.CV_HSV2BGR)
 
 
-        return Image(retVal) 
+        return Image(retVal)
+
+    def anonymize(self, block_size=10, features=None, transform=None):
+        """
+        **SUMMARY**
+
+        Anonymize, for additional privacy to images.
+
+        **PARAMETERS**
+
+        * *features* - A list with the Haar like feature cascades that should be matched.
+        * *block_size* - The size of the blocks for the pixelize function.
+        * *transform* - A function, to be applied to the regions matched instead of pixelize.
+        * This function must take two arguments: the image and the region it'll be applied to,
+        * as in region = (x, y, width, height).
+
+        **RETURNS**
+
+        Returns the image with matching regions pixelated.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> anonymous = img.anonymize()
+        >>> anonymous.show()
+
+        >>> def my_function(img, region):
+        >>>     x, y, width, height = region
+        >>>     img = img.crop(x, y, width, height)
+        >>>     return img
+        >>>
+        >>>img = Image("lenna")
+        >>>transformed = img.anonymize(transform = my_function)
+
+        """
+
+        regions = []
+
+        if features is None:
+            regions.append(self.findHaarFeatures("face"))
+            regions.append(self.findHaarFeatures("profile"))
+        else:
+            for feature in features:
+                regions.append(self.findHaarFeatures(feature))
+
+        found = [f for f in regions if f is not None]
+
+        img = self.copy()
+
+        if found:
+            for feature_set in found:
+                for region in feature_set:
+                    rect = (region.topLeftCorner()[0], region.topLeftCorner()[1],
+                            region.width(), region.height())
+                    if transform is None:
+                        img = img.pixelize(block_size=block_size, region=rect)
+                    else:
+                        img = transform(img, rect)
+
+        return img
                     
     def edgeIntersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
         """
