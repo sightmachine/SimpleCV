@@ -177,15 +177,32 @@ def run_notebook():
             '--c', code,
             ])
     app.start()
+    sys.exit()
+
+def self_update():
+    URL = "https://github.com/ingenuitas/SimpleCV/zipball/master"
+    command = "pip install -U %s" % URL
+
+    if os.getuid() == 0:
+        command = "sudo " + command
+
+    returncode = call(command, shell=True)
+    sys.exit()
 
 
 def main(*args):
     log_level = logging.WARNING
+
     if len(sys.argv) > 1 and len(sys.argv[1]) > 1:
       flag = sys.argv[1]
       if flag == "notebook" and IPVER > 10:
           run_notebook()
           sys.exit()
+
+      elif flag == 'update':
+        print "Updating SimpleCV....."
+        self_update()
+        
 
       if flag in ["--headless","headless"]:
         # set SDL to use the dummy NULL video driver,
@@ -197,6 +214,7 @@ def main(*args):
 
       elif flag in ['--debug','debug']:
         log_level = logging.DEBUG
+
 
     init_logging(log_level)
     shellclear()
