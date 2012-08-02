@@ -1251,10 +1251,10 @@ class StereoCamera:
     	else:
     	    self.size = self.ImageLeft.size()
     	
-    	self.F, self.ptsLeft, self.ptsRight = self._findFundamentalMat()
-    	self.H, self.ptsLeft, self.ptsRight = self._findHomography()
+    	self.F, self.ptsLeft, self.ptsRight = self.findFundamentalMat()
+    	self.H, self.ptsLeft, self.ptsRight = self.findHomography()
     	
-    def _findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
+    def findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
         """
         **SUMMARY**        
 
@@ -1324,7 +1324,7 @@ class StereoCamera:
         matched_pts2 = matched_pts2[:, ::-1.00]
         return (F, matched_pts1, matched_pts2)
 
-    def _findHomography( self, thresh=500.00, minDist=0.15):
+    def findHomography( self, thresh=500.00, minDist=0.15):
         """
         **SUMMARY**        
 
@@ -1559,4 +1559,4 @@ class StereoCamera:
         else:
             corres_pt = np.linalg.inv(self.H) * point.T
         corres_pt = corres_pt / corres_pt[2]
-        return (float(corres_pt[1]), float(corres_pt[0]))        
+        return (float(corres_pt[1]), float(corres_pt[0]))
