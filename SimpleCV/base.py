@@ -151,6 +151,12 @@ def download_and_extract(URL):
 
     return tmpdir
 
+def int_to_bin(i):
+    """Integer to two bytes"""
+    i1 = i % 256
+    i2 = int(i/256)
+    return chr(i1) + chr(i2)
+
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """
     This function is a utility for converting numpy arrays to the cv.cvMat format.
