@@ -434,6 +434,36 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       for i in self:
         print i.filename
 
+    def _read_gif(self, filename):
+        """ read_gif(filename)
+
+        Reads images from an animated GIF file. Returns the number of images loaded.
+        """
+
+        if not PIL_ENABLED:
+            return
+        elif not os.path.isfile(filename):
+            return
+
+        pil_img = pil.open(filename)
+        pil_img.seek(0)
+
+        pil_images = []
+        try:
+            while True:
+                pil_images.append(pil_img.copy())
+                pil_img.seek(pil_img.tell()+1)
+
+        except EOFError:
+            pass
+
+        loaded = 0
+        for img in pil_images:
+            self.append(Image(img))
+            loaded += 1
+
+        return loaded
+
     def load(self, directory = None, extension = None):
       """
       **SUMMARY**
@@ -447,7 +477,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       **PARAMETERS**
       
-      * *directory* - The path or directory from which to load images. 
+      * *directory* - The path or directory from which to load images. If this
+      * ends with .gif, it'll read from the gif file accordingly.
       * *extension* - The extension to use. If none is given png is the default.
 
       **RETURNS**
@@ -465,7 +496,10 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       if not directory:
         print "You need to give a directory to load from"
         return
-
+      elif directory.endswith(".gif"):
+        return self._read_gif(directory)
+        
+        
       if not os.path.exists(directory):
         print "Invalid image path given"
         return
