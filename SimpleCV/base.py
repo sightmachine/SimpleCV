@@ -48,11 +48,13 @@ import pygame as pg
 PIL_ENABLED = True
 try:
     import Image as pil
+    from Image.GifImagePlugin import getheader, getdata
 except ImportError:
     try:
         import PIL.Image as pil
         from PIL import ImageFont as pilImageFont
         from PIL import ImageDraw as pilImageDraw
+        from PIL.GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 

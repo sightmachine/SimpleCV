@@ -14,9 +14,6 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
-if PIL_ENABLED:
-    from PIL.GifImagePlugin import getheader, getdata
-
 class ColorSpace:
     """
     **SUMMARY**
