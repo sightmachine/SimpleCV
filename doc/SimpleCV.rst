@@ -49,6 +49,14 @@ SimpleCV Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`EXIF` Module
+------------------
+
+.. automodule:: SimpleCV.EXIF
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`Font` Module
 ------------------
 
@@ -61,14 +69,6 @@ SimpleCV Package
 ------------------------
 
 .. automodule:: SimpleCV.ImageClass
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`Images` Module
---------------------
-
-.. automodule:: SimpleCV.Images
     :members:
     :undoc-members:
     :show-inheritance:
@@ -97,5 +97,4 @@ Subpackages
     SimpleCV.Features
     SimpleCV.MachineLearning
     SimpleCV.Segmentation
-
 

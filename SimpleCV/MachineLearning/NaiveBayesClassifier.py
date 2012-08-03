@@ -33,7 +33,7 @@ class NaiveBayesClassifier:
     def __init__(self,featureExtractors):
 
         if not ORANGE_ENABLED:
-            warning.warn("The required orange machine learning library is not installed")
+            logger.warning("The required orange machine learning library is not installed")
             return None
             
         self.mFeatureExtractors =  featureExtractors    
@@ -170,7 +170,7 @@ class NaiveBayesClassifier:
             colNames.extend(extractor.getFieldNames())
         
         if(count <= 0):
-            warnings.warn("No features extracted - bailing")
+            logger.warning("No features extracted - bailing")
             return None
         
         # push our data into an orange example table

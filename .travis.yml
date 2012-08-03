@@ -17,6 +17,10 @@ before_install:
   #~ - sudo apt-get install libhighgui-dev
   - sudo apt-get install python-opencv
 # command to run tests, e.g. python setup.py test
+install:
+  - find /usr/ | grep 'cv2.so'
+  - ln -s /usr/local/lib/python2.7/dist-packages/cv2.so ~/virtualenv/usr/lib/python2.7/dist-packages/cv2.so
+  - python setup.py install
 script:
 - cd SimpleCV/tests/
 - nosetests tests.py

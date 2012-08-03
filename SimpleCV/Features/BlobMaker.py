@@ -1,5 +1,5 @@
 from SimpleCV.base import *
-
+#import cv2 as cv2
 
 class BlobMaker:
     """
@@ -55,14 +55,15 @@ class BlobMaker:
         retVal = sorted(blobs,key=lambda x: x.mArea, reverse=True)
         return FeatureSet(retVal)    
     
-    def extractFromBinary(self,binaryImg,colorImg, minsize = 5, maxsize = -1):
+    def extractFromBinary(self,binaryImg,colorImg, minsize = 5, maxsize = -1,appx_level=3):
         """
         This method performs blob extraction given a binary source image that is used
         to get the blob images, and a color source image.
-        binaryImg- The binary image with the blobs.
+        binarymg- The binary image with the blobs.
         colorImg - The color image.
         minSize  - The minimum size of the blobs in pixels.
         maxSize  - The maximum blob size in pixels. 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the approximation edge - lower numbers yield better approximation. 
         """
         #If you hit this recursion limit may god have mercy on your soul.
         #If you really are having problems set the value higher, but this means
@@ -84,23 +85,23 @@ class BlobMaker:
         # that sits on the edge of an image the whole thing explodes
         # this check catches those bugs. -KAS
         # Also I am submitting a bug report to Willow Garage - please bare with us. 
-        ptest = 510.0/(binaryImg.width*binaryImg.height) # val if two pixels are white
-        if( test[0]<ptest and test[1]<ptest and test[2]<ptest):
+        ptest = (4*255.0)/(binaryImg.width*binaryImg.height) # val if two pixels are white
+        if( test[0]<=ptest and test[1]<=ptest and test[2]<=ptest):
             return retVal 
         
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
-            retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize)
+            retVal = self._extractFromBinary(seq,False,colorImg,minsize,maxsize,appx_level)
         except RuntimeError,e:
-            warnings.warn("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
-        except:
-            warnings.warn("SimpleCV Find Blobs Failed - This could be an OpenCV python binding issue")
+            logger.warning("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
+        except e:
+            logger.warning("SimpleCV Find Blobs Failed - This could be an OpenCV python binding issue")
         del seq
         return FeatureSet(retVal)
     
-    def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize):
+    def _extractFromBinary(self, seq, isaHole, colorImg,minsize,maxsize,appx_level):
         """
         The recursive entry point for the blob extraction. The blobs and holes are presented
         as a tree and we traverse up and across the tree. 
@@ -113,7 +114,7 @@ class BlobMaker:
         nextLayerDown = []
         while True:
             if( not isaHole ): #if we aren't a hole then we are an object, so get and return our featuress
-                temp =  self._extractData(seq,colorImg,minsize,maxsize)
+                temp =  self._extractData(seq,colorImg,minsize,maxsize,appx_level)
                 if( temp is not None ):
                     retVal.append(temp)
             
@@ -128,11 +129,11 @@ class BlobMaker:
                 break
         
         for nextLayer in nextLayerDown:
-            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize)
+            retVal += self._extractFromBinary(nextLayer, not isaHole, colorImg, minsize,maxsize,appx_level)
         
         return retVal
     
-    def _extractData(self,seq,color,minsize,maxsize):
+    def _extractData(self,seq,color,minsize,maxsize,appx_level):
         """
         Extract the bulk of the data from a give blob. If the blob's are is too large
         or too small the method returns none. 
@@ -146,29 +147,47 @@ class BlobMaker:
         retVal = Blob()
         retVal.image = color 
         retVal.mArea = area
-        
+
         retVal.mMinRectangle = cv.MinAreaRect2(seq)
-        retVal.mBoundingBox = cv.BoundingRect(seq)
-        retVal.x = retVal.mBoundingBox[0]+(retVal.mBoundingBox[2]/2)
-        retVal.y = retVal.mBoundingBox[1]+(retVal.mBoundingBox[3]/2)
+        bb = cv.BoundingRect(seq)
+        retVal.x = bb[0]+(bb[2]/2)
+        retVal.y = bb[1]+(bb[3]/2)
         retVal.mPerimeter = cv.ArcLength(seq)
-        
         if( seq is not None):  #KAS 
             retVal.mContour = list(seq)
-            retVal.points = list(seq)
+            try:
+                import cv2 
+                if( retVal.mContour is not None):
+                    retVal.mContourAppx = []
+                    appx = cv2.approxPolyDP(np.array([retVal.mContour],'float32'),appx_level,True)
+                    for p in appx:           
+                        retVal.mContourAppx.append((int(p[0][0]),int(p[0][1])))
+            except:
+                pass
 
-        # so this is a bit hacky.... need to refactor blobs
-        xx = retVal.mBoundingBox[0]
-        yy = retVal.mBoundingBox[1]
-        ww = retVal.mBoundingBox[2]
-        hh = retVal.mBoundingBox[3]
-        retVal.boundingBox = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
+        # so this is a bit hacky....
+     
+        # For blobs that live right on the edge of the image OpenCV reports the position and width
+        #   height as being one over for the true position. E.g. if a blob is at (0,0) OpenCV reports 
+        #   its position as (1,1). Likewise the width and height for the other corners is reported as
+        #   being one less than the width and height. This is a known bug. 
 
+        xx = bb[0]
+        yy = bb[1]
+        ww = bb[2]
+        hh = bb[3]
+        retVal.points = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
+        retVal._updateExtents()
         chull = cv.ConvexHull2(seq,cv.CreateMemStorage(),return_points=1)
         retVal.mConvexHull = list(chull)
-        hullMask = self._getHullMask(chull,retVal.mBoundingBox)
-        retVal.mHullImg = self._getBlobAsImage(chull,retVal.mBoundingBox,color.getBitmap(),hullMask)
-        retVal.mHullMask = Image(hullMask)
+        # KAS -- FLAG FOR REPLACE 6/6/2012
+        #hullMask = self._getHullMask(chull,bb)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
+        #retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),hullMask)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
+        #retVal.mHullMask = Image(hullMask)
         
         del chull
         
@@ -195,21 +214,26 @@ class BlobMaker:
             retVal.m12 = cv.GetSpatialMoment(moments,1,2)
             
         retVal.mHu = cv.GetHuMoments(moments)
-        mask = self._getMask(seq,retVal.mBoundingBox)
-        retVal.mMask = Image(mask)
 
-        retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
+        mask = self._getMask(seq,bb)
+        #retVal.mMask = Image(mask)
+
+        retVal.mAvgColor = self._getAvg(color.getBitmap(),bb,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
         #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
         #retVal.mAvgColor = retVal.mAvgColor[0:3]
-        retVal.mImg = self._getBlobAsImage(seq,retVal.mBoundingBox,color.getBitmap(),mask)
+
+        # KAS -- FLAG FOR REPLACE 6/6/2012
+        #retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
 
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
-    
-        
+
         return retVal
     
+
     def _getHoles(self,seq):
         """
         This method returns the holes associated with a blob as a list of tuples.
@@ -224,7 +248,8 @@ class BlobMaker:
                 if( len(temp) >= 3 ): #exclude single pixel holes 
                     retVal.append(temp)
         return retVal
-        
+                
+
     def _getMask(self,seq,bb):
         """
         Return a binary image of a particular contour sequence. 

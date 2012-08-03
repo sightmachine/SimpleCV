@@ -8,6 +8,8 @@ PYGAME_INITIALIZED = False
 
 class Display:
     """
+    **SUMMARY**
+
     WindowStream opens a window (Pygame Display Surface) to which you can write
     images.  The default resolution is 640, 480 -- but you can also specify 0,0
     which will maximize the display.  Flags are pygame constants, including:
@@ -37,7 +39,8 @@ class Display:
     * mouseRawX: The position of the mouse on the screen.
     * mouseRawY: The position of the mouse on the screen.
 
-    NOTE:
+    **NOTES**
+
     The mouse position on the screen is not the mouse position on the image. If you
     are trying to draw on the image or take in coordinates use mousex and mousey
     as these values are scaled along with the image.
@@ -48,7 +51,7 @@ class Display:
     * mouseWheelUp: scroll wheel has been moved up.
     * mouseWheelDown: the wheel has been clicked towards the bottom of the mouse.
     
-    Example:
+    **EXAMPLE**
     
     >>> display = Display(resolution = (800, 600)) #create a new display to draw images on
     >>> cam = Camera() #initialize the camera
@@ -96,13 +99,30 @@ class Display:
     
     def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
         """
+        **SUMMARY**
+
         This is the generic display object.  You are able to set the display type.
         The standard display type will pop up a window
         The notebook display type is to be used in conjunction with IPython Notebooks
         this is so it is web based.  If you have IPython Notebooks installed
         you just need to start IPython Notebooks and open in your browser.
 
+        **PARAMETERS**
+        
+        * *resolution* - the size of the diplay in pixels. 
+        * *flags* - ???
+        * *title* - the title bar on the display. 
+        * *displaytype* - The type of display. Options are as follows:
+        
+          * 'standard' - A pygame window.
+          * 'notebook' - Ipython Web Notebook output
+       
+        * *headless* - If False we ignore healess mode. If true all rendering is suspended. 
+
+        **EXAMPLE**
+
         Once in IPython you can do the following:
+
         >>> from SimpleCV import *
         >>> disp = Display(displaytype='notebook')
         >>> img = Image('simplecv')
@@ -141,20 +161,199 @@ class Display:
             pg.display.set_caption(title)
           
     def leftButtonUpPosition(self):
+        """
+        **SUMMARY**
+        
+        Returns the position where the left mouse button went up.
+
+        .. warning::
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
+          in your main display loop for this method to work. 
+
+        **RETURNS**
+        
+        An (x,y) mouse postion tuple where the mouse went up.
+        
+        **EXAMPLE**
+
+        >>> disp = Display((600,800))
+        >>> cam = Camera()
+        >>> while(disp.isNotDone()):
+        >>>   img = cam.getImage()
+        >>>   dwn = disp.leftButtonDownPosition()
+        >>>   up = disp.leftButtonUpPosition()
+        >>>   if( up is not None and dwn is not None):
+        >>>     bb = disp.pointsToBoundingBox(up,dwn)
+        >>>     img.drawRectangle(bb[0],bb[1],bb[2],bb[3])
+        >>>   img.save(disp)
+
+        **SEE ALSO**
+
+        :py:meth:`rightButtonUpPostion`
+        :py:meth:`leftButtonDownPostion`
+        :py:meth:`rightButtonDownPostion`
+        :py:meth:`pointsToBoundingBox`
+
+      
+        """
         return self.leftButtonUp
 
     def leftButtonDownPosition(self):
+        """
+        **SUMMARY**
+        
+        Returns the position where the left mouse button went down.
+
+        .. warning::
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
+          in your main display loop for this method to work. 
+
+
+        **RETURNS**
+        
+        An (x,y) mouse postion tuple where the mouse went up.
+        
+        **EXAMPLE**
+        
+        >>> disp = Display((600,800))
+        >>> cam = Camera()
+        >>> while(disp.isNotDone()):
+        >>>   img = cam.getImage()
+        >>>   dwn = disp.leftButtonDownPosition()
+        >>>   up = disp.leftButtonUpPosition()
+        >>>   if( up is not None and dwn is not None):
+        >>>     bb = disp.pointsToBoundingBox(up,dwn)
+        >>>     img.drawRectangle(bb[0],bb[1],bb[2],bb[3])
+        >>>   img.save(disp)
+
+        **SEE ALSO**
+
+        :py:meth:`leftButtonUpPostion`
+        :py:meth:`rightButtonUpPostion`
+        :py:meth:`rightButtonDownPostion`
+        :py:meth:`pointsToBoundingBox`
+        :py:meth:`checkEvents`
+
+        
+        """
+
         return self.leftButtonDown
 
     def rightButtonUpPosition(self):
+        """
+        **SUMMARY**
+        
+        Returns the position where the right mouse button went up.
+
+        .. warning::
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
+          in your main display loop for this method to work. 
+
+
+        **RETURNS**
+        
+        An (x,y) mouse postion tuple where the mouse went up.
+        
+        **EXAMPLE**
+        
+        >>> disp = Display((600,800))
+        >>> cam = Camera()
+        >>> while(disp.isNotDone()):
+        >>>   img = cam.getImage()
+        >>>   dwn = disp.rightButtonDownPosition()
+        >>>   up = disp.rightButtonUpPosition()
+        >>>   if( up is not None and dwn is not None):
+        >>>     bb = disp.pointsToBoundingBox(up,dwn)
+        >>>     img.drawRectangle(bb[0],bb[1],bb[2],bb[3])
+        >>>   img.save(disp)
+
+
+        >>> disp = Display((600,800))
+        >>> dwn = disp.rightButtonDownPosition()
+        >>> up = disp.rightButtonUpPosition()
+        >>> bb = disp.pointsToBoundingBox(up,dwn)
+        >>> #draw bb
+
+        **SEE ALSO**
+
+        :py:meth:`leftButtonUpPostion`
+        :py:meth:`leftButtonDownPostion`
+        :py:meth:`rightButtonDownPostion`
+        :py:meth:`pointsToBoundingBox`
+        :py:meth:`checkEvents`
+        """
         return self.rightButtonUp
 
     def rightButtonDownPosition(self):
+        """
+        **SUMMARY**
+        
+        Returns the position where the right mouse button went down.
+
+        .. warning::
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
+          in your main display loop for this method to work. 
+
+        **RETURNS**
+        
+        An (x,y) mouse postion tuple where the mopuse went down.
+        
+        **EXAMPLE**
+
+        >>> disp = Display((600,800))
+        >>> cam = Camera()
+        >>> while(disp.isNotDone()):
+        >>>   img = cam.getImage()
+        >>>   dwn = disp.rightButtonDownPosition()
+        >>>   up = disp.rightButtonUpPosition()
+        >>>   if( up is not None and dwn is not None):
+        >>>     bb = disp.pointsToBoundingBox(up,dwn)
+        >>>     img.drawRectangle(bb[0],bb[1],bb[2],bb[3])
+        >>>   img.save(disp)
+
+        **SEE ALSO**
+
+        :py:meth:`leftButtonUpPostion`
+        :py:meth:`leftButtonDownPostion`
+        :py:meth:`rightButtonDownPostion`
+        :py:meth:`pointsToBoundingBox`
+        :py:meth:`checkEvents`
+        """
+
         return self.rightButtonDown
 
     def pointsToBoundingBox(self, pt0, pt1):
         """
-        Given two screen cooridnates return the bounding box in x,y,w,h format. 
+        **SUMMARY**
+
+        Given two screen cooridnates return the bounding box in x,y,w,h format.         
+        This is helpful for drawing regions on the display.
+
+        **RETURNS**
+        
+        The bounding box from two coordinates as a ( x,y,w,h) tuple.
+        
+        **EXAMPLE**
+
+        >>> disp = Display((600,800))
+        >>> cam = Camera()
+        >>> while(disp.isNotDone()):
+        >>>   img = cam.getImage()
+        >>>   dwn = disp.leftButtonDownPosition()
+        >>>   up = disp.leftButtonUpPosition()
+        >>>   if( up is not None and dwn is not None):
+        >>>     bb = disp.pointsToBoundingBox(up,dwn)
+        >>>     img.drawRectangle(bb[0],bb[1],bb[2],bb[3])
+        >>>   img.save(disp)
+        
+
+        **SEE ALSO**
+
+        :py:meth:`leftButtonUpPostion`
+        :py:meth:`leftButtonDownPostion`
+        :py:meth:`rightButtonDownPostion`
+        :py:meth:`rightButtonUpPostion`
+        :py:meth:`checkEvents`
         """
         xmax = np.max((pt0[0],pt1[0]))
         xmin = np.min((pt0[0],pt1[0]))
@@ -164,6 +363,8 @@ class Display:
 
     def writeFrame(self, img, fit=True):
         """
+        **SUMMARY**
+
         writeFrame copies the given Image object to the display, you can also use
         Image.save()
         
@@ -171,17 +372,28 @@ class Display:
         of distortion possible. When fit=True write frame will decide how to scale
         the image such that the aspect ratio is maintained and the smallest amount
         of distorition possible is completed. This means the axis that has the minimum
-        scaling needed will be shrunk or enlarged to match the display.
+        scaling needed will be shrunk or enlarged to match the display.        
         
         
-        When fit=False write frame will crop and center the image as best it can.
-        If the image is too big it is cropped and centered. If it is too small
-        it is centered. If it is too big along one axis that axis is cropped and
-        the other axis is centered if necessary.
+        **PARAMETERS**
+        
+        * *img* -  the SimpleCV image to save to the display. 
+        * *fit* - When fit=False write frame will crop and center the image as best it can.
+          If the image is too big it is cropped and centered. If it is too small
+          it is centered. If it is too big along one axis that axis is cropped and
+          the other axis is centered if necessary.
 
-        Parameters:
-            img - Image
-            fit - Boolean
+        
+        **RETURNS**
+        
+        Nothing.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> disp = Display((512,512))
+        >>> disp.writeFrame(img)
+        
  
         """
         # Grrrrr we're going to need to re-write this functionality
@@ -361,8 +573,18 @@ class Display:
       
     def checkEvents(self):
         """
-        checkEvents checks the pygame event queue and sets the internal display
-        values based on any new generated events
+        **SUMMARY**
+
+        CheckEvents checks the pygame event queue and sets the internal display
+        values based on any new generated events.
+        
+        .. warning:: 
+          This method must be called (or :py:meth:`isDone` or :py:meth:`isNotDone`) to
+          perform mouse event checking. 
+
+        **RETURNS**
+
+        Nothing.
         """
         self.mouseWheelUp = self.mouseWheelDown = 0
         self.lastLeftButton = self.mouseLeft
@@ -408,14 +630,44 @@ class Display:
             
     def isDone(self):
         """
-        Checks the event queue and returns True if a quit event has been issued
+        **SUMMARY**
+
+        Checks the event queue and returns True if a quit event has been issued.
+        
+        **RETURNS**
+        
+        True on a quit event, False otherwise.
+
+        **EXAMPLE**
+        
+        >>> disp = Display()
+        >>> cam = Camera()
+        >>> while not disp.isDone():
+        >>>   img = cam.getImage()
+        >>>   img.save(disp)
+       
         """
         self.checkEvents()
         return self.done
 
     def isNotDone(self):
         """
+        **SUMMARY**
+
         Checks the event queue and returns False as long as the quit event hasn't been issued.
+
+        **RETURNS**
+        
+        False on a quit event, True otherwise.
+
+        **EXAMPLE**
+        
+        >>> disp = Display()
+        >>> cam = Camera()
+        >>> while disp.isNotDone():
+        >>>   img = cam.getImage()
+        >>>   img.save(disp)
+       
         """
         return not self.isDone()
     
@@ -435,3 +687,16 @@ class Display:
         if(y < 0 ):
             ry = 0   
         return (rx,ry)
+        
+    def quit(self):
+        """
+        quit the pygame instance
+
+        Example:
+        >>> img = Image("simplecv")
+        >>> d = img.show()
+        >>> time.sleep(5)
+        >>> d.quit()
+        """
+        pg.display.quit()
+        pg.quit()

@@ -1,0 +1,428 @@
+\documentclass[a4paper,landscape,8pt]{article}
+\usepackage[landscape]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+%opening
+\oddsidemargin=2pt
+\title{Switching over to SimpleCV.}
+\author{Copyright \copyright 2012 SimpleCV.\\}
+
+\begin{document}
+
+\maketitle
+
+SimpleCV\footnote{References : O'Reilly Publication, Practical Computer Vision with SimpleCV by Nathan Oostendorp, Anthony Oliver, and Katherine Scott.}, which stands for Simple Computer Vision, is an easy-to-use Python frame-work that bundles together open source computer vision libraries and algorithms for solving problems. The idea of this document is to provide a quick reference for switching from Matlab\footnote{Matlab documentation : \url{http://www.mathworks.in/help/techdoc/}} and OpenCV\footnote{OpenCV documentation : \url{http://docs.opencv.org/}}to SimpleCV. \\
+\begin{flushleft}
+\begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+  Reading an image & imread(`lenna.png')  & cvLoadImage('lenna.png') & Image('lenna.png')\\ [0.3cm]
+  
+  Converting the image \\ to RGB colorspace & hsv2rgb(hsv\_image) or ind2rgb(X, map) & CvtColor(bitmap, retVal, CV\_BGR2RGB) & img.toRGB() \\ [0.4cm]
+  
+  Converting the image \\ to BGR colorspace & - & CvtColor(bitmap, retVal, CV\_RGB2BGR) & img.toBGR()\\ [0.4cm] 
+  
+  Converting the image \\ to HLS colorspace & - & CvtColor(bitmap, retVal, CV\_RGB2HLS) & img.toHLS()\\ [0.4cm]
+  
+  Converting the image \\ to HSV colorspace & rgb2hsv(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2HSV) & img.toHSV()\\ [0.4cm]
+
+\end{tabular}
+  \begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+  Converting the image & cform = makecform(`srgb2xyz');\\ to XYZ colorspace &  applycform(rgb,cform);  & CvtColor(bitmap, retVal, CV\_RGB2XYZ) & img.toXYZ()\\ [0.4cm] 
+
+  Converting the image \\ to GRAY colorspace & rgb2gray(rgb\_image) & CvtColor(bitmap, retVal, CV\_RGB2GRAY) & img.toGray()\\ [0.6cm]
+  
+  Create a new, empty \\ OpenCV bitmap & zeros(H, W, C) & SetZero(bitmap) & img.getEmpty(channels)\\ [0.8cm]
+  
+  Full copy of the image & newimg = img & Copy(bitmap, newimg) & img.copy()\\ [.4cm]
+  
+  Resize the image & imresize(img, scale) & Resize(bitmap, scaled\_bitmap) & img.resize(x,y) \\ [.4cm]
+  
+  Invert image & imcomplement(img) & - & img.invert() \\[.3cm]
+  
+  Horizontally mirror \\ an image & flipdim(img,2) &Flip(bitmap, newimg\_bitmap, 1) & img.flipHorizontal() \\[.3cm]
+  
+  Vertically mirror \\ an image & flipdim(img,1) &Flip(bitmap, newimg\_bitmap, 0) & img.flipVertical() \\[.3cm] 
+  
+  Stretch filter on  & img(img$<$th\_l) = 0; & Threshold(grayscale\_bitmap, \\
+  a greyscale image&  img(img$>$th\_h) = 255 & newimg, thresh\_low, 255,CV\_THRESH\_TOZERO) &img.stretch(thresh\_low, thresh\_high) \\[0.3cm]
+  
+  Binary threshold & - & Threshold(bitmap, bitmap, & img.binarize(thresh, maxv,\\
+  of the image& step(vision.Autothresholder,img) & thresh, maxv, CV\_THRESH\_BINARY\_INV) & blocksize, p)\\[.3cm]
+  
+  Mean color of the image& mean(reshape(im, size(im,1)*size(im,2), & &\\
+  & size(im,3))) & Avg(bitmap)[0:3] & img.meanColor()\\[0.4cm]
+  
+  Finds the FeatureSet  & & GoodFeaturesToTrack(GrayscaleBitmap, eig\_image, &img.findCorners(maxnum, minquality,\\ 
+  strongest corners first &  corner(img) & temp\_image, maxnum, minquality, mindistance, None) &mindistance)\\[.4cm]
+  
+  
+  \hline
+\end{tabular}
+\begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+  Blobs are continuous & & - &img.findBlobs(threshval, minsize, \\
+  light regions&  step(vision.BlobAnalysis, fg\_img)  & &maxsize, threshblocksize, threshconstant) \\[0.3cm]
+  
+  Finding the location& & HaarDetectObjects(EqualizedGrayscaleBitmap(),  &findHaarFeatures(self, cascade, \\
+  of a known object& - & cascade.getCascade(), storage, scale\_factor, use\_canny) &  scale\_factor, min\_neighbors, use\_canny) \\[0.3cm]
+ 
+  Uploading the Image & & & img.upload(dest,api\_key,\\
+  to Imgur or Flickr & - & - & api\_secret,verbose) \\[0.3cm]   
+
+  Smooth the image & H = fspecial(\textit{type}); & Smooth(r, ro, algorithm, win\_x, win\_y, &img.smooth(algorithm\_name, aperature,\\
+  &  imfilter(I,H) & sigma, spatial\_sigma) &sigma, spatial\_sigma, grayscale) \\[.4cm]
+  
+  Draw a circle \\ on the Image & step(vision.MarkerInserter, img, pts) & - & img.drawCircle(ctr, rad, color, thickness)\\ [0.3cm]
+  
+  Draw a line & plot(X\_vector, Y\_vector) & - & img.drawLine(pt1, pt2, color, thickness) \\[0.3cm]
+  
+  Size of image & [size(img,1) size(img,2)] & GetSize(bitmap)&img.size()\\[0.3cm]
+  
+  Split the image into a & - & - & img.split(cols, rows)\\
+  series of image chunks \\[0.3cm]
+  
+  Images of R,G,B channels \\
+  are recombined into a & cat(3, r, g, b) &Merge(b,g,r,None,retVal) & img.mergeChannels(r,b,g) \\
+  single image\\[0.3cm]
+ 
+ Apply a color correction & && img.applyHLSCurve(hCurve, \\
+  curve in HSL space& - &  -&lCurve, sCurve)\\[0.3cm]
+ 
+ Apply a color correction &&&img.applyRGBCurve(rCurve, \\ 
+  curve in RGB space& - & - &gCurve, bCurve)\\[0.3cm]
+  
+  Applies Intensity to \\
+  all three color channels & - & - & img.applyIntensityCurve(curve)\\[0.3cm]
+   
+  Returns Image of\\ the string& - & - &img.toString() \\[0.3cm]
+  
+ \hline 
+\end{tabular}
+
+\begin{tabular}{llll}
+  \hline
+  
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+  Split the channels & r=img(:,:,1); g=img(:,:,2); b=img(:,:,3) & Split(bitmap, b, g, r, None) &img.splitChannels(grayscale) \\
+  of an image into RGB \\[0.3cm]
+  
+  Returns image representing \\
+  the distance of each pixel & - & - &img.colorDistance(color) \\ 
+  from a given color tuple \\ [0.3cm]
+  
+  Apply morphological\\ 
+  erosion to a image& imerode(img,SE) & Erode(bitmap, retVal, kern, iterations) &img.erode(iterations) \\[0.3cm]
+  
+  Apply morphological\\ 
+  dilation to a image& imdilate(img,SE) &Dilate(bitmap, retVal, kern, iterations) & img.dilate(iterations) \\[0.3cm]
+  
+  Histogram equalization & histeq(img, hgram) & cv.EqualizeHist(GrayscaleBitmap, & img.equalize() \\
+  on the image& &  Equalizedgraybitmap )  \\[0.3cm]
+ 
+  Applies erosion operation &  & MorphologyEx(bitmap, retVal, & img.morphOpen()\\
+  followed by a & imerode(img, SE) &  temp, kern, CV\_MOP\_OPEN, 1)  \\
+  morphological dilation \\ [0.3cm]
+  
+  The difference between the\\
+  morphological dilation and& & MorphologyEx(Bitmap, retVal, & img.morphGradient() \\
+  the morphological gradient & - & temp, kern, CV\_MOP\_GRADIENT, 1) \\[0.3cm]
+  
+  1D histogram(numpy array) \\ 
+  of intensity for pixels & step(vision.Histogram,img) & - &img.histogram(numbins)\\
+  in the image \\[0.3cm]
+  
+  The histogram of the hue \\
+  channel for the image& - & - &img.hueHistogram(bins)\\[0.3cm]
+  
+  Returns the peak hue \\
+  values histogram of hues& - & - &img.huePeaks(bins)\\[0.3cm]
+  
+  Add two images& imadd(img1,img2) &Add(imgBitmap, otherBitmap, newBitmap) &img.\_\_add\_\_(other) \\[0.3cm]
+  
+  \hline
+  \end{tabular}
+
+\begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+ Subtract two images& imsubtract(img1,img2) &Sub(imgBitmap, otherBitmap, newBitmap) &img.\_\_sub\_\_(other)\\[0.3cm]
+  
+  Or two images& - &Or(imgBitmap, otherBitmap, newBitmap) &img.\_\_or\_\_(other)\\[0.3cm]
+  
+  Image division operation\\
+  taking two images as input & imdivide(img1,img2) &Div(imgBitmap, otherBitmap, newBitmap) &img.\_\_div\_\_(other)\\[0.3cm]
+  
+  Raises every array element\\
+  in image array to a power& img.\^{}p & Pow(imgBitmap, otherBitmap, other) & img.\_\_pow\_\_(other)\\[0.3cm]
+  
+  Finds 2d and 1d \\
+ barcodes in the image & - & - & img.findBarcode(zxing\_path)\\[0.3cm]
+
+ Finds line segments  & hough(BW) & HoughLines2(em, CreateMemStorage(),  &img.findLines(threshold, minlinelength, \\
+ in the image & & CV\_HOUGH\_PROBABILISTIC, 1.0, CV\_PI/180.0, &maxlinegap, cannyth1, cannyth2)\\
+ & & threshold, minlinelength, maxlinegap)\\[0.3cm]
+ 
+ Finds a chessboard & - & FindChessboardCorners(EqualizedGrayscaleBitmap, & img.findChessboard(dimensions, subpixel)\\
+ within that image & & dimensions, CV\_CALIB\_CB\_ADAPTIVE\_THRESH \\
+ & & + CV\_CALIB\_CB\_NORMALIZE\_IMAGE )\\[0.3cm]
+ 
+ Canny edge detection method& edge(img,`canny') &Canny(GrayscaleBitmap, edgeMap, t1, t2) & img.edges(t1, t2)\\[0.3cm]
+ 
+ function rotates an image \\
+ around a specific point & imrotate(img,angle) & GetRotationMatrix2D(point , angle, & img.rotate(angle, fixed, point, scale)\\ 
+ by the given angle & & scale, rotMat)\\ [0.3cm]
+ 
+ return a shear-ed image & tform = maketform(`affine',A);  & &\\ 
+ from the cornerpoints& imtransform(img,tform) & GetAffineTransform(src, cornerpoints, aWarp) &img.shear(cornerpoints) \\[0.3cm]
+ 
+ Function for warp & tform = maketform(`projective',A); & & \\
+ performs an affine rotation & imtransform(img,tform) & cv.WarpPerspective(imgBitmap, retVal, rotMatrix) & img.transformPerspective(rotMatrix) \\[0.3cm]
+
+ Returns the RGB value for\\
+ a particular image pixel & img(y, x, :) & Get2D(Bitmap, y, x) &img.getPixel(x, y)\\[0.3cm] 
+ 
+ \hline 
+ \end{tabular}
+
+\begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+ 
+ Returns a single row of \\
+ RGB values from the image& squeeze(img(row, :, :)) & GetRow(imgBitmap, row) & img.getHorzScanline(row)\\[0.3cm]
+ 
+ Returns a single column of & gray=rgb2gray(img);  & & \\
+ gray values from the image& squeeze(gray(:, column, :)) & GetCol(imgGrayscaleBitmap, column) & getVertScanlineGray(column)\\[0.3cm]
+ 
+ Returns a single row of & gray=rgb2gray(img); & &\\
+ gray values from the image& squeeze(gray(row, :, :)) & GetRow(imgGrayscaleBitmap, row) & getHorzScanlineGray(row)\\[0.3cm]
+ 
+ Crops the image \\ 
+ based on parameters& imcrop(img, rect) & - & img.crop(x , y, w, h, centered)\\[0.3cm]
+ 
+ Returns the selected region.& imrect(hparent,position) & - &img.regionSelect(x1, y1, x2, y2 )\\[0.3cm]
+ 
+ Clears out the entire image & img(:)=0 & SetZero(Bitmap) & img.clear()\\[0.3cm]
+ 
+ Draws the string on the image \\
+ at the specified coordinates.& text(x,y,`string')  & - &img.drawText(text , x , y , color, fontsize)\\[0.3cm]
+ 
+ Draw a rectangle on the image & rectangle(`Position',[x,y,w,h]) & - & img.drawRectangle(x,y,w,h,color,width,alpha)\\[0.3cm]
+ 
+ Shows the current image& imshow(img) & ShowImage("Image", image)& img.show(type)\\[0.3cm]
+ 
+ Push a new drawing layer onto\\
+ the back of the layer stack& - & - & img.addDrawingLayer(layer)\\[0.3cm]
+ 
+ Insert a new layer into the \\
+ layer stack at the specified index & - & - & img.insertDrawingLayer(layer, index)\\[0.3cm]
+ 
+ Remove a layer from the layer \\
+ stack based on the layer's index& - & - &img.removeDrawingLayer(index)\\[0.3cm]
+ 
+ Return a drawing layer\\ 
+ based on the index& - & - & img.getDrawingLayer(index)\\[0.3cm]
+ 
+ \hline
+ \end{tabular}
+\begin{tabular}{llll}
+  \hline
+ Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+ Returns the gray value for \\ 
+ a particular image pixel & gray=rgb2gray(img); gray(y,x) & Get2D(GrayscaleBitmap(), y, x) & img.getGrayPixel( x, y) \\[0.3cm]
+
+ Returns a single column of \\
+ RGB values from the image& squeeze(img(:, column, :)) & GetCol(imgBitmap, column) & img.getVertScanline(column) \\[0.3cm]
+ 
+ 
+ Remove all of the drawing layers& - & -  &img.clearLayers()\\[0.3cm]
+ 
+ Return the array of \\
+ DrawingLayer objects & - & - & img.layers()\\[0.3cm]
+ 
+ Return all DrawingLayer \\
+ objects as a single & - & - &img.mergedLayers()\\
+ DrawingLayer.\\[0.3cm]
+ 
+ Render all of the layers \\
+ onto the current image& - & -& img.applyLayers(indicies)\\[0.3cm]
+ 
+ automatically adjust image size \\
+  to match the display size& imshow(img,`InitialMagnification',`fit') & - &img.adaptiveScale(resolution,fit=True)\\[0.3cm]
+
+  Combine two images as \\
+  a side by side images  & - & - & img1.sideBySide(img2, side, scale)\\[0.3cm]
+ 
+ Generate a binary mask & [X,map] = rgb2ind(img, 65536); & & \\
+  of the image based on a & roicolor(X,low,high) & - & createBinaryMask(self,color1,color2)\\
+  range of rgb values \\[0.3cm]
+ 
+ Make the canvas larger but \\
+  keep the image the same size & - & - &img.embiggen(size, color, pos) \\[0.3cm]
+ 
+ The white areas of the mask & X2 = zeros(size(X), `uint16'); & &\\
+  will be kept and the black  & X2(mask) = X(mask); & - & img.applyBinaryMask(mask,bg\_color)\\
+  areas removed & ind2rgb(X2, map) & & \\[0.3cm] 
+  
+ \hline
+ \end{tabular} 
+\begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+ 
+  Generate a grayscale or binary \\
+  mask image based either on a & - & - & img.createAlphaMask(hue, hue\_lb,hue\_ub) \\
+  hue or an RGB triplet\\[0.3cm]
+
+  Apply a function to every pixel\\ 
+  and return the result & - & - & img.applyPixelFunction(theFunc)\\[0.3cm] 
+ 
+ Calculate the integral image\\ 
+  and return it as a numpy array& integralImage(img) & Integral(GrayscaleBitmap,img) & img.integralImage(tilted)\\[0.3cm]
+ 
+ Convolution performs a shape \\
+  change on an image. & conv2(img,kernel,`shape') & Filter2D(Bitmap,retVal,myKernel,center) & img.convolve(,kernel,center)\\[0.3cm]
+ 
+ Function searches an image & step(vision.TemplateMatcher, & & img.findTemplate(template\_image,\\ 
+  for a template image &  rgb2gray(img),rgb2gray(T))  & - &  threshold, method)\\[0.3cm]
+ 
+ Return any text it can find \\
+  using OCR on the image & - & - &img.readText()\\[0.3cm]
+ 
+ extract perfect circles\\ 
+  from the image & - & - & img.findCircle(canny,thresh,distance)\\[0.3cm] 
+ 
+ Attempts to perform automatic\\ 
+  white balancing& - & - &img.whiteBalance(method)\\[0.3cm]
+ 
+ Apply a LUT (look up table)\\
+  to the pixels in a image & intlut(A, LUT) &LUT(bitmap,bitmap,fromarray(LUT)) &img.applyLUT(rLUT,bLUT,gLUT)\\[0.3cm]
+ 
+ Finds keypoints in an image and & & &img.\_getRawKeypoints(thresh,flavor,\\
+  returns them as the raw keypoints  & detectSURFFeatures(img) & - & highQuality, forceReset)\\[0.3cm]
+ 
+ Method does a fast local approximate\\ 
+  nearest neighbors (FLANN) calculation& matchFeatures(feat1,feat2) & - & img.\_getFLANNMatches(sd,td)\\ 
+  between two sets of feature vectors\\[0.3cm]
+ 
+  \hline
+  \end{tabular} 
+
+  \begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+ Calculates keypoints for both images,& - & & img.drawKeypointMatches(template,\\ 
+  determines the keypoint correspondences& & - & thresh, minDist,width)\\[0.3cm]
+  
+  Match a template image with another & - & - &img.findKeypointMatch(template,\\ 
+  image using SURF keypoints.& & &quality,minDist,minMatch)\\[0.3cm]
+ 
+ This method finds keypoints in an image & detectSURFFeatures(img) & - & img.findKeypoints(min\_quality,\\ 
+  and returns them as a feature set& & & flavor,highQuality)\\[0.3cm]
+   
+  Returns the colors in the \\
+  palette of the image & - & - & img.getPalette(bins,hue)\\[0.3cm]
+  
+  Takes in the palette from  \\ 
+  another image and attempts to & - & -&img.rePalette(palette,hue)\\ 
+  apply it to this image\\[0.3cm]
+ 
+ returns the visual representation \\
+  (swatches) of the palette & - & - &img.drawPaletteColors(size,horizontal,bins,hue)\\
+  in an image \\[0.3cm]
+ 
+ The method then goes through \\
+  and replaces each pixel with \\
+  the centroid of the clutsters & - & - &img.palettize(bins,hue)\\ 
+  found by k-means \\[0.3cm]
+ 
+ Palettization and behaves & - & - &img.findBlobsFromPalette(palette\_selection,\\ 
+  similar to the fndBlobs &&& minsize, maxsize)\\[0.3cm]
+ 
+ Method uses the color palette\\ 
+  to generate a binary image& - & - & img.binarizeFromPalette(palette\_selection)\\[0.3cm]
+ 
+ Returns the RAW DFT \\
+  transform of an image& fft2(X) &DFT(src, dst,CV\_DXT\_FORWARD)&img.rawDFTImage(grayscale)\\[0.3cm]
+ 
+ Method applies a simple & - & - & img.bandPassFilter(xCutoffLow, xCutoffHigh,\\
+  band pass DFT filter&&& yCutoffLow, yCutoffHigh,grayscale)\\[0.3cm]
+ 
+ \hline
+  \end{tabular} 
+ 
+  \begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+  
+ Skeletonization of the image& bwmorph(BW,`skel') & - &img.skeletonize(radius)\\[0.3cm]
+  smartThreshold uses a method \\
+ 
+ graph cut, to automagically & - &grabCut(npimg,mask,rect,tmp1,tmp2,10,mode)&img.smartThreshold(mask, rect)\\
+  generate a grayscale mask image\\[0.3cm]
+ 
+ It takes a image converts it \\
+  to grayscale, and applies a threshold& - & - &img.smartFindBlobs(mask,rect,thresh\_level)\\[0.3cm]
+ 
+ This method is same as Paint\\
+  bucket tool in image& imfill(BW,locations) & FloodFill(bmp,tuple(points),color,&img.floodFill(points,tolerance,color,\\
+  manipulation program&&lower,upper,flags)&lower,upper,fixed\_range)\\[0.3cm]
+ 
+ Returns Image where the values \\
+  similar to the seed pixel have & & &img.floodFillToMask(points,tolerance,\\
+  been replaced by the input color& - & - & color,lower,upper,fixed\_range,mask)\\[0.3cm]
+  
+ A featureset of blobs & - & - & img.findBlobsFromMask(mask,threshold,\\
+ form the Mask Image & & & minsize, maxsize )\\[0.3cm]
+ 
+ Returns the log value of \\
+  the magnitude image of & - & - &img.getDFTLogMagnitude(grayscale)\\ 
+  the DFT transform \\[0.3cm]
+ 
+ Apply an arbitrary filter \\
+  to the DFT of an image& - & - & img.applyDFTFilter(flt,grayscale)\\[0.3cm]
+
+ Applies a high pass DFT filter & - & - & img.highPassFilter(xCutoff,yCutoff,grayscale)\\[0.3cm]
+ 
+ Applies a low pass DFT filter& - &-&img.lowPassFilter(xCutoff,yCutoff,grayscale)\\[0.3cm]
+
+ Method performs an inverse \\
+  discrete Fourier transform & ifft2(X) &-& InverseDFT(raw\_dft\_image)\\[0.3cm]
+ 
+ DFT is applied on image \\
+  using gaussian lowpass filter&-&-&img.applyUnsharpMask(boost,dia,grayscale)\\[0.3cm]
+\hline
+  \end{tabular} 
+   \begin{tabular}{llll}
+  \hline
+  Description & Matlab & OpenCV & SimpleCV \\ \hline \\[.1cm] 
+ 
+  Performs an optical flow calculation\\
+  and attempts to find motion& step(vision.OpticalFlow,img1,img2) & CalcOpticalFlowHS(previousFrameGrayscaleBitmap, & img.findMotion(previous\_frame,\\
+  between two subsequent frames & & imgGrayscaleBitmap,block,shift,spread,0,xf,yf)& window, method, aggregate) \\[0.3cm]
+
+  Creates a butterworth filter&&&img.applyButterworthFilter(dia,\\ 
+  of 64x64 pixels, resizes it &-& -& order,highpass,grayscale)\\
+  to fit the image \\[0.3cm]
+ 
+ Creates a gaussian filter & H = fspecial(`gaussian',hsize,sigma);  & & img.applyGaussianFilter(dia,\\
+  of 64x64 pixels, resizes  & imfilter(I,H) &-& highpass, grayscale)\\
+  it to fit image \\[0.3cm]
+ 
+ \hline
+  \end{tabular}
+  
+   \end{flushleft}
+\end{document}

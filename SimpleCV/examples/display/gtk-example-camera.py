@@ -14,11 +14,9 @@ print __doc__
 
 import gtk
 import SimpleCV
-#~ from SimpleCV import *
 import gobject
 
 cam = SimpleCV.Camera()
-
 
 class app(gtk.Window):
 
@@ -30,7 +28,6 @@ class app(gtk.Window):
 	window_height = 500
 	refresh_rate = 100 #in milliseconds
 	#End Program Settings
-
 	
 	#Variables
 	current_image = None
@@ -78,7 +75,6 @@ class app(gtk.Window):
 
 	def refresh(self):
 		self.update_image()
-		
 		return True
 
 	'''
@@ -104,7 +100,6 @@ class app(gtk.Window):
 	def update_threshold(self, w):
 		#grab the value from the slider
 		self.edge_threshold = w.get_value()
-
 		self.update_image()
 
 

@@ -20,8 +20,17 @@ class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    def __getattr__(self, name):
+    def __call__(self, *args, **kwargs):
         return Mock()
+
+    @classmethod
+    def __getattr__(self, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            return type(name, (), {})
+        else:
+            return Mock()
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
@@ -34,6 +43,8 @@ if on_rtd:
                   'scipy',
                   'scipy.spatial',
                   'scipy.spatial.distance',
+                  'scipy.ndimage',
+                  'scipy.stats.stats',
                   'distance',
                   'scipy.cluster',
                   'scipy.cluster.vq',
@@ -49,6 +60,7 @@ if on_rtd:
                   'orngTest',
                   'orngStat',
                   'orngEnsemble',
+                  'stats.stats',
                   ]
 
   for mod_name in MOCK_MODULES:
@@ -162,7 +174,7 @@ html_logo = 'simplecv.png'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#~ html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

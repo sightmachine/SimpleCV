@@ -1,4 +1,8 @@
 #!/usr/bin/python
+'''
+This program uses a Color model to try and do segmentation based on color
+'''
+print __doc__
 
 import time
 from SimpleCV import *
@@ -13,7 +17,6 @@ ticks = 0
 
 while not d.isDone():
     cm.threshold(c.getImage()).save(d)
-    #~ c.getImage().save(d)
     time.sleep(0.01)
     ticks = ticks + 1
     if (int(time.time()) > t):

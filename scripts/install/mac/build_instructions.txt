@@ -1,0 +1,41 @@
+to build a package on mac, first you have to have a working install using 10.6, following the installation instructions on installation doc.
+
+first, there are some URLs in build_pkg.pl you need to double check -- mostly 
+the simplecv ones
+
+in the simplecv/install/mac directory, create a new directory called "build", and run the package builder:
+
+cd build
+perl ../build_pkg.pl
+
+what this will do:
+ - take the designated packages out of Homebrew's Cellar and compile them into a /usr/local directory tree
+ - download from SourceForge/github the prereq pkg files and python pre-requisites and put them in /var/tmp
+ - generate a post_install.sh script which will be run from the installer
+ - generate a SimpleCV.command file for the Applications folder and extract examples
+ - re-assign everything to the "root:staff" user 
+ 
+once you've done that, doublecheck and make sure everything you expect is there.
+
+Then you will need to launch:
+/Developers/Application/Utlilities/PackageMaker
+
+Name is "Sight Machine Inc"
+
+Click on the package, tab to components:
+ - Package name should be "SimpleCV Superpack Version #"
+ - click on actions, click on edit in Post Install actions, add "open file" and select "absolute path", set target to /var/tmp/simplecv/post_install.command
+
+Drag in to the contents panel IN THIS ORDER, note that you will need to drag the folders RIGHT ON TOP of the command file to keep them in the same pkg component:  
+  - /Applications/SimpleCV.command and set target to /Applications/
+  - /usr and set target to /usr/
+  - /var and set target to /var/
+
+build and test.
+
+you may want to use "backup_local.sh" which will rename your /usr/local and /Library/Python/2.6/site-packages directories and re-create them empty.
+
+for testing over and over again you can use the following command:
+
+rm -r /usr/local/* && rm -r /Library/Python/2.6/site-packages/*
+
