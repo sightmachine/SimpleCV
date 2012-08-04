@@ -577,6 +577,69 @@ class TrackSet(FeatureSet):
     def __changeMeasure(self):
         self.kalman_measurement[0, 0] = self.kalman_x
         self.kalman_measurement[1, 0] = self.kalman_y
+    
+    def predictionCoordinates(self):
+        """
+        **SUMMARY**
+
+        Returns a numpy array of the y (vertical) coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> print ts.predictionCoordinates()
+
+        """
+        return np.array([f.predict_pt for f in self])
+    
+    def predictX(self):
+        """
+        **SUMMARY**
+
+        Returns a numpy array of the predicted x (vertical) coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> print ts.predictX()
+
+        """
+        return np.array([f.predict_pt[0] for f in self])
+    
+    def predictY(self):
+        """
+        **SUMMARY**
+
+        Returns a numpy array of the y (vertical) coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> print ts.predictY()
+
+        """
+        return np.array([f.predict_pt[1] for f in self])
         
     def drawPredicted(self, color=Color.GREEN, rad=1, thickness=1):
         """
