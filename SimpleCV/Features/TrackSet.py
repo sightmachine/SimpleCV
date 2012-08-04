@@ -2,6 +2,8 @@ from SimpleCV.base import *
 from SimpleCV.Color import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 import cv2.cv as cv
+import cv2
+import time
 class TrackSet(FeatureSet):
     """
     **SUMMARY**
@@ -25,6 +27,7 @@ class TrackSet(FeatureSet):
     
     def __init__(self):
         self.kalman = None
+        self.predict_pt = (0,0)
         self.__kalman()
     
     def append(self, f):
@@ -189,7 +192,7 @@ class TrackSet(FeatureSet):
         """
         return len(self)
     
-    def trackImages(self):
+    def trackImages(self, cv2_numpy=False):
         """
         **SUMMARY**
 
@@ -211,6 +214,8 @@ class TrackSet(FeatureSet):
             ... img = img1
         >>> imgset = ts.trackImages()
         """
+        if cv2_numpy:
+            return [f.cv2numpy for f in self]
         return [f.image for f in self]
         
     def BBTrack(self):
@@ -485,6 +490,39 @@ class TrackSet(FeatureSet):
         >>> mean_color_list = ts.processTrack(foo)
         """
         return [func(f.image) for f in self]
+    
+    def getBackground(self):
+        """
+        **SUMMARY**
+
+        Get Background of the Image. For more info read 
+        http://opencvpython.blogspot.in/2012/07/background-extraction-using-running.html
+
+        **PARAMETERS**
+        No Parameters
+
+        **RETURNS**
+        
+        Image - SimpleCV.ImageClass.Image
+
+        **EXAMPLE**
+
+        >>> while (some_condition):
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> ts.getBackground().show()
+        """
+        from SimpleCV import Image
+        imgs = self.trackImages(cv2_numpy=True)
+        f = imgs[0]
+        avg = np.float32(f)
+        for img in imgs[1:]:
+            f = img
+            cv2.accumulateWeighted(f,avg,0.01)
+            res = cv2.convertScaleAbs(avg)
+        return Image(res, cv2image=True)
+            
         
     def __kalman(self):
         self.kalman = cv.CreateKalman(4, 2, 0)
@@ -503,8 +541,8 @@ class TrackSet(FeatureSet):
         
         self.kalman.state_pre[0,0]  = self.kalman_x
         self.kalman.state_pre[1,0]  = self.kalman_y
-        self.kalman.state_pre[2,0]  = 0
-        self.kalman.state_pre[3,0]  = 0
+        self.kalman.state_pre[2,0]  = self.predict_pt[0]
+        self.kalman.state_pre[3,0]  = self.predict_pt[1]
         
         self.kalman.transition_matrix[0,0] = 1
         self.kalman.transition_matrix[0,1] = 0
@@ -530,9 +568,6 @@ class TrackSet(FeatureSet):
         
     def __predictKalman(self):
         self.kalman_prediction = cv.KalmanPredict(self.kalman)
-        #self.predict_angle = self.kalman_prediction[0, 0]
-        #self.predict_pt = (cv.Round(self.image.width/2 + self.image.width/3*cos(self.predict_angle)),
-        #                   cv.Round(self.image.height/2 - self.image.width/3*sin(self.predict_angle)))
         self.predict_pt  = (self.kalman_prediction[0,0], self.kalman_prediction[1,0])
                            
     def __correctKalman(self):
@@ -543,11 +578,11 @@ class TrackSet(FeatureSet):
         self.kalman_measurement[0, 0] = self.kalman_x
         self.kalman_measurement[1, 0] = self.kalman_y
         
-    def drawPredict(self, color=Color.GREEN, rad=1, thickness=1):
+    def drawPredicted(self, color=Color.GREEN, rad=1, thickness=1):
         """
         **SUMMARY**
 
-        Draw the center of the object on the current frame.
+        Draw the predcited center of the object on the current frame.
 
         **PARAMETERS**
         
@@ -564,17 +599,17 @@ class TrackSet(FeatureSet):
         >>> while True:
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
-            ... ts.draw() # For continuous tracking of the center
+            ... ts.drawPredicted() # For continuous tracking of the center
             ... img = img1
         """
         f = self[-1]
         f.image.drawCircle(f.predict_pt, rad, color, thickness)
         
-    def drawPredictPath(self, color=Color.GREEN, thickness=2):
+    def drawPredictedPath(self, color=Color.GREEN, thickness=2):
         """
         **SUMMARY**
 
-        Draw the complete path traced by the center of the object on current frame
+        Draw the complete predicted path of the center of the object on current frame
 
         **PARAMETERS**
         
@@ -590,12 +625,46 @@ class TrackSet(FeatureSet):
         >>> while True:
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
-            ... ts.drawPath() # For continuous tracing
+            ... ts.drawPredictedPath() # For continuous tracing
             ... img = img1
-        >>> ts.drawPath() # draw the path at the end of tracking
+        >>> ts.drawPredictedPath() # draw the path at the end of tracking
         """
             
         ts = self
         img = self[-1].image
         for i in range(1, len(ts)-1):
             img.drawLine((ts[i].predict_pt),(ts[i+1].predict_pt), color=color, thickness=thickness)
+            
+    def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
+        """
+        **SUMMARY**
+
+        Show the co-ordinates of the object in text on the current frame.
+
+        **PARAMETERS**
+        * *pos* - A tuple consisting of x, y values. where to put to the text
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *size* - Fontsize of the text
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... ts.showPredictedCoordinates() # For continuous bounding box
+            ... img = img1
+        """
+        ts = self
+        f = ts[-1]
+        img = f.image
+        if not pos:
+            imgsize = img.size()
+            pos = (5, 10)
+        if not size:
+            size = 16
+        text = "Predicted: x = %d  y = %d" % (f.predict_pt[0], f.predict_pt[1])
+        img.drawText(text, pos[0], pos[1], color, size)
