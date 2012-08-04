@@ -113,7 +113,7 @@ SimpleCV:2: <SimpleCV.Image Object size:(640, 480), filename: (None), at memory 
 
 SimpleCV:3> exit()
 
-8) Congradulations, BeagleBone is now running SimpleCV!
+8) Congratulations, BeagleBone is now running SimpleCV!
 
 
 
