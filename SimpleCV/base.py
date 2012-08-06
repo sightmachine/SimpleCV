@@ -62,11 +62,13 @@ except ImportError:
 PIL_ENABLED = True
 try:
     import Image as pil
+    from Image.GifImagePlugin import getheader, getdata
 except ImportError:
     try:
         import PIL.Image as pil
         from PIL import ImageFont as pilImageFont
         from PIL import ImageDraw as pilImageDraw
+        from PIL.GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 
@@ -164,6 +166,12 @@ def download_and_extract(URL):
         return None
 
     return tmpdir
+
+def int_to_bin(i):
+    """Integer to two bytes"""
+    i1 = i % 256
+    i2 = int(i/256)
+    return chr(i1) + chr(i2)
 
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """

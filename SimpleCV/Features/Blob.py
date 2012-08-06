@@ -965,7 +965,7 @@ class Blob(Feature):
 
     @LazyProperty
     def mHullImg(self):
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        retVal = cv.CreateImage((self.width(),self .height()),cv.IPL_DEPTH_8U,3)
         cv.Zero(retVal)
         bmp = self.image.getBitmap()
         mask = self.mHullMask.getBitmap() 
@@ -973,7 +973,7 @@ class Blob(Feature):
         cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
         cv.Copy(bmp,retVal,mask)
         cv.ResetImageROI(bmp)
-        return Image(bmp)
+        return Image(retVal)
 
 
     @LazyProperty
