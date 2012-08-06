@@ -1,16 +1,18 @@
- #Load required libraries
+# Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from numpy import int32
 from numpy import uint8
+
 from EXIF import *
 import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
+import scipy.linalg as nla  # for linear algebra / least squares
 import math # math... who does that 
 import copy # for deep copy
-
+#import scipy.stats.mode as spsmode
 
 
 class ColorSpace:
@@ -30,7 +32,7 @@ class ColorSpace:
     HLS = 4
     HSV = 5
     XYZ  = 6
-
+    YCrCb = 7
   
 class ImageSet(list):
     """
@@ -150,7 +152,7 @@ class ImageSet(list):
 Valid options: 'thumb', 'small', 'medium', 'large'
  or a tuple of exact dimensions i.e. (640,480)."""
 
-      if type(size) == str:
+      if isinstance(size, basestring):
           size = size.lower()
           if size == 'thumb':
               size_param = ''
@@ -427,6 +429,7 @@ class Image:
     >>> img = Image("http://www.simplecv.org/image.png")
 
     """
+    
     width = 0    #width and height in px
     height = 0
     depth = 0
@@ -458,6 +461,8 @@ class Image:
     _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
+    _cv2Numpy = None #numpy array for OpenCV >= 2.3
+    _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
   
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
@@ -466,6 +471,9 @@ class Image:
     _mKeyPoints = None
     _mKPDescriptors = None
     _mKPFlavor = "NONE"
+    
+    #temp files
+    _tempFiles = []
 
     #when we empty the buffers, populate with this:
     _initialized_buffers = { 
@@ -482,6 +490,7 @@ class Image:
         "_grayNumpy":"",
         "_pgsurface": ""}  
     
+   
     def __repr__(self):
         if len(self.filename) == 0:
           fn = "None"
@@ -493,7 +502,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False):
         """ 
         **SUMMARY**
 
@@ -508,6 +517,8 @@ class Image:
         * *camera* - A camera to pull a live image.
  
         * *colorspace* - A default camera color space. If none is specified this will usually default to the BGR colorspace.
+
+        * *sample* - This is set to true if you want to load some of the included sample images without having to specify the complete path
         
 
         **EXAMPLES**
@@ -538,23 +549,27 @@ class Image:
         self._mPalette = None
         self._mPaletteMembers = None
         self._mPalettePercentages = None
+        #Temp files
+        self._tempFiles = []
+    
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
-        if type(source) == str and (source.lower().startswith("http://") or source.lower().startswith("https://")):
-            try:
-                img_file = urllib2.urlopen(source)
-            except:
-                if verbose:
-                    print "Couldn't open Image from URL:" + source
-                return None
+        if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
+            #try:
+            # added spoofed user agent for images that are blocking bots (like wikipedia)
+            req = urllib2.Request(source, headers={'User-Agent' : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5"}) 
+            img_file = urllib2.urlopen(req)
+            #except:
+            #if verbose:
+                #print "Couldn't open Image from URL:" + source
+            #return None
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images    
-        if type(source) == str:
-
+        if isinstance(source, basestring):
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
@@ -566,7 +581,10 @@ class Image:
             elif tmpname == "lenna":
                 imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','lenna.png')
                 source = imgpth
-        
+            elif sample:
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages', source)
+                source = imgpth
+
         if (type(source) == tuple):
             w = int(source[0])
             h = int(source[1])
@@ -624,7 +642,7 @@ class Image:
                 try:
                     from webm import decode as webmDecode
                 except ImportError:
-                      warnings.warn('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                      logger.warning('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
                       return
 
                 WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
@@ -666,6 +684,9 @@ class Image:
                 or source.__class__.__name__ == "JpegImageFile"
                 or source.__class__.__name__ == "WebPPImageFile"
                 or  source.__class__.__name__ == "Image")):
+                
+            if source.mode != 'RGB':
+                source = source.convert('RGB')
             self._pil = source
             #from the opencv cookbook 
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
@@ -689,6 +710,18 @@ class Image:
         self.height = bm.height
         self.depth = bm.depth
     
+    
+    def __del__(self):
+        """
+        This is called when the instance is about to be destroyed also called a destructor.
+        """
+        try :
+           for i in self._tempFiles:
+               if (isinstance(i,str)):
+                   os.remove(i)
+        except :
+           pass
+           
     def getEXIFData(self):
         """
         **SUMMARY**
@@ -718,14 +751,14 @@ class Image:
         import os, string
         if( len(self.filename) < 5 or self.filename is None ):
             #I am not going to warn, better of img sets
-            #warnings.warn("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
+            #logger.warning("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
             return {}
 
         fileName, fileExtension = os.path.splitext(self.filename)
         fileExtension = string.lower(fileExtension)
         if( fileExtension != '.jpeg' and fileExtension != '.jpg' and
             fileExtension != 'tiff' and fileExtension != '.tif'):
-            #warnings.warn("ImageClass.getEXIFData: This image format does not support EXIF")
+            #logger.warning("ImageClass.getEXIFData: This image format does not support EXIF")
             return {}
 
         raw = open(self.filename,'rb')
@@ -930,24 +963,46 @@ class Image:
         """
         **SUMMARY**
 
-        Returns true if this image uses the BGR colorspace.
+        Returns true if this image uses the Gray colorspace.
         
         **RETURNS**
 
-        True if the image uses the BGR colorspace, False otherwise. 
+        True if the image uses the Gray colorspace, False otherwise. 
         
         **EXAMPLE**
         
-        >>> if( img.isBGR() ):
-        >>>    b,g,r = img.splitChannels()
+        >>> if( img.isGray() ):
+        >>>    print "The image is in Grayscale."
 
         **SEE ALSO**
 
-        :py:meth:`toBGR`
+        :py:meth:`toGray`
         
         """
         return(self._colorSpace==ColorSpace.GRAY)    
 
+    def isYCrCb(self):
+        """
+        **SUMMARY**
+
+        Returns true if this image uses the YCrCb colorspace.
+        
+        **RETURNS**
+
+        True if the image uses the YCrCb colorspace, False otherwise. 
+        
+        **EXAMPLE**
+        
+        >>> if( img.isYCrCb() ):
+        >>>    Y,Cr,Cb = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toYCrCb`
+        
+        """
+        return(self._colorSpace==ColorSpace.YCrCb)
+    
     def toRGB(self):
         """
         **SUMMARY**
@@ -981,10 +1036,12 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)    
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)    
         elif( self._colorSpace == ColorSpace.RGB ):
             retVal = self.getBitmap()
         else:
-            warnings.warn("Image.toRGB: There is no supported conversion to RGB colorspace")
+            logger.warning("Image.toRGB: There is no supported conversion to RGB colorspace")
             return None
         return Image(retVal, colorSpace=ColorSpace.RGB )
 
@@ -1021,10 +1078,12 @@ class Image:
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2BGR)    
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2BGR)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2BGR)    
         elif( self._colorSpace == ColorSpace.BGR ):
             retVal = self.getBitmap()    
         else:
-            warnings.warn("Image.toBGR: There is no supported conversion to BGR colorspace")
+            logger.warning("Image.toBGR: There is no supported conversion to BGR colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.BGR )
   
@@ -1064,10 +1123,13 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)        
         elif( self._colorSpace == ColorSpace.HLS ):
             retVal = self.getBitmap()      
         else:
-            warnings.warn("Image.toHSL: There is no supported conversion to HSL colorspace")
+            logger.warning("Image.toHSL: There is no supported conversion to HSL colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.HLS )
     
@@ -1106,10 +1168,13 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)        
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = self.getBitmap()      
         else:
-            warnings.warn("Image.toHSV: There is no supported conversion to HSV colorspace")
+            logger.warning("Image.toHSV: There is no supported conversion to HSV colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.HSV )
     
@@ -1149,10 +1214,13 @@ class Image:
         elif( self._colorSpace == ColorSpace.HSV ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
             cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)            
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = self.getBitmap()      
         else:
-            warnings.warn("Image.toXYZ: There is no supported conversion to XYZ colorspace")
+            logger.warning("Image.toXYZ: There is no supported conversion to XYZ colorspace")
             return None
         return Image(retVal, colorSpace=ColorSpace.XYZ )
     
@@ -1162,27 +1230,28 @@ class Image:
         **SUMMARY**
 
         This method attemps to convert the image to the grayscale colorspace. 
-        If the color space is unknown we assume it is in the BGR format
+        If the color space is unknown we assume it is in the BGR format.
         
         **RETURNS**
 
-        Returns the converted image if the conversion was successful, 
+        A grayscale SimpleCV image if successful.
         otherwise None is returned.
         
         **EXAMPLE**
-        
+
         >>> img = Image("lenna")
-        >>> GrayImg = img.toGray()
+        >>> img.toGray().binarize().show()
 
         **SEE ALSO**
 
         :py:meth:`isGray`
+        :py:meth:`binarize`
         
         """
 
         retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
-                self._colorSpace == ColorSpace.UNKNOWN ):
+            	self._colorSpace == ColorSpace.UNKNOWN ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.RGB):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2GRAY)
@@ -1194,14 +1263,64 @@ class Image:
             cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
             cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)  
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)        
+        elif( self._colorSpace == ColorSpace.GRAY ):
+            retVal = self.getBitmap()
         else:
-            warnings.warn("Image.toGray: There is no supported conversion to gray colorspace")
+            logger.warning("Image.toGray: There is no supported conversion to gray colorspace")
             return None
-        return Image(retVal, colorSpace = ColorSpace.GRAY )    
+        return Image(retVal, colorSpace = ColorSpace.GRAY )   
+        
+    def toYCrCb(self):
+        """
+        **SUMMARY**
+
+        This method attemps to convert the image to the YCrCb colorspace. 
+        If the color space is unknown we assume it is in the BGR format
+        
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful, 
+        otherwise None is returned.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> RGBImg = img.toYCrCb()
+
+        **SEE ALSO**
+
+        :py:meth:`isYCrCb`
+        
+        """
+
+        retVal = self.getEmpty()
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2YCrCb)
+        elif( self._colorSpace == ColorSpace.RGB ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.HSV ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.HLS ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)    
+        elif( self._colorSpace == ColorSpace.XYZ ):
+            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            retVal = self.getBitmap()      
+        else:
+            logger.warning("Image.toYCrCb: There is no supported conversion to YCrCb colorspace")
+            return None
+        return Image(retVal, colorSpace=ColorSpace.YCrCb )     
     
     
-    def getEmpty(self, channels = 3):
+    def getEmpty(self, channels=3):
         """
         **SUMMARY**
         
@@ -1447,6 +1566,68 @@ class Image:
         self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
         return self._numpy
 
+    def getNumpyCv2(self):
+        """
+        **SUMMARY**
+       
+        Get a Numpy array of the image in width x height x RGB dimensions compatible with OpenCV >= 2.3
+        
+        **RETURNS**
+
+        Returns the  3D numpy array of the image compatible with OpenCV >= 2.3
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpyCv2()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPIL`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpyCv2`
+        
+        """
+        
+        if type(self._cv2Numpy) is not np.ndarray:
+            self._cv2Numpy = np.array(self.getMatrix())
+        return self._cv2Numpy
+        
+    def getGrayNumpyCv2(self):
+        """
+        **SUMMARY**
+       
+        Get a Grayscale Numpy array of the image in width x height y compatible with OpenCV >= 2.3
+        
+        **RETURNS**
+
+        Returns the grayscale numpy array compatible with OpenCV >= 2.3 
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> rawImg  = img.getNumpyCv2()
+
+        **SEE ALSO**
+
+        :py:meth:`getEmpty`
+        :py:meth:`getBitmap`
+        :py:meth:`getMatrix`
+        :py:meth:`getPIL`
+        :py:meth:`getGrayNumpy`
+        :py:meth:`getGrayscaleMatrix`
+        :py:meth:`getNumpy`
+        :py:meth:`getGrayNumpyCv2`
+        
+        """
+        if not type(self._cv2GrayNumpy) is not np.ndarray:
+            self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
+        return self._cv2GrayNumpy
 
     def _getGrayscaleBitmap(self):
         if (self._graybitmap):
@@ -1472,7 +1653,7 @@ class Image:
         elif( self._colorSpace == ColorSpace.GRAY):
             cv.Split(self.getBitmap(), self._graybitmap, self._graybitmap, self._graybitmap, None)
         else:
-            warnings.warn("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
+            logger.warning("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
             return None    
         return self._graybitmap
 
@@ -1558,7 +1739,10 @@ class Image:
         if (self._pgsurface):
             return self._pgsurface
         else:
-            self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
+            if self.isGray():
+                self._pgsurface = pg.image.fromstring(self.getBitmap().tostring(), self.size(), "RGB")
+            else:
+                self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
             return self._pgsurface
     
     def toString(self):
@@ -1576,7 +1760,7 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose = False, temp=False, **params):
+    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, fname=None, **params):
         """
         **SUMMARY**
 
@@ -1600,8 +1784,14 @@ class Image:
         * *verbose* - If this flag is true we return the path where we saved the file. 
 
         * *temp* - If temp is True we save the image as a temporary file and return the path
+        
+        * *path* - path where temporary files needed to be stored
+        
+        * *fname* - name(Prefix) of the temporary file.
 
-        * *params* - This object is used for overloading the PIL save methods. 
+        * *params* - This object is used for overloading the PIL save methods. In particular 
+          this method is useful for setting the jpeg compression level. For JPG see this documentation:
+          http://www.pythonware.com/library/pil/handbook/format-jpeg.htm          
 
         **EXAMPLES**
 
@@ -1622,16 +1812,39 @@ class Image:
 
         .. Note::
           You must have IPython notebooks installed for this to work
-       
+          
+          path and fname are valid if and only if temp is set to True.
+          
         .. attention:: 
           We need examples for all save methods as they are unintuitve. 
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
-
+        
+        if temp and path!=None :
+            import glob
+            if fname==None :
+                fname = 'Image'                
+            if glob.os.path.exists(path):
+                path = glob.os.path.abspath(path) 
+                imagefiles = glob.glob(glob.os.path.join(path,fname+"*.png"))
+                num = [0]
+                for img in imagefiles :
+                    num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
+                num.sort()
+                fnum = num[-1]+1
+                fname = glob.os.path.join(path,fname+str(fnum)+".png") 
+                self._tempFiles.append(fname)
+                self.save(self._tempFiles[-1])
+                return self._tempFiles[-1]
+            else :
+                print "Path does not exist!"
+                        
         #if it's a temporary file
-        if temp:
-            filename = tempfile.NamedTemporaryFile(suffix=".png")
+        elif temp :
+            self._tempFiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
+            self.save(self._tempFiles[-1].name)
+            return self._tempFiles[-1].name
        
         if (not filehandle_or_filename):
             if (self.filename):
@@ -1645,12 +1858,14 @@ class Image:
         else:
             saveimg = self
 
+        if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
+            saveimg = saveimg.toBGR()
 
-        if (type(filehandle_or_filename) != str):
+        if not isinstance(filehandle_or_filename, basestring):
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
-                warnings.warn("You need the python image library to save by filehandle")
+                logger.warning("You need the python image library to save by filehandle")
                 return 0
 
 
@@ -1720,7 +1935,7 @@ class Image:
                 from webm import encode as webmEncode
                 from webm.handlers import BitmapHandler, WebPHandler
               except:
-                warnings.warn('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
                 return 0
 
               #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
@@ -1737,7 +1952,12 @@ class Image:
 
               file(filename.format("RGB"), "wb").write(result.data)
               return 1
-        
+        #if the user is passing kwargs use the PIL save method.
+        if( params ): #usually this is just the compression rate for the image
+            if (not mode):
+                mode = "jpeg"
+            saveimg.getPIL().save(filename, mode, **params)
+            return 1
         
         if (filename):
             cv.SaveImage(filename, saveimg.getBitmap())  
@@ -1756,7 +1976,7 @@ class Image:
         else:
           return 1
 
-
+    
     def copy(self):
         """
         **SUMMARY**
@@ -1779,74 +1999,109 @@ class Image:
         cv.Copy(self.getBitmap(), newimg)
         return Image(newimg, colorSpace=self._colorSpace) 
     
-
-    def upload(self,api_key, verbose = True):
+    def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
-
-        Uploads this image to imgur an image sharing website. 
-        If the upload is successful then the method returns the URLs
-        for the image, the original image, and url to delete the image.
-        In verbose mode these values are also printed. 
-
-        
+        Uploads image to imgur or flickr. In verbose mode URL values are printed.
+          
         **PARAMETERS**
-
-        * *api_key* - a string of the imgur API key. You must register
-          with imgur to get an API key.
-
+        * *api_key* - a string of the API key.
+        * *api_secret* (required only for flickr) - a string of the API secret.
         * *verbose* - If verbose is true all values are printed to the
           screen
-
-        **RETURNS**
-        
-        If uploading is successful we return a list of the upload URL, the original 
-        image URL, and the delete image URL. If the upload fails we return None. 
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> result = img.upload( "MY_API_KEY1234567890" )
-        >>> print "Uploaded To: " + result[0]
-        
-        **NOTES**
-        
-        .. Warning:: 
-          This method requires that you have PyCurl installed.
           
-        .. Warning:: 
-          You must supply your own API key. See here: http://imgur.com/register/api_anon
-
+        **RETURNS**
+        if uploading is successful, 
+         - Imgur return the original image URL on success and None if it fails.
+         - Flick returns True on success, else returns False.
+          
+        **EXAMPLE**
+        TO upload image to imgur
+           >>> img = Image("lenna")
+           >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
+           >>> print "Uploaded To: " + result[0] 
+           
+        To upload image to flickr
+           >>> img.upload('flickr','api_key','api_secret')
+           >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
+           
+        **NOTES**
+        .. Warning::
+           This method requires two packages to be installed 
+           -PyCurl 
+           -flickr api.
+           
+        .. Warning::
+           You must supply your own API key. See here: 
+           - http://imgur.com/register/api_anon
+           - http://www.flickr.com/services/api/misc.api_keys.html
         """
-        try:
-          import pycurl
-        except ImportError:
-          print "PycURL Library not installed."
-          return
-
-        response = StringIO()
-        c = pycurl.Curl()
-        values = [
-                  ("key", api_key),
-                  ("image", (c.FORM_FILE, self.filename))]
-        c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
-        c.setopt(c.HTTPPOST, values)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-
-        match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
-        if match:
-            if(verbose):
-                print "Imgur page: http://imgur.com/" + match.group(1)
-                print "Original image: " + match.group(3)
-                print "Delete page: http://imgur.com/delete/" + match.group(2)
-            return [match.group(1),match.group(3),match.group(2)]
-        else:
-            if(verbose):
-                print "The API Key given is not valid"
-            return None
-
+        if ( dest=='imgur' ) :
+            try:
+                import pycurl
+            except ImportError:
+                print "PycURL Library not installed."
+                return
+                    
+            response = StringIO()
+            c = pycurl.Curl()
+            values = [("key", api_key),
+                      ("image", (c.FORM_FILE, self.filename))]
+            c.setopt(c.URL, "http://api.imgur.com/2/upload.xml")
+            c.setopt(c.HTTPPOST, values)
+            c.setopt(c.WRITEFUNCTION, response.write)
+            c.perform()
+            c.close()
+                
+            match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
+            if match:
+                if(verbose):
+               	    print "Imgur page: http://imgur.com/" + match.group(1)
+                    print "Original image: " + match.group(3)
+                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                return [match.group(1),match.group(3),match.group(2)]
+            else :
+                if(verbose):
+                    print "The API Key given is not valid"
+                return None
+        
+        elif (dest=='flickr'):
+            global temp_token
+            flickr = None 
+            try :
+                import flickrapi
+            except ImportError:
+            	print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
+                return False
+            try :
+                if (not(api_key==None and api_secret==None)):
+            	    self.flickr = flickrapi.FlickrAPI(api_key,api_secret,cache=True)
+            	    self.flickr.cache = flickrapi.SimpleCache(timeout=3600, max_entries=200)
+            	    self.flickr.authenticate_console('write')
+            	    temp_token = (api_key,api_secret)
+            	else :
+            	    try :
+            	        self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
+            	        self.flickr.authenticate_console('write')
+            	    except NameError :
+            	        print "API key and Secret key are not set."
+            	        return           	            	    
+            except :
+            	print "The API Key and Secret Key are not valid"
+            	return False
+            if (self.filename) :	
+                try :
+            	    self.flickr.upload(self.filename,self.filehandle)
+                except :
+            	    print "Uploading Failed !"
+            	    return False
+            else :
+            	 import tempfile
+                 tf=tempfile.NamedTemporaryFile(suffix='.jpg')
+                 self.save(tf.name)
+	    	 temp = Image(tf.name)
+	    	 self.flickr.upload(tf.name,temp.filehandle)
+            return True
 
     def scale(self, width, height = -1):
         """
@@ -1885,7 +2140,7 @@ class Image:
           w = int(self.width * width)
           h = int(self.height * width)
           if( w > MAX_DIMENSION or h > MAX_DIMENSION or h < 1 or w < 1 ):
-              warnings.warn("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
+              logger.warning("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
               return self
            
 
@@ -1923,7 +2178,7 @@ class Image:
         """
         retVal = None
         if( w is None and h is None ):
-            warnings.warn("Image.resize has no parameters. No operation is performed")
+            logger.warning("Image.resize has no parameters. No operation is performed")
             return None
         elif( w is not None and h is None):
             sfactor = float(w)/float(self.width)
@@ -1932,25 +2187,30 @@ class Image:
             sfactor = float(h)/float(self.height)
             w = int( sfactor*float(self.width) )
         if( w > MAX_DIMENSION or h > MAX_DIMENSION ):
-            warnings.warn("Image.resize Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
+            logger.warning("Image.resize Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
             return retVal           
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
         cv.Resize(self.getBitmap(), scaled_bitmap)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
         
 
-    def smooth(self, algorithm_name = 'gaussian', aperature = '', sigma = 0, spatial_sigma = 0, grayscale=False):
+    def smooth(self, algorithm_name='gaussian', aperture=(3,3), sigma=0, spatial_sigma=0, grayscale=False, aperature=None):
         """
         **SUMMARY**
 
         Smooth the image, by default with the Gaussian blur.  If desired,
-        additional algorithms and aperatures can be specified.  Optional parameters
+        additional algorithms and apertures can be specified.  Optional parameters
         are passed directly to OpenCV's cv.Smooth() function.
 
         If grayscale is true the smoothing operation is only performed on a single channel
         otherwise the operation is performed on each channel of the image. 
        
-
+        for OpenCV versions >= 2.3.0 it is advisible to take a look at 
+               - :py:meth:`bilateralFilter`
+               - :py:meth:`medianFilter`
+               - :py:meth:`blur`
+               - :py:meth:`gaussianBlur`
+           
         **PARAMETERS**
 
         * *algorithm_name* - valid options are 'blur' or gaussian, 'bilateral', and 'median'.
@@ -1961,7 +2221,10 @@ class Image:
           
           * `Bilateral Filter <http://en.wikipedia.org/wiki/Bilateral_filter>`_
 
-        * *aperature* - A tuple for the aperature of the gaussian blur as an (x,y) tuple. 
+        * *aperture* - A tuple for the aperture of the gaussian blur as an (x,y) tuple. 
+                     - Note there was rampant spelling mistakes in both smooth & sobel,
+                       aperture is spelled as such, and not "aperature". This code is backwards
+                       compatible.
        
         .. Warning:: 
           These must be odd numbers.
@@ -1988,36 +2251,35 @@ class Image:
 
         :py:meth:`bilateralFilter`
         :py:meth:`medianFilter`
+        :py:meth:`blur`
         
-
         """
-        win_x = 3
-        win_y = 3  #set the default aperature window size (3x3)
+        # see comment on argument documentation (spelling error)
+        aperture = aperature if aperature else aperture
 
-
-        if (is_tuple(aperature)):
-            win_x, win_y = aperature#get the coordinates from parameter
-            #TODO: make sure aperature is valid 
-            #   eg Positive, odd and square for bilateral and median
-
-
-        algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
+        if is_tuple(aperture):
+            win_x, win_y = aperture
+            if win_x <= 0 or win_y <= 0 or win_x % 2 == 0 or win_y % 2 == 0:  
+                logger.warning("The aperture (x,y) must be odd number and greater than 0.")
+                return None
+        else:
+            raise ValueError("Please provide a tuple to aperture, got: %s" % type(aperture))
 
 
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
         if algorithm_name == "blur":
             algorithm = cv.CV_BLUR
-        if algorithm_name == "bilateral":
+        elif algorithm_name == "bilateral":
             algorithm = cv.CV_BILATERAL
-            win_y = win_x #aperature must be square
-        if algorithm_name == "median":
+            win_y = win_x #aperture must be square
+        elif algorithm_name == "median":
             algorithm = cv.CV_MEDIAN
-            win_y = win_x #aperature must be square
-
-
+            win_y = win_x #aperture must be square
+        else:
+            algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian 
         
-        if( grayscale ):
+        if grayscale:
             newimg = self.getEmpty(1)
             cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
         else:
@@ -2037,39 +2299,249 @@ class Image:
         return Image(newimg, colorSpace=self._colorSpace)
 
 
-    def medianFilter(self, window=''):
+    def medianFilter(self, window='',grayscale=False):
         """
         **SUMMARY**
-
-        Convience function derived from the :py:meth:`smooth` method
-        Perform a median filtering operation to denoise/despeckle the image.
-        The optional parameter is the window size.
-          
-        **NOTES**
-
-        `Median Filter <http://en.wikipedia.org/wiki/Median_filter>`_
         
+        Smooths the image, with the median filter. Performs a median filtering operation to denoise/despeckle the image.
+        The optional parameter is the window size.
+        see : http://en.wikipedia.org/wiki/Median_filter 
 
+        **Parameters**
+        * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y. 
+                   - By default it is set to 3x3, i.e window = (3x3).        
+        
+        **Note**
+        win_x and win_y should be greater than zero, a odd number and equal.  
+        
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        
+        For OpenCV versions >= 2.3.0
+        -- cv2.medianBlur function is called.
         """
-        return self.smooth(algorithm_name='median', aperature=window)
+        try:
+            import cv2
+            new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        
+        if is_tuple(window):
+            win_x, win_y = window
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
+                if win_x != win_y :
+                    win_x=win_y
+            else :
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
+                return None
+        
+        elif( is_number(window) ): 
+            win_x = window
+        else :
+            win_x = 3 #set the default aperture window size (3x3)
+
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            return self.smooth(algorithm_name='median', aperture=(win_x,win_y),grayscale=grayscale_)
+        else :
+            if (grayscale) :
+                img_medianBlur = cv2.medianBlur(self.getGrayNumpy(),win_x)
+                return Image(img_medianBlur, colorSpace=ColorSpace.GRAY)
+            else :        
+                img_medianBlur = cv2.medianBlur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),win_x)
+                img_medianBlur = img_medianBlur[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_medianBlur, colorSpace=self._colorSpace)    
     
     
-    def bilateralFilter(self, window = ''):
+    def bilateralFilter(self, diameter=5,sigmaColor=10, sigmaSpace=10,grayscale=False):
         """
         **SUMMARY**
-
-        Convience function derived from the :py:meth:`smooth` method
-        Perform a bilateral filtering operation to denoise/despeckle the image.
-        The optional parameter is the window size.
         
-        **NOTES** 
+        Smooths the image, using bilateral filtering. Potential of bilateral filtering is for the removal of texture.
+        The optional parameter are diameter, sigmaColor, sigmaSpace.
 
-        Bilateral Filter http://en.wikipedia.org/wiki/Bilateral_filter
+        Bilateral Filter 
+        see : http://en.wikipedia.org/wiki/Bilateral_filter
+        see : http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/MANDUCHI1/Bilateral_Filtering.html  
+        
+        **Parameters**
+        
+        * *diameter* - A tuple for the window of the form (diameter,diameter). By default window = (3x3). ( for OpenCV versions <= 2.3.0)
+                     - Diameter of each pixel neighborhood that is used during filtering. ( for OpenCV versions >= 2.3.0)
+                     
 
+        * *sigmaColor* - Filter the specified value in the color space. A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace ) will be mixed together, resulting in larger areas of semi-equal color.
+        
+        * *sigmaSpace* - Filter the specified value in the coordinate space. A larger value of the parameter means that farther pixels will influence each other as long as their colors are close enough
+        
+        **NOTE**
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth.
+        -- where aperture(window) is (diameter,diameter)
+        -- sigmaColor and sigmanSpace become obsolete
+        
+        For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
+        -- cv.bilateralFilter function is called
+        -- If the sigmaColor and sigmaSpace values are small (< 10), the filter will not have much effect, whereas if they are large (> 150), they will have a very strong effect, making the image look 'cartoonish'
+        -- It is recommended to use diamter=5 for real time applications, and perhaps diameter=9 for offile applications that needs heavy noise filtering.
         """
-        return self.smooth(algorithm_name='bilateral', aperature=window)
+        try:
+            import cv2
+            new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        if is_tuple(diameter):
+            win_x, win_y = diameter
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
+                if win_x != win_y :
+                    diameter = (win_x, win_y)
+            else :
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
+                return None
+        
+        elif( is_number(diameter) ): 
+            pass
+            
+        else :
+            win_x = 3 #set the default aperture window size (3x3)
+            diameter = (win_x,win_x)
+             
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            if( is_number(diameter) ) :
+                diameter = (diameter,diameter)
+            return self.smooth(algorithm_name='bilateral', aperture=diameter,grayscale=grayscale_)
+        else :
+            if (grayscale) :
+                img_bilateral = cv2.bilateralFilter(self.getGrayNumpy(),diameter,sigmaColor, sigmaSpace)
+                return Image(img_bilateral, colorSpace=ColorSpace.GRAY)
+            else :    
+                img_bilateral = cv2.bilateralFilter(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),diameter,sigmaColor, sigmaSpace)
+                img_bilateral = img_bilateral[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_bilateral,colorSpace=self._colorSpace)    
     
-    
+    def blur(self, window = '', grayscale=False):
+        """
+        **SUMMARY**
+        
+        Smoothes an image using the normalized box filter.
+        The optional parameter is window.
+
+        see : http://en.wikipedia.org/wiki/Blur
+        
+        **Parameters**
+        
+        * *window* - should be in the form a tuple (win_x,win_y).
+                   - By default it is set to 3x3, i.e window = (3x3).        
+
+        **NOTE**
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        
+        For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
+        -- cv.blur function is called
+        """
+        try:
+            import cv2
+            new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        if is_tuple(window):
+            win_x, win_y = window
+            if ( win_x<=0 or win_y<=0 ) :
+                logger.warning("win_x and win_y should be greater than 0.")
+                return None          
+        elif( is_number(window) ): 
+            window = (window,window)
+        else :
+            window = (3,3)
+        
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
+        else :
+            if grayscale:
+                img_blur = cv2.blur(self.getGrayNumpy(),window)
+                return Image(img_blur,colorSpace=ColorSpace.GRAY)
+            else :
+                img_blur = cv2.blur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window)
+                img_blur = img_blur[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_blur,colorSpace=self._colorSpace)    
+            
+    def gaussianBlur(self, window = '', sigmaX=0 , sigmaY=0 ,grayscale=False):
+        """
+        **SUMMARY**
+        
+        Smoothes an image, typically used to reduce image noise and reduce detail.
+        The optional parameter is window.
+
+        see : http://en.wikipedia.org/wiki/Gaussian_blur
+        
+        **Parameters**
+        
+        * *window* - should be in the form a tuple (win_x,win_y). Where win_x and win_y should be positive and odd.
+                   - By default it is set to 3x3, i.e window = (3x3).
+                           
+        * *sigmaX* - Gaussian kernel standard deviation in X direction.
+        
+        * *sigmaY* - Gaussian kernel standard deviation in Y direction.
+        
+        * *grayscale* - If true, the effect is applied on grayscale images.
+        
+        **NOTE**
+        For OpenCV versions <= 2.3.0 
+        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        
+        For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
+        -- cv.GaussianBlur function is called
+        """
+        try:
+            import cv2
+            ver = cv2.__version__
+            new_version = False
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:'):
+	        if int(ver.replace('.','0'))>=20300 :
+                    new_version = True
+        except :
+            new_version = False
+            pass    
+        
+        if is_tuple(window):
+            win_x, win_y = window
+            if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
+                pass
+            else :
+                logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
+                return None
+        
+        elif( is_number(window) ): 
+            window = (window, window)
+     
+        else :
+            window = (3,3) #set the default aperture window size (3x3)
+        
+        if ( not new_version ) : 
+            grayscale_ = grayscale
+            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
+        else :
+            if grayscale :
+                img_guass = self.getGrayNumpy()
+                cv2.GaussianBlur(self.getGrayNumpy(),window,sigmaX,img_guass,sigmaY)
+                return Image(img_guass, colorSpace=ColorSpace.GRAY)
+            
+            else :    
+                img_guass =  self.getNumpy()[:,:, ::-1].transpose([1,0,2])
+                cv2.GaussianBlur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window,sigmaX,img_guass,sigmaY)
+                img_guass = img_guass[:,:, ::-1].transpose([1,0,2]) 
+                return Image(img_guass,colorSpace=self._colorSpace)
+
     def invert(self):
         """
         **SUMMARY**
@@ -2112,8 +2584,8 @@ class Image:
         **SEE ALSO**
 
         :py:meth:`binarize`
-        """
-        return Image(self._getGrayscaleBitmap())
+        """ 
+        return Image(self._getGrayscaleBitmap(), colorSpace = ColorSpace.GRAY)
 
 
     def flipHorizontal(self):
@@ -2283,7 +2755,7 @@ class Image:
         :py:meth:`erode`
 
         """
-        if (is_tuple(thresh)):
+        if is_tuple(thresh):
             r = self.getEmpty(1) 
             g = self.getEmpty(1)
             b = self.getEmpty(1)
@@ -2400,7 +2872,7 @@ class Image:
         return FeatureSet(corner_features)
 
 
-    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5):
+    def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5,appx_level=3):
         """
         **SUMMARY**
         
@@ -2423,7 +2895,10 @@ class Image:
 
         * *threshblocksize* - the size of the block used in the adaptive binarize operation. *TODO - make this match binarize*
     
-        .. Warning:: 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+        
+          .. Warning:: 
           This parameter must be an odd number.
           
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
@@ -2439,7 +2914,15 @@ class Image:
         >>> fs = img.findBlobs() 
         >>> if( fs is not None ):
         >>>     fs.draw()
-        
+
+        **NOTES**
+
+        .. Warning:: 
+          For blobs that live right on the edge of the image OpenCV reports the position and width
+          height as being one over for the true position. E.g. if a blob is at (0,0) OpenCV reports 
+          its position as (1,1). Likewise the width and height for the other corners is reported as
+          being one less than the width and height. This is a known bug. 
+
         **SEE ALSO**
         :py:meth:`threshold`
         :py:meth:`binarize`
@@ -2450,21 +2933,120 @@ class Image:
         :py:meth:`smartFindBlobs`
         """
         if (maxsize == 0):  
-            maxsize = self.width * self.height / 2
+            maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
             
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
-            self, minsize = minsize, maxsize = maxsize)
+            self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
             
         return FeatureSet(blobs).sortArea()
+    
+    def findSkintoneBlobs(self, minsize=10, maxsize=0,dilate_iter=1):
+        """
+        **SUMMARY**
+        
+        Find Skintone blobs will look for continuous
+        regions of Skintone in a color image and return them as Blob features in a FeatureSet.  
+        Parameters specify the binarize filter threshold value, and minimum and maximum size for 
+        blobs. If a threshold value is -1, it will use an adaptive threshold.  See binarize() for
+        more information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+        
+        
+        **PARAMETERS**
+        
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned blobs. This helps to filter out noise.
+        
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned blobs.
 
+    	* *dilate_iter* - the number of times to run the dilation operation.   
+    
+        **RETURNS**
+        
+        Returns a featureset (basically a list) of :py:class:`blob` features. If no blobs are found this method returns None.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> fs = img.findSkintoneBlobs() 
+        >>> if( fs is not None ):
+        >>>     fs.draw()
+
+        **NOTES**
+        It will be really awesome for making UI type stuff, where you want to track a hand or a face.
+
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`findBlobsFromPalette`
+        :py:meth:`smartFindBlobs`
+        """
+        if (maxsize == 0):  
+            maxsize = self.width * self.height
+        mask = self.getSkintoneMask(dilate_iter)
+	blobmaker = BlobMaker()
+        blobs = blobmaker.extractFromBinary(mask, self, minsize = minsize, maxsize = maxsize)
+        if not len(blobs):
+            return None
+        return FeatureSet(blobs).sortArea()    
+    
+    def getSkintoneMask(self, dilate_iter=0):
+        """
+        **SUMMARY**
+        
+        Find Skintone mask will look for continuous
+        regions of Skintone in a color image and return a binary mask where the white pixels denote Skintone region.         
+        
+        **PARAMETERS**
+        
+    	* *dilate_iter* - the number of times to run the dilation operation.  
+        **RETURNS**
+        
+        Returns a binary mask.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> mask = img.findSkintoneMask() 
+        >>> mask.show()
+        
+        """
+        if( self._colorSpace != ColorSpace.YCrCb ):
+            YCrCb = self.toYCrCb()
+        else:
+            YCrCb = self
+    
+        Y =  np.ones((256,1),dtype=uint8)*0
+	Y[5:] = 255
+	Cr =  np.ones((256,1),dtype=uint8)*0
+        Cr[140:180] = 255
+	Cb =  np.ones((256,1),dtype=uint8)*0
+	Cb[77:135] = 255
+	Y_img = YCrCb.getEmpty(1)
+	Cr_img = YCrCb.getEmpty(1)
+	Cb_img = YCrCb.getEmpty(1)
+	cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+	cv.LUT(Y_img,Y_img,cv.fromarray(Y))
+	cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+	cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+	temp = self.getEmpty()
+	cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+	mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+	mask = mask.binarize((128,128,128))
+	mask = mask.toRGB().binarize()
+	mask.dilate(dilate_iter)
+	return mask
+        
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(20,20)):
         """
         **SUMMARY**
 
@@ -2478,8 +3060,8 @@ class Image:
 
         For more information, consult the cv.HaarDetectObjects documentation.
    
-        You will need to provide your own cascade file - these are usually found in
-        /SimpleCV/Features/HaarCascades/ and specify a number of body parts.
+        To see what features are available run img.listHaarFeatures() or you can
+        provide your own haarcascade file if you have one available.
         
         Note that the cascade parameter can be either a filename, or a HaarCascade
         loaded with cv.Load(), or a SimpleCV HaarCascade object. 
@@ -2488,7 +3070,7 @@ class Image:
 
         * *cascade* - The Haar Cascade file, this can be either the path to a cascade
           file or a HaarCascased SimpleCV object that has already been
-          loaded. 
+          loaded.
 
         * *scale_factor* - The scaling factor for subsequent rounds of the Haar cascade 
           (default 1.2) in terms of a percentage (i.e. 1.2 = 20% increase in size)
@@ -2500,6 +3082,9 @@ class Image:
 
         * *use-canny* - Whether or not to use Canny pruning to reject areas with too many edges 
           (default yes, set to 0 to disable) 
+
+        * *min_size* - Minimum window size. By default, it is set to the size
+          of samples the classifier has been trained on ((20,20) for face detection) 
 
         **RETURNS**
 
@@ -2516,30 +3101,34 @@ class Image:
 
         **NOTES**
 
-        http://en.wikipedia.org/wiki/Haar-like_features
+        OpenCV Docs:
+        - http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html
+
+        Wikipedia:
+        - http://en.wikipedia.org/wiki/Viola-Jones_object_detection_framework
+        - http://en.wikipedia.org/wiki/Haar-like_features
 
         The video on this pages shows how Haar features and cascades work to located faces:
-
-        http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
+        - http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
         
         """
         storage = cv.CreateMemStorage(0)
 
 
         #lovely.  This segfaults if not present
-        if type(cascade) == str:
-            
-          if (not os.path.exists(cascade)):
-              warnings.warn("Could not find Haar Cascade file " + cascade)
-              return None
-
+        if isinstance(cascade, basestring):
           from SimpleCV.Features.HaarCascade import HaarCascade
           cascade = HaarCascade(cascade)
-  
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(), cascade.getCascade(), storage, scale_factor, use_canny)
+          if not cascade.getCascade(): return None
+          
+         
+        # added all of the arguments from the opencv docs arglist
+        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
+                cascade.getCascade(), storage, scale_factor, min_neighbors,
+                use_canny, min_size)
+
         if objects: 
             return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
-    
     
         return None
 
@@ -2583,7 +3172,10 @@ class Image:
         :py:class:`DrawingLayer`
 
         """
-        self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
+        if( thickness < 0):
+            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness),filled=True)
+        else:
+            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
     
     
     def drawLine(self, pt1, pt2, color = (0, 0, 0), thickness = 1):
@@ -2640,8 +3232,23 @@ class Image:
 
         
         """
-        return cv.GetSize(self.getBitmap())
+        if self.width and self.height: 
+            return cv.GetSize(self.getBitmap())
+        else:
+            return (0, 0)
 
+    def isEmpty(self):
+        """
+        **SUMMARY**
+        
+        Checks if the image is empty by checking its width and height.
+
+        **RETURNS**
+        
+        True if the image's size is (0, 0), False for any other size.
+        
+        """
+        return self.size() == (0, 0)
 
     def split(self, cols, rows):
         """
@@ -2775,7 +3382,7 @@ class Image:
 
         """
         if( r is None and g is None and b is None ):
-            warnings.warn("ImageClass.mergeChannels - we need at least one valid channel")
+            logger.warning("ImageClass.mergeChannels - we need at least one valid channel")
             return None
         if( r is None ):
             r = self.getEmpty(1)
@@ -3472,7 +4079,8 @@ class Image:
 
     def __setitem__(self, coord, value):
         value = tuple(reversed(value))  #RGB -> BGR
-        if (is_tuple(self.getMatrix()[tuple(reversed(coord))])):
+        # TODO - this needs to be refactored
+        if is_tuple(self.getMatrix()[tuple(reversed(coord))]):
             self.getMatrix()[tuple(reversed(coord))] = value 
         else:
             cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
@@ -3597,64 +4205,17 @@ class Image:
             self.__dict__[k] = v
 
 
-    def findBarcode(self, zxing_path = ""):
+    def findBarcode(self):
         """
         **SUMMARY**
+        This function requires zbar and the zbar python wrapper to be installed.
 
-        If you have the python-zxing library installed, you can find 2d and 1d
-        barcodes in your image.  These are returned as Barcode feature objects
-        in a FeatureSet.  The single parameter is the ZXing_path, if you 
-        don't have the ZXING_LIBRARY env parameter set.
+        To install please visit:
+        http://zbar.sourceforge.net/
 
-        You can clone python-zxing at:
-
-        http://github.com/oostendo/python-zxing
-
-        **INSTALLING ZEBRA CROSSING**
-
-        * Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
-      
-        * unpack the zip file where ever you see fit
-
-          >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
-          >>> ant -f core/build.xml
-          >>> ant -f javase/build.xml 
+        On Ubuntu Linux 12.04 or greater:
+        sudo apt-get install python-zbar
         
-          This should build the library, but double check the readme
-        
-        * Get our helper library 
-
-          >>> git clone git://github.com/oostendo/python-zxing.git
-          >>> cd python-zxing
-          >>> python setup.py install
-
-        * Our library does not have a setup file. You will need to add
-           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
-        
-          export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
-          for example: 
-
-          export ZXING_LIBRARY=/my/install/path/zxing-x.x/   
-        
-          On windows you will need to add these same variables to the system variable, e.g.
-          
-          http://www.computerhope.com/issues/ch000549.htm
-        
-        * On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
-        
-        * Go grab some barcodes!
-
-        .. Warning::
-          Users on OSX may see the following error:
-          
-          RuntimeWarning: tmpnam is a potential security risk to your program        
-          
-          We are working to resolve this issue. For normal use this should not be a problem.
-
-        **PARAMETERS**
-        
-        * *zxing_path* - The path to lib zxing.
-            
         **Returns**
         
         A :py:class:`FeatureSet` of :py:class:`Barcode` objects. If no barcodes are detected the method returns None.
@@ -3672,26 +4233,38 @@ class Image:
         :py:class:`Barcode`
 
         """
-        if not ZXING_ENABLED:
-            warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
-            return None
+        try:
+          import zbar
+        except:
+          logger.warning('The zbar library is not installed, please install to read barcodes')
+          return None
 
+        #configure zbar
+        scanner = zbar.ImageScanner()
+        scanner.parse_config('enable')
+        raw = self.getPIL().convert('L').tostring()
+        width = self.width
+        height = self.height
 
-        if (not self._barcodeReader):
-            if not zxing_path:
-                self._barcodeReader = zxing.BarCodeReader()
-            else:
-                self._barcodeReader = zxing.BarCodeReader(zxing_path)
+        # wrap image data
+        image = zbar.Image(width, height, 'Y800', raw)
 
+        # scan the image for barcodes
+        scanner.scan(image)
 
-        tmp_filename = os.tmpnam() + ".png"
-        self.save(tmp_filename)
-        barcode = self._barcodeReader.decode(tmp_filename)
-        os.unlink(tmp_filename)
+        barcode = None
+        # extract results
+        for symbol in image:
+            # do something useful with results
+            barcode = symbol
 
-
+        # clean up
+        del(image)
+        
         if barcode:
-            return Barcode(self, barcode)
+            f = Barcode(self, barcode)
+            return FeatureSet([f])
+            #~ return f
         else:
             return None
 
@@ -3894,6 +4467,7 @@ class Image:
 
         if (fixed):
             retVal = self.getEmpty()
+            cv.Zero(retVal)
             rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
             cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
             cv.WarpAffine(self.getBitmap(), retVal, rotMat)
@@ -3953,7 +4527,10 @@ class Image:
         #calculate the translation of the corners to center the image
         #use these new corner positions as the input to cvGetAffineTransform
         retVal = cv.CreateImage((int(newWidth), int(newHeight)), 8, int(3))
+        cv.Zero(retVal)
+
         cv.WarpAffine(self.getBitmap(), retVal, rotMat)
+        #cv.AddS(retVal,(0,255,0),retVal)
         return Image(retVal, colorSpace=self._colorSpace) 
 
 
@@ -4189,9 +4766,9 @@ class Image:
         c = None
         retVal = None
         if( x < 0 or x >= self.width ):
-            warnings.warn("getRGBPixel: X value is not valid.")
+            logger.warning("getRGBPixel: X value is not valid.")
         elif( y < 0 or y >= self.height ):
-            warnings.warn("getRGBPixel: Y value is not valid.")
+            logger.warning("getRGBPixel: Y value is not valid.")
         else:
             c = cv.Get2D(self.getBitmap(), y, x)
             if( self._colorSpace == ColorSpace.BGR ): 
@@ -4233,9 +4810,9 @@ class Image:
         """
         retVal = None
         if( x < 0 or x >= self.width ):
-            warnings.warn("getGrayPixel: X value is not valid.") 
+            logger.warning("getGrayPixel: X value is not valid.") 
         elif( y < 0 or y >= self.height ):
-            warnings.warn("getGrayPixel: Y value is not valid.")
+            logger.warning("getGrayPixel: Y value is not valid.")
         else:
             retVal = cv.Get2D(self._getGrayscaleBitmap(), y, x)
             retVal = retVal[0]
@@ -4277,7 +4854,7 @@ class Image:
         """
         retVal = None
         if( column < 0 or column >= self.width ):
-            warnings.warn("getVertRGBScanline: column value is not valid.")
+            logger.warning("getVertRGBScanline: column value is not valid.")
         else:
             retVal = cv.GetCol(self.getBitmap(), column)
             retVal = np.array(retVal)
@@ -4319,7 +4896,7 @@ class Image:
         """
         retVal = None
         if( row < 0 or row >= self.height ):
-            warnings.warn("getHorzRGBScanline: row value is not valid.")
+            logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
             retVal = cv.GetRow(self.getBitmap(), row)
             retVal = np.array(retVal)
@@ -4361,7 +4938,7 @@ class Image:
         """
         retVal = None
         if( column < 0 or column >= self.width ):
-            warnings.warn("getHorzRGBScanline: row value is not valid.")
+            logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
             retVal = cv.GetCol(self._getGrayscaleBitmap(), column )
             retVal = np.array(retVal)
@@ -4404,7 +4981,7 @@ class Image:
         """
         retVal = None
         if( row < 0 or row >= self.height ):
-            warnings.warn("getHorzRGBScanline: row value is not valid.")
+            logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
             retVal = cv.GetRow(self._getGrayscaleBitmap(), row )
             retVal = np.array(retVal)
@@ -4415,6 +4992,15 @@ class Image:
     def crop(self, x , y = None, w = None, h = None, centered=False):
         """
         **SUMMARY**
+        Consider you want to crop a image with the following dimension :
+
+        (x,y) 
+            +--------------+
+            |              |
+            |              |h
+            |              |
+            +--------------+
+                  w      (x1,y1)   
 
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
@@ -4423,13 +5009,20 @@ class Image:
 
         You can also pass a feature into crop and have it automatically return
         the cropped image within the bounding outside area of that feature
-    
-    
+        
+        Or parameters can be in the form of a
+         - tuple or list : (x,y,w,h) or [x,y,w,h]
+         - two points : (x,y),(x1,y1) or [(x,y),(x1,y1)]
+           
         **PARAMETERS**
 
-        * *x* - An integer or feature. If it is a feature we crop to the features dimensions. 
-          Otherwise this is either the top left corner of the image or the center cooridnate of the the crop region.
+        * *x* - An integer or feature. 
+              - If it is a feature we crop to the features dimensions. 
+              - This can be either the top left corner of the image or the center cooridnate of the the crop region.
+              - or in the form of tuple/list. i,e (x,y,w,h) or [x,y,w,h]
+              - Otherwise in two point form. i,e [(x,y),(x1,y1)] or (x,y)
         * *y* - The y coordinate of the center, or top left corner  of the crop region.
+              - Otherwise in two point form. i,e (x1,y1)
         * *w* - Int - the width of the cropped region in pixels.
         * *h* - Int - the height of the cropped region in pixels.
         * *centered*  - Boolean - if True we treat the crop region as being the center 
@@ -4443,7 +5036,10 @@ class Image:
         
         >>> img = Image('lenna')
         >>> img.crop(50,40,128,128).show()
-
+        >>> img.crop((50,40,128,128)).show() #roi
+        >>> img.crop([50,40,128,128]) #roi
+        >>> img.crop((50,40),(178,168)) # two point form
+        >>> img.crop([(50,40),(178,168)]) # two point form
         **SEE ALSO**
         
         :py:meth:`embiggen`
@@ -4457,17 +5053,42 @@ class Image:
             y = theFeature.points[0][1]
             w = theFeature.width()
             h = theFeature.height()
+        
+        # x of the form [(x,y),(x1,y1)]        
+        elif(isinstance(x, list) and isinstance(x[0],tuple) and isinstance(x[1],tuple) and y == None and w == None and h == None):
+            if (len(x[0])==2 and len(x[1])==2):    
+                x,y,w,h = x[0][0],x[0][1],x[1][0]-x[0][0],x[1][1]-x[0][1]
+            else:
+                logger.warning("x should be in the form [(x1,y1),(x2,y2)]") 
+                return None
+                 
+        # x and y of the form (x,y),(x1,y2)     
+        elif(isinstance(x, tuple) and isinstance(y, tuple) and w == None and h == None):
+            if (len(x)==2 and len(y)==2):
+                x,y,w,h = x[0],x[1],y[0]-x[0],y[1]-x[1]
+            else:
+                logger.warning("if x and y are tuple it should be in the form (x1,y1) and (x2,y2)") 
+                return None        
 
+        # x of the form (x,y,x1,y2) or [x,y,x1,y2]        
+        elif(isinstance(x, tuple) or isinstance(x, list) and y == None and w == None and h == None):
+            if (len(x)==4):
+                x,y,w,h = x
+            else:
+                logger.warning("if x is a tuple or list it should be in the form (x,y,w,h) or [x,y,w,h]") 
+                return None        
+                    
+                    
         if(y == None or w == None or h == None):
             print "Please provide an x, y, width, height to function"
 
         if( w <= 0 or h <= 0 ):
-            warnings.warn("Can't do a negative crop!")
+            logger.warning("Can't do a negative crop!")
             return None
         
         retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
         if( x < 0 or y < 0 ):
-            warnings.warn("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
+            logger.warning("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
 
 
         if( centered ):
@@ -4479,7 +5100,7 @@ class Image:
         (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
 
         if( bottomROI is None ):
-            warnings.warn("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
+            logger.warning("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
             return None
 
         retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
@@ -4488,8 +5109,7 @@ class Image:
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
         return Image(retVal, colorSpace=self._colorSpace)
-    
-    
+            
     def regionSelect(self, x1, y1, x2, y2 ):
         """
         **SUMMARY**
@@ -4527,7 +5147,7 @@ class Image:
 
         retVal = None
         if( w <= 0 or h <= 0 or w > self.width or h > self.height ):
-            warnings.warn("regionSelect: the given values will not fit in the image or are too small.")
+            logger.warning("regionSelect: the given values will not fit in the image or are too small.")
         else:
             xf = x2 
             if( x1 < x2 ):
@@ -4690,6 +5310,7 @@ class Image:
         :py:class:`Display`
 
         """
+
         if(type == 'browser'):
           import webbrowser
           js = JpegStreamer(8080)
@@ -4698,7 +5319,10 @@ class Image:
           return js
         elif (type == 'window'):
           from SimpleCV.Display import Display
-          d = Display(self.size())
+          if init_options_handler.on_notebook:
+              d = Display(displaytype='notebook')
+          else:
+              d = Display(self.size())
           self.save(d)
           return d
         else:
@@ -5348,7 +5972,7 @@ class Image:
             cv.ResetImageROI(retVal.getBitmap());
         elif( alphaMask is not None ):
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
-                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
+                logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
 
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
@@ -5403,7 +6027,7 @@ class Image:
 
         elif( mask is not None):
             if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
-                warnings.warn("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
+                logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
                 return None            
             cv.SetImageROI(img.getBitmap(),topROI)
             cv.SetImageROI(mask.getBitmap(),topROI)
@@ -5604,7 +6228,7 @@ class Image:
         """
         
         if( size == None or size[0] < self.width or size[1] < self.height ):
-            warnings.warn("image.embiggenCanvas: the size provided is invalid")
+            logger.warning("image.embiggenCanvas: the size provided is invalid")
             return None
 
         newCanvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
@@ -5618,7 +6242,7 @@ class Image:
 
         (topROI, bottomROI) = self._rectOverlapROIs((self.width,self.height),size,pos)
         if( topROI is None or bottomROI is None):
-            warnings.warn("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
+            logger.warning("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
             return None
 
         cv.SetImageROI(newCanvas, bottomROI)
@@ -5723,7 +6347,7 @@ class Image:
         if( color1[0]-color2[0] == 0 or 
             color1[1]-color2[1] == 0 or
             color1[2]-color2[2] == 0 ):
-            warnings.warn("No color range selected, the result will be black, returning None instead.")
+            logger.warning("No color range selected, the result will be black, returning None instead.")
             return None
         if( color1[0] > 255 or color1[0] < 0 or
             color1[1] > 255 or color1[1] < 0 or
@@ -5731,7 +6355,7 @@ class Image:
             color2[0] > 255 or color2[0] < 0 or
             color2[1] > 255 or color2[1] < 0 or
             color2[2] > 255 or color2[2] < 0 ):
-            warnings.warn("One of the tuple values falls outside of the range of 0 to 255")
+            logger.warning("One of the tuple values falls outside of the range of 0 to 255")
             return None 
 
         r = self.getEmpty(1)
@@ -5833,7 +6457,7 @@ class Image:
         newBG = cv.RGB(bg_color[0],bg_color[1],bg_color[2])
         cv.AddS(newCanvas,newBG,newCanvas)
         if( mask.width != self.width or mask.height != self.height ):
-            warnings.warn("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
+            logger.warning("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
             return None
         cv.Copy(self.getBitmap(),newCanvas,mask.getBitmap());
         return Image(newCanvas,colorSpace=self._colorSpace);
@@ -5879,7 +6503,7 @@ class Image:
         """
 
         if( hue<0 or hue > 180 ):
-            warnings.warn("Invalid hue color, valid hue range is 0 to 180.")
+            logger.warning("Invalid hue color, valid hue range is 0 to 180.")
 
         if( self._colorSpace != ColorSpace.HSV ):
             hsv = self.toHSV()
@@ -5887,16 +6511,17 @@ class Image:
             hsv = self
         h = hsv.getEmpty(1)
         s = hsv.getEmpty(1)
+        retVal = hsv.getEmpty(1)
         mask = hsv.getEmpty(1)
-        cv.Split(hsv.getBitmap(),None,s,h,None)
+        cv.Split(hsv.getBitmap(),h,None,s,None)
         hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation 
         if(hue_lb is not None and hue_ub is not None):
             hlut[hue_lb:hue_ub]=255
         else:
             hlut[hue] = 255
         cv.LUT(h,mask,cv.fromarray(hlut))
-        cv.Copy(s,h,mask) #we'll save memory using hue
-        return Image(h).invert() 
+        cv.Copy(s,retVal,mask) #we'll save memory using hue
+        return Image(retVal) 
 
 
     def applyPixelFunction(self, theFunc):
@@ -6008,7 +6633,7 @@ class Image:
         elif(type(kernel)==cv.mat):
             myKernel = kernel
         else:
-            warnings.warn("Convolution uses numpy arrays or cv.mat type.")
+            logger.warning("Convolution uses numpy arrays or cv.mat type.")
             return None
         retVal = self.getEmpty(3)
         if(center is None):
@@ -6097,7 +6722,7 @@ class Image:
         elif(method == "CCORR_NORM"): #maximal 
             method = cv.CV_TM_CCORR_NORMED
         else:
-            warnings.warn("ooops.. I don't know what template matching method you are looking for.")
+            logger.warning("ooops.. I don't know what template matching method you are looking for.")
             return None
         #create new image for template matching computation
         matches = cv.CreateMat( (self.height - template_image.height + 1),
@@ -6117,7 +6742,7 @@ class Image:
         mapped = map(tuple, np.column_stack(compute))
         fs = FeatureSet()
         for location in mapped:
-            fs.append(TemplateMatch(self, template_image.getBitmap(), (location[1],location[0]), matches[location[0], location[1]]))
+            fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
 
         #cluster overlapping template matches 
         finalfs = FeatureSet()
@@ -6483,7 +7108,24 @@ class Image:
 
                  "FAST" - The FAST keypoint extraction algorithm
                  See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
-
+                 
+                 All the flavour specified below are for OpenCV versions >= 2.4.0 :
+                 
+                 "MSER" - Maximally Stable Extremal Regions algorithm
+                 
+                 See: http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions
+                 
+                 "Dense" - Dense Scale Invariant Feature Transform.
+                 
+                 See: http://www.vlfeat.org/api/dsift.html
+                 
+                 "ORB" - The Oriented FAST and Rotated BRIEF
+                 
+                 See: http://www.willowgarage.com/sites/default/files/orb_final.pdf
+                 
+                 "SIFT" - Scale-invariant feature transform
+                 
+                 See: http://en.wikipedia.org/wiki/Scale-invariant_feature_transform
 
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor 
                       values and a vector of 128 descriptor values. The latter are "high" 
@@ -6519,51 +7161,104 @@ class Image:
         """
         try:
             import cv2
+            ver = cv2.__version__
+            new_version = 0
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:'):
+	        if int(ver.replace('.','0'))>=20400 :
+                    new_version = 1
+                if int(ver.replace('.','0'))>=20402 :     
+                    new_version = 2
+                    
         except:
-            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
-            return 
-        
+            logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
+            return
+                    
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
-            if( flavor == "SURF" ):
-                surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
-                self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
-                if( len(self._mKPDescriptors) == 0 ):
-                    return None, None                     
-                
-                if( highQuality == 1 ):
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                else:
-                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-                
-                self._mKPFlavor = "SURF"
-                del surfer
             
-            elif( flavor == "FAST" ):
-                faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = "FAST"
-                del faster
+        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+            if ( new_version == 0):
+                if( flavor == "SURF" ):
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+            
+                elif( flavor == "FAST" and not (int(ver.split(' ')[1])>=4557)) :
+                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "FAST"
+                    del faster
 
-            #elif( flavor == "MSER"):
-            #    mserer = cv2.MSER()
-            #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
-            #    self._mKPDescriptors = None
-            #    self._mKPFlavor = "MSER"
-            #    del mserer
+                #elif( flavor == "MSER"):
+                #    mserer = cv2.MSER()
+                #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
+                #    self._mKPDescriptors = None
+                #    self._mKPFlavor = "MSER"
+                #    del mserer
 
-            elif( flavor == "STAR"):
-                starer = cv2.StarDetector()
-                self._mKeyPoints = starer.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = "STAR"
-                del starer
-          
-            else:
-                warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+                elif( flavor == "STAR"):
+                    starer = cv2.StarDetector()
+                    self._mKeyPoints = starer.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "STAR"
+                    del starer
+            
+            
+            elif( new_version == 2 and flavor in ["SURF", "FAST"] ): 
+                if( flavor == "SURF" ):
+                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
+                    #mask = self.getGrayNumpy()                    
+                    #mask.fill(255) 
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,useProvidedKeypoints = False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+            
+                elif( flavor == "FAST" ):
+                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
+                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
+                    self._mKPDescriptors = None
+                    self._mKPFlavor = "FAST"
+                    del faster            
+            
+            elif( new_version >=1  and flavor in ["ORB", "SIFT", "SURF"] ):
+               FeatureDetector = cv2.FeatureDetector_create(flavor)
+               DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
+               self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
+               self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
+               if( len(self._mKPDescriptors) == 0 ):
+                    return None, None     
+               self._mKPFlavor = flavor
+	       del FeatureDetector
+
+            elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
+               FeatureDetector = cv2.FeatureDetector_create(flavor)
+               self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
+               self._mKPDescriptors = None
+               self._mKPFlavor = flavor
+               del FeatureDetector   
+               
+	    else:
+                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
                 return None, None
 
         return self._mKeyPoints,self._mKPDescriptors 
@@ -6615,7 +7310,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't run FLANN Matches without OpenCV >= 2.3.0")
+            logger.warning("Can't run FLANN Matches without OpenCV >= 2.3.0")
             return
         FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
         flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)
@@ -6679,7 +7374,7 @@ class Image:
         skp,sd = self._getRawKeypoints(thresh)
         tkp,td = template._getRawKeypoints(thresh)
         if( td == None or sd == None ):
-            warnings.warn("We didn't get any descriptors. Image might be too uniform or blurry." )
+            logger.warning("We didn't get any descriptors. Image might be too uniform or blurry." )
             return resultImg
         template_points = float(td.shape[0])
         sample_points = float(sd.shape[0])
@@ -6766,7 +7461,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
+            logger.warning("Can't Match Keypoints without OpenCV >= 2.3.0")
             return
             
         if template == None:
@@ -6775,7 +7470,7 @@ class Image:
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
-            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
+            logger.warning("I didn't get any keypoints. Image might be too uniform or blurry." )
             return None
 
         template_points = float(td.shape[0])
@@ -6795,7 +7490,7 @@ class Image:
             for i in range(0,len(idx)):
                 if( result[i] ):
                     lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
@@ -6818,10 +7513,16 @@ class Image:
             pt2p = np.array(pt2*np.matrix(homography))
             pt3p = np.array(pt3*np.matrix(homography))
             #update and clamp the corners to get our template in the other image
-            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo)) 
-            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
-            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
-            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            pt0i = (float(abs(pt0p[0][0]+xo)),float(abs(pt0p[0][1]+yo))) 
+            pt1i = (float(abs(pt1p[0][0]+xo)),float(abs(pt1p[0][1]+yo)))
+            pt2i = (float(abs(pt2p[0][0]+xo)),float(abs(pt2p[0][1]+yo)))
+            pt3i = (float(abs(pt3p[0][0]+xo)),float(abs(pt3p[0][1]+yo)))
+            #print "--------------------------"
+            #print str(pt0)+"--->"+str(pt0p)+"--->"+str(pt0i)
+            #print str(pt1)+"--->"+str(pt1p)+"--->"+str(pt1i)
+            #print str(pt2)+"--->"+str(pt2p)+"--->"+str(pt2i)
+            #print str(pt3)+"--->"+str(pt3p)+"--->"+str(pt3i)
+
             #construct the feature set and return it. 
             fs = FeatureSet()
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
@@ -6867,6 +7568,22 @@ class Image:
           * "FAST" - The FAST keypoint extraction algorithm
 
             See: http://en.wikipedia.org/wiki/Corner_detection#AST_based_feature_detectors
+          
+          All the flavour specified below are for OpenCV versions >= 2.4.0 :
+          
+          * "MSER" - Maximally Stable Extremal Regions algorithm
+            
+            See: http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions
+          
+          * "Dense" - 
+          
+          * "ORB" - The Oriented FAST and Rotated BRIEF
+            
+            See: http://www.willowgarage.com/sites/default/files/orb_final.pdf
+            
+          * "SIFT" - Scale-invariant feature transform
+           
+            See: http://en.wikipedia.org/wiki/Scale-invariant_feature_transform      
         
         * *highQuality* - The SURF descriptor comes in two forms, a vector of 64 descriptor 
           values and a vector of 128 descriptor values. The latter are "high" 
@@ -6897,9 +7614,9 @@ class Image:
 
         """
         try:
-            import cv2
+            import cv2                    
         except:
-            warnings.warn("Can't use Keypoints without OpenCV >= 2.3.0")
+            logger.warning("Can't use Keypoints without OpenCV >= 2.3.0")
             return None
 
         fs = FeatureSet()
@@ -6910,14 +7627,14 @@ class Image:
         else:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
-        if( flavor == "SURF" ):
+        if( flavor in ["ORB", "SIFT", "SURF"]  and kp!=None and d !=None ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
-        elif(flavor == "STAR" or flavor == "FAST" ):
+        elif(flavor in ["FAST", "STAR", "MSER", "Dense"] and kp!=None ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],None,flavor))
         else:
-            warnings.warn("ImageClass.Keypoints: I don't know the method you want to use")
+            logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
             return None
 
         return fs
@@ -6970,8 +7687,22 @@ class Image:
         :py:class:`FeatureSet`
 
         """
+        try:
+            import cv2
+            ver = cv2.__version__
+            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
+            if not ver.startswith('$Rev:') :
+	        if int(ver.replace('.','0'))>=20400 :
+              	    FLAG_VER = 1
+            	    if (window > 9):
+            		window = 9
+            else :
+                FLAG_VER = 0    			
+        except :
+            FLAG_VER = 0
+            
         if( self.width != previous_frame.width or self.height != previous_frame.height):
-            warnings.warn("ImageClass.getMotion: To find motion the current and previous frames must match")
+            logger.warning("ImageClass.getMotion: To find motion the current and previous frames must match")
             return None
         fs = FeatureSet()
         max_mag = 0.00
@@ -7016,14 +7747,28 @@ class Image:
         elif( method == "BM"):
             # In the interest of keep the parameter list short
             # I am pegging these to the window size. 
-            block = (window,window) # block size
-            shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
-            spread = (window*2,window*2) # the search windows.
-            wv = (self.width - block[0]) / shift[0] # the result image size
-            hv = (self.height - block[1]) / shift[1]
-            xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-            yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-            cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            # For versions with OpenCV 2.4.0 and below.
+            if ( FLAG_VER==0):
+            	block = (window,window) # block size
+            	shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
+            	spread = (window*2,window*2) # the search windows.
+            	wv = (self.width - block[0]) / shift[0] # the result image size
+            	hv = (self.height - block[1]) / shift[1]
+            	xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            	yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
+            	cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+            
+            #For versions with OpenCV 2.4.0 and above.
+            elif ( FLAG_VER==1) :
+	        block = (window,window) # block size
+                shift = (int(window*0.2),int(window*0.2)) # how far to shift the block
+                spread = (window,window) # the search windows.
+	        wv = self.width-block[0]+shift[0]
+	        hv = self.height-block[1]+shift[1]
+	        xf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
+                yf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
+	        cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
+	        
             for x in range(0,int(wv)): # go through the sample grid
                 for y in range(0,int(hv)):
                     xi = (shift[0]*(x))+block[0] #where on the input image the samples live
@@ -7035,7 +7780,7 @@ class Image:
                     if(mag > max_mag):
                         max_mag = mag
         else:
-            warnings.warn("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ") 
+            logger.warning("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ") 
             return None
 	
         max_mag = math.sqrt(max_mag) # do the normalization
@@ -7404,7 +8149,7 @@ class Image:
         return retVal 
 
 
-    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0):
+    def findBlobsFromPalette(self, palette_selection, dilate = 0, minsize=5, maxsize=0,appx_level=3):
         """
         **SUMMARY**
 
@@ -7421,6 +8166,8 @@ class Image:
           prior to performing blob extraction.
         * *minsize* - the minimum blob size in pixels
         * *maxsize* - the maximim blob size in pixels.
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
 
         **RETURNS**
 
@@ -7453,12 +8200,12 @@ class Image:
             bwimg =bwimg.dilate(dilate)
         
         if (maxsize == 0):  
-            maxsize = self.width * self.height / 2
+            maxsize = self.width * self.height 
         #create a single channel image, thresholded to parameters
     
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(bwimg,
-            self, minsize = minsize, maxsize = maxsize)
+            self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
@@ -7504,7 +8251,7 @@ class Image:
         #we get the palette from find palete 
         #ASSUME: GET PALLETE WAS CALLED!
         if( self._mPalette == None ):
-            warning.warn("Image.binarizeFromPalette: No palette exists, call getPalette())")
+            logger.warning("Image.binarizeFromPalette: No palette exists, call getPalette())")
             return None
         retVal = None
         img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
@@ -7632,7 +8379,7 @@ class Image:
         try:
             import cv2
         except:
-            warnings.warn("Can't Do GrabCut without OpenCV >= 2.3.0")
+            logger.warning("Can't Do GrabCut without OpenCV >= 2.3.0")
             return
         retVal = []
         if( mask is not None ):
@@ -7679,10 +8426,10 @@ class Image:
             cv.LUT(bmp,bmp,cv.fromarray(LUT))
             retVal = Image(bmp)
         else:
-            warnings.warn( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
+            logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
         return retVal
             
-    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2):
+    def smartFindBlobs(self,mask=None,rect=None,thresh_level=2,appx_level=3):
         """
         **SUMMARY**
 
@@ -7708,7 +8455,11 @@ class Image:
           * 1  - means use the foreground, maybe_foreground, and maybe_background values
           * 2  - means use the foreground and maybe_foreground values.
           * 3+ - means use just the foreground
-        
+
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+
+
         **RETURNS**
 
         A featureset of blobs. If everything went smoothly only a couple of blobs should
@@ -7747,7 +8498,7 @@ class Image:
           elif( thresh_level > 2 ):
               result = result.threshold(1)
           bm = BlobMaker()
-          retVal = bm.extractFromBinary(result,self)
+          retVal = bm.extractFromBinary(result,self,appx_level)
         
         return retVal
 
@@ -7987,7 +8738,7 @@ class Image:
         retVal = retVal.crop(1,1,self.width,self.height)
         return retVal
 
-    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0 ):
+    def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0,appx_level=3 ):
         """
         **SUMMARY**
 
@@ -8005,6 +8756,9 @@ class Image:
         * *minsize* - The minimum size of the returned blobs.
         * *maxsize*  - The maximum size of the returned blobs, if none is specified we peg 
           this to the image size. 
+        * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the 
+          approximation edge - lower numbers yield better approximation. 
+
 
         **RETURNS**
 
@@ -8026,17 +8780,18 @@ class Image:
         :py:meth:`erode`
         """
         if (maxsize == 0):  
-            maxsize = self.width * self.height / 2
+            maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
         if( mask.width != self.width or mask.height != self.height ):
-            warning.warn("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            logger.warning("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
+            print "FML"
             return None
 
         blobmaker = BlobMaker()
         gray = mask._getGrayscaleBitmap()
         result = mask.getEmpty(1)
         cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
-        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize)
+        blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
         if not len(blobs):
             return None
@@ -8406,7 +9161,7 @@ class Image:
         """
         if( flt.width != self.width and 
             flt.height != self.height ):
-            warnings.warn("Image.applyDFTFilter - Your filter must match the size of the image")
+            logger.warning("Image.applyDFTFilter - Your filter must match the size of the image")
         dft = []
         if( grayscale ):
             dft = self._getDFTClone(grayscale)
@@ -9161,6 +9916,719 @@ class Image:
             img = img + mask
         return img
 
+    def listHaarFeatures(self):
+        '''
+        This is used to list the built in features available for HaarCascade feature
+        detection.  Just run this function as:
+
+        >>> img.listHaarFeatures()
+
+        Then use one of the file names returned as the input to the findHaarFeature()
+        function.  So you should get a list, more than likely you will see face.xml,
+        to use it then just
+
+        >>> img.findHaarFeatures('face.xml')
+        '''
+        
+        features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
+        features = os.listdir(features_directory)
+        print features
+
+    def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
+        '''
+        Take the value in an ROI, calculate the average / peak hue
+        and then set the output image roi to the value. 
+        '''
+
+        if( mode ): # get the peak hue for an area
+            h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
+            myHue = np.argmax(h)
+            C = (float(myHue),float(255),float(255),float(0))
+            cv.SetImageROI(dst,roi)
+            cv.AddS(dst,c,dst)
+            cv.ResetImageROI(dst)
+        else: # get the average value for an area optionally set levels
+            cv.SetImageROI(src.getBitmap(),roi)
+            cv.SetImageROI(dst,roi)
+            avg = cv.Avg(src.getBitmap())
+            avg = (float(avg[0]),float(avg[1]),float(avg[2]),0)
+            if(levels is not None):
+                avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)                   
+            cv.AddS(dst,avg,dst)
+            cv.ResetImageROI(src.getBitmap())
+            cv.ResetImageROI(dst)
+
+    def pixelize(self, block_size = 10, region = None, levels=None, doHue=False):
+        """
+        **SUMMARY**
+
+        Pixelation blur, like the kind used to hide naughty bits on your favorite tv show. 
+
+        **PARAMETERS**
+
+        * *block_size* - the blur block size in pixels, an integer is an square blur, a tuple is rectangular.
+        * *region* - do the blur in a region in format (x_position,y_position,width,height)
+        * *levels* - the number of levels per color channel. This makes the image look like an 8-bit video game.
+        * *doHue* - If this value is true we calculate the peak hue for the area, not the 
+          average color for the area. 
+        
+        **RETURNS**
+        
+        Returns the image with the pixelation blur applied. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> result = img.pixelize( 16, (200,180,250,250), levels=4)
+        >>> img.show()
+
+        """
+
+        if( isinstance(block_size, int) ):
+            block_size = (block_size,block_size)
+
+        
+        retVal = self.getEmpty()
+        
+
+        levels_f = 0.00
+        if( levels is not None ):
+            levels = 255/int(levels)
+            if(levels <= 1 ):
+                levels = 2
+            levels_f = float(levels)
+
+        if( region is not None ):
+            cv.Copy(self.getBitmap(), retVal)
+            cv.SetImageROI(retVal,region)
+            cv.Zero(retVal)
+            cv.ResetImageROI(retVal)
+            xs = region[0]
+            ys = region[1]
+            w = region[2]
+            h = region[3]
+        else:
+            xs = 0
+            ys = 0
+            w = self.width
+            h = self.height
+
+        #if( region is None ):
+        hc = w / block_size[0] #number of horizontal blocks
+        vc = h / block_size[1] #number of vertical blocks
+        #when we fit in the blocks, we're going to spread the round off
+        #over the edges 0->x_0, 0->y_0  and x_0+hc*block_size
+        x_lhs = int(np.ceil(float(w%block_size[0])/2.0)) # this is the starting point
+        y_lhs = int(np.ceil(float(h%block_size[1])/2.0))
+        x_rhs = int(np.floor(float(w%block_size[0])/2.0)) # this is the starting point
+        y_rhs = int(np.floor(float(h%block_size[1])/2.0))
+        x_0 = xs+x_lhs
+        y_0 = ys+y_lhs
+        x_f = (x_0+(block_size[0]*hc)) #this would be the end point
+        y_f = (y_0+(block_size[1]*vc))
+
+        for i in range(0,hc):
+            for j in range(0,vc):
+                xt = x_0+(block_size[0]*i)
+                yt = y_0+(block_size[1]*j)
+                roi = (xt,yt,block_size[0],block_size[1])
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+
+
+        if( x_lhs > 0 ): # add a left strip
+            xt = xs 
+            wt = x_lhs 
+            ht = block_size[1]
+            for j in range(0,vc):
+                yt = y_0+(j*block_size[1])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+                
+
+        if( x_rhs > 0 ): # add a right strip
+            xt = (x_0+(block_size[0]*hc))
+            wt = x_rhs 
+            ht = block_size[1]
+            for j in range(0,vc):
+                yt = y_0+(j*block_size[1])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+
+        if( y_lhs > 0 ): # add a left strip
+            yt = ys
+            ht = y_lhs 
+            wt = block_size[0]
+            for i in range(0,hc):
+                xt = x_0+(i*block_size[0])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+                
+        if( y_rhs > 0 ): # add a right strip
+            yt = (y_0+(block_size[1]*vc)) 
+            ht = y_rhs
+            wt = block_size[0]
+            for i in range(0,hc):
+                xt = x_0+(i*block_size[0])
+                roi = (xt,yt,wt,ht)
+                self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+
+        #now the corner cases
+        if(x_lhs > 0 and y_lhs > 0 ):
+            roi = (xs,ys,x_lhs,y_lhs)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+
+        if(x_rhs > 0 and y_rhs > 0 ):
+            roi = (x_f,y_f,x_rhs,y_rhs)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+
+        if(x_lhs > 0 and y_rhs > 0 ):
+            roi = (xs,y_f,x_lhs,y_rhs)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+
+        if(x_rhs > 0 and y_lhs > 0 ):
+            roi = (x_f,ys,x_rhs,y_lhs)
+            self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
+            
+        if(doHue):
+            cv.CvtColor(retVal,retVal,cv.CV_HSV2BGR)
+
+
+        return Image(retVal) 
+                    
+    def edgeIntersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
+        """
+        **SUMMARY** 
+        
+        Find the outermost intersection of a line segment and the edge image and return
+        a list of the intersection points. If no intersections are found the method returns
+        an empty list. 
+        
+        **PARAMETERS**
+        
+        * *pt0* - an (x,y) tuple of one point on the intersection line.
+        * *pt1* - an (x,y) tuple of the second point on the intersection line.
+        * *width* - the width of the line to use. This approach works better when
+                    for cases where the edges on an object are not always closed 
+                    and may have holes.
+        * *canny1* - the lower bound of the Canny edge detector parameters.
+        * *canny2* - the upper bound of the Canny edge detector parameters.
+
+        **RETURNS**
+        
+        A list of two (x,y) tuples or an empty list.
+
+        **EXAMPLE**
+
+        >>> img = Image("SimpleCV")
+        >>> a = (25,100)
+        >>> b = (225,110)
+        >>> pts = img.edgeIntersections(a,b,width=3)
+        >>> e = img.edges(0,100)
+        >>> e.drawLine(a,b,color=Color.RED)
+        >>> e.drawCircle(pts[0],10,color=Color.GREEN)
+        >>> e.drawCircle(pts[1],10,color=Color.GREEN)
+        >>> e.show()
+
+        img = Image("SimpleCV")
+        a = (25,100)
+        b = (225,100)
+        pts = img.edgeIntersections(a,b,width=3)
+        e = img.edges(0,100)
+        e.drawLine(a,b,color=Color.RED)
+        e.drawCircle(pts[0],10,color=Color.GREEN)
+        e.drawCircle(pts[1],10,color=Color.GREEN)
+        e.show()
+
+
+        """
+        w = abs(pt0[0]-pt1[0])
+        h = abs(pt0[1]-pt1[1])
+        x = np.min([pt0[0],pt1[0]])
+        y = np.min([pt0[1],pt1[1]])
+        if( w <= 0 ):
+            w = width
+            x = np.clip(x-(width/2),0,x-(width/2))
+        if( h <= 0 ):
+            h = width 
+            y = np.clip(y-(width/2),0,y-(width/2))
+        #got some corner cases to catch here
+        p0p = np.array([(pt0[0]-x,pt0[1]-y)])
+        p1p = np.array([(pt1[0]-x,pt1[1]-y)])
+        edges = self.crop(x,y,w,h)._getEdgeMap(canny1, canny2)
+        line = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,1)
+        cv.Zero(line)
+        cv.Line(line,((pt0[0]-x),(pt0[1]-y)),((pt1[0]-x),(pt1[1]-y)),cv.Scalar(255.00),width,8)
+        cv.Mul(line,edges,line)
+        intersections = uint8(np.array(cv.GetMat(line)).transpose())
+        (xs,ys) = np.where(intersections==255)
+        points = zip(xs,ys)
+        if(len(points)==0):
+            return [None,None]
+        A = np.argmin(spsd.cdist(p0p,points,'cityblock'))
+        B = np.argmin(spsd.cdist(p1p,points,'cityblock'))
+        ptA = (int(xs[A]+x),int(ys[A]+y))
+        ptB = (int(xs[B]+x),int(ys[B]+y))
+        # we might actually want this to be list of all the points
+        return [ptA, ptB]          
+
+
+    def fitContour(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
+        """
+        **SUMMARY** 
+        
+        This method tries to fit a list of points to lines in the image. The list of points 
+        is a list of (x,y) tuples that are near (i.e. within the window size) of the line
+        you want to fit in the image. This method uses a binary such as the result of calling
+        edges. 
+
+        This method is based on active contours. Please see this reference:
+        http://en.wikipedia.org/wiki/Active_contour_model
+
+        **PARAMETERS**
+        
+        * *initial_curve* - region of the form [(x0,y0),(x1,y1)...] that are the initial conditions to fit. 
+        * *window* - the search region around each initial point to look for a solution.
+        * *params* - The alpha, beta, and gamma parameters for the active contours 
+          algorithm as a list [alpha,beta,gamma]. 
+        * *doAppx* - post process the snake into a polynomial approximation. Basically
+          this flag will clean up the output of the contour algorithm. 
+        * *appx_level* - how much to approximate the snake, higher numbers mean more approximation. 
+
+        **DISCUSSION**
+        
+        THIS SECTION IS QUOTED FROM: http://users.ecs.soton.ac.uk/msn/book/new_demo/Snakes/
+        There are three components to the Energy Function:
+
+        * Continuity
+        * Curvature
+        * Image (Gradient)
+        Each Weighted by Specified Parameter:
+        
+        Total Energy = Alpha*Continuity + Beta*Curvature + Gamma*Image
+
+        Choose different values dependent on Feature to extract:
+        
+        * Set alpha high if there is a deceptive Image Gradient
+        * Set beta  high if smooth edged Feature, low if sharp edges
+        * Set gamma high if contrast between Background and Feature is low
+
+
+        **RETURNS**
+        
+        A list of (x,y) tuples that approximate the curve. If you do not use
+        approximation the list should be the same length as the input list length.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> edges = img.edges(t1=120,t2=155)
+        >>> guess = [(311,284),(313,270),(320,259),(330,253),(347,245)]
+        >>> result = edges.fitContour(guess)
+        >>> img.drawPoints(guess,color=Color.RED)
+        >>> img.drawPoints(result,color=Color.GREEN)
+        >>> img.show()
+
+        """
+        alpha = [params[0]]
+        beta= [params[1]]
+        gamma = [params[2]]
+        if( window[0]%2 == 0 ):
+            window = (window[0]+1,window[1])
+            logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an odd window size. I fixed it for you, but you may want to take a look at your code.")
+        if( window[1]%2 == 0 ):
+            window = (window[0],window[1]+1)
+            logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an odd window size. I fixed it for you, but you may want to take a look at your code.")
+        raw = cv.SnakeImage(self._getGrayscaleBitmap(),initial_curve,alpha,beta,gamma,window,(cv.CV_TERMCRIT_ITER,10,0.01))
+        if( doAppx ):
+            try:
+                import cv2
+            except:
+                logger.warning("Can't Do snakeFitPoints without OpenCV >= 2.3.0")
+                return
+            appx = cv2.approxPolyDP(np.array([raw],'float32'),appx_level,True)      
+            retVal = []
+            for p in appx:
+                retVal.append((int(p[0][0]),int(p[0][1])))
+        else:
+            retVal = raw
+
+        return retVal
+
+    def fitLines(self,guesses,window=10,threshold=128):
+        """
+        **SUMMARY**
+        
+        Fit lines in a binary/gray image using an initial guess and the least squares method.
+        The lines are returned as a line feature set. 
+
+        **PARAMETERS**
+
+        * *guesses* - A list of tuples of the form ((x0,y0),(x1,y1)) where each of the lines
+          is an approximate guess.
+        * *window* - A window around the guess to search.
+        * *threshold* - the threshold above which we count a pixel as a line 
+
+        **RETURNS**
+
+        A feature set of line features, one per guess. 
+
+        **EXAMPLE**
+        
+
+        >>> img = Image("lsq.png")
+        >>> guesses = [((313,150),(312,332)),((62,172),(252,52)),((102,372),(182,182)),((372,62),(572,162)),((542,362),(462,182)),((232,412),(462,423))]
+        >>> l = img.fitLines(guesses,window=10) 
+        >>> l.draw(color=Color.RED,width=3)
+        >>> for g in guesses:
+        >>>    img.drawLine(g[0],g[1],color=Color.YELLOW)
+            
+        >>> img.show()
+        """
+   
+        retVal = FeatureSet()
+        i =0 
+        for g in guesses:
+            # Guess the size of the crop region from the line guess and the window. 
+            ymin = np.min([g[0][1],g[1][1]])
+            ymax = np.max([g[0][1],g[1][1]])
+            xmin = np.min([g[0][0],g[1][0]])
+            xmax = np.max([g[0][0],g[1][0]])
+
+            xminW = np.clip(xmin-window,0,self.width)
+            xmaxW = np.clip(xmax+window,0,self.width)
+            yminW = np.clip(ymin-window,0,self.height)
+            ymaxW = np.clip(ymax+window,0,self.height)            
+            temp = self.crop(xminW,yminW,xmaxW-xminW,ymaxW-yminW)
+            temp = temp.getGrayNumpy()
+            
+            # pick the lines above our threshold
+            x,y = np.where(temp>threshold)
+            pts = zip(x,y)
+            gpv = np.array([float(g[0][0]-xminW),float(g[0][1]-yminW)])
+            gpw = np.array([float(g[1][0]-xminW),float(g[1][1]-yminW)])
+            def lineSegmentToPoint(p):
+                w = gpw
+                v = gpv
+                #print w,v
+                p = np.array([float(p[0]),float(p[1])])
+                l2 = np.sum((w-v)**2)
+                t = float(np.dot((p-v),(w-v))) / float(l2)
+                if( t < 0.00 ):
+                    return np.sqrt(np.sum((p-v)**2))
+                elif(t > 1.0):
+                    return np.sqrt(np.sum((p-w)**2))
+                else:
+                    project = v + (t*(w-v))
+                    return np.sqrt(np.sum((p-project)**2))
+            # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+
+            distances = np.array(map(lineSegmentToPoint,pts))
+            closepoints = np.where(distances<window)[0]
+            
+            pts = np.array(pts)
+
+            if( len(closepoints) < 3 ):
+                    continue
+
+            good_pts = pts[closepoints]
+            good_pts = good_pts.astype(float)
+
+
+            x = good_pts[:,0]
+            y = good_pts[:,1]
+            # do the shift from our crop
+            # generate the line values 
+            x = x + xminW
+            y = y + yminW
+
+            ymin = np.min(y)
+            ymax = np.max(y)
+            xmax = np.max(x)
+            xmin = np.min(x)
+
+            if( (xmax-xmin) > (ymax-ymin) ):
+                # do the least squares
+                A = np.vstack([x,np.ones(len(x))]).T
+                m,c = nla.lstsq(A,y)[0]
+                y0 = int(m*xmin+c)
+                y1 = int(m*xmax+c)
+                retVal.append(Line(self,((xmin,y0),(xmax,y1))))
+            else:
+                # do the least squares
+                A = np.vstack([y,np.ones(len(y))]).T
+                m,c = nla.lstsq(A,x)[0]
+                x0 = int(ymin*m+c)
+                x1 = int(ymax*m+c)
+                retVal.append(Line(self,((x0,ymin),(x1,ymax))))
+
+        return retVal
+
+    def fitLinePoints(self,guesses,window=(11,11), samples=20,params=(0.1,0.1,0.1)):
+        """
+        **DESCRIPTION**
+
+        This method uses the snakes / active contour approach in an attempt to
+        fit a series of points to a line that may or may not be exactly linear. 
+
+        **PARAMETERS**
+        
+        * *guesses* - A set of lines that we wish to fit to. The lines are specified 
+          as a list of tuples of (x,y) tuples. E.g. [((x0,y0),(x1,y1))....]
+        * *window* - The search window in pixels for the active contours approach.
+        * *samples* - The number of points to sample along the input line, 
+          these are the initial conditions for active contours method. 
+        * *params* - the alpha, beta, and gamma values for the active contours routine.
+
+        **RETURNS**
+
+        A list of fitted contour points. Each contour is a list of (x,y) tuples. 
+
+        **EXAMPLE**
+        
+        >>> img = Image("lsq.png")
+        >>> guesses = [((313,150),(312,332)),((62,172),(252,52)),((102,372),(182,182)),((372,62),(572,162)),((542,362),(462,182)),((232,412),(462,423))]
+        >>> r = img.fitLinePoints(guesses) 
+        >>> for rr in r:
+        >>>    img.drawLine(rr[0],rr[1],color=Color.RED,width=3)
+        >>> for g in guesses:
+        >>>    img.drawLine(g[0],g[1],color=Color.YELLOW)
+            
+        >>> img.show()
+        
+        """
+        pts = []
+        for g in guesses:
+            #generate the approximation
+            bestGuess = []
+            dx = float(g[1][0]-g[0][0])
+            dy = float(g[1][1]-g[0][1])
+            l = np.sqrt((dx*dx)+(dy*dy))
+            if( l <= 0 ):
+                logger.warning("Can't Do snakeFitPoints without OpenCV >= 2.3.0")
+                return 
+
+            dx = dx/l 
+            dy = dy/l
+            for i in range(-1,samples+1):
+                t = i*(l/samples)
+                bestGuess.append((int(g[0][0]+(t*dx)),int(g[0][1]+(t*dy))))
+            # do the snake fitting 
+            appx = self.fitContour(bestGuess,window=window,params=params,doAppx=False)
+            pts.append(appx)
+
+        return pts
+        
+
+
+    def drawPoints(self, pts, color=Color.RED, sz=3, width=-1):
+        """
+        **DESCRIPTION**
+
+        A quick and dirty points rendering routine.
+
+        **PARAMETERS**
+        
+        * *pts* - pts a list of (x,y) points. 
+        * *color* - a color for our points.
+        * *sz* - the circle radius for our points.
+        * *width* - if -1 fill the point, otherwise the size of point border
+
+        **RETURNS**
+
+        None - This is an inplace operation. 
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img.drawPoints([(10,10),(30,30)])
+        >>> img.show()
+        """
+        for p in pts:
+           self.drawCircle(p,sz,color,width)
+        return None
+        
+    def sobel(self, xorder=1, yorder=1, doGray=True, aperture=5, aperature=None):
+        """
+        **DESCRIPTION**
+
+        Sobel operator for edge detection
+
+        **PARAMETERS**
+        
+        * *xorder* - int - Order of the derivative x.
+        * *yorder* - int - Order of the derivative y.
+        * *doGray* - Bool - grayscale or not.
+        * *aperture* - int - Size of the extended Sobel kernel. It must be 1, 3, 5, or 7.
+
+        **RETURNS**
+
+        Image with sobel opeartor applied on it
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> s = img.sobel()
+        >>> s.show()
+        """
+        aperture = aperature if aperature else aperture
+        retVal = None
+        try:
+            import cv2
+        except:
+            logger.warning("Can't do Sobel without OpenCV >= 2.3.0")
+            return None
+
+        if( aperture != 1 and aperture != 3 and aperture != 5 and aperture != 7 ):
+            logger.warning("Bad Sobel Aperture, values are [1,3,5,7].")
+            return None
+
+        if( doGray ):
+            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
+            minv = np.min(dst)
+            maxv = np.max(dst)
+            cscale = 255/(maxv-minv)
+            shift =  -1*(minv)
+
+            t = np.zeros(self.size(),dtype='uint8')
+            t = cv2.convertScaleAbs(dst,t,cscale,shift/255.0)
+            retVal = Image(t)
+            
+        else:
+            layers = self.splitChannels(grayscale=False)
+            sobel_layers = []
+            for layer in layers:
+                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
+            
+                minv = np.min(dst)
+                maxv = np.max(dst)
+                cscale = 255/(maxv-minv)
+                shift =  -1*(minv)
+
+                t = np.zeros(self.size(),dtype='uint8')
+                t = cv2.convertScaleAbs(dst,t,cscale,shift/255.0)
+                sobel_layers.append(Image(t))
+            b,g,r = sobel_layers
+            
+            retVal = self.mergeChannels(b,g,r)
+        return retVal
+        
+    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3):
+        """
+        **DESCRIPTION**
+
+        Tracking the object surrounded by the bounding box in the given
+        image or TrackSet.
+
+        **PARAMETERS**
+        
+        * *method* - str - The Tracking Algorithm to be applied
+                          * "CAMShift"
+        * *ts* - TrackSet - SimpleCV.Features.TrackSet.
+        * *img* - Image - Image to be tracked.
+                - list - List of Images to be tracked.
+        * *bb* - tuple - Bounding Box tuple (x, y, w, h)
+        * *num_frames* - int - Number of previous frames to be used for 
+                               Forward Backward Error
+
+        **RETURNS**
+
+        SimpleCV.Features.TrackSet
+        
+        Returns a TrackSet with all the necessary attributes.
+
+        **HOW TO**
+
+        >>> ts = img.track("camshift", img1, bb)
+        # Here TrackSet is returned. img, bb, new bb, and other 
+        # necessary attributes will be included in the trackset.
+        # After getting the trackset you need not provide the bounding box
+        # or image. You provide TrackSet as parameter to track().
+        # Bounding box and image will be taken from the trackset.
+        # So. now
+        >>> ts = new_img.track("camshift",ts, num_frames = 4)
+        
+        # The new Tracking feature will be appended to the give trackset
+        # and that will be returned.
+        # So, to use it in loop
+        ==========================================================
+        
+        img = cam.getImage()
+        bb = (img.width/4,img.height/4,img.width/4,img.height/4)
+        ts = img.track( img=img, bb=bb)
+        while (True):
+            img = cam.getImage()
+            ts = img.track(ts)
+        
+        ==========================================================
+        ts = []
+        while (some_condition_here):
+            img = cam.getImage()
+            ts = img.track("camshift",ts,img0,bb)
+            # now here in first loop iteration since ts is empty,
+            # img0 and bb will be considered.
+            # New tracking object will be created and added in ts (TrackSet)
+            # After first iteration, ts is not empty and hence the previous
+            # image frames and bounding box will be taken from ts and img0
+            # and bb will be ignored.
+        ==========================================================
+        # Instead of loop, give a list of images to be tracked.
+
+        ts = []
+        imgs = [img1, img2, img3, ..., imgN]
+        ts = img0.track("camshift", ts, imgs, bb)
+        ts.drawPath()
+        ts[-1].image.show()
+        ==========================================================
+        """
+        if not ts and not img:
+            print "Inavlid. Must provide FeatureSet or Image"
+            return None
+        
+        if not ts and not bb:
+            print "Inavlid. Must provide Bounding Box with Image"
+            return None
+            
+        if not ts:
+            ts = TrackSet()
+        else:
+            img = ts[-1].image
+            bb = ts[-1].bb
+        try:
+            import cv2
+        except ImportError:
+            print "Tracking is available for OpenCV >= 2.3"
+            return None
+            
+        if type(img) == list:
+            ts = self.track(method, ts, img[0], bb, num_frames)
+            for i in img:
+                ts = i.track(method, ts, num_frames=num_frames)
+            return ts
+        
+        if method.lower() == "camshift":
+            hsv = self.toHSV().getNumpyCv2()
+            mask = cv2.inRange(hsv, np.array((0., 60., 32.)), np.array((180., 255., 255.)))
+            x0, y0, w, h = bb
+            x1 = x0 + w -1
+            y1 = y0 + h -1
+            hsv_roi = hsv[y0:y1, x0:x1]
+            mask_roi = mask[y0:y1, x0:x1]
+            hist = cv2.calcHist( [hsv_roi], [0], mask_roi, [16], [0, 180] )
+            cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX);
+            hist_flat = hist.reshape(-1)
+            imgs = [hsv]
+            if len(ts) > num_frames and num_frames > 1:
+                for feat in ts[-num_frames:]:
+                    imgs.append(feat.image.toHSV().getNumpyCv2())
+            else:
+                imgs.append(img.toHSV().getNumpyCv2())
+                    
+            prob = cv2.calcBackProject(imgs, [0], hist_flat, [0, 180], 1)
+            prob &= mask
+            term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
+            new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
+            ts.append(CAMShift(self, track_window, new_ellipse))
+            return ts
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
@@ -9169,15 +10637,19 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
-        
- 
 
+    def area(self):
+      '''
+      Returns the area of the Image.
+      '''
+
+      return self.width * self.height
+        
 
 Image.greyscale = Image.grayscale
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
-

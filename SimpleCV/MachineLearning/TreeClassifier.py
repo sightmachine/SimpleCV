@@ -70,7 +70,7 @@ class TreeClassifier:
         k = number of nearest neighbors
         """
         if not ORANGE_ENABLED:
-            warnings.warn("I'm sorry, but you need the orange machine learning library installed to use this")
+            logger.warning("I'm sorry, but you need the orange machine learning library installed to use this")
             return None
         
         self.mClassNames = []
@@ -230,7 +230,7 @@ class TreeClassifier:
         returns [%Correct %Incorrect Confusion_Matrix]
         """
         #if( (self.mFlavor == 1 or self.mFlavor == 3) and len(classNames) > 2):
-        #    warnings.warn("Boosting / Bagging only works for binary classification tasks!!!")
+        #    logger.warning("Boosting / Bagging only works for binary classification tasks!!!")
             
         count = 0
         self.mClassNames = classNames
@@ -243,7 +243,7 @@ class TreeClassifier:
             colNames.extend(extractor.getFieldNames())
         
         if(count <= 0):
-            warnings.warn("No features extracted - bailing")
+            logger.warning("No features extracted - bailing")
             return None
         
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
