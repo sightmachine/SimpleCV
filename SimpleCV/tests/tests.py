@@ -2005,7 +2005,6 @@ def test_detection_spatial_relationships():
   motion = motion.crop(0,0,img.width,img.height)
   blobFS = img.findBlobs()
   lineFS = img.findLines()
-  circFS = img.findCircle(10)
   cornFS = img.findCorners()
   moveFS = img.findMotion(motion)
   moveFS = FeatureSet(moveFS[42:52]) # l337 s5p33d h4ck - okay not really
@@ -2016,7 +2015,7 @@ def test_detection_spatial_relationships():
   aPoly =  [(0,0),(img.width/2,0),(0,img.height/2)] # a triangle
 
   
-  feats  = [blobFS,lineFS,circFS,cornFS,tempFS,moveFS]
+  feats  = [blobFS,lineFS,cornFS,tempFS,moveFS]
 
   for f in feats:
     print str(len(f))
