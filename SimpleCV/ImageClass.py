@@ -14,7 +14,6 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
-
 class ColorSpace:
     """
     **SUMMARY**
@@ -254,58 +253,153 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         i.show()
         time.sleep(showtime)
 
-    def save(self, verbose = False, displaytype=None):
-      """
-      **SUMMARY**
+    def _get_app_ext(self, loops=0):
+        """ Application extention. Part that secifies amount of loops. 
+        if loops is 0, if goes on infinitely.
+        """
+        bb = "\x21\xFF\x0B"  # application extension
+        bb += "NETSCAPE2.0"
+        bb += "\x03\x01"
+        if loops == 0:
+            loops = 2**16-1
+        bb += int_to_bin(loops)
+        bb += '\x00'  # end
+        return bb
 
-      This is a quick way to save all the images in a data set.
-      Or to Display in webInterface.
+    def _get_graphics_control_ext(self, duration=0.1):
+        """ Graphics Control Extension. A sort of header at the start of
+        each image. Specifies transparancy and duration. """
+        bb = '\x21\xF9\x04'
+        bb += '\x08'  # no transparency
+        bb += int_to_bin( int(duration*100) ) # in 100th of seconds
+        bb += '\x00'  # no transparent color
+        bb += '\x00'  # end
+        return bb
+    
+    def _write_gif(self, filename, duration=0.1, loops=0, dither=1):
+        """ Given a set of images writes the bytes to the specified stream.
+        """
+        frames = 0
+        previous = None
+        fp = open(filename, 'wb')
 
-      If you didn't specify a path one will randomly be generated.
-      To see the location the files are being saved to then pass
-      verbose = True.
+        if not PIL_ENABLED:
+            logger.warning("Need PIL to write animated gif files.") 
+            return
 
-      **PARAMETERS**
-      
-      * *verbose* - print the path of the saved files to the console. 
-      * *displaytype* - the method use for saving or displaying images.
+        converted = []
+
+        for img in self:
+            if not isinstance(img,pil.Image):
+                pil_img = img.getPIL()
+            else:
+                pil_img = img
+
+            converted.append((pil_img.convert('P',dither=dither), img._get_header_anim()))
+
+        #try:
+        for img, header_anim in converted:
+            if not previous:
+                # gather data
+                palette = getheader(img)[1]
+                data = getdata(img)
+                imdes, data = data[0], data[1:]            
+                header = header_anim
+                appext = self._get_app_ext(loops)
+                graphext = self._get_graphics_control_ext(duration)
+                
+                # write global header
+                fp.write(header)
+                fp.write(palette)
+                fp.write(appext)
+                
+                # write image
+                fp.write(graphext)
+                fp.write(imdes)
+                for d in data:
+                    fp.write(d)
+                
+            else:
+                # gather info (compress difference)              
+                data = getdata(img) 
+                imdes, data = data[0], data[1:]       
+                graphext = self._get_graphics_control_ext(duration)
+                
+                # write image
+                fp.write(graphext)
+                fp.write(imdes)
+                for d in data:
+                    fp.write(d)
+
+            previous = img.copy()        
+            frames = frames + 1
+
+        fp.write(";") # end gif
+
+        #finally:
+        #    fp.close()
+        #    return frames
+
+    def save(self, destination=None, dt=0.2, verbose = False, displaytype=None):
+        """
+        **SUMMARY**
+
+        This is a quick way to save all the images in a data set.
+        Or to Display in webInterface.
+
+        If you didn't specify a path one will randomly be generated.
+        To see the location the files are being saved to then pass
+        verbose = True.
+
+        **PARAMETERS**
+
+        * *destination* - path to which images should be saved, or name of gif
+        * file. If this ends in .gif, the pictures will be saved accordingly.
+        * *dt* - time between frames, for creating gif files.
+        * *verbose* - print the path of the saved files to the console. 
+        * *displaytype* - the method use for saving or displaying images.
         valid values are:
-        
+
         * 'notebook' - display to the ipython notebook.
         * None - save to a temporary file. 
 
-      **RETURNS**
+        **RETURNS**
 
-      Nothing.
+        Nothing.
 
-      **EXAMPLE**
+        **EXAMPLE**
 
-      >>> imgs = ImageSet()
-      >>> imgs.download("ninjas")
-      >>> imgs.save(True)
+        >>> imgs = ImageSet()
+        >>> imgs.download("ninjas")
+        >>> imgs.save(destination="ninjas_folder", verbose=True)
 
-      **TO DO**
+        >>> imgs.save(destination="ninjas.gif", verbose=True)
 
-      This should save to a specified path.
-
-      """
-      if displaytype=='notebook':
-        try:
-          from IPython.core.display import Image as IPImage
-        except ImportError:
-          print "You need IPython Notebooks to use this display mode"
-          return
-        from IPython.core import display as Idisplay
-        for i in self:
-          tf = tempfile.NamedTemporaryFile(suffix=".png")
-          loc = '/tmp/' + tf.name.split('/')[-1]
-          tf.close()
-          i.save(loc)
-          Idisplay.display(IPImage(filename=loc))
-          return
-      else:
-        for i in self:
-          i.save(verbose=verbose)
+        """
+        if displaytype=='notebook':
+            try:
+                from IPython.core.display import Image as IPImage
+            except ImportError:
+                print "You need IPython Notebooks to use this display mode"
+                return
+            from IPython.core import display as Idisplay
+            for i in self:
+                tf = tempfile.NamedTemporaryFile(suffix=".png")
+                loc = '/tmp/' + tf.name.split('/')[-1]
+                tf.close()
+                i.save(loc)
+                Idisplay.display(IPImage(filename=loc))
+                return
+        else:
+            if destination:
+                if destination.endswith(".gif"):
+                    self._write_gif(destination, dt)
+                else:
+                    for i in self:
+                        i.save(path=destination, temp=True, verbose=verbose)
+            else:
+                for i in self:
+                    i.save(verbose=verbose)
       
     def showPaths(self):
       """
@@ -324,7 +418,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       >>> imgs = ImageSet()
       >>> imgs.download("ninjas")
-      >>> imgs.save(True)
+      >>> imgs.save(verbose=True)
       >>> imgs.showPaths()
       
 
@@ -336,6 +430,36 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       for i in self:
         print i.filename
+
+    def _read_gif(self, filename):
+        """ read_gif(filename)
+
+        Reads images from an animated GIF file. Returns the number of images loaded.
+        """
+
+        if not PIL_ENABLED:
+            return
+        elif not os.path.isfile(filename):
+            return
+
+        pil_img = pil.open(filename)
+        pil_img.seek(0)
+
+        pil_images = []
+        try:
+            while True:
+                pil_images.append(pil_img.copy())
+                pil_img.seek(pil_img.tell()+1)
+
+        except EOFError:
+            pass
+
+        loaded = 0
+        for img in pil_images:
+            self.append(Image(img))
+            loaded += 1
+
+        return loaded
 
     def load(self, directory = None, extension = None):
       """
@@ -350,7 +474,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       **PARAMETERS**
       
-      * *directory* - The path or directory from which to load images. 
+      * *directory* - The path or directory from which to load images. If this
+      * ends with .gif, it'll read from the gif file accordingly.
       * *extension* - The extension to use. If none is given png is the default.
 
       **RETURNS**
@@ -368,9 +493,12 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       if not directory:
         print "You need to give a directory to load from"
         return
-
+      elif directory.endswith(".gif"):
+        return self._read_gif(directory)
+        
+        
       if not os.path.exists(directory):
-        print "Invalied image path given"
+        print "Invalid image path given"
         return
       
       
@@ -10703,7 +10831,15 @@ class Image:
       '''
 
       return self.width * self.height
-        
+
+    def _get_header_anim(self):
+        """ Animation header. To replace the getheader()[0] """
+        bb = "GIF89a"
+        bb += int_to_bin(self.size()[0])
+        bb += int_to_bin(self.size()[1])
+        bb += "\x87\x00\x00"
+        return bb
+
 
 Image.greyscale = Image.grayscale
 
