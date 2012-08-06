@@ -4,6 +4,7 @@ from SimpleCV.Features.Features import Feature, FeatureSet
 import cv2.cv as cv
 import cv2
 import time
+
 class TrackSet(FeatureSet):
     """
     **SUMMARY**
@@ -61,6 +62,7 @@ class TrackSet(FeatureSet):
         self.__predictKalman()
         self.__correctKalman()
         f.predict_pt = self.predict_pt
+        f.state_pt = self.state_pt
     
     def areaRatio(self):
         """
@@ -380,7 +382,7 @@ class TrackSet(FeatureSet):
         Nada. Nothing. Zilch. 
 
         **EXAMPLE**
-
+http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         >>> while True:
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
@@ -578,11 +580,11 @@ class TrackSet(FeatureSet):
         self.kalman_measurement[0, 0] = self.kalman_x
         self.kalman_measurement[1, 0] = self.kalman_y
     
-    def predictionCoordinates(self):
+    def predictedCoordinates(self):
         """
         **SUMMARY**
 
-        Returns a numpy array of the y (vertical) coordinate of each feature.
+        Returns a numpy array of the predicted coordinates of each feature.
 
         **RETURNS**
         
@@ -594,7 +596,7 @@ class TrackSet(FeatureSet):
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
             ... img = img1
-        >>> print ts.predictionCoordinates()
+        >>> print ts.predictedCoordinates()
 
         """
         return np.array([f.predict_pt for f in self])
@@ -624,7 +626,7 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Returns a numpy array of the y (vertical) coordinate of each feature.
+        Returns a numpy array of the predicted y (vertical) coordinate of each feature.
 
         **RETURNS**
         
@@ -667,6 +669,33 @@ class TrackSet(FeatureSet):
         """
         f = self[-1]
         f.image.drawCircle(f.predict_pt, rad, color, thickness)
+        
+    def drawCorrected(self, color=Color.GREEN, rad=1, thickness=1):
+        """
+        **SUMMARY**
+
+        Draw the predcited center of the object on the current frame.
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *thickness* - Thickness of the boundary of the center circle.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... ts.drawPredicted() # For continuous tracking of the center
+            ... img = img1
+        """
+        f = self[-1]
+        f.image.drawCircle(f.state_pt, rad, color, thickness)
         
     def drawPredictedPath(self, color=Color.GREEN, thickness=2):
         """
@@ -731,3 +760,130 @@ class TrackSet(FeatureSet):
             size = 16
         text = "Predicted: x = %d  y = %d" % (f.predict_pt[0], f.predict_pt[1])
         img.drawText(text, pos[0], pos[1], color, size)
+
+    def showCorrectedCoordinates(self, pos=None, color=Color.GREEN, size=None):
+        """
+        **SUMMARY**
+
+        Show the co-ordinates of the object in text on the current frame.
+
+        **PARAMETERS**
+        * *pos* - A tuple consisting of x, y values. where to put to the text
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *size* - Fontsize of the text
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... ts.showCorrectedCoordinates() # For continuous bounding box
+            ... img = img1
+        """
+        ts = self
+        f = ts[-1]
+        img = f.image
+        if not pos:
+            imgsize = img.size()
+            pos = (5, 40)
+        if not size:
+            size = 16
+        text = "Corrected: x = %d  y = %d" % (f.state_pt[0], f.state_pt[1])
+        img.drawText(text, pos[0], pos[1], color, size)
+
+    def correctX(self):
+        """
+        **SUMMARY**
+
+        Returns a numpy array of the corrected x coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> print ts.correctX()
+
+        """
+        return np.array([f.state_pt[0] for f in self])
+    
+    def correctY(self):
+        """
+        **SUMMARY**
+
+        Returns a numpy array of the corrected y coordinate of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> print ts.correctY()
+
+        """
+        return np.array([f.state_pt[1] for f in self])
+    
+    def correctedCoordinates(self):
+        """
+        **SUMMARY**
+
+        Returns a numpy array of the corrected coordinates of each feature.
+
+        **RETURNS**
+        
+        A numpy array.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... img = img1
+        >>> print ts.predictedCoordinates()
+
+        """
+        return np.array([f.state_pt for f in self])
+    
+    def drawCorrectedPath(self, color=Color.GREEN, thickness=2):
+        """
+        **SUMMARY**
+
+        Draw the complete corrected path of the center of the object on current frame
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *thickness* - Thickness of the tracing path.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... ts.drawCorrectedPath() # For continuous tracing
+            ... img = img1
+        >>> ts.drawPredictedPath() # draw the path at the end of tracking
+        """
+            
+        ts = self
+        img = self[-1].image
+        for i in range(len(ts)-1):
+            img.drawLine((ts[i].state_pt),(ts[i+1].state_pt), color=color, thickness=thickness)
