@@ -71,4 +71,4 @@ Instructions on how to install SimpleCV on the RaspberryPi
 
 	SimpleCV:3> exit()
 
-8) Congradulations, your RaspberryPi is now running SimpleCV!
+8) Congratulations, your RaspberryPi is now running SimpleCV!

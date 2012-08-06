@@ -40,6 +40,7 @@ class Tracking(Feature):
         self.rt_vel = (0,0)
         self.area = self.getArea()
         self.time = time.time()
+        self.cv2numpy = self.image.getNumpyCv2()
         return self
 
     def getCenter(self):
@@ -313,6 +314,158 @@ class Tracking(Feature):
         >>> mean_color = ts[-1].processTrack(foo)
         """
         return func(self.image)
+    
+    def getPredictionPoints(self):
+        """
+        **SUMMARY**
+
+        get predicted Co-ordinates of the center of the object
+
+        **PARAMETERS**
+        None
+
+        **RETURNS**
+        
+        * *tuple*
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.getPredictedCoordinates()
+        """
+        return self.predict_pt
+        
+    def drawPredicted(self, color=Color.GREEN, rad=1, thickness=1):
+        """
+        **SUMMARY**
+
+        Draw the center of the object on the image.
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *thickness* - Thickness of the boundary of the center circle.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.drawPredicted()
+        >>> img.show()
+        """
+        f = self
+        f.image.drawCircle(f.predict_pt, rad, color, thickness)
+        
+    def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
+        """
+        **SUMMARY**
+
+        Show the co-ordinates of the object in text on the Image.
+
+        **PARAMETERS**
+        * *pos* - A tuple consisting of x, y values. where to put to the text
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *size* - Fontsize of the text
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.showPredictedCoordinates()
+        >>> img.show()
+        """
+        f = self
+        img = f.image
+        if not pos:
+            imgsize = img.size()
+            pos = (5, 10)
+        if not size:
+            size = 16
+        text = "Predicted: x = %d  y = %d" % (f.predict_pt[0], f.predict_pt[1])
+        img.drawText(text, pos[0], pos[1], color, size)
+    
+    def getCorrectedPoints(self):
+        """
+        **SUMMARY**
+
+        Corrected Co-ordinates of the center of the object
+
+        **PARAMETERS**
+        None
+
+        **RETURNS**
+        
+        * *tuple*
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.getCorrectedCoordinates()
+        """
+        return self.state_pt
+        
+    def showCorrectedCoordinates(self, pos=None, color=Color.GREEN, size=None):
+        """
+        **SUMMARY**
+
+        Show the co-ordinates of the object in text on the Image.
+
+        **PARAMETERS**
+        * *pos* - A tuple consisting of x, y values. where to put to the text
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *size* - Fontsize of the text
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.showCorrectedCoordinates()
+        >>> img.show()
+        """
+        f = self
+        img = f.image
+        if not pos:
+            imgsize = img.size()
+            pos = (5, 40)
+        if not size:
+            size = 16
+        text = "Corrected: x = %d  y = %d" % (f.state_pt[0], f.state_pt[1])
+        img.drawText(text, pos[0], pos[1], color, size)
+        
+    def drawCorrected(self, color=Color.GREEN, rad=1, thickness=1):
+        """
+        **SUMMARY**
+
+        Draw the center of the object on the image.
+
+        **PARAMETERS**
+        
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *thickness* - Thickness of the boundary of the center circle.
+
+        **RETURNS**
+        
+        Nada. Nothing. Zilch. 
+
+        **EXAMPLE**
+
+        >>> track = Tracking(img, bb)
+        >>> track.drawCorrected()
+        >>> img.show()
+        """
+        f = self
+        f.image.drawCircle(f.state_pt, rad, color, thickness)
 
 class CAMShift(Tracking):
     """

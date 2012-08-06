@@ -630,7 +630,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False, cv2image=False):
         """ 
         **SUMMARY**
 
@@ -733,6 +733,11 @@ class Image:
                 #convert to an iplimage bitmap
                 source = source.astype(np.uint8)
                 self._numpy = source
+                if not cv2image:
+                    invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
+                else:
+                    # If the numpy array is from cv2, then it must not be transposed.
+                    invertedsource = source
 
                 invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
                 self._bitmap = cv.CreateImageHeader((invertedsource.shape[1], invertedsource.shape[0]), cv.IPL_DEPTH_8U, 3)
