@@ -1789,6 +1789,8 @@ class Image:
         
         * *filename* - name(Prefix) of the temporary file.
 
+        * *cleanTemp* - This flag is made True if tempfiles are tobe deleted once the object is to be destroyed.
+          
         * *params* - This object is used for overloading the PIL save methods. In particular 
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
           http://www.pythonware.com/library/pil/handbook/format-jpeg.htm          
