@@ -839,11 +839,11 @@ class Image:
         """
         try :
            for i in self._tempFiles:
-               if (isinstance(i,str)):
-                   os.remove(i)
+               if (i[1]):
+                   os.remove(i[0])
         except :
            pass
-           
+                      
     def getEXIFData(self):
         """
         **SUMMARY**
@@ -1882,7 +1882,7 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, fname=None, **params):
+    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
         """
         **SUMMARY**
 
@@ -1909,8 +1909,10 @@ class Image:
         
         * *path* - path where temporary files needed to be stored
         
-        * *fname* - name(Prefix) of the temporary file.
+        * *filename* - name(Prefix) of the temporary file.
 
+        * *cleanTemp* - This flag is made True if tempfiles are tobe deleted once the object is to be destroyed.
+          
         * *params* - This object is used for overloading the PIL save methods. In particular 
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
           http://www.pythonware.com/library/pil/handbook/format-jpeg.htm          
@@ -1935,7 +1937,7 @@ class Image:
         .. Note::
           You must have IPython notebooks installed for this to work
           
-          path and fname are valid if and only if temp is set to True.
+          path and filename are valid if and only if temp is set to True.
           
         .. attention:: 
           We need examples for all save methods as they are unintuitve. 
@@ -1943,37 +1945,36 @@ class Image:
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
         
-        if temp and path!=None :
+        if temp :
             import glob
-            if fname==None :
-                fname = 'Image'                
+            if filename == None :
+                filename = 'Image'         
+            if path == None :          
+                path=tempfile.gettempdir()
             if glob.os.path.exists(path):
                 path = glob.os.path.abspath(path) 
-                imagefiles = glob.glob(glob.os.path.join(path,fname+"*.png"))
+                imagefiles = glob.glob(glob.os.path.join(path,filename+"*.png"))
                 num = [0]
                 for img in imagefiles :
                     num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
                 num.sort()
                 fnum = num[-1]+1
-                fname = glob.os.path.join(path,fname+str(fnum)+".png") 
-                self._tempFiles.append(fname)
-                self.save(self._tempFiles[-1])
-                return self._tempFiles[-1]
+                filename = glob.os.path.join(path,filename+str(fnum)+".png") 
+                self._tempFiles.append((filename,cleanTemp))
+                self.save(self._tempFiles[-1][0])
+                return self._tempFiles[-1][0]
             else :
                 print "Path does not exist!"
-                        
-        #if it's a temporary file
-        elif temp :
-            self._tempFiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
-            self.save(self._tempFiles[-1].name)
-            return self._tempFiles[-1].name
-       
+        
+        else :
+            if (filename) :
+                filehandle_or_filename = filename + ".png" 
+                                      
         if (not filehandle_or_filename):
             if (self.filename):
                 filehandle_or_filename = self.filename
             else:
                 filehandle_or_filename = self.filehandle
-
             
         if (len(self._mLayers)):
             saveimg = self.applyLayers()
