@@ -105,15 +105,6 @@ def test_findDisparityMap():
         dips.append(cam.findDisparityMap(method="BM"))
     name_stem = "test_disparitymapBM"
     perform_diff(dips,name_stem)
-
-    dips = []
-    for pairs in correct_pairs :
-    	img1 = Image(pairs[0])
-    	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-        dips.append(cam.findDisparityMap(method="GC"))
-    name_stem = "test_disparitymapGC"
-    perform_diff(dips,name_stem)    
     
     dips = []
     for pairs in correct_pairs :

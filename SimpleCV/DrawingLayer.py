@@ -4,10 +4,7 @@ import sys
 import os
 #from SimpleCV.base import *
 from SimpleCV.Color import *
-#from SimpleCV import *
-from numpy import int32
-from numpy import uint8
-from pygame import gfxdraw
+
 
     
 #DOCS

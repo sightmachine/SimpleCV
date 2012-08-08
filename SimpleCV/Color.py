@@ -6,8 +6,7 @@
 import random
 from SimpleCV.base import *
 from SimpleCV.ImageClass import * 
-from pickle import *
-from math import cos, radians, ceil
+
   
 class Color:
     """

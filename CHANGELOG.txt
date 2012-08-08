@@ -1,3 +1,63 @@
+Changes in 1.3
+-------------------------------
+* These are by no order of importance:
+
+Webp image format support added
+Read image EXIF data
+YCrCb color space added
+Image Equalize Added
+IPython notebook support added (i.e. 'simplecv notebook' from command line)
+Resize added
+Merge Color Channels Added
+Barcode library switched to zbar
+drawRectangle added
+findCircle added
+Whitebalance
+Keypoint detection and matching added (SURF, SIFT, and many others, see findKeypoints() docs)
+Optical Flow added (see findMotion() docs)
+Color Pallette generator added (see getColorPalette() docs)
+Skeletonize added
+Smart Threshold (a.k.a. Grab Cut) added, see smartThreshold() docs
+Smart Find Blobs, findBlobs using Grab Cut, see smartFindBlobs() docs
+Rewrote own Threshold function (a.k.a. Binarize), see threshold() docs
+FloodFill added
+FloodFill to mask added
+DFTFilter added
+HighPass filter added
+LowPass Filter added
+BandPass Filter added
+Butterworth Filter added
+Gaussian Filter added
+Unsharpen Filter added
+edgeIntersections added
+Contour Fitting added
+Line Fitting added
+Sobel Edge Detection Added
+CAMShift Tracking added (see track() docs)
+Image area function added
+ImageSet's added
+Camera.live() function added
+External Scanner Support added (see Scanner class docs)
+Digital Camera Support added (i.e. point & shoot and SLR cameras)
+Stereo Camera Support added
+Logging Support added
+Feature Overlap (inside, outside, above, below, etc) comparison functions added
+Feature.show() added
+Feature aspect ratio added
+Feature distance functions added
+Feature bounding box added
+TONS and TONS of documentation added to everything!
+
+A special thanks in this release to anyone externally who has submitted
+code.  A thanks to all those that made contributions for Google Summer of Code,
+or those that help on the support forums.  A special thanks to the
+Google Summer of Code students of 2012 for all their help in making
+SimpleCV more awesome. Sorry this release took so long, as you can see
+we have added tons of features, a lot probably not even listed above. (-xamox)
+
+
+
+
 Changes in 1.2
 -------------------------------
 scale - updated so it can be a value (eg Image.scale(0.5))
