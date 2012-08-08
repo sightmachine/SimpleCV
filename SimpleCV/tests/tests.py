@@ -2781,7 +2781,7 @@ def test_upload_flickr():
        import flickrapi
     except:
        if( SHOW_WARNING_TESTS ):
-          logger.warning("Couldn't run the upload test as optional pycurl library required")
+          logger.warning("Couldn't run the upload test as optional flickr library required")
        pass
     else:
        img = Image('simplecv')
@@ -2791,7 +2791,7 @@ def test_upload_flickr():
            pass
        else :
            ret=img.upload('flickr',api_key,api_secret)
-           if ret == True :
+           if ret :
                pass
            else :
                assert False
@@ -2836,3 +2836,22 @@ def test_image_temp_save():
          assert False
   assert True
   
+def test_upload_dropbox():
+    try:
+       import dropbox
+    except:
+       if( SHOW_WARNING_TESTS ):
+          logger.warning("Couldn't run the upload test as optional dropbox library required")
+       pass
+    else:
+       img = Image('simplecv')
+       api_key = ''
+       api_secret = ''
+       if api_key==None or api_secret==None :
+           pass
+       else :
+           ret=img.upload('dropbox',api_key,api_secret)
+           if ret :
+               pass
+           else :
+               assert False
