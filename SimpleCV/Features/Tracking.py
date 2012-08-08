@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Features.Features import Feature, FeatureSet
-
+import time
 
 class Tracking(Feature):
     """
@@ -516,3 +516,12 @@ class CAMShift(Tracking):
         >>> e = track.getEllipse()
         """
         return self.ellipse
+
+class LK(Tracking):
+    
+    def __init__(self, img, bb, pts):
+        self = Tracking.__init__(self, img, bb)
+        self.pts = pts
+        
+    def getTrackedPoints(self):
+        return self.pts
