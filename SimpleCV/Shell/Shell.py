@@ -25,6 +25,7 @@ import platform
 import subprocess
 import time
 import webbrowser
+import sys
 
 #Load simpleCV libraries
 from SimpleCV.Shell.Tutorial import *
@@ -176,27 +177,44 @@ def run_notebook():
             '--c', code,
             ])
     app.start()
+    sys.exit()
+
+def self_update():
+    URL = "https://github.com/ingenuitas/SimpleCV/zipball/master"
+    command = "pip install -U %s" % URL
+
+    if os.getuid() == 0:
+        command = "sudo " + command
+
+    returncode = call(command, shell=True)
+    sys.exit()
 
 
 def main(*args):
-
     log_level = logging.WARNING
-    if len(args) and len(args[0]) > 1:
-      for flag in args[0]:
-        if flag == "notebook" and IPVER > 10:
-            run_notebook()
-            sys.exit()
 
-        if flag in ["--headless","headless"]:
-          # set SDL to use the dummy NULL video driver,
-          #   so it doesn't need a windowing system.
-          os.environ["SDL_VIDEODRIVER"] = "dummy"
+    if len(sys.argv) > 1 and len(sys.argv[1]) > 1:
+      flag = sys.argv[1]
+      if flag == "notebook" and IPVER > 10:
+          run_notebook()
+          sys.exit()
 
-        elif flag in ['--nowarnings','nowarnings']:
-          log_level = logging.INFO
+      elif flag == 'update':
+        print "Updating SimpleCV....."
+        self_update()
+        
 
-        elif flag in ['--debug','debug']:
-          log_level = logging.DEBUG
+      if flag in ["--headless","headless"]:
+        # set SDL to use the dummy NULL video driver,
+        #   so it doesn't need a windowing system.
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+      elif flag in ['--nowarnings','nowarnings']:
+        log_level = logging.INFO
+
+      elif flag in ['--debug','debug']:
+        log_level = logging.DEBUG
+
 
     init_logging(log_level)
     shellclear()

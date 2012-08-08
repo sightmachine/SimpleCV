@@ -2,7 +2,7 @@
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.ImageClass import * 
-from pickle import *
+
 
 class ColorModel:
     """

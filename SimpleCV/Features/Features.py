@@ -17,7 +17,7 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
 import copy
-import types
+
 
 class FeatureSet(list):
     """
