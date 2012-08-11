@@ -10813,19 +10813,22 @@ class Image:
         if method.lower() == "lk":
             img1 = self.crop(bb[0],bb[1],bb[2],bb[3])
             g = img1.getGrayNumpyCv2()
-            pt = cv2.goodFeaturesToTrack(g, maxCorners = 3000, qualityLevel = 0.5,
-                                         minDistance = 3, blockSize = 3)
+            pt = cv2.goodFeaturesToTrack(g, maxCorners = 4000, qualityLevel = 0.6,
+                                         minDistance = 2, blockSize = 2)
+            if type(pt) == type(None):
+                ts.append(LK(self, bb, pt))
+                return ts
             for i in xrange(len(pt)):
-                pt[i][0][0] = pt[i][0][0]+bb[2]
-                pt[i][0][1] = pt[i][0][1]+bb[3]
+                pt[i][0][0] = pt[i][0][0]+bb[0]
+                pt[i][0][1] = pt[i][0][1]+bb[1]
             p0 = np.float32(pt).reshape(-1, 1, 2)
             oldg = img.getGrayNumpyCv2()
             newg = self.getGrayNumpyCv2()
             p1, st, err = cv2.calcOpticalFlowPyrLK(oldg, newg, p0, None, winSize  = (10, 10), 
-                                                   maxLevel = 5, 
+                                                   maxLevel = 10, 
                                                    criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
             p0r, st, err = cv2.calcOpticalFlowPyrLK(newg, oldg, p1, None, winSize  = (10, 10), 
-                                                    maxLevel = 5, 
+                                                    maxLevel = 10, 
                                                     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
             
             d = abs(p0-p0r).reshape(-1, 2).max(-1)
@@ -10836,6 +10839,8 @@ class Image:
                     new_pts.append([pts[0][0], pts[0][1]])
             if ts[-1:]:
                 old_pts = ts[-1].pts
+                if type(old_pts) == type(None):
+                    old_pts = new_pts
             else:
                 old_pts = new_pts
             dx=[]
@@ -10844,11 +10849,10 @@ class Image:
                 dx.append(p2[0]-p1[0])
                 dy.append(p2[1]-p1[1])
             if not dx or not dy:
-                print "Couldn't find points"
                 ts.append(LK(self, bb, new_pts))
                 return ts
-            cen_dx = round(sum(dx)/len(dx))
-            cen_dy = round(sum(dy)/len(dy))
+            cen_dx = round(sum(dx)/len(dx))/3
+            cen_dy = round(sum(dy)/len(dy))/3
             bb1 = [bb[0]+cen_dx, bb[1]+cen_dy, bb[2], bb[3]]
             if bb1[0] <= 0:
                 bb1[0] = 1

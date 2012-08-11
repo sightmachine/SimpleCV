@@ -1727,11 +1727,21 @@ def test_image_new_smooth():
   perform_diff(result,name_stem)
   pass
 
-def test_track():
+def test_camshift():
     ts = []
     bb = (195, 160, 49, 46)
     imgs = [Image(img) for img in trackimgs]
     ts = imgs[0].track("camshift", ts, imgs[1:], bb)
+    if ts:
+        pass
+    else:
+        assert False
+        
+def test_lk():
+    ts = []
+    bb = (195, 160, 49, 46)
+    imgs = [Image(img) for img in trackimgs]
+    ts = imgs[0].track("LK", ts, imgs[1:], bb)
     if ts:
         pass
     else:

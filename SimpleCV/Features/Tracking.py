@@ -525,3 +525,8 @@ class LK(Tracking):
         
     def getTrackedPoints(self):
         return self.pts
+    
+    def drawTrackerPoints(self, color=Color.GREEN, radius=1, thickness=1):
+        if type(self.pts) is not type(None):
+            for pt in self.pts:
+                self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
