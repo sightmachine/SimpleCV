@@ -5,7 +5,10 @@ from numpy import int32
 from numpy import uint8
 
 from EXIF import *
-import pygame as pg
+
+if not init_options_handler.headless:
+    import pygame as pg
+
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
@@ -297,48 +300,48 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
             converted.append((pil_img.convert('P',dither=dither), img._get_header_anim()))
 
-        #try:
-        for img, header_anim in converted:
-            if not previous:
-                # gather data
-                palette = getheader(img)[1]
-                data = getdata(img)
-                imdes, data = data[0], data[1:]            
-                header = header_anim
-                appext = self._get_app_ext(loops)
-                graphext = self._get_graphics_control_ext(duration)
-                
-                # write global header
-                fp.write(header)
-                fp.write(palette)
-                fp.write(appext)
-                
-                # write image
-                fp.write(graphext)
-                fp.write(imdes)
-                for d in data:
-                    fp.write(d)
-                
-            else:
-                # gather info (compress difference)              
-                data = getdata(img) 
-                imdes, data = data[0], data[1:]       
-                graphext = self._get_graphics_control_ext(duration)
-                
-                # write image
-                fp.write(graphext)
-                fp.write(imdes)
-                for d in data:
-                    fp.write(d)
+        try:
+            for img, header_anim in converted:
+                if not previous:
+                    # gather data
+                    palette = getheader(img)[1]
+                    data = getdata(img)
+                    imdes, data = data[0], data[1:]            
+                    header = header_anim
+                    appext = self._get_app_ext(loops)
+                    graphext = self._get_graphics_control_ext(duration)
+                    
+                    # write global header
+                    fp.write(header)
+                    fp.write(palette)
+                    fp.write(appext)
+                    
+                    # write image
+                    fp.write(graphext)
+                    fp.write(imdes)
+                    for d in data:
+                        fp.write(d)
+                    
+                else:
+                    # gather info (compress difference)              
+                    data = getdata(img) 
+                    imdes, data = data[0], data[1:]       
+                    graphext = self._get_graphics_control_ext(duration)
+                    
+                    # write image
+                    fp.write(graphext)
+                    fp.write(imdes)
+                    for d in data:
+                        fp.write(d)
 
-            previous = img.copy()        
-            frames = frames + 1
+                previous = img.copy()        
+                frames = frames + 1
 
-        fp.write(";") # end gif
+            fp.write(";") # end gif
 
-        #finally:
-        #    fp.close()
-        #    return frames
+        finally:
+            fp.close()
+            return frames
 
     def save(self, destination=None, dt=0.2, verbose = False, displaytype=None):
         """
@@ -393,7 +396,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         else:
             if destination:
                 if destination.endswith(".gif"):
-                    self._write_gif(destination, dt)
+                    return self._write_gif(destination, dt)
                 else:
                     for i in self:
                         i.save(path=destination, temp=True, verbose=verbose)
