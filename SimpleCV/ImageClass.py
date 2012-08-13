@@ -5,7 +5,10 @@ from numpy import int32
 from numpy import uint8
 
 from EXIF import *
-import pygame as pg
+
+if not init_options_handler.headless:
+    import pygame as pg
+
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
 import scipy.cluster.vq as scv    
