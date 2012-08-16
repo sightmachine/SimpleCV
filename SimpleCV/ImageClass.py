@@ -396,7 +396,131 @@ Valid options: 'thumb', 'small', 'medium', 'large'
           self.append(tmp)
           
       return len(self)
-  
+    
+    def standardize(self,width,height):
+        """
+        **SUMMARY**
+
+        Resize every image in the set to a standard size.
+
+        **PARAMETERS**
+        
+        * *width* - the width that we want for every image in the set.
+        * *height* - the height that we want for every image in the set.
+        
+        **RETURNS**
+        
+        A new image set where every image in the set is scaled to the desired size.
+        
+        **EXAMPLE**
+        
+        >>>> iset = ImageSet("./b/")
+        >>>> thumbnails = iset.standardize(64,64)
+        >>>> for t in thumbnails:
+        >>>>   t.show()
+
+        """
+        retVal = ImageSet()
+        for i in self:
+            retVal.append(i.resize(width,height))
+        return retVal
+    
+    def dimensions(self):
+        """
+        **SUMMARY**
+
+        Return an np.array that are the width and height of every image in the image set.        
+
+        **PARAMETERS**
+        
+        --NONE--
+
+        **RETURNS**
+        A 2xN numpy array where N is the number of images in the set. The first column is
+        the width, and the second collumn is the height. 
+
+        **EXAMPLE**
+        >>> iset = ImageSet("./b/")
+        >>> sz = iset.dimensions()
+        >>> np.max(sz[:,0]) # returns the largest width in the set. 
+
+        """
+        retVal = []
+        for i in self:
+            retVal.append((i.width,i.height))
+        return np.array(retVal)
+
+    def average(self, mode="first", size=(None,None)):
+        """
+        **SUMMARY**
+
+        Casts each in the image set into a 32F image, averages them together and returns the results.
+        If the images are different sizes the method attempts to standarize them. 
+        
+        **PARAMETERS**
+        
+        * *mode* - 
+          * "first" - resize everything to the size of the first image.
+          * "max" - resize everything to be the max width and max height of the set. 
+          * "min" - resize everything to be the min width and min height of the set.
+          * "average" - resize everything to be the average width and height of the set
+          * "fixed" - fixed, use the size tuple provided. 
+          
+        * *size* - if the mode is set to fixed use this tuple as the size of the resulting image. 
+        
+        **RETURNS**
+        
+        Returns a single image that is the average of all the values. 
+      
+        **EXAMPLE**
+        
+        >>> imgs = ImageSet()
+        >>> imgs.load("images/faces")
+        >>> result = imgs.average(mode="first")
+        >>> result.show()
+
+        **TODO**
+        * Allow the user to pass in an offset parameters that blit the images into the resutl.
+        """
+        fw = 0
+        fh = 0 
+        # figger out how we will handle everything
+        if( len(self) <= 0 ):
+            return ImageSet()
+
+        vals = self.dimensions()
+        if( mode.lower()  == "first" ):
+            fw = self[0].width
+            fh = self[0].height
+        elif( mode.lower()  == "fixed" ):
+            fw = size[0]
+            fh = size[1]
+        elif( mode.lower()  == "max" ):
+            fw = np.max(vals[:,0])
+            fh = np.max(vals[:,1])
+        elif( mode.lower()  == "min" ):
+            fw = np.min(vals[:,0])
+            fh = np.min(vals[:,1])
+        elif( mode.lower()  == "average" ):
+            fw = int(np.average(vals[:,0]))
+            fh = int(np.average(vals[:,1]))
+        #determine if we really need to resize the images
+        t1 = np.sum(vals[:,0]-fw)
+        t2 = np.sum(vals[:,1]-fh)
+        if( t1 != 0 or t2 != 0 ):
+            resized = self.standardize(fw,fh)
+        else:
+            resized = self
+        # Now do the average calculation
+        accumulator = cv.CreateImage((fw,fh), cv.IPL_DEPTH_8U,3)        
+        cv.Zero(accumulator)
+        alpha = float(1.0/len(resized))
+        beta = float((len(resized)-1.0)/len(resized))
+        for i in resized:
+            cv.AddWeighted(i.getBitmap(),alpha,accumulator,beta,0,accumulator)
+        retVal =  Image(accumulator)
+        return retVal
+    
 class Image:
     """
     **SUMMARY**
@@ -10688,6 +10812,17 @@ class Image:
             new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
             ts.append(CAMShift(self, track_window, new_ellipse))
             return ts
+
+    def _to32F(self):
+        """
+        **SUMMARY**
+
+        Convert this image to a 32bit floating point image. 
+
+        """
+        retVal = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
+        cv.Convert(self.getBitmap(),retVal)
+        return retVal
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )

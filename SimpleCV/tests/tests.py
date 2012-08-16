@@ -2836,4 +2836,39 @@ def test_image_temp_save():
       if i==None :
          assert False
   assert True
+
   
+def test_image_set_average():
+  iset = ImageSet()
+  iset.append(Image("./../sampleimages/tracktest0.jpg"))
+  iset.append(Image("./../sampleimages/tracktest1.jpg"))
+  iset.append(Image("./../sampleimages/tracktest2.jpg"))
+  iset.append(Image("./../sampleimages/tracktest3.jpg"))
+  iset.append(Image("./../sampleimages/tracktest4.jpg"))
+  iset.append(Image("./../sampleimages/tracktest5.jpg"))
+  iset.append(Image("./../sampleimages/tracktest6.jpg"))
+  iset.append(Image("./../sampleimages/tracktest7.jpg"))
+  iset.append(Image("./../sampleimages/tracktest8.jpg"))
+  iset.append(Image("./../sampleimages/tracktest9.jpg"))
+  avg = iset.average()
+  result = [avg]
+  name_stem = "test_image_set_average"
+  perform_diff(result,name_stem)
+
+def test_image_set_resize():
+  iset = ImageSet()
+  iset.append(Image("./../sampleimages/tracktest0.jpg"))
+  iset.append(Image("./../sampleimages/tracktest1.jpg"))
+  iset.append(Image("./../sampleimages/tracktest2.jpg"))
+  iset.append(Image("./../sampleimages/tracktest3.jpg"))
+  iset.append(Image("./../sampleimages/tracktest4.jpg"))
+  iset.append(Image("./../sampleimages/tracktest5.jpg"))
+  iset.append(Image("./../sampleimages/tracktest6.jpg"))
+  iset.append(Image("./../sampleimages/tracktest7.jpg"))
+  iset.append(Image("./../sampleimages/tracktest8.jpg"))
+  iset.append(Image("./../sampleimages/tracktest9.jpg"))
+  iset = iset.standardize(64,64)
+  avg = iset.average(mode='fixed',size=(72,72))
+  result = [avg]
+  name_stem = "test_image_set_resize"
+  perform_diff(result,name_stem)
