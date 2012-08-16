@@ -200,9 +200,7 @@ def main(*args):
 
         for flag in args[0]:
             if flag in ["--headless","headless"]:
-                # set SDL to use the dummy NULL video driver,
-                #   so it doesn't need a windowing system.
-                os.environ["SDL_VIDEODRIVER"] = "dummy"
+                init_options_handler.set_headless()
             elif flag in ['--nowarnings','nowarnings']:
                 log_level = logging.INFO
             elif flag in ['--debug','debug']:

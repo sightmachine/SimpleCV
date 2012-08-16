@@ -41,18 +41,19 @@ import scipy.spatial.distance as spsd
 import scipy.cluster.vq as cluster #for kmeans
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
-import pygame as pg
 
 
 #optional libraries
 PIL_ENABLED = True
 try:
     import Image as pil
+    from Image.GifImagePlugin import getheader, getdata
 except ImportError:
     try:
         import PIL.Image as pil
         from PIL import ImageFont as pilImageFont
         from PIL import ImageDraw as pilImageDraw
+        from PIL.GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 
@@ -78,6 +79,35 @@ try:
 
 except ImportError:
     ORANGE_ENABLED = False
+
+class InitOptionsHandler(object):
+    """
+    **summary**
+
+    this handler is supposed to store global variables. for now, its only value
+    defines if simplecv is being run on an ipython notebook.
+
+    """
+
+    def __init__(self):
+        self.on_notebook = False
+        self.headless = False
+
+    def enable_notebook(self):
+        self.on_notebook = True
+
+    def set_headless(self):
+        # set SDL to use the dummy NULL video driver,
+        # so it doesn't need a windowing system.
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        self.headless = True
+
+init_options_handler = InitOptionsHandler()
+
+try:
+    import pygame as pg
+except ImportError:
+    init_options_handler.set_headless()
 
 #couple quick typecheck helper functions
 def is_number(n):
@@ -150,6 +180,12 @@ def download_and_extract(URL):
         return None
 
     return tmpdir
+
+def int_to_bin(i):
+    """Integer to two bytes"""
+    i1 = i % 256
+    i2 = int(i/256)
+    return chr(i1) + chr(i2)
 
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """
@@ -347,24 +383,6 @@ class LazyProperty(object):
         if obj is None: return None
         result = obj.__dict__[self.__name__] = self._func(obj)
         return result
-
-class InitOptionsHandler(object):
-    """
-    **SUMMARY**
-
-    This handler is supposed to store global variables. For now, its only value
-    defines if SimpleCV is being run on an IPython notebook.
-
-    """
-
-    def __init__(self):
-        self.on_notebook = False
-
-    def enable_notebook(self):
-        self.on_notebook = True
-
-
-init_options_handler = InitOptionsHandler()
 
 #supported image formats regular expression
 IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')

@@ -2,7 +2,7 @@
 
 #load system libraries
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image, ImageSet
+from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
 from SimpleCV.Features import Line
@@ -611,7 +611,7 @@ class VirtualCamera(FrameSource):
     source = ""
     sourcetype = ""
   
-    def __init__(self, s, st):
+    def __init__(self, s, st, start=1):
         """
         **SUMMARY**
 
@@ -621,21 +621,26 @@ class VirtualCamera(FrameSource):
         
         * *s* - the source of the imagery.
         * *st* - the type of the virtual camera. Valid strings include:
+        * *start* - the number of the frame that you want to start with. 
           
           * "image" - a single still image.
           * "video" - a video file.
-          * "imageset" - a SimpleCV image set. 
+          * "imageset" - a SimpleCV image set.
 
         **EXAMPLE**
           
         >>> vc = VirtualCamera("img.jpg", "image")
         >>> vc = VirtualCamera("video.mpg", "video")
         >>> vc = VirtualCamera("./path_to_images/", "imageset")
+        >>> vc = VirtualCamera("video.mpg", "video", 300)
 
         """
         self.source = s
         self.sourcetype = st
         self.counter = 0
+        if start==0:
+            start=1
+        self.start = start
         
         if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset"):
             print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
@@ -653,7 +658,7 @@ class VirtualCamera(FrameSource):
             if not os.path.exists(self.source):
                 print 'Error: In VirtualCamera()\n\t"%s" was not found.' % self.source
                 return None
-        
+            
         if (self.sourcetype == "imageset"):
             self.source = ImageSet()
             if (type(s) == list):
@@ -662,7 +667,9 @@ class VirtualCamera(FrameSource):
                 self.source.load(s)
         
         if (self.sourcetype == 'video'):
-            self.capture = cv.CaptureFromFile(self.source) 
+            self.capture = cv.CaptureFromFile(self.source)
+            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
+            
     
     def getImage(self):
         """
@@ -690,6 +697,126 @@ class VirtualCamera(FrameSource):
         
         if (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
+    
+    def rewind(self, start=None):
+        """
+        **SUMMARY**
+
+        Rewind the Video source back to the given frame.
+        Available for only video sources.
+        
+        **PARAMETERS**
+        
+        start - the number of the frame that you want to rewind to.
+                if not provided, the video source would be rewound 
+                to the starting frame number you provided or rewound
+                to the beginning.
+        
+        **RETURNS**
+        
+        None
+
+        **EXAMPLES**
+        
+        >>> cam = VirtualCamera("filename.avi", "video", 120)
+        >>> i=0
+        >>> while i<60:
+            ... cam.getImage().show()
+            ... i+=1
+        >>> cam.rewind()
+
+        """
+        if (self.sourcetype == 'video'):
+            if not start:
+                cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
+            else:
+                if start==0:
+                    start=1
+                cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, start-1)
+                
+    def getFrame(self, frame):
+        """
+        **SUMMARY**
+
+        Get the provided numbered frame from the video source.
+        Available for only video sources.
+        
+        **PARAMETERS**
+        
+        frame -  the number of the frame
+        
+        **RETURNS**
+        
+        Image
+
+        **EXAMPLES**
+        
+        >>> cam = VirtualCamera("filename.avi", "video", 120)
+        >>> cam.getFrame(400).show()
+
+        """
+        if (self.sourcetype == 'video'):
+            number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
+            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, frame-1)
+            img = self.getImage()
+            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame)
+            return img
+    
+    def skipFrames(self, n):
+        """
+        **SUMMARY**
+
+        Skip n number of frames.
+        Available for only video sources.
+        
+        **PARAMETERS**
+        
+        n - number of frames to be skipped.
+        
+        **RETURNS**
+        
+        None
+
+        **EXAMPLES**
+        
+        >>> cam = VirtualCamera("filename.avi", "video", 120)
+        >>> i=0
+        >>> while i<60:
+            ... cam.getImage().show()
+            ... i+=1
+        >>> cam.skipFrames(100)
+        >>> cam.getImage().show()
+
+        """
+        if (self.sourcetype == 'video'):
+            number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
+            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame + n - 1)
+    
+    def getFrameNumber(self):
+        """
+        **SUMMARY**
+
+        Get the current frame number of the video source.
+        Available for only video sources.
+        
+        **RETURNS**
+        
+        * *int* - number of the frame
+
+        **EXAMPLES**
+        
+        >>> cam = VirtualCamera("filename.avi", "video", 120)
+        >>> i=0
+        >>> while i<60:
+            ... cam.getImage().show()
+            ... i+=1
+        >>> cam.skipFrames(100)
+        >>> cam.getFrameNumber()
+
+        """
+        if (self.sourcetype == 'video'):
+            number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
+            return number_frame
  
 class Kinect(FrameSource):
     """
@@ -1251,10 +1378,10 @@ class StereoCamera:
     	else:
     	    self.size = self.ImageLeft.size()
     	
-    	self.F, self.ptsLeft, self.ptsRight = self._findFundamentalMat()
-    	self.H, self.ptsLeft, self.ptsRight = self._findHomography()
+    	self.F, self.ptsLeft, self.ptsRight = self.findFundamentalMat()
+    	self.H, self.ptsLeft, self.ptsRight = self.findHomography()
     	
-    def _findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
+    def findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
         """
         **SUMMARY**        
 
@@ -1324,7 +1451,7 @@ class StereoCamera:
         matched_pts2 = matched_pts2[:, ::-1.00]
         return (F, matched_pts1, matched_pts2)
 
-    def _findHomography( self, thresh=500.00, minDist=0.15):
+    def findHomography( self, thresh=500.00, minDist=0.15):
         """
         **SUMMARY**        
 
@@ -1443,7 +1570,8 @@ class StereoCamera:
                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
                #cv.Normalize( disparity, disparity_visual, -10, 0, cv.CV_MINMAX )
                cv.Scale(disparity, disparity_visual,-scale)
-               return Image(disparity_visual)
+               disparity_visual = Image(disparity_visual)
+               return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
             
             elif method == 'GC':
                disparity_left = cv.CreateMat(c, r, cv.CV_16S)
@@ -1454,7 +1582,8 @@ class StereoCamera:
                disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
                #cv.Normalize( disparity_left, disparity_left_visual, -10, 0, cv.CV_MINMAX )
                cv.Scale(disparity_left, disparity_left_visual, -scale)
-               return Image(disparity_left_visual)
+               disparity_left_visual = Image(disparity_left_visual)
+               return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY) 
 
             elif method == 'SGBM':
                try:
@@ -1485,8 +1614,8 @@ class StereoCamera:
                return None
                 
         except :
-           logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
-           return None
+          logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
+          return None
                  
     def Eline( self, point, whichImage):
         """
@@ -1557,4 +1686,4 @@ class StereoCamera:
         else:
             corres_pt = np.linalg.inv(self.H) * point.T
         corres_pt = corres_pt / corres_pt[2]
-        return (float(corres_pt[1]), float(corres_pt[0]))        
+        return (float(corres_pt[1]), float(corres_pt[0]))
