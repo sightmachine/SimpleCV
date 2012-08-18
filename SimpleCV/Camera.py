@@ -1720,7 +1720,8 @@ class StereoCamera :
         * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
                       where CM1 -> Camera Matrix for left camera, 
                             CM2 -> Camera Matrix for right camera, 
-                            D1 -> Vector of distortion coefficients for left camera, 
+     1–50 of 3,341   
+                       D1 -> Vector of distortion coefficients for left camera, 
                             D2 -> Vector of distortion coefficients for right camera, 
                             R -> Rotation matrix between the left and the right camera coordinate systems, 
                             T -> Translation vector between the left and the right coordinate systems of the cameras, 
@@ -1733,7 +1734,7 @@ class StereoCamera :
 
         **EXAMPLE**
         >>> StereoCam = StereoCamera()
-        >>> calibration = StereoCam.StereoCalibration(1,2,n=40)
+        >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40)
         >>> StereoCam.saveCalibration(calibration,fname="Stereo1")
         """
         filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt", fname+"D2.txt", fname+"R.txt", fname+"T.txt", fname+"E.txt", fname+"F.txt")
