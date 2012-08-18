@@ -1391,7 +1391,7 @@ class StereoImage:
         matched_pts2 = matched_pts2[:, ::-1.00]
         return (H, matched_pts1, matched_pts2)
 
-    def findDisparityMap( self, nDisparity=64 ,method='BM'):
+    def findDisparityMap( self, nDisparity=16 ,method='BM'):
         """
         The method generates disparity map from set of stereo images.
 
@@ -1402,7 +1402,7 @@ class StereoImage:
                  *SGBM* - Semi Global Block Matching algorithm, this is not a real time algorithm.
                  *GC* - Graph Cut algorithm, This is not a real time algorithm.
              
-        * *nDisparity* - Maximum disparity value.
+        * *nDisparity* - Maximum disparity value. This should be multiple of 16
         * *scale* - Scale factor 
         
         **RETURNS**   
@@ -1420,9 +1420,13 @@ class StereoImage:
         gray_right = self.ImageRight.getGrayscaleMatrix()
         (r, c) = self.size
         scale = int(self.ImageLeft.depth)
+        if nDisparity % 16 !=0 :
+            if nDisparity < 16 :
+                nDisparity = 16
+            nDisparity = (nDisparity/16)*16         
         try :
             if method == 'BM':
-               disparity = cv.CreateMat(c, r, cv.CV_16S)
+               disparity = cv.CreateMat(c, r, cv.CV_32F)
                state = cv.CreateStereoBMState()
                state.SADWindowSize = 41
                state.preFilterType = 1
@@ -1431,19 +1435,18 @@ class StereoImage:
                state.minDisparity = -8
                state.numberOfDisparities = nDisparity
                state.textureThreshold = 10
-               #state.speckleRange = 15
-               #state.speckleWindowSize = 150
+               #state.speckleRange = 32
+               #state.speckleWindowSize = 100
                state.uniquenessRatio=15
                cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
                cv.Normalize( disparity, disparity_visual, 0, 256, cv.CV_MINMAX )
-               #cv.Scale(disparity, disparity_visual,-scale)
                disparity_visual = Image(disparity_visual)
                return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
             
             elif method == 'GC':
-               disparity_left = cv.CreateMat(c, r, cv.CV_16S)
-               disparity_right = cv.CreateMat(c, r, cv.CV_16S)
+               disparity_left = cv.CreateMat(c, r, cv.CV_32F)
+               disparity_right = cv.CreateMat(c, r, cv.CV_32F)
                state = cv.CreateStereoGCState(nDisparity, 8)
                state.minDisparity = -8
                cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
@@ -1466,14 +1469,14 @@ class StereoImage:
                state = cv2.StereoSGBM()    
                state.SADWindowSize = 41
                state.preFilterCap = 31
-               state.minDisparity = -8
+               state.minDisparity = 0
                state.numberOfDisparities = nDisparity
-               state.speckleRange = 32
-               state.speckleWindowSize = 100
-               #state.disp12MaxDiff = 1
-               state.fullDP=True
-               state.P1 = 13448
-               state.P2 = 53792
+               #state.speckleRange = 32
+               #state.speckleWindowSize = 100
+               state.disp12MaxDiff = 1
+               state.fullDP=False
+               state.P1 = 8 * 1 * 41 * 41
+               state.P2 = 32 * 1 * 41 * 41
                state.uniquenessRatio=15
                disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
                return Image(disparity)
@@ -1615,16 +1618,22 @@ class StereoCamera :
         count = 0
         n1="Left" 
         n2="Right"
-        captureLeft = cv.CaptureFromCAM(camLeft)
-        cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
-        cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
-        frameLeft = cv.QueryFrame(captureLeft)
-    
-        captureRight = cv.CaptureFromCAM(camRight)
-        cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
-        cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
-        frameRight = cv.QueryFrame(captureRight)
-
+        try :
+            captureLeft = cv.CaptureFromCAM(camLeft)
+            cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
+            cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
+            frameLeft = cv.QueryFrame(captureLeft)
+            cv.FindChessboardCorners(frameLeft, (8, 5))
+            
+            captureRight = cv.CaptureFromCAM(camRight)
+            cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
+            cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
+            frameRight = cv.QueryFrame(captureRight)
+            cv.FindChessboardCorners(frameRight, (8, 5))
+        except :
+            print "Error Initialising the Left and Right camera"
+            return None
+              
         imagePoints1 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
         imagePoints2 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
   
@@ -1649,8 +1658,10 @@ class StereoCamera :
 
         while True:
             frameLeft = cv.QueryFrame(captureLeft)
-            frameRight = cv.QueryFrame(captureRight)
-            k = cv.WaitKey(10)
+            cv.Flip(frameLeft, frameLeft, 1)
+    	    frameRight = cv.QueryFrame(captureRight)
+            cv.Flip(frameRight, frameRight, 1)
+            k = cv.WaitKey(3)
     
             cor1 = cv.FindChessboardCorners(frameLeft, (8, 5))
             if cor1[0] :
@@ -1720,8 +1731,7 @@ class StereoCamera :
         * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
                       where CM1 -> Camera Matrix for left camera, 
                             CM2 -> Camera Matrix for right camera, 
-     1–50 of 3,341   
-                       D1 -> Vector of distortion coefficients for left camera, 
+                            D1 -> Vector of distortion coefficients for left camera, 
                             D2 -> Vector of distortion coefficients for right camera, 
                             R -> Rotation matrix between the left and the right camera coordinate systems, 
                             T -> Translation vector between the left and the right coordinate systems of the cameras, 
