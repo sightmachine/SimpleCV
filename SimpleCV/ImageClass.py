@@ -396,6 +396,14 @@ Valid options: 'thumb', 'small', 'medium', 'large'
           self.append(tmp)
           
       return len(self)
+
+    def __getslice__(self,i,j,k=1):
+        if ( j > len(self)):
+            j = len(self)
+        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
+        for rm in rmSet :
+            del(self[rm])
+        return self    
   
 class Image:
     """
