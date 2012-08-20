@@ -29,10 +29,37 @@ For more code snippets, we recommend the [SimpleCV examples website](http://exam
 The easiest way to install SimpleCV is with the packages for your distribution (Windows, Mac, Linux) included on the website (http://www.simplecv.org).  Although it is tested on many platforms there maybe scenarios where it just won't work with the package installer. Below is instructions on how to install, if you have problems please see the troubleshooting section at the end of this README file.
 
 ### Ubuntu 12.04
-	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
+	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip 
 	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
 
 then just run 'simplecv' from the shell.
+
+### Virtualenv
+
+This is how to install SimpleCV under a python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
+
+Run the following commands:
+
+  sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip git gfortran g++ liblapack-dev libsdl1.2-dev libsmpeg-dev mercurial
+  sudo pip install virtualenv
+  virtualenv virtualSCV
+  cd virtualSCV
+  mkdir src
+  cp /usr/local/lib/python2.7/dist-packages/cv* ./lib/python2.7/site-packages
+  ./bin/pip install numpy
+  ./bin/pip install scipy
+  ./bin/pip install PIL
+  ./bin/pip install ipython
+  hg clone http://bitbucket.org/pygame/pygame src/pygame
+  source bin/activate
+  cd src/pygame
+  python setup.py -setuptools install
+  pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+  
+
+
+
+
 
 ### Arch Linux
     pacman -S python2-numpy opencv2.3.1_a-4 python-pygame python2-setuptools ipython2 python2-pip
