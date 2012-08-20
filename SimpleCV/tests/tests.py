@@ -2836,4 +2836,11 @@ def test_image_temp_save():
       if i==None :
          assert False
   assert True
-  
+
+def sliceinImageSet():
+    imgset = ImageSet("../sampleimages/")
+    imgset = imgset[8::-2]
+    if isinstance(imgset,ImageSet):
+        assert True
+    else :
+        assert False  
