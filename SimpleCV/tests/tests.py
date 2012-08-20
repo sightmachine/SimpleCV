@@ -2844,14 +2844,22 @@ def test_upload_dropbox():
           logger.warning("Couldn't run the upload test as optional dropbox library required")
        pass
     else:
-       img = Image('simplecv')
-       api_key = ''
-       api_secret = ''
+       img = Image('lenna')
+       api_key = None
+       api_secret = None
        if api_key==None or api_secret==None :
            pass
        else :
            ret=img.upload('dropbox',api_key,api_secret)
            if ret :
-               pass
+               assert True
            else :
                assert False
+               
+def sliceinImageSet():
+    imgset = ImageSet("../sampleimages/")
+    imgset = imgset[8::-2]
+    if isinstance(imgset,ImageSet):
+        assert True
+    else :
+        assert False                   
