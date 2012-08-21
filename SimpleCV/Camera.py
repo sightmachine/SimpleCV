@@ -185,7 +185,7 @@ class FrameSource:
         """
         **SUMMARY**
 
-        If given an image, apply the undistortion given my the camera's matrix and return the result.
+        If given an image, apply the undistortion given by the camera's matrix and return the result.
         
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
         measurement and return them in the original coordinate system.
@@ -384,7 +384,7 @@ class Camera(FrameSource):
 
     The Camera class is the class for managing input from a basic camera.  Note
     that once the camera is initialized, it will be locked from being used 
-    by other processes.  You can check manually if you have compatable devices
+    by other processes.  You can check manually if you have compatible devices
     on linux by looking for /dev/video* devices.
 
     This class wrappers OpenCV's cvCapture class and associated methods.  
@@ -413,7 +413,7 @@ class Camera(FrameSource):
         """
         **SUMMARY**
 
-        In the camera onstructor, camera_index indicates which camera to connect to
+        In the camera constructor, camera_index indicates which camera to connect to
         and props is a dictionary which can be used to set any camera attributes
         Supported props are currently: height, width, brightness, contrast,
         saturation, hue, gain, and exposure.
