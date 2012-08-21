@@ -84,16 +84,16 @@ def test_findFundamentalMat():
     for pairs in correct_pairs :
     	img1 = Image(pairs[0])
     	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-    	if (cam.F == None or cam.ptsLeft == None or cam.ptsRight == None):
+    	StereoImg = StereoImage(img1,img2)
+    	if ( not StereoImg.findFundamentalMat()):
     		assert False
     		
 def test_findHomography():    	
     for pairs in correct_pairs :
     	img1 = Image(pairs[0])
     	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-    	if (cam.H == None):
+    	StereoImg = StereoImage(img1,img2)
+    	if (not StereoImg.findHomography()):
     		assert False
     		
 def test_findDisparityMap():
@@ -101,8 +101,8 @@ def test_findDisparityMap():
     for pairs in correct_pairs :
     	img1 = Image(pairs[0])
     	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-        dips.append(cam.findDisparityMap(method="BM"))
+    	StereoImg = StereoImage(img1,img2)
+        dips.append(StereoImg.findDisparityMap(method="BM"))
     name_stem = "test_disparitymapBM"
     perform_diff(dips,name_stem)
     
@@ -110,8 +110,8 @@ def test_findDisparityMap():
     for pairs in correct_pairs :
     	img1 = Image(pairs[0])
     	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-        dips.append(cam.findDisparityMap(method="SGBM"))
+    	StereoImg = StereoImage(img1,img2)
+        dips.append(StereoImg.findDisparityMap(method="SGBM"))
     name_stem = "test_disparitymapSGBM"
     perform_diff(dips,name_stem)    
 
@@ -119,18 +119,70 @@ def test_eline():
     for pairs in correct_pairs :
     	img1 = Image(pairs[0])
     	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-    	for pts in cam.ptsLeft :
-    	     line = cam.Eline(pts,2)
+    	StereoImg = StereoImage(img1,img2)
+    	F,ptsLeft,ptsRight = StereoImg.findFundamentalMat()
+    	for pts in ptsLeft :
+    	     line = StereoImg.Eline(pts,F,2)
     	     if (line == None):
     	         assert False
-
+    	
+    	    
 def test_projectPoint():
     for pairs in correct_pairs :
     	img1 = Image(pairs[0])
     	img2 = Image(pairs[1])
-    	cam = StereoCamera(img1,img2)
-    	for pts in cam.ptsLeft :
-    	     line = cam.projectPoint(pts,2)
+    	StereoImg = StereoImage(img1,img2)
+    	H,ptsLeft,ptsRight = StereoImg.findHomography()
+    	for pts in ptsLeft :
+    	     line = StereoImg.projectPoint(pts,H,2)
     	     if (line == None):
     	         assert False
+    	         
+
+def test_StereoCalibration():
+    cam = StereoCamera()
+    try :
+        cam1 = Camera(0)
+        cam2 = Camera(1)
+        cam1.getImage()
+        cam2.getImage()
+        try :
+            cam = StereoCamera()
+            calib = cam.StereoCalibration(0,1,nboards=1)
+            if (calib):
+                assert True
+            else :
+                assert False    
+        except:
+            assert False 
+    except :
+        assert True
+        
+def test_loadCalibration():
+    cam = StereoCamera()
+    calbib =  cam.loadCalibration("Stereo",".")           	
+    if (calbib) :
+       assert True
+    else :
+       assert False
+
+def test_StereoRectify():
+    cam = StereoCamera()
+    calib = cam.loadCalibration("Stereo",".")
+    rectify = cam.stereoRectify(calib)
+    if rectify :
+       assert True
+    else :
+       assert False
+       
+def test_getImagesUndistort():          
+    img1 = Image(correct_pairs[0][0]).resize(352,288)
+    img2 = Image(correct_pairs[0][1]).resize(352,288)
+    cam = StereoCamera()
+    calib = cam.loadCalibration("Stereo",".")
+    rectify = cam.stereoRectify(calib)
+    rectLeft,rectRight = cam.getImagesUndistort(img1,img2,calib,rectify)
+    if rectLeft and rectRight :
+        assert True
+    else : 
+        assert False 
