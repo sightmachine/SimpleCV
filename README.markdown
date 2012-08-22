@@ -40,21 +40,24 @@ This is how to install SimpleCV under a python virtual environment [virtualenv] 
 
 Run the following commands:
 
-    sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip git gfortran g++ liblapack-dev libsdl1.2-dev libsmpeg-dev mercurial
+    sudo apt-get install python-opencv python-setuptools python-pip gfortran g++ liblapack-dev libsdl1.2-dev libsmpeg-dev mercurial
     sudo pip install virtualenv
-    virtualenv virtualSCV
-    cd virtualSCV
+    virtualenv venv
+    cd venv
     mkdir src
-    cp /usr/local/lib/python2.7/dist-packages/cv* ./lib/python2.7/site-packages
-    ./bin/pip install numpy
-    ./bin/pip install scipy
+    ln -s /usr/local/lib/python2.7/dist-packages/cv2.so lib/python2.7/site-packages/cv2.so
+    ln -s /usr/local/lib/python2.7/dist-packages/cv.py lib/python2.7/site-packages/cv.py
+    ./bin/pip install https://github.com/numpy/numpy/zipball/master
+    ./bin/pip install https://github.com/scipy/scipy/zipball/master
     ./bin/pip install PIL
     ./bin/pip install ipython
-    hg clone http://bitbucket.org/pygame/pygame src/pygame
-    source bin/activate
-    cd src/pygame
-    python setup.py -setuptools install
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+    mkdir src
+    wget -O src/pygame.tar.gz https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.tar.gz
+    cd src
+    tar zxvf pygame.tar.gz
+    cd ..
+    ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
+    ./bin/pip install https://github.com/ingenuitas/SimpleCV/zipball/master
   
 
 
