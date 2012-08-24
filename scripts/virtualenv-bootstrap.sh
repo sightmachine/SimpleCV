@@ -21,7 +21,7 @@ fi
 
 
 echo "Creating Virtual Environment"
-virtualenv venv
+virtualenv --distribute venv
 echo "Entering Virtual Environment"
 cd venv
 echo "Symbolic Linking OpenCV"
