@@ -128,3 +128,21 @@ def test_image_webp_save():
       pass
     else:
       assert False        
+      
+def test_screenshot():
+  try:
+    import pyscreenshot
+  except:
+    if( SHOW_WARNING_TESTS ):
+      logger.warning("Couldn't run the pyscreenshot test. Install pyscreenshot library")
+    pass
+  sc = ScreenCamera()
+  res = sc.getResolution()
+  img = sc.getImage()
+  crop = (res[0]/4,res[1]/4,res[0]/2,res[1]/2)
+  sc.setROI(crop)
+  cropImg = sc.getImage()
+  if img and cropImg :
+    assert True
+  else:
+    assert False 

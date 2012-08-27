@@ -70,6 +70,12 @@ except ImportError:
     OCR_ENABLED = False
 
 
+PYSCREENSHOT_ENABLED = True
+try:
+    import pyscreenshot
+except ImportError:
+    PYSCREENSHOT_ENABLED = False
+    
 ORANGE_ENABLED = True
 try:
     import orange
