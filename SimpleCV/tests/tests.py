@@ -2837,7 +2837,6 @@ def test_image_temp_save():
          assert False
   assert True
 
-<<<<<<< HEAD
 def test_image_set_average():
   iset = ImageSet()
   iset.append(Image("./../sampleimages/tracktest0.jpg"))
