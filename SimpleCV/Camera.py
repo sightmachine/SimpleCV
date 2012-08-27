@@ -1193,7 +1193,6 @@ class DigitalCamera(FrameSource):
         img = Image(path)
         os.close(fd)
         os.remove(path)
-        
         return img
 
     def getPreview(self):
@@ -1216,6 +1215,98 @@ class DigitalCamera(FrameSource):
         os.remove(path)
         
         return img       
+
+class ScreenCamera():
+    """
+    **SUMMARY**
+    ScreenCapture is a camera class would allow you to capture all or part of the screen and return it as a color image.
+    
+    Requires the pyscreenshot Library: https://github.com/vijaym123/pyscreenshot
+
+    **EXAMPLE**
+    >>> sc = ScreenCamera()
+    >>> res = sc.getResolution()
+    >>> print res
+    >>>
+    >>> img = sc.getImage()
+    >>> img.show()
+    """
+    _roi = None
+    
+    def __init__(self):
+        if not PYSCREENSHOT_ENABLED:
+            warn("Initializing pyscreenshot failed. Install pyscreenshot from https://github.com/vijaym123/pyscreenshot")
+            return None
+     
+    def getResolution(self):          
+        """
+        **DESCRIPTION**
+
+        returns the resolution of the screenshot of the screen.
+
+        **PARAMETERS**
+        None
+                      
+        **RETURNS**
+        returns the resolution.
+
+        **EXAMPLE**
+
+        >>> img = ScreenCamera()
+        >>> res = img.getResolution()
+        >>> print res
+        """
+        return Image(pyscreenshot.grab()).size()
+
+    def setROI(self,roi):
+        """
+        **DESCRIPTION**
+        To set the region of interest.
+        
+        **PARAMETERS**
+        * *roi* - tuple - It is a tuple of size 4. where region of interest is to the center of the screen.
+        
+        **RETURNS**
+        None
+
+        **EXAMPLE**
+        >>> sc = ScreenCamera()
+        >>> res = sc.getResolution()
+        >>> sc.setROI(res[0]/4,res[1]/4,res[0]/2,res[1]/2)
+        >>> img = sc.getImage()
+        >>> s.show()
+        """
+        if isinstance(roi,tuple) and len(roi)==4:
+            self._roi = roi
+        return
+        
+    def getImage(self):
+        """
+        **DESCRIPTION**
+
+        getImage function returns a Image object capturing the current screenshot of the screen.
+
+        **PARAMETERS**
+        None
+        
+        **RETURNS**
+        Returns the region of interest if setROI is used.
+        else returns the original capture of the screenshot.
+
+        **EXAMPLE**
+        >>> sc = ScreenCamera()
+        >>> img = sc.getImage()
+        >>> img.show()
+        """
+        img = Image(pyscreenshot.grab())
+        try :
+            if self._roi :
+                img = img.crop(self._roi,centered=True)
+        except :
+            print "Error croping the image. ROI specified is not correct."
+            return None
+        return img
+     
 
 class StereoImage:
     """
