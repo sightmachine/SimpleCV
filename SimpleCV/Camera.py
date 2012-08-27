@@ -1344,11 +1344,11 @@ class DigitalCamera(FrameSource):
         
         return img       
 
-class StereoCamera:
+class StereoImage:
     """
     **SUMMARY**
     
-    This class is for binaculor Stereopsis. That is exactrating 3D information from two differing views of a scene. By comparing the two images, the relative depth information can be obtained.
+    This class is for binaculor Stereopsis. That is exactrating 3D information from two differing views of a scene(Image). By comparing the two images, the relative depth information can be obtained.
     
     - Fundamental Matrix : F : a 3 x 3 numpy matrix, is a relationship between any two images of the same scene that constrains where the projection of points from the scene can occur in both images. see : http://en.wikipedia.org/wiki/Fundamental_matrix_(computer_vision)
     
@@ -1365,9 +1365,8 @@ class StereoCamera:
     **EXAMPLE**  
     >>> img1 = Image('sampleimages/stereo_view1.png')
     >>> img2 = Image('sampleimages/stereo_view2.png')
-    >>> cam = StereoCamera(img1,img2)
-    >>> disp = cam.findDisparityMap(methos="BM",nDisparity=20)
-    >>> disp.show()
+    >>> stereoImg = StereoImage(img1,img2)
+    >>> stereoImg.findDisparityMap(method="BM",nDisparity=20).show()
     """
     def __init__( self, imgLeft , imgRight ):
         self.ImageLeft = imgLeft
@@ -1377,9 +1376,6 @@ class StereoCamera:
             return None
     	else:
     	    self.size = self.ImageLeft.size()
-    	
-    	self.F, self.ptsLeft, self.ptsRight = self.findFundamentalMat()
-    	self.H, self.ptsLeft, self.ptsRight = self.findHomography()
     	
     def findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
         """
@@ -1395,7 +1391,6 @@ class StereoCamera:
           is the distance between two feature vectors. Good values are between 0.05 and 0.3
 
         **RETURNS**   
-     
         Return None if it fails.
         * *F* -  Fundamental matrix as ndarray. 
         * *matched_pts1* - the matched points (x, y) in img1
@@ -1404,8 +1399,8 @@ class StereoCamera:
         **EXAMPLE**
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
-        >>> cam = StereoCamera(img1,img2)
-        >>> F,pts1,pts2 = cam.findFundamentalMat()
+        >>> stereoImg = StereoImage(img1,img2)
+        >>> F,pts1,pts2 = stereoImg.findFundamentalMat()
 
         **NOTE**
         If you deal with the fundamental matrix F directly, be aware of (P_2).T F P_1 = 0 
@@ -1474,8 +1469,8 @@ class StereoCamera:
         **EXAMPLE**
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
-        >>> cam = StereoCamera(img1,img2)
-        >>> H = cam.findHomography()
+        >>> stereoImg = StereoImage(img1,img2)
+        >>> H,pts1,pts2 = stereoImg.findHomography()
 
         **NOTE**
         If you deal with the homography H directly, be aware of P2 ~ H P1
@@ -1523,7 +1518,7 @@ class StereoCamera:
         matched_pts2 = matched_pts2[:, ::-1.00]
         return (H, matched_pts1, matched_pts2)
 
-    def findDisparityMap( self, nDisparity=64 ,method='BM'):
+    def findDisparityMap( self, nDisparity=16 ,method='BM'):
         """
         The method generates disparity map from set of stereo images.
 
@@ -1534,7 +1529,7 @@ class StereoCamera:
                  *SGBM* - Semi Global Block Matching algorithm, this is not a real time algorithm.
                  *GC* - Graph Cut algorithm, This is not a real time algorithm.
              
-        * *nDisparity* - Maximum disparity value.
+        * *nDisparity* - Maximum disparity value. This should be multiple of 16
         * *scale* - Scale factor 
         
         **RETURNS**   
@@ -1545,43 +1540,46 @@ class StereoCamera:
         **EXAMPLE**
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
-        >>> cam = StereoCamera(img1, img2)
-        >>> disp = cam.findDisparityMap(method="BM")
+        >>> stereoImg = StereoImage(img1,img2)
+        >>> disp = stereoImg.findDisparityMap(method="BM")
         """
         gray_left = self.ImageLeft.getGrayscaleMatrix()
         gray_right = self.ImageRight.getGrayscaleMatrix()
         (r, c) = self.size
         scale = int(self.ImageLeft.depth)
+        if nDisparity % 16 !=0 :
+            if nDisparity < 16 :
+                nDisparity = 16
+            nDisparity = (nDisparity/16)*16         
         try :
             if method == 'BM':
-               disparity = cv.CreateMat(c, r, cv.CV_16S)
+               disparity = cv.CreateMat(c, r, cv.CV_32F)
                state = cv.CreateStereoBMState()
                state.SADWindowSize = 41
-               state.preFilterType = 1.00
+               state.preFilterType = 1
                state.preFilterSize = 41
                state.preFilterCap = 31
-               state.minDisparity = 0
+               state.minDisparity = -8
                state.numberOfDisparities = nDisparity
                state.textureThreshold = 10
-               state.speckleRange = 1.00
-               state.speckleWindowSize = 150
+               #state.speckleRange = 32
+               #state.speckleWindowSize = 100
                state.uniquenessRatio=15
                cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
-               #cv.Normalize( disparity, disparity_visual, -10, 0, cv.CV_MINMAX )
-               cv.Scale(disparity, disparity_visual,-scale)
+               cv.Normalize( disparity, disparity_visual, 0, 256, cv.CV_MINMAX )
                disparity_visual = Image(disparity_visual)
                return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
             
             elif method == 'GC':
-               disparity_left = cv.CreateMat(c, r, cv.CV_16S)
-               disparity_right = cv.CreateMat(c, r, cv.CV_16S)
+               disparity_left = cv.CreateMat(c, r, cv.CV_32F)
+               disparity_right = cv.CreateMat(c, r, cv.CV_32F)
                state = cv.CreateStereoGCState(nDisparity, 8)
-               state.minDisparity = 0
+               state.minDisparity = -8
                cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
                disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
-               #cv.Normalize( disparity_left, disparity_left_visual, -10, 0, cv.CV_MINMAX )
-               cv.Scale(disparity_left, disparity_left_visual, -scale)
+               cv.Normalize( disparity_left, disparity_left_visual, 0, 256, cv.CV_MINMAX )
+               #cv.Scale(disparity_left, disparity_left_visual, -scale)
                disparity_left_visual = Image(disparity_left_visual)
                return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY) 
 
@@ -1596,16 +1594,17 @@ class StereoCamera:
                     logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
                     return None
                state = cv2.StereoSGBM()    
-               state.SADWindowSize = 3
+               state.SADWindowSize = 41
                state.preFilterCap = 31
                state.minDisparity = 0
                state.numberOfDisparities = nDisparity
-               state.speckleRange = 32
-               state.speckleWindowSize = 100
+               #state.speckleRange = 32
+               #state.speckleWindowSize = 100
                state.disp12MaxDiff = 1
                state.fullDP=False
-               state.P1 = 216
-               state.P2 = 864
+               state.P1 = 8 * 1 * 41 * 41
+               state.P2 = 32 * 1 * 41 * 41
+               state.uniquenessRatio=15
                disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
                return Image(disparity)
             
@@ -1617,7 +1616,7 @@ class StereoCamera:
           logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
           return None
                  
-    def Eline( self, point, whichImage):
+    def Eline( self, point, F ,whichImage):
         """
         **SUMMARY**    
     
@@ -1626,6 +1625,7 @@ class StereoCamera:
         **PARAMETERS**
 
         * *point* - Input point (x, y)
+        * *F* - Fundamental matrix.
         * *whichImage* - Index of the image (1 or 2) that contains the point
 
         **RETURNS**        
@@ -1636,15 +1636,17 @@ class StereoCamera:
 
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
-        >>> mapper = StereoCamera(img1,img2)
-        >>> epiline = mapper.Eline(point, 1)
+        >>> stereoImg = StereoImage(img1,img2)
+        >>> F,pts1,pts2 = stereoImg.findFundamentalMat()
+        >>> point = pts2[0]
+        >>> epiline = mapper.Eline(point,F, 1) #find corresponding Epipolar line in the left image.
         """
         pts1 = (0,0)
         pts2 = self.size
         pt_cvmat = cv.CreateMat(1, 1, cv.CV_32FC2)
         pt_cvmat[0, 0] = (point[1], point[0])  # OpenCV seems to use (y, x) coordinate.
         line = cv.CreateMat(1, 1, cv.CV_32FC3)
-        cv.ComputeCorrespondEpilines(pt_cvmat, whichImage, npArray2cvMat(self.F), line)
+        cv.ComputeCorrespondEpilines(pt_cvmat, whichImage, npArray2cvMat(F), line)
         line_npArray = np.array(line).squeeze()
         line_npArray = line_npArray[[1.00, 0, 2]]
         pts1 = (pts1[0],(-line_npArray[2]-line_npArray[0]*pts1[0])/line_npArray[1] )
@@ -1654,7 +1656,7 @@ class StereoCamera:
         elif whichImage == 2 :
             return Line( self.ImageRight, [pts1,pts2] )	     
 
-    def projectPoint( self, point, whichImage):
+    def projectPoint( self, point, H ,whichImage):
         """
         **SUMMARY**    
     
@@ -1675,15 +1677,347 @@ class StereoCamera:
         
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
-        >>> cam = StereoCamera(img1,img2)
-        >>> projectPoint = cam.projectPoint(point, 1)
+        >>> stereoImg = StereoImage(img1,img2)
+        >>> F,pts1,pts2 = stereoImg.findFundamentalMat()
+        >>> point = pts2[0]
+        >>> projectPoint = stereoImg.projectPoint(point,H ,1) #finds corresponding  point in the left image.
         """
 
-        H = np.matrix(self.H)
+        H = np.matrix(H)
         point = np.matrix((point[1], point[0],1.00))
         if whichImage == 1.00:
-            corres_pt = self.H * point.T
+            corres_pt = H * point.T
         else:
-            corres_pt = np.linalg.inv(self.H) * point.T
+            corres_pt = np.linalg.inv(H) * point.T
         corres_pt = corres_pt / corres_pt[2]
         return (float(corres_pt[1]), float(corres_pt[0]))
+        
+class StereoCamera :
+    """
+    Stereo Camera is a class dedicated for calibration stereo camera. It also has functionalites for 
+    rectification and getting undistorted Images.    
+    
+    This class can be used to calculate various parameters related to both the camera's :
+      -> Camera Matrix
+      -> Distortion coefficients
+      -> Rotation and Translation matrix 
+      -> Rectification transform (rotation matrix) 
+      -> Projection matrix in the new (rectified) coordinate systems
+      -> Disparity-to-depth mapping matrix (Q) 
+    """
+    def __init__(self):
+        return
+                                
+    def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8,5), gridsize=0.027, WinSize = (352,288)):
+        """
+        **SUMMARY**
+        Stereo Calibration is a way in which you obtain the parameters that will allow you to calculate 3D information of the scene. 
+        Once both the camera's are initialized. 
+         -> Press [Space] once chessboard is identified in both the camera's.
+         -> Press [esc] key to exit the calibration process.
+    
+        **PARAMETERS**
+        * *camLeft* - Left camera index.
+        * *camRight* - Right camera index.
+        * *nboards* - Number of samples or multiple views of the chessboard in different positions and orientations with your stereo camera.
+        * *chessboard* - A tuple of Cols, Rows in the chessboard (used for calibration).
+        * *gridsize* - chessboard grid size in real units
+        * *WinSize* - This is the window resolution. 
+    
+        **RETURNS**
+        A tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success
+                   where CM1 -> Camera Matrix for left camera, 
+                         CM2 -> Camera Matrix for right camera, 
+                         D1 -> Vector of distortion coefficients for left camera, 
+                         D2 -> Vector of distortion coefficients for right camera, 
+                         R -> Rotation matrix between the left and the right camera coordinate systems, 
+                         T -> Translation vector between the left and the right coordinate systems of the cameras, 
+                         E -> Essential matrix, 
+                         F -> Fundamental matrix
+
+        **EXAMPLE**
+        >>> StereoCam = StereoCamera()
+        >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40) 
+        
+        **Note**
+        Press space to capture the images.      
+        """
+        count = 0
+        n1="Left" 
+        n2="Right"
+        try :
+            captureLeft = cv.CaptureFromCAM(camLeft)
+            cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
+            cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
+            frameLeft = cv.QueryFrame(captureLeft)
+            cv.FindChessboardCorners(frameLeft, (8, 5))
+            
+            captureRight = cv.CaptureFromCAM(camRight)
+            cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
+            cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
+            frameRight = cv.QueryFrame(captureRight)
+            cv.FindChessboardCorners(frameRight, (8, 5))
+        except :
+            print "Error Initialising the Left and Right camera"
+            return None
+              
+        imagePoints1 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
+        imagePoints2 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
+  
+        objectPoints = cv.CreateMat(1, chessboard[0] * chessboard[1] * nboards, cv.CV_64FC3)
+        nPoints = cv.CreateMat(1, nboards, cv.CV_32S)
+    
+        # the intrinsic camera matrices
+        CM1 = cv.CreateMat(3, 3, cv.CV_64F)
+        CM2 = cv.CreateMat(3, 3, cv.CV_64F)
+    
+        # the distortion coefficients of both cameras
+        D1 = cv.CreateMat(1, 5, cv.CV_64F)
+        D2 = cv.CreateMat(1, 5, cv.CV_64F)
+
+        # matrices governing the rotation and translation from camera 1 to camera 2
+        R = cv.CreateMat(3, 3, cv.CV_64F)
+        T = cv.CreateMat(3, 1, cv.CV_64F)
+
+        # the essential and fundamental matrices
+        E = cv.CreateMat(3, 3, cv.CV_64F)
+        F = cv.CreateMat(3, 3, cv.CV_64F)
+
+        while True:
+            frameLeft = cv.QueryFrame(captureLeft)
+            cv.Flip(frameLeft, frameLeft, 1)
+    	    frameRight = cv.QueryFrame(captureRight)
+            cv.Flip(frameRight, frameRight, 1)
+            k = cv.WaitKey(3)
+    
+            cor1 = cv.FindChessboardCorners(frameLeft, (8, 5))
+            if cor1[0] :
+               cv.DrawChessboardCorners(frameLeft, (8, 5), cor1[1], cor1[0])
+               cv.ShowImage(n1, frameLeft)
+    
+            cor2 = cv.FindChessboardCorners(frameRight, (8, 5))
+            if cor2[0]:
+               cv.DrawChessboardCorners(frameRight, (8, 5), cor2[1], cor2[0])
+               cv.ShowImage(n2, frameRight)
+    
+            if cor1[0] and cor2[0] and k==0x20:
+               print count
+               for i in range(0, len(cor1[1])):
+                    cv.Set1D(imagePoints1, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor1[1][i][0], cor1[1][i][1]))
+                    cv.Set1D(imagePoints2, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor2[1][i][0], cor2[1][i][1]))    
+        
+               count += 1
+         
+               if count == nboards:
+                   cv.DestroyAllWindows()
+                   for i in range(nboards):
+                       for j in range(chessboard[1]):
+                          for k in range(chessboard[0]):
+                              cv.Set1D(objectPoints, i * chessboard[1] * chessboard[0] + j * chessboard[0] + k, (k * gridsize, j * gridsize, 0))
+            
+                   for i in range(nboards):
+                       cv.Set1D(nPoints, i, chessboard[0] * chessboard[1])
+
+            
+                   cv.SetIdentity(CM1)
+                   cv.SetIdentity(CM2)
+                   cv.Zero(D1)
+                   cv.Zero(D2)
+
+                   print "Running stereo calibration..."
+                   del(camLeft)
+                   del(camRight)
+                   cv.StereoCalibrate(objectPoints, imagePoints1, imagePoints2, nPoints, CM1, D1, CM2, D2, WinSize, R, T, E, F,
+                                     flags=cv.CV_CALIB_SAME_FOCAL_LENGTH | cv.CV_CALIB_ZERO_TANGENT_DIST)
+            
+                   print "Done."
+                   return (CM1, CM2, D1, D2, R, T, E, F)                
+
+            cv.ShowImage(n1, frameLeft)
+            cv.ShowImage(n2, frameRight)   
+            if k == 0x1b:
+                print "ESC pressed. Exiting. WARNING: NOT ENOUGH CHESSBOARDS FOUND YET"
+                cv.DestroyAllWindows()
+                break
+      
+    def saveCalibration(self,calibration=None, fname="Stereo",cdir="."):
+        """
+        **SUMMARY**
+        saveCalibration is a method to save the StereoCalibration parameters such as CM1, CM2, D1, D2, R, T, E, F of stereo pair.
+        This method returns True on success and saves the calibration in the following format.
+          ->StereoCM1.txt
+          ->StereoCM2.txt
+          ->StereoD1.txt
+          ->StereoD2.txt
+          ->StereoR.txt
+          ->StereoT.txt
+          ->StereoE.txt
+          ->StereoF.txt
+
+        **PARAMETERS**
+        * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
+                      where CM1 -> Camera Matrix for left camera, 
+                            CM2 -> Camera Matrix for right camera, 
+                            D1 -> Vector of distortion coefficients for left camera, 
+                            D2 -> Vector of distortion coefficients for right camera, 
+                            R -> Rotation matrix between the left and the right camera coordinate systems, 
+                            T -> Translation vector between the left and the right coordinate systems of the cameras, 
+                            E -> Essential matrix, 
+                            F -> Fundamental matrix
+
+
+        **RETURNS**        
+        return True on success and saves the calibration files.
+
+        **EXAMPLE**
+        >>> StereoCam = StereoCamera()
+        >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40)
+        >>> StereoCam.saveCalibration(calibration,fname="Stereo1")
+        """
+        filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt", fname+"D2.txt", fname+"R.txt", fname+"T.txt", fname+"E.txt", fname+"F.txt")
+        try :
+            (CM1, CM2, D1, D2, R, T, E, F) = calibration
+            cv.Save("{0}/{1}".format(cdir, filenames[0]), CM1)
+            cv.Save("{0}/{1}".format(cdir, filenames[1]), CM2)
+            cv.Save("{0}/{1}".format(cdir, filenames[2]), D1)
+            cv.Save("{0}/{1}".format(cdir, filenames[3]), D2)
+            cv.Save("{0}/{1}".format(cdir, filenames[4]), R)
+            cv.Save("{0}/{1}".format(cdir, filenames[5]), T)
+            cv.Save("{0}/{1}".format(cdir, filenames[6]), E)
+            cv.Save("{0}/{1}".format(cdir, filenames[7]), F)
+            print "Calibration parameters written to directory '{0}'.".format(cdir)
+            return True
+        
+        except :
+            return False
+        
+    def loadCalibration(self,fname="Stereo",dir="."):
+        """
+        **SUMMARY**
+        loadCalibration is a method to load the StereoCalibration parameters such as CM1, CM2, D1, D2, R, T, E, F of stereo pair.
+        This method loads from calibration files and return calibration on success else return false.
+
+        **PARAMETERS**
+        * *fname* - is the prefix of the calibration files.
+        * *dir* - is the directory in which files are present.
+    
+        **RETURNS*
+        return a tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success.
+                      where CM1 -> Camera Matrix for left camera, 
+                            CM2 -> Camera Matrix for right camera, 
+                            D1 -> Vector of distortion coefficients for left camera, 
+                            D2 -> Vector of distortion coefficients for right camera, 
+                            R -> Rotation matrix between the left and the right camera coordinate systems, 
+                            T -> Translation vector between the left and the right coordinate systems of the cameras, 
+                            E -> Essential matrix, 
+                            F -> Fundamental matrix
+     
+        else returns false
+     
+        **EXAMPLE**
+        >>> StereoCam = StereoCamera()
+        >>> loadedCalibration = StereoCam.loadCalibration(fname="Stereo1")
+        """
+        filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt", fname+"D2.txt", fname+"R.txt", fname+"T.txt", fname+"E.txt", fname+"F.txt")
+        try :
+            CM1 = cv.Load("{0}/{1}".format(dir, filenames[0]))
+            CM2 = cv.Load("{0}/{1}".format(dir, filenames[1]))
+            D1 = cv.Load("{0}/{1}".format(dir, filenames[2]))
+            D2 = cv.Load("{0}/{1}".format(dir, filenames[3]))
+            R = cv.Load("{0}/{1}".format(dir, filenames[4]))
+            T = cv.Load("{0}/{1}".format(dir, filenames[5]))
+            E = cv.Load("{0}/{1}".format(dir, filenames[6]))
+            F = cv.Load("{0}/{1}".format(dir, filenames[7]))
+            print "Calibration files loaded from dir '{0}'.".format(dir)
+            return (CM1, CM2, D1, D2, R, T, E, F)
+      
+        except :
+            return False    
+  
+    def stereoRectify(self,calib=None,WinSize=(352,288)):
+        """
+        **SUMMARY**
+        Computes rectification transforms for each head of a calibrated stereo camera.
+    
+        **PARAMETERS**
+        * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
+                      where CM1 -> Camera Matrix for left camera, 
+                            CM2 -> Camera Matrix for right camera, 
+                            D1 -> Vector of distortion coefficients for left camera, 
+                            D2 -> Vector of distortion coefficients for right camera, 
+                            R -> Rotation matrix between the left and the right camera coordinate systems, 
+                            T -> Translation vector between the left and the right coordinate systems of the cameras, 
+                            E -> Essential matrix, 
+                            F -> Fundamental matrix
+    
+        **RETURNS**
+        On success returns a a tuple of the format -> (R1, R2, P1, P2, Q, roi)
+            where 
+               R1 - Rectification transform (rotation matrix) for the left camera. 
+               R2 - Rectification transform (rotation matrix) for the right camera.
+               P1 - Projection matrix in the new (rectified) coordinate systems for the left camera.
+               P2 - Projection matrix in the new (rectified) coordinate systems for the right camera.
+               Q - disparity-to-depth mapping matrix.                        
+
+        **EXAMPLE**  
+        >>> StereoCam = StereoCamera()
+        >>> calibration = StereoCam.loadCalibration(fname="Stereo1")
+        >>> rectification = StereoCam.stereoRectify(calibration)
+        """
+        (CM1, CM2, D1, D2, R, T, E, F) = calib
+        R1 = cv.CreateMat(3, 3, cv.CV_64F)
+        R2 = cv.CreateMat(3, 3, cv.CV_64F)
+        P1 = cv.CreateMat(3, 4, cv.CV_64F)
+        P2 = cv.CreateMat(3, 4, cv.CV_64F)
+        Q = cv.CreateMat(4, 4, cv.CV_64F)  
+  
+        print "Running stereo rectification..."
+  
+        (leftroi, rightroi) = cv.StereoRectify(CM1, CM2, D1, D2, WinSize, R, T, R1, R2, P1, P2, Q)
+        roi = []
+        roi.append(max(leftroi[0], rightroi[0]))
+        roi.append(max(leftroi[1], rightroi[1]))
+        roi.append(min(leftroi[2], rightroi[2]))          
+        roi.append(min(leftroi[3], rightroi[3]))
+        print "Done."
+        return (R1, R2, P1, P2, Q, roi)
+    
+    def getImagesUndistort(self,imgLeft, imgRight, calibration, rectification, WinSize=(352,288)):
+        """ 
+        **SUMMARY**
+        Rectify two images from the calibration and rectification parameters.
+
+        **PARAMETERS**
+        * *imgLeft* - Image captured from left camera and needs to be rectified. 
+        * *imgRight* - Image captures from right camera and need to be rectified.
+        * *calibration* - A calibration tuple of the format (CM1, CM2, D1, D2, R, T, E, F)
+        * *rectification* - A rectification tuple of the format (R1, R2, P1, P2, Q, roi)
+    
+        **RETURNS**
+        returns rectified images in a tuple -> (imgLeft,imgRight)
+        >>> StereoCam = StereoCamera()
+        >>> calibration = StereoCam.loadCalibration(fname="Stereo1")
+        >>> rectification = StereoCam.stereoRectify(loadedCalibration)
+        >>> imgLeft = camLeft.getImage()
+        >>> imgRight = camRight.getImage()
+        >>> rectLeft,rectRight = StereoCam.getImagesUndistort(imgLeft,imgRight,calibration,rectification)
+        """
+        imgLeft = imgLeft.getMatrix()
+        imgRight = imgRight.getMatrix()
+        (CM1, CM2, D1, D2, R, T, E, F) = calibration
+        (R1, R2, P1, P2, Q, roi) = rectification
+  
+        dst1 = cv.CloneMat(imgLeft)
+        dst2 = cv.CloneMat(imgRight)
+        map1x = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
+        map2x = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
+        map1y = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
+        map2y = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
+     
+        #print "Rectifying images..."
+        cv.InitUndistortRectifyMap(CM1, D1, R1, P1, map1x, map1y)
+        cv.InitUndistortRectifyMap(CM2, D2, R2, P2, map2x, map2y)
+
+        cv.Remap(imgLeft, dst1, map1x, map1y)
+        cv.Remap(imgRight, dst2, map2x, map2y)
+        return Image(dst1), Image(dst2)

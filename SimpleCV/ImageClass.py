@@ -527,6 +527,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
           self.append(tmp)
           
       return len(self)
+<<<<<<< HEAD
     
     def standardize(self,width,height):
         """
@@ -652,6 +653,17 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         retVal =  Image(accumulator)
         return retVal
     
+=======
+
+    def __getslice__(self,i,j,k=1):
+        if ( j > len(self)):
+            j = len(self)
+        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
+        for rm in rmSet :
+            del(self[rm])
+        return self    
+  
+>>>>>>> b4927e514c597356736770017855f3135b5b5ef1
 class Image:
     """
     **SUMMARY**

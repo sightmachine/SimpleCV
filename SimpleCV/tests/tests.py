@@ -2837,6 +2837,7 @@ def test_image_temp_save():
          assert False
   assert True
 
+<<<<<<< HEAD
 def test_image_set_average():
   iset = ImageSet()
   iset.append(Image("./../sampleimages/tracktest0.jpg"))
@@ -2891,4 +2892,12 @@ def test_load_gif():
     imgs = ImageSet()
     imgs.load("../sampleimages/test_load_gif.gif")
     assert len(imgs)
+
+def sliceinImageSet():
+    imgset = ImageSet("../sampleimages/")
+    imgset = imgset[8::-2]
+    if isinstance(imgset,ImageSet):
+        assert True
+    else :
+        assert False  
 
