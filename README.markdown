@@ -106,7 +106,7 @@ Commands (for Snow Leopard)::
 
     mkdir ~/Code
     cd ~/Code
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
+    ruby <(curl -fsSkL raw.github.com/mxcl/homebrew/go)
     brew install opencv
     brew install git
     brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi 
@@ -116,7 +116,7 @@ Commands (for Snow Leopard)::
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
     sudo easy_install pip
-    sudo pip install hg+http://bitbucket.org/pygame/pygame
+    sudo pip install https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.zip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
 
