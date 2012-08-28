@@ -1,0 +1,6 @@
+yapsy==1.8
+path.py
+PIL
+EasyProcess
+entrypoint2
+
