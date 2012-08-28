@@ -1,0 +1,10 @@
+grant docs
+include LICENSE*
+include pavement.py
+include TODO*
+include requirements.txt
+include CHANGES*
+include README*
+include setup.py
+recursive-include pyscreenshot *.conf
+prune docs/_build
