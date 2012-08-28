@@ -1348,7 +1348,9 @@ class ScreenCamera():
     **SUMMARY**
     ScreenCapture is a camera class would allow you to capture all or part of the screen and return it as a color image.
     
-    Requires the pyscreenshot Library: https://github.com/vijaym123/pyscreenshot
+    Requires the pyscreenshot Library: Install it from the util folder.
+    That is 
+         -> SimpleCV/util/pyscreenshot 
 
     **EXAMPLE**
     >>> sc = ScreenCamera()
@@ -1359,10 +1361,9 @@ class ScreenCamera():
     >>> img.show()
     """
     _roi = None
-    
     def __init__(self):
         if not PYSCREENSHOT_ENABLED:
-            warn("Initializing pyscreenshot failed. Install pyscreenshot from https://github.com/vijaym123/pyscreenshot")
+            warn("Initializing pyscreenshot failed. Install pyscreenshot from SimpleCV/utils/pyscreenshot folder.")
             return None
      
     def getResolution(self):          
