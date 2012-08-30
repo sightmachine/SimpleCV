@@ -42,8 +42,7 @@ Instructions on how to install SimpleCV on the RaspberryPi
 	raspberry@pi:~$ tar -xvzf pygame-1.8.1release.tar.gz
 	raspberry@pi:~$ cd pygame-1.8.1release
 	raspberry@pi:~$ sudo python config.py
-	raspberry@pi:~$ make
-	raspberry@pi:~$ make install
+	raspberry@pi:~$ sudo python setup.py install
 
 5) SimpleCV should now be ready to install. Download SimpleCV from github 
    and install from the source.
