@@ -41,7 +41,7 @@ Instructions on how to install SimpleCV on the RaspberryPi
 	raspberry@pi:~$ wget http://www.pygame.org/ftp/pygame-1.8.1release.tar.gz
 	raspberry@pi:~$ tar -xvzf pygame-1.8.1release.tar.gz
 	raspberry@pi:~$ cd pygame-1.8.1release
-	raspberry@pi:~$ ./configure
+	raspberry@pi:~$ sudo python config.py
 	raspberry@pi:~$ make
 	raspberry@pi:~$ make install
 
