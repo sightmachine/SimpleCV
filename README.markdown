@@ -181,7 +181,15 @@ If for some reason the shell doesn't start, you can always do so manually by run
 
 To run SimpleCV within an ipython notebook (ipython-notebooks are required to be installed):
 
-  simplecv notebook
+	simplecv notebook
+
+
+to install ipython notebooks run the following:
+
+	sudo pip install tornado
+  sudo pip install pyzmq
+  
+  
   
 
 ---------------------------    
