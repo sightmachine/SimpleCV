@@ -1,8 +1,5 @@
-SimpleCV
-
-pygame>=1.9.1
-PIL==1.1.7
-nose>=1.0.0
-ipython>=0.12
-numpy>=numpy-2.0.0
+https://github.com/numpy/numpy/zipball/master
+https://github.com/scipy/scipy/zipball/master
+PIL
+ipython
 

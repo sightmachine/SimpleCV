@@ -18,14 +18,36 @@ import glob #for directory scanning
 import abc #abstract base class
 import colorsys
 import logging
+import pygame as pg
+import scipy.ndimage as ndimage
+import scipy.stats.stats as sss  #for auto white balance
+import scipy.cluster.vq as scv    
+import scipy.linalg as nla  # for linear algebra / least squares
+import math # math... who does that 
+import copy # for deep copy
+import numpy as np
+import scipy.spatial.distance as spsd
+import scipy.cluster.vq as cluster #for kmeans
+import pygame as pg
+import platform
+import copy
+import types
+import time
 
+from numpy import linspace
+from scipy.interpolate import UnivariateSpline
+from warnings import warn
 from copy import copy
-from math import sqrt, atan2
+from math import *
 from pkg_resources import load_entry_point
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from types import IntType, LongType, FloatType, InstanceType
 from cStringIO import StringIO
-
+from numpy import int32
+from numpy import uint8
+from EXIF import *
+from pygame import gfxdraw
+from pickle import *
 
 # SimpleCV library includes
 try:
@@ -35,12 +57,6 @@ except ImportError:
         import cv
     except ImportError:
         raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
-
-import numpy as np
-import scipy.spatial.distance as spsd
-import scipy.cluster.vq as cluster #for kmeans
-from numpy import linspace
-from scipy.interpolate import UnivariateSpline
 
 
 #optional libraries

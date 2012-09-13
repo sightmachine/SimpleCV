@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Features.Features import Feature, FeatureSet
-import time
+
 
 class Tracking(Feature):
     """
