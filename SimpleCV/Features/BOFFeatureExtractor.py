@@ -37,11 +37,13 @@ class BOFFeatureExtractor(object):
         * imgdirs: This list of directories.
         * patchsz: the dimensions of each codebook patch
         * numcodes: the number of different patches in the codebook.
-        * imglayout: the shape of the resulting image in terms of patches
+        * imglayout: the shape of the resulting image in terms of patches - this must
+          match the size of numcodes. I.e. numcodes == img_layout[0]*img_layout[1]
         * padding:the pixel padding of each patch in the resulting image.
         * imgs_per_dir: this method can use a specified number of images per directory
         * verbose: print output
-                        
+
+
         Once the method has completed it will save the results to a local file
         using the file name codebook.png 
         
@@ -50,6 +52,10 @@ class BOFFeatureExtractor(object):
 
             THIS METHOD WILL TAKE FOREVER
         """
+        if( numcodes != img_layout[0]*img_layout[1]):
+            warnings.warn("Numcodes must match the size of image layout.")
+            return None
+            
         self.mPadding = padding
         self.mLayout = img_layout
         self.mNumCodes = numcodes

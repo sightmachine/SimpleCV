@@ -6,14 +6,19 @@
 import random
 from SimpleCV.base import *
 from SimpleCV.ImageClass import * 
-from pickle import *
+
   
 class Color:
     """
+    **SUMMARY**
+
     Color is a class that stores commonly used colors in a simple
     and easy to remember format, instead of requiring you to remember
     a colors specific RGB value.
     
+
+    **EXAMPLES**
+
     To use the color in your code you type:
     Color.RED
     
@@ -28,7 +33,10 @@ class Color:
     BLUE = (0, 0, 255)
     YELLOW = (255, 255, 0)
     RED = (255, 0, 0)
-    
+
+    LEGO_BLUE = (0,50,150)
+    LEGO_ORANGE = (255,150,40)
+
     VIOLET = (181, 126, 220)
     ORANGE = (255, 165, 0)
     GREEN = (0, 128, 0)
@@ -110,7 +118,22 @@ class Color:
 
     def getRandom(self):
         """
-        Returns a random color in tuple format
+        **SUMMARY**
+
+        Returns a random color in tuple format.
+
+        **RETURNS**
+        
+        A random color tuple.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> kp = img.findKeypoints()
+        >>> for k in kp:
+        >>>    k.draw(color=Color.getRandom())
+        >>> img.show()
+
         """
         r = random.randint(1, (len(self.colorlist) - 1))
         return self.colorlist[r]
@@ -118,22 +141,140 @@ class Color:
     @classmethod    
     def hsv(cls, tuple):
         """
+        **SUMMARY**
+
         Convert any color to HSV, OpenCV style (0-180 for hue)
+        
+        **PARAMETERS**
+        
+        * *tuple* - an rgb tuple to convert to HSV.
+
+        **RETURNS**
+
+        A color tuple in HSV format.
+
+        **EXAMPLE**
+        
+        >>> c = Color.RED
+        >>> hsvc = Color.hsv(c)
+        
+        
         """
         hsv_float = colorsys.rgb_to_hsv(*tuple)
         return (hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2])
+    
+    @classmethod
+    def getHueFromRGB(cls, tuple):
+        """
+        **SUMMARY**
+
+        Get corresponding Hue value of the given RGB values
+        
+        **PARAMETERS**
+        
+        * *tuple* - an rgb tuple to convert to HSV.
+
+        **RETURNS**
+
+        floating value of Hue ranging from 0 to 180
+
+        **EXAMPLE**
+        
+        >>> i = Image("lenna")
+        >>> hue = Color.getHueFromRGB(i[100,300])
+        
+        """
+        h_float = colorsys.rgb_to_hsv(*tuple)[0]
+        return h_float*180
+        
+    @classmethod    
+    def getHueFromBGR(self,color_tuple):
+        """
+        **SUMMARY**
+
+        Get corresponding Hue value of the given BGR values
+        
+        **PARAMETERS**
+        
+        * *tuple* - a BGR tuple to convert to HSV.
+
+        **RETURNS**
+
+        floating value of Hue ranging from 0 to 180
+
+        **EXAMPLE**
+        
+        >>> i = Image("lenna")
+        >>> color_tuple = tuple(reversed(i[100,300]))
+        >>> hue = Color.getHueFromRGB(color_tuple)
+        
+        """
+        a = color_tuple
+        print a
+        h_float = colorsys.rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
+        return h_float*180
+        
+    @classmethod
+    def hueToRGB(self, h):
+        """
+        **SUMMARY**
+
+        Get corresponding RGB values of the given Hue
+        
+        **PARAMETERS**
+        
+        * *int* - a hue int to convert to RGB
+
+        **RETURNS**
+
+        A color tuple in RGB format.
+
+        **EXAMPLE**
+        
+        >>> c = Color.huetoRGB(0)
+        
+        """
+        h = h/180.0
+        r,g,b = colorsys.hsv_to_rgb(h,1,1)
+        return (round(255.0*r),round(255.0*g),round(255.0*b))
+        
+    @classmethod
+    def hueToBGR(self,h):
+        """
+        **SUMMARY**
+
+        Get corresponding BGR values of the given Hue
+        
+        **PARAMETERS**
+        
+        * *int* - a hue int to convert to BGR
+
+        **RETURNS**
+
+        A color tuple in BGR format.
+
+        **EXAMPLE**
+        
+        >>> c = Color.huetoBGR(0)
+        
+        """
+        return(tuple(reversed(self.hueToRGB(h))))
          
 
 class ColorCurve:
     """
+    **SUMMARY**
+
     ColorCurve is a color spline class for performing color correction.  
     It can takeas parameters a SciPy Univariate spline, or an array with at 
     least 4 point pairs.  Either of these must map in a 255x255 space.  The curve 
     can then be used in the applyRGBCurve, applyHSVCurve, and 
-    applyInstensityCurve functions::
+    applyInstensityCurve functions.
   
-      clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
-      image.applyIntensityCurve(clr)
+    **EXAMPLE**
+
+    >>> clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+    >>> image.applyIntensityCurve(clr)
   
     the only property, mCurve is a linear array with 256 elements from 0 to 255
     """
@@ -151,17 +292,21 @@ class ColorCurve:
         
 class ColorMap:
     """
+    **SUMMARY**
+
     A color map takes a start and end point in 3D space and lets you map a range
     of values to it.  Using the colormap like an array gives you the mapped color.
+
+    **EXAMPLE**
+
+    This is useful for color coding elements by an attribute:
     
-    This is useful for color coding elements by an attribute::
-    
-      blobs = image.findBlobs()
-      cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
-        startmap = min(blobs.area()) , endmap = max(blobs.area())
-        
-      for b in blobs:
-        b.draw(cm[b.area()])
+    >>> blobs = image.findBlobs()
+    >>> cm = ColorMap(startcolor = Color.RED, endcolor = Color.Blue, 
+    >>>  startmap = min(blobs.area()) , endmap = max(blobs.area())        
+    >>>  for b in blobs:
+    >>>    b.draw(cm[b.area()])
+
     """
     startcolor = ()
     endcolor = ()

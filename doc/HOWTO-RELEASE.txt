@@ -1,9 +1,12 @@
 make sure tests run clean
 do a git clone (or clean)
-update changelog
+update changelog (use a program like meld to look at differences, copy folder, checkout previous version, then diff the two files and go through the files)
 change version in setup.py
 change version in doc/conf.py
 change version in init.py
+update via commit and be sure to tag release commit in git repo
+rebuild docs and push to website
+push to repo
 python setup.py sdist --format=zip 
 python setup.py sdist --format=gztar
 log in and go to: https://sourceforge.net/projects/simplecv/files/

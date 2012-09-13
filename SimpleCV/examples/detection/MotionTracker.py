@@ -1,14 +1,15 @@
 #!/usr/bin/python
-# This SimpleCV example uses a technique called frame differencing to determine
-# if motion has occured.  You take an initial image, then another, subtract
-# the difference, what is left over is what has changed between those two images
-# this are typically blobs on the images, so we do a blob search to count
-# the number of blobs and if they exist then motion has occured
-
+'''
+This SimpleCV example uses a technique called frame differencing to determine
+if motion has occured.  You take an initial image, then another, subtract
+the difference, what is left over is what has changed between those two images
+this are typically blobs on the images, so we do a blob search to count
+the number of blobs and if they exist then motion has occured
+'''
 import sys, time, socket
 from SimpleCV import *
-#setup the camera
-cam = Camera()
+
+cam = Camera() #setup the camera
 
 #settings for the project
 min_size = 0.1*cam.getProperty("width")*cam.getProperty("height") #make the threshold adapatable for various camera sizes
@@ -18,14 +19,13 @@ motion_timestamp = int(time.time())
 message_text = "Motion detected"
 draw_message = False
 
-
 lastImg = cam.getImage()
 lastImg.show()
 
-while(True):
+while True:
     newImg = cam.getImage()
     trackImg = newImg - lastImg # diff the images
-    blobs =  trackImg.findBlobs(-1, threshblocksize=99) #use adapative blob detection
+    blobs =  trackImg.findBlobs() #use adapative blob detection
     now = int(time.time())
 
     #If blobs are found then motion has occured
@@ -45,4 +45,4 @@ while(True):
     
     lastImg = newImg # update the image
     newImg.show()
-    time.sleep(0.01)
+

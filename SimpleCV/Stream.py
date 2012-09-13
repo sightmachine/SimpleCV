@@ -117,7 +117,7 @@ class JpegStreamer():
         if (type(hostandport) == int):
             self.port = hostandport
             self.host = "localhost"
-        elif (type(hostandport) == str and re.search(":", hostandport)):
+        elif (isinstance(hostandport, basestring) and re.search(":", hostandport)):
             (self.host, self.port) = hostandport.split(":")
             self.port = int(self.port)
         elif (type(hostandport) == tuple):
@@ -204,7 +204,7 @@ class VideoStream():
         self.fourcc = cv.CV_FOURCC('I', 'Y', 'U', 'V')
             #self.fourcc = 0
         #else:
-        #  warning.warn(extension + " is not supported for video writing on this platform, sorry");
+        #  logger.warning(extension + " is not supported for video writing on this platform, sorry");
         #  return False
 
 
