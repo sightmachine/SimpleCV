@@ -13,8 +13,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
-from math import *
-from math import pi
+
 
 
 ######################################################################

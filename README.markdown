@@ -29,10 +29,40 @@ For more code snippets, we recommend the [SimpleCV examples website](http://exam
 The easiest way to install SimpleCV is with the packages for your distribution (Windows, Mac, Linux) included on the website (http://www.simplecv.org).  Although it is tested on many platforms there maybe scenarios where it just won't work with the package installer. Below is instructions on how to install, if you have problems please see the troubleshooting section at the end of this README file.
 
 ### Ubuntu 12.04
-	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
+	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip 
 	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
 
 then just run 'simplecv' from the shell.
+
+### Virtualenv
+
+This is how to install SimpleCV under a python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
+
+Run the following commands:
+
+    sudo apt-get install python-opencv python-setuptools python-pip gfortran g++ liblapack-dev libsdl1.2-dev libsmpeg-dev mercurial
+    sudo pip install virtualenv
+    virtualenv venv
+    cd venv
+    mkdir src
+    ln -s /usr/local/lib/python2.7/dist-packages/cv2.so lib/python2.7/site-packages/cv2.so
+    ln -s /usr/local/lib/python2.7/dist-packages/cv.py lib/python2.7/site-packages/cv.py
+    ./bin/pip install https://github.com/numpy/numpy/zipball/master
+    ./bin/pip install https://github.com/scipy/scipy/zipball/master
+    ./bin/pip install PIL
+    ./bin/pip install ipython
+    mkdir src
+    wget -O src/pygame.tar.gz https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.tar.gz
+    cd src
+    tar zxvf pygame.tar.gz
+    cd ..
+    ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
+    ./bin/pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+  
+
+
+
+
 
 ### Arch Linux
     pacman -S python2-numpy opencv2.3.1_a-4 python-pygame python2-setuptools ipython2 python2-pip
@@ -76,7 +106,7 @@ Commands (for Snow Leopard)::
 
     mkdir ~/Code
     cd ~/Code
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
+    ruby <(curl -fsSkL raw.github.com/mxcl/homebrew/go)
     brew install opencv
     brew install git
     brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi 
@@ -86,7 +116,7 @@ Commands (for Snow Leopard)::
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
     sudo easy_install pip
-    sudo pip install hg+http://bitbucket.org/pygame/pygame
+    sudo pip install https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.zip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
 
@@ -99,15 +129,38 @@ recommend using the Windows Superpack, available at <http://www.simplecv.org/dow
 If you already have Python, OpenCV or SciPy installed and want to keep things the way you like them, follow the directions below
 
 
-Steps:
+#### Install Prerequisties if they aren't already installed on your system:
 
-* (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/ 
-* Install Python 2.7 http://www.python.org/getit/releases/2.7.1/
-* Install Python Setup Tools for Windows http://pypi.python.org/packages/2.7/s/setuptools/ (See: http://stackoverflow.com/questions/309412/how-to-setup-setuptools-for-python-2-6-on-windows) 
-* Install the SciPy superpack: http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download 
-* Install OpenCV: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.2/ (See: http://luugiathuy.com/2011/02/setup-opencv-for-python/)
-* easy_install.exe simplecv (See: http://blog.sadphaeton.com/2009/01/20/python-development-windows-part-2-installing-easyinstallcould-be-easier.html)
+* Install Python 2.7: http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi
+* Install Python Setup Tools for Windows: http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe
+* Install the SciPy superpack: http://sourceforge.net/projects/scipy/files/scipy/0.9.0rc5/scipy-0.9.0rc5-win32-superpack-python2.7.exe/download
+* Install the NumPy superpack: http://sourceforge.net/projects/numpy/files/NumPy/1.6.2/numpy-1.6.2-win32-superpack-python2.7.exe/download
+* Install Pygame for windows: http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi
 
+
+
+#### Install OpenCV:
+* Download OpenCV 2.3 Superpack: http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.3.1/OpenCV-2.3.1-win-superpack.exe/download
+* Run the executable file and when it ask where to extract to use::
+
+    C:\OpenCV2.3\
+
+
+* (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  (http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/)
+
+Once these are installed you need to add Python to your Path, open a command line (start->run->cmd)::
+
+    SETX PATH C:/Python27/;C:/Python27/Scripts/;C:/OpenCV2.3/opencv/build/x86/vc10/bin/;%PATH%
+    SETX PYTHONPATH C:/OpenCV2.3/opencv/build/python/2.7/;%PYTHONPATH%
+
+Exit the command line and reopen so it loads the updated python paths, then run::
+
+    easy_install pyreadline
+    easy_install PIL
+    easy_install cython
+    easy_install pip
+    pip install ipython
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
 
 ---------------------------
 ## SimpleCV Interactive Shell, or how to run SimpleCV
@@ -126,19 +179,24 @@ If for some reason the shell doesn't start, you can always do so manually by run
 	python -c "import SimpleCV.Shell;SimpleCV.Shell.main()"
 
 
-To run SimpleCV within an ipython notebook:
+To run SimpleCV within an ipython notebook (ipython-notebooks are required to be installed):
 
-	from SimpleCV import Display, Image
-	display = Display(displaytype='notebook')
-	image = Image('simplecv')
-	image.save(display)
+	simplecv notebook
+
+
+to install ipython notebooks run the following:
+
+	sudo pip install tornado
+  sudo pip install pyzmq
+  
+  
   
 
 ---------------------------    
 ## Videos - Tutorials and Demos
 
 Video tutorials and demos can be found at:
-<http://www.simplecv.org/demos/>
+<http://www.simplecv.org/learn/>
 
 -------------------------------
 ## Getting Help
@@ -154,13 +212,13 @@ If for some reason the standard installation methods do not work you may have to
 ### Required Libraries
 The installation instructions below should explain more on how to install.  They can also be installed manually.
 
-* Python 2.6+
-* SciPy
-* NumPy
-* Pygame
-* OpenCV 2.3+
-* IPython 10+
-* PIL 1.1.7+
+* Python 2.6+ (<http://www.python.org>)
+* SciPy (<http://www.scipy.org>)
+* NumPy (<http://numpy.scipy.org>)
+* Pygame (<http://www.pygame.org>)
+* OpenCV 2.3+ (<http://opencv.org>)
+* IPython 10+ (<http://ipython.org>)
+* PIL 1.1.7+ (<http://www.pythonware.com/products/pil/>)
 
 
 ### Optional Libraries
@@ -178,8 +236,7 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 * werkzeug
 * webkit
 * gtk
-* zxing (<http://code.google.com/p/zxing/>)
-* python-zxing (<https://github.com/oostendo/python-zxing>)
+* zbar (<http://zbar.sourceforge.net/>)
 * Tesseract (<http://code.google.com/p/tesseract-ocr/>)
 * python-tesseract (<http://code.google.com/p/python-tesseract/>)
 * Orange (<http://orange.biolab.si>)

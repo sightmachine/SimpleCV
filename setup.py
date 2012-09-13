@@ -1,13 +1,11 @@
 from setuptools import setup, find_packages
 import os, sys, glob, fnmatch
 
-#from SimpleCV import __version__
-
 setup(name="SimpleCV",
-  version=1.2,
-  download_url='http://sourceforge.net/projects/simplecv/files/1.2/SimpleCV-1.2.tar.gz',
+  version=1.3,
+  download_url='https://github.com/ingenuitas/SimpleCV/zipball/1.3',
   description="Make Computers See with SimpleCV, the Python Framework for Machine Vision",
-  long_description="""Super-library for machine vision wrappers in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
+  long_description="""Framework for computer (machine) vision in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
   classifiers=[
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
@@ -22,7 +20,7 @@ setup(name="SimpleCV",
     'Topic :: Software Development :: Libraries :: Python Modules'],
   keywords='opencv, cv, machine vision, computer vision, image recognition, kinect, freenect',
   author='Sight Machine Inc',
-  author_email='support@ingenuitas.com',
+  author_email='support@sightmachine.com',
   url='http://simplecv.org',
   license='BSD',
   packages = find_packages(exclude=['ez_setup']),
@@ -40,6 +38,10 @@ setup(name="SimpleCV",
                         'examples/tracking/*'
                         ],
   },
-  scripts=['scripts/simplecv']
+  entry_points={
+    'console_scripts': [
+      'simplecv = SimpleCV.Shell:main',
+    ],
+  },
 
   )
