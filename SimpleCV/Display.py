@@ -584,7 +584,8 @@ class Display:
 
         **RETURNS**
 
-        Nothing.
+        A list of key down events. Parse them with pg.K_<lowercase_letter>
+        
         """
         self.mouseWheelUp = self.mouseWheelDown = 0
         self.lastLeftButton = self.mouseLeft
@@ -593,7 +594,7 @@ class Display:
         self.leftButtonUp = None
         self.rightButtonDown = None
         self.rightButtonUp = None
-
+        key = []
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
@@ -611,6 +612,8 @@ class Display:
                 
             if event.type == pg.MOUSEBUTTONDOWN:
                 self._setButtonState(1, event.button)
+            if event.type == pg.KEYDOWN:
+                key.append(event.key)
 
         pressed = pg.key.get_pressed()
 
@@ -627,6 +630,8 @@ class Display:
         #If ESC pressed, end the display
         if(pressed[27] == 1):
             self.done = True
+
+        return key
             
     def isDone(self):
         """
