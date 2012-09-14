@@ -1,9 +1,11 @@
 from SimpleCV import *
 from CardUtil import *
-
+from PlayingCardFactory import *
+pcf = PlayingCardFactory()
 data,labels = GetFullDataSet()
 print len(data)
 for d in data:
-    d.scale(0.5).binarize().invert().show()
-#    time.sleep(0.1)
+    fs = pcf.process(d)
+    fs.show()
+#   #    time.sleep(0.1)
 #print labels

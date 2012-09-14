@@ -2,9 +2,17 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
-from SimpleCV.Features.Features.PlayingCard import PlayingCard
+from SimpleCV.Features.PlayingCards.PlayingCard import *
+class CardError(Exception):
+    def __init__(self, card=None,message=None):
+        self.card = card
+        self.msg = message
+    def __str__(self):
+        return repr(self.msg)
 
+        
 class PlayingCardFactory():
+    
     def __init__(self,parameterDict=None):
         if(parameterDict is not None):
             self.parameterize(parameterDict)
@@ -45,18 +53,25 @@ class PlayingCardFactory():
             # now go back do some sanity checks
             # and cleanup the features so it is not
             # too heavy
-            card = self._refineEstimates(card):
-        except:
+            card = self._refineEstimates(card)
+        except CardError as ce:
+            card = ce.card
+            if( card is not None):
             # maybe we got a joker or someone
             # is being a jackass and showing us the
             # back of the card. 
-            card = self._isNonStandardCard(card):
+                card = self._isNonStandardCard(card)
+            warnings.warn(ce.msg) # we may swallow this later
             # optionally we may want to log these to
             # see where we fail and why or do a parameter
             # adjustment and try again
-            return card
-            
-        return None
+        except:
+            # this means we had an error somewhere
+            # else maybe numpy
+            print "Generic Error."
+            return None
+        return FeatureSet([card])
+
     def _preprocess(self,img):
         """
         Any image preprocessing options go here.
@@ -69,9 +84,10 @@ class PlayingCardFactory():
         otherwise return None
         """
         ppimg = self._preprocess(img)
+        retVal = PlayingCard(img,img.width/2,img.height/2)
         # create the feature, hang any preprocessing
         # steps on the feature
-        return None
+        return retVal
         
     def _estimateColor(self,card):
         """
