@@ -1,10 +1,10 @@
 from SimpleCV import Image, Display,Camera,Color
 import glob,os
 import pygame as pg
-
-SUITS = ('c', 'd', 'h', 's')
-RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A')
-MISC = ( 'none','bad','joker')
+from CardUtil import SUITS, RANKS, MISC
+#SUITS = ('c', 'd', 'h', 's')
+#RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A')
+#MISC = ( 'none','bad','joker')
 
 disp = Display((640,480))
 cam = Camera()
@@ -46,5 +46,5 @@ while not allDone :
     img.drawLine((0,img.height/4),(img.width,img.height/4),color=Color.RED,thickness=3)
     img.drawLine((0,3*img.height/4),(img.width,3*img.height/4),color=Color.RED,thickness=3)
     img.drawLine((img.width/3,0),(img.width/3,img.height),color=Color.RED,thickness=3)
-    img.drawLine((2*img.width/3,0),(2*img.width/3,img.height),color=Color.RED,thickness=3)
+    img.drawLine((2*img.width/3,0),(2*img.width/3,img.height   ),color=Color.RED,thickness=3)
     img.save(disp) 
