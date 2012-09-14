@@ -77,6 +77,7 @@ class Line(Feature):
 
     def __init__(self, i, line):
         self.image = i
+        self.vector = None
         self.end_points = copy(line)
         #coordinate of the line object is the midpoint
         at_x = (line[0][0] + line[1][0]) / 2
@@ -280,7 +281,20 @@ class Line(Feature):
         d_y = self.end_points[b][1] - self.end_points[a][1]
         #our internal standard is degrees
         return float(360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
-  
+    def getVector(self):
+        # this should be a lazy property
+        if( self.vector is None):
+            self.vector = [float(self.end_points[1][0]-self.end_points[0][0]),
+                           float(self.end_points[1][1]-self.end_points[0][1])]
+        return self.vector
+
+    
+    def dot(self,other):
+        return np.dot(self.getVector(),other.getVector())
+
+    def cross(self,other):
+        return np.cross(self.getVector(),other.getVector())
+        
 ######################################################################
 class Barcode(Feature):
     """
