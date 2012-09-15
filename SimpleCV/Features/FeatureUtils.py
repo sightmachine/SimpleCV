@@ -2,7 +2,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
-from SimpleCV.Features.Detection import Lines
+from SimpleCV.Features.Detection import *
 """
 So this is a place holder for some routines that should live in
 featureset if we can make it specific to a type of features
