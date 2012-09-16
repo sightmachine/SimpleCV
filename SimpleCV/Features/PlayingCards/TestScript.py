@@ -5,7 +5,7 @@ from PlayingCardFactory import *
 #import FeatureUtils
 import numpy as np
 
-def GetParallelSets(line_fs,parallel_thresh=10):
+def GetParallelSets(line_fs,parallel_thresh=100):
     result = []
     sz = len(line_fs)
     #construct the pairwise cross product ignoring dupes
@@ -19,6 +19,7 @@ def GetParallelSets(line_fs,parallel_thresh=10):
     result = np.array(result)
     # reshape it
     result = result.reshape(sz,sz)
+    print result
     # find the lines that are less than our thresh
     l1,l2=np.where(result<parallel_thresh)
     idxs = zip(l1,l2)
@@ -33,34 +34,39 @@ pcf = PlayingCardFactory()
 data,labels = GetFullDataSet()
 print len(data)
 datapoints = zip(data,labels)
-datapoints = datapoints[0:100]
+datapoints = datapoints[0:200]
 result = []
 passing = 0
 for d in datapoints:
     img = d[0]
     label = d[1]
-    img = img.crop(img.width/3,0,2*img.width/3,img.height)
-    img = img.equalize()
+#    img = img.crop(img.width/3,0,2*img.width/3,img.height)
+    #    img = img.equalize()
     img = img.edges()
-    l = img.findLines(threshold=30)
+    l = img.findLines(threshold=10)
     if( l is not None ):
-        v = 80
-        l = l.filter(np.abs(l.angle()) > v)
-        l = l.sortLength()
-        l.draw(color=Color.RED,width=3)
-        # derp = GetParallelSets(l)
-        # color = Color()
-        # for d in derp:
-        #     img.clearLayers()
+        v = 70
+        h = 30
+        vl = l.filter(np.abs(l.angle()) > v)
+        vl = vl.filter(vl.length() > img.height/6)
+        hl = l.filter(np.abs(l.angle()) < h)
+        hl = hl.filter(hl.length() > img.width/8)
+        vl.draw(color=Color.RED,width=3)
+        hl.draw(color=Color.BLUE,width=3)
+        derp = GetParallelSets(vl)
+        color = Color()
+        for d in derp:
+#            img.clearLayers()
         #     l.draw()
-        #     # c = color.getRandom()
-        #     # d[0].draw(color=c,width=3)
-        #     # d[1].draw(color=c,width=3)
-        #     # img.show()
+            c = color.getRandom()
+            d[0].draw(color=c,width=3)
+            d[1].draw(color=c,width=3)
+            img.show()
 
         #top = np.min([8,len(l)])
         #l[-1*top:-1].draw(color=Color.RED,width=3)
         img.show()
+        time.sleep(.5)
         #l.show(color=Color.RED,width=3)
     
     # fs = pcf.process(img)
