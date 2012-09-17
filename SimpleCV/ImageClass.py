@@ -2982,12 +2982,44 @@ class Image:
         newimg = self.getEmpty()
         cv.Flip(self.getBitmap(), newimg, 1)
         return Image(newimg, colorSpace=self._colorSpace) 
-    
+
     def flipVertical(self):
         """
         **SUMMARY**
         
-        Vertically mirror an image.
+        Horizontally mirror an image.
+        
+        
+        .. Warning:: 
+          Note that flip does not mean rotate 180 degrees! The two are different.
+        
+        **RETURNS**
+        
+        The flipped SimpleCV image.
+        
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> upsidedown = img.flipVertical()
+        
+        
+        **SEE ALSO**
+        
+        :py:meth:`flipVertical`
+        :py:meth:`flipHorizontal`
+        :py:meth:`flipOver`
+        :py:meth:`rotate`
+        
+        """
+        newimg = self.getEmpty()
+        cv.Flip(self.getBitmap(), newimg, 0)
+        return Image(newimg, colorSpace=self._colorSpace) 
+    
+    def flipOver(self):
+        """
+        **SUMMARY**
+        
+        Flip and image such that the top left corner is the bottom right. 
         
         
         .. Warning:: 
@@ -3000,18 +3032,19 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> upsidedown = img.flipHorizontal()
+        >>> upsidedown = img.flipOver()
 
 
         **SEE ALSO**
         
         :py:meth:`rotate`
         :py:meth:`flipHorizontal`
+        :py:meth:`flipVertical`
 
         """
   
         newimg = self.getEmpty()
-        cv.Flip(self.getBitmap(), newimg, 0)
+        cv.Flip(self.getBitmap(), newimg, -1)
         return Image(newimg, colorSpace=self._colorSpace)     
 
     

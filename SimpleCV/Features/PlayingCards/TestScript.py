@@ -50,14 +50,34 @@ for d in datapoints:
     e = e+e2+e3
     e = e.dilate(2).erode(1)
     final = img-e
-    bin= final.threshold(150).morphClose()
+    bin= final.threshold(150).morphClose()    
     max_sz = img.width*img.height
     b = img.findBlobsFromMask(bin,minsize=max_sz*0.005,maxsize=max_sz*0.3)
     b = b.sortDistance(point=(img.width/2,img.height/2))
     if( b is not None ):
-        b[0].draw(color=color.getRandom(),width=-1)
+        w = np.min([b[0].minRectWidth(),b[0].minRectHeight()])
+        h = np.max([b[0].minRectWidth(),b[0].minRectHeight()])
+        ar = w/h
+        if( ar > 0.6 and ar < 0.75 ):
+            src = b[0].minRect()
+            if(b[0].angle() < 0 ):
+                src = (src[3],src[1],src[0],src[2])
+            else:
+                src = (src[2],src[3],src[1],src[0])
+            dst = ((w,h),(0,h),(0,0),(w,0))
+            pWarp = cv.CreateMat(3, 3, cv.CV_32FC1) #create an empty 3x3 matrix
+            cv.GetPerspectiveTransform(src, dst, pWarp) #figure out the warp matri
+            temp = Image((w,h))
+            cv.WarpPerspective(img.getBitmap(),temp.getBitmap(), pWarp)
+            temp = temp.flipOver()
+            b[0].drawMinRect(color=color.getRandom(),width=5,alpha=255)
+            params =  str(np.min([w,h])/np.max([w,h]))
+            img = img.applyLayers()
+            img.drawText(params,10,10,fontsize=48)
+            temp = temp.resize(h=img.height)
+            img = img.sideBySide(temp)
     img.show()
-    time.sleep(.1)
+    time.sleep(2)
 #    img = img.edges()
  #    l = img.findLines(threshold=10)
 #     if( l is not None ):
