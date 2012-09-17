@@ -38,7 +38,9 @@ datapoints = zip(data,labels)
 result = []
 passing = 0
 color = Color()
+i = 0
 for d in datapoints:
+    i = i + 1
     img = d[0]
     label = d[1]
 #    img = img.crop(img.width/3,0,2*img.width/3,img.height)
@@ -54,6 +56,7 @@ for d in datapoints:
     max_sz = img.width*img.height
     b = img.findBlobsFromMask(bin,minsize=max_sz*0.005,maxsize=max_sz*0.3)
     b = b.sortDistance(point=(img.width/2,img.height/2))
+    nate = Image("nateofclubs.png")
     if( b is not None ):
         w = np.min([b[0].minRectWidth(),b[0].minRectHeight()])
         h = np.max([b[0].minRectWidth(),b[0].minRectHeight()])
@@ -72,10 +75,18 @@ for d in datapoints:
             temp = temp.flipOver()
             b[0].drawMinRect(color=color.getRandom(),width=5,alpha=255)
             params =  str(np.min([w,h])/np.max([w,h]))
+            blitter = Image((img.width,img.height))
+            dst = ((nate.width,nate.height),(0,nate.height),(0,0),(nate.width,0))
+            cv.GetPerspectiveTransform(dst, src, pWarp) #figure out the warp matri
+            cv.WarpPerspective(nate.getBitmap(),blitter.getBitmap(), pWarp)
+            img = img.blit(blitter,alphaMask=blitter.threshold(1).smooth(aperture=(15,15)))
             img = img.applyLayers()
-            img.drawText(params,10,10,fontsize=48)
+            
             temp = temp.resize(h=img.height)
             img = img.sideBySide(temp)
+            fname = "Cards"+str(i)+".png"
+            img.save(fname)
+
     img.show()
     time.sleep(2)
 #    img = img.edges()
