@@ -83,8 +83,43 @@ class PlayingCardFactory():
         Try to find a card, if we do return a card feature
         otherwise return None
         """
-        ppimg = self._preprocess(img)
-        retVal = PlayingCard(img,img.width/2,img.height/2)
+        #ppimg = self._preprocess(img)
+        retVal = None
+        e = img.edges(t1=1,t2=50)
+        e2 = img.edges(t1=10,t2=100)
+        e3 = img.sobel()
+        e = e+e2+e3
+        e = e.dilate(2).erode(1)
+        final = img-e
+        bin= final.threshold(150).morphClose()
+        max_sz = img.width*img.height
+        b = img.findBlobsFromMask(bin,minsize=max_sz*0.005,maxsize=max_sz*0.3)
+        b = b.sortDistance(point=(img.width/2,img.height/2))
+        if( b is not None ):
+            w = np.min([b[0].minRectWidth(),b[0].minRectHeight()])
+            h = np.max([b[0].minRectWidth(),b[0].minRectHeight()])
+            ar = w/h
+            if( ar > 0.6 and ar < 0.75 ):
+                src = b[0].minRect()
+                if(b[0].angle() < 0 ):
+                    src = (src[3],src[1],src[0],src[2])
+                else:
+                    src = (src[2],src[3],src[1],src[0])
+                dst = ((w,h),(0,h),(0,0),(w,0))
+                pWarp = cv.CreateMat(3, 3, cv.CV_32FC1) #create an empty 3x3 matrix
+                cv.GetPerspectiveTransform(src, dst, pWarp) #figure out the warp matri
+                temp = Image((w,h))
+                cv.WarpPerspective(img.getBitmap(),temp.getBitmap(), pWarp)
+                temp = temp.flipOver()
+                tl = b[0].topLeftCorner()
+                bw = b[0].width()
+                bh = b[0].height()
+                retVal = PlayingCard(img,tl[0],tl[1],bw,bh)
+                retVal.cardImg = temp
+                retVal.corners = b[0].minRect()
+                retVal.c_width = b[0].minRectWidth()
+                retVal.c_height = b[0].minRectHeight()
+                retVal.c_angle = b[0].angle()
         # create the feature, hang any preprocessing
         # steps on the feature
         return retVal
