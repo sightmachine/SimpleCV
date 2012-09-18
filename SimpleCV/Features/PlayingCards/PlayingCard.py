@@ -8,6 +8,10 @@ class PlayingCard(Feature):
         
         self.rank = rank
         self.suit = suit
+        self.centerBlobs = None
+        self.suitBlobs = None
+        self.numberBlobs = None
+        self.color = None
         self.cardImg = None
         self.c_width = None
         self.c_height = None

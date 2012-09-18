@@ -1115,6 +1115,18 @@ class Blob(Feature):
         otherM = otherSigns * otherLogs
         
         return np.sum(abs((1/ myM - 1/ otherM)))
+
+    def isOnEdge(self,distance=1):
+        retVal = True
+        tl = self.topLeftCorner()
+        br = self.bottomRightCorner()
+        if( tl[0] > distance and
+            tl[1] > distance and
+            br[0] < self.image.width-distance and
+            br[1] < self.image.height-distance ):
+            retVal = False
+        return retVal
+        
         
     def __repr__(self):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())

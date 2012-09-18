@@ -3,6 +3,7 @@ from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Features.PlayingCards.PlayingCard import *
+import scipy.spatial.distance as ssd
 class CardError(Exception):
     def __init__(self, card=None,message=None):
         self.card = card
@@ -130,6 +131,42 @@ class PlayingCardFactory():
         if we find a color return the feature otherwise
         throw. 
         """
+        if( card.cardImg is not None):
+            img = card.cardImg.resize(h=card.img.height)
+            temp = img.invert().dilate()
+            binary = temp.threshold(100).morphClose()
+#            binary = temp.binarize().morphClose().invert()
+            sz = img.width*img.height
+            b = img.findBlobsFromMask(binary,minsize = sz*.0005, maxsize=sz*0.1)
+            fs = FeatureSet()
+            for bs in b:
+                if(not bs.isOnEdge() and bs.aspectRatio() > 0.4 and bs.aspectRatio() < 2.2 ):
+                    fs.append(bs)
+
+            red_count = 0
+            black_count = 0
+            for f in fs:
+                mc = np.array(f.meanColor())
+                print mc
+                #red = np.mean(ssd.cdist([mc],[np.array((140,130,100))]))
+                #black = np.mean(ssd.cdist([mc],[np.array((70,70,70))]))#black
+                if( mc[0] > 125 ):
+                    red_count += 1
+                else:
+                    black_count += 1
+
+            print red_count
+            print black_count
+            if( red_count > black_count ):
+                card.color = Color.RED
+            else:
+                card.color = Color.BLUE
+            card.suitBlobs = fs
+            fs.show(color=card.color, width=-1)
+            time.sleep(0.2)
+            
+        else:
+            raise CardError(card, "No card image to extract card color from.")
         return card
         
     def _estimateSuit(self,card):

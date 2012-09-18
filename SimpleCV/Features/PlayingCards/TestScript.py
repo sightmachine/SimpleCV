@@ -34,7 +34,7 @@ pcf = PlayingCardFactory()
 data,labels = GetFullDataSet()
 print len(data)
 datapoints = zip(data,labels)
-#datapoints = datapoints[0:400]
+#datapoints = datapoints[0:40]
 result = []
 passing = 0
 color = Color()
