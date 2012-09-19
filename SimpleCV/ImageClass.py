@@ -2221,7 +2221,7 @@ class Image:
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
-                  self.filename = "" 
+                  #self.filename = "" 
                   self.filehandle = fh
                   fh.writeFrame(saveimg)
 
