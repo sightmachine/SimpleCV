@@ -1945,7 +1945,7 @@ class Image:
         :py:meth:`getGrayNumpyCv2`
         
         """
-        if not type(self._cv2GrayNumpy) is not np.ndarray:
+        if type(self._cv2GrayNumpy) is not np.ndarray:
             self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
         return self._cv2GrayNumpy
 
@@ -2221,7 +2221,7 @@ class Image:
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
-                  self.filename = "" 
+                  #self.filename = "" 
                   self.filehandle = fh
                   fh.writeFrame(saveimg)
 
