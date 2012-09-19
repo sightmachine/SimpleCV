@@ -2,9 +2,6 @@ from SimpleCV import Image, Display,Camera,Color
 import glob,os
 import pygame as pg
 from CardUtil import SUITS, RANKS, MISC
-#SUITS = ('c', 'd', 'h', 's')
-#RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A')
-#MISC = ( 'none','bad','joker')
 
 disp = Display((640,480))
 cam = Camera()
