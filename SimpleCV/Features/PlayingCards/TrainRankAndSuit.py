@@ -12,6 +12,17 @@ ranks = ['2','3','4','5','69','7','8','0','10','J','Q','K','A']
 spath = "./train/"
 suits = ['c','d','h','s']
 
+def matchVal(a,b):
+    #mySigns = np.sign(a)
+    #myLogs = np.log(np.abs(a))
+    #myM = mySigns * myLogs
+    
+    #otherSigns = np.sign(b)
+    #otherLogs = np.log(np.abs(b))
+    #otherM = otherSigns * otherLogs
+        
+    return np.sum(abs((1/ a - 1/ b)))
+
 def CreateModel(data,r,rankdict):
     print "Doing: " +path
     dset = []
@@ -19,12 +30,21 @@ def CreateModel(data,r,rankdict):
         bin = d.threshold(1)
         fs = d.findBlobsFromMask(bin)
         if( fs is not None ):
-            dset.append(fs[0].mHu)
+            hu = fs[0].mHu
+            #signs = np.sign(hu)
+            #logs = np.log(np.abs(hu))
+            #final = signs*logs
+            dset.append(hu)
+#    temp = dset[0]
     dset = np.array(dset)
+#    avg = dset[1]
     avg =  np.average(dset,0)
     rstr = r+"_Hu"
     rankdict[rstr] = avg
     d = ssd.cdist(dset,[avg])
+    #d = []
+    #for h in dset:
+    #    d.append(matchVal(avg,h))
     threshold = np.average(d)
     threshold_sd= np.std(d)
     rstr = r+"_avg"
@@ -32,7 +52,7 @@ def CreateModel(data,r,rankdict):
     rstr = r+"_std"
     rankdict[rstr] = threshold_sd
     rstr = r+"_threshold"
-    rankdict[rstr] = threshold+(3*threshold_sd)
+    rankdict[rstr] = threshold
  
     print "----------------------"
     print "For rank " + r

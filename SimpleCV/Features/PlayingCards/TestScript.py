@@ -39,6 +39,7 @@ result = []
 passing = 0
 color = Color()
 i = 0
+foundcards = 0
 for d in datapoints:
     i = i + 1
     img = d[0]
@@ -46,13 +47,22 @@ for d in datapoints:
     fs = pcf.process(img)
     r = (None,None)
     if( fs is not None ):
+        foundcards += 1
         fs.show()
         r = fs[0].getCard()
     result.append(r)
-    if(r==label):
+    if(r[0]==label[0]):
         passing += 1
         print "PASS: "+str(label)+"->"+str(r)
     else:
         print "FAIL: "+str(label)+"->"+str(r)
-    time.sleep(0.1)
+    #time.sleep(0.1)
+
+print "___________________________________"
+print passing
+print foundcards
+print float(passing)/float(foundcards)
+
+print len(datapoints)
+
 #print labels

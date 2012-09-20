@@ -14,9 +14,40 @@ class CardError(Exception):
         
 class PlayingCardFactory():
     
-    def __init__(self,parameterDict=None):
+    def __init__(self,parameterDict=None,model="card_models.pkl"):
         if(parameterDict is not None):
             self.parameterize(parameterDict)
+        # we need to do checks here
+        self.models = pickle.load(open(model,'rb'))
+        self._loadModels()
+
+    def matchVal(self,a,b):
+        mySigns = np.sign(a)
+        myLogs = np.log(np.abs(a))
+        myM = mySigns * myLogs
+        
+        #otherSigns = np.sign(b)
+        #otherLogs = np.log(np.abs(b))
+        #otherM = otherSigns * otherLogs
+        
+        return np.sum(abs((1/ myM - 1/b)))
+
+    def _loadModels(self):
+        self.rank_models = []
+        ranks = ['2','3','4','5','69','7','8','0','10','J','Q','K','A']
+        for r in ranks:
+            r_model = r+"_Hu"
+            r_thresh = r+"_threshold"
+            self.rank_models.append((r,self.models[r_model],self.models[r_thresh]))
+        self.suit_models = []
+        suits = ['c','d','h','s']
+        for s in suits:
+            s_model = s+"_Hu"
+            s_thresh = s+"_threshold"
+            self.suit_models.append((s,self.models[s_model],self.models[s_thresh]))
+        print "LOADED MODELS"
+        print self.suit_models
+        print self.rank_models
 
     def parameterize(self,parameterDict):
         """
@@ -66,6 +97,9 @@ class PlayingCardFactory():
             # optionally we may want to log these to
             # see where we fail and why or do a parameter
             # adjustment and try again
+        except Exception as e:
+            print e
+            return None
         except:
             # this means we had an error somewhere
             # else maybe numpy
@@ -145,9 +179,9 @@ class PlayingCardFactory():
 
             red_count = 0
             black_count = 0
+            print fs.area()
             for f in fs:
                 mc = np.array(f.meanColor())
-                print mc
                 #red = np.mean(ssd.cdist([mc],[np.array((140,130,100))]))
                 #black = np.mean(ssd.cdist([mc],[np.array((70,70,70))]))#black
                 if( mc[0] > 125 ):
@@ -155,15 +189,13 @@ class PlayingCardFactory():
                 else:
                     black_count += 1
 
-            print red_count
-            print black_count
             if( red_count > black_count ):
                 card.color = Color.RED
             else:
                 card.color = Color.BLUE
             card.suitBlobs = fs
-            fs.show(color=card.color, width=-1)
-            time.sleep(0.2)
+            #fs.show(color=card.color, width=-1)
+            #time.sleep(0.2)
             
         else:
             raise CardError(card, "No card image to extract card color from.")
@@ -176,6 +208,42 @@ class PlayingCardFactory():
         If we find something return the card, otherwise
         throw.
         """
+        blobs = card.suitBlobs
+        found = []
+        fv = []
+        for b in blobs:
+            sample = b.mHu
+            vals = []
+            suits = []
+            for m in self.suit_models:
+                #v = self.matchVal(sample,m[1])
+                v = ssd.cdist([sample],[m[1]])[0][0]
+                if( v < m[2] ):
+                    vals.append(v)
+                    suits.append(m[0])
+            if( len(suits) > 0 ):
+                if( len(suits) == 1):
+                    found.append(suits[0])
+                    fv.append(vals[0])
+                else:
+                    vals = np.array(vals)
+                    idx = np.where(vals==np.min(vals))[0]
+                    found.append(suits[idx])
+                    fv.append(vals[idx])
+        
+        print zip(found,fv) 
+        fv = np.array(fv)
+        idx = np.where(fv==np.min(fv))[0]
+        card.suit = found[idx]
+#         suit_vals = ['c','h','d','s']
+#         best_count = 0
+#         best_suit = None
+#         for s in suit_vals:
+#             test = found.count(s)
+#             if(test > best_count):
+#                 best_count = test
+#                 best_suit = s
+#         card.suit = best_suit
         return card
         
     def _isFaceCard(self,card):
