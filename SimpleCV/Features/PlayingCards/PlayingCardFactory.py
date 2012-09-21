@@ -4,6 +4,8 @@ from SimpleCV.Color import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Features.PlayingCards.PlayingCard import *
 import scipy.spatial.distance as ssd
+import sys,traceback
+
 class CardError(Exception):
     def __init__(self, card=None,message=None):
         self.card = card
@@ -70,19 +72,19 @@ class PlayingCardFactory():
             card = self._estimateColor(card)
             # okay, we got a color and some features
             # go ahead and estimate the suit
-            card = self._estimateSuit(card)
-            # Do we think this is a face card this
-            # is an easier test
-            isFace,card = self._isFaceCard(card)
-            if(isFace):
-                # if we are a face card get the face. This is had
-                card = self._estimateFaceCard(card)
-            else:
-                # otherwise get the rank
-                # first pass is corners second
-                # pass is the card body
-                card = self._estimateRank(card)
-            # now go back do some sanity checks
+#             card = self._estimateSuit(card)
+#             # Do we think this is a face card this
+#             # is an easier test
+#             isFace,card = self._isFaceCard(card)
+#             if(isFace):
+#                 # if we are a face card get the face. This is had
+#                 card = self._estimateFaceCard(card)
+#             else:
+#                 # otherwise get the rank
+#                 # first pass is corners second
+#                 # pass is the card body
+#                 card = self._estimateRank(card)
+#             # now go back do some sanity checks
             # and cleanup the features so it is not
             # too heavy
             card = self._refineEstimates(card)
@@ -98,7 +100,9 @@ class PlayingCardFactory():
             # see where we fail and why or do a parameter
             # adjustment and try again
         except Exception as e:
-            print e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+            print(exc_type, fname, exc_tb.tb_lineno)
             return None
         except:
             # this means we had an error somewhere
@@ -159,6 +163,30 @@ class PlayingCardFactory():
         # steps on the feature
         return retVal
         
+
+    def _blobsNearCorners(self,blobs,corners,cutoff):
+        def dist(a,b):
+            return np.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2)
+        near_corners = FeatureSet()
+        not_near_corners = FeatureSet()
+        tl_t,tr_t,bl_t,br_t = corners
+        #print corners
+        for blob in blobs:
+            tl = blob.topLeftCorner()
+            tr = blob.topRightCorner()
+            bl = blob.bottomLeftCorner()
+            br = blob.bottomRightCorner()
+            a = dist(tl,tl_t)
+            b = dist(tr,tr_t)
+            c = dist(bl,bl_t)
+            d = dist(br,br_t)
+            #print tl,tr,bl,br
+            if( a < cutoff or b < cutoff or c < cutoff or d < cutoff ):
+                near_corners.append(blob)
+            else:
+                not_near_corners.append(blob)
+        return near_corners,not_near_corners
+
     def _estimateColor(self,card):
         """
         Take in a card feature and determine the color.
@@ -176,27 +204,22 @@ class PlayingCardFactory():
             for bs in b:
                 if(not bs.isOnEdge() and bs.aspectRatio() > 0.4 and bs.aspectRatio() < 2.2 ):
                     fs.append(bs)
-
-            red_count = 0
-            black_count = 0
-            print fs.area()
-            for f in fs:
-                mc = np.array(f.meanColor())
-                #red = np.mean(ssd.cdist([mc],[np.array((140,130,100))]))
-                #black = np.mean(ssd.cdist([mc],[np.array((70,70,70))]))#black
-                if( mc[0] > 125 ):
-                    red_count += 1
-                else:
-                    black_count += 1
-
-            if( red_count > black_count ):
-                card.color = Color.RED
-            else:
-                card.color = Color.BLUE
-            card.suitBlobs = fs
-            #fs.show(color=card.color, width=-1)
-            #time.sleep(0.2)
             
+            w = img.width
+            h = img.height
+            tl = (0,0)
+            tr = (w,0)
+            bl = (0,h)
+            br = (w,h)
+            corners = [tl,tr,bl,br]
+            cutoff = 70 # distance from the corners 
+            card.rankBlobs,card.suitBlobs = self._blobsNearCorners(fs,corners,cutoff)
+            if( len(card.rankBlobs) > 0 ):
+                card.rankBlobs.show(color=Color.RED,width=-1)
+                time.sleep(1)
+            if( len(card.suitBlobs) > 0 ):
+                card.suitBlobs.show(color=Color.BLUE,width=-1)
+                time.sleep(1)
         else:
             raise CardError(card, "No card image to extract card color from.")
         return card

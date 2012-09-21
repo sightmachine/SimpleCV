@@ -1,8 +1,7 @@
 from SimpleCV import *
-#from FeatureUtils import *
+import sys, traceback
 from CardUtil import *
 from PlayingCardFactory import *
-#import FeatureUtils
 import numpy as np
 
 def GetParallelSets(line_fs,parallel_thresh=100):
