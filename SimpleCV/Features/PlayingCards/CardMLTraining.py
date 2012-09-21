@@ -6,9 +6,9 @@ from SimpleCV.Features.PlayingCards.PlayingCard import *
 from SimpleCV.MachineLearning import *
 
 count = -1
-v = False
-def thresholdOp(img):
-    return(img.threshold(1))
+v = True
+#def thresholdOp(img):
+#    return(img.threshold(1))
 
 rpath = "./train/ranks/"
 ranks = ['2','3','4','5','69','7','8','0','10','J','Q','K','A']
@@ -16,7 +16,7 @@ paths = []
 for r in ranks:
     paths.append((rpath+r))
 print paths
-mfe = MorphologyFeatureExtractor(thresholdOperation=thresholdOp)
+mfe = MorphologyFeatureExtractor()#thresholdOperation=thresholdOp)
 feature_extractors = [mfe]
 tc_rank = TreeClassifier(feature_extractors)
 disp = Display((640,480))
@@ -36,7 +36,7 @@ for s in suits:
     paths.append((spath+s))
 print paths
 hhfe = HueHistogramFeatureExtractor(mNBins=6)
-mfe = MorphologyFeatureExtractor(thresholdOperation=thresholdOp)
+mfe = MorphologyFeatureExtractor()#thresholdOperation=thresholdOp)
 feature_extractors = [hhfe,mfe]
 tc_suit = TreeClassifier(feature_extractors)
 disp = Display((640,480))

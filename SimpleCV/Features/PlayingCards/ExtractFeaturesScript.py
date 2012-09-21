@@ -21,7 +21,7 @@ for r in RANKS:
     directory = path+"/"+r+"/"
     if not os.path.exists(directory):
         os.makedirs(directory)        
-
+# go through the data and get the rectified cards and suit blobs
 for d in datapoints:
     i = i + 1
     img = d[0]

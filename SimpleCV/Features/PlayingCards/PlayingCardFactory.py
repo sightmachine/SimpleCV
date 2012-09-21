@@ -1,8 +1,10 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
+from SimpleCV.Features import * 
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Features.PlayingCards.PlayingCard import *
+from SimpleCV.MachineLearning import *
 import scipy.spatial.distance as ssd
 import sys,traceback
 
@@ -16,40 +18,24 @@ class CardError(Exception):
         
 class PlayingCardFactory():
     
-    def __init__(self,parameterDict=None,model="card_models.pkl"):
+    def __init__(self,parameterDict=None,model_path="./"):
         if(parameterDict is not None):
             self.parameterize(parameterDict)
+            
+        def thresholdOp(img):
+            return img.threshold(1)
+
+        rankpath = model_path+"rank2.pkl"
+        self.rankTree = TreeClassifier.load(rankpath)
+
+        suitpath = model_path+"suit.pkl"
+        #hhfe = HueHistogramFeatureExtractor(mNBins=6)
+        #mfe = MorphologyFeatureExtractor()
+        #feature_extractors = [hhfe,mfe]
+        self.suitTree = TreeClassifier.load(suitpath)
+        #self.suitTree.setFeatureExtractors(feature_extractors)
         # we need to do checks here
-        self.models = pickle.load(open(model,'rb'))
-        self._loadModels()
-
-    def matchVal(self,a,b):
-        mySigns = np.sign(a)
-        myLogs = np.log(np.abs(a))
-        myM = mySigns * myLogs
         
-        #otherSigns = np.sign(b)
-        #otherLogs = np.log(np.abs(b))
-        #otherM = otherSigns * otherLogs
-        
-        return np.sum(abs((1/ myM - 1/b)))
-
-    def _loadModels(self):
-        self.rank_models = []
-        ranks = ['2','3','4','5','69','7','8','0','10','J','Q','K','A']
-        for r in ranks:
-            r_model = r+"_Hu"
-            r_thresh = r+"_threshold"
-            self.rank_models.append((r,self.models[r_model],self.models[r_thresh]))
-        self.suit_models = []
-        suits = ['c','d','h','s']
-        for s in suits:
-            s_model = s+"_Hu"
-            s_thresh = s+"_threshold"
-            self.suit_models.append((s,self.models[s_model],self.models[s_thresh]))
-        print "LOADED MODELS"
-        print self.suit_models
-        print self.rank_models
 
     def parameterize(self,parameterDict):
         """
@@ -67,12 +53,12 @@ class PlayingCardFactory():
         if( card is None ): # if we don't see it just bail
             warnings.warn("Could not find a card.")
             return None
-        try:
+#        try:
             # extract the basic features and get color
-            card = self._estimateColor(card)
+        card = self._estimateColor(card)
             # okay, we got a color and some features
             # go ahead and estimate the suit
-#             card = self._estimateSuit(card)
+        card = self._estimateSuit(card)
 #             # Do we think this is a face card this
 #             # is an easier test
 #             isFace,card = self._isFaceCard(card)
@@ -87,28 +73,28 @@ class PlayingCardFactory():
 #             # now go back do some sanity checks
             # and cleanup the features so it is not
             # too heavy
-            card = self._refineEstimates(card)
-        except CardError as ce:
-            card = ce.card
-            if( card is not None):
-            # maybe we got a joker or someone
-            # is being a jackass and showing us the
-            # back of the card. 
-                card = self._isNonStandardCard(card)
-            warnings.warn(ce.msg) # we may swallow this later
-            # optionally we may want to log these to
-            # see where we fail and why or do a parameter
-            # adjustment and try again
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
-            print(exc_type, fname, exc_tb.tb_lineno)
-            return None
-        except:
-            # this means we had an error somewhere
-            # else maybe numpy
-            print "Generic Error."
-            return None
+#        card = self._re# fineEstimates(card)
+#         except CardError as ce:
+#             card = ce.card
+#             if( card is not None):
+#             # maybe we got a joker or someone
+#             # is being a jackass and showing us the
+#             # back of the card. 
+#                 card = self._isNonStandardCard(card)
+#             warnings.warn(ce.msg) # we may swallow this later
+#             # optionally we may want to log these to
+#             # see where we fail and why or do a parameter
+#             # adjustment and try again
+#         except Exception as e:
+#             exc_type, exc_obj, exc_tb = sys.exc_info()
+#             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+#             print(exc_type, fname, exc_tb.tb_lineno)
+#             return None
+#         except:
+#             # this means we had an error somewhere
+#             # else maybe numpy
+#             print "Generic Error."
+#             return None
         return FeatureSet([card])
 
     def _preprocess(self,img):
@@ -170,7 +156,6 @@ class PlayingCardFactory():
         near_corners = FeatureSet()
         not_near_corners = FeatureSet()
         tl_t,tr_t,bl_t,br_t = corners
-        #print corners
         for blob in blobs:
             tl = blob.topLeftCorner()
             tr = blob.topRightCorner()
@@ -180,7 +165,6 @@ class PlayingCardFactory():
             b = dist(tr,tr_t)
             c = dist(bl,bl_t)
             d = dist(br,br_t)
-            #print tl,tr,bl,br
             if( a < cutoff or b < cutoff or c < cutoff or d < cutoff ):
                 near_corners.append(blob)
             else:
@@ -195,6 +179,7 @@ class PlayingCardFactory():
         """
         if( card.cardImg is not None):
             img = card.cardImg.resize(h=card.img.height)
+            card.cardImg = img
             temp = img.invert().dilate()
             binary = temp.threshold(100).morphClose()
 #            binary = temp.binarize().morphClose().invert()
@@ -214,12 +199,12 @@ class PlayingCardFactory():
             corners = [tl,tr,bl,br]
             cutoff = 70 # distance from the corners 
             card.rankBlobs,card.suitBlobs = self._blobsNearCorners(fs,corners,cutoff)
-            if( len(card.rankBlobs) > 0 ):
-                card.rankBlobs.show(color=Color.RED,width=-1)
-                time.sleep(1)
-            if( len(card.suitBlobs) > 0 ):
-                card.suitBlobs.show(color=Color.BLUE,width=-1)
-                time.sleep(1)
+#             if( len(card.rankBlobs) > 0 ):
+#                 card.rankBlobs.show(color=Color.RED,width=-1)
+#                 time.sleep(1)
+#             if( len(card.suitBlobs) > 0 ):
+#                 card.suitBlobs.show(color=Color.BLUE,width=-1)
+#                 time.sleep(1)
         else:
             raise CardError(card, "No card image to extract card color from.")
         return card
@@ -232,41 +217,27 @@ class PlayingCardFactory():
         throw.
         """
         blobs = card.suitBlobs
-        found = []
-        fv = []
+        suit_guesses = []
         for b in blobs:
-            sample = b.mHu
-            vals = []
-            suits = []
-            for m in self.suit_models:
-                #v = self.matchVal(sample,m[1])
-                v = ssd.cdist([sample],[m[1]])[0][0]
-                if( v < m[2] ):
-                    vals.append(v)
-                    suits.append(m[0])
-            if( len(suits) > 0 ):
-                if( len(suits) == 1):
-                    found.append(suits[0])
-                    fv.append(vals[0])
-                else:
-                    vals = np.array(vals)
-                    idx = np.where(vals==np.min(vals))[0]
-                    found.append(suits[idx])
-                    fv.append(vals[idx])
+            b.mImg.show()
+            time.sleep(.1)
+            print self.suitTree.classify(b.mImg)
+            suit_guesses.append( self.suitTree.classify(b.mImg) )
         
-        print zip(found,fv) 
-        fv = np.array(fv)
-        idx = np.where(fv==np.min(fv))[0]
-        card.suit = found[idx]
-#         suit_vals = ['c','h','d','s']
-#         best_count = 0
-#         best_suit = None
-#         for s in suit_vals:
-#             test = found.count(s)
-#             if(test > best_count):
-#                 best_count = test
-#                 best_suit = s
-#         card.suit = best_suit
+        cardSuit = None
+        print suit_guesses
+        suits = ['c','d','h','s']
+        if( len(suit_guesses) > 0 ):
+            counts = []
+            for s in suits:
+                tmp = suit_guesses.count(s)
+                counts.append(tmp)
+            counts = np.array(counts)
+            idx = np.where(counts==np.max(counts))[0]
+            if( len(idx) > 1 ):
+                idx = idx[0] # HOW DO WE HANDLE TIE BREAKERS
+            cardSuit = suits[idx]
+        card.suit = cardSuit
         return card
         
     def _isFaceCard(self,card):

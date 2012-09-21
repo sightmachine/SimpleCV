@@ -98,7 +98,7 @@ class TreeClassifier:
         """
         Load the classifier from file
         """
-        return pickle.load(file(fname))
+        return pickle.load(file(fname,'rb'))
     load = classmethod(load)
 
     

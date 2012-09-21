@@ -48,7 +48,7 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         if(self.mThresholdOpeation is not None):
             bwImg = self.mThresholdOpeation(img)
         else:
-            bwImg = img.binarize()
+            bwImg = img.threshold(1)
         
         if( self.mBlobMaker is None ):
             self.mBlobMaker = BlobMaker()
