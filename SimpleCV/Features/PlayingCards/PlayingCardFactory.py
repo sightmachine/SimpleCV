@@ -1,3 +1,4 @@
+
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import * 
@@ -25,14 +26,40 @@ class PlayingCardFactory():
         def thresholdOp(img):
             return img.threshold(1)
 
-        rankpath = model_path+"rank2.pkl"
-        self.rankTree = TreeClassifier.load(rankpath)
+        count = -1
+        v = True
 
-        suitpath = model_path+"suit.pkl"
+        spath = "./train/"
+        suits = ['c','d','h','s']
+        paths = []
+        for s in suits:
+            paths.append((spath+s))
+        hhfe = HueHistogramFeatureExtractor(mNBins=6)
+        mfe = MorphologyFeatureExtractor()
+        feature_extractors = [hhfe,mfe]
+        self.suitTree = TreeClassifier(feature_extractors)
+        correct,incorrect,confuse = self.suitTree.train(paths,suits,subset=count,verbose=v)
+
+        rpath = "./train/"
+        ranks2 = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
+        paths = []
+        for r in ranks2:
+            paths.append((rpath+r))
+         
+        haarfe = HaarLikeFeatureExtractor("../haar.txt",do45=True)
+        feature_extractors = [haarfe]
+        self.rankTree = TreeClassifier(feature_extractors,flavor="Boosted")
+        
+        correct,incorrect,confuse = self.rankTree.train(paths,ranks2,subset=count,verbose=v)
+
+        # rankpath = model_path+"rank2.pkl"
+        # self.rankTree = TreeClassifier.load(rankpath)
+
+        # suitpath = model_path+"suit.pkl"
         #hhfe = HueHistogramFeatureExtractor(mNBins=6)
         #mfe = MorphologyFeatureExtractor()
         #feature_extractors = [hhfe,mfe]
-        self.suitTree = TreeClassifier.load(suitpath)
+        #self.suitTree = TreeClassifier.load(suitpath)
         #self.suitTree.setFeatureExtractors(feature_extractors)
         # we need to do checks here
         
@@ -69,7 +96,7 @@ class PlayingCardFactory():
 #                 # otherwise get the rank
 #                 # first pass is corners second
 #                 # pass is the card body
-#                 card = self._estimateRank(card)
+        card = self._estimateRank(card)
 #             # now go back do some sanity checks
             # and cleanup the features so it is not
             # too heavy
@@ -219,9 +246,7 @@ class PlayingCardFactory():
         blobs = card.suitBlobs
         suit_guesses = []
         for b in blobs:
-            b.mImg.show()
-            time.sleep(.1)
-            print self.suitTree.classify(b.mImg)
+            #print self.suitTree.classify(b.mImg)
             suit_guesses.append( self.suitTree.classify(b.mImg) )
         
         cardSuit = None
@@ -257,6 +282,10 @@ class PlayingCardFactory():
         """
         Determine the rank and reutrn the card otherwise throw.
         """
+        if( card.cardImg is not None ):
+            card.rank = self.rankTree.classify(card.cardImg)
+            print "RANK: " + card.rank
+            
         return card
         
     def _isNonStandardCard(self,card):

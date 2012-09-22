@@ -69,9 +69,9 @@ class TreeClassifier:
         dist = distance algorithm
         k = number of nearest neighbors
         """
-        if not ORANGE_ENABLED:
-            logger.warning("I'm sorry, but you need the orange machine learning library installed to use this")
-            return None
+#        if not ORANGE_ENABLED:
+#            logger.warning("I'm sorry, but you need the orange machine learning library installed to use this")
+#            return None
         
         self.mClassNames = []
         self.mDataSetRaw = []

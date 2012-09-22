@@ -1,3 +1,4 @@
+
 from SimpleCV import *
 import sys, traceback
 from CardUtil import *
@@ -50,12 +51,13 @@ for d in datapoints:
         fs.show()
         r = fs[0].getCard()
     result.append(r)
-    if(r[0]==label[0]):
+    if(r[0]==label[0] and r[1]==label[1]):
         passing += 1
         print "PASS: "+str(label)+"->"+str(r)
     else:
         print "FAIL: "+str(label)+"->"+str(r)
-    #time.sleep(0.1)
+    print "#"*30
+        #time.sleep(0.1)
 
 print "___________________________________"
 print passing
