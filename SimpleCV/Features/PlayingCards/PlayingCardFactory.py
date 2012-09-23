@@ -22,9 +22,6 @@ class PlayingCardFactory():
     def __init__(self,parameterDict=None,model_path="./"):
         if(parameterDict is not None):
             self.parameterize(parameterDict)
-            
-        def thresholdOp(img):
-            return img.threshold(1)
 
         count = -1
         v = True
@@ -38,7 +35,7 @@ class PlayingCardFactory():
         mfe = MorphologyFeatureExtractor()
         feature_extractors = [hhfe,mfe]
         self.suitTree = TreeClassifier(feature_extractors)
-        correct,incorrect,confuse = self.suitTree.train(paths,suits,subset=count,verbose=v)
+        correct,incorrect,confuse = self.suitTree.train(paths,suits,subset=-1,verbose=v)
 
         rpath = "./train/"
         ranks2 = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
@@ -52,17 +49,16 @@ class PlayingCardFactory():
         
         correct,incorrect,confuse = self.rankTree.train(paths,ranks2,subset=count,verbose=v)
 
-        # rankpath = model_path+"rank2.pkl"
-        # self.rankTree = TreeClassifier.load(rankpath)
-
-        # suitpath = model_path+"suit.pkl"
-        #hhfe = HueHistogramFeatureExtractor(mNBins=6)
-        #mfe = MorphologyFeatureExtractor()
-        #feature_extractors = [hhfe,mfe]
-        #self.suitTree = TreeClassifier.load(suitpath)
-        #self.suitTree.setFeatureExtractors(feature_extractors)
-        # we need to do checks here
-        
+        rpath = "./train/ranks/"
+        ranks = ['2','3','4','5','69','7','8','0','10','J','Q','K','A']
+        paths = []
+        for r in ranks:
+            paths.append((rpath+r))
+            
+        mfe = MorphologyFeatureExtractor()
+        feature_extractors = [mfe]
+        self.rankTree2 = TreeClassifier(feature_extractors)
+        correct,incorrect,confuse = self.rankTree2.train(paths,ranks,subset=count,verbose=v)
 
     def parameterize(self,parameterDict):
         """
@@ -80,48 +76,33 @@ class PlayingCardFactory():
         if( card is None ): # if we don't see it just bail
             warnings.warn("Could not find a card.")
             return None
-#        try:
-            # extract the basic features and get color
+        #try:
+        # extract the basic features and get color
         card = self._estimateColor(card)
-            # okay, we got a color and some features
-            # go ahead and estimate the suit
         card = self._estimateSuit(card)
-#             # Do we think this is a face card this
-#             # is an easier test
-#             isFace,card = self._isFaceCard(card)
-#             if(isFace):
-#                 # if we are a face card get the face. This is had
-#                 card = self._estimateFaceCard(card)
-#             else:
-#                 # otherwise get the rank
-#                 # first pass is corners second
-#                 # pass is the card body
         card = self._estimateRank(card)
-#             # now go back do some sanity checks
-            # and cleanup the features so it is not
-            # too heavy
-#        card = self._re# fineEstimates(card)
-#         except CardError as ce:
-#             card = ce.card
-#             if( card is not None):
-#             # maybe we got a joker or someone
-#             # is being a jackass and showing us the
-#             # back of the card. 
-#                 card = self._isNonStandardCard(card)
-#             warnings.warn(ce.msg) # we may swallow this later
-#             # optionally we may want to log these to
-#             # see where we fail and why or do a parameter
-#             # adjustment and try again
-#         except Exception as e:
-#             exc_type, exc_obj, exc_tb = sys.exc_info()
-#             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
-#             print(exc_type, fname, exc_tb.tb_lineno)
-#             return None
-#         except:
-#             # this means we had an error somewhere
-#             # else maybe numpy
-#             print "Generic Error."
-#             return None
+
+        # except CardError as ce:
+        #     card = ce.card
+        #     if( card is not None):
+        #     # maybe we got a joker or someone
+        #     # is being a jackass and showing us the
+        #     # back of the card. 
+        #         card = self._isNonStandardCard(card)
+        #     warnings.warn(ce.msg) # we may swallow this later
+        #     # optionally we may want to log these to
+        #     # see where we fail and why or do a parameter
+        #     # adjustment and try again
+        # except Exception as e:
+        #     exc_type, exc_obj, exc_tb = sys.exc_info()
+        #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+        #     print(exc_type, fname, exc_tb.tb_lineno)
+        #     return None
+        # except:
+        #     # this means we had an error somewhere
+        #     # else maybe numpy
+        #     print "Generic Error."
+        #     return None
         return FeatureSet([card])
 
     def _preprocess(self,img):
@@ -282,10 +263,49 @@ class PlayingCardFactory():
         """
         Determine the rank and reutrn the card otherwise throw.
         """
-        if( card.cardImg is not None ):
-            card.rank = self.rankTree.classify(card.cardImg)
-            print "RANK: " + card.rank
+        cardRank = None
+        ranks = ['2','3','4','5','69','7','8','0','10','J','Q','K','A']
+        if( card.rankBlobs is not None and len(card.rankBlobs) > 0):
+            rank_guesses = []
+            for b in card.rankBlobs:
+                r = self.rankTree2.classify(b.mImg)
+                rank_guesses.append(r)
+        
+            print rank_guesses
+            if( len(rank_guesses) > 0 ):
+                counts = []
+                for s in ranks:
+                    tmp = rank_guesses.count(s)
+                    counts.append(tmp)
+                print counts
+                counts = np.array(counts)
+                idx = np.where(counts==np.max(counts))[0]
+                print idx 
+                if( len(idx) > 1 ):# HOW DO WE HANDLE TIE BREAKERS
+                    # if we have a tie use the other classifer
+                    if( card.cardImg is not None ):
+                        cardRank = self.rankTree.classify(card.cardImg)
+                        print "retry:" + cardRank
+                    else:
+                        cardRank = ranks[idx[0]]
+                else:
+                    cardRank = ranks[idx]
+                if( cardRank == '69' ): # disambiguate 6 and 9
+                    if( card.cardImg is not None ):
+                        cardRank = self.rankTree.classify(card.cardImg)
+                    else:
+                        if( len(card.suitBlobs) >= 9 ):
+                            cardRank = '9'
+                        else:
+                            cardRank = '6'
+                if( cardRank == '10' or cardRank == '0' ):
+                    cardRank = 'T'
+        elif( card.cardImg is not None ):
+            cardRank = self.rankTree.classify(card.cardImg)
+            print cardRank
             
+        card.rank = cardRank
+        
         return card
         
     def _isNonStandardCard(self,card):
