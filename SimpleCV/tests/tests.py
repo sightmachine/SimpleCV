@@ -2835,42 +2835,42 @@ def test_image_temp_save():
       if i==None :
          assert False
   assert True
-<<<<<<< HEAD
 
-def test_image_set_average():
-  iset = ImageSet()
-  iset.append(Image("./../sampleimages/tracktest0.jpg"))
-  iset.append(Image("./../sampleimages/tracktest1.jpg"))
-  iset.append(Image("./../sampleimages/tracktest2.jpg"))
-  iset.append(Image("./../sampleimages/tracktest3.jpg"))
-  iset.append(Image("./../sampleimages/tracktest4.jpg"))
-  iset.append(Image("./../sampleimages/tracktest5.jpg"))
-  iset.append(Image("./../sampleimages/tracktest6.jpg"))
-  iset.append(Image("./../sampleimages/tracktest7.jpg"))
-  iset.append(Image("./../sampleimages/tracktest8.jpg"))
-  iset.append(Image("./../sampleimages/tracktest9.jpg"))
-  avg = iset.average()
-  result = [avg]
-  name_stem = "test_image_set_average"
-  perform_diff(result,name_stem)
 
-def test_image_set_resize():
-  iset = ImageSet()
-  iset.append(Image("./../sampleimages/tracktest0.jpg"))
-  iset.append(Image("./../sampleimages/tracktest1.jpg"))
-  iset.append(Image("./../sampleimages/tracktest2.jpg"))
-  iset.append(Image("./../sampleimages/tracktest3.jpg"))
-  iset.append(Image("./../sampleimages/tracktest4.jpg"))
-  iset.append(Image("./../sampleimages/tracktest5.jpg"))
-  iset.append(Image("./../sampleimages/tracktest6.jpg"))
-  iset.append(Image("./../sampleimages/tracktest7.jpg"))
-  iset.append(Image("./../sampleimages/tracktest8.jpg"))
-  iset.append(Image("./../sampleimages/tracktest9.jpg"))
-  iset = iset.standardize(64,64)
-  avg = iset.average(mode='fixed',size=(72,72))
-  result = [avg]
-  name_stem = "test_image_set_resize"
-  perform_diff(result,name_stem)
+#~ def test_image_set_average():
+  #~ iset = ImageSet()
+  #~ iset.append(Image("./../sampleimages/tracktest0.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest1.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest2.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest3.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest4.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest5.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest6.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest7.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest8.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest9.jpg"))
+  #~ avg = iset.average()
+  #~ result = [avg]
+  #~ name_stem = "test_image_set_average"
+  #~ perform_diff(result,name_stem)
+#~ 
+#~ def test_image_set_resize():
+  #~ iset = ImageSet()
+  #~ iset.append(Image("./../sampleimages/tracktest0.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest1.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest2.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest3.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest4.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest5.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest6.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest7.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest8.jpg"))
+  #~ iset.append(Image("./../sampleimages/tracktest9.jpg"))
+  #~ iset = iset.standardize(64,64)
+  #~ avg = iset.average(mode='fixed',size=(72,72))
+  #~ result = [avg]
+  #~ name_stem = "test_image_set_resize"
+  #~ perform_diff(result,name_stem)
 
 def test_save_to_gif():
     imgs = ImageSet()
@@ -2887,10 +2887,10 @@ def test_save_to_gif():
 
     assert imgs.save('test_save_to_gif.gif') == len(imgs)
 
-def test_load_gif():
-    imgs = ImageSet()
-    imgs.load("../sampleimages/test_load_gif.gif")
-    assert len(imgs)
+#~ def test_load_gif():
+    #~ imgs = ImageSet()
+    #~ imgs.load("../sampleimages/test_load_gif.gif")
+    #~ assert len(imgs)
 
 def sliceinImageSet():
     imgset = ImageSet("../sampleimages/")
@@ -2900,7 +2900,7 @@ def sliceinImageSet():
     else :
         assert False  
 
-=======
+
   
 def test_upload_dropbox():
     try:
@@ -2921,4 +2921,3 @@ def test_upload_dropbox():
                pass
            else :
                assert False
->>>>>>> af29e047ff88003132f0ffb6225a60a5eb4f8808
