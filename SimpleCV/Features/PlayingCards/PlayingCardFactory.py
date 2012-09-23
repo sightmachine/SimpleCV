@@ -127,6 +127,8 @@ class PlayingCardFactory():
         bin= final.threshold(150).morphClose()
         max_sz = img.width*img.height
         b = img.findBlobsFromMask(bin,minsize=max_sz*0.005,maxsize=max_sz*0.3)
+        if b is None:
+            return retVal
         b = b.sortDistance(point=(img.width/2,img.height/2))
         if( b is not None ):
             w = np.min([b[0].minRectWidth(),b[0].minRectHeight()])
@@ -194,6 +196,9 @@ class PlayingCardFactory():
             sz = img.width*img.height
             b = img.findBlobsFromMask(binary,minsize = sz*.0005, maxsize=sz*0.1)
             fs = FeatureSet()
+            if( b is None ):
+                return card
+                
             for bs in b:
                 if(not bs.isOnEdge() and bs.aspectRatio() > 0.4 and bs.aspectRatio() < 2.2 ):
                     fs.append(bs)
@@ -225,6 +230,8 @@ class PlayingCardFactory():
         throw.
         """
         blobs = card.suitBlobs
+        if( blobs is None ):
+            return card
         suit_guesses = []
         for b in blobs:
             #print self.suitTree.classify(b.mImg)
