@@ -10,6 +10,7 @@ class PlayingCard(Feature):
         self.suit = suit
         self.centerBlobs = None
         self.suitBlobs = None
+        self.rankBlobs = None
         self.numberBlobs = None
         self.color = None
         self.cardImg = None
