@@ -2835,7 +2835,7 @@ def test_image_temp_save():
       if i==None :
          assert False
   assert True
-<<<<<<< HEAD
+
 
 def test_image_set_average():
   iset = ImageSet()
