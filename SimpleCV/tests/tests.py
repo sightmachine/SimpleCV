@@ -2900,8 +2900,6 @@ def sliceinImageSet():
     else :
         assert False  
 
-=======
-  
 def test_upload_dropbox():
     try:
        import dropbox
@@ -2921,4 +2919,3 @@ def test_upload_dropbox():
                pass
            else :
                assert False
->>>>>>> af29e047ff88003132f0ffb6225a60a5eb4f8808
