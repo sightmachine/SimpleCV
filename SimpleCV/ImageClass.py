@@ -440,7 +440,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
                 return
             from IPython.core import display as Idisplay
             for i in self:
-                loc = i.save(temp=True)
+                loc = i.save(temp=True, cleanTemp=True)
                 Idisplay.display(IPImage(filename=loc))
                 return
         else:
@@ -2211,7 +2211,7 @@ class Image:
                     return
 
                   from IPython.core import display as Idisplay
-                  loc = self.save(temp=True)
+                  loc = self.save(temp=True, cleanTemp=True)
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
