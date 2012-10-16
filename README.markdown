@@ -1,6 +1,26 @@
 # SimpleCV
 --------------------------
 
+Quick Links:
+
+ * [About](#about)
+ * [Installation](#installation)
+    * [Ubuntu](#ubuntu)
+    * [Arch Linux](#archlinux)
+    * [Windows](#windows)
+    * [MacOS](#macos)
+ * [SimpleCV Shell](#shell)
+ * [Videos & Tutorials](#videos)
+ * [SimpleCV on Mobile - Android](#mobile)
+ * [Help](#help)
+ * [Troubleshooting Installation](#troubleshoot)
+    * [Required Libraries](#requirements)
+    * [Optional Libraries](#optional)
+ 
+
+<a id="about"></a>
+## About
+---------------------------
 Make computers see with SimpleCV, the Open Source Framework for Vision
 
 SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.    
@@ -24,10 +44,12 @@ Here is the simplecv "hello world":
 For more code snippets, we recommend the [SimpleCV examples website](http://examples.simplecv.org) or looking at our example scripts in [SimpleCV/examples](http://github.com/ingenuitas/SimpleCV/tree/master/SimpleCV/examples)
 
 ---------------------------
+<a id="installation"></a>
 ## Installation
 
 The easiest way to install SimpleCV is with the packages for your distribution (Windows, Mac, Linux) included on the website (http://www.simplecv.org).  Although it is tested on many platforms there maybe scenarios where it just won't work with the package installer. Below is instructions on how to install, if you have problems please see the troubleshooting section at the end of this README file.
 
+<a id="ubuntu"></a>
 ### Ubuntu 12.04
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip 
 	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
@@ -63,11 +85,12 @@ Run the following commands:
 
 
 
-
+<a id="archlinux"></a>
 ### Arch Linux
     pacman -S python2-numpy opencv2.3.1_a-4 python-pygame python2-setuptools ipython2 python2-pip
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master
 
+<a id="macos"></a>
 ### Mac OS X (10.6 and above)
 
 Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
@@ -121,7 +144,7 @@ Commands (for Snow Leopard)::
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
 
 
-
+<a id="windows"></a>
 ### Windows 7/Vista
 If you want a streamlined install which gives you all the dependencies, we
 recommend using the Windows Superpack, available at <http://www.simplecv.org/download/>
@@ -163,6 +186,7 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
 
 ---------------------------
+<a id="shell"></a>
 ## SimpleCV Interactive Shell, or how to run SimpleCV
 
 
@@ -192,30 +216,37 @@ to install ipython notebooks run the following:
   
   
 
----------------------------    
+--------------------------- 
+<a id="videos"></a>
 ## Videos - Tutorials and Demos
 
 Video tutorials and demos can be found at:
 <http://www.simplecv.org/learn/>
 
 ---------------------------
+<a id="mobile"></a>
 ## SimpleCV on Mobile (Android)
 
 SimpleCV can in fact be used on a mobile device.  Although the processing requires a server to be setup that runs SimpleCV our 2012 Google Summer of Code
 student had built, we have forked the project and instructions on how to set it up and run it can be found at:
 <https://github.com/ingenuitas/simplecv-mobile-camera>
 
+
+
 -------------------------------
+<a id="help"></a>
 ## Getting Help
 
 You can always head over to the SimpleCV help forums to ask questions:
 (SimpleCV Help Forums) - <http://help.simplecv.org> 
 
 --------------------
+<a id="troubleshoot"></a>
 ## Troubleshooting installation problems.
 
 If for some reason the standard installation methods do not work you may have to manually install some or all of the dependencies required by SimpleCV.
 
+<a id="requirements"></a>
 ### Required Libraries
 The installation instructions below should explain more on how to install.  They can also be installed manually.
 
@@ -227,7 +258,7 @@ The installation instructions below should explain more on how to install.  They
 * IPython 10+ (<http://ipython.org>)
 * PIL 1.1.7+ (<http://www.pythonware.com/products/pil/>)
 
-
+<a id="optional"></a>
 ### Optional Libraries
 These libraries are NOT required to run or use SimpleCV but are needed for some of the examples if they are ran.  Some of these may be included in your systems software manager or app store.
 
