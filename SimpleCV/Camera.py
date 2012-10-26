@@ -1848,7 +1848,7 @@ class StereoCamera :
     def __init__(self):
         return
                                 
-    def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8,5), gridsize=0.027, WinSize = (352,288)):
+    def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8, 5), gridsize=0.027, WinSize = (352,288)):
         """
         **SUMMARY**
         Stereo Calibration is a way in which you obtain the parameters that will allow you to calculate 3D information of the scene. 
@@ -1890,13 +1890,13 @@ class StereoCamera :
             cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
             cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
             frameLeft = cv.QueryFrame(captureLeft)
-            cv.FindChessboardCorners(frameLeft, (8, 5))
+            cv.FindChessboardCorners(frameLeft, (chessboard))
             
             captureRight = cv.CaptureFromCAM(camRight)
             cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
             cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
             frameRight = cv.QueryFrame(captureRight)
-            cv.FindChessboardCorners(frameRight, (8, 5))
+            cv.FindChessboardCorners(frameRight, (chessboard))
         except :
             print "Error Initialising the Left and Right camera"
             return None
@@ -1930,14 +1930,14 @@ class StereoCamera :
             cv.Flip(frameRight, frameRight, 1)
             k = cv.WaitKey(3)
     
-            cor1 = cv.FindChessboardCorners(frameLeft, (8, 5))
+            cor1 = cv.FindChessboardCorners(frameLeft, (chessboard))
             if cor1[0] :
-               cv.DrawChessboardCorners(frameLeft, (8, 5), cor1[1], cor1[0])
+               cv.DrawChessboardCorners(frameLeft, (chessboard), cor1[1], cor1[0])
                cv.ShowImage(n1, frameLeft)
     
-            cor2 = cv.FindChessboardCorners(frameRight, (8, 5))
+            cor2 = cv.FindChessboardCorners(frameRight, (chessboard))
             if cor2[0]:
-               cv.DrawChessboardCorners(frameRight, (8, 5), cor2[1], cor2[0])
+               cv.DrawChessboardCorners(frameRight, (chessboard), cor2[1], cor2[0])
                cv.ShowImage(n2, frameRight)
     
             if cor1[0] and cor2[0] and k==0x20:
