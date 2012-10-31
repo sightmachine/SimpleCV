@@ -11254,6 +11254,128 @@ class Image:
         cv.Flip(retVal, retVal, 1)#horizontal
         return(Image(retVal, colorSpace=self._colorSpace))
 
+    def verticalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
+        """
+        **DESCRIPTION**
+        
+        This method generates histogram of the number of grayscale pixels
+        greater than the provided threshold. The method divides the image
+        into a number evenly spaced vertical bins and then counts the number
+        of pixels where the pixel is greater than the threshold. This method
+        is helpful for doing basic morphological analysis.
+
+        **PARAMETERS**
+        * *bins* - The number of bins to use. 
+        * *threshold* - The grayscale threshold. We count pixels greater
+                       than this value.
+       
+        * *normalize* - If normalize is true we normalize the bin counts
+                        to sum to one. Otherwise we return the number of
+                        pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin
+                      counts, and the bin widths as a tuple. We can use
+                      these values in pyplot.bar to quickly plot the
+                      histogram.
+
+        **RETURNS**
+
+        The default settings return the raw bin counts moving from left to
+        right on the image. If forPlot is true we return a tuple that
+        contains a list of bin labels, the bin counts, and the bin widths.
+        This tuple can be used to plot the histogram using
+        matplotlib.pyplot.bar function.
+
+        **EXAMPLE**
+
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+        >>>> plt.show())
+
+        **NOTES**
+
+        See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
+        See: http://matplotlib.org/api/pyplot_api.html?highlight=hist#matplotlib.pyplot.hist
+        
+        """
+        if( bins <= 0 ):
+            raise Exception("Not enough bins")
+            
+        img = self.getGrayNumpy()
+        pts = np.where(img>threshold)
+        y = pts[1]
+        hist = np.histogram(y,bins=bins,range=(0,self.height),normed=normalize)
+        retVal = None
+        if( forPlot ):
+            # for using matplotlib bar command
+            # bin labels, bin values, bin width
+            retVal=(hist[1][0:-1],hist[0],self.height/bins)
+        else:
+            retVal = hist[0][0]
+        return retVal
+
+    def horizontalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
+        """
+        **DESCRIPTION**
+        
+        This method generates histogram of the number of grayscale pixels
+        greater than the provided threshold. The method divides the image
+        into a number evenly spaced horizontal bins and then counts the number
+        of pixels where the pixel is greater than the threshold. This method
+        is helpful for doing basic morphological analysis.
+
+        **PARAMETERS**
+        * *bins* - The number of bins to use. 
+        * *threshold* - The grayscale threshold. We count pixels greater
+                       than this value.
+       
+        * *normalize* - If normalize is true we normalize the bin counts
+                        to sum to one. Otherwise we return the number of
+                        pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin
+                      counts, and the bin widths as a tuple. We can use
+                      these values in pyplot.bar to quickly plot the
+                      histogram.
+
+        **RETURNS**
+
+        The default settings return the raw bin counts moving from top to
+        bottom on the image. If forPlot is true we return a tuple that
+        contains a list of bin labels, the bin counts, and the bin widths.
+        This tuple can be used to plot the histogram using
+        matplotlib.pyplot.bar function.
+
+        **EXAMPLE**
+
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> plt.bar(*img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+        >>>> plt.show())
+
+        **NOTES**
+
+        See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
+        See: http://matplotlib.org/api/pyplot_api.html?highlight=hist#matplotlib.pyplot.hist
+        
+        """
+        if( bins <= 0 ):
+            raise Exception("Not enough bins")
+
+        img = self.getGrayNumpy()
+        pts = np.where(img>threshold)
+        x = pts[0]
+        hist = np.histogram(x,bins=bins,range=(0,self.width),normed=normalize)
+        retVal = None
+        if( forPlot ):
+            # for using matplotlib bar command
+            # bin labels, bin values, bin width
+            retVal=(hist[1][0:-1],hist[0],self.width/bins)
+        else:
+            retVal = hist[0][0]
+        return retVal
+
+        
+        
 
 Image.greyscale = Image.grayscale
 

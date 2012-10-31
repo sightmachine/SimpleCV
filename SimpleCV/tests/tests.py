@@ -2918,4 +2918,22 @@ def test_builtin_rotations():
         pass
     else:
         assert False
-      
+        
+def test_histograms():
+    img = Image('lenna')
+    img.verticalHistogram()
+    img.horizontalHistogram()
+
+    img.verticalHistogram(bins=3)
+    img.horizontalHistogram(bins=3)
+
+    img.verticalHistogram(threshold=10)
+    img.horizontalHistogram(threshold=255)
+
+    img.verticalHistogram(normalize=True)
+    img.horizontalHistogram(normalize=True)
+
+    img.verticalHistogram(forPlot=True,normalize=True)
+    img.horizontalHistogram(forPlot=True,normalize=True)
+
+    pass
