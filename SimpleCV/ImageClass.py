@@ -4899,11 +4899,11 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace) 
 
 
-    def rotate90(self):
+    def transpose(self):
         """
         **SUMMARY**
         
-        Does a fast 90 degree rotation to the right. Generally this method should be faster than img.rotate(90)
+        Does a fast 90 degree rotation to the right with a flip.
 
         .. Warning::
           Subsequent calls to this function *WILL NOT* keep rotating it to the right!!!
@@ -4917,7 +4917,7 @@ class Image:
         **EXAMPLE**
         
         >>> img = Image("logo")
-        >>> img2 = img.rotate90()
+        >>> img2 = img.transpose()
         >>> img2.show()
 
         **SEE ALSO**
@@ -5697,7 +5697,7 @@ class Image:
         imgarray = pg.surfarray.array3d(surface)
         retVal = Image(imgarray)
         retVal._colorSpace = ColorSpace.RGB
-        return retVal.toBGR().rotate90()
+        return retVal.toBGR().transpose()
     
     def _image2Surface(self,img):
         return pg.image.fromstring(img.getPIL().tostring(),img.size(), "RGB") 
@@ -11141,6 +11141,118 @@ class Image:
         bb += int_to_bin(self.size()[1])
         bb += "\x87\x00\x00"
         return bb
+
+    def rotate270(self):
+        """
+        **DESCRIPTION**
+
+        Rotate the image 270 degrees to the left, the same as 90 degrees to the right.
+        This is the same as rotateRight()
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotate270().show()
+        
+        """
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Flip(self.getBitmap(), retVal, 0) # vertical
+        cv.Transpose(retVal, retVal)
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def rotate90(self):
+        """
+        **DESCRIPTION**
+
+        Rotate the image 90 degrees to the left, the same as 270 degrees to the right.
+        This is the same as rotateRight()
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotate90().show()
+        
+        """
+
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Transpose(self.getBitmap(), retVal)
+        cv.Flip(retVal, retVal, 0) # vertical
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def rotateLeft(self): # same as 90
+        """
+        **DESCRIPTION**
+
+        Rotate the image 90 degrees to the left.
+        This is the same as rotate 90.
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotateLeft().show()
+        
+        """
+
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Transpose(self.getBitmap(), retVal)
+        cv.Flip(retVal, retVal, 0) # vertical
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def rotateRight(self): # same as 270
+        """
+        **DESCRIPTION**
+        
+        Rotate the image 90 degrees to the right.
+        This is the same as rotate 270.
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotateRight().show()
+
+        """
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Flip(self.getBitmap(), retVal, 0) # vertical
+        cv.Transpose(retVal, retVal)
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+        
+    def rotate180(self):
+        """
+        **DESCRIPTION**
+
+        Rotate the image 180 degrees to the left/right.
+        This is the same as rotate 90.
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotate180().show()
+        """
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Flip(self.getBitmap(), retVal, 0) #vertical
+        cv.Flip(retVal, retVal, 1)#horizontal
+        return(Image(retVal, colorSpace=self._colorSpace))
 
 
 Image.greyscale = Image.grayscale

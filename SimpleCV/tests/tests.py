@@ -2902,3 +2902,20 @@ def test_upload_dropbox():
                pass
            else :
                assert False
+
+def test_builtin_rotations():
+    img = Image('lenna')
+    r1 = img - img.rotate180().rotate180()
+    r2 = img - img.rotate90().rotate90().rotate90().rotate90()
+    r3 = img - img.rotateLeft().rotateLeft().rotateLeft().rotateLeft()
+    r4 = img - img.rotateRight().rotateRight().rotateRight().rotateRight()
+    r5 = img - img.rotate270().rotate270().rotate270().rotate270()
+    if( r1.meanColor() == Color.BLACK and
+        r2.meanColor() == Color.BLACK and
+        r3.meanColor() == Color.BLACK and
+        r4.meanColor() == Color.BLACK and
+        r5.meanColor() == Color.BLACK ):
+        pass
+    else:
+        assert False
+      
