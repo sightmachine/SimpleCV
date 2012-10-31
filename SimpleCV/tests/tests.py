@@ -2937,3 +2937,32 @@ def test_histograms():
     img.horizontalHistogram(forPlot=True,normalize=True)
 
     pass
+
+def test_blob_full_masks():
+    img = Image('lenna')
+    b = img.findBlobs()
+    m1 = b[-1].getFullMaskedImage()
+    m2 = b[-1].getFullHullMaskedImage()
+    m3 = b[-1].getFullMask()
+    m4 = b[-1].getFullHullMask()
+    if(  m1.width == img.width and
+         m2.width == img.width and
+         m3.width == img.width and
+         m4.width == img.width and
+         m1.height == img.height and
+         m2.height == img.height and
+         m3.height == img.height and
+         m4.height == img.height ):
+        pass
+    else:
+        assert False
+    
+         
+def test_blob_edge_images():
+    img = Image('lenna')
+    b = img.findBlobs()
+    m1 = b[-1].getEdgeImage()
+    m2 = b[-1].getHullEdgeImage()
+    m3 = b[-1].getFullEdgeImage()
+    m4 = b[-1].getFullHullEdgeImage()
+    pass
