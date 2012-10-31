@@ -11311,7 +11311,7 @@ class Image:
             # bin labels, bin values, bin width
             retVal=(hist[1][0:-1],hist[0],self.height/bins)
         else:
-            retVal = hist[0][0]
+            retVal = hist[0]
         return retVal
 
     def horizontalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
@@ -11371,7 +11371,7 @@ class Image:
             # bin labels, bin values, bin width
             retVal=(hist[1][0:-1],hist[0],self.width/bins)
         else:
-            retVal = hist[0][0]
+            retVal = hist[0]
         return retVal
 
         
