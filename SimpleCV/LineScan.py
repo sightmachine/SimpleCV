@@ -1,6 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
 import scipy.signal as sps
+import scipy.optimize as spo
 
 import copy
 
@@ -147,16 +148,27 @@ class LineScan(list):
         retVal.pointLoc = pts
         return retVal
 
-    def fitToModel(self):
-        pass
 
-    def getModelParameters(self):
-        pass
+    # this needs to be moved out to a cookbook or something
+    def linear(xdata,m,b):
+        return m*xdata+b
 
-    def fft(self):
-        pass
+    # need to add polyfit too
+    http://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+    def fitToModel(self,f,p0=None):
+        yvals = np.array(self,dtype='float32')
+        xvals = range(0,len(yvals),1)
+        popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
+        yvals = f(xvals,*popt)
+        retVal = LineScan(list(yvals))
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal
 
-        
 
-        
-  
+    def getModelParameters(self,f,p0=None):
+        yvals = np.array(self,dtype='float32')
+        xvals = range(0,len(yvals),1)
+        popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
+        return popt
+
