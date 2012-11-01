@@ -11376,14 +11376,17 @@ class Image:
         return retVal
 
     def getLineScan(self,x=None,y=None,pt1=None,pt2=None):
+        """
+        """
+        # We may want an option to choose the a channel here
         gray = self.getGrayNumpy()
         retVal = None 
         if( x is not None and y is None and pt1 is None and pt2 is None):
-            if( x >= 0 and x < self.height):
-                retVal = LineScan(gray[:,x])
+            if( x >= 0 and x < self.width):
+                retVal = LineScan(gray[x,:])
                 retVal.image = self
-                x = np.ones((1,img.height))[0]*x
-                y = range(0,img.height,1)
+                x = np.ones((1,self.height))[0]*x
+                y = range(0,self.height,1)
                 pts = zip(x,y)
                 retVal.pointLoc = pts
             else:
@@ -11391,11 +11394,11 @@ class Image:
                 # warn and return None
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
-            if( y >= 0 and x < self.width):
-                retVal = LineScan(gray[y,:])
+            if( y >= 0 and x < self.height):
+                retVal = LineScan(gray[:,y])
                 retVal.image = self
-                y = np.ones((1,img.width))[0]*y
-                x = range(0,img.width,1)
+                y = np.ones((1,self.width))[0]*y
+                x = range(0,self.width,1)
                 pts = zip(x,y)
                 retVal.pointLoc = pts
             else:
@@ -11420,6 +11423,9 @@ class Image:
         return retVal
 
     def getPixelsOnLine(self,pt1,pt2):
+        """
+        return all of the pixels on an arbitrary line 
+        """
         retVal = None 
         if( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
             (isinstance(pt2,tuple) or isinstance(pt2,list)) and

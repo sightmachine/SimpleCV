@@ -5,14 +5,9 @@ import copy
 
 class LineScan(list):
 
-#    def __init__(self, data):#, points, indicies, image):
-        #self.indicies = indices # the (x,y) points from the signal
-        #self.image = image
-#        pass
-        
-#    def __init__(self,points):
-#        pass
-        
+    pointLoc = None
+    image = None
+    
     def __getitem__(self,key):
         """
         **SUMMARY**
@@ -33,27 +28,67 @@ class LineScan(list):
         """
         return self.__getitem__(slice(i,j))
 
-    def pointLocations(self):
-        pass
-        
-    def resample(self):
-        pass
-        
-    def smooth(self):
-        pass
 
-    def fitToModel(self):
-        pass
+    def smooth(self,degree=3):
+        """
+        Do a simple smoothing operation
+        cribbed from http://www.swharden.com/blog/2008-11-17-linear-data-smoothing-in-python/
 
-    def getModelParameters(self):
-        pass
+        """
+        window=degree*2-1  
+        weight=np.array([1.0]*window)  
+        weightGauss=[]  
+        for i in range(window):  
+            i=i-degree+1  
+            frac=i/float(window)    
+            gauss=1/(np.exp((4*(frac))**2))    
+            weightGauss.append(gauss) 
+        weight=np.array(weightGauss)*weight   
+        smoothed=[0.0]*(len(self)-window)  
+        for i in range(len(smoothed)):  
+            smoothed[i]=sum(np.array(self[i:i+window])*weight)/sum(weight)
+        # recenter the signal so it sits nicely on top of the old
+        front = self[0:(degree-1)]
+        front += smoothed
+        front += self[-1*degree:]
+        retVal = LineScan(front)
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal
 
-    def fft(self):
-        pass
+    def normalize(self):
+        temp = np.array(self, dtype='float32')
+        temp = temp / np.max(temp)
+        retVal = LineScan(list(temp[:]))
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal
+
+    def scale(self,value_range=(0,1)):
+        temp = np.array(self, dtype='float32')
+        vmax = np.max(temp)
+        vmin = np.min(temp)
+        a = np.min(value_range)
+        b = np.max(value_range)
+        temp = (((b-a)/(vmax-vmin))*(temp-vmin))+a
+        retVal = LineScan(list(temp[:]))
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal
 
     def minima(self):
-        pass
-
+        # all of these functions should return
+        # value, index, pixel coordinate
+        # [(value,index,(pix_x,pix_y))...]        
+        minvalue = np.min(self)
+        idxs = np.where(np.array(self)==minvalue)[0]
+        minvalue = np.ones((1,len(idxs)))*minvalue # make zipable
+        minvalue = minvalue[0]
+        pts = np.array(self.pointLoc)
+        pts = pts[idxs]
+        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        return zip(minvalue,idxs,pts)
+        
     def maxima(self):
         pass
 
@@ -65,6 +100,21 @@ class LineScan(list):
         
     def localMinima(self):
         pass
+
+        
+    def resample(self):
+        pass
+        
+
+    def fitToModel(self):
+        pass
+
+    def getModelParameters(self):
+        pass
+
+    def fft(self):
+        pass
+
         
     def drawable(self):
         pass
