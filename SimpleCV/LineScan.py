@@ -1,5 +1,7 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
+import scipy.signal as sps
+
 import copy
 
 
@@ -79,7 +81,7 @@ class LineScan(list):
     def minima(self):
         # all of these functions should return
         # value, index, pixel coordinate
-        # [(value,index,(pix_x,pix_y))...]        
+        # [(index,value,(pix_x,pix_y))...]        
         minvalue = np.min(self)
         idxs = np.where(np.array(self)==minvalue)[0]
         minvalue = np.ones((1,len(idxs)))*minvalue # make zipable
@@ -87,24 +89,63 @@ class LineScan(list):
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
         pts = [(p[0],p[1]) for p in pts] # un numpy this shit
-        return zip(minvalue,idxs,pts)
+        return zip(idxs,minvalue,pts)
         
     def maxima(self):
-        pass
-
+        # all of these functions should return
+        # value, index, pixel coordinate
+        # [(index,value,(pix_x,pix_y))...]        
+        maxvalue = np.max(self)
+        idxs = np.where(np.array(self)==maxvalue)[0]
+        maxvalue = np.ones((1,len(idxs)))*maxvalue # make zipable
+        maxvalue = maxvalue[0]
+        pts = np.array(self.pointLoc)
+        pts = pts[idxs]
+        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        return zip(idxs,maxvalue,pts)
+ 
     def derivative(self):
-        pass
+        temp = np.array(self,dtype='float32')
+        d = [0]
+        d += list(temp[1:]-temp[0:-1])
+        retVal = LineScan(d)
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal
     
     def localMaxima(self):
-        pass
-        
-    def localMinima(self):
-        pass
+        temp = np.array(self)
+        idx = np.r_[True, temp[1:] > temp[:-1]] & np.r_[temp[:-1] > temp[1:], True]
+        idx = np.where(idx==True)[0]
+        values = temp[idx]
+        pts = np.array(self.pointLoc)
+        pts = pts[idx]
+        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        return zip(idx,values,pts)
 
         
-    def resample(self):
-        pass
-        
+    def localMinima(self):
+        temp = np.array(self)
+        idx = np.r_[True, temp[1:] < temp[:-1]] & np.r_[temp[:-1] < temp[1:], True]
+        idx = np.where(idx==True)[0]
+        values = temp[idx]
+        pts = np.array(self.pointLoc)
+        pts = pts[idx]
+        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        return zip(idx,values,pts)
+
+    def resample(self,n=100):
+        signal = sps.resample(self,n)
+        pts = np.array(self.pointLoc)
+        # we assume the pixel points are linear
+        # so we can totally do this better manually 
+        x = linspace(pts[0,0],pts[-1,0],n)
+        y = linspace(pts[0,1],pts[-1,1],n)
+        pts = zip(x,y)
+        retVal = LineScan(list(signal))
+        retVal.image = self.image
+        retVal.pointLoc = pts
+        return retVal
 
     def fitToModel(self):
         pass
@@ -115,9 +156,6 @@ class LineScan(list):
     def fft(self):
         pass
 
-        
-    def drawable(self):
-        pass
         
 
         
