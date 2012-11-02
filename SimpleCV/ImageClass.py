@@ -1,6 +1,7 @@
 # Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
+from SimpleCV.LineScan import *
 
 from numpy import int32
 from numpy import uint8
@@ -11374,8 +11375,155 @@ class Image:
             retVal = hist[0]
         return retVal
 
+    def getLineScan(self,x=None,y=None,pt1=None,pt2=None):
+        """
+        **SUMMARY**
+
+        This function converts the image to grayscale and then pulls
+        out a series of pixel values as a linescan object that can
+        be manipulated furter.
+
+        **PARAMETERS**
+        * *x* - Take a vertical line scan at the column x.
+        * *y* - Take a horizontal line scan at the row y.
+        * *pt1* - Take a line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.LineScan object or None if the method fails.
+
+        **EXAMPLE**
         
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> a = img.getLineScan(x=10)
+        >>>> b = img.getLineScan(y=10)
+        >>>> c = img.getLineScan(pt1 = (10,10), pt2 = (500,500) )
+        >>>> plt.plot(a)
+        >>>> plt.plot(b)
+        >>>> plt.plot(c)
+        >>>> plt.show()
         
+        """
+        # We may want an option to choose the a channel here
+        gray = self.getGrayNumpy()
+        retVal = None 
+        if( x is not None and y is None and pt1 is None and pt2 is None):
+            if( x >= 0 and x < self.width):
+                retVal = LineScan(gray[x,:])
+                retVal.image = self
+                x = np.ones((1,self.height))[0]*x
+                y = range(0,self.height,1)
+                pts = zip(x,y)
+                retVal.pointLoc = pts
+            else:
+                warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+                # warn and return None
+
+        elif( x is None and y is not None and pt1 is None and pt2 is None):
+            if( y >= 0 and x < self.height):
+                retVal = LineScan(gray[:,y])
+                retVal.image = self
+                y = np.ones((1,self.width))[0]*y
+                x = range(0,self.width,1)
+                pts = zip(x,y)
+                retVal.pointLoc = pts
+            else:
+                warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+                # warn and return None
+
+            pass
+        elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
+              (isinstance(pt2,tuple) or isinstance(pt2,list)) and
+              len(pt1) == 2 and len(pt2) == 2 and
+              x is None and y is None):
+
+            pts = self.bresenham_line(pt1,pt2)
+            retVal = LineScan([gray[p[1],p[0]] for p in pts])
+            retVal.pointLoc = pts
+            retVal.image = self
+            
+        else:
+            # an invalid combination - warn
+            warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+            return None
+        return retVal
+
+    def getPixelsOnLine(self,pt1,pt2):
+        """
+        **SUMMARY**
+        
+        Return all of the pixels on an arbitrary line.
+
+        **PARAMETERS**
+
+        * *pt1* - The first pixel coordinate as an (x,y) tuple or list.
+        * *pt2* - The second pixel coordinate as an (x,y) tuple or list.
+
+        **RETURNS**
+
+        Returns a list of RGB pixels values.
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.getPixelsOnLine( (0,0), (img.width/2,img.height/2) )
+        """
+        retVal = None 
+        if( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
+            (isinstance(pt2,tuple) or isinstance(pt2,list)) and
+            len(pt1) == 2 and len(pt2) == 2 ):
+            pts = self.bresenham_line(pt1,pt2)
+            retVal = [self.getPixel(p[0],p[1]) for p in pts]
+        else:
+            warnings.warn("ImageClass.getPixelsOnLine - The line you provided is not valid")
+
+        return retVal
+        
+    def bresenham_line(self, pt1,pt2): #(x,y),(x2,y2)):
+        """
+        Brensenham line algorithm
+
+        cribbed from: http://snipplr.com/view.php?codeview&id=22482
+
+        This is just a helper method
+        """
+        x = np.clip(pt1[0],0,self.width)
+        y = np.clip(pt1[1],0,self.height)
+        x2 = np.clip(pt2[0],0,self.width)
+        y2 = np.clip(pt2[1],0,self.height)
+        
+        steep = 0
+        coords = []
+        dx = abs(x2 - x)
+        if (x2 - x) > 0:
+            sx = 1
+        else:
+            sx = -1
+        dy = abs(y2 - y)
+        if (y2 - y) > 0:
+            sy = 1
+        else:
+            sy = -1
+        if dy > dx:
+            steep = 1
+            x,y = y,x
+            dx,dy = dy,dx
+            sx,sy = sy,sx
+        d = (2 * dy) - dx
+        for i in range(0,dx):
+            if steep:
+                coords.append((y,x))
+            else:
+                coords.append((x,y))
+            while d >= 0:
+                y = y + sy
+                d = d - (2 * dx)
+            x = x + sx
+            d = d + (2 * dy)
+        coords.append((x2,y2))
+        return coords
 
 Image.greyscale = Image.grayscale
 
@@ -11384,3 +11532,5 @@ from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature,
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
+
+
