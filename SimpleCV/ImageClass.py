@@ -11394,6 +11394,7 @@ class Image:
         A SimpleCV.LineScan object or None if the method fails.
 
         **EXAMPLE**
+        
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> a = img.getLineScan(x=10)
@@ -11451,7 +11452,23 @@ class Image:
 
     def getPixelsOnLine(self,pt1,pt2):
         """
-        return all of the pixels on an arbitrary line 
+        **SUMMARY**
+        
+        Return all of the pixels on an arbitrary line.
+
+        **PARAMETERS**
+
+        * *pt1* - The first pixel coordinate as an (x,y) tuple or list.
+        * *pt2* - The second pixel coordinate as an (x,y) tuple or list.
+
+        **RETURNS**
+
+        Returns a list of RGB pixels values.
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.getPixelsOnLine( (0,0), (img.width/2,img.height/2) )
         """
         retVal = None 
         if( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
