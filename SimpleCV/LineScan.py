@@ -154,7 +154,7 @@ class LineScan(list):
         return m*xdata+b
 
     # need to add polyfit too
-    http://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+    #http://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
     def fitToModel(self,f,p0=None):
         yvals = np.array(self,dtype='float32')
         xvals = range(0,len(yvals),1)
@@ -172,3 +172,37 @@ class LineScan(list):
         popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
         return popt
 
+    def convolve(self,kernel):
+        k = len(kernel)
+        if( k%2 == 0):
+            kl = (k/2)-1
+            kt = k/2
+        else:
+            kl = (k-1)/2
+            kt = kl
+        out = np.convolve(self,kernel)
+        out = out[kt:-1*kl]
+        retVal = LineScan(out)
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal
+
+    def fft(self):
+        """
+        return the fft and the frequency values
+
+        # we may want a log plot 
+        plt.plot(freq,fft.real,freq,fft.imag)
+        """
+        signal = np.array(self,dtype='float32')
+        fft = np.fft.fft(signal)
+        freq = np.fft.fftfreq(len(signal))
+        return (fft,freq)
+        
+        
+    def ifft(self,fft):
+        signal = np.fft.ifft(fft)
+        retVal = LineScan(signal.real)
+        retVal.image = self.image
+        retVal.pointLoc = self.pointLoc
+        return retVal

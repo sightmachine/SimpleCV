@@ -11377,6 +11377,33 @@ class Image:
 
     def getLineScan(self,x=None,y=None,pt1=None,pt2=None):
         """
+        **SUMMARY**
+
+        This function converts the image to grayscale and then pulls
+        out a series of pixel values as a linescan object that can
+        be manipulated furter.
+
+        **PARAMETERS**
+        * *x* - Take a vertical line scan at the column x.
+        * *y* - Take a horizontal line scan at the row y.
+        * *pt1* - Take a line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.LineScan object or None if the method fails.
+
+        **EXAMPLE**
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> a = img.getLineScan(x=10)
+        >>>> b = img.getLineScan(y=10)
+        >>>> c = img.getLineScan(pt1 = (10,10), pt2 = (500,500) )
+        >>>> plt.plot(a)
+        >>>> plt.plot(b)
+        >>>> plt.plot(c)
+        >>>> plt.show()
+        
         """
         # We may want an option to choose the a channel here
         gray = self.getGrayNumpy()
@@ -11442,6 +11469,8 @@ class Image:
         Brensenham line algorithm
 
         cribbed from: http://snipplr.com/view.php?codeview&id=22482
+
+        This is just a helper method
         """
         x = np.clip(pt1[0],0,self.width)
         y = np.clip(pt1[1],0,self.height)
