@@ -2966,3 +2966,25 @@ def test_blob_edge_images():
     m3 = b[-1].getFullEdgeImage()
     m4 = b[-1].getFullHullEdgeImage()
     pass
+
+def test_LineScan():
+    def lsstuff(ls):
+        def aLine(x,m,b):
+            return m*x+b
+        ls2 = ls.smooth(degree=4).normalize().scale(value_range=[-1,1]).derivative().resample(100).convolve([.25,0.25,0.25,0.25])
+        ls2.minima()
+        ls2.maxima()
+        ls2.localMinima()
+        ls2.localMaxima()
+        fft,f = ls2.fft()
+        ls3 = ls2.ifft(fft)
+        ls4 = ls3.fitToModel(aLine)
+        ls4.getModelParameters(aLine)
+    img = Image("lenna")
+    ls = img.getLineScan(x=128)
+    lsstuff(ls)
+    ls = img.getLineScan(y=128)
+    lsstuff(ls)
+    ls = img.getLineScan(pt1 = (0,0), pt2=(128,128))
+    lsstuff(ls)
+    pass

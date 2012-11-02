@@ -169,26 +169,23 @@ class LineScan(list):
         """
         **SUMMARY**
 
-        
-        
-        **PARAMETERS**
-
-        
+        The function the global minima in the line scan.         
         
         **RETURNS**
 
-        * *degree* -
-        
+        Returns a list of tuples of the format:
+        (LineScanIndex,MinimaValue,(image_position_x,image_position_y))      
+
         **EXAMPLE**
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
+        >>>> minima = sl.smooth().minima()
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> for m in minima:
+        >>>>    plt.plot(m[0],m[1],'ro')
         >>>> plt.show()
-
-        **SEE ALSO**
 
         """        
         # all of these functions should return
@@ -207,28 +204,26 @@ class LineScan(list):
         """
         **SUMMARY**
 
-        
-        
-        **PARAMETERS**
-
-        
+        The function finds the global maxima in the line scan.
         
         **RETURNS**
 
-        * *degree* -
-        
+        Returns a list of tuples of the format:
+        (LineScanIndex,MaximaValue,(image_position_x,image_position_y))      
+
         **EXAMPLE**
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
+        >>>> maxima = sl.smooth().maxima()
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> for m in maxima:
+        >>>>    plt.plot(m[0],m[1],'ro')
         >>>> plt.show()
 
-        **SEE ALSO**
+        """        
 
-        """
         # all of these functions should return
         # value, index, pixel coordinate
         # [(index,value,(pix_x,pix_y))...]        
@@ -244,16 +239,14 @@ class LineScan(list):
     def derivative(self):
         """
         **SUMMARY**
-
         
-        
-        **PARAMETERS**
-
-        
+        This function finds the discrete derivative of the signal.
+        The discrete derivative is simply the difference between each
+        succesive samples. A good use of this function is edge detection
         
         **RETURNS**
 
-        * *degree* -
+        Returns the discrete derivative function as a LineScan object.
         
         **EXAMPLE**
 
@@ -261,10 +254,8 @@ class LineScan(list):
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> plt.plot(sl.derivative())
         >>>> plt.show()
-
-        **SEE ALSO**
 
         """
         temp = np.array(self,dtype='float32')
@@ -279,26 +270,25 @@ class LineScan(list):
         """
         **SUMMARY**
 
-        
-        
-        **PARAMETERS**
-
-        
+        The function finds local maxima in the line scan. Local maxima
+        are defined as points that are greater than their neighbors to
+        the left and to the right.         
         
         **RETURNS**
 
-        * *degree* -
-        
+        Returns a list of tuples of the format:
+        (LineScanIndex,MaximaValue,(image_position_x,image_position_y))      
+
         **EXAMPLE**
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
+        >>>> maxima = sl.smooth().maxima()
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> for m in maxima:
+        >>>>    plt.plot(m[0],m[1],'ro')
         >>>> plt.show()
-
-        **SEE ALSO**
 
         """        
         temp = np.array(self)
@@ -312,31 +302,30 @@ class LineScan(list):
 
         
     def localMinima(self):
-                """
+        """""
         **SUMMARY**
 
-        
-        
-        **PARAMETERS**
-
-        
+        The function the local minima in the line scan. Local minima
+        are defined as points that are less than their neighbors to
+        the left and to the right. 
         
         **RETURNS**
 
-        * *degree* -
-        
+        Returns a list of tuples of the format:
+        (LineScanIndex,MinimaValue,(image_position_x,image_position_y))      
+
         **EXAMPLE**
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
+        >>>> minima = sl.smooth().minima()
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> for m in minima:
+        >>>>    plt.plot(m[0],m[1],'ro')
         >>>> plt.show()
 
-        **SEE ALSO**
-
-        """
+        """        
         temp = np.array(self)
         idx = np.r_[True, temp[1:] < temp[:-1]] & np.r_[temp[:-1] < temp[1:], True]
         idx = np.where(idx==True)[0]
@@ -350,15 +339,18 @@ class LineScan(list):
         """
         **SUMMARY**
 
-        
+        Resample the signal to fit into n samples. This method is
+        handy if you would like to resize multiple signals so that
+        they fit together nice. Note that using n < len(LineScan)
+        can cause data loss. 
         
         **PARAMETERS**
 
-        
+        * *n* - The number of samples to resample to. 
         
         **RETURNS**
 
-        * *degree* -
+        A LineScan object of length n. 
         
         **EXAMPLE**
 
@@ -366,10 +358,8 @@ class LineScan(list):
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> plt.plot(sl.resample(100))
         >>>> plt.show()
-
-        **SEE ALSO**
 
         """
         signal = sps.resample(self,n)
@@ -392,29 +382,37 @@ class LineScan(list):
     # need to add polyfit too
     #http://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
     def fitToModel(self,f,p0=None):
-                """
+        """
         **SUMMARY**
 
+        Fit the data to the provided model. This can be any arbitrary
+        2D signal. Return the data of the model scaled to the data. 
         
         
         **PARAMETERS**
 
-        
+        * *f* - a function of the form f(x_values, p0,p1, ... pn) where
+                p is parameter for the model.
+
+        * *p0* - a list of the initial guess for the model parameters. 
         
         **RETURNS**
 
-        * *degree* -
+        A LineScan object where the fitted model data replaces the
+        actual data. 
+
         
         **EXAMPLE**
 
+        >>>> def aLine(x,m,b):
+        >>>>     return m*x+b
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
+        >>>> fit = sl.fitToModel(aLine)
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> plt.plot(fit)
         >>>> plt.show()
-
-        **SEE ALSO**
 
         """
         yvals = np.array(self,dtype='float32')
@@ -428,29 +426,33 @@ class LineScan(list):
 
 
     def getModelParameters(self,f,p0=None):
-                """
+        """
         **SUMMARY**
 
-        
+        Fit a model to the data and then return 
         
         **PARAMETERS**
 
-        
+        * *f* - a function of the form f(x_values, p0,p1, ... pn) where
+                p is parameter for the model.
+
+        * *p0* - a list of the initial guess for the model parameters. 
         
         **RETURNS**
 
-        * *degree* -
+        The model parameters as a list. For example if you use a line
+        model y=mx+b the function returns the m and b values that fit
+        the data. 
         
         **EXAMPLE**
 
+        >>>> def aLine(x,m,b):
+        >>>>     return m*x+b
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
-        >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
-        >>>> plt.show()
-
-        **SEE ALSO**
+        >>>> p = sl.getModelParameters(aLine)
+        >>>> print p
 
         """
         yvals = np.array(self,dtype='float32')
@@ -462,23 +464,28 @@ class LineScan(list):
         """
         **SUMMARY**
 
-        
+        Convolve the line scan with a one dimenisional kernel stored as
+        a list. This allows you to create an arbitrary filter for the signal.
         
         **PARAMETERS**
 
-        
+        * *kernel* - An Nx1 list or np.array that defines the kernel.
         
         **RETURNS**
 
-        * *degree* -
+        A LineScan feature with the kernel applied. We crop off
+        the fiddly bits at the end and the begining of the kernel
+        so everything lines up nicely. 
         
         **EXAMPLE**
 
         >>>> import matplotlib.pyplot as plt
+        >>>> smooth_kernel = [0.1,0.2,0.4,0.2,0.1]
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
+        >>>> out = sl.convolve(smooth_kernel)
         >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> plt.plot(out)
         >>>> plt.show()
 
         **SEE ALSO**
@@ -491,7 +498,7 @@ class LineScan(list):
         else:
             kl = (k-1)/2
             kt = kl
-        out = np.convolve(self,kernel)
+        out = np.convolve(self,np.array(kernel,dtype='float32'))
         out = out[kt:-1*kl]
         retVal = LineScan(out)
         retVal.image = self.image
@@ -499,34 +506,27 @@ class LineScan(list):
         return retVal
 
     def fft(self):
-                """
+        """
         **SUMMARY**
 
-        
-        
-        **PARAMETERS**
-
+        Perform a Fast Fourier Transform on the line scan and return
+        the FFT output and the frequency of each value. 
         
         
         **RETURNS**
 
-        * *degree* -
+        The FFT as a numpy array of irrational numbers and a one dimensional
+        list of frequency values. 
         
         **EXAMPLE**
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> sl = img.getLineScan(y=128)
-        >>>> plt.plot(sl)
-        >>>> plt.plot(sl.smooth)
+        >>>> fft,freq = sl.fft()
+        >>>> plt.plot(freq,fft.real,freq,fft.imag)
         >>>> plt.show()
 
-        **SEE ALSO**
-
-        return the fft and the frequency values
-
-        # we may want a log plot 
-        plt.plot(freq,fft.real,freq,fft.imag)
         """
         signal = np.array(self,dtype='float32')
         fft = np.fft.fft(signal)
@@ -538,26 +538,30 @@ class LineScan(list):
         """
         **SUMMARY**
 
+        Perform an inverse fast Fourier transform on the provided
+        irrationally valued signal and return the results as a
+        LineScan. 
         
         
         **PARAMETERS**
 
-        
+        * *fft* - A one dimensional numpy array of irrational values
+                  upon which we will perform the IFFT.
         
         **RETURNS**
-
-        * *degree* -
+        
+        A LineScan object of the reconstructed signal.
         
         **EXAMPLE**
 
-        SimpleCV:1> img = Image('lenna')
-        SimpleCV:2> sl = img.getLineScan(pt1=(0,0),pt2=(300,200))
-        SimpleCV:3> fft,frq = sl.fft()
-        SimpleCV:4> fft[30:] = 0 # low pass
-        SimpleCV:5> sl2 = sl.ifft(fft)
-        SimpleCV:6> import matplotlib.pyplot as plt
-        SimpleCV:7> plt.plot(sl)
-        SimpleCV:8> plt.plot(sl2)
+        >>>> img = Image('lenna')
+        >>>> sl = img.getLineScan(pt1=(0,0),pt2=(300,200))
+        >>>> fft,frq = sl.fft()
+        >>>> fft[30:] = 0 # low pass filter
+        >>>> sl2 = sl.ifft(fft)
+        >>>> import matplotlib.pyplot as plt
+        >>>> plt.plot(sl)
+        >>>> plt.plot(sl2)
         """
         signal = np.fft.ifft(fft)
         retVal = LineScan(signal.real)
