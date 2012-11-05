@@ -54,6 +54,13 @@ class FeatureSet(list):
         Deprecated since python 2.0, now using __getitem__
         """
         return self.__getitem__(slice(i,j))
+
+    def count(self):
+      '''
+      This function returns the length / count of the all the items in the FeatureSet
+      '''
+
+      return len(self)
         
     def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
@@ -2246,5 +2253,8 @@ class Feature(object):
         if( counter % 2 == 0 ):
             retVal = False
         return retVal
+
+
+
 
 #--------------------------------------------- 
