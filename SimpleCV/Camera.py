@@ -868,9 +868,8 @@ class VirtualCamera(FrameSource):
                       max_full_path = os.path.abspath(os.path.join(dirname, fname))
         
         #if file is being written, block until mtime is at least 100ms old
-        
         while time.mktime(time.localtime()) - os.stat(max_full_path).st_mtime < 0.1:
-            sleep(0)
+            time.sleep(0)
         
         return max_full_path
  
