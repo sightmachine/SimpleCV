@@ -2882,7 +2882,6 @@ def sliceinImageSet():
         assert False  
 
 
-  
 def test_upload_dropbox():
     try:
        import dropbox
@@ -2988,3 +2987,4 @@ def test_LineScan():
     ls = img.getLineScan(pt1 = (0,0), pt2=(128,128))
     lsstuff(ls)
     pass
+

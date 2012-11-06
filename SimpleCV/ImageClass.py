@@ -441,10 +441,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
                 return
             from IPython.core import display as Idisplay
             for i in self:
-                tf = tempfile.NamedTemporaryFile(suffix=".png")
-                loc = '/tmp/' + tf.name.split('/')[-1]
-                tf.close()
-                i.save(loc)
+                loc = i.save(temp=True, cleanTemp=True)
                 Idisplay.display(IPImage(filename=loc))
                 return
         else:
@@ -2215,10 +2212,7 @@ class Image:
                     return
 
                   from IPython.core import display as Idisplay
-                  tf = tempfile.NamedTemporaryFile(suffix=".png")
-                  loc = '/tmp/' + tf.name.split('/')[-1]
-                  tf.close()
-                  self.save(loc)
+                  loc = self.save(temp=True, cleanTemp=True)
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
