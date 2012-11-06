@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
+import time
 
 #Globals
 _cameras = [] 
@@ -608,6 +609,7 @@ class VirtualCamera(FrameSource):
     """
     source = ""
     sourcetype = ""
+    lastmtime = 0
   
     def __init__(self, s, st, start=1):
         """
@@ -862,8 +864,12 @@ class VirtualCamera(FrameSource):
                       max_mtime = mtime
                       max_dir = dirname
                       max_file = fname
+                      self.lastmtime = mtime
                       max_full_path = os.path.abspath(os.path.join(dirname, fname))
-
+        
+        #if file is being written, block until mtime is at least 100ms old
+        while time.mktime(time.localtime()) - os.stat(max_full_path).st_mtime < 0.1:
+            time.sleep(0)
         
         return max_full_path
  
