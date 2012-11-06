@@ -441,7 +441,10 @@ Valid options: 'thumb', 'small', 'medium', 'large'
                 return
             from IPython.core import display as Idisplay
             for i in self:
-                loc = i.save(temp=True, cleanTemp=True)
+                tf = tempfile.NamedTemporaryFile(suffix=".png")
+                loc = '/tmp/' + tf.name.split('/')[-1]
+                tf.close()
+                i.save(loc)
                 Idisplay.display(IPImage(filename=loc))
                 return
         else:
@@ -2212,7 +2215,10 @@ class Image:
                     return
 
                   from IPython.core import display as Idisplay
-                  loc = self.save(temp=True, cleanTemp=True)
+                  tf = tempfile.NamedTemporaryFile(suffix=".png")
+                  loc = '/tmp/' + tf.name.split('/')[-1]
+                  tf.close()
+                  self.save(loc)
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
@@ -8327,9 +8333,21 @@ class Image:
             derp = palette[result[0]]
             retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
             retVal = retVal.rotate(-90,fixed=False)
+            retVal._mDoHuePalette = True
+            retVal._mPaletteBins = len(palette)
+            retVal._mPalette = palette
+            pixels = np.array(self.getNumpy()).reshape(-1, 3)
+            retVal._mPaletteMembers = scv.vq(pixels,palette)[0]
+
         else:
             result = scv.vq(self.getNumpy().reshape(-1,3),palette)
             retVal = Image(palette[result[0]].reshape(self.width,self.height,3))
+            retVal._mDoHuePalette = False
+            retVal._mPaletteBins = len(palette)
+            retVal._mPalette = palette
+            pixels = np.array(self.getNumpy()).reshape(-1, 3)
+            retVal._mPaletteMembers = scv.vq(pixels,palette)[0]
+
         return retVal
 
     def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
