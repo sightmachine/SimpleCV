@@ -8157,7 +8157,7 @@ class Image:
 
 
     
-    def _generatePalette(self,bins,hue):
+    def _generatePalette(self,bins,hue, centroids = None):
         """
         **SUMMARY**
 
@@ -8169,9 +8169,10 @@ class Image:
 
         **PARAMETERS**
 
-        bins - an integer number of bins into which to divide the colors in the image.
-        hue  - if hue is true we do only cluster on the image hue values. 
-
+        * *bins* - an integer number of bins into which to divide the colors in the image.
+        * *hue* - if hue is true we do only cluster on the image hue values. 
+        * *centroids* - A list of tuples that are the initial k-means estimates. This is handy if you want consisten results from the palettize.
+        
         **RETURNS**
 
         Nothing, but creates the image's cached values for: 
@@ -8213,8 +8214,15 @@ class Image:
             result = None
             if( not hue ):
                 pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
-                result = scv.kmeans2(pixels,bins)
-
+                if( centroids == None ):
+                    result = scv.kmeans(pixels,bins)
+                else:
+                    if(isinstance(centroids,list)):
+                        centroids = np.array(centroids,dtype='uint8')
+                    result = scv.kmeans(pixels,centroids)
+                    
+                self._mPaletteMembers = scv.vq(pixels,result[0])[0]                                
+                                
             else:
                 hsv = self
                 if( self._colorSpace != ColorSpace.HSV ):
@@ -8224,22 +8232,30 @@ class Image:
                 cv.Split(hsv.getBitmap(),None,None,h,None)
                 mat =  cv.GetMat(h)
                 pixels = np.array(mat).reshape(-1,1)
-                result = scv.kmeans2(pixels,bins)                
+                
+                if( centroids == None ):
+                    result = scv.kmeans(pixels,bins)                
+                else:
+                    if(isinstance( centroids,list)):
+                        centroids = np.array( centroids,dtype='uint8')
+                        centroids = centroids.reshape(centroids.shape[0],1)
+                    result = scv.kmeans(pixels,centroids)
+                    
+                self._mPaletteMembers = scv.vq(pixels,result[0])[0]
 
-
+                    
             for i in range(0,bins):
-                count = np.where(result[1]==i)
+                count = np.where(self._mPaletteMembers==i)
                 v = float(count[0].shape[0])/total
                 percentages.append(v)
 
             self._mDoHuePalette = hue
             self._mPaletteBins = bins
             self._mPalette = np.array(result[0],dtype='uint8')
-            self._mPaletteMembers = result[1]
             self._mPalettePercentages = percentages
 
 
-    def getPalette(self,bins=10,hue=False):
+    def getPalette(self,bins=10,hue=False,centroids=None):
         """
         **SUMMARY**
 
@@ -8250,7 +8266,8 @@ class Image:
 
         * *bins* - an integer number of bins into which to divide the colors in the image.
         * *hue*  - if hue is true we do only cluster on the image hue values. 
-
+        * *centroids* - A list of tuples that are the initial k-means estimates. This is handy if you want consisten results from the palettize.
+        
         **RETURNS**
 
         A numpy array of the BGR color tuples. 
@@ -8280,7 +8297,7 @@ class Image:
         :py:meth:`findBlobsFromPalette`
         
         """
-        self._generatePalette(bins,hue)
+        self._generatePalette(bins,hue,centroids)
         return self._mPalette
 
 
@@ -8336,8 +8353,7 @@ class Image:
             retVal._mDoHuePalette = True
             retVal._mPaletteBins = len(palette)
             retVal._mPalette = palette
-            pixels = np.array(self.getNumpy()).reshape(-1, 3)
-            retVal._mPaletteMembers = scv.vq(pixels,palette)[0]
+            retVal._mPaletteMembers = result[0]
 
         else:
             result = scv.vq(self.getNumpy().reshape(-1,3),palette)
@@ -8348,6 +8364,13 @@ class Image:
             pixels = np.array(self.getNumpy()).reshape(-1, 3)
             retVal._mPaletteMembers = scv.vq(pixels,palette)[0]
 
+        percentages = []
+        total = self.width*self.height
+        for i in range(0,len(palette)):
+            count = np.where(self._mPaletteMembers==i)
+            v = float(count[0].shape[0])/total
+            percentages.append(v)
+        self._mPalettePercentages = percentages 
         return retVal
 
     def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
@@ -8472,7 +8495,7 @@ class Image:
                  
         return retVal 
 
-    def palettize(self,bins=10,hue=False):
+    def palettize(self,bins=10,hue=False,centroids=None):
         """
         **SUMMARY**
 
@@ -8517,7 +8540,7 @@ class Image:
 
         """
         retVal = None
-        self._generatePalette(bins,hue)
+        self._generatePalette(bins,hue,centroids)
         if( hue ):
             derp = self._mPalette[self._mPaletteMembers]
             retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])

@@ -1841,6 +1841,8 @@ def test_palettize():
   img = Image(testimageclr)
   img2 = img.palettize(bins=20,hue=False)
   img3 = img.palettize(bins=3,hue=True)
+  img4 = img.palettize(centroids=[Color.WHITE,Color.RED,Color.BLUE,Color.GREEN,Color.BLACK])
+  img4 = img.palettize(hue=True,centroids=[(0),(30),(60),(180)])
   #UHG@! can't diff because of the kmeans initial conditions causes
   # things to bounce around... otherwise we need to set a friggin huge tolerance
 
