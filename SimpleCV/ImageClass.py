@@ -5479,8 +5479,8 @@ class Image:
         img = Image(retVal, colorSpace=self._colorSpace)
 
         #Buffering the top left point (x, y) in a image.
-        img._uncroppedX = int(x)
-        img._uncroppedY = int(y) 
+        img._uncroppedX += int(x)
+        img._uncroppedY += int(y) 
         return img
             
     def regionSelect(self, x1, y1, x2, y2 ):
