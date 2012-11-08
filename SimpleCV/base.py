@@ -62,14 +62,16 @@ except ImportError:
 #optional libraries
 PIL_ENABLED = True
 try:
-    import Image as pil
-    from Image.GifImagePlugin import getheader, getdata
+    from PIL import Image as pil
+    from PIL import ImageFont as pilImageFont
+    from PIL import ImageDraw as pilImageDraw
+    from PIL import GifImagePlugin 
+    getheader = GifImagePlugin.getheader
+    getdata   = GifImagePlugin.getdata
 except ImportError:
     try:
-        import PIL.Image as pil
-        from PIL import ImageFont as pilImageFont
-        from PIL import ImageDraw as pilImageDraw
-        from PIL.GifImagePlugin import getheader, getdata
+        import Image as pil
+        from GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 
