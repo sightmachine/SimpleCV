@@ -804,8 +804,11 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-        "_pgsurface": ""}  
-    
+        "_pgsurface": ""}
+
+    #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
+    _uncroppedX = 0
+    _uncroppedY = 0 
    
     def __repr__(self):
         if len(self.filename) == 0:
@@ -5461,8 +5464,7 @@ class Image:
             rectangle = (int(x-(w/2)), int(y-(h/2)), int(w), int(h))
         else:
             rectangle = (int(x), int(y), int(w), int(h))
-    
-
+        
         (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
 
         if( bottomROI is None ):
@@ -5474,7 +5476,12 @@ class Image:
         cv.SetImageROI(self.getBitmap(), bottomROI)
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
-        return Image(retVal, colorSpace=self._colorSpace)
+        img = Image(retVal, colorSpace=self._colorSpace)
+
+        #Buffering the top left point (x, y) in a image.
+        img._uncroppedX = self._uncroppedX + int(x)
+        img._uncroppedY = self._uncroppedY + int(y) 
+        return img
             
     def regionSelect(self, x1, y1, x2, y2 ):
         """
@@ -11560,12 +11567,29 @@ class Image:
         coords.append((x2,y2))
         return coords
 
-Image.greyscale = Image.grayscale
+    def uncrop(self, ListofPts): #(x,y),(x2,y2)):
+        """
+        **SUMMARY**
+        
+        This function allows us to translate a set of points from the crop window back to the coordinate of the source window.
+        
+        **PARAMETERS**
 
+        * *ListofPts* - set of points from cropped image. 
+        
+        **RETURNS**
+
+        Returns a list of coordinates in the source image.
+
+        **EXAMPLE**
+
+        >> img = Image('lenna')
+        >> croppedImg = img.crop(10,20,250,500)
+        >> sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
+        """
+        return [(i[0]+self._uncroppedX,i[1]+self._uncroppedY)for i in ListofPts]
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
-
-
