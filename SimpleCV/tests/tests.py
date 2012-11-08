@@ -2988,3 +2988,9 @@ def test_LineScan():
     lsstuff(ls)
     pass
 
+def test_uncrop():
+  img = Image('lenna')
+  croppedImg = img.crop(10,20,250,500)
+  sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
+  if sourcePts:
+      pass
