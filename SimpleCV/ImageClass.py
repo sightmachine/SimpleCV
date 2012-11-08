@@ -807,8 +807,8 @@ class Image:
         "_pgsurface": ""}
 
     #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
-    _uncroppedX = None
-    _uncroppedY = None 
+    _uncroppedX = 0
+    _uncroppedY = 0 
    
     def __repr__(self):
         if len(self.filename) == 0:
