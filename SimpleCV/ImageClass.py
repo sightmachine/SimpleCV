@@ -10936,7 +10936,7 @@ class Image:
             retVal = self.mergeChannels(b,g,r)
         return retVal
         
-    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3):
+    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3, nframes=300):
         """
         **DESCRIPTION**
 
@@ -10953,6 +10953,7 @@ class Image:
         * *bb* - tuple - Bounding Box tuple (x, y, w, h)
         * *num_frames* - int - Number of previous frames to be used for 
                                Forward Backward Error
+        * *nframes* - int - Number of frames to be stored in the TrackSet
 
         **RETURNS**
 
@@ -11028,6 +11029,10 @@ class Image:
             for i in img:
                 ts = i.track(method, ts, num_frames=num_frames)
             return ts
+            
+        # Issue #256 - (Bug) Memory management issue due to too many number of images.
+        if len(ts) > nframes:
+            ts.trimList(50)
         
         if method.lower() == "camshift":
             hsv = self.toHSV().getNumpyCv2()
@@ -11146,7 +11151,7 @@ class Image:
 Image.greyscale = Image.grayscale
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
