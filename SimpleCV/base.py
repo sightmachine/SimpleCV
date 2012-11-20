@@ -33,6 +33,7 @@ import platform
 import copy
 import types
 import time
+import itertools #for track
 
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
