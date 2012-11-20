@@ -63,6 +63,31 @@ class TrackSet(FeatureSet):
         self.__correctKalman()
         f.predict_pt = self.predict_pt
         f.state_pt = self.state_pt
+        
+    # Issue #256 - (Bug) Memory management issue due to too many number of images.
+    def trimList(self, num):
+        """
+        **SUMMARY**
+
+        Trims the TrackSet(lists of all the saved objects) to save memory. It is implemented in
+        Image.track() by default, but if you want to trim the list manually, use this.
+
+        **RETURNS**
+        
+        Nothing.
+
+        **EXAMPLE**
+
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("camshift", ts1, img, bb)
+            ... if len(ts) > 30:
+                ... ts.trimList(10)
+            ... img = img1
+        """
+        ts = self
+        for i in range(num):
+            ts.pop(0)
     
     def areaRatio(self):
         """
