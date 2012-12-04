@@ -11626,6 +11626,7 @@ class Image:
         step_col = self.size()[0]/dimensions[1]
         i = 1
         j = 1
+        
         gridLayer = DrawingLayer(self.size()) #add a new layer for grid
         while( (i < dimensions[0]) and (j < dimensions[1]) ):
             if( i < dimensions[0] ):
