@@ -11593,6 +11593,52 @@ class Image:
         >> sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
         """
         return [(i[0]+self._uncroppedX,i[1]+self._uncroppedY)for i in ListofPts]
+    
+    def grid(self,dimensions=(10,10), color=(0, 0, 0), width=1, antialias=True, alpha=-1):
+        
+        
+        """
+        **SUMMARY**
+        
+        Draw a grid on the image 
+
+        **PARAMETERS**
+
+        * *dimensions* - No of rows and cols as an (rows,xols) tuple or list.
+        * *color* - Grid's color as a tuple or list.
+        * *width* - The grid line width in pixels.
+        * *antialias* - Draw an antialiased object
+        * *aplha* - The alpha blending for the object. If this value is -1 then the
+                            layer default value is used. A value of 255 means opaque, while 0 means transparent.
+
+        **RETURNS**
+
+        Returns the index of the drawing layer of the grid
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> img.grid((20,20),(255,0,0),1,True,0)
+        """
+        
+        step_row = self.size()[1]/dimensions[0]
+        step_col = self.size()[0]/dimensions[1]
+        i = 1
+        j = 1
+        
+        gridLayer = DrawingLayer(self.size()) #add a new layer for grid
+        while( (i < dimensions[0]) and (j < dimensions[1]) ):
+            if( i < dimensions[0] ):
+                gridLayer.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
+                i = i + 1
+            if( j < dimensions[1] ):
+                gridLayer.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
+                j = j + 1
+        gridIndex = self.addDrawingLayer(gridLayer) # store grid layer index
+        
+        return gridIndex
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer
