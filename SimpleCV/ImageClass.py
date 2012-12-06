@@ -11693,9 +11693,13 @@ class Image:
         >>>> img.grid([20,20],(255,0,0))
         >>>> img.grid((20,20),(255,0,0),1,True,0)
         """
-        
-        step_row = self.size()[1]/dimensions[0]
-        step_col = self.size()[0]/dimensions[1]
+        imgTemp = self.copy()
+        try:
+            step_row = self.size()[1]/dimensions[0]
+            step_col = self.size()[0]/dimensions[1]
+        except ZeroDivisionError:
+            return imgTemp
+            
         i = 1
         j = 1
         
@@ -11707,9 +11711,9 @@ class Image:
             if( j < dimensions[1] ):
                 gridLayer.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        gridIndex = self.addDrawingLayer(gridLayer) # store grid layer index
+        gridIndex = imgTemp.addDrawingLayer(gridLayer) # store grid layer index
         
-        return gridIndex
+        return imgTemp
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK

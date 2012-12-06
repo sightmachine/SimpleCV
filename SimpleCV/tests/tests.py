@@ -68,11 +68,11 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
     fname = standard_path+name_stem+str(idx)+".jpg"
     rhs = Image(fname)
     if( lhs.width == rhs.width and lhs.height == rhs.height ):
-      diff = (lhs-rhs)
-      val = np.average(diff.getNumpy())
-      if( val > tolerance ):
-        print val
-        return True
+        diff = (lhs-rhs)
+        val = np.average(diff.getNumpy())
+        if( val > tolerance ):
+            print val
+            return True        
   return False
 
 #Save a list of images to a standard path.
@@ -2996,3 +2996,12 @@ def test_uncrop():
   sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
   if sourcePts:
       pass
+
+def test_grid():
+    img = Image("simplecv")
+    img1 = img.grid((10,10),(0,255,0),1)
+    img2 = img.grid((20,20),(255,0,255),1)
+    img3 = img.grid((20,20),(255,0,255),2)
+    result = [img1,img2,img3]
+    name_stem = "test_image_grid"
+    perform_diff(result,name_stem,12.0)
