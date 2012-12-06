@@ -69,7 +69,7 @@ class FeatureSet(list):
         Call the draw() method on each feature in the FeatureSet. 
 
         **PARAMETERS**
-        
+       ` 
         * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
         * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature. 
@@ -1541,7 +1541,7 @@ class Feature(object):
         >>> print blobs[-1].boundingBox()
         
         **TO DO**
-
+        
         Make the order of points go from the top left glockwise.
 
         """

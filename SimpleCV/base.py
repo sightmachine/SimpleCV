@@ -82,6 +82,12 @@ try:
 except ImportError:
     FREENECT_ENABLED = False
 
+ZXING_ENABLED = True
+try:
+    import zxing
+except ImportError:
+    ZXING_ENABLED = False    
+    
 OCR_ENABLED = True
 try:
     import tesseract
