@@ -7610,11 +7610,12 @@ class Image:
             new_version = 0
             #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
             if not ver.startswith('$Rev:'):
-	        if int(ver.replace('.','0'))>=20400 :
-                    new_version = 1
-                if int(ver.replace('.','0'))>=20402 :     
-                    new_version = 2
-                    
+              if int(ver.replace('.','0'))>=20400:
+                 new_version = 1
+              if int(ver.replace('.','0'))>=20402:
+                 new_version = 2
+              if int(ver.replace('.','0'))>=20403:
+                 new_version = 3    
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
@@ -7622,11 +7623,11 @@ class Image:
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-            
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+        
+        if( not(self._mKeyPoints) or self._mKPFlavor != flavor ):
             if ( new_version == 0):
                 if( flavor == "SURF" ):
-                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1)
                     self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
                     if( len(self._mKPDescriptors) == 0 ):
                         return None, None                     
@@ -7659,10 +7660,9 @@ class Image:
                     self._mKPDescriptors = None
                     self._mKPFlavor = "STAR"
                     del starer
-            
-            
-            elif( new_version == 2 and flavor in ["SURF", "FAST"] ): 
-                if( flavor == "SURF" ):
+
+            elif( new_version >= 2 and flavor in ["SURF", "FAST"] ): 
+                if( flavor == "SURF" and new_version==2):
                     surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
                     #mask = self.getGrayNumpy()                    
                     #mask.fill(255) 
@@ -7678,6 +7678,20 @@ class Image:
                     self._mKPFlavor = "SURF"
                     del surfer
             
+                if( flavor == "SURF" and new_version==3):
+                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detectAndCompute(self.getGrayNumpy(),None,useProvidedKeypoints = False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+
                 elif( flavor == "FAST" ):
                     faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                     self._mKeyPoints = faster.detect(self.getGrayNumpy())
@@ -7693,19 +7707,19 @@ class Image:
                if( len(self._mKPDescriptors) == 0 ):
                     return None, None     
                self._mKPFlavor = flavor
-	       del FeatureDetector
+               del FeatureDetector
 
             elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
                FeatureDetector = cv2.FeatureDetector_create(flavor)
                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                self._mKPDescriptors = None
                self._mKPFlavor = flavor
-               del FeatureDetector   
-               
-	    else:
-                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
-                return None, None
-
+               del FeatureDetector
+        
+            else:
+               logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
+               return None, None
+        
         return self._mKeyPoints,self._mKPDescriptors 
 
     def _getFLANNMatches(self,sd,td):
