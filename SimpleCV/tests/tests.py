@@ -3005,3 +3005,10 @@ def test_grid():
     result = [img1,img2,img3]
     name_stem = "test_image_grid"
     perform_diff(result,name_stem,12.0)
+
+def test_cluster():
+  img = Image("lenna")
+  blobs = img.findBlobs()
+  clusters = blobs.cluster(method="kmeans",k=5,properties=["color"])
+  if clusters:
+      pass
