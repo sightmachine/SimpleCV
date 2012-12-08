@@ -114,7 +114,8 @@ Commands (for Lion)::
     /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
     brew install opencv
     brew install git
-    brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi 
+    brew install --HEAD smpeg
+    brew install sdl sdl_image sdl_mixer sdl_ttf portmidi 
     ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
     ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
