@@ -102,7 +102,7 @@ Steps:
 * Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak), plus the SDL dependencies for pygame
 *  Homebrew puts the libraries in /usr/local/lib/, which by default isn't in the python sys.path -- either add it, or link the files
 * Install scipy superpack for Mac OSX http://fonnesbeck.github.com/ScipySuperpack/
-* easy_install pip and use pip install pygame
+* easy_install pip, install mercurial and use pip install pygame
 * clone simplecv and python setup.py install
 
 Before you do these you must install XCode from the App Store and run the installer!  I'd also run these someplace you don't mind dumping a little code:
@@ -122,6 +122,7 @@ Commands (for Lion)::
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv.py /Library/Python/2.7/site-packages/cv.py
     sudo easy_install pip
+    brew install hg
     sudo pip install hg+http://bitbucket.org/pygame/pygame
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh && source install_superpack.sh
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
@@ -140,6 +141,7 @@ Commands (for Snow Leopard)::
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
     sudo easy_install pip
+    brew install hg
     sudo pip install https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.zip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
