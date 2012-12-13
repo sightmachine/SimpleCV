@@ -516,7 +516,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
         return loaded
         
-    def load(self, directory = None, extension = None):
+    def load(self, directory = None, extension = None, sort_by=None):
         """
         **SUMMARY**
         
@@ -531,6 +531,12 @@ Valid options: 'thumb', 'small', 'medium', 'large'
     
         * *directory* - The path or directory from which to load images. 
         * *extension* - The extension to use. If none is given png is the default.
+        * *sort_by* - Sort the directory based on one of the following parameters passed as strings.
+          * *time* - the modification time of the file.
+          * *name* - the name of the file.
+          * *size* - the size of the file.
+
+          The default behavior is to leave the directory unsorted. 
 
         **RETURNS**
         
@@ -561,22 +567,34 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       
         file_set = [glob.glob(p) for p in formats]
-
-        self.filelist = dict()
-
+        full_set = []
         for f in file_set:
             for i in f:
-                tmp = None
-                try:
-                    tmp = Image(i)
-                    if( tmp is not None and tmp.width > 0 and tmp.height > 0):
-                        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                            self.filelist[tmp.filename.split('\\')[-1]] = tmp
-                        else:
-                            self.filelist[tmp.filename.split('/')[-1]] = tmp
-                        self.append(tmp)
-                except:
-                    continue
+                full_set.append(i)
+
+        file_set = full_set
+        if(sort_by is not None):
+            if( sort_by.lower() == "time"):
+                file_set = sorted(file_set,key=os.path.getmtime)
+            if( sort_by.lower() == "name"):
+                file_set = sorted(file_set)
+            if( sort_by.lower() == "size"):
+                file_set = sorted(file_set,key=os.path.getsize)
+        
+        self.filelist = dict()
+        
+        for i in file_set:
+            tmp = None
+            try:
+                tmp = Image(i)
+                if( tmp is not None and tmp.width > 0 and tmp.height > 0):
+                    if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                        self.filelist[tmp.filename.split('\\')[-1]] = tmp
+                    else:
+                        self.filelist[tmp.filename.split('/')[-1]] = tmp
+                    self.append(tmp)
+            except:
+                continue
         return len(self)
 
     def standardize(self,width,height):
