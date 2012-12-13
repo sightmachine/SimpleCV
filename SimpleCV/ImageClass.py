@@ -83,24 +83,22 @@ class ImageSet(list):
 
     filelist = None
     def __init__(self, directory = None):
-
-      if not directory:
-          return
-      if directory.lower() == 'samples' or directory.lower() == 'sample':
-        #~ import pdb
-        #~ pdb.set_trace()
-        pth = __file__
-        
-        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-          pth = pth.split('\\')[-2]
+        if not directory:
+            return
+        if isinstance(directory,list):
+            super(ImageSet,self).__init__(directory)
+        elif directory.lower() == 'samples' or directory.lower() == 'sample':
+            pth = __init__file__
+            
+            if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                pth = pth.split('\\')[-2]
+            else:
+                pth = pth.split('/')[-2]
+            pth = os.path.realpath(pth)
+            directory = os.path.join(pth, 'sampleimages')
+            self.load(directory)
         else:
-          pth = pth.split('/')[-2]
-        pth = os.path.realpath(pth)
-        directory = os.path.join(pth, 'sampleimages')
-
-          
-      self.load(directory)
-
+            self.load(directory)
 
     def download(self, tag=None, number=10, size='thumb'):
       """
@@ -517,6 +515,7 @@ Valid options: 'thumb', 'small', 'medium', 'large'
             loaded += 1
 
         return loaded
+        
     def load(self, directory = None, extension = None):
         """
         **SUMMARY**
@@ -705,13 +704,26 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         return retVal
     
 
-    def __getslice__(self,i,j,k=1):
-        if ( j > len(self)):
-            j = len(self)
-        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
-        for rm in rmSet :
-            del(self[rm])
-        return self    
+    def __getitem__(self,key):
+        """
+        **SUMMARY**
+
+        Returns a ImageSet when sliced. Previously used to
+        return list. Now it is possible to ImageSet member
+        functions on sub-lists
+
+        """
+        if type(key) is types.SliceType: #Or can use 'try:' for speed
+            return ImageSet(list.__getitem__(self, key))
+        else:
+            return list.__getitem__(self,key)
+        
+    def __getslice__(self, i, j):
+        """
+        Deprecated since python 2.0, now using __getitem__
+        """
+        return self.__getitem__(slice(i,j))
+
   
 class Image:
     """
@@ -5652,7 +5664,7 @@ class Image:
         **EXAMPLE**
         
         >>> img = Image("lenna")
-        >>> img.writeText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontSize=48)
+        >>> img.drawText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontsize=48)
         >>> img.show()
 
         **SEE ALSO**
