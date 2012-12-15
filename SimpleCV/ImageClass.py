@@ -83,24 +83,22 @@ class ImageSet(list):
 
     filelist = None
     def __init__(self, directory = None):
-
-      if not directory:
-          return
-      if directory.lower() == 'samples' or directory.lower() == 'sample':
-        #~ import pdb
-        #~ pdb.set_trace()
-        pth = __file__
-        
-        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-          pth = pth.split('\\')[-2]
+        if not directory:
+            return
+        if isinstance(directory,list):
+            super(ImageSet,self).__init__(directory)
+        elif directory.lower() == 'samples' or directory.lower() == 'sample':
+            pth = __init__file__
+            
+            if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                pth = pth.split('\\')[-2]
+            else:
+                pth = pth.split('/')[-2]
+            pth = os.path.realpath(pth)
+            directory = os.path.join(pth, 'sampleimages')
+            self.load(directory)
         else:
-          pth = pth.split('/')[-2]
-        pth = os.path.realpath(pth)
-        directory = os.path.join(pth, 'sampleimages')
-
-          
-      self.load(directory)
-
+            self.load(directory)
 
     def download(self, tag=None, number=10, size='thumb'):
       """
@@ -517,7 +515,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
             loaded += 1
 
         return loaded
-    def load(self, directory = None, extension = None):
+        
+    def load(self, directory = None, extension = None, sort_by=None):
         """
         **SUMMARY**
         
@@ -532,6 +531,12 @@ Valid options: 'thumb', 'small', 'medium', 'large'
     
         * *directory* - The path or directory from which to load images. 
         * *extension* - The extension to use. If none is given png is the default.
+        * *sort_by* - Sort the directory based on one of the following parameters passed as strings.
+          * *time* - the modification time of the file.
+          * *name* - the name of the file.
+          * *size* - the size of the file.
+
+          The default behavior is to leave the directory unsorted. 
 
         **RETURNS**
         
@@ -562,22 +567,34 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       
         file_set = [glob.glob(p) for p in formats]
-
-        self.filelist = dict()
-
+        full_set = []
         for f in file_set:
             for i in f:
-                tmp = None
-                try:
-                    tmp = Image(i)
-                    if( tmp is not None and tmp.width > 0 and tmp.height > 0):
-                        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                            self.filelist[tmp.filename.split('\\')[-1]] = tmp
-                        else:
-                            self.filelist[tmp.filename.split('/')[-1]] = tmp
-                        self.append(tmp)
-                except:
-                    continue
+                full_set.append(i)
+
+        file_set = full_set
+        if(sort_by is not None):
+            if( sort_by.lower() == "time"):
+                file_set = sorted(file_set,key=os.path.getmtime)
+            if( sort_by.lower() == "name"):
+                file_set = sorted(file_set)
+            if( sort_by.lower() == "size"):
+                file_set = sorted(file_set,key=os.path.getsize)
+        
+        self.filelist = dict()
+        
+        for i in file_set:
+            tmp = None
+            try:
+                tmp = Image(i)
+                if( tmp is not None and tmp.width > 0 and tmp.height > 0):
+                    if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                        self.filelist[tmp.filename.split('\\')[-1]] = tmp
+                    else:
+                        self.filelist[tmp.filename.split('/')[-1]] = tmp
+                    self.append(tmp)
+            except:
+                continue
         return len(self)
 
     def standardize(self,width,height):
@@ -705,13 +722,26 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         return retVal
     
 
-    def __getslice__(self,i,j,k=1):
-        if ( j > len(self)):
-            j = len(self)
-        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
-        for rm in rmSet :
-            del(self[rm])
-        return self    
+    def __getitem__(self,key):
+        """
+        **SUMMARY**
+
+        Returns a ImageSet when sliced. Previously used to
+        return list. Now it is possible to ImageSet member
+        functions on sub-lists
+
+        """
+        if type(key) is types.SliceType: #Or can use 'try:' for speed
+            return ImageSet(list.__getitem__(self, key))
+        else:
+            return list.__getitem__(self,key)
+        
+    def __getslice__(self, i, j):
+        """
+        Deprecated since python 2.0, now using __getitem__
+        """
+        return self.__getitem__(slice(i,j))
+
   
 class Image:
     """
@@ -4574,16 +4604,74 @@ class Image:
             self.__dict__[k] = v
 
 
-    def findBarcode(self):
+    def findBarcode(self,doZLib=True,zxing_path=""):
         """
         **SUMMARY**
-        This function requires zbar and the zbar python wrapper to be installed.
+
+        This function requires zbar and the zbar python wrapper
+        to be installed or zxing and the zxing python library.
+
+        **ZBAR**
 
         To install please visit:
         http://zbar.sourceforge.net/
 
         On Ubuntu Linux 12.04 or greater:
         sudo apt-get install python-zbar
+
+
+        **ZXING**
+        
+        If you have the python-zxing library installed, you can find 2d and 1d
+        barcodes in your image.  These are returned as Barcode feature objects
+        in a FeatureSet.  The single parameter is the ZXing_path along with
+        setting the doZLib flag to False. You do not need the parameter if you 
+        don't have the ZXING_LIBRARY env parameter set.
+
+        You can clone python-zxing at:
+
+        http://github.com/oostendo/python-zxing
+
+        **INSTALLING ZEBRA CROSSING**
+
+        * Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
+      
+        * unpack the zip file where ever you see fit
+
+          >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
+          >>> ant -f core/build.xml
+          >>> ant -f javase/build.xml 
+        
+          This should build the library, but double check the readme
+        
+        * Get our helper library 
+
+          >>> git clone git://github.com/oostendo/python-zxing.git
+          >>> cd python-zxing
+          >>> python setup.py install
+
+        * Our library does not have a setup file. You will need to add
+           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
+        
+          export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+          for example: 
+
+          export ZXING_LIBRARY=/my/install/path/zxing-x.x/   
+        
+          On windows you will need to add these same variables to the system variable, e.g.
+          
+          http://www.computerhope.com/issues/ch000549.htm
+        
+        * On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        * Go grab some barcodes!
+
+        .. Warning::
+          Users on OSX may see the following error:
+          
+          RuntimeWarning: tmpnam is a potential security risk to your program
+          
+          We are working to resolve this issue. For normal use this should not be a problem.
         
         **Returns**
         
@@ -4602,38 +4690,52 @@ class Image:
         :py:class:`Barcode`
 
         """
-        try:
-          import zbar
-        except:
-          logger.warning('The zbar library is not installed, please install to read barcodes')
-          return None
+        if( doZLib ):
+            try:
+                import zbar
+            except:
+                logger.warning('The zbar library is not installed, please install to read barcodes')
+                return None
 
-        #configure zbar
-        scanner = zbar.ImageScanner()
-        scanner.parse_config('enable')
-        raw = self.getPIL().convert('L').tostring()
-        width = self.width
-        height = self.height
+            #configure zbar
+            scanner = zbar.ImageScanner()
+            scanner.parse_config('enable')
+            raw = self.getPIL().convert('L').tostring()
+            width = self.width
+            height = self.height
 
-        # wrap image data
-        image = zbar.Image(width, height, 'Y800', raw)
+            # wrap image data
+            image = zbar.Image(width, height, 'Y800', raw)
 
-        # scan the image for barcodes
-        scanner.scan(image)
+            # scan the image for barcodes
+            scanner.scan(image)
+            barcode = None
+            # extract results
+            for symbol in image:
+                # do something useful with results
+                barcode = symbol
+            # clean up
+            del(image)
 
-        barcode = None
-        # extract results
-        for symbol in image:
-            # do something useful with results
-            barcode = symbol
+        else:
+            if not ZXING_ENABLED:
+                warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
+                return None
+                
+            if (not self._barcodeReader):
+                if not zxing_path:
+                    self._barcodeReader = zxing.BarCodeReader()
+                else:
+                    self._barcodeReader = zxing.BarCodeReader(zxing_path)
 
-        # clean up
-        del(image)
-        
+            tmp_filename = os.tmpnam() + ".png"
+            self.save(tmp_filename)
+            barcode = self._barcodeReader.decode(tmp_filename)
+            os.unlink(tmp_filename)
+
         if barcode:
             f = Barcode(self, barcode)
             return FeatureSet([f])
-            #~ return f
         else:
             return None
 
@@ -5580,7 +5682,7 @@ class Image:
         **EXAMPLE**
         
         >>> img = Image("lenna")
-        >>> img.writeText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontSize=48)
+        >>> img.drawText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontsize=48)
         >>> img.show()
 
         **SEE ALSO**
@@ -7538,11 +7640,12 @@ class Image:
             new_version = 0
             #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
             if not ver.startswith('$Rev:'):
-	        if int(ver.replace('.','0'))>=20400 :
-                    new_version = 1
-                if int(ver.replace('.','0'))>=20402 :     
-                    new_version = 2
-                    
+              if int(ver.replace('.','0'))>=20400:
+                 new_version = 1
+              if int(ver.replace('.','0'))>=20402:
+                 new_version = 2
+              if int(ver.replace('.','0'))>=20403:
+                 new_version = 3    
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
@@ -7550,11 +7653,11 @@ class Image:
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-            
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+        
+        if( not(self._mKeyPoints) or self._mKPFlavor != flavor ):
             if ( new_version == 0):
                 if( flavor == "SURF" ):
-                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1)
                     self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
                     if( len(self._mKPDescriptors) == 0 ):
                         return None, None                     
@@ -7587,10 +7690,9 @@ class Image:
                     self._mKPDescriptors = None
                     self._mKPFlavor = "STAR"
                     del starer
-            
-            
-            elif( new_version == 2 and flavor in ["SURF", "FAST"] ): 
-                if( flavor == "SURF" ):
+
+            elif( new_version >= 2 and flavor in ["SURF", "FAST"] ): 
+                if( flavor == "SURF" and new_version==2):
                     surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
                     #mask = self.getGrayNumpy()                    
                     #mask.fill(255) 
@@ -7606,6 +7708,20 @@ class Image:
                     self._mKPFlavor = "SURF"
                     del surfer
             
+                if( flavor == "SURF" and new_version==3):
+                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detectAndCompute(self.getGrayNumpy(),None,useProvidedKeypoints = False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+
                 elif( flavor == "FAST" ):
                     faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                     self._mKeyPoints = faster.detect(self.getGrayNumpy())
@@ -7621,19 +7737,19 @@ class Image:
                if( len(self._mKPDescriptors) == 0 ):
                     return None, None     
                self._mKPFlavor = flavor
-	       del FeatureDetector
+               del FeatureDetector
 
             elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
                FeatureDetector = cv2.FeatureDetector_create(flavor)
                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                self._mKPDescriptors = None
                self._mKPFlavor = flavor
-               del FeatureDetector   
-               
-	    else:
-                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
-                return None, None
-
+               del FeatureDetector
+        
+            else:
+               logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
+               return None, None
+        
         return self._mKeyPoints,self._mKPDescriptors 
 
     def _getFLANNMatches(self,sd,td):
@@ -11593,6 +11709,56 @@ class Image:
         >> sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
         """
         return [(i[0]+self._uncroppedX,i[1]+self._uncroppedY)for i in ListofPts]
+    
+    def grid(self,dimensions=(10,10), color=(0, 0, 0), width=1, antialias=True, alpha=-1):
+        
+        
+        """
+        **SUMMARY**
+        
+        Draw a grid on the image 
+
+        **PARAMETERS**
+
+        * *dimensions* - No of rows and cols as an (rows,xols) tuple or list.
+        * *color* - Grid's color as a tuple or list.
+        * *width* - The grid line width in pixels.
+        * *antialias* - Draw an antialiased object
+        * *aplha* - The alpha blending for the object. If this value is -1 then the
+                            layer default value is used. A value of 255 means opaque, while 0 means transparent.
+
+        **RETURNS**
+
+        Returns the index of the drawing layer of the grid
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> img.grid((20,20),(255,0,0),1,True,0)
+        """
+        imgTemp = self.copy()
+        try:
+            step_row = self.size()[1]/dimensions[0]
+            step_col = self.size()[0]/dimensions[1]
+        except ZeroDivisionError:
+            return imgTemp
+            
+        i = 1
+        j = 1
+        
+        gridLayer = DrawingLayer(self.size()) #add a new layer for grid
+        while( (i < dimensions[0]) and (j < dimensions[1]) ):
+            if( i < dimensions[0] ):
+                gridLayer.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
+                i = i + 1
+            if( j < dimensions[1] ):
+                gridLayer.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
+                j = j + 1
+        gridIndex = imgTemp.addDrawingLayer(gridLayer) # store grid layer index
+        
+        return imgTemp
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer

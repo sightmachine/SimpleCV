@@ -69,7 +69,7 @@ class FeatureSet(list):
         Call the draw() method on each feature in the FeatureSet. 
 
         **PARAMETERS**
-        
+       ` 
         * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
         * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature. 
@@ -1018,6 +1018,66 @@ class FeatureSet(list):
         """
         return np.array([f.aspectRatio() for f in self])
 
+    def cluster(self,method="kmeans",k=3,properties=None):
+        """
+        **SUMMARY**
+        
+        This function clusters the blobs in the featureSet based on the properties. properties can be "color", "shape" or "position" of blobs. 
+        Clustering is done using K-Means or Hierarchical clustering algorithm. 
+
+        **PARAMETERS**
+        * *method* - if method is "kmeans", it will cluster using K-Means algorithm 
+        * *k* - The number of clusters
+        * *properties* - It should be a list with any combination of "color", "shape", "position". 
+                         Eg : properties = ["color","position"]
+                              properties = ["position","shape"]
+                              properties = ["shape"]
+
+
+        **RETURNS**
+        
+        A list of featureset, each being a cluster itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> clusters = blobs.cluster(method="kmeans",k=5,properties=["color"])
+        >>> for i in clusters:
+        >>>     i.draw(color=Color.getRandom(),width=5)
+        >>> img.show()
+        """
+        if method == "kmeans":
+            try :
+                from sklearn.cluster import KMeans
+            except :
+                logger.warning("install scikits-learning package")
+                return
+            X = [] #List of feature vector of each blob
+            if not properties:
+                properties = ['color','shape','position']    
+            if k > len(self):
+                logger.warning("Number of clusters cannot be greater then the number of blobs in the featureset")
+                return
+            for i in self:
+                featureVector = []
+                if 'color' in properties:
+                    featureVector.extend(i.mAvgColor)
+                if 'shape' in properties:
+                    featureVector.extend(i.mHu)
+                if 'position' in properties:
+                    featureVector.extend(i.coordinates())
+                if not featureVector :
+                    logger.warning("properties parameter is not specified properly")
+                    return
+                X.append(featureVector)
+            k_means = KMeans(init='random', n_clusters=k, n_init=10)
+            k_means.fit(X)        
+            KClusters = [ FeatureSet([]) for i in range(k)]
+            for i in range(len(self)):
+                KClusters[k_means.labels_[i]].append(self[i])
+            return KClusters
+
     @property
     def image(self):
         if not len(self):
@@ -1541,7 +1601,7 @@ class Feature(object):
         >>> print blobs[-1].boundingBox()
         
         **TO DO**
-
+        
         Make the order of points go from the top left glockwise.
 
         """
