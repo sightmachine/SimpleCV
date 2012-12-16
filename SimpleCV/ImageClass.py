@@ -779,7 +779,9 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-  
+    _gridIndex = -1 #to store the grid layer
+    _gridColor = (0,0,0) #to store the color of the grid
+	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
@@ -11639,10 +11641,25 @@ class Image:
             if( j < dimensions[1] ):
                 gridLayer.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        gridIndex = imgTemp.addDrawingLayer(gridLayer) # store grid layer index
-        
+        self._gridIndex = imgTemp.addDrawingLayer(gridLayer) # store grid layer index
+        self._gridColor = color
         return imgTemp
-
+	
+    def findGridLines(self):
+		
+        gridLayer = self.getDrawingLayer(self._gridIndex)
+        if gridLayer:
+            print gridLayer
+        tempImg = Image(self.size())#to create a black image of the same size
+        
+        if self._gridColor[0]==0 and self._gridColor[1]==0 and self._gridColor[2]==0:
+            tempImg = tempImg.invert()
+        
+        tempImg.insertDrawingLayer(gridLayer,1)
+        tempImg.applyLayers()
+        linesFS = tempImg.findLines()
+        
+        return tempImg
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer
