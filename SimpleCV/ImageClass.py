@@ -779,9 +779,7 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-    #_gridIndex = -1 #to store the grid layer
-    #_gridColor = (0,0,0) #to store the color of the grid
-    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridColor] 
+    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions] 
 	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
