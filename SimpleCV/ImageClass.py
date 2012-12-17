@@ -7882,7 +7882,7 @@ class Image:
         return resultImg
                   
 
-    def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
+    def findKeypointMatch(self,template, quality=500.00, flavor="SURF", minDist=0.2,minMatch=0.4):
         """
         **SUMMARY**
 
@@ -7956,8 +7956,8 @@ class Image:
         if template == None:
           return None
         
-        skp,sd = self._getRawKeypoints(quality)
-        tkp,td = template._getRawKeypoints(quality)
+        skp,sd = self._getRawKeypoints(quality, flavor)
+        tkp,td = template._getRawKeypoints(quality, flavor)
         if( skp == None or tkp == None ):
             logger.warning("I didn't get any keypoints. Image might be too uniform or blurry." )
             return None
