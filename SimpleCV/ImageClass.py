@@ -779,8 +779,9 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-    _gridIndex = -1 #to store the grid layer
-    _gridColor = (0,0,0) #to store the color of the grid
+    #_gridIndex = -1 #to store the grid layer
+    #_gridColor = (0,0,0) #to store the color of the grid
+    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridColor] 
 	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
@@ -11623,7 +11624,7 @@ class Image:
         >>>> img.grid([20,20],(255,0,0))
         >>>> img.grid((20,20),(255,0,0),1,True,0)
         """
-        imgTemp = self.copy()
+        imgTemp = self
         try:
             step_row = self.size()[1]/dimensions[0]
             step_col = self.size()[0]/dimensions[1]
@@ -11633,33 +11634,63 @@ class Image:
         i = 1
         j = 1
         
-        gridLayer = DrawingLayer(self.size()) #add a new layer for grid
+        grid = DrawingLayer(self.size()) #add a new layer for grid
         while( (i < dimensions[0]) and (j < dimensions[1]) ):
             if( i < dimensions[0] ):
-                gridLayer.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
+                grid.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
                 i = i + 1
             if( j < dimensions[1] ):
-                gridLayer.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
+                grid.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        self._gridIndex = imgTemp.addDrawingLayer(gridLayer) # store grid layer index
-        self._gridColor = color
+        imgTemp._gridLayer[0] = imgTemp.addDrawingLayer(grid) # store grid layer index
+        imgTemp._gridLayer[1] = dimensions
         return imgTemp
 	
     def findGridLines(self):
-		
-        gridLayer = self.getDrawingLayer(self._gridIndex)
-        if gridLayer:
-            print gridLayer
-        tempImg = Image(self.size())#to create a black image of the same size
+
+        """
+        **SUMMARY**
         
-        if self._gridColor[0]==0 and self._gridColor[1]==0 and self._gridColor[2]==0:
-            tempImg = tempImg.invert()
+        Return Grid Lines as a Line Feature Set 
+
+        **PARAMETERS**
+    
+        None
+
+        **RETURNS**
+
+        Grid Lines as a Feature Set
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> lines = img.findGridLines()
         
-        tempImg.insertDrawingLayer(gridLayer,1)
-        tempImg.applyLayers()
-        linesFS = tempImg.findLines()
+        """
         
-        return tempImg
+        gridIndex = self.getDrawingLayer(self._gridLayer[0])
+        if self._gridLayer[0]==-1:
+            print "Cannot find grid on the image, Try adding a grid first"
+        
+        lineFS = FeatureSet()
+        try:
+            step_row = self.size()[1]/self._gridLayer[1][0]
+            step_col = self.size()[0]/self._gridLayer[1][1]
+        except ZeroDivisionError:
+            return None 
+        
+        i = 1
+        j = 1
+
+        while( i < self._gridLayer[1][0] ):
+            lineFS.append(Line(self,((0,step_row*i), (self.size()[0],step_row*i))))
+            i = i + 1
+        while( j < self._gridLayer[1][1] ):
+            lineFS.append(Line(self,((step_col*j,0), (step_col*j,self.size()[1]))))
+            j = j + 1
+        
+        return lineFS
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer
