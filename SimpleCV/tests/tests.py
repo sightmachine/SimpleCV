@@ -3012,3 +3012,31 @@ def test_cluster():
   clusters = blobs.cluster(method="kmeans",k=5,properties=["color"])
   if clusters:
       pass
+      
+def test_line_parallel():
+    img = Image("lenna")
+    l1 = Line(img, ((100,200), (300,400)))
+    l2 = Line(img, ((200,300), (400,500)))
+    if l1.isParallel(l2):
+        pass
+    else:
+        assert False
+
+def test_line_perp():
+    img = Image("lenna")
+    l1 = Line(img, ((100,200), (100,400)))
+    l2 = Line(img, ((200,300), (400,300)))
+    if l1.isPerpendicular(l2):
+        pass
+    else:
+        assert False
+        
+def test_line_imgIntersection():
+    img = Image((512, 512))
+    for x in range(200, 400):
+        img[x, 200] = (255.0, 255.0, 255.0)
+    l = Line(img, ((300, 100),(300, 500)))
+    if l.imgIntersections(img) == [(300, 200)]:
+        pass
+    else:
+        assert False
