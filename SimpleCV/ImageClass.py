@@ -7882,7 +7882,7 @@ class Image:
         return resultImg
                   
 
-    def findKeypointMatch(self,template, quality=500.00, minDist=0.2,minMatch=0.4):
+    def findKeypointMatch(self,template,quality=500.00,minDist=0.2,minMatch=0.4):
         """
         **SUMMARY**
 

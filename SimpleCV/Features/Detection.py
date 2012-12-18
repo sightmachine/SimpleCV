@@ -311,7 +311,7 @@ class Line(Feature):
             return True
         return False
     
-    def isPerpendiuclar(self, line):
+    def isPerpendicular(self, line):
         """
         **SUMMARY**
 
