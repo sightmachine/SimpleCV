@@ -3040,3 +3040,15 @@ def test_line_imgIntersection():
         pass
     else:
         assert False
+
+def test_findGridLines():
+    img = Image("simplecv")
+    img = img.grid((10,10),(0,255,255))
+    lines = img.findGridLines()
+    lines.draw()
+    result = [img]
+    name_stem = "test_image_gridLines"
+    perform_diff(result,name_stem,5)
+
+    if(lines == 0 or lines == None):
+        assert False
