@@ -28,7 +28,16 @@ class LineScan(list):
     """
     pointLoc = None
     image = None
-    
+
+    def __init__(self,*args,**kwargs):
+        list.__init__(self,*args)
+        for key in kwargs:
+            if key == 'pointLocs':
+                if kwargs[key] is not None:
+                    self.pointLoc = kwargs[key]
+        if(self.pointLoc is None):
+            self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
+ 
     def __getitem__(self,key):
         """
         **SUMMARY**
@@ -197,7 +206,7 @@ class LineScan(list):
         minvalue = minvalue[0]
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
-        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        pts = [(p[0],p[1]) for p in pts] # un numpy this 
         return zip(idxs,minvalue,pts)
         
     def maxima(self):
@@ -233,7 +242,7 @@ class LineScan(list):
         maxvalue = maxvalue[0]
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
-        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        pts = [(p[0],p[1]) for p in pts] # un numpy 
         return zip(idxs,maxvalue,pts)
  
     def derivative(self):
@@ -297,7 +306,7 @@ class LineScan(list):
         values = temp[idx]
         pts = np.array(self.pointLoc)
         pts = pts[idx]
-        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        pts = [(p[0],p[1]) for p in pts] # un numpy
         return zip(idx,values,pts)
 
         
@@ -332,7 +341,7 @@ class LineScan(list):
         values = temp[idx]
         pts = np.array(self.pointLoc)
         pts = pts[idx]
-        pts = [(p[0],p[1]) for p in pts] # un numpy this shit
+        pts = [(p[0],p[1]) for p in pts] # un numpy
         return zip(idx,values,pts)
 
     def resample(self,n=100):
