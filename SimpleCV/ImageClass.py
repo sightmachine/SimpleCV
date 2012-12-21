@@ -83,24 +83,22 @@ class ImageSet(list):
 
     filelist = None
     def __init__(self, directory = None):
-
-      if not directory:
-          return
-      if directory.lower() == 'samples' or directory.lower() == 'sample':
-        #~ import pdb
-        #~ pdb.set_trace()
-        pth = __file__
-        
-        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-          pth = pth.split('\\')[-2]
+        if not directory:
+            return
+        if isinstance(directory,list):
+            super(ImageSet,self).__init__(directory)
+        elif directory.lower() == 'samples' or directory.lower() == 'sample':
+            pth = __init__file__
+            
+            if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                pth = pth.split('\\')[-2]
+            else:
+                pth = pth.split('/')[-2]
+            pth = os.path.realpath(pth)
+            directory = os.path.join(pth, 'sampleimages')
+            self.load(directory)
         else:
-          pth = pth.split('/')[-2]
-        pth = os.path.realpath(pth)
-        directory = os.path.join(pth, 'sampleimages')
-
-          
-      self.load(directory)
-
+            self.load(directory)
 
     def download(self, tag=None, number=10, size='thumb'):
       """
@@ -517,7 +515,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
             loaded += 1
 
         return loaded
-    def load(self, directory = None, extension = None):
+        
+    def load(self, directory = None, extension = None, sort_by=None):
         """
         **SUMMARY**
         
@@ -532,6 +531,12 @@ Valid options: 'thumb', 'small', 'medium', 'large'
     
         * *directory* - The path or directory from which to load images. 
         * *extension* - The extension to use. If none is given png is the default.
+        * *sort_by* - Sort the directory based on one of the following parameters passed as strings.
+          * *time* - the modification time of the file.
+          * *name* - the name of the file.
+          * *size* - the size of the file.
+
+          The default behavior is to leave the directory unsorted. 
 
         **RETURNS**
         
@@ -562,22 +567,34 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       
         file_set = [glob.glob(p) for p in formats]
-
-        self.filelist = dict()
-
+        full_set = []
         for f in file_set:
             for i in f:
-                tmp = None
-                try:
-                    tmp = Image(i)
-                    if( tmp is not None and tmp.width > 0 and tmp.height > 0):
-                        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                            self.filelist[tmp.filename.split('\\')[-1]] = tmp
-                        else:
-                            self.filelist[tmp.filename.split('/')[-1]] = tmp
-                        self.append(tmp)
-                except:
-                    continue
+                full_set.append(i)
+
+        file_set = full_set
+        if(sort_by is not None):
+            if( sort_by.lower() == "time"):
+                file_set = sorted(file_set,key=os.path.getmtime)
+            if( sort_by.lower() == "name"):
+                file_set = sorted(file_set)
+            if( sort_by.lower() == "size"):
+                file_set = sorted(file_set,key=os.path.getsize)
+        
+        self.filelist = dict()
+        
+        for i in file_set:
+            tmp = None
+            try:
+                tmp = Image(i)
+                if( tmp is not None and tmp.width > 0 and tmp.height > 0):
+                    if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                        self.filelist[tmp.filename.split('\\')[-1]] = tmp
+                    else:
+                        self.filelist[tmp.filename.split('/')[-1]] = tmp
+                    self.append(tmp)
+            except:
+                continue
         return len(self)
 
     def standardize(self,width,height):
@@ -705,13 +722,26 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         return retVal
     
 
-    def __getslice__(self,i,j,k=1):
-        if ( j > len(self)):
-            j = len(self)
-        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
-        for rm in rmSet :
-            del(self[rm])
-        return self    
+    def __getitem__(self,key):
+        """
+        **SUMMARY**
+
+        Returns a ImageSet when sliced. Previously used to
+        return list. Now it is possible to ImageSet member
+        functions on sub-lists
+
+        """
+        if type(key) is types.SliceType: #Or can use 'try:' for speed
+            return ImageSet(list.__getitem__(self, key))
+        else:
+            return list.__getitem__(self,key)
+        
+    def __getslice__(self, i, j):
+        """
+        Deprecated since python 2.0, now using __getitem__
+        """
+        return self.__getitem__(slice(i,j))
+
   
 class Image:
     """
@@ -779,7 +809,8 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-  
+    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
+	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
@@ -5652,7 +5683,7 @@ class Image:
         **EXAMPLE**
         
         >>> img = Image("lenna")
-        >>> img.writeText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontSize=48)
+        >>> img.drawText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontsize=48)
         >>> img.show()
 
         **SEE ALSO**
@@ -7610,11 +7641,12 @@ class Image:
             new_version = 0
             #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
             if not ver.startswith('$Rev:'):
-	        if int(ver.replace('.','0'))>=20400 :
-                    new_version = 1
-                if int(ver.replace('.','0'))>=20402 :     
-                    new_version = 2
-                    
+              if int(ver.replace('.','0'))>=20400:
+                 new_version = 1
+              if int(ver.replace('.','0'))>=20402:
+                 new_version = 2
+              if int(ver.replace('.','0'))>=20403:
+                 new_version = 3    
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
@@ -7622,11 +7654,11 @@ class Image:
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-            
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+        
+        if( not(self._mKeyPoints) or self._mKPFlavor != flavor ):
             if ( new_version == 0):
                 if( flavor == "SURF" ):
-                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1)
                     self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
                     if( len(self._mKPDescriptors) == 0 ):
                         return None, None                     
@@ -7659,10 +7691,9 @@ class Image:
                     self._mKPDescriptors = None
                     self._mKPFlavor = "STAR"
                     del starer
-            
-            
-            elif( new_version == 2 and flavor in ["SURF", "FAST"] ): 
-                if( flavor == "SURF" ):
+
+            elif( new_version >= 2 and flavor in ["SURF", "FAST"] ): 
+                if( flavor == "SURF" and new_version==2):
                     surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
                     #mask = self.getGrayNumpy()                    
                     #mask.fill(255) 
@@ -7678,6 +7709,20 @@ class Image:
                     self._mKPFlavor = "SURF"
                     del surfer
             
+                if( flavor == "SURF" and new_version==3):
+                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detectAndCompute(self.getGrayNumpy(),None,useProvidedKeypoints = False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+
                 elif( flavor == "FAST" ):
                     faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                     self._mKeyPoints = faster.detect(self.getGrayNumpy())
@@ -7693,19 +7738,19 @@ class Image:
                if( len(self._mKPDescriptors) == 0 ):
                     return None, None     
                self._mKPFlavor = flavor
-	       del FeatureDetector
+               del FeatureDetector
 
             elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
                FeatureDetector = cv2.FeatureDetector_create(flavor)
                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                self._mKPDescriptors = None
                self._mKPFlavor = flavor
-               del FeatureDetector   
-               
-	    else:
-                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
-                return None, None
-
+               del FeatureDetector
+        
+            else:
+               logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
+               return None, None
+        
         return self._mKeyPoints,self._mKPDescriptors 
 
     def _getFLANNMatches(self,sd,td):
@@ -11693,7 +11738,7 @@ class Image:
         >>>> img.grid([20,20],(255,0,0))
         >>>> img.grid((20,20),(255,0,0),1,True,0)
         """
-        imgTemp = self.copy()
+        imgTemp = self
         try:
             step_row = self.size()[1]/dimensions[0]
             step_col = self.size()[0]/dimensions[1]
@@ -11703,17 +11748,63 @@ class Image:
         i = 1
         j = 1
         
-        gridLayer = DrawingLayer(self.size()) #add a new layer for grid
+        grid = DrawingLayer(self.size()) #add a new layer for grid
         while( (i < dimensions[0]) and (j < dimensions[1]) ):
             if( i < dimensions[0] ):
-                gridLayer.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
+                grid.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
                 i = i + 1
             if( j < dimensions[1] ):
-                gridLayer.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
+                grid.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        gridIndex = imgTemp.addDrawingLayer(gridLayer) # store grid layer index
-        
+        imgTemp._gridLayer[0] = imgTemp.addDrawingLayer(grid) # store grid layer index
+        imgTemp._gridLayer[1] = dimensions
         return imgTemp
+	
+    def findGridLines(self):
+
+        """
+        **SUMMARY**
+        
+        Return Grid Lines as a Line Feature Set 
+
+        **PARAMETERS**
+    
+        None
+
+        **RETURNS**
+
+        Grid Lines as a Feature Set
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> lines = img.findGridLines()
+        
+        """
+        
+        gridIndex = self.getDrawingLayer(self._gridLayer[0])
+        if self._gridLayer[0]==-1:
+            print "Cannot find grid on the image, Try adding a grid first"
+        
+        lineFS = FeatureSet()
+        try:
+            step_row = self.size()[1]/self._gridLayer[1][0]
+            step_col = self.size()[0]/self._gridLayer[1][1]
+        except ZeroDivisionError:
+            return None 
+        
+        i = 1
+        j = 1
+
+        while( i < self._gridLayer[1][0] ):
+            lineFS.append(Line(self,((0,step_row*i), (self.size()[0],step_row*i))))
+            i = i + 1
+        while( j < self._gridLayer[1][1] ):
+            lineFS.append(Line(self,((step_col*j,0), (step_col*j,self.size()[1]))))
+            j = j + 1
+        
+        return lineFS
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
