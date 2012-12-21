@@ -480,10 +480,10 @@ class HaarFeature(Feature):
       
     def __getstate__(self):
         dict = self.__dict__.copy()
-        del dict["classifier"]
+        if 'classifier' in dict:
+            del dict["classifier"]
         return dict
               
-      
     def meanColor(self):
         """
         **SUMMARY**
