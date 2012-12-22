@@ -565,11 +565,9 @@ class Blob(Feature):
 
         """
         if not layer:
-            print "no layer"
             layer = self.image.dl()
             
         if width == -1:
-            print "width -1"
             #copy the mask into 3 channels and multiply by the appropriate color
             maskred = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
             maskgrn = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
@@ -589,10 +587,8 @@ class Blob(Feature):
                 masksurface.set_alpha(alpha)
             layer._mSurface.blit(masksurface, self.topLeftCorner()) #KAT HERE
         else:
-            print "drawing outline and holes"
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)
-            
                    
     def drawOutline(self, color=Color.GREEN, alpha=255, width=1, layer=None):
         """
