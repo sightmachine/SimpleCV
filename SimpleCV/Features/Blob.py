@@ -565,9 +565,11 @@ class Blob(Feature):
 
         """
         if not layer:
+            print "no layer"
             layer = self.image.dl()
             
         if width == -1:
+            print "width -1"
             #copy the mask into 3 channels and multiply by the appropriate color
             maskred = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
             maskgrn = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
@@ -587,6 +589,7 @@ class Blob(Feature):
                 masksurface.set_alpha(alpha)
             layer._mSurface.blit(masksurface, self.topLeftCorner()) #KAT HERE
         else:
+            print "drawing outline and holes"
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)
             
@@ -1198,3 +1201,111 @@ class Blob(Feature):
 
     def __repr__(self):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
+        
+    def expand(self, dis):
+        """
+        **SUMMARY**
+
+        This method automatically expands/contracts blobs hull/contours by a set number of pixels.
+
+        **RETURNS**
+ 
+        None.
+
+        **EXAMPLE**
+        
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> blobs[-1].expand(8).show()
+        >>> blobs[-2].expand(-5).show()
+        """
+        cen = self.centroid()
+        contour_new = []
+        for pt in self.mContour:
+            m = float(cen[1] - pt[1])/(cen[0] - pt[1])
+            if m < 0:
+                if pt[0] < cen[0]:
+                    x = floor(pt[0] - (dis/(1+m**2)**0.5))
+                else:
+                    x = floor(pt[0] + (dis/(1+m**2)**0.5))
+                if pt[1] < cen[1]:
+                    y = floor(pt[1] + (dis*fabs(m)/(1+m**2)**0.5))
+                else:
+                    y = floor(pt[1] - (dis*fabs(m)/(1+m**2)**0.5))
+            else:
+                if pt[0] < cen[0]:
+                    x = floor(pt[0] - (dis/(1+m**2)**0.5))
+                else:
+                    x = floor(pt[0] + (dis/(1+m**2)**0.5))
+                if pt[1] < cen[1]:
+                    y = floor(pt[1] - (dis*fabs(m)/(1+m**2)**0.5))
+                else:
+                    y = floor(pt[1] + (dis*fabs(m)/(1+m**2)**0.5))
+            if x < 0:
+                x = 0
+            if y < 0:
+                y = 0
+            contour_new.append((int(x), int(y)))
+        self.mContour = contour_new
+        self._update()
+        return None
+
+    def _update(self):
+        """
+        **SUMMARY**
+
+        This method updates all the blob properties. Not to be used explicitly.
+
+        **RETURNS**
+ 
+        None.
+        """
+        self.mArea = cv.ContourArea(self.mContour)
+        self.mMinRectangle = cv.MinAreaRect2(self.mContour)
+        bb = cv.BoundingRect(self.mContour)
+        self.x = bb[0]+(bb[2]/2)
+        self.y = bb[1]+(bb[3]/2)
+        self.mPerimeter = cv.ArcLength(self.mContour)
+        
+        if( self.mContour is not None): 
+            try:
+                import cv2 
+                self.mContourAppx = []
+                appx = cv2.approxPolyDP(np.array([self.mContour],'float32'),appx_level,True)
+                for p in appx:           
+                    self.mContourAppx.append((int(p[0][0]),int(p[0][1])))
+            except:
+                pass
+        xx = bb[0]
+        yy = bb[1]
+        ww = bb[2]
+        hh = bb[3]
+        self.points = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
+        self._updateExtents()
+        chull = cv.ConvexHull2(self.mContour, cv.CreateMemStorage(), return_points=1)
+        self.mConvexHull = list(chull)
+        del chull
+        
+        moments = cv.Moments(self.mContour)
+
+        self.m00 = self.mArea
+        try: 
+            self.m10 = moments.m10
+            self.m01 = moments.m01
+            self.m11 = moments.m11
+            self.m20 = moments.m20
+            self.m02 = moments.m02
+            self.m21 = moments.m21
+            self.m12 = moments.m12
+        except:
+            self.m10 = cv.GetSpatialMoment(moments,1,0)
+            self.m01 = cv.GetSpatialMoment(moments,0,1)
+            self.m11 = cv.GetSpatialMoment(moments,1,1)
+            self.m20 = cv.GetSpatialMoment(moments,2,0)
+            self.m02 = cv.GetSpatialMoment(moments,0,2)
+            self.m21 = cv.GetSpatialMoment(moments,2,1)
+            self.m12 = cv.GetSpatialMoment(moments,1,2)
+            
+        self.mHu = cv.GetHuMoments(moments)
+        self.mAspectRatio = self.mMinRectangle[1][0]/self.mMinRectangle[1][1]
+        return None
