@@ -11585,7 +11585,7 @@ class Image:
                 # warn and return None
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
-            if( y >= 0 and x < self.height):
+            if( y >= 0 and y < self.height):
                 retVal = LineScan(gray[:,y])
                 retVal.image = self
                 y = np.ones((1,self.width))[0]*y
