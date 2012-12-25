@@ -11603,7 +11603,7 @@ class Image:
               x is None and y is None):
 
             pts = self.bresenham_line(pt1,pt2)
-            retVal = LineScan([gray[p[1],p[0]] for p in pts])
+            retVal = LineScan([gray[p[0],p[1]] for p in pts])
             retVal.pointLoc = pts
             retVal.image = self
             
