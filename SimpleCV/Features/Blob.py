@@ -64,6 +64,7 @@ class Blob(Feature):
         ('mImg', 'mHullImg', 'mMask', 'mHullMask'))
     
     def __init__(self):
+        self._scdescriptors = None 
         self.mContour = []
         self.mConvexHull = []
         self.mMinRectangle = [-1,-1,-1,-1,-1] #angle from this
@@ -1199,8 +1200,10 @@ class Blob(Feature):
     def __repr__(self):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
 
-    def getShapeContext(self):
-        # still need to subsample big contours 
+
+    def getSCDescriptors(self):
+        if( self._scdescriptors is not None ):
+            return self._scdescriptors
         data = []
         for pt in self.mContour:
             temp = []
@@ -1219,12 +1222,34 @@ class Blob(Feature):
         for d in data:
             test = np.array(d)
             # generate a 2D histrogram, and flatten it out. 
-            hist,a,b =np.histogram2d(test[:,0],test[:,1],dsz,[[0,3.3],[np.pi*-1,np.pi]])
+            hist,a,b =np.histogram2d(test[:,0],test[:,1],dsz,[[0,3.3],[np.pi*-1/2,np.pi/2]],normed=True)
             hist = hist.reshape(1,dsz**2)
             descriptors.append(hist[0])
+
+        self._scdescriptors = descriptors
+        return self._scdescriptors
+        
+    def getShapeContext(self):
+        # still need to subsample big contours 
+        descriptors = self.getSCDescriptors()
 
         fs = FeatureSet()
         for i in range(0,len(descriptors)):
             fs.append(ShapeContextDescriptor(self.image,self.mContour[i],descriptors[i],self))
 
         return fs
+
+    def ShapeContextMatch(self, other):
+        import scipy.spatial.distance as spsd
+        osc = other.getSCDescriptors()
+        mysc = self.getSCDescriptors()
+        #myIdx = []
+        otherIdx = []
+        distance = [] 
+        for scd in mysc:
+            derp = spsd.cdist(osc,scd.reshape(1,36))
+            idx = np.where(derp==np.min(derp))[0]
+            val = derp[idx]
+            otherIdx.append(idx)
+            distance.append(val)
+        return [otherIdx,distance]
