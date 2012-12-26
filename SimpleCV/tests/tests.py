@@ -3009,8 +3009,9 @@ def test_grid():
 def test_cluster():
   img = Image("lenna")
   blobs = img.findBlobs()
-  clusters = blobs.cluster(method="kmeans",k=5,properties=["color"])
-  if clusters:
+  clusters1 = blobs.cluster(method="kmeans",k=5,properties=["color"])
+  clusters2 = blobs.cluster(method="hierarchical")
+  if clusters1 and clusters2:
       pass
       
 def test_line_parallel():
