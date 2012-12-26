@@ -1018,7 +1018,7 @@ class FeatureSet(list):
         """
         return np.array([f.aspectRatio() for f in self])
 
-   def cluster(self,method="kmeans",properties=None,k=3):
+    def cluster(self,method="kmeans",properties=None,k=3):
         """
         **SUMMARY**
         
