@@ -54,6 +54,13 @@ class FeatureSet(list):
         Deprecated since python 2.0, now using __getitem__
         """
         return self.__getitem__(slice(i,j))
+
+    def count(self):
+      '''
+      This function returns the length / count of the all the items in the FeatureSet
+      '''
+
+      return len(self)
         
     def draw(self, color = Color.GREEN,width=1, autocolor = False):
         """
@@ -62,7 +69,7 @@ class FeatureSet(list):
         Call the draw() method on each feature in the FeatureSet. 
 
         **PARAMETERS**
-        
+       ` 
         * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
         * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature. 
@@ -1011,6 +1018,74 @@ class FeatureSet(list):
         """
         return np.array([f.aspectRatio() for f in self])
 
+   def cluster(self,method="kmeans",properties=None,k=3):
+        """
+        **SUMMARY**
+        
+        This function clusters the blobs in the featureSet based on the properties. Properties can be "color", "shape" or "position" of blobs. 
+        Clustering is done using K-Means or Hierarchical clustering(Ward) algorithm.
+
+        **PARAMETERS**
+        * *properties* - It should be a list with any combination of "color", "shape", "position". 
+                         Eg : properties = ["color","position"]
+                              properties = ["position","shape"]
+                              properties = ["shape"]
+        * *method* 
+                - if method is "kmeans", it will cluster using K-Means algorithm
+                - if the method is "hierarchical", no need to spicify the number of clusters
+        * *k* - The number of clusters(kmeans).
+
+        **RETURNS**
+        
+        A list of featureset, each being a cluster itself.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blobs = img.findBlobs()
+        >>> clusters = blobs.cluster(method="kmeans",properties=["color"],k=5)
+        >>> for i in clusters:
+        >>>     i.draw(color=Color.getRandom(),width=5)
+        >>> img.show()
+        """
+        try :
+            from sklearn.cluster import KMeans, Ward
+        except :
+            logger.warning("install scikits-learning package")
+            return
+        X = [] #List of feature vector of each blob
+        if not properties:
+            properties = ['color','shape','position']    
+        if k > len(self):
+            logger.warning("Number of clusters cannot be greater then the number of blobs in the featureset")
+            return
+        for i in self:
+            featureVector = []
+            if 'color' in properties:
+                featureVector.extend(i.mAvgColor)
+            if 'shape' in properties:
+                featureVector.extend(i.mHu)
+            if 'position' in properties:
+                featureVector.extend(i.coordinates())
+            if not featureVector :
+                logger.warning("properties parameter is not specified properly")
+                return
+            X.append(featureVector)
+                
+        if method == "kmeans":
+            k_means = KMeans(init='random', n_clusters=k, n_init=10).fit(X)        
+            KClusters = [ FeatureSet([]) for i in range(k)]
+            for i in range(len(self)):
+                KClusters[k_means.labels_[i]].append(self[i])
+            return KClusters
+
+        if method == "hierarchical":
+            ward = Ward(n_clusters=int(sqrt(len(self)))).fit(X) #n_clusters = sqrt(n)
+            WClusters = [ FeatureSet([]) for i in range(int(sqrt(len(self))))]
+            for i in range(len(self)):
+                WClusters[ward.labels_[i]].append(self[i])
+            return WClusters
+            
     @property
     def image(self):
         if not len(self):
@@ -1534,7 +1609,7 @@ class Feature(object):
         >>> print blobs[-1].boundingBox()
         
         **TO DO**
-
+        
         Make the order of points go from the top left glockwise.
 
         """
@@ -2246,5 +2321,8 @@ class Feature(object):
         if( counter % 2 == 0 ):
             retVal = False
         return retVal
+
+
+
 
 #--------------------------------------------- 

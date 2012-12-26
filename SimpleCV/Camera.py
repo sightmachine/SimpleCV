@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
+import time
 
 #Globals
 _cameras = [] 
@@ -603,10 +604,12 @@ class VirtualCamera(FrameSource):
     * For image, pass the filename or URL to the image
     * For the video, the filename
     * For imageset, you can pass either a path or a list of [path, extension]
+    * For directory you treat a directory to show the latest file, an example would be where a security camera logs images to the directory, calling .getImage() will get the latest in the directory
     
     """
     source = ""
     sourcetype = ""
+    lastmtime = 0
   
     def __init__(self, s, st, start=1):
         """
@@ -623,6 +626,7 @@ class VirtualCamera(FrameSource):
           * "image" - a single still image.
           * "video" - a video file.
           * "imageset" - a SimpleCV image set.
+          * "directory" - a VirtualCamera for loading a directory
 
         **EXAMPLE**
           
@@ -630,6 +634,8 @@ class VirtualCamera(FrameSource):
         >>> vc = VirtualCamera("video.mpg", "video")
         >>> vc = VirtualCamera("./path_to_images/", "imageset")
         >>> vc = VirtualCamera("video.mpg", "video", 300)
+        >>> vc = VirtualCamera("./imgs", "directory")
+        
 
         """
         self.source = s
@@ -639,11 +645,12 @@ class VirtualCamera(FrameSource):
             start=1
         self.start = start
         
-        if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset"):
+        if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset" or self.sourcetype == "directory"):
             print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
             print '\tVirtualCamera("filename","video")'
             print '\tVirtualCamera("filename","image")'
             print '\tVirtualCamera("./path_to_images","imageset")'
+            print '\tVirtualCamera("./path_to_images","directory")'
             return None
         
         if (type(self.source) == list):
@@ -666,6 +673,9 @@ class VirtualCamera(FrameSource):
         if (self.sourcetype == 'video'):
             self.capture = cv.CaptureFromFile(self.source)
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
+
+        if (self.sourcetype == 'directory'):
+            pass
             
     
     def getImage(self):
@@ -694,6 +704,10 @@ class VirtualCamera(FrameSource):
         
         if (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
+
+        if (self.sourcetype == 'directory'):
+            img = self.findLastestImage(self.source, 'bmp')
+            return Image(img, self)
     
     def rewind(self, start=None):
         """
@@ -814,6 +828,50 @@ class VirtualCamera(FrameSource):
         if (self.sourcetype == 'video'):
             number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             return number_frame
+
+    def findLastestImage(self, directory='.', extension='png'):
+        """
+        **SUMMARY**
+        
+        This function finds the latest file in a directory
+        with a given extension.
+
+        **PARAMETERS**
+
+        directory - The directory you want to load images from (defaults to current directory)
+        extension - The image extension you want to use (defaults to .png)
+
+        **RETURNS**
+
+        The filename of the latest image
+
+        **USAGE**
+
+        >>> cam = VirtualCamera('imgs/', 'png') #find all .png files in 'img' directory
+        >>> cam.getImage() # Grab the latest image from that directory
+        
+        """
+        max_mtime = 0
+        max_dir = None
+        max_file = None
+        max_full_path = None
+        for dirname,subdirs,files in os.walk(directory):
+            for fname in files:
+                if fname.split('.')[-1] == extension:
+                  full_path = os.path.join(dirname, fname)
+                  mtime = os.stat(full_path).st_mtime
+                  if mtime > max_mtime:
+                      max_mtime = mtime
+                      max_dir = dirname
+                      max_file = fname
+                      self.lastmtime = mtime
+                      max_full_path = os.path.abspath(os.path.join(dirname, fname))
+        
+        #if file is being written, block until mtime is at least 100ms old
+        while time.mktime(time.localtime()) - os.stat(max_full_path).st_mtime < 0.1:
+            time.sleep(0)
+        
+        return max_full_path
  
 class Kinect(FrameSource):
     """
@@ -1796,7 +1854,7 @@ class StereoCamera :
     def __init__(self):
         return
                                 
-    def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8,5), gridsize=0.027, WinSize = (352,288)):
+    def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8, 5), gridsize=0.027, WinSize = (352,288)):
         """
         **SUMMARY**
         Stereo Calibration is a way in which you obtain the parameters that will allow you to calculate 3D information of the scene. 
@@ -1838,13 +1896,13 @@ class StereoCamera :
             cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
             cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
             frameLeft = cv.QueryFrame(captureLeft)
-            cv.FindChessboardCorners(frameLeft, (8, 5))
+            cv.FindChessboardCorners(frameLeft, (chessboard))
             
             captureRight = cv.CaptureFromCAM(camRight)
             cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
             cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
             frameRight = cv.QueryFrame(captureRight)
-            cv.FindChessboardCorners(frameRight, (8, 5))
+            cv.FindChessboardCorners(frameRight, (chessboard))
         except :
             print "Error Initialising the Left and Right camera"
             return None
@@ -1878,14 +1936,14 @@ class StereoCamera :
             cv.Flip(frameRight, frameRight, 1)
             k = cv.WaitKey(3)
     
-            cor1 = cv.FindChessboardCorners(frameLeft, (8, 5))
+            cor1 = cv.FindChessboardCorners(frameLeft, (chessboard))
             if cor1[0] :
-               cv.DrawChessboardCorners(frameLeft, (8, 5), cor1[1], cor1[0])
+               cv.DrawChessboardCorners(frameLeft, (chessboard), cor1[1], cor1[0])
                cv.ShowImage(n1, frameLeft)
     
-            cor2 = cv.FindChessboardCorners(frameRight, (8, 5))
+            cor2 = cv.FindChessboardCorners(frameRight, (chessboard))
             if cor2[0]:
-               cv.DrawChessboardCorners(frameRight, (8, 5), cor2[1], cor2[0])
+               cv.DrawChessboardCorners(frameRight, (chessboard), cor2[1], cor2[0])
                cv.ShowImage(n2, frameRight)
     
             if cor1[0] and cor2[0] and k==0x20:

@@ -1,6 +1,7 @@
 # Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
+from SimpleCV.LineScan import *
 
 from numpy import int32
 from numpy import uint8
@@ -82,24 +83,22 @@ class ImageSet(list):
 
     filelist = None
     def __init__(self, directory = None):
-
-      if not directory:
-          return
-      if directory.lower() == 'samples' or directory.lower() == 'sample':
-        #~ import pdb
-        #~ pdb.set_trace()
-        pth = __file__
-        
-        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-          pth = pth.split('\\')[-2]
+        if not directory:
+            return
+        if isinstance(directory,list):
+            super(ImageSet,self).__init__(directory)
+        elif directory.lower() == 'samples' or directory.lower() == 'sample':
+            pth = __init__file__
+            
+            if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                pth = pth.split('\\')[-2]
+            else:
+                pth = pth.split('/')[-2]
+            pth = os.path.realpath(pth)
+            directory = os.path.join(pth, 'sampleimages')
+            self.load(directory)
         else:
-          pth = pth.split('/')[-2]
-        pth = os.path.realpath(pth)
-        directory = os.path.join(pth, 'sampleimages')
-
-          
-      self.load(directory)
-
+            self.load(directory)
 
     def download(self, tag=None, number=10, size='thumb'):
       """
@@ -516,7 +515,8 @@ Valid options: 'thumb', 'small', 'medium', 'large'
             loaded += 1
 
         return loaded
-    def load(self, directory = None, extension = None):
+        
+    def load(self, directory = None, extension = None, sort_by=None):
         """
         **SUMMARY**
         
@@ -531,6 +531,12 @@ Valid options: 'thumb', 'small', 'medium', 'large'
     
         * *directory* - The path or directory from which to load images. 
         * *extension* - The extension to use. If none is given png is the default.
+        * *sort_by* - Sort the directory based on one of the following parameters passed as strings.
+          * *time* - the modification time of the file.
+          * *name* - the name of the file.
+          * *size* - the size of the file.
+
+          The default behavior is to leave the directory unsorted. 
 
         **RETURNS**
         
@@ -561,22 +567,34 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
       
         file_set = [glob.glob(p) for p in formats]
-
-        self.filelist = dict()
-
+        full_set = []
         for f in file_set:
             for i in f:
-                tmp = None
-                try:
-                    tmp = Image(i)
-                    if( tmp is not None and tmp.width > 0 and tmp.height > 0):
-                        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                            self.filelist[tmp.filename.split('\\')[-1]] = tmp
-                        else:
-                            self.filelist[tmp.filename.split('/')[-1]] = tmp
-                        self.append(tmp)
-                except:
-                    continue
+                full_set.append(i)
+
+        file_set = full_set
+        if(sort_by is not None):
+            if( sort_by.lower() == "time"):
+                file_set = sorted(file_set,key=os.path.getmtime)
+            if( sort_by.lower() == "name"):
+                file_set = sorted(file_set)
+            if( sort_by.lower() == "size"):
+                file_set = sorted(file_set,key=os.path.getsize)
+        
+        self.filelist = dict()
+        
+        for i in file_set:
+            tmp = None
+            try:
+                tmp = Image(i)
+                if( tmp is not None and tmp.width > 0 and tmp.height > 0):
+                    if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+                        self.filelist[tmp.filename.split('\\')[-1]] = tmp
+                    else:
+                        self.filelist[tmp.filename.split('/')[-1]] = tmp
+                    self.append(tmp)
+            except:
+                continue
         return len(self)
 
     def standardize(self,width,height):
@@ -704,13 +722,26 @@ Valid options: 'thumb', 'small', 'medium', 'large'
         return retVal
     
 
-    def __getslice__(self,i,j,k=1):
-        if ( j > len(self)):
-            j = len(self)
-        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
-        for rm in rmSet :
-            del(self[rm])
-        return self    
+    def __getitem__(self,key):
+        """
+        **SUMMARY**
+
+        Returns a ImageSet when sliced. Previously used to
+        return list. Now it is possible to ImageSet member
+        functions on sub-lists
+
+        """
+        if type(key) is types.SliceType: #Or can use 'try:' for speed
+            return ImageSet(list.__getitem__(self, key))
+        else:
+            return list.__getitem__(self,key)
+        
+    def __getslice__(self, i, j):
+        """
+        Deprecated since python 2.0, now using __getitem__
+        """
+        return self.__getitem__(slice(i,j))
+
   
 class Image:
     """
@@ -778,7 +809,8 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-  
+    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
+	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
 
@@ -803,8 +835,11 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-        "_pgsurface": ""}  
-    
+        "_pgsurface": ""}
+
+    #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
+    _uncroppedX = 0
+    _uncroppedY = 0 
    
     def __repr__(self):
         if len(self.filename) == 0:
@@ -1945,7 +1980,7 @@ class Image:
         :py:meth:`getGrayNumpyCv2`
         
         """
-        if not type(self._cv2GrayNumpy) is not np.ndarray:
+        if type(self._cv2GrayNumpy) is not np.ndarray:
             self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
         return self._cv2GrayNumpy
 
@@ -2221,7 +2256,7 @@ class Image:
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
-                  self.filename = "" 
+                  #self.filename = "" 
                   self.filehandle = fh
                   fh.writeFrame(saveimg)
 
@@ -4570,16 +4605,74 @@ class Image:
             self.__dict__[k] = v
 
 
-    def findBarcode(self):
+    def findBarcode(self,doZLib=True,zxing_path=""):
         """
         **SUMMARY**
-        This function requires zbar and the zbar python wrapper to be installed.
+
+        This function requires zbar and the zbar python wrapper
+        to be installed or zxing and the zxing python library.
+
+        **ZBAR**
 
         To install please visit:
         http://zbar.sourceforge.net/
 
         On Ubuntu Linux 12.04 or greater:
         sudo apt-get install python-zbar
+
+
+        **ZXING**
+        
+        If you have the python-zxing library installed, you can find 2d and 1d
+        barcodes in your image.  These are returned as Barcode feature objects
+        in a FeatureSet.  The single parameter is the ZXing_path along with
+        setting the doZLib flag to False. You do not need the parameter if you 
+        don't have the ZXING_LIBRARY env parameter set.
+
+        You can clone python-zxing at:
+
+        http://github.com/oostendo/python-zxing
+
+        **INSTALLING ZEBRA CROSSING**
+
+        * Download the latest version of zebra crossing from: http://code.google.com/p/zxing/
+      
+        * unpack the zip file where ever you see fit
+
+          >>> cd zxing-x.x, where x.x is the version number of zebra crossing 
+          >>> ant -f core/build.xml
+          >>> ant -f javase/build.xml 
+        
+          This should build the library, but double check the readme
+        
+        * Get our helper library 
+
+          >>> git clone git://github.com/oostendo/python-zxing.git
+          >>> cd python-zxing
+          >>> python setup.py install
+
+        * Our library does not have a setup file. You will need to add
+           it to your path variables. On OSX/Linux use a text editor to modify your shell file (e.g. .bashrc)
+        
+          export ZXING_LIBRARY=<FULL PATH OF ZXING LIBRARY - (i.e. step 2)>
+          for example: 
+
+          export ZXING_LIBRARY=/my/install/path/zxing-x.x/   
+        
+          On windows you will need to add these same variables to the system variable, e.g.
+          
+          http://www.computerhope.com/issues/ch000549.htm
+        
+        * On OSX/Linux source your shell rc file (e.g. source .bashrc). Windows users may need to restart.
+        
+        * Go grab some barcodes!
+
+        .. Warning::
+          Users on OSX may see the following error:
+          
+          RuntimeWarning: tmpnam is a potential security risk to your program
+          
+          We are working to resolve this issue. For normal use this should not be a problem.
         
         **Returns**
         
@@ -4598,38 +4691,52 @@ class Image:
         :py:class:`Barcode`
 
         """
-        try:
-          import zbar
-        except:
-          logger.warning('The zbar library is not installed, please install to read barcodes')
-          return None
+        if( doZLib ):
+            try:
+                import zbar
+            except:
+                logger.warning('The zbar library is not installed, please install to read barcodes')
+                return None
 
-        #configure zbar
-        scanner = zbar.ImageScanner()
-        scanner.parse_config('enable')
-        raw = self.getPIL().convert('L').tostring()
-        width = self.width
-        height = self.height
+            #configure zbar
+            scanner = zbar.ImageScanner()
+            scanner.parse_config('enable')
+            raw = self.getPIL().convert('L').tostring()
+            width = self.width
+            height = self.height
 
-        # wrap image data
-        image = zbar.Image(width, height, 'Y800', raw)
+            # wrap image data
+            image = zbar.Image(width, height, 'Y800', raw)
 
-        # scan the image for barcodes
-        scanner.scan(image)
+            # scan the image for barcodes
+            scanner.scan(image)
+            barcode = None
+            # extract results
+            for symbol in image:
+                # do something useful with results
+                barcode = symbol
+            # clean up
+            del(image)
 
-        barcode = None
-        # extract results
-        for symbol in image:
-            # do something useful with results
-            barcode = symbol
+        else:
+            if not ZXING_ENABLED:
+                warnings.warn("Zebra Crossing (ZXing) Library not installed. Please see the release notes.")
+                return None
+                
+            if (not self._barcodeReader):
+                if not zxing_path:
+                    self._barcodeReader = zxing.BarCodeReader()
+                else:
+                    self._barcodeReader = zxing.BarCodeReader(zxing_path)
 
-        # clean up
-        del(image)
-        
+            tmp_filename = os.tmpnam() + ".png"
+            self.save(tmp_filename)
+            barcode = self._barcodeReader.decode(tmp_filename)
+            os.unlink(tmp_filename)
+
         if barcode:
             f = Barcode(self, barcode)
             return FeatureSet([f])
-            #~ return f
         else:
             return None
 
@@ -4899,11 +5006,11 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace) 
 
 
-    def rotate90(self):
+    def transpose(self):
         """
         **SUMMARY**
         
-        Does a fast 90 degree rotation to the right. Generally this method should be faster than img.rotate(90)
+        Does a fast 90 degree rotation to the right with a flip.
 
         .. Warning::
           Subsequent calls to this function *WILL NOT* keep rotating it to the right!!!
@@ -4917,7 +5024,7 @@ class Image:
         **EXAMPLE**
         
         >>> img = Image("logo")
-        >>> img2 = img.rotate90()
+        >>> img2 = img.transpose()
         >>> img2.show()
 
         **SEE ALSO**
@@ -5460,8 +5567,7 @@ class Image:
             rectangle = (int(x-(w/2)), int(y-(h/2)), int(w), int(h))
         else:
             rectangle = (int(x), int(y), int(w), int(h))
-    
-
+        
         (topROI, bottomROI) = self._rectOverlapROIs((rectangle[2],rectangle[3]),(self.width,self.height),(rectangle[0],rectangle[1]))
 
         if( bottomROI is None ):
@@ -5473,7 +5579,12 @@ class Image:
         cv.SetImageROI(self.getBitmap(), bottomROI)
         cv.Copy(self.getBitmap(), retVal)
         cv.ResetImageROI(self.getBitmap())
-        return Image(retVal, colorSpace=self._colorSpace)
+        img = Image(retVal, colorSpace=self._colorSpace)
+
+        #Buffering the top left point (x, y) in a image.
+        img._uncroppedX = self._uncroppedX + int(x)
+        img._uncroppedY = self._uncroppedY + int(y) 
+        return img
             
     def regionSelect(self, x1, y1, x2, y2 ):
         """
@@ -5572,7 +5683,7 @@ class Image:
         **EXAMPLE**
         
         >>> img = Image("lenna")
-        >>> img.writeText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontSize=48)
+        >>> img.drawText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontsize=48)
         >>> img.show()
 
         **SEE ALSO**
@@ -5697,7 +5808,7 @@ class Image:
         imgarray = pg.surfarray.array3d(surface)
         retVal = Image(imgarray)
         retVal._colorSpace = ColorSpace.RGB
-        return retVal.toBGR().rotate90()
+        return retVal.toBGR().transpose()
     
     def _image2Surface(self,img):
         return pg.image.fromstring(img.getPIL().tostring(),img.size(), "RGB") 
@@ -7530,11 +7641,12 @@ class Image:
             new_version = 0
             #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $" 
             if not ver.startswith('$Rev:'):
-	        if int(ver.replace('.','0'))>=20400 :
-                    new_version = 1
-                if int(ver.replace('.','0'))>=20402 :     
-                    new_version = 2
-                    
+              if int(ver.replace('.','0'))>=20400:
+                 new_version = 1
+              if int(ver.replace('.','0'))>=20402:
+                 new_version = 2
+              if int(ver.replace('.','0'))>=20403:
+                 new_version = 3    
         except:
             logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
             return
@@ -7542,11 +7654,11 @@ class Image:
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
-            
-        if( self._mKeyPoints is None or self._mKPFlavor != flavor ):
+        
+        if( not(self._mKeyPoints) or self._mKPFlavor != flavor ):
             if ( new_version == 0):
                 if( flavor == "SURF" ):
-                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1) 
+                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1)
                     self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
                     if( len(self._mKPDescriptors) == 0 ):
                         return None, None                     
@@ -7579,10 +7691,9 @@ class Image:
                     self._mKPDescriptors = None
                     self._mKPFlavor = "STAR"
                     del starer
-            
-            
-            elif( new_version == 2 and flavor in ["SURF", "FAST"] ): 
-                if( flavor == "SURF" ):
+
+            elif( new_version >= 2 and flavor in ["SURF", "FAST"] ): 
+                if( flavor == "SURF" and new_version==2):
                     surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
                     #mask = self.getGrayNumpy()                    
                     #mask.fill(255) 
@@ -7598,6 +7709,20 @@ class Image:
                     self._mKPFlavor = "SURF"
                     del surfer
             
+                if( flavor == "SURF" and new_version==3):
+                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
+                    self._mKeyPoints,self._mKPDescriptors = surfer.detectAndCompute(self.getGrayNumpy(),None,useProvidedKeypoints = False)
+                    if( len(self._mKPDescriptors) == 0 ):
+                        return None, None                     
+                
+                    if( highQuality == 1 ):
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
+                    else:
+                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+                
+                    self._mKPFlavor = "SURF"
+                    del surfer
+
                 elif( flavor == "FAST" ):
                     faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
                     self._mKeyPoints = faster.detect(self.getGrayNumpy())
@@ -7613,19 +7738,19 @@ class Image:
                if( len(self._mKPDescriptors) == 0 ):
                     return None, None     
                self._mKPFlavor = flavor
-	       del FeatureDetector
+               del FeatureDetector
 
             elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
                FeatureDetector = cv2.FeatureDetector_create(flavor)
                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                self._mKPDescriptors = None
                self._mKPFlavor = flavor
-               del FeatureDetector   
-               
-	    else:
-                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
-                return None, None
-
+               del FeatureDetector
+        
+            else:
+               logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
+               return None, None
+        
         return self._mKeyPoints,self._mKPDescriptors 
 
     def _getFLANNMatches(self,sd,td):
@@ -8156,7 +8281,7 @@ class Image:
 
 
     
-    def _generatePalette(self,bins,hue):
+    def _generatePalette(self,bins,hue, centroids = None):
         """
         **SUMMARY**
 
@@ -8168,9 +8293,10 @@ class Image:
 
         **PARAMETERS**
 
-        bins - an integer number of bins into which to divide the colors in the image.
-        hue  - if hue is true we do only cluster on the image hue values. 
-
+        * *bins* - an integer number of bins into which to divide the colors in the image.
+        * *hue* - if hue is true we do only cluster on the image hue values. 
+        * *centroids* - A list of tuples that are the initial k-means estimates. This is handy if you want consisten results from the palettize.
+        
         **RETURNS**
 
         Nothing, but creates the image's cached values for: 
@@ -8212,8 +8338,15 @@ class Image:
             result = None
             if( not hue ):
                 pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
-                result = scv.kmeans2(pixels,bins)
-
+                if( centroids == None ):
+                    result = scv.kmeans(pixels,bins)
+                else:
+                    if(isinstance(centroids,list)):
+                        centroids = np.array(centroids,dtype='uint8')
+                    result = scv.kmeans(pixels,centroids)
+                    
+                self._mPaletteMembers = scv.vq(pixels,result[0])[0]                                
+                                
             else:
                 hsv = self
                 if( self._colorSpace != ColorSpace.HSV ):
@@ -8223,22 +8356,30 @@ class Image:
                 cv.Split(hsv.getBitmap(),None,None,h,None)
                 mat =  cv.GetMat(h)
                 pixels = np.array(mat).reshape(-1,1)
-                result = scv.kmeans2(pixels,bins)                
+                
+                if( centroids == None ):
+                    result = scv.kmeans(pixels,bins)                
+                else:
+                    if(isinstance( centroids,list)):
+                        centroids = np.array( centroids,dtype='uint8')
+                        centroids = centroids.reshape(centroids.shape[0],1)
+                    result = scv.kmeans(pixels,centroids)
+                    
+                self._mPaletteMembers = scv.vq(pixels,result[0])[0]
 
-
+                    
             for i in range(0,bins):
-                count = np.where(result[1]==i)
+                count = np.where(self._mPaletteMembers==i)
                 v = float(count[0].shape[0])/total
                 percentages.append(v)
 
             self._mDoHuePalette = hue
             self._mPaletteBins = bins
             self._mPalette = np.array(result[0],dtype='uint8')
-            self._mPaletteMembers = result[1]
             self._mPalettePercentages = percentages
 
 
-    def getPalette(self,bins=10,hue=False):
+    def getPalette(self,bins=10,hue=False,centroids=None):
         """
         **SUMMARY**
 
@@ -8249,7 +8390,8 @@ class Image:
 
         * *bins* - an integer number of bins into which to divide the colors in the image.
         * *hue*  - if hue is true we do only cluster on the image hue values. 
-
+        * *centroids* - A list of tuples that are the initial k-means estimates. This is handy if you want consisten results from the palettize.
+        
         **RETURNS**
 
         A numpy array of the BGR color tuples. 
@@ -8279,7 +8421,7 @@ class Image:
         :py:meth:`findBlobsFromPalette`
         
         """
-        self._generatePalette(bins,hue)
+        self._generatePalette(bins,hue,centroids)
         return self._mPalette
 
 
@@ -8332,9 +8474,27 @@ class Image:
             derp = palette[result[0]]
             retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
             retVal = retVal.rotate(-90,fixed=False)
+            retVal._mDoHuePalette = True
+            retVal._mPaletteBins = len(palette)
+            retVal._mPalette = palette
+            retVal._mPaletteMembers = result[0]
+
         else:
             result = scv.vq(self.getNumpy().reshape(-1,3),palette)
             retVal = Image(palette[result[0]].reshape(self.width,self.height,3))
+            retVal._mDoHuePalette = False
+            retVal._mPaletteBins = len(palette)
+            retVal._mPalette = palette
+            pixels = np.array(self.getNumpy()).reshape(-1, 3)
+            retVal._mPaletteMembers = scv.vq(pixels,palette)[0]
+
+        percentages = []
+        total = self.width*self.height
+        for i in range(0,len(palette)):
+            count = np.where(self._mPaletteMembers==i)
+            v = float(count[0].shape[0])/total
+            percentages.append(v)
+        self._mPalettePercentages = percentages 
         return retVal
 
     def drawPaletteColors(self,size=(-1,-1),horizontal=True,bins=10,hue=False):
@@ -8459,7 +8619,7 @@ class Image:
                  
         return retVal 
 
-    def palettize(self,bins=10,hue=False):
+    def palettize(self,bins=10,hue=False,centroids=None):
         """
         **SUMMARY**
 
@@ -8504,7 +8664,7 @@ class Image:
 
         """
         retVal = None
-        self._generatePalette(bins,hue)
+        self._generatePalette(bins,hue,centroids)
         if( hue ):
             derp = self._mPalette[self._mPaletteMembers]
             retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
@@ -10936,7 +11096,7 @@ class Image:
             retVal = self.mergeChannels(b,g,r)
         return retVal
         
-    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3):
+    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3, nframes=300):
         """
         **DESCRIPTION**
 
@@ -10953,6 +11113,7 @@ class Image:
         * *bb* - tuple - Bounding Box tuple (x, y, w, h)
         * *num_frames* - int - Number of previous frames to be used for 
                                Forward Backward Error
+        * *nframes* - int - Number of frames to be stored in the TrackSet
 
         **RETURNS**
 
@@ -11028,6 +11189,10 @@ class Image:
             for i in img:
                 ts = i.track(method, ts, num_frames=num_frames)
             return ts
+            
+        # Issue #256 - (Bug) Memory management issue due to too many number of images.
+        if len(ts) > nframes:
+            ts.trimList(50)
         
         if method.lower() == "camshift":
             hsv = self.toHSV().getNumpyCv2()
@@ -11142,11 +11307,507 @@ class Image:
         bb += "\x87\x00\x00"
         return bb
 
+    def rotate270(self):
+        """
+        **DESCRIPTION**
 
-Image.greyscale = Image.grayscale
+        Rotate the image 270 degrees to the left, the same as 90 degrees to the right.
+        This is the same as rotateRight()
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotate270().show()
+        
+        """
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Flip(self.getBitmap(), retVal, 0) # vertical
+        cv.Transpose(retVal, retVal)
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def rotate90(self):
+        """
+        **DESCRIPTION**
+
+        Rotate the image 90 degrees to the left, the same as 270 degrees to the right.
+        This is the same as rotateRight()
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotate90().show()
+        
+        """
+
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Transpose(self.getBitmap(), retVal)
+        cv.Flip(retVal, retVal, 0) # vertical
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def rotateLeft(self): # same as 90
+        """
+        **DESCRIPTION**
+
+        Rotate the image 90 degrees to the left.
+        This is the same as rotate 90.
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotateLeft().show()
+        
+        """
+
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Transpose(self.getBitmap(), retVal)
+        cv.Flip(retVal, retVal, 0) # vertical
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def rotateRight(self): # same as 270
+        """
+        **DESCRIPTION**
+        
+        Rotate the image 90 degrees to the right.
+        This is the same as rotate 270.
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotateRight().show()
+
+        """
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Flip(self.getBitmap(), retVal, 0) # vertical
+        cv.Transpose(retVal, retVal)
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+        
+    def rotate180(self):
+        """
+        **DESCRIPTION**
+
+        Rotate the image 180 degrees to the left/right.
+        This is the same as rotate 90.
+        
+        **RETURNS**
+
+        A SimpleCV image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img.rotate180().show()
+        """
+        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        cv.Flip(self.getBitmap(), retVal, 0) #vertical
+        cv.Flip(retVal, retVal, 1)#horizontal
+        return(Image(retVal, colorSpace=self._colorSpace))
+
+    def verticalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
+        """
+        **DESCRIPTION**
+        
+        This method generates histogram of the number of grayscale pixels
+        greater than the provided threshold. The method divides the image
+        into a number evenly spaced vertical bins and then counts the number
+        of pixels where the pixel is greater than the threshold. This method
+        is helpful for doing basic morphological analysis.
+
+        **PARAMETERS**
+        * *bins* - The number of bins to use. 
+        * *threshold* - The grayscale threshold. We count pixels greater
+                       than this value.
+       
+        * *normalize* - If normalize is true we normalize the bin counts
+                        to sum to one. Otherwise we return the number of
+                        pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin
+                      counts, and the bin widths as a tuple. We can use
+                      these values in pyplot.bar to quickly plot the
+                      histogram.
+
+        **RETURNS**
+
+        The default settings return the raw bin counts moving from left to
+        right on the image. If forPlot is true we return a tuple that
+        contains a list of bin labels, the bin counts, and the bin widths.
+        This tuple can be used to plot the histogram using
+        matplotlib.pyplot.bar function.
+
+        **EXAMPLE**
+
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+        >>>> plt.show())
+
+        **NOTES**
+
+        See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
+        See: http://matplotlib.org/api/pyplot_api.html?highlight=hist#matplotlib.pyplot.hist
+        
+        """
+        if( bins <= 0 ):
+            raise Exception("Not enough bins")
+            
+        img = self.getGrayNumpy()
+        pts = np.where(img>threshold)
+        y = pts[1]
+        hist = np.histogram(y,bins=bins,range=(0,self.height),normed=normalize)
+        retVal = None
+        if( forPlot ):
+            # for using matplotlib bar command
+            # bin labels, bin values, bin width
+            retVal=(hist[1][0:-1],hist[0],self.height/bins)
+        else:
+            retVal = hist[0]
+        return retVal
+
+    def horizontalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
+        """
+        **DESCRIPTION**
+        
+        This method generates histogram of the number of grayscale pixels
+        greater than the provided threshold. The method divides the image
+        into a number evenly spaced horizontal bins and then counts the number
+        of pixels where the pixel is greater than the threshold. This method
+        is helpful for doing basic morphological analysis.
+
+        **PARAMETERS**
+        * *bins* - The number of bins to use. 
+        * *threshold* - The grayscale threshold. We count pixels greater
+                       than this value.
+       
+        * *normalize* - If normalize is true we normalize the bin counts
+                        to sum to one. Otherwise we return the number of
+                        pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin
+                      counts, and the bin widths as a tuple. We can use
+                      these values in pyplot.bar to quickly plot the
+                      histogram.
+
+        **RETURNS**
+
+        The default settings return the raw bin counts moving from top to
+        bottom on the image. If forPlot is true we return a tuple that
+        contains a list of bin labels, the bin counts, and the bin widths.
+        This tuple can be used to plot the histogram using
+        matplotlib.pyplot.bar function.
+
+        **EXAMPLE**
+
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> plt.bar(*img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+        >>>> plt.show())
+
+        **NOTES**
+
+        See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
+        See: http://matplotlib.org/api/pyplot_api.html?highlight=hist#matplotlib.pyplot.hist
+        
+        """
+        if( bins <= 0 ):
+            raise Exception("Not enough bins")
+
+        img = self.getGrayNumpy()
+        pts = np.where(img>threshold)
+        x = pts[0]
+        hist = np.histogram(x,bins=bins,range=(0,self.width),normed=normalize)
+        retVal = None
+        if( forPlot ):
+            # for using matplotlib bar command
+            # bin labels, bin values, bin width
+            retVal=(hist[1][0:-1],hist[0],self.width/bins)
+        else:
+            retVal = hist[0]
+        return retVal
+
+    def getLineScan(self,x=None,y=None,pt1=None,pt2=None):
+        """
+        **SUMMARY**
+
+        This function converts the image to grayscale and then pulls
+        out a series of pixel values as a linescan object that can
+        be manipulated furter.
+
+        **PARAMETERS**
+        * *x* - Take a vertical line scan at the column x.
+        * *y* - Take a horizontal line scan at the row y.
+        * *pt1* - Take a line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.LineScan object or None if the method fails.
+
+        **EXAMPLE**
+        
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> a = img.getLineScan(x=10)
+        >>>> b = img.getLineScan(y=10)
+        >>>> c = img.getLineScan(pt1 = (10,10), pt2 = (500,500) )
+        >>>> plt.plot(a)
+        >>>> plt.plot(b)
+        >>>> plt.plot(c)
+        >>>> plt.show()
+        
+        """
+        # We may want an option to choose the a channel here
+        gray = self.getGrayNumpy()
+        retVal = None 
+        if( x is not None and y is None and pt1 is None and pt2 is None):
+            if( x >= 0 and x < self.width):
+                retVal = LineScan(gray[x,:])
+                retVal.image = self
+                x = np.ones((1,self.height))[0]*x
+                y = range(0,self.height,1)
+                pts = zip(x,y)
+                retVal.pointLoc = pts
+            else:
+                warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+                # warn and return None
+
+        elif( x is None and y is not None and pt1 is None and pt2 is None):
+            if( y >= 0 and y < self.height):
+                retVal = LineScan(gray[:,y])
+                retVal.image = self
+                y = np.ones((1,self.width))[0]*y
+                x = range(0,self.width,1)
+                pts = zip(x,y)
+                retVal.pointLoc = pts
+            else:
+                warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+                # warn and return None
+
+            pass
+        elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
+              (isinstance(pt2,tuple) or isinstance(pt2,list)) and
+              len(pt1) == 2 and len(pt2) == 2 and
+              x is None and y is None):
+
+            pts = self.bresenham_line(pt1,pt2)
+            retVal = LineScan([gray[p[0],p[1]] for p in pts])
+            retVal.pointLoc = pts
+            retVal.image = self
+            
+        else:
+            # an invalid combination - warn
+            warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+            return None
+        return retVal
+
+    def getPixelsOnLine(self,pt1,pt2):
+        """
+        **SUMMARY**
+        
+        Return all of the pixels on an arbitrary line.
+
+        **PARAMETERS**
+
+        * *pt1* - The first pixel coordinate as an (x,y) tuple or list.
+        * *pt2* - The second pixel coordinate as an (x,y) tuple or list.
+
+        **RETURNS**
+
+        Returns a list of RGB pixels values.
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.getPixelsOnLine( (0,0), (img.width/2,img.height/2) )
+        """
+        retVal = None 
+        if( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
+            (isinstance(pt2,tuple) or isinstance(pt2,list)) and
+            len(pt1) == 2 and len(pt2) == 2 ):
+            pts = self.bresenham_line(pt1,pt2)
+            retVal = [self.getPixel(p[0],p[1]) for p in pts]
+        else:
+            warnings.warn("ImageClass.getPixelsOnLine - The line you provided is not valid")
+
+        return retVal
+        
+    def bresenham_line(self, pt1,pt2): #(x,y),(x2,y2)):
+        """
+        Brensenham line algorithm
+
+        cribbed from: http://snipplr.com/view.php?codeview&id=22482
+
+        This is just a helper method
+        """
+        x = np.clip(pt1[0],0,self.width)
+        y = np.clip(pt1[1],0,self.height)
+        x2 = np.clip(pt2[0],0,self.width)
+        y2 = np.clip(pt2[1],0,self.height)
+        
+        steep = 0
+        coords = []
+        dx = abs(x2 - x)
+        if (x2 - x) > 0:
+            sx = 1
+        else:
+            sx = -1
+        dy = abs(y2 - y)
+        if (y2 - y) > 0:
+            sy = 1
+        else:
+            sy = -1
+        if dy > dx:
+            steep = 1
+            x,y = y,x
+            dx,dy = dy,dx
+            sx,sy = sy,sx
+        d = (2 * dy) - dx
+        for i in range(0,dx):
+            if steep:
+                coords.append((y,x))
+            else:
+                coords.append((x,y))
+            while d >= 0:
+                y = y + sy
+                d = d - (2 * dx)
+            x = x + sx
+            d = d + (2 * dy)
+        coords.append((x2,y2))
+        return coords
+
+    def uncrop(self, ListofPts): #(x,y),(x2,y2)):
+        """
+        **SUMMARY**
+        
+        This function allows us to translate a set of points from the crop window back to the coordinate of the source window.
+        
+        **PARAMETERS**
+
+        * *ListofPts* - set of points from cropped image. 
+        
+        **RETURNS**
+
+        Returns a list of coordinates in the source image.
+
+        **EXAMPLE**
+
+        >> img = Image('lenna')
+        >> croppedImg = img.crop(10,20,250,500)
+        >> sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
+        """
+        return [(i[0]+self._uncroppedX,i[1]+self._uncroppedY)for i in ListofPts]
+    
+    def grid(self,dimensions=(10,10), color=(0, 0, 0), width=1, antialias=True, alpha=-1):
+        
+        
+        """
+        **SUMMARY**
+        
+        Draw a grid on the image 
+
+        **PARAMETERS**
+
+        * *dimensions* - No of rows and cols as an (rows,xols) tuple or list.
+        * *color* - Grid's color as a tuple or list.
+        * *width* - The grid line width in pixels.
+        * *antialias* - Draw an antialiased object
+        * *aplha* - The alpha blending for the object. If this value is -1 then the
+                            layer default value is used. A value of 255 means opaque, while 0 means transparent.
+
+        **RETURNS**
+
+        Returns the index of the drawing layer of the grid
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> img.grid((20,20),(255,0,0),1,True,0)
+        """
+        imgTemp = self
+        try:
+            step_row = self.size()[1]/dimensions[0]
+            step_col = self.size()[0]/dimensions[1]
+        except ZeroDivisionError:
+            return imgTemp
+            
+        i = 1
+        j = 1
+        
+        grid = DrawingLayer(self.size()) #add a new layer for grid
+        while( (i < dimensions[0]) and (j < dimensions[1]) ):
+            if( i < dimensions[0] ):
+                grid.line((0,step_row*i), (self.size()[0],step_row*i), color, width, antialias, alpha)
+                i = i + 1
+            if( j < dimensions[1] ):
+                grid.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
+                j = j + 1
+        imgTemp._gridLayer[0] = imgTemp.addDrawingLayer(grid) # store grid layer index
+        imgTemp._gridLayer[1] = dimensions
+        return imgTemp
+	
+    def findGridLines(self):
+
+        """
+        **SUMMARY**
+        
+        Return Grid Lines as a Line Feature Set 
+
+        **PARAMETERS**
+    
+        None
+
+        **RETURNS**
+
+        Grid Lines as a Feature Set
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> lines = img.findGridLines()
+        
+        """
+        
+        gridIndex = self.getDrawingLayer(self._gridLayer[0])
+        if self._gridLayer[0]==-1:
+            print "Cannot find grid on the image, Try adding a grid first"
+        
+        lineFS = FeatureSet()
+        try:
+            step_row = self.size()[1]/self._gridLayer[1][0]
+            step_col = self.size()[0]/self._gridLayer[1][1]
+        except ZeroDivisionError:
+            return None 
+        
+        i = 1
+        j = 1
+
+        while( i < self._gridLayer[1][0] ):
+            lineFS.append(Line(self,((0,step_row*i), (self.size()[0],step_row*i))))
+            i = i + 1
+        while( j < self._gridLayer[1][1] ):
+            lineFS.append(Line(self,((step_col*j,0), (step_col*j,self.size()[1]))))
+            j = j + 1
+        
+        return lineFS
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *

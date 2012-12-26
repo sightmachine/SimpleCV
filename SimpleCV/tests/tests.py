@@ -68,11 +68,11 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
     fname = standard_path+name_stem+str(idx)+".jpg"
     rhs = Image(fname)
     if( lhs.width == rhs.width and lhs.height == rhs.height ):
-      diff = (lhs-rhs)
-      val = np.average(diff.getNumpy())
-      if( val > tolerance ):
-        print val
-        return True
+        diff = (lhs-rhs)
+        val = np.average(diff.getNumpy())
+        if( val > tolerance ):
+            print val
+            return True        
   return False
 
 #Save a list of images to a standard path.
@@ -1841,6 +1841,8 @@ def test_palettize():
   img = Image(testimageclr)
   img2 = img.palettize(bins=20,hue=False)
   img3 = img.palettize(bins=3,hue=True)
+  img4 = img.palettize(centroids=[Color.WHITE,Color.RED,Color.BLUE,Color.GREEN,Color.BLACK])
+  img4 = img.palettize(hue=True,centroids=[(0),(30),(60),(180)])
   #UHG@! can't diff because of the kmeans initial conditions causes
   # things to bounce around... otherwise we need to set a friggin huge tolerance
 
@@ -2835,7 +2837,8 @@ def test_image_temp_save():
       if i==None :
          assert False
   assert True
-<<<<<<< HEAD
+
+
 
 def test_image_set_average():
   iset = ImageSet()
@@ -2854,23 +2857,7 @@ def test_image_set_average():
   name_stem = "test_image_set_average"
   perform_diff(result,name_stem)
 
-def test_image_set_resize():
-  iset = ImageSet()
-  iset.append(Image("./../sampleimages/tracktest0.jpg"))
-  iset.append(Image("./../sampleimages/tracktest1.jpg"))
-  iset.append(Image("./../sampleimages/tracktest2.jpg"))
-  iset.append(Image("./../sampleimages/tracktest3.jpg"))
-  iset.append(Image("./../sampleimages/tracktest4.jpg"))
-  iset.append(Image("./../sampleimages/tracktest5.jpg"))
-  iset.append(Image("./../sampleimages/tracktest6.jpg"))
-  iset.append(Image("./../sampleimages/tracktest7.jpg"))
-  iset.append(Image("./../sampleimages/tracktest8.jpg"))
-  iset.append(Image("./../sampleimages/tracktest9.jpg"))
-  iset = iset.standardize(64,64)
-  avg = iset.average(mode='fixed',size=(72,72))
-  result = [avg]
-  name_stem = "test_image_set_resize"
-  perform_diff(result,name_stem)
+
 
 def test_save_to_gif():
     imgs = ImageSet()
@@ -2887,10 +2874,6 @@ def test_save_to_gif():
 
     assert imgs.save('test_save_to_gif.gif') == len(imgs)
 
-def test_load_gif():
-    imgs = ImageSet()
-    imgs.load("../sampleimages/test_load_gif.gif")
-    assert len(imgs)
 
 def sliceinImageSet():
     imgset = ImageSet("../sampleimages/")
@@ -2900,8 +2883,7 @@ def sliceinImageSet():
     else :
         assert False  
 
-=======
-  
+
 def test_upload_dropbox():
     try:
        import dropbox
@@ -2921,4 +2903,153 @@ def test_upload_dropbox():
                pass
            else :
                assert False
->>>>>>> af29e047ff88003132f0ffb6225a60a5eb4f8808
+
+def test_builtin_rotations():
+    img = Image('lenna')
+    r1 = img - img.rotate180().rotate180()
+    r2 = img - img.rotate90().rotate90().rotate90().rotate90()
+    r3 = img - img.rotateLeft().rotateLeft().rotateLeft().rotateLeft()
+    r4 = img - img.rotateRight().rotateRight().rotateRight().rotateRight()
+    r5 = img - img.rotate270().rotate270().rotate270().rotate270()
+    if( r1.meanColor() == Color.BLACK and
+        r2.meanColor() == Color.BLACK and
+        r3.meanColor() == Color.BLACK and
+        r4.meanColor() == Color.BLACK and
+        r5.meanColor() == Color.BLACK ):
+        pass
+    else:
+        assert False
+        
+def test_histograms():
+    img = Image('lenna')
+    img.verticalHistogram()
+    img.horizontalHistogram()
+
+    img.verticalHistogram(bins=3)
+    img.horizontalHistogram(bins=3)
+
+    img.verticalHistogram(threshold=10)
+    img.horizontalHistogram(threshold=255)
+
+    img.verticalHistogram(normalize=True)
+    img.horizontalHistogram(normalize=True)
+
+    img.verticalHistogram(forPlot=True,normalize=True)
+    img.horizontalHistogram(forPlot=True,normalize=True)
+
+    pass
+
+def test_blob_full_masks():
+    img = Image('lenna')
+    b = img.findBlobs()
+    m1 = b[-1].getFullMaskedImage()
+    m2 = b[-1].getFullHullMaskedImage()
+    m3 = b[-1].getFullMask()
+    m4 = b[-1].getFullHullMask()
+    if(  m1.width == img.width and
+         m2.width == img.width and
+         m3.width == img.width and
+         m4.width == img.width and
+         m1.height == img.height and
+         m2.height == img.height and
+         m3.height == img.height and
+         m4.height == img.height ):
+        pass
+    else:
+        assert False
+    
+         
+def test_blob_edge_images():
+    img = Image('lenna')
+    b = img.findBlobs()
+    m1 = b[-1].getEdgeImage()
+    m2 = b[-1].getHullEdgeImage()
+    m3 = b[-1].getFullEdgeImage()
+    m4 = b[-1].getFullHullEdgeImage()
+    pass
+
+def test_LineScan():
+    def lsstuff(ls):
+        def aLine(x,m,b):
+            return m*x+b
+        ls2 = ls.smooth(degree=4).normalize().scale(value_range=[-1,1]).derivative().resample(100).convolve([.25,0.25,0.25,0.25])
+        ls2.minima()
+        ls2.maxima()
+        ls2.localMinima()
+        ls2.localMaxima()
+        fft,f = ls2.fft()
+        ls3 = ls2.ifft(fft)
+        ls4 = ls3.fitToModel(aLine)
+        ls4.getModelParameters(aLine)
+    img = Image("lenna")
+    ls = img.getLineScan(x=128)
+    lsstuff(ls)
+    ls = img.getLineScan(y=128)
+    lsstuff(ls)
+    ls = img.getLineScan(pt1 = (0,0), pt2=(128,128))
+    lsstuff(ls)
+    pass
+
+def test_uncrop():
+  img = Image('lenna')
+  croppedImg = img.crop(10,20,250,500)
+  sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
+  if sourcePts:
+      pass
+
+def test_grid():
+    img = Image("simplecv")
+    img1 = img.grid((10,10),(0,255,0),1)
+    img2 = img.grid((20,20),(255,0,255),1)
+    img3 = img.grid((20,20),(255,0,255),2)
+    result = [img1,img2,img3]
+    name_stem = "test_image_grid"
+    perform_diff(result,name_stem,12.0)
+
+def test_cluster():
+  img = Image("lenna")
+  blobs = img.findBlobs()
+  clusters1 = blobs.cluster(method="kmeans",k=5,properties=["color"])
+  clusters2 = blobs.cluster(method="hierarchical")
+  if clusters1 and clusters2:
+      pass
+      
+def test_line_parallel():
+    img = Image("lenna")
+    l1 = Line(img, ((100,200), (300,400)))
+    l2 = Line(img, ((200,300), (400,500)))
+    if l1.isParallel(l2):
+        pass
+    else:
+        assert False
+
+def test_line_perp():
+    img = Image("lenna")
+    l1 = Line(img, ((100,200), (100,400)))
+    l2 = Line(img, ((200,300), (400,300)))
+    if l1.isPerpendicular(l2):
+        pass
+    else:
+        assert False
+        
+def test_line_imgIntersection():
+    img = Image((512, 512))
+    for x in range(200, 400):
+        img[x, 200] = (255.0, 255.0, 255.0)
+    l = Line(img, ((300, 100),(300, 500)))
+    if l.imgIntersections(img) == [(300, 200)]:
+        pass
+    else:
+        assert False
+
+def test_findGridLines():
+    img = Image("simplecv")
+    img = img.grid((10,10),(0,255,255))
+    lines = img.findGridLines()
+    lines.draw()
+    result = [img]
+    name_stem = "test_image_gridLines"
+    perform_diff(result,name_stem,5)
+
+    if(lines == 0 or lines == None):
+        assert False

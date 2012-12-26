@@ -79,6 +79,11 @@ class Line(Feature):
         self.image = i
         self.vector = None
         self.end_points = copy(line)
+        #print self.end_points[1][1], self.end_points[0][1], self.end_points[1][0], self.end_points[0][0]
+        if self.end_points[1][0] - self.end_points[0][0] == 0:
+            self.slope = float("inf")
+        else:
+            self.slope = float(self.end_points[1][1] - self.end_points[0][1])/float(self.end_points[1][0] - self.end_points[0][0])
         #coordinate of the line object is the midpoint
         at_x = (line[0][0] + line[1][0]) / 2
         at_y = (line[0][1] + line[1][1]) / 2
@@ -248,6 +253,130 @@ class Line(Feature):
     
         temp = sum(weighted_clrs) / sum(weight_arr)  #return the weighted avg
         return (float(temp[0]),float(temp[1]),float(temp[2]))
+        
+    def findIntersection(self, line):
+        """
+        **SUMMARY**
+
+        Returns the interesction point of two lines. 
+
+        **RETURNS**
+
+        A point tuple.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = img.findLines()
+        >>> c = l[0].findIntersection[1]
+
+        """
+        if self.slope == float("inf"):
+            x = self.end_points[0][0]
+            y = line.slope*(x-line.end_points[1][0])+line.end_points[1][1]
+            return (x, y)
+            
+        if line.slope == float("inf"):
+            x = line.end_points[0][0]
+            y = self.slope*(x-self.end_points[1][0])+self.end_points[1][1]
+            return (x, y)
+            
+        m1 = self.slope
+        x12, y12 = self.end_points[1]
+        m2 = line.slope
+        x22, y22 = line.end_points[1]
+        
+        x = (m1*x12 - m2*x22 + y22 - y12)/float(m1-m2)
+        y = (m1*m2*(x12-x22) - m2*y12 + m1*y22)/float(m1-m2)
+        
+        return (x, y)
+        
+    def isParallel(self, line):
+        """
+        **SUMMARY**
+
+        Checks whether two lines are parallel or not.
+
+        **RETURNS**
+
+        Bool. True or False
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = img.findLines()
+        >>> c = l[0].isParallel(l[1])
+
+        """
+        if self.slope == line.slope:
+            return True
+        return False
+    
+    def isPerpendicular(self, line):
+        """
+        **SUMMARY**
+
+        Checks whether two lines are perpendicular or not.
+
+        **RETURNS**
+
+        Bool. True or False
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = img.findLines()
+        >>> c = l[0].isPerpendicular(l[1])
+
+        """
+        if self.slope == float("inf"):
+            if line.slope == 0:
+                return True
+            return False
+            
+        if line.slope == float("inf"):
+            if self.slope == 0:
+                return True
+            return False
+            
+        if self.slope*line.slope == -1:
+            return True
+        return False
+            
+    def imgIntersections(self, img):
+        """
+        **SUMMARY**
+
+        Returns a set of pixels where the line intersects with the binary image.
+
+        **RETURNS**
+
+        list of points.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = img.findLines()
+        >>> c = l[0].imgIntersections(img.binarize())
+
+        """
+        pixels = []
+        if self.slope == float("inf"):
+            for y in range(self.end_points[0][1], self.end_points[1][1]+1):
+                pixels.append((self.end_points[0][0], y))
+        else:
+            for x in range(self.end_points[0][0], self.end_points[1][0]+1):
+                pixels.append((x, int(self.end_points[1][1] + self.slope*(x-self.end_points[1][0]))))
+            for y in range(self.end_points[0][1], self.end_points[1][1]+1):
+                pixels.append((int(((y-self.end_points[1][1])/self.slope)+self.end_points[1][0]), y))
+        pixels = list(set(pixels))
+        matched_pixels=[]
+        for pixel in pixels:
+            if img[pixel[0], pixel[1]] == (255.0, 255.0, 255.0):
+                matched_pixels.append(pixel)
+        matched_pixels.sort()
+        
+        return matched_pixels
 
     def angle(self):
         """
@@ -494,10 +623,10 @@ class HaarFeature(Feature):
       
     def __getstate__(self):
         dict = self.__dict__.copy()
-        del dict["classifier"]
+        if 'classifier' in dict:
+            del dict["classifier"]
         return dict
               
-      
     def meanColor(self):
         """
         **SUMMARY**

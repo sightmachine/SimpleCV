@@ -33,6 +33,7 @@ import platform
 import copy
 import types
 import time
+import itertools #for track
 
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
@@ -62,14 +63,16 @@ except ImportError:
 #optional libraries
 PIL_ENABLED = True
 try:
-    import Image as pil
-    from Image.GifImagePlugin import getheader, getdata
+    from PIL import Image as pil
+    from PIL import ImageFont as pilImageFont
+    from PIL import ImageDraw as pilImageDraw
+    from PIL import GifImagePlugin 
+    getheader = GifImagePlugin.getheader
+    getdata   = GifImagePlugin.getdata
 except ImportError:
     try:
-        import PIL.Image as pil
-        from PIL import ImageFont as pilImageFont
-        from PIL import ImageDraw as pilImageDraw
-        from PIL.GifImagePlugin import getheader, getdata
+        import Image as pil
+        from GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 
@@ -79,6 +82,12 @@ try:
 except ImportError:
     FREENECT_ENABLED = False
 
+ZXING_ENABLED = True
+try:
+    import zxing
+except ImportError:
+    ZXING_ENABLED = False    
+    
 OCR_ENABLED = True
 try:
     import tesseract
