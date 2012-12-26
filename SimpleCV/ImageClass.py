@@ -11586,7 +11586,7 @@ class Image:
                 # warn and return None
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
-            if( y >= 0 and x < self.height):
+            if( y >= 0 and y < self.height):
                 retVal = LineScan(gray[:,y])
                 retVal.image = self
                 y = np.ones((1,self.width))[0]*y
@@ -11604,7 +11604,7 @@ class Image:
               x is None and y is None):
 
             pts = self.bresenham_line(pt1,pt2)
-            retVal = LineScan([gray[p[1],p[0]] for p in pts])
+            retVal = LineScan([gray[p[0],p[1]] for p in pts])
             retVal.pointLoc = pts
             retVal.image = self
             
