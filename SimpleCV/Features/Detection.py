@@ -1612,3 +1612,45 @@ class KeypointMatch(Feature):
         rectangle. 
         """
         return self._homography
+
+class ShapeContextDescriptor(Feature):
+    x = 0.00
+    y = 0.00 
+    image = "" #parent image
+    points = []
+    _minRect = []
+    _avgColor = None
+    _descriptor = None
+    _sourceBlob = None
+    def __init__(self, image,point,descriptor,blob):
+        self._descriptor = descriptor
+        self._sourceBlob = blob
+        x = point[0]
+        y = point[1]
+        points = [(x-1,y-1),(x+1,y-1),(x+1,y+1),(x-1,y+1)]
+        super(ShapeContextDescriptor, self).__init__(image, x, y, points)                                        
+  
+    def draw(self, color = Color.GREEN,width=1):
+        """
+        The default drawing operation is to draw the min bounding 
+        rectangle in an image. 
+
+        **SUMMARY**
+
+        Draw a small circle around the corner.  Color tuple is single parameter, default is Red.
+
+        **PARAMETERS**
+        
+        * *color* - An RGB color triplet. 
+        * *width* - if width is less than zero we draw the feature filled in, otherwise we draw the
+          contour using the specified width.
+
+          
+        **RETURNS**
+
+        Nothing - this is an inplace operation that modifies the source images drawing layer. 
+
+
+        """
+        self.image.dl().circle((self.x,self.y),3,color,width)
+

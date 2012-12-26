@@ -2,7 +2,7 @@ from SimpleCV.base import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
-
+from SimpleCV.Features.Detection import ShapeContextDescriptor
 class Blob(Feature):
     """
     **SUMMARY**
@@ -1198,3 +1198,33 @@ class Blob(Feature):
 
     def __repr__(self):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
+
+    def getShapeContext(self):
+        # still need to subsample big contours 
+        data = []
+        for pt in self.mContour:
+            temp = []
+            # take each other point in the contour, center it on pt, and covert it to log polar
+            temp = [(np.log10(np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)),np.arctan2(b[0]-pt[0],b[1]-pt[1])) for b in self.mContour]
+            if self.mHoleContour is not None:
+                for hc in self.mHoleContour:
+                    #Do the same for all of the hole contours
+                    temp += [(np.log10(np.sqrt((hcpt[0]-pt[0])**2+(hcpt[1]-pt[1])**2)),np.arctan2(hcpt[0]-pt[0],hcpt[1]-pt[1])) for hcpt in hc]
+            data.append(temp)
+
+        #UHG!!! need to repeat this for all of the interior contours too
+        descriptors = []
+        dsz = 6
+        # for each point in the contour
+        for d in data:
+            test = np.array(d)
+            # generate a 2D histrogram, and flatten it out. 
+            hist,a,b =np.histogram2d(test[:,0],test[:,1],dsz,[[0,3.3],[np.pi*-1,np.pi]])
+            hist = hist.reshape(1,dsz**2)
+            descriptors.append(hist[0])
+
+        fs = FeatureSet()
+        for i in range(0,len(descriptors)):
+            fs.append(ShapeContextDescriptor(self.image,self.mContour[i],descriptors[i],self))
+
+        return fs
