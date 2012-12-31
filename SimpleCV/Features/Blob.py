@@ -1203,16 +1203,22 @@ class Blob(Feature):
 
     def getSCDescriptors(self):
         if( self._scdescriptors is not None ):
-            return self._scdescriptors
+            return self._scdescriptors,self._completeContour
+
         data = []
-        for pt in self.mContour:
+        completeContour = self.mContour
+        if self.mHoleContour is not None:
+            for ctr in self.mHoleContour:
+                completeContour = completeContour + ctr
+
+        for pt in completeContour: #
             temp = []
             # take each other point in the contour, center it on pt, and covert it to log polar
-            temp = [(np.log10(np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)),np.arctan2(b[0]-pt[0],b[1]-pt[1])) for b in self.mContour]
-            if self.mHoleContour is not None:
-                for hc in self.mHoleContour:
-                    #Do the same for all of the hole contours
-                    temp += [(np.log10(np.sqrt((hcpt[0]-pt[0])**2+(hcpt[1]-pt[1])**2)),np.arctan2(hcpt[0]-pt[0],hcpt[1]-pt[1])) for hcpt in hc]
+            temp = [(np.log10(np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)),np.arctan2(b[0]-pt[0],b[1]-pt[1])) for b in completeContour]
+            #if self.mHoleContour is not None:
+            #    for hc in self.mHoleContour:
+            #        #Do the same for all of the hole contours
+            #        temp += [(np.log10(np.sqrt((hcpt[0]-pt[0])**2+(hcpt[1]-pt[1])**2)),np.arctan2(hcpt[0]-pt[0],hcpt[1]-pt[1])) for hcpt in hc]
             data.append(temp)
 
         #UHG!!! need to repeat this for all of the interior contours too
@@ -1222,32 +1228,33 @@ class Blob(Feature):
         for d in data:
             test = np.array(d)
             # generate a 2D histrogram, and flatten it out. 
-            hist,a,b =np.histogram2d(test[:,0],test[:,1],dsz,[[0,3.3],[np.pi*-1/2,np.pi/2]],normed=True)
+            hist,a,b = np.histogram2d(test[:,0],test[:,1],dsz,[[.1,2.1],[np.pi*-1/2,np.pi/2]],normed=True)
             hist = hist.reshape(1,dsz**2)
             descriptors.append(hist[0])
 
         self._scdescriptors = descriptors
-        return self._scdescriptors
+        self._completeContour = completeContour
+        return descriptors,completeContour
         
     def getShapeContext(self):
         # still need to subsample big contours 
-        descriptors = self.getSCDescriptors()
-
+        derp = self.getSCDescriptors()
+        descriptors,completeContour = self.getSCDescriptors()
         fs = FeatureSet()
-        for i in range(0,len(descriptors)):
-            fs.append(ShapeContextDescriptor(self.image,self.mContour[i],descriptors[i],self))
+        for i in range(0,len(completeContour)):
+            fs.append(ShapeContextDescriptor(self.image,completeContour[i],descriptors[i],self))
 
         return fs
 
     def ShapeContextMatch(self, other):
         import scipy.spatial.distance as spsd
-        osc = other.getSCDescriptors()
-        mysc = self.getSCDescriptors()
+        osc,dummy = other.getSCDescriptors()
+        mysc,dummy = self.getSCDescriptors()
         #myIdx = []
         otherIdx = []
         distance = [] 
         for scd in mysc:
-            derp = spsd.cdist(osc,scd.reshape(1,36))
+            derp = spsd.cdist(osc,scd.reshape(1,36))#,'correlation')
             idx = np.where(derp==np.min(derp))[0]
             val = derp[idx]
             otherIdx.append(idx)
