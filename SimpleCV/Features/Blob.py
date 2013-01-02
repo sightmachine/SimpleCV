@@ -1259,6 +1259,8 @@ class Blob(Feature):
             # take each other point in the contour, center it on pt, and covert it to log polar
             for b in completeContour:
                 r = np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)
+                if( r > 100 ):
+                    continue
                 if( r != 0.00 ): # numpy throws an inf here that mucks the system up
                     r = np.log10(r)
                 theta = np.arctan2(b[0]-pt[0],b[1]-pt[1])

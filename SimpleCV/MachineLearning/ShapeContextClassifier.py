@@ -43,20 +43,38 @@ class ShapeContextClassifier():
         mysc = model_scd
         otherIdx = []
         distance = [] 
+        from sklearn import neighbors
+        knn = neighbors.KNeighborsClassifier()
+        knn.fit(mysc,range(0,len(mysc)))
+        results = []
+        for sample in osc:
+            best = knn.predict(sample)
+            idx = best[0]
+            scd = mysc[idx]
+            diff = (sample-scd)**2
+            sums = (sample+scd)
+            temp = 0.5*np.sum(diff)/np.sum(sums)
+            if( math.isnan(temp) ):
+                temp = sys.maxint
+            distance.append(temp)
+            
         # We may want this to be a reciprical relationship. Given blobs a,b with points
         # a1 .... an and b1. ... bn it is only a1 and b1 are a match if and only if
         # they are both each other's best match. 
-        for scd in mysc:
-            results = []
-            for sample in osc:
-                diff = (sample-scd)**2
-                sums = (sample+scd)
-                temp = 0.5*np.sum(diff)/np.sum(sums)
-                if( math.isnan(temp) ):
-                    temp = sys.maxint
-                results.append(temp)
+ #        for scd in mysc:
+#             results = []
+#             for sample in osc:
 
-            distance.append(np.min(results))
+
+
+#                 diff = (sample-scd)**2
+#                 sums = (sample+scd)
+#                 temp = 0.5*np.sum(diff)/np.sum(sums)
+#                 if( math.isnan(temp) ):
+#                     temp = sys.maxint
+#                 results.append(temp)
+
+#             distance.append(np.min(results))
 #             idx = np.where(results==np.min(results))[0] # where our value is min return the idx
 #             if( len(idx) == 0  ):
 #                 print "WARNING!!!"

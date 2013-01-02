@@ -4,15 +4,15 @@ color = Color()
 
 
 iset = ImageSet("./dataset/model/")
-iset = iset[0:3]
+iset = iset[0:1]
 testset = ImageSet("./dataset/test/")
-testset = testset[0:3]
+testset = testset[0:1]
 names = []
 for i in iset:
     names.append(i.filename)
 
 print names
-names = names[0:3]
+names = names[0:1]
 
 scc = ShapeContextClassifier(iset,names)
 
