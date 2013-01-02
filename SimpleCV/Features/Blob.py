@@ -1204,7 +1204,7 @@ class Blob(Feature):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
 
 
-    def _respacePoints(self,contour, min_distance=1, max_distance=5):
+    def _respacePoints(self,contour, min_distance=5, max_distance=10):
         p0 = np.array(contour[-1])
         min_d = min_distance**2
         max_d = max_distance**2
@@ -1232,23 +1232,28 @@ class Blob(Feature):
         return retVal
 
 
-    def _filterSCPoints(self,max_distance=10):
+    def _filterSCPoints(self,min_distance=1, max_distance=5):
         # eventually this needs to go through the points
         # and space them nice and evenly. 
-        completeContour = self._respacePoints(self.mContour)
+        completeContour = self._respacePoints(self.mContour,min_distance,max_distance)
         if self.mHoleContour is not None:
             for ctr in self.mHoleContour:
-                completeContour = completeContour + self._respacePoints(ctr)
+                completeContour = completeContour + self._respacePoints(ctr,min_distance,max_distance)
         return completeContour
 
 
     def getSCDescriptors(self):
         if( self._scdescriptors is not None ):
             return self._scdescriptors,self._completeContour
-
-        data = []
         completeContour = self._filterSCPoints()
+        descriptor = self._generateSC(completeContour)
+        self._scdescriptors = descriptors
+        self._completeContour = completeContour
+        return descriptors,completeContour
+       
 
+    def _generateSC(self,completeContour):
+        data = []
         for pt in completeContour: #
             temp = []
             # take each other point in the contour, center it on pt, and covert it to log polar
@@ -1272,8 +1277,7 @@ class Blob(Feature):
             descriptors.append(hist[0])
 
         self._scdescriptors = descriptors
-        self._completeContour = completeContour
-        return descriptors,completeContour
+        return descriptors
         
     def getShapeContext(self):
         # still need to subsample big contours 
