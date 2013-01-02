@@ -44,6 +44,8 @@ class ShapeContextClassifier():
         otherIdx = []
         distance = [] 
         from sklearn import neighbors
+        import warnings
+        warnings.simplefilter("ignore")
         knn = neighbors.KNeighborsClassifier()
         knn.fit(mysc,range(0,len(mysc)))
         results = []
@@ -116,4 +118,4 @@ class ShapeContextClassifier():
                best = v 
                best_name = k
            
-       return best_name, matchDict
+       return best_name, best, matchDict

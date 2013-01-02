@@ -1261,10 +1261,12 @@ class Blob(Feature):
                 r = np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)
                 if( r > 100 ):
                     continue
-                if( r != 0.00 ): # numpy throws an inf here that mucks the system up
-                    r = np.log10(r)
+                if( r == 0.00 ): # numpy throws an inf here that mucks the system up
+                    continue 
+                r = np.log10(r)
                 theta = np.arctan2(b[0]-pt[0],b[1]-pt[1])
-                temp.append((r,theta))
+                if(np.isfinite(r) and np.isfinite(theta) ):
+                    temp.append((r,theta))
             data.append(temp)
 
         #UHG!!! need to repeat this for all of the interior contours too
@@ -1276,7 +1278,8 @@ class Blob(Feature):
             # generate a 2D histrogram, and flatten it out. 
             hist,a,b = np.histogram2d(test[:,0],test[:,1],dsz,[[.1,2.1],[np.pi*-1/2,np.pi/2]],normed=True)
             hist = hist.reshape(1,dsz**2)
-            descriptors.append(hist[0])
+            if(np.all(np.isfinite(hist[0]))):
+                descriptors.append(hist[0])
 
         self._scdescriptors = descriptors
         return descriptors
