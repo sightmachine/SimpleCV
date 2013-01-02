@@ -3,6 +3,9 @@ from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.Detection import ShapeContextDescriptor
+import copy as copy
+import scipy.stats as sps 
+
 class Blob(Feature):
     """
     **SUMMARY**
@@ -1201,24 +1204,27 @@ class Blob(Feature):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
 
 
+    def _filterSCPoints(self,max_distance=10):
+        # eventually this needs to go through the points
+        # and space them nice and evenly. 
+        completeContour = self.mContour
+        if self.mHoleContour is not None:
+            for ctr in self.mHoleContour:
+                completeContour = completeContour + ctr
+        return completeContour
+
+
     def getSCDescriptors(self):
         if( self._scdescriptors is not None ):
             return self._scdescriptors,self._completeContour
 
         data = []
-        completeContour = self.mContour
-        if self.mHoleContour is not None:
-            for ctr in self.mHoleContour:
-                completeContour = completeContour + ctr
+        completeContour = self._filterSCPoints()
 
         for pt in completeContour: #
             temp = []
             # take each other point in the contour, center it on pt, and covert it to log polar
             temp = [(np.log10(np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)),np.arctan2(b[0]-pt[0],b[1]-pt[1])) for b in completeContour]
-            #if self.mHoleContour is not None:
-            #    for hc in self.mHoleContour:
-            #        #Do the same for all of the hole contours
-            #        temp += [(np.log10(np.sqrt((hcpt[0]-pt[0])**2+(hcpt[1]-pt[1])**2)),np.arctan2(hcpt[0]-pt[0],hcpt[1]-pt[1])) for hcpt in hc]
             data.append(temp)
 
         #UHG!!! need to repeat this for all of the interior contours too
@@ -1246,17 +1252,73 @@ class Blob(Feature):
 
         return fs
 
-    def ShapeContextMatch(self, other):
+    def shapeContextMatch(self, other):
         import scipy.spatial.distance as spsd
         osc,dummy = other.getSCDescriptors()
         mysc,dummy = self.getSCDescriptors()
-        #myIdx = []
         otherIdx = []
         distance = [] 
         for scd in mysc:
             derp = spsd.cdist(osc,scd.reshape(1,36))#,'correlation')
-            idx = np.where(derp==np.min(derp))[0]
-            val = derp[idx]
-            otherIdx.append(idx)
-            distance.append(val)
+            idx = np.where(derp==np.min(derp))[0] # where our value is min return the idx
+            val = derp[idx] 
+            otherIdx.append(idx[0]) # we need to deal cleanly with ties here
+            distance.append(val[0]) # where one patch matches closesly
         return [otherIdx,distance]
+
+    def showCorrespondence(self, otherBlob,side="left"):
+        #We're lazy right now, assume the blob images are the same size
+        side = side.lower()
+        myPts = self.getShapeContext()
+
+        yourPts = otherBlob.getShapeContext()
+        myImg = self.image.copy()
+
+        yourImg = otherBlob.image.copy()
+        myPts = myPts.reassignImage(myImg)
+        yourPts = yourPts.reassignImage(yourImg)       
+        
+        myPts.draw()
+        myImg.applyLayers()
+        yourPts.draw()
+        yourImg.applyLayers()
+
+        result = myImg.sideBySide(yourImg,side=side)
+        data = self.shapeContextMatch(otherBlob)
+        mapvals = data[0]
+        color = Color()
+        for i in range(0,len(self._completeContour)):
+            lhs = self._completeContour[i]
+            idx = mapvals[i];
+            rhs = otherBlob._completeContour[idx]
+            if( side == "left" ):
+                shift = (rhs[0]+myImg.width,rhs[1])
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+            elif( side == "bottom" ):
+                shift = (rhs[0],rhs[1]+myImg.height)
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+            elif( side == "right" ):
+                shift = (lhs[0].yourImg.width,lhs[1])
+                result.drawLine(rhs,shift,color=color.getRandom(),thickness=1)
+            elif( side == "top" ):
+                shift = (lhs[0],lhs[1]+yourImg.height)
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+
+        return result 
+
+
+    def getMatchMetric(self,otherBlob):
+        data = self.shapeContextMatch(otherBlob)
+        distances = np.array(data[1])
+        sd = np.std(distances)
+        x = np.mean(distances)
+        min = np.min(distances)
+        # not sure trimmed mean is perfect
+        # realistically we should have some bimodal dist
+        # and we want to throw away stuff with awful matches
+        # so long as the number of points is not a huge
+        # chunk of our points.
+        tmean = sps.tmean(distances,(min,x+sd))
+        return tmean
+
+        
