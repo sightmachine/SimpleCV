@@ -3,7 +3,7 @@ from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.Detection import ShapeContextDescriptor
-import copy as copy
+import math
 import scipy.stats as sps 
 
 class Blob(Feature):
@@ -1204,7 +1204,7 @@ class Blob(Feature):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
 
 
-    def _respacePoints(self,contour, min_distance=3, max_distance=5):
+    def _respacePoints(self,contour, min_distance=1, max_distance=5):
         p0 = np.array(contour[-1])
         min_d = min_distance**2
         max_d = max_distance**2
@@ -1296,16 +1296,26 @@ class Blob(Feature):
         # they are both each other's best match. 
 
         for scd in mysc:
-            rscd = scd.reshape(1,36)
-            derp = spsd.cdist(osc,rscd)#,'correlation')
-            idx = np.where(derp==np.min(derp))[0] # where our value is min return the idx
+            #rscd = scd.reshape(1,36)
+            #derp = spsd.cdist(osc,rscd)#,'correlation')
+            results = []
+            for sample in osc:
+                diff = (sample-scd)**2
+                sums = (sample+scd)
+                temp = 0.5*np.sum(diff)/np.sum(sums)
+                if( math.isnan(temp) ):
+                    temp = sys.maxint
+                results.append(temp)
+
+            idx = np.where(results==np.min(results))[0] # where our value is min return the idx
             if( len(idx) == 0  ):
+                print "WARNING!!!"
                 otherIdx.append(0) # we need to deal cleanly with ties here
                 distance.append(sys.maxint) # where one patch matches closesly    
             else:
-                val = derp[idx] 
+                val = results[idx[0]] 
                 otherIdx.append(idx[0]) # we need to deal cleanly with ties here
-                distance.append(val[0]) # where one patch matches closesly
+                distance.append(val) # where one patch matches closesly
             
         return [otherIdx,distance]
 
@@ -1335,16 +1345,16 @@ class Blob(Feature):
             idx = mapvals[i];
             rhs = otherBlob._completeContour[idx]
             if( side == "left" ):
-                shift = (rhs[0]+myImg.width,rhs[1])
+                shift = (rhs[0]+yourImg.width,rhs[1])
                 result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
             elif( side == "bottom" ):
                 shift = (rhs[0],rhs[1]+myImg.height)
                 result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
             elif( side == "right" ):
-                shift = (lhs[0].yourImg.width,lhs[1])
-                result.drawLine(rhs,shift,color=color.getRandom(),thickness=1)
+                shift = (rhs[0]+myImg.width,rhs[1])
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
             elif( side == "top" ):
-                shift = (lhs[0],lhs[1]+yourImg.height)
+                shift = (lhs[0],lhs[1]+myImg.height)
                 result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
 
         return result 
