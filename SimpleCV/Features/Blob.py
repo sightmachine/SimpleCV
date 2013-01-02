@@ -1204,13 +1204,41 @@ class Blob(Feature):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
 
 
+    def _respacePoints(self,contour, min_distance=3, max_distance=5):
+        p0 = np.array(contour[-1])
+        min_d = min_distance**2
+        max_d = max_distance**2
+        contour = [p0]+contour[:-1]
+        contour = contour[:-1]
+        retVal = [p0]
+        while len(contour) > 0:
+            pt = np.array(contour.pop())
+            dist = ((p0[0]-pt[0])**2)+((p0[1]-pt[1])**2)
+            if( dist > max_d ): # create the new point
+                # get the unit vector from p0 to pt
+                # from p0 to pt 
+                a = float((pt[0]-p0[0]))
+                b = float((pt[1]-p0[1]))
+                l = np.sqrt((a**2)+(b**2))
+                punit = np.array([a/l,b/l])                
+                # make it max_distance long and add it to p0
+                pn = (max_distance*punit)+p0
+                retVal.append((pn[0],pn[1]))# push the new point onto the return value
+                contour.append(pt)# push the new point onto the contour too
+                p0 = pn
+            elif( dist > min_d ):
+                p0 = np.array(pt)
+                retVal.append(pt)
+        return retVal
+
+
     def _filterSCPoints(self,max_distance=10):
         # eventually this needs to go through the points
         # and space them nice and evenly. 
-        completeContour = self.mContour
+        completeContour = self._respacePoints(self.mContour)
         if self.mHoleContour is not None:
             for ctr in self.mHoleContour:
-                completeContour = completeContour + ctr
+                completeContour = completeContour + self._respacePoints(ctr)
         return completeContour
 
 
@@ -1224,7 +1252,12 @@ class Blob(Feature):
         for pt in completeContour: #
             temp = []
             # take each other point in the contour, center it on pt, and covert it to log polar
-            temp = [(np.log10(np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)),np.arctan2(b[0]-pt[0],b[1]-pt[1])) for b in completeContour]
+            for b in completeContour:
+                r = np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)
+                if( r != 0.00 ): # numpy throws an inf here that mucks the system up
+                    r = np.log10(r)
+                theta = np.arctan2(b[0]-pt[0],b[1]-pt[1])
+                temp.append((r,theta))
             data.append(temp)
 
         #UHG!!! need to repeat this for all of the interior contours too
@@ -1258,30 +1291,40 @@ class Blob(Feature):
         mysc,dummy = self.getSCDescriptors()
         otherIdx = []
         distance = [] 
+        # We may want this to be a reciprical relationship. Given blobs a,b with points
+        # a1 .... an and b1. ... bn it is only a1 and b1 are a match if and only if
+        # they are both each other's best match. 
+
         for scd in mysc:
-            derp = spsd.cdist(osc,scd.reshape(1,36))#,'correlation')
+            rscd = scd.reshape(1,36)
+            derp = spsd.cdist(osc,rscd)#,'correlation')
             idx = np.where(derp==np.min(derp))[0] # where our value is min return the idx
-            val = derp[idx] 
-            otherIdx.append(idx[0]) # we need to deal cleanly with ties here
-            distance.append(val[0]) # where one patch matches closesly
+            if( len(idx) == 0  ):
+                otherIdx.append(0) # we need to deal cleanly with ties here
+                distance.append(sys.maxint) # where one patch matches closesly    
+            else:
+                val = derp[idx] 
+                otherIdx.append(idx[0]) # we need to deal cleanly with ties here
+                distance.append(val[0]) # where one patch matches closesly
+            
         return [otherIdx,distance]
 
     def showCorrespondence(self, otherBlob,side="left"):
         #We're lazy right now, assume the blob images are the same size
         side = side.lower()
         myPts = self.getShapeContext()
-
         yourPts = otherBlob.getShapeContext()
-        myImg = self.image.copy()
 
+        myImg = self.image.copy()
         yourImg = otherBlob.image.copy()
+
         myPts = myPts.reassignImage(myImg)
         yourPts = yourPts.reassignImage(yourImg)       
         
         myPts.draw()
-        myImg.applyLayers()
+        myImg = myImg.applyLayers()
         yourPts.draw()
-        yourImg.applyLayers()
+        yourImg = yourImg.applyLayers()
 
         result = myImg.sideBySide(yourImg,side=side)
         data = self.shapeContextMatch(otherBlob)
