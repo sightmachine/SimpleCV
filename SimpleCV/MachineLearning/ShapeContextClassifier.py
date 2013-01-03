@@ -16,9 +16,11 @@ class ShapeContextClassifier():
        self.images = images
        for i in range(0,len(images)):
            print "precomputing " + images[i].filename
+
            self.imgMap[labels[i]] = images[i]
            pts,desc = self._image2FeatureVector(images[i])
            self.ptMap[labels[i]] = pts
+           print "    points: " + str(len(pts))
            self.descMap[labels[i]] = desc 
 
    def _image2FeatureVector(self,img):
@@ -41,13 +43,19 @@ class ShapeContextClassifier():
    def _doMatching(self,model_scd,test_scd):       
         osc = test_scd
         mysc = model_scd
+        myPts = len(test_scd)
+        otPts = len(model_scd)
+        # some magic metric that keeps features
+        # with a lot of points from dominating
+        metric = 1.0 + np.log10( np.max([myPts,otPts])
+        /np.min([myPts,otPts])) # <-- this could be moved to after the sum
         otherIdx = []
         distance = [] 
         from sklearn import neighbors
         import warnings
         warnings.simplefilter("ignore")
         knn = neighbors.KNeighborsClassifier()
-        knn.fit(mysc,range(0,len(mysc)))
+        knn.fit(mysc,range(0,len(mysc))) # TO DO PULL THIS OUT OF THIS STEP AND MOVE TO TRAINING
         results = []
         for sample in osc:
             best = knn.predict(sample)
@@ -58,7 +66,7 @@ class ShapeContextClassifier():
             temp = 0.5*np.sum(diff)/np.sum(sums)
             if( math.isnan(temp) ):
                 temp = sys.maxint
-            distance.append(temp)
+            distance.append(metric*temp)
             
         # We may want this to be a reciprical relationship. Given blobs a,b with points
         # a1 .... an and b1. ... bn it is only a1 and b1 are a match if and only if
@@ -90,21 +98,24 @@ class ShapeContextClassifier():
         return [otherIdx,distance]
 
    def _matchQuality(self,distances):
-       distances = np.array(distances)
-       sd = np.std(distances)
-       x = np.mean(distances)
-       min = np.min(distances)
+       #distances = np.array(distances)
+       #sd = np.std(distances)
+       #x = np.mean(distances)
+       #min = np.min(distances)
        # not sure trimmed mean is perfect
        # realistically we should have some bimodal dist
        # and we want to throw away stuff with awful matches
        # so long as the number of points is not a huge
        # chunk of our points.
-       tmean = sps.tmean(distances,(min,x+sd))
+       #tmean = sps.tmean(distances,(min,x+sd))
+       tmean = np.mean(distances)
        return tmean
 
    def classify(self,image):
+
        points,descriptors = self._image2FeatureVector(image)
        matchDict = {}
+       print "Item under test has " + str(len(points))
        for key,value in self.descMap.items():
            correspondence, distances = self._doMatching(value,descriptors)
            result = self._matchQuality(distances)

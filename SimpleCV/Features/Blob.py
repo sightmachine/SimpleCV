@@ -1204,7 +1204,7 @@ class Blob(Feature):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
 
 
-    def _respacePoints(self,contour, min_distance=5, max_distance=10):
+    def _respacePoints(self,contour, min_distance=1, max_distance=5):
         p0 = np.array(contour[-1])
         min_d = min_distance**2
         max_d = max_distance**2
@@ -1259,8 +1259,8 @@ class Blob(Feature):
             # take each other point in the contour, center it on pt, and covert it to log polar
             for b in completeContour:
                 r = np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)
-                if( r > 100 ):
-                    continue
+#                if( r > 100 ):
+#                    continue
                 if( r == 0.00 ): # numpy throws an inf here that mucks the system up
                     continue 
                 r = np.log10(r)
