@@ -3,13 +3,16 @@ import string
 import pickle 
 color = Color()
 
-subset = 27
+subset = 5
 iset = ImageSet()
 iset.load("./dataset/model/",sort_by="name")
 iset = iset[0:subset]
 testset = ImageSet()
 testset.load("./dataset/test/",sort_by="name")
 testset = testset[0:subset]
+# fix featureset standardize to include fname
+#iset = iset.standardize(400,400) # this should deal with some of the point issues
+#testset = testset.standardize(400,400)
 names = []
 for i in iset:
     names.append(i.filename)

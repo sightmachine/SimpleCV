@@ -5,96 +5,71 @@ from SimpleCV.ImageClass import Image
 from SimpleCV.Features.Detection import ShapeContextDescriptor
 import math
 import scipy.stats as sps 
+from sklearn import neighbors
 
 class ShapeContextClassifier():
     
    def  __init__(self,images,labels):
        self.imgMap = {}
        self.ptMap = {}
-       self.descMap = {} 
+       self.descMap = {}
+       self.knnMap = {}
+       self.blobCount = {}
        self.labels = labels
        self.images = images
+       import warnings
+       warnings.simplefilter("ignore")
        for i in range(0,len(images)):
            print "precomputing " + images[i].filename
-
            self.imgMap[labels[i]] = images[i]
-           pts,desc = self._image2FeatureVector(images[i])
+           
+           pts,desc,count  = self._image2FeatureVector(images[i])
+           self.blobCount[labels[i]] = count 
            self.ptMap[labels[i]] = pts
            print "    points: " + str(len(pts))
-           self.descMap[labels[i]] = desc 
+           self.descMap[labels[i]] = desc
+           knn = neighbors.KNeighborsClassifier()
+           knn.fit(desc,range(0,len(pts))) 
+           self.knnMap[labels[i]] = knn
+
 
    def _image2FeatureVector(self,img):
        #IMAGES MUST BE WHITE ON BLACK!
        fulllist = []
        raw_descriptors = []
        blobs = img.findBlobs()
+       count = 0
        if( blobs is not None ):
-           for b in blobs:
-               fulllist += b._filterSCPoints()
-               
-               raw_descriptors = blobs[0]._generateSC(fulllist) 
-       return fulllist,raw_descriptors
+          count = len(blobs)
+          for b in blobs:
+             fulllist += b._filterSCPoints()
+             raw_descriptors = blobs[0]._generateSC(fulllist) 
+       return fulllist,raw_descriptors,count
 
 
    def _getMatch(self,model_scd,test_scd):
        correspondence,distance = self._doMatching(model_scd,test_scd)
        return self._matchQuality(distances)
 
-   def _doMatching(self,model_scd,test_scd):       
-        osc = test_scd
-        mysc = model_scd
+   def _doMatching(self,model_name,test_scd):       
         myPts = len(test_scd)
-        otPts = len(model_scd)
+        otPts = len(self.ptMap[model_name])
         # some magic metric that keeps features
         # with a lot of points from dominating
-        metric = 1.0 + np.log10( np.max([myPts,otPts])
-        /np.min([myPts,otPts])) # <-- this could be moved to after the sum
+        metric = 1.0 + np.log10( np.max([myPts,otPts])/np.min([myPts,otPts])) # <-- this could be moved to after the sum
         otherIdx = []
         distance = [] 
-        from sklearn import neighbors
         import warnings
         warnings.simplefilter("ignore")
-        knn = neighbors.KNeighborsClassifier()
-        knn.fit(mysc,range(0,len(mysc))) # TO DO PULL THIS OUT OF THIS STEP AND MOVE TO TRAINING
         results = []
-        for sample in osc:
-            best = knn.predict(sample)
-            idx = best[0]
-            scd = mysc[idx]
-            diff = (sample-scd)**2
-            sums = (sample+scd)
-            temp = 0.5*np.sum(diff)/np.sum(sums)
+        for sample in test_scd:
+            best = self.knnMap[model_name].predict(sample)
+            idx = best[0] # this is where we can play with k
+            scd = self.descMap[model_name][idx]
+            temp = 0.5*np.sum((sample-scd)**2)/np.sum((sample+scd))
             if( math.isnan(temp) ):
                 temp = sys.maxint
             distance.append(metric*temp)
-            
-        # We may want this to be a reciprical relationship. Given blobs a,b with points
-        # a1 .... an and b1. ... bn it is only a1 and b1 are a match if and only if
-        # they are both each other's best match. 
- #        for scd in mysc:
-#             results = []
-#             for sample in osc:
-
-
-
-#                 diff = (sample-scd)**2
-#                 sums = (sample+scd)
-#                 temp = 0.5*np.sum(diff)/np.sum(sums)
-#                 if( math.isnan(temp) ):
-#                     temp = sys.maxint
-#                 results.append(temp)
-
-#             distance.append(np.min(results))
-#             idx = np.where(results==np.min(results))[0] # where our value is min return the idx
-#             if( len(idx) == 0  ):
-#                 print "WARNING!!!"
-#                 otherIdx.append(0) # we need to deal cleanly with ties here
-#                 distance.append(sys.maxint) # where one patch matches closesly    
-#             else:
-#                 val = results[idx[0]] 
-#                 otherIdx.append(idx[0]) # we need to deal cleanly with ties here
-#                 distance.append(val) # where one patch matches closesly    
-
         return [otherIdx,distance]
 
    def _matchQuality(self,distances):
@@ -112,15 +87,14 @@ class ShapeContextClassifier():
        return tmean
 
    def classify(self,image):
-
-       points,descriptors = self._image2FeatureVector(image)
+       points,descriptors,count = self._image2FeatureVector(image)
        matchDict = {}
        print "Item under test has " + str(len(points))
        for key,value in self.descMap.items():
-           correspondence, distances = self._doMatching(value,descriptors)
-           result = self._matchQuality(distances)
-           matchDict[key] = result
-           #print key + " : " + str(result)
+          if( self.blobCount[key] == count ): # only do matching for similar number of blobs
+             correspondence, distances = self._doMatching(key,descriptors)
+             result = self._matchQuality(distances)
+             matchDict[key] = result
 
        best = sys.maxint
        best_name = "No Match"
@@ -130,3 +104,6 @@ class ShapeContextClassifier():
                best_name = k
            
        return best_name, best, matchDict
+
+       def getTopNMatches(self,image,n=3):
+          pass
