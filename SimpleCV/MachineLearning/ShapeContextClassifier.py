@@ -64,7 +64,8 @@ class ShapeContextClassifier():
             best = self.knnMap[model_name].predict(sample)
             idx = best[0] # this is where we can play with k
             scd = self.descMap[model_name][idx]
-            temp = 0.5*np.sum((sample-scd)**2)/np.sum((sample+scd))
+            temp = np.sqrt(np.sum(((sample-scd)**2)))
+            #temp = 0.5*np.sum((sample-scd)**2)/np.sum((sample+scd))
             if( math.isnan(temp) ):
                 temp = sys.maxint
             distance.append(temp)
