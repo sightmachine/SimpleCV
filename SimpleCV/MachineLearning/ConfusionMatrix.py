@@ -31,16 +31,16 @@ class ConfusionMatrix():
         return np.around(float(self.incorrectCount)/float(self.totalCount),2)
 
     def getClassCorrectPercent(self, className):
-        total = float(np.sum(self.confusionMatrix[self.nameMap[className]][:]))
-        correct = float(self.confusionMatrix[self.nameMap[className]][self.nameMap[className]])
+        total = float(np.sum(self.confusionMatrix[:,self.nameMap[className]]))
+        correct = float(self.confusionMatrix[self.nameMap[className],self.nameMap[className]])
         if( correct == 0 or total == 0 ):
             return 0
         else:
             return np.around(correct/total,2)
 
     def getClassIncorrectPercent(self, className):
-        total = float(np.sum(self.confusionMatrix[self.nameMap[className]][:]))
-        correct = float(self.confusionMatrix[self.nameMap[className]][self.nameMap[className]])
+        total = float(np.sum(self.confusionMatrix[:,self.nameMap[className]]))
+        correct = float(self.confusionMatrix[self.nameMap[className],self.nameMap[className]])
         incorrect = total-correct
         if( incorrect == 0 or total == 0 ):
             return 0
@@ -48,23 +48,23 @@ class ConfusionMatrix():
             return np.around(incorrect/total,2)
 
     def getClassCorrect(self, className):
-        correct = self.confusionMatrix[self.nameMap[className]][self.nameMap[className]]
+        correct = self.confusionMatrix[self.nameMap[className],self.nameMap[className]]
         return correct
 
     def getClassIncorrect(self, className):
-        total = np.sum(self.confusionMatrix[self.nameMap[className]][:])
-        correct = self.confusionMatrix[self.nameMap[className]][self.nameMap[className]]
+        total = np.sum(self.confusionMatrix[:,self.nameMap[className]])
+        correct = self.confusionMatrix[self.nameMap[className],self.nameMap[className]]
         incorrect = total-correct
         return incorrect
 
             
     def getClassCount(self,className):
-        return np.sum(self.confusionMatrix[self.nameMap[className]][:])
+        return np.sum(self.confusionMatrix[:,self.nameMap[className]])
 
     def getMisclassifiedCount(self,className):
         # if we're class A, this returns the number of class B, C ...
         # that were classified as A
-        count = np.sum(self.confusionMatrix[:][self.nameMap[className]])
-        correct = self.confusionMatrix[[self.nameMap[className]]][self.nameMap[className]]
+        count = np.sum(self.confusionMatrix[self.nameMap[className],:])
+        correct = self.confusionMatrix[[self.nameMap[className]],self.nameMap[className]]
         total = count - correct
-        return total
+        return int(total[0])
