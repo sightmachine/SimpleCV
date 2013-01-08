@@ -961,7 +961,7 @@ class Image:
                     # If the numpy array is from cv2, then it must not be transposed.
                     invertedsource = source
 
-                invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
+                #invertedsource = source[:, :, ::-1].transpose([1, 0, 2]) # do not un-comment. breaks cv2 image support
                 self._bitmap = cv.CreateImageHeader((invertedsource.shape[1], invertedsource.shape[0]), cv.IPL_DEPTH_8U, 3)
                 cv.SetData(self._bitmap, invertedsource.tostring(), 
                     invertedsource.dtype.itemsize * 3 * invertedsource.shape[1])
@@ -970,7 +970,8 @@ class Image:
                 #we have a single channel array, convert to an RGB iplimage
 
                 source = source.astype(np.uint8)
-                source = source.transpose([1,0]) #we expect width/height but use col/row
+                if not cv2image:
+                    source = source.transpose([1,0]) #we expect width/height but use col/row
                 self._bitmap = cv.CreateImage((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3) 
                 channel = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 1)
                 #initialize an empty channel bitmap
@@ -11805,6 +11806,151 @@ class Image:
             j = j + 1
         
         return lineFS
+    
+    def logicalAND(self, img, grayscale=True):
+        """
+        **SUMMARY**
+        
+        Perform bitwise AND operation on images
+
+        **PARAMETERS**
+    
+        img - the bitwise operation to be performed with
+        grayscale
+
+        **RETURNS**
+
+        SimpleCV.ImageClass.Image
+
+        **EXAMPLE**
+
+        >>> img = Image("something.png")
+        >>> img1 = Image("something_else.png")
+        >>> img.logicalAND(img1, grayscale=False)
+        >>> img.logicalAND(img1)
+        
+        """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
+        try:
+            import cv2
+        except ImportError:
+            print "This function is available for OpenCV >= 2.3"
+        if grayscale:
+            retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+        else:
+            retval = cv2.bitwise_and(self.getNumpyCv2(), img.getNumpyCv2())
+        return Image(retval, cv2image=True)
+    
+    def logicalNAND(self, img, grayscale=True):
+        """
+        **SUMMARY**
+        
+        Perform bitwise NAND operation on images
+
+        **PARAMETERS**
+    
+        img - the bitwise operation to be performed with
+        grayscale
+
+        **RETURNS**
+
+        SimpleCV.ImageClass.Image
+
+        **EXAMPLE**
+
+        >>> img = Image("something.png")
+        >>> img1 = Image("something_else.png")
+        >>> img.logicalNAND(img1, grayscale=False)
+        >>> img.logicalNAND(img1)
+        
+        """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
+        try:
+            import cv2
+        except ImportError:
+            print "This function is available for OpenCV >= 2.3"
+        if grayscale:
+            retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+        else:
+            retval = cv2.bitwise_and(self.getNumpyCv2(), img.getNumpyCv2())
+        retval = cv2.bitwise_not(retval)
+        return Image(retval, cv2image=True)
+        
+    def logicalOR(self, img, grayscale=True):
+        """
+        **SUMMARY**
+        
+        Perform bitwise OR operation on images
+
+        **PARAMETERS**
+    
+        img - the bitwise operation to be performed with
+        grayscale
+
+        **RETURNS**
+
+        SimpleCV.ImageClass.Image
+
+        **EXAMPLE**
+
+        >>> img = Image("something.png")
+        >>> img1 = Image("something_else.png")
+        >>> img.logicalOR(img1, grayscale=False)
+        >>> img.logicalOR(img1)
+        
+        """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
+        try:
+            import cv2
+        except ImportError:
+            print "This function is available for OpenCV >= 2.3"
+        if grayscale:
+            retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+        else:
+            retval = cv2.bitwise_or(self.getNumpyCv2(), img.getNumpyCv2())
+        return Image(retval, cv2image=True)
+        
+    def logicalXOR(self, img, grayscale=True):
+        """
+        **SUMMARY**
+        
+        Perform bitwise XOR operation on images
+
+        **PARAMETERS**
+    
+        img - the bitwise operation to be performed with
+        grayscale
+
+        **RETURNS**
+
+        SimpleCV.ImageClass.Image
+
+        **EXAMPLE**
+
+        >>> img = Image("something.png")
+        >>> img1 = Image("something_else.png")
+        >>> img.logicalXOR(img1, grayscale=False)
+        >>> img.logicalXOR(img1)
+        
+        """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
+        try:
+            import cv2
+        except ImportError:
+            print "This function is available for OpenCV >= 2.3"
+        if grayscale:
+            retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+        else:
+            retval = cv2.bitwise_xor(self.getNumpyCv2(), img.getNumpyCv2())
+        return Image(retval, cv2image=True)
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
