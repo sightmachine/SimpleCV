@@ -2495,7 +2495,7 @@ class AVTCamera(FrameSource):
         
         **EXAMPLE**
         >>>c = AVTCamera()
-        >>>c = 
+        >>>c.runCommand("TimeStampReset")
         """
         return self.dll.PvCommandRun(self.handle,command)
     
