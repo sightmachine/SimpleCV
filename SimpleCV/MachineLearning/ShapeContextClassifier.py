@@ -83,22 +83,31 @@ class ShapeContextClassifier():
         # chunk of our points.
         #tmean = sps.tmean(distances,(min,x+sd))
         tmean = np.mean(distances)
-        return tmean
+        std = np.std(distances)
+        return tmean,std
 
 
-    def _buildMatchDict(self,image):
+    def _buildMatchDict(self,image, countBlobs):
         points,descriptors,count = self._image2FeatureVector(image)
         matchDict = {}
+        matchStd = {}
         for key,value in self.descMap.items():
-            if( self.blobCount[key] == count ): # only do matching for similar number of blobs
+            if( countBlobs and self.blobCount[key] == count ): # only do matching for similar number of blobs
                 #need to hold on to correspondences
                 correspondence, distances = self._doMatching(key,descriptors)
-                result = self._matchQuality(distances)
+                result,std = self._matchQuality(distances)
                 matchDict[key] = result
-        return points,descriptors,count,matchDict
+                matchStd[key] = std
+            elif( not countBlobs ):
+                correspondence, distances = self._doMatching(key,descriptors)
+                result,std = self._matchQuality(distances)
+                matchDict[key] = result
+                matchStd[key] = std
                 
-    def classify(self,image):
-        points,descriptors,count,matchDict = self._buildMatchDict(image)
+        return points,descriptors,count,matchDict, matchStd
+                
+    def classify(self,image, blobFilter=True):
+        points,descriptors,count,matchDict,matchStd = self._buildMatchDict(image, blobFilter)
         best = sys.maxint
         best_name = "No Match"
         for k,v in matchDict.items():
@@ -106,16 +115,14 @@ class ShapeContextClassifier():
                 best = v 
                 best_name = k
            
-        return best_name, best, matchDict
+        return best_name, best, matchDict, matchStd
 
-    def getTopNMatches(self,image,n=3):
+    def getTopNMatches(self,image,n=3, blobFilter = True):
         n = np.clip(n,1,len(self.labels))
-        points,descriptors,count,matchDict = self._buildMatchDict(image)
+        points,descriptors,count,matchDict,matchStd = self._buildMatchDict(image,blobFilter)
         best_matches = list(sorted(matchDict, key=matchDict.__getitem__))
         retList = []
         for k in best_matches:
             retList.append((k,matchDict[k]))
-        return retList, matchDict
+        return retList, matchDict, matchStd
 
-    def getCorrespondences(self,img):
-        return None
