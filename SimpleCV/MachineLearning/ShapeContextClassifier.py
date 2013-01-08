@@ -35,7 +35,7 @@ class ShapeContextClassifier():
         #IMAGES MUST BE WHITE ON BLACK!
         fulllist = []
         raw_descriptors = []
-        blobs = img.findBlobs()
+        blobs = img.findBlobs(minsize=50)
         count = 0
         if( blobs is not None ):
             count = len(blobs)
@@ -88,6 +88,7 @@ class ShapeContextClassifier():
 
 
     def _buildMatchDict(self,image, countBlobs):
+        # we may want to base the count on the number of large blobs
         points,descriptors,count = self._image2FeatureVector(image)
         matchDict = {}
         matchStd = {}

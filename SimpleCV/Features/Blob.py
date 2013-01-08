@@ -1232,7 +1232,7 @@ class Blob(Feature):
         return retVal
 
 
-    def _filterSCPoints(self,min_distance=1, max_distance=5):
+    def _filterSCPoints(self,min_distance=3, max_distance=8):
         # eventually this needs to go through the points
         # and space them nice and evenly. 
         completeContour = self._respacePoints(self.mContour,min_distance,max_distance)
