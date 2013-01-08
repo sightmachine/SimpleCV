@@ -3053,3 +3053,35 @@ def test_findGridLines():
 
     if(lines == 0 or lines == None):
         assert False
+        
+def test_logicalAND():
+    img = Image("lenna")
+    img1 = img.logicalAND(img.invert())
+    if not img1.getNumpy().all():
+        pass
+    else:
+        assert False
+
+def test_logicalOR():
+    img = Image("lenna")
+    img1 = img.logicalOR(img.invert())
+    if img1.getNumpy().all():
+        pass
+    else:
+        assert False
+
+def test_logicalNAND():
+    img = Image("lenna")
+    img1 = img.logicalNAND(img.invert())
+    if img1.getNumpy().all():
+        pass
+    else:
+        assert False
+        
+def test_logicalXOR():
+    img = Image("lenna")
+    img1 = img.logicalXOR(img.invert())
+    if img1.getNumpy().all():
+        pass
+    else:
+        assert False
