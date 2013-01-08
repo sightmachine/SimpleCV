@@ -1932,7 +1932,7 @@ class StereoCamera :
         while True:
             frameLeft = cv.QueryFrame(captureLeft)
             cv.Flip(frameLeft, frameLeft, 1)
-    	    frameRight = cv.QueryFrame(captureRight)
+            frameRight = cv.QueryFrame(captureRight)
             cv.Flip(frameRight, frameRight, 1)
             k = cv.WaitKey(3)
     
