@@ -11830,6 +11830,9 @@ class Image:
         >>> img.logicalAND(img1)
         
         """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
         try:
             import cv2
         except ImportError:
@@ -11863,6 +11866,9 @@ class Image:
         >>> img.logicalNAND(img1)
         
         """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
         try:
             import cv2
         except ImportError:
@@ -11897,6 +11903,9 @@ class Image:
         >>> img.logicalOR(img1)
         
         """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
         try:
             import cv2
         except ImportError:
@@ -11930,6 +11939,9 @@ class Image:
         >>> img.logicalXOR(img1)
         
         """
+        if not self.size() == img.size():
+            print "Both images must have same sizes"
+            return None
         try:
             import cv2
         except ImportError:
