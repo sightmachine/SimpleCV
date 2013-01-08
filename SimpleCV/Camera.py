@@ -6,6 +6,7 @@ from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
 import time
+import ctypes as ct
 
 #Globals
 _cameras = [] 
@@ -2167,3 +2168,98 @@ class StereoCamera :
         cv.Remap(imgLeft, dst1, map1x, map1y)
         cv.Remap(imgRight, dst2, map2x, map2y)
         return Image(dst1), Image(dst2)
+        
+        
+class AVTCamera(FrameSource):
+    """
+    **SUMMARY**
+    AVTCamera is a ctypes wrapper for the Prosilica/Allied Vision cameras,
+    such as the "manta" series.
+    
+    These require the PvAVT binary driver from Allied Vision:
+    http://www.alliedvisiontec.com/us/products/1108.html
+    
+    Note that as of time of writing the new VIMBA driver is not available
+    for Mac/Linux - so this uses the legacy PvAVT drive
+    
+    Full cred goes to Cixelyn, whos py-avt-pvapi driver showed how to get much
+    of this working
+    https://bitbucket.org/Cixelyn/py-avt-pvapi
+    
+    **EXAMPLE**
+    >>> cam = AVTCamera(0, {"width": 656, "height": 492}) 
+    >>>
+    >>> img = cam.getImage()
+    >>> img.show()
+    """
+    
+    
+    class AVTFrame(ct.Structure):
+        class AVTCameraInfo(Structure):
+            _fields_ = [
+                ("StructVer", ct.c_ulong),
+                ("UniqueId", ct.c_ulong),
+                ("CameraName", ct.c_char*32),
+                ("ModelName", ct.c_char*32),
+                ("PartNumber", ct.c_char*32),
+                ("SerialNumber", ct.c_char*32),
+                ("FirmwareVersion", ct.c_char*32),
+                ("PermittedAccess", ct.c_long),
+                ("InterfaceId", ct.c_ulong),
+                ("InterfaceType", ct.c_int)
+            ]
+        
+        class AVTFrame(Structure):    
+            _fields_ = [
+                ("ImageBuffer", ct.POINTER(ct.c_char)),
+                ("ImageBufferSize", ct.c_ulong),
+                ("AncillaryBuffer", ct.c_int),
+                ("AncillaryBufferSize", ct.c_int),
+                ("Context", ct.c_int*4),
+                ("_reserved1", ct.c_ulong*8),
+                
+                ("Status", ct.c_int),
+                ("ImageSize", ct.c_ulong),
+                ("AncillarySize", ct.c_ulong),
+                ("Width", ct.c_ulong),
+                ("Height", ct.c_ulong),
+                ("RegionX", ct.c_ulong),
+                ("RegionY", ct.c_ulong),
+                ("Format", ct.c_int),
+                ("BitDepth", ct.c_ulong),
+                ("BayerPattern", ct.c_int),
+                ("FrameCount", ct.c_ulong),
+                ("TimestampLo", ct.c_ulong),
+                ("TimestampHi", ct.c_ulong),
+                ("_reserved2", ct.c_ulong*32)    
+            ]
+        
+        def __init__(self, buffersize):
+            self.ImageBuffer = create_string_buffer(buffersize)
+            self.ImageBufferSize = c_ulong(buffersize)
+            self.AncillaryBuffer = 0
+            self.AncillaryBufferSize = 0
+    
+    
+    def __init__(camera_id = -1, properties = {}):
+        import platform
+        
+        if platform.system() == "Windows":
+            self.dll = ct.windll.LoadLibrary("PvAPI.dll")
+        else:
+            self.dll = ct.CDLL("PvAPI.so.6")
+            
+        self.dll.PvInitialize()
+        
+        camlist = (self.AVTCameraInfo*100)()
+        starttime = time.time()
+        
+        while camlist[0].UniqueId == '' and time.time() - starttime < 10:
+            self.dll.PvCameraListEx(byref(camlist), 1, None, ct.sizeof(self.AVTCameraInfo))
+            time.sleep(0.1) #keep checking for cameras until timeout
+        
+        if camlist[0].UniqueId == '':
+            raise Exception("Couldn't find any cameras with the PvAVT driver.  Use SampleViewer to confirm you have one connected.")
+        
+            
+        
