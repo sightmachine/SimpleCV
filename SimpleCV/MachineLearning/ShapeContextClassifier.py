@@ -7,9 +7,20 @@ import math
 import scipy.stats as sps 
 from sklearn import neighbors
 
+"""
+Classify an object based on shape context
+"""
 class ShapeContextClassifier():
 
     def  __init__(self,images,labels):
+        """
+        Create a shape context classifier.
+
+        * *images* - a list of input binary images where the things
+          to be detected are white.
+
+        * *labels* - the names of each class of objects.
+        """
         self.imgMap = {}
         self.ptMap = {}
         self.descMap = {}
@@ -32,6 +43,9 @@ class ShapeContextClassifier():
             self.knnMap[labels[i]] = knn
             
     def _image2FeatureVector(self,img):
+        """
+        generate a list of points, SC descriptors, and the count of points
+        """
         #IMAGES MUST BE WHITE ON BLACK!
         fulllist = []
         raw_descriptors = []
@@ -88,7 +102,7 @@ class ShapeContextClassifier():
 
 
     def _buildMatchDict(self,image, countBlobs):
-        # we may want to base the count on the number of large blobs
+        # we may want to base the count on the num best_matchesber of large blobs
         points,descriptors,count = self._image2FeatureVector(image)
         matchDict = {}
         matchStd = {}
@@ -108,6 +122,14 @@ class ShapeContextClassifier():
         return points,descriptors,count,matchDict, matchStd
                 
     def classify(self,image, blobFilter=True):
+        """
+        Classify an input image.
+
+        * *image* - the input binary image.
+        * *blobFilter* - Do a first pass where you only match objects
+          that have the same number of blobs - speeds up computation
+          and match quality.
+        """
         points,descriptors,count,matchDict,matchStd = self._buildMatchDict(image, blobFilter)
         best = sys.maxint
         best_name = "No Match"
@@ -119,11 +141,20 @@ class ShapeContextClassifier():
         return best_name, best, matchDict, matchStd
 
     def getTopNMatches(self,image,n=3, blobFilter = True):
+        """
+        Classify an input image and return the top n results.
+
+        * *image* - the input binary image.
+        * *n* - the number of results to return.
+        * *blobFilter* - Do a first pass where you only match objects
+          that have the same number of blobs - speeds up computation
+          and match quality.
+        """
         n = np.clip(n,1,len(self.labels))
         points,descriptors,count,matchDict,matchStd = self._buildMatchDict(image,blobFilter)
         best_matches = list(sorted(matchDict, key=matchDict.__getitem__))
         retList = []
         for k in best_matches:
             retList.append((k,matchDict[k]))
-        return retList, matchDict, matchStd
+        return retList[0:n], matchDict, matchStd
 

@@ -1612,7 +1612,10 @@ class KeypointMatch(Feature):
         rectangle. 
         """
         return self._homography
-
+######################################################################    
+"""
+Create a shape context descriptor.
+"""
 class ShapeContextDescriptor(Feature):
     x = 0.00
     y = 0.00 
