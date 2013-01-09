@@ -2,6 +2,9 @@ from SimpleCV.base import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
+from SimpleCV.Features.Detection import ShapeContextDescriptor
+import math
+import scipy.stats as sps 
 
 class Blob(Feature):
     """
@@ -64,6 +67,7 @@ class Blob(Feature):
         ('mImg', 'mHullImg', 'mMask', 'mHullMask'))
     
     def __init__(self):
+        self._scdescriptors = None 
         self.mContour = []
         self.mConvexHull = []
         self.mMinRectangle = [-1,-1,-1,-1,-1] #angle from this
@@ -1198,3 +1202,171 @@ class Blob(Feature):
 
     def __repr__(self):
         return "SimpleCV.Features.Blob.Blob object at (%d, %d) with area %d" % (self.x, self.y, self.area())
+
+
+    def _respacePoints(self,contour, min_distance=1, max_distance=5):
+        p0 = np.array(contour[-1])
+        min_d = min_distance**2
+        max_d = max_distance**2
+        contour = [p0]+contour[:-1]
+        contour = contour[:-1]
+        retVal = [p0]
+        while len(contour) > 0:
+            pt = np.array(contour.pop())
+            dist = ((p0[0]-pt[0])**2)+((p0[1]-pt[1])**2)
+            if( dist > max_d ): # create the new point
+                # get the unit vector from p0 to pt
+                # from p0 to pt 
+                a = float((pt[0]-p0[0]))
+                b = float((pt[1]-p0[1]))
+                l = np.sqrt((a**2)+(b**2))
+                punit = np.array([a/l,b/l])                
+                # make it max_distance long and add it to p0
+                pn = (max_distance*punit)+p0
+                retVal.append((pn[0],pn[1]))# push the new point onto the return value
+                contour.append(pt)# push the new point onto the contour too
+                p0 = pn
+            elif( dist > min_d ):
+                p0 = np.array(pt)
+                retVal.append(pt)
+        return retVal
+
+
+    def _filterSCPoints(self,min_distance=3, max_distance=8):
+        """
+        Go through ever point in the contour and make sure
+        that it is no less than min distance to the next point
+        and no more than max_distance from the the next point.
+        """
+        completeContour = self._respacePoints(self.mContour,min_distance,max_distance)
+        if self.mHoleContour is not None:
+            for ctr in self.mHoleContour:
+                completeContour = completeContour + self._respacePoints(ctr,min_distance,max_distance)
+        return completeContour
+
+
+    def getSCDescriptors(self):
+        if( self._scdescriptors is not None ):
+            return self._scdescriptors,self._completeContour
+        completeContour = self._filterSCPoints()
+        descriptor = self._generateSC(completeContour)
+        self._scdescriptors = descriptors
+        self._completeContour = completeContour
+        return descriptors,completeContour
+       
+
+    def _generateSC(self,completeContour,dsz=6,r_bound=[.1,2.1]):
+        """
+        Create the shape context objects.
+        dsz - The size of descriptor as a dszxdsz histogram
+        completeContour - All of the edge points as a long list
+        r_bound - Bounds on the log part of the shape context descriptor
+        """
+        data = []
+        for pt in completeContour: #
+            temp = []
+            # take each other point in the contour, center it on pt, and covert it to log polar
+            for b in completeContour:
+                r = np.sqrt((b[0]-pt[0])**2+(b[1]-pt[1])**2)
+#                if( r > 100 ):
+#                    continue
+                if( r == 0.00 ): # numpy throws an inf here that mucks the system up
+                    continue 
+                r = np.log10(r)
+                theta = np.arctan2(b[0]-pt[0],b[1]-pt[1])
+                if(np.isfinite(r) and np.isfinite(theta) ):
+                    temp.append((r,theta))
+            data.append(temp)
+
+        #UHG!!! need to repeat this for all of the interior contours too
+        descriptors = []
+        #dsz = 6
+        # for each point in the contour
+        for d in data:
+            test = np.array(d)
+            # generate a 2D histrogram, and flatten it out. 
+            hist,a,b = np.histogram2d(test[:,0],test[:,1],dsz,[r_bound,[np.pi*-1/2,np.pi/2]],normed=True)
+            hist = hist.reshape(1,dsz**2)
+            if(np.all(np.isfinite(hist[0]))):
+                descriptors.append(hist[0])
+
+        self._scdescriptors = descriptors
+        return descriptors
+        
+    def getShapeContext(self):
+        """
+        Return the shape context descriptors as a featureset. Corrently
+        this is not used for recognition but we will perhaps use it soon.
+        """
+        # still need to subsample big contours 
+        derp = self.getSCDescriptors()
+        descriptors,completeContour = self.getSCDescriptors()
+        fs = FeatureSet()
+        for i in range(0,len(completeContour)):
+            fs.append(ShapeContextDescriptor(self.image,completeContour[i],descriptors[i],self))
+
+        return fs
+
+
+    def showCorrespondence(self, otherBlob,side="left"):
+        """
+        This is total beta - use at your own risk.
+        """
+        #We're lazy right now, assume the blob images are the same size
+        side = side.lower()
+        myPts = self.getShapeContext()
+        yourPts = otherBlob.getShapeContext()
+
+        myImg = self.image.copy()
+        yourImg = otherBlob.image.copy()
+
+        myPts = myPts.reassignImage(myImg)
+        yourPts = yourPts.reassignImage(yourImg)       
+        
+        myPts.draw()
+        myImg = myImg.applyLayers()
+        yourPts.draw()
+        yourImg = yourImg.applyLayers()
+
+        result = myImg.sideBySide(yourImg,side=side)
+        data = self.shapeContextMatch(otherBlob)
+        mapvals = data[0]
+        color = Color()
+        for i in range(0,len(self._completeContour)):
+            lhs = self._completeContour[i]
+            idx = mapvals[i];
+            rhs = otherBlob._completeContour[idx]
+            if( side == "left" ):
+                shift = (rhs[0]+yourImg.width,rhs[1])
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+            elif( side == "bottom" ):
+                shift = (rhs[0],rhs[1]+myImg.height)
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+            elif( side == "right" ):
+                shift = (rhs[0]+myImg.width,rhs[1])
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+            elif( side == "top" ):
+                shift = (lhs[0],lhs[1]+myImg.height)
+                result.drawLine(lhs,shift,color=color.getRandom(),thickness=1)
+
+        return result 
+
+
+    def getMatchMetric(self,otherBlob):
+        """
+        This match metric is now deprecated.
+        """
+        data = self.shapeContextMatch(otherBlob)
+        distances = np.array(data[1])
+        sd = np.std(distances)
+        x = np.mean(distances)
+        min = np.min(distances)
+        # not sure trimmed mean is perfect
+        # realistically we should have some bimodal dist
+        # and we want to throw away stuff with awful matches
+        # so long as the number of points is not a huge
+        # chunk of our points.
+        tmean = sps.tmean(distances,(min,x+sd))
+        return tmean
+
+        

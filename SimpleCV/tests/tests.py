@@ -3009,8 +3009,9 @@ def test_grid():
 def test_cluster():
   img = Image("lenna")
   blobs = img.findBlobs()
-  clusters = blobs.cluster(method="kmeans",k=5,properties=["color"])
-  if clusters:
+  clusters1 = blobs.cluster(method="kmeans",k=5,properties=["color"])
+  clusters2 = blobs.cluster(method="hierarchical")
+  if clusters1 and clusters2:
       pass
       
 def test_line_parallel():
@@ -3051,4 +3052,36 @@ def test_findGridLines():
     perform_diff(result,name_stem,5)
 
     if(lines == 0 or lines == None):
+        assert False
+        
+def test_logicalAND():
+    img = Image("lenna")
+    img1 = img.logicalAND(img.invert())
+    if not img1.getNumpy().all():
+        pass
+    else:
+        assert False
+
+def test_logicalOR():
+    img = Image("lenna")
+    img1 = img.logicalOR(img.invert())
+    if img1.getNumpy().all():
+        pass
+    else:
+        assert False
+
+def test_logicalNAND():
+    img = Image("lenna")
+    img1 = img.logicalNAND(img.invert())
+    if img1.getNumpy().all():
+        pass
+    else:
+        assert False
+        
+def test_logicalXOR():
+    img = Image("lenna")
+    img1 = img.logicalXOR(img.invert())
+    if img1.getNumpy().all():
+        pass
+    else:
         assert False

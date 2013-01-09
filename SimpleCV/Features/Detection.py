@@ -77,6 +77,7 @@ class Line(Feature):
 
     def __init__(self, i, line):
         self.image = i
+        self.vector = None
         self.end_points = copy(line)
         #print self.end_points[1][1], self.end_points[0][1], self.end_points[1][0], self.end_points[0][0]
         if self.end_points[1][0] - self.end_points[0][0] == 0:
@@ -409,7 +410,20 @@ class Line(Feature):
         d_y = self.end_points[b][1] - self.end_points[a][1]
         #our internal standard is degrees
         return float(360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
-  
+    def getVector(self):
+        # this should be a lazy property
+        if( self.vector is None):
+            self.vector = [float(self.end_points[1][0]-self.end_points[0][0]),
+                           float(self.end_points[1][1]-self.end_points[0][1])]
+        return self.vector
+
+    
+    def dot(self,other):
+        return np.dot(self.getVector(),other.getVector())
+
+    def cross(self,other):
+        return np.cross(self.getVector(),other.getVector())
+        
 ######################################################################
 class Barcode(Feature):
     """
@@ -609,10 +623,10 @@ class HaarFeature(Feature):
       
     def __getstate__(self):
         dict = self.__dict__.copy()
-        del dict["classifier"]
+        if 'classifier' in dict:
+            del dict["classifier"]
         return dict
               
-      
     def meanColor(self):
         """
         **SUMMARY**
@@ -1598,3 +1612,48 @@ class KeypointMatch(Feature):
         rectangle. 
         """
         return self._homography
+######################################################################    
+"""
+Create a shape context descriptor.
+"""
+class ShapeContextDescriptor(Feature):
+    x = 0.00
+    y = 0.00 
+    image = "" #parent image
+    points = []
+    _minRect = []
+    _avgColor = None
+    _descriptor = None
+    _sourceBlob = None
+    def __init__(self, image,point,descriptor,blob):
+        self._descriptor = descriptor
+        self._sourceBlob = blob
+        x = point[0]
+        y = point[1]
+        points = [(x-1,y-1),(x+1,y-1),(x+1,y+1),(x-1,y+1)]
+        super(ShapeContextDescriptor, self).__init__(image, x, y, points)                                        
+  
+    def draw(self, color = Color.GREEN,width=1):
+        """
+        The default drawing operation is to draw the min bounding 
+        rectangle in an image. 
+
+        **SUMMARY**
+
+        Draw a small circle around the corner.  Color tuple is single parameter, default is Red.
+
+        **PARAMETERS**
+        
+        * *color* - An RGB color triplet. 
+        * *width* - if width is less than zero we draw the feature filled in, otherwise we draw the
+          contour using the specified width.
+
+          
+        **RETURNS**
+
+        Nothing - this is an inplace operation that modifies the source images drawing layer. 
+
+
+        """
+        self.image.dl().circle((self.x,self.y),3,color,width)
+
