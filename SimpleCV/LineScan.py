@@ -1,3 +1,4 @@
+
 from SimpleCV.base import *
 import scipy.signal as sps
 import scipy.optimize as spo
@@ -31,10 +32,23 @@ class LineScan(list):
 
     def __init__(self,*args,**kwargs):
         list.__init__(self,*args)
+        self.image = None
+        self.pt1 = None
+        self.pt2 = None 
         for key in kwargs:
             if key == 'pointLocs':
                 if kwargs[key] is not None:
                     self.pointLoc = kwargs[key]
+            if key == 'image':
+                if kwargs[key] is not None:
+                    self.img = kwargs[key]            
+            if key == 'pt1':
+                if kwargs[key] is not None:
+                    self.pt1 = kwargs[key]
+            if key == 'pt2':
+                if kwargs[key] is not None:
+                    self.pt2 = kwargs[key]
+                    
         if(self.pointLoc is None):
             self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
  
@@ -101,9 +115,9 @@ class LineScan(list):
         front = self[0:(degree-1)]
         front += smoothed
         front += self[-1*degree:]
-        retVal = LineScan(front)
-        retVal.image = self.image
-        retVal.pointLoc = self.pointLoc
+        retVal = LineScan(front,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        #retVal.image = self.image
+        #retVal.pointLoc = self.pointLoc
         return retVal
 
     def normalize(self):
@@ -128,9 +142,9 @@ class LineScan(list):
         """
         temp = np.array(self, dtype='float32')
         temp = temp / np.max(temp)
-        retVal = LineScan(list(temp[:]))
-        retVal.image = self.image
-        retVal.pointLoc = self.pointLoc
+        retVal = LineScan(list(temp[:]),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)                           
+        #retVal.image = self.image
+        #retVal.pointLoc = self.pointLoc
         return retVal
 
     def scale(self,value_range=(0,1)):
@@ -169,9 +183,9 @@ class LineScan(list):
         a = np.min(value_range)
         b = np.max(value_range)
         temp = (((b-a)/(vmax-vmin))*(temp-vmin))+a
-        retVal = LineScan(list(temp[:]))
-        retVal.image = self.image
-        retVal.pointLoc = self.pointLoc
+        retVal = LineScan(list(temp[:]),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)                                
+        #retVal.image = self.image
+        #retVal.pointLoc = self.pointLoc
         return retVal
 
     def minima(self):
@@ -270,9 +284,9 @@ class LineScan(list):
         temp = np.array(self,dtype='float32')
         d = [0]
         d += list(temp[1:]-temp[0:-1])
-        retVal = LineScan(d)
-        retVal.image = self.image
-        retVal.pointLoc = self.pointLoc
+        retVal = LineScan(d,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        #retVal.image = self.image
+        #retVal.pointLoc = self.pointLoc
         return retVal
     
     def localMaxima(self):
@@ -378,9 +392,9 @@ class LineScan(list):
         x = linspace(pts[0,0],pts[-1,0],n)
         y = linspace(pts[0,1],pts[-1,1],n)
         pts = zip(x,y)
-        retVal = LineScan(list(signal))
-        retVal.image = self.image
-        retVal.pointLoc = pts
+        retVal = LineScan(list(signal),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        #retVal.image = self.image
+        #retVal.pointLoc = pts
         return retVal
 
 
@@ -428,9 +442,7 @@ class LineScan(list):
         xvals = range(0,len(yvals),1)
         popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
         yvals = f(xvals,*popt)
-        retVal = LineScan(list(yvals))
-        retVal.image = self.image
-        retVal.pointLoc = self.pointLoc
+        retVal = LineScan(list(yvals),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         return retVal
 
 
@@ -509,9 +521,9 @@ class LineScan(list):
             kt = kl
         out = np.convolve(self,np.array(kernel,dtype='float32'))
         out = out[kt:-1*kl]
-        retVal = LineScan(out)
-        retVal.image = self.image
-        retVal.pointLoc = self.pointLoc
+        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        #retVal.image = self.image
+        #retVal.pointLoc = self.pointLoc
         return retVal
 
     def fft(self):
@@ -576,4 +588,120 @@ class LineScan(list):
         retVal = LineScan(signal.real)
         retVal.image = self.image
         retVal.pointLoc = self.pointLoc
+        return retVal
+
+    def createEmptyLUT(self,defaultVal=-1):
+        """
+        Create an empty look up table.
+
+        If default value is what the lut is intially filled with
+        if defaultVal == 0
+            the array is all zeros.
+        if defaultVal > 0
+            the array is set to default value. Clipped to 255.
+        if defaultVal < 0
+            the array is set to the range [0,255]
+        if defaultVal is a tuple of two values:
+            we set stretch the range of 0 to 255 to match
+            the range provided.
+        """
+        lut = None
+        if( isinstance(defaultVal,list) or
+            isinstance(defaultVal,tuple)):
+            start = np.clip(defaultVal[0],0,255)
+            stop = np.clip(defaultVal[1],0,255)
+            lut = np.around(np.linspace(start,stop,256),0)
+            lut = np.array(lut,dtype='uint8')
+            lut = lut.tolist()            
+        elif( defaultVal == 0 ):
+            lut = np.zeros([1,256]).tolist()[0]
+        elif( defaultVal > 0 ):
+            defaultVal = np.clip(defaultVal,1,255)
+            lut = np.ones([1,256])*defaultVal
+            lut = np.array(lut,dtype='uint8')
+            lut = lut.tolist()[0]
+        elif( defaultVal < 0 ):
+            lut = np.linspace(0,256,256)
+            lut = np.array(lut,dtype='uint8')
+            lut = lut.tolist()
+        return lut
+            
+    def fillLUT(self,lut,idxs,value=255):
+        # for the love of god keep this small
+        # for some reason isInstance is being persnickety
+        if(idxs.__class__.__name__  == 'Image' ):
+            npg = idxs.getGrayNumpy()
+            npg = npg.reshape([npg.shape[0]*npg.shape[1]])
+            idxs = npg.tolist()
+        value = np.clip(value,0,255)
+        for idx in idxs:
+            if(idx >= 0 and idx < len(lut)):
+                lut[idx]=value
+        return lut
+
+    def threshold(self,threshold=128,invert=False):
+        out = []
+        high = 255
+        low = 0
+        if( invert ):
+            high = 0
+            low = 255
+        for pt in self:
+            if( pt < threshold ):
+                out.append(low)
+            else:
+                out.append(high)
+        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        return retVal
+        
+    def invert(self):
+        out = []
+        for pt in self:
+            out.append(255-pt)
+        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        return retVal
+        
+    def median(self,sz=5):
+        """
+        Do a sliding median filter of size with a window size equal to size
+        Size must be odd
+        """
+        if( sz%2==0 ):
+            sz = sz+1
+        skip = int(np.floor(sz/2))
+        out = self[0:skip]
+        vsz = len(self)
+        for idx in range(skip,vsz-skip):
+            val = np.median(self[(idx-skip):(idx+skip)])
+            out.append(val)
+        for pt in self[-1*skip:]:
+            out.append(pt)
+        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        return retVal
+    
+    def findFirstIdxEqualTo(self,value=255):
+        vals = np.where(np.array(self)==value)[0]
+        retVal = None
+        if( len(vals) > 0 ):
+            retVal = vals[0]
+        return retVal
+        
+    def findLastIdxEqualTo(self,value=255):
+        vals = np.where(np.array(self)==value)[0]
+        retVal = None
+        if( len(vals) > 0 ):
+            retVal = vals[-1]
+        return retVal
+
+    def applyLUT(self,lut):
+        """
+        Apply a look up table to the signal.
+        
+        * *lut* an array of of length 256, the array elements are the values
+          that are replaced via the lut
+        """
+        out = []
+        for pt in self:
+            out.append(lut[pt])
+        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         return retVal
