@@ -7875,7 +7875,6 @@ class Image:
 
         idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
         p = dist[:,0]
-        print p
         result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
         for i in range(0,len(idx)):
             if( result[i] ):
