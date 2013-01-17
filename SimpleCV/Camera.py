@@ -2439,7 +2439,7 @@ class AVTCamera(FrameSource):
         self.dll.PvCaptureStart(self.handle)
         self.uniqueid = camera_id
         
-        self.setProperty("AcquisitionMode","Continuous")
+        self.setProperty("AcquisitionMode","SingleFrame")
         self.setProperty("FrameStartTriggerMode","Freerun")
         
         if properties.get("mode", "RGB") == 'gray':
