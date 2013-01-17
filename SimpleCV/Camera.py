@@ -20,7 +20,9 @@ class FrameBufferThread(threading.Thread):
     This is a helper thread which continually debuffers the camera frames.  If
     you don't do this, cameras may constantly give you a frame behind, which
     causes problems at low sample rates.  This makes sure the frames returned
-    by your camera are fresh.
+    by your camera are fresh.ode/SimpleCV/SimpleCV/Camera.py(2476)listAllCameras()
+-> self.dll.PvCameraListEx(ct.byref(camlist), 1, None, ct.sizeof(self.AVTCameraInfo))
+
     """
     def run(self):
         global _cameras
@@ -2472,7 +2474,7 @@ class AVTCamera(FrameSource):
         camlist = (self.AVTCameraInfo*100)()
         starttime = time.time()
         while int(camlist[0].UniqueId) == 0 and time.time() - starttime < 10:
-            self.dll.PvCameraListEx(ct.byref(camlist), 1, None, ct.sizeof(self.AVTCameraInfo))
+            self.dll.PvCameraListEx(ct.byref(camlist), 100, None, ct.sizeof(self.AVTCameraInfo))
             time.sleep(0.1) #keep checking for cameras until timeout
         
         
