@@ -7875,6 +7875,7 @@ class Image:
 
         idx,dist = self._getFLANNMatches(sd,td) # match our keypoint descriptors
         p = dist[:,0]
+        print p
         result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist ) 
         for i in range(0,len(idx)):
             if( result[i] ):
@@ -11951,6 +11952,52 @@ class Image:
         else:
             retval = cv2.bitwise_xor(self.getNumpyCv2(), img.getNumpyCv2())
         return Image(retval, cv2image=True)
+
+    def matchSIFTKeyPoints(self, template, quality=200):
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+        if template == None:
+            return None
+        detector = cv2.FeatureDetector_create("SIFT")
+        descriptor = cv2.DescriptorExtractor_create("SIFT")
+        img = self.getNumpyCv2()
+        template_img = template.getNumpyCv2()
+
+        skp = detector.detect(img)
+        skp, sd = descriptor.compute(img, skp)
+
+        tkp = detector.detect(template_img)
+        tkp, td = descriptor.compute(template_img, tkp)
+
+        idx, dist = self._getFLANNMatches(sd, td)
+        dist = dist[:,0]/2500.0
+        sfs = []
+        for i, dis in itertools.izip(idx, dist):
+            if dis < quality:
+                sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
+
+        idx, dist = self._getFLANNMatches(td, sd)
+        dist = dist[:,0]/2500.0
+        tfs = []
+        for i, dis in itertools.izip(idx, dist):
+            if dis < quality:
+                tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
+
+        return sfs, tfs
+        
+    def drawSIFTKeyPointMatch(self, template, quality=200, width=1):
+        if template == None:
+            return
+        resultImg = template.sideBySide(self,scale=False)
+        hdif = (self.height-template.height)/2
+        sfs, tfs = self.matchSIFTKeyPoints(template, quality)
+        for skp, tkp in itertools.izip(sfs, tfs):
+            pt_a = (int(tkp.y), int(tkp.x)+hdif)
+            pt_b = (int(skp.y)+template.width, int(skp.x))
+            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
+        return resultImg
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK

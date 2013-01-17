@@ -3085,3 +3085,15 @@ def test_logicalXOR():
         pass
     else:
         assert False
+        
+def test_matchSIFTKeyPoints():
+    img = Image("lenna")
+    skp, tkp =  img.matchSIFTKeyPoints(img)
+    if len(skp) == len(tkp):
+        for i in range(len(skp)):
+            if (skp[i].x == tkp[i].x and skp[i].y == tkp[i].y):
+                pass
+            else:
+                assert False
+    else:
+        assert False
