@@ -4481,6 +4481,8 @@ class Image:
     def __setitem__(self, coord, value):
         value = tuple(reversed(value))  #RGB -> BGR
         # TODO - this needs to be refactored
+        if(coord[0] >= self.width or coord[1] >= self.height or coord[0]<0 or coord[1] < 0):
+            return
         if is_tuple(self.getMatrix()[tuple(reversed(coord))]):
             self.getMatrix()[tuple(reversed(coord))] = value 
         else:
@@ -11578,6 +11580,8 @@ class Image:
             if( x >= 0 and x < self.width):
                 retVal = LineScan(gray[x,:])
                 retVal.image = self
+                retVal.pt1 = (x,0)
+                retVal.pt2 = (x,self.height)                
                 x = np.ones((1,self.height))[0]*x
                 y = range(0,self.height,1)
                 pts = zip(x,y)
@@ -11590,10 +11594,13 @@ class Image:
             if( y >= 0 and y < self.height):
                 retVal = LineScan(gray[:,y])
                 retVal.image = self
+                retVal.pt1 = (0,y)
+                retVal.pt2 = (self.width,y)                
                 y = np.ones((1,self.width))[0]*y
                 x = range(0,self.width,1)
                 pts = zip(x,y)
                 retVal.pointLoc = pts
+                
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
                 # warn and return None
@@ -11608,6 +11615,8 @@ class Image:
             retVal = LineScan([gray[p[0],p[1]] for p in pts])
             retVal.pointLoc = pts
             retVal.image = self
+            retVal.pt1 = pt1
+            retVal.pt2 = pt2
             
         else:
             # an invalid combination - warn
@@ -11615,6 +11624,73 @@ class Image:
             return None
         return retVal
 
+    def setLineScan(self, linescan,x=None,y=None,pt1=None,pt2=None):
+        """
+        
+        """
+        #retVal = self.toGray()
+        gray = self.getGrayNumpy()
+        if( x is None and y is None and pt1 is None and pt2 is None):
+            if(linescan.pt1 is None or linescan.pt2 is None):
+                warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
+                return None
+            else:
+                pt1 = linescan.pt1
+                pt2 = linescan.pt2
+                if( pt1[0] == pt2[0] and np.abs(pt1[1]-pt2[1])==self.height):
+                    x = pt1[0] # vertical line
+                    pt1=None
+                    pt2=None
+                    
+                elif( pt1[1] == pt2[1] and np.abs(pt1[0]-pt2[0])==self.width):
+                    y = pt1[1] # horizontal line
+                    pt1=None
+                    pt2=None
+                    
+
+        retVal = None 
+        if( x is not None and y is None and pt1 is None and pt2 is None):
+            if( x >= 0 and x < self.width):
+                if( len(linescan) != self.height ):
+                    linescan = linescan.resample(self.height)
+                #check for number of points
+                linescan = np.array(linescan)
+                gray[x,:] = linescan[:]
+            else:
+                warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
+
+        elif( x is None and y is not None and pt1 is None and pt2 is None):
+            if( y >= 0 and y < self.height):
+                if( len(linescan) != self.width ):
+                    linescan = linescan.resample(self.width)
+                #check for number of points
+                linescan = np.array(linescan)
+                gray[:,y] = linescan[:]                
+            else:
+                warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")                
+                # warn and return None
+
+
+        elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
+              (isinstance(pt2,tuple) or isinstance(pt2,list)) and
+              len(pt1) == 2 and len(pt2) == 2 and
+              x is None and y is None):
+
+            pts = self.bresenham_line(pt1,pt2)
+            if( len(linescan) != len(pts) ):
+                linescan = linescan.resample(len(pts))
+            linescan = np.array(linescan)
+            idx = 0
+            for pt in pts:
+                gray[pt[0],pt[1]]=linescan[idx]
+                idx = idx+1
+        else:
+            warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")                
+            return None
+        retVal = Image(gray)
+        return retVal
+
+                
     def getPixelsOnLine(self,pt1,pt2):
         """
         **SUMMARY**
@@ -11951,6 +12027,142 @@ class Image:
         else:
             retval = cv2.bitwise_xor(self.getNumpyCv2(), img.getNumpyCv2())
         return Image(retval, cv2image=True)
+
+    def matchSIFTKeyPoints(self, template, quality=200):
+                """
+        **SUMMARY**
+
+        matchSIFTKeypoint allows you to match a template image with another image using 
+        SIFT keypoints. The method extracts keypoints from each image, uses the Fast Local
+        Approximate Nearest Neighbors algorithm to find correspondences between the feature
+        points, filters the correspondences based on quality.
+        This method should be able to handle a reasonable changes in camera orientation and
+        illumination. Using a template that is close to the target image will yield much
+        better results.
+
+        **PARAMETERS**
+
+        * *template* - A template image. 
+        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features.
+ 
+        **RETURNS** 
+
+        A Tuple of lists consisting of matched KeyPoints found on the image and matched
+        keypoints found on the template.
+         
+        **EXAMPLE**
+        
+        >>> template = Image("template.png")
+        >>> img = camera.getImage()
+        >>> fs = img.macthSIFTKeyPoints(template)
+        
+        **NOTES**
+
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        | self._mKeyPoints # A Tuple of keypoint objects
+        | self._mKPDescriptors # The descriptor as a floating point numpy array
+        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
+
+        **SEE ALSO**
+        
+        :py:meth:`_getRawKeypoints` 
+        :py:meth:`_getFLANNMatches`
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+        if template == None:
+            return None
+        detector = cv2.FeatureDetector_create("SIFT")
+        descriptor = cv2.DescriptorExtractor_create("SIFT")
+        img = self.getNumpyCv2()
+        template_img = template.getNumpyCv2()
+
+        skp = detector.detect(img)
+        skp, sd = descriptor.compute(img, skp)
+
+        tkp = detector.detect(template_img)
+        tkp, td = descriptor.compute(template_img, tkp)
+
+        idx, dist = self._getFLANNMatches(sd, td)
+        dist = dist[:,0]/2500.0
+        sfs = []
+        for i, dis in itertools.izip(idx, dist):
+            if dis < quality:
+                sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
+
+        idx, dist = self._getFLANNMatches(td, sd)
+        dist = dist[:,0]/2500.0
+        tfs = []
+        for i, dis in itertools.izip(idx, dist):
+            if dis < quality:
+                tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
+
+        return sfs, tfs
+        
+    def drawSIFTKeyPointMatch(self, template, quality=200, width=1):
+        """
+        **SUMMARY**
+
+        Draw SIFT keypoints draws a side by side representation of two images, calculates
+        keypoints for both images, determines the keypoint correspondences, and then draws
+        the correspondences. This method is helpful for debugging keypoint calculations
+        and also looks really cool :) .  The parameters mirror the parameters used 
+        for findKeypointMatches to assist with debugging 
+
+        **PARAMETERS**
+
+        * *template* - A template image. 
+        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features. 
+        * *width* - The width of the drawn line.
+
+        **RETURNS**
+
+        A side by side image of the template and source image with each feature correspondence 
+        draw in a different color. 
+
+        **EXAMPLE**
+
+        >>> img = cam.getImage()
+        >>> template = Image("myTemplate.png")
+        >>> result = img.drawSIFTKeypointMatch(self,template,300.00):
+
+        **NOTES**
+
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointMatch`
+
+        """
+        if template == None:
+            return
+        resultImg = template.sideBySide(self,scale=False)
+        hdif = (self.height-template.height)/2
+        sfs, tfs = self.matchSIFTKeyPoints(template, quality)
+        for skp, tkp in itertools.izip(sfs, tfs):
+            pt_a = (int(tkp.y), int(tkp.x)+hdif)
+            pt_b = (int(skp.y)+template.width, int(skp.x))
+            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
+        return resultImg
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
