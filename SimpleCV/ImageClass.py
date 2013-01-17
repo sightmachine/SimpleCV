@@ -11954,6 +11954,52 @@ class Image:
         return Image(retval, cv2image=True)
 
     def matchSIFTKeyPoints(self, template, quality=200):
+                """
+        **SUMMARY**
+
+        matchSIFTKeypoint allows you to match a template image with another image using 
+        SIFT keypoints. The method extracts keypoints from each image, uses the Fast Local
+        Approximate Nearest Neighbors algorithm to find correspondences between the feature
+        points, filters the correspondences based on quality.
+        This method should be able to handle a reasonable changes in camera orientation and
+        illumination. Using a template that is close to the target image will yield much
+        better results.
+
+        **PARAMETERS**
+
+        * *template* - A template image. 
+        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features.
+ 
+        **RETURNS** 
+
+        A Tuple of lists consisting of matched KeyPoints found on the image and matched
+        keypoints found on the template.
+         
+        **EXAMPLE**
+        
+        >>> template = Image("template.png")
+        >>> img = camera.getImage()
+        >>> fs = img.macthSIFTKeyPoints(template)
+        
+        **NOTES**
+
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        | self._mKeyPoints # A Tuple of keypoint objects
+        | self._mKPDescriptors # The descriptor as a floating point numpy array
+        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
+
+        **SEE ALSO**
+        
+        :py:meth:`_getRawKeypoints` 
+        :py:meth:`_getFLANNMatches`
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+
+        """
         try:
             import cv2
         except ImportError:
@@ -11988,6 +12034,50 @@ class Image:
         return sfs, tfs
         
     def drawSIFTKeyPointMatch(self, template, quality=200, width=1):
+        """
+        **SUMMARY**
+
+        Draw SIFT keypoints draws a side by side representation of two images, calculates
+        keypoints for both images, determines the keypoint correspondences, and then draws
+        the correspondences. This method is helpful for debugging keypoint calculations
+        and also looks really cool :) .  The parameters mirror the parameters used 
+        for findKeypointMatches to assist with debugging 
+
+        **PARAMETERS**
+
+        * *template* - A template image. 
+        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+          values should return fewer, but higher quality features. 
+        * *width* - The width of the drawn line.
+
+        **RETURNS**
+
+        A side by side image of the template and source image with each feature correspondence 
+        draw in a different color. 
+
+        **EXAMPLE**
+
+        >>> img = cam.getImage()
+        >>> template = Image("myTemplate.png")
+        >>> result = img.drawSIFTKeypointMatch(self,template,300.00):
+
+        **NOTES**
+
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointMatch`
+
+        """
         if template == None:
             return
         resultImg = template.sideBySide(self,scale=False)
