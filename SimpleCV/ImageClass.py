@@ -11630,7 +11630,6 @@ class Image:
         """
         #retVal = self.toGray()
         gray = self.getGrayNumpy()
-        print len(linescan)
         if( x is None and y is None and pt1 is None and pt2 is None):
             if(linescan.pt1 is None or linescan.pt2 is None):
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
