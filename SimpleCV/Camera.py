@@ -2171,7 +2171,7 @@ class StereoCamera :
         cv.Remap(imgRight, dst2, map2x, map2y)
         return Image(dst1), Image(dst2)
         
-        
+
 class AVTCamera(FrameSource):
     """
     **SUMMARY**
@@ -2197,7 +2197,7 @@ class AVTCamera(FrameSource):
     >>> img = cam.getImage()
     >>> img.show()
     """
-    
+    _pvinfo = { }    
     _properties = {
         "AcqEndTriggerEvent": ("Enum", "R/W"),
         "AcqEndTriggerMode": ("Enum", "R/W"),
@@ -2417,7 +2417,9 @@ class AVTCamera(FrameSource):
         else:
             self.dll = ct.CDLL("libPvAPI.so")
             
-        self.dll.PvInitialize()
+        if not self._pvinfo.get("initialized", False):
+            self.dll.PvInitialize()
+            self._pvinfo['initialized'] = True
         #initialize.  Note that we rely on listAllCameras being the next
         #call, since it blocks on cameras initializing
         
@@ -2435,10 +2437,10 @@ class AVTCamera(FrameSource):
         self.handle = ct.c_uint()
         self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle))
         self.dll.PvCaptureStart(self.handle)
+        self.uniqueid = camera_id
         
         self.setProperty("AcquisitionMode","Continuous")
         self.setProperty("FrameStartTriggerMode","Freerun")
-        self.runCommand("AcquisitionStart")
         
         if properties.get("mode", "RGB") == 'gray':
             self.setProperty("PixelFormat", "Mono8")
@@ -2628,11 +2630,14 @@ class AVTCamera(FrameSource):
         >>>c = AVTCamera()
         >>>c.getImage().show()
         """
+        self.runCommand("AcquisitionStart")
         frame = self._getFrame()
 
-        return Image(pil.fromstring(self.imgformat, 
+        img = Image(pil.fromstring(self.imgformat, 
             (self.width, self.height), 
             frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+        self.runCommand("AcquisitionStop")
+	return img
     
     def _refreshFrameStats(self):
         self.width = self.getProperty("Width")
@@ -2645,7 +2650,7 @@ class AVTCamera(FrameSource):
         
         
         
-    def _getFrame(self, timeout = 60000):
+    def _getFrame(self, timeout = 10000):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
         frame = self.AVTFrame(self.buffersize)
