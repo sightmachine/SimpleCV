@@ -12030,6 +12030,8 @@ class Image:
         for i, dis in itertools.izip(idx, dist):
             if dis < quality:
                 sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
+            else:
+                break #since sorted
 
         idx, dist = self._getFLANNMatches(td, sd)
         dist = dist[:,0]/2500.0
@@ -12043,6 +12045,8 @@ class Image:
         for i, dis in itertools.izip(idx, dist):
             if dis < quality:
                 tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
+            else:
+                break
 
         return sfs, tfs
         
