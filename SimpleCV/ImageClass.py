@@ -4552,7 +4552,9 @@ class Image:
         newbitmap = self.getEmpty() 
         cv.Not(self.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
-
+    
+    def __invert__(self):
+        return self.invert()
 
     def max(self, other):
         """
@@ -12029,7 +12031,7 @@ class Image:
         return Image(retval, cv2image=True)
 
     def matchSIFTKeyPoints(self, template, quality=200):
-                """
+        """
         **SUMMARY**
 
         matchSIFTKeypoint allows you to match a template image with another image using 
@@ -12043,13 +12045,13 @@ class Image:
         **PARAMETERS**
 
         * *template* - A template image. 
-        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+        * *quality* - The feature quality metric. This can be any value between about 100 and 500. Lower
           values should return fewer, but higher quality features.
  
         **RETURNS** 
 
         A Tuple of lists consisting of matched KeyPoints found on the image and matched
-        keypoints found on the template.
+        keypoints found on the template. keypoints are sorted according to lowest distance.
          
         **EXAMPLE**
         
@@ -12094,21 +12096,37 @@ class Image:
 
         idx, dist = self._getFLANNMatches(sd, td)
         dist = dist[:,0]/2500.0
+        dist = dist.reshape(-1,).tolist()
+        idx = idx.reshape(-1).tolist()
+        indices = range(len(dist))
+        indices.sort(key=lambda i: dist[i])
+        dist = [dist[i] for i in indices]
+        idx = [idx[i] for i in indices]
         sfs = []
         for i, dis in itertools.izip(idx, dist):
             if dis < quality:
                 sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
+            else:
+                break #since sorted
 
         idx, dist = self._getFLANNMatches(td, sd)
         dist = dist[:,0]/2500.0
+        dist = dist.reshape(-1,).tolist()
+        idx = idx.reshape(-1).tolist()
+        indices = range(len(dist))
+        indices.sort(key=lambda i: dist[i])
+        dist = [dist[i] for i in indices]
+        idx = [idx[i] for i in indices]
         tfs = []
         for i, dis in itertools.izip(idx, dist):
             if dis < quality:
                 tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
+            else:
+                break
 
         return sfs, tfs
         
-    def drawSIFTKeyPointMatch(self, template, quality=200, width=1):
+    def drawSIFTKeyPointMatch(self, template, distance=200, num=-1, width=1):
         """
         **SUMMARY**
 
@@ -12121,8 +12139,10 @@ class Image:
         **PARAMETERS**
 
         * *template* - A template image. 
-        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
-          values should return fewer, but higher quality features. 
+        * *distance* - This can be any value between about 100 and 500. Lower value should
+                        return less number of features but higher quality features.
+        * *num* -   Number of features you want to draw. Features are sorted according to the
+                    dist from min to max.
         * *width* - The width of the drawn line.
 
         **RETURNS**
@@ -12157,8 +12177,13 @@ class Image:
             return
         resultImg = template.sideBySide(self,scale=False)
         hdif = (self.height-template.height)/2
-        sfs, tfs = self.matchSIFTKeyPoints(template, quality)
-        for skp, tkp in itertools.izip(sfs, tfs):
+        sfs, tfs = self.matchSIFTKeyPoints(template, distance)
+        maxlen = min(len(sfs), len(tfs))
+        if num < 0 or num > maxlen:
+            num = maxlen
+        for i in range(num):
+            skp = sfs[i]
+            tkp = tfs[i]
             pt_a = (int(tkp.y), int(tkp.x)+hdif)
             pt_b = (int(skp.y)+template.width, int(skp.x))
             resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
