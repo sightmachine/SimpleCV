@@ -4550,7 +4550,9 @@ class Image:
         newbitmap = self.getEmpty() 
         cv.Not(self.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
-
+    
+    def __invert__(self):
+        return self.invert()
 
     def max(self, other):
         """
