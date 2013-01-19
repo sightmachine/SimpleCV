@@ -116,7 +116,8 @@ Commands (for Lion)::
     brew install git
     brew install --HEAD smpeg
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi 
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
+    ARCHFLAGS="-arch i386 -arch x86_64"
+    brew install PIL 
     ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
@@ -135,7 +136,8 @@ Commands (for Snow Leopard)::
     brew install opencv
     brew install git
     brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi 
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
+    ARCHFLAGS="-arch i386 -arch x86_64"
+    brew install PIL 
     ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
