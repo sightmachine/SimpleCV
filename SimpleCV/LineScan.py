@@ -592,7 +592,9 @@ class LineScan(list):
 
     def createEmptyLUT(self,defaultVal=-1):
         """
-        Create an empty look up table.
+        **SUMMARY**
+
+        Create an empty look up table (LUT).
 
         If default value is what the lut is intially filled with
         if defaultVal == 0
@@ -604,6 +606,25 @@ class LineScan(list):
         if defaultVal is a tuple of two values:
             we set stretch the range of 0 to 255 to match
             the range provided.
+
+         
+        **PARAMETERS**
+
+        * *defaultVal* - See above.
+        
+        **RETURNS**
+
+        A LUT.
+        
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> lut = ls.createEmptyLUT()
+        >>>> ls2 = ls.applyLUT(lut)
+        >>>> plt.plot(ls)
+        >>>> plt.plot(ls2)
+        >>>> plt.show()
+        
         """
         lut = None
         if( isinstance(defaultVal,list) or
@@ -627,6 +648,37 @@ class LineScan(list):
         return lut
             
     def fillLUT(self,lut,idxs,value=255):
+        """
+        **SUMMARY**
+
+        Fill up an existing LUT (look up table) at the indexes specified
+        by idxs with the value specified by value. This is useful for picking
+        out specific values. 
+         
+        **PARAMETERS**
+
+        * *lut* - An existing LUT (just a list of 255 values).
+        * *idxs* -  The indexes of the LUT to fill with the value.
+                    This can also be a sample swatch of an image. 
+        * *value* - the value to set the LUT[idx] to
+
+        
+        **RETURNS**
+
+        An updated LUT.
+        
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> lut = ls.createEmptyLUT()
+        >>>> swatch = img.crop(0,0,10,10)
+        >>>> ls.fillLUT(lut,swatch,255)
+        >>>> ls2 = ls.applyLUT(lut)
+        >>>> plt.plot(ls)
+        >>>> plt.plot(ls2)
+        >>>> plt.show()
+        
+        """
         # for the love of god keep this small
         # for some reason isInstance is being persnickety
         if(idxs.__class__.__name__  == 'Image' ):
@@ -640,6 +692,32 @@ class LineScan(list):
         return lut
 
     def threshold(self,threshold=128,invert=False):
+        """
+        **SUMMARY**
+
+        Do a 1D threshold operation. Values about the threshold
+        will be set to 255, values below the threshold will be
+        set to 0. If invert is true we do the opposite.
+         
+        **PARAMETERS**
+
+        * *threshold* - The cutoff value for our threshold.
+        * *invert* - if invert is false values above the threshold
+                     are set to 255, if invert is True the are set to 0.
+        
+        **RETURNS**
+
+        The thresholded linescan operation.
+        
+        **EXAMPLE**
+        
+        >>>> ls = img.getLineScan(x=10)
+        >>>> ls2 = ls.threshold()
+        >>>> plt.plot(ls)
+        >>>> plt.plot(ls2)
+        >>>> plt.show()
+        
+        """
         out = []
         high = 255
         low = 0
@@ -654,7 +732,31 @@ class LineScan(list):
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         return retVal
         
-    def invert(self):
+    def invert(self,max=255):
+        """
+        **SUMMARY**
+                
+        Do an 8bit invert of the signal. What was black is now
+        white, what was 255 is now zero. 
+        
+        **PARAMETERS**
+
+        * *max* - The maximum value of a pixel in the image, usually 255.
+        
+        **RETURNS**
+
+        The inverted LineScan object.
+        
+        **EXAMPLE**
+        
+        >>>> ls = img.getLineScan(x=10)
+        >>>> ls2 = ls.invert()
+        >>>> plt.plot(ls)
+        >>>> plt.plot(ls2)
+        >>>> plt.show()
+        
+        """
+
         out = []
         for pt in self:
             out.append(255-pt)
@@ -663,8 +765,29 @@ class LineScan(list):
         
     def median(self,sz=5):
         """
-        Do a sliding median filter of size with a window size equal to size
-        Size must be odd
+        **SUMMARY**
+                
+        Do a sliding median filter with a window size equal to size.
+
+        
+        **PARAMETERS**
+
+        * *sz* - the size of the median filter. 
+        
+        **RETURNS**
+
+        The linescan after being passed through the median filter.
+        The last index where the value occurs or None if none is found.
+        
+        
+        **EXAMPLE**
+        
+        >>>> ls = img.getLineScan(x=10)
+        >>>> ls2 = ls.median(7)
+        >>>> plt.plot(ls)
+        >>>> plt.plot(ls2)
+        >>>> plt.show()
+        
         """
         if( sz%2==0 ):
             sz = sz+1
@@ -680,6 +803,27 @@ class LineScan(list):
         return retVal
     
     def findFirstIdxEqualTo(self,value=255):
+        """
+        **SUMMARY**
+
+        Find the index of the first element of the linescan that has
+        a value equal to value. If nothing is found None is returned.
+        
+        **PARAMETERS**
+
+        * *value* - the value to look for.
+        
+        **RETURNS**
+
+        The first index where the value occurs or None if none is found.
+        
+        
+        **EXAMPLE**
+        
+        >>>> ls = img.getLineScan(x=10)
+        >>>> idx = ls.findFIRSTIDXEqualTo()
+        
+        """
         vals = np.where(np.array(self)==value)[0]
         retVal = None
         if( len(vals) > 0 ):
@@ -687,6 +831,28 @@ class LineScan(list):
         return retVal
         
     def findLastIdxEqualTo(self,value=255):
+        """
+        **SUMMARY**
+
+        Find the index of the last element of the linescan that has
+        a value equal to value. If nothing is found None is returned.
+        
+        **PARAMETERS**
+
+        * *value* - the value to look for.
+        
+        **RETURNS**
+
+        The last index where the value occurs or None if none is found.
+        
+        
+        **EXAMPLE**
+        
+        >>>> ls = img.getLineScan(x=10)
+        >>>> idx = ls.findLastIDXEqualTo()
+        
+        """
+
         vals = np.where(np.array(self)==value)[0]
         retVal = None
         if( len(vals) > 0 ):
@@ -695,10 +861,27 @@ class LineScan(list):
 
     def applyLUT(self,lut):
         """
+        **SUMMARY**
+
         Apply a look up table to the signal.
         
+        **PARAMETERS**
+
         * *lut* an array of of length 256, the array elements are the values
           that are replaced via the lut
+        
+        **RETURNS**
+
+        A LineScan object with the LUT applied to the values.
+        
+        **EXAMPLE**
+        
+        >>>> ls = img.getLineScan(x=10)
+        >>>> lut = ls.createEmptyLUT()
+        >>>> ls2 = ls.applyLUT(lut)
+        >>>> plt.plot(ls)
+        >>>> plt.plot(ls2)
+        
         """
         out = []
         for pt in self:

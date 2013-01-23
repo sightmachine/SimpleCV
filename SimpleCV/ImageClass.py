@@ -4552,7 +4552,9 @@ class Image:
         newbitmap = self.getEmpty() 
         cv.Not(self.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
-
+    
+    def __invert__(self):
+        return self.invert()
 
     def max(self, other):
         """
@@ -11630,7 +11632,6 @@ class Image:
         """
         #retVal = self.toGray()
         gray = self.getGrayNumpy()
-        print len(linescan)
         if( x is None and y is None and pt1 is None and pt2 is None):
             if(linescan.pt1 is None or linescan.pt2 is None):
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
@@ -12028,6 +12029,165 @@ class Image:
         else:
             retval = cv2.bitwise_xor(self.getNumpyCv2(), img.getNumpyCv2())
         return Image(retval, cv2image=True)
+
+    def matchSIFTKeyPoints(self, template, quality=200):
+        """
+        **SUMMARY**
+
+        matchSIFTKeypoint allows you to match a template image with another image using 
+        SIFT keypoints. The method extracts keypoints from each image, uses the Fast Local
+        Approximate Nearest Neighbors algorithm to find correspondences between the feature
+        points, filters the correspondences based on quality.
+        This method should be able to handle a reasonable changes in camera orientation and
+        illumination. Using a template that is close to the target image will yield much
+        better results.
+
+        **PARAMETERS**
+
+        * *template* - A template image. 
+        * *quality* - The feature quality metric. This can be any value between about 100 and 500. Lower
+          values should return fewer, but higher quality features.
+ 
+        **RETURNS** 
+
+        A Tuple of lists consisting of matched KeyPoints found on the image and matched
+        keypoints found on the template. keypoints are sorted according to lowest distance.
+         
+        **EXAMPLE**
+        
+        >>> template = Image("template.png")
+        >>> img = camera.getImage()
+        >>> fs = img.macthSIFTKeyPoints(template)
+        
+        **NOTES**
+
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        | self._mKeyPoints # A Tuple of keypoint objects
+        | self._mKPDescriptors # The descriptor as a floating point numpy array
+        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
+
+        **SEE ALSO**
+        
+        :py:meth:`_getRawKeypoints` 
+        :py:meth:`_getFLANNMatches`
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+        if template == None:
+            return None
+        detector = cv2.FeatureDetector_create("SIFT")
+        descriptor = cv2.DescriptorExtractor_create("SIFT")
+        img = self.getNumpyCv2()
+        template_img = template.getNumpyCv2()
+
+        skp = detector.detect(img)
+        skp, sd = descriptor.compute(img, skp)
+
+        tkp = detector.detect(template_img)
+        tkp, td = descriptor.compute(template_img, tkp)
+
+        idx, dist = self._getFLANNMatches(sd, td)
+        dist = dist[:,0]/2500.0
+        dist = dist.reshape(-1,).tolist()
+        idx = idx.reshape(-1).tolist()
+        indices = range(len(dist))
+        indices.sort(key=lambda i: dist[i])
+        dist = [dist[i] for i in indices]
+        idx = [idx[i] for i in indices]
+        sfs = []
+        for i, dis in itertools.izip(idx, dist):
+            if dis < quality:
+                sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
+            else:
+                break #since sorted
+
+        idx, dist = self._getFLANNMatches(td, sd)
+        dist = dist[:,0]/2500.0
+        dist = dist.reshape(-1,).tolist()
+        idx = idx.reshape(-1).tolist()
+        indices = range(len(dist))
+        indices.sort(key=lambda i: dist[i])
+        dist = [dist[i] for i in indices]
+        idx = [idx[i] for i in indices]
+        tfs = []
+        for i, dis in itertools.izip(idx, dist):
+            if dis < quality:
+                tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
+            else:
+                break
+
+        return sfs, tfs
+        
+    def drawSIFTKeyPointMatch(self, template, distance=200, num=-1, width=1):
+        """
+        **SUMMARY**
+
+        Draw SIFT keypoints draws a side by side representation of two images, calculates
+        keypoints for both images, determines the keypoint correspondences, and then draws
+        the correspondences. This method is helpful for debugging keypoint calculations
+        and also looks really cool :) .  The parameters mirror the parameters used 
+        for findKeypointMatches to assist with debugging 
+
+        **PARAMETERS**
+
+        * *template* - A template image. 
+        * *distance* - This can be any value between about 100 and 500. Lower value should
+                        return less number of features but higher quality features.
+        * *num* -   Number of features you want to draw. Features are sorted according to the
+                    dist from min to max.
+        * *width* - The width of the drawn line.
+
+        **RETURNS**
+
+        A side by side image of the template and source image with each feature correspondence 
+        draw in a different color. 
+
+        **EXAMPLE**
+
+        >>> img = cam.getImage()
+        >>> template = Image("myTemplate.png")
+        >>> result = img.drawSIFTKeypointMatch(self,template,300.00):
+
+        **NOTES**
+
+        If you would prefer to work with the raw keypoints and descriptors each image keeps
+        a local cache of the raw values. These are named:
+        
+        self._mKeyPoints # A tuple of keypoint objects
+        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
+        self._mKPDescriptors # The descriptor as a floating point numpy array
+        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
+
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointMatch`
+
+        """
+        if template == None:
+            return
+        resultImg = template.sideBySide(self,scale=False)
+        hdif = (self.height-template.height)/2
+        sfs, tfs = self.matchSIFTKeyPoints(template, distance)
+        maxlen = min(len(sfs), len(tfs))
+        if num < 0 or num > maxlen:
+            num = maxlen
+        for i in range(num):
+            skp = sfs[i]
+            tkp = tfs[i]
+            pt_a = (int(tkp.y), int(tkp.x)+hdif)
+            pt_b = (int(skp.y)+template.width, int(skp.x))
+            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
+        return resultImg
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
