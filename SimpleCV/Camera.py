@@ -272,10 +272,6 @@ class FrameSource:
         
         * *fileneame* - The file name, without an extension, to which to save the calibration data.
         
-        **RETURNS**
-
-        Returns true if the file was saved , false otherwise. 
-
         **EXAMPLE**
 
         See :py:module:calibrate.py
@@ -294,8 +290,6 @@ class FrameSource:
             distFName = filename + "Distortion.xml"
             cv.Save(distFName, self._distCoeff)
         
-        return None
-
     def loadCalibration(self, filename):
         """
         **SUMMARY**
