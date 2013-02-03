@@ -4495,7 +4495,7 @@ class Image:
     def __sub__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.SubS(self.getBitmap(), other, newbitmap)
+            cv.SubS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4504,7 +4504,7 @@ class Image:
     def __add__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AddS(self.getBitmap(), other, newbitmap)
+            cv.AddS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4513,7 +4513,7 @@ class Image:
     def __and__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AndS(self.getBitmap(), other, newbitmap)
+            cv.AndS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4522,7 +4522,7 @@ class Image:
     def __or__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.OrS(self.getBitmap(), other, newbitmap)
+            cv.OrS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
