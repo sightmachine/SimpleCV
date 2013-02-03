@@ -2504,7 +2504,7 @@ class Image:
             	 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
                  return True
                  
-    def scale(self, width, height = -1):
+    def scale(self, width, height = -1, interpolation=cv.CV_INTER_LINEAR):
         """
         **SUMMARY**
 
@@ -2518,6 +2518,8 @@ class Image:
           is a floating point value, this is the scaling factor. 
 
         * *height* - the new height in pixels.
+        
+        * *interpolation* - how to generate new pixels that don't match the original pixels. Argument goes direction to cv.Resize. See http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html?highlight=resize#cv2.resize for more details
 
         **RETURNS**
 
@@ -2546,7 +2548,7 @@ class Image:
            
 
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap)
+        cv.Resize(self.getBitmap(), scaled_bitmap, interpolation)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
     
