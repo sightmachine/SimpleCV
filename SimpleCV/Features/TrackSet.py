@@ -58,8 +58,8 @@ class TrackSet(FeatureSet):
         f.vel = self.__pixelVelocity()
         f.rt_vel = self.__pixleVelocityRealTime()
         self.__setKalman()
-        self.__changeMeasure()
         self.__predictKalman()
+        self.__changeMeasure()
         self.__correctKalman()
         f.predict_pt = self.predict_pt
         f.state_pt = self.state_pt
@@ -573,16 +573,16 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         
         self.kalman.transition_matrix[0,0] = 1
         self.kalman.transition_matrix[0,1] = 0
-        self.kalman.transition_matrix[0,2] = 0
+        self.kalman.transition_matrix[0,2] = 1
         self.kalman.transition_matrix[0,3] = 0
         self.kalman.transition_matrix[1,0] = 0
         self.kalman.transition_matrix[1,1] = 1
         self.kalman.transition_matrix[1,2] = 0
-        self.kalman.transition_matrix[1,3] = 0
+        self.kalman.transition_matrix[1,3] = 1
         self.kalman.transition_matrix[2,0] = 0
         self.kalman.transition_matrix[2,1] = 0
-        self.kalman.transition_matrix[2,2] = 0
-        self.kalman.transition_matrix[2,3] = 1
+        self.kalman.transition_matrix[2,2] = 1
+        self.kalman.transition_matrix[2,3] = 0
         self.kalman.transition_matrix[3,0] = 0
         self.kalman.transition_matrix[3,1] = 0
         self.kalman.transition_matrix[3,2] = 0
@@ -602,8 +602,9 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         self.state_pt = (self.kalman_estimated[0,0], self.kalman_estimated[1,0])
         
     def __changeMeasure(self):
-        self.kalman_measurement[0, 0] = self.kalman_x
-        self.kalman_measurement[1, 0] = self.kalman_y
+        ts = self
+        self.kalman_measurement[0, 0] = ts[-1].x
+        self.kalman_measurement[1, 0] = ts[-1].y
     
     def predictedCoordinates(self):
         """
