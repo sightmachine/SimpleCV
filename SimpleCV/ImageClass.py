@@ -3342,9 +3342,6 @@ class Image:
         blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(self.binarize(threshval, 255, threshblocksize, threshconstant).invert(),
             self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
-    
-        if not len(blobs):
-            return None
             
         return FeatureSet(blobs).sortArea()
     
@@ -3396,8 +3393,6 @@ class Image:
         mask = self.getSkintoneMask(dilate_iter)
 	blobmaker = BlobMaker()
         blobs = blobmaker.extractFromBinary(mask, self, minsize = minsize, maxsize = maxsize)
-        if not len(blobs):
-            return None
         return FeatureSet(blobs).sortArea()    
     
     def getSkintoneMask(self, dilate_iter=0):
@@ -8739,8 +8734,6 @@ class Image:
         blobs = blobmaker.extractFromBinary(bwimg,
             self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
-        if not len(blobs):
-            return None
         return blobs
 
 
@@ -9325,9 +9318,6 @@ class Image:
         cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
         blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
     
-        if not len(blobs):
-            return None
-            
         return FeatureSet(blobs).sortArea()
 
 
