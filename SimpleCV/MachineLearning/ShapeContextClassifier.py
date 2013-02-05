@@ -4,8 +4,13 @@ from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.Detection import ShapeContextDescriptor
 import math
-import scipy.stats as sps 
-from sklearn import neighbors
+import scipy.stats as sps
+try:
+    from sklearn import neighbors
+except:
+    print "Need scikits learn installed"
+    exit
+    
 
 """
 Classify an object based on shape context
