@@ -2325,17 +2325,26 @@ class Feature(object):
     def boundingCircle(self):
         """
         **SUMMARY**
+
         This function calculates the minimum bounding circle of the blob in the image
         as an (x,y,r) tuple
 
         **RETURNS**
+
         An (x,y,r) tuple where (x,y) is the center of the circle and r is the radius
+
+        **EXAMPLE**
+
+        >>> img = Image("SimpleCV\sampleimages\bolt.png")
+        >>> blobs = img.findBlobs()
+        >>> print blobs[-1].boundingCircle()
+
         """
 
         try:
             import cv2
         except:
-            logger.warning("SimpleCV unable to import cv2")
+            logger.warning("Unable to import cv2")
             return None
 
         # contour of the blob in image
