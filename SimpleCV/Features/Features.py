@@ -2335,7 +2335,7 @@ class Feature(object):
 
         **EXAMPLE**
 
-        >>> img = Image("SimpleCV\sampleimages\bolt.png")
+        >>> img = Image("RatMask.png")
         >>> blobs = img.findBlobs()
         >>> print blobs[-1].boundingCircle()
 
