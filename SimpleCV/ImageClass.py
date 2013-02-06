@@ -12029,9 +12029,9 @@ class Image:
         return Image(retval, cv2image=True)
 
     def matchSIFTKeyPoints(self, template, quality=200):
-                """
+        """
         **SUMMARY**
-
+        
         matchSIFTKeypoint allows you to match a template image with another image using 
         SIFT keypoints. The method extracts keypoints from each image, uses the Fast Local
         Approximate Nearest Neighbors algorithm to find correspondences between the feature
