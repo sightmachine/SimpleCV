@@ -2322,7 +2322,35 @@ class Feature(object):
             retVal = False
         return retVal
 
+    def boundingCircle(self):
+        """
+        **SUMMARY**
+        This function calculates the minimum bounding circle of the blob in the image
+        as an (x,y,r) tuple
 
+        **RETURNS**
+        An (x,y,r) tuple where (x,y) is the center of the circle and r is the radius
+        """
+
+        try:
+            import cv2
+        except:
+            logger.warning("SimpleCV unable to import cv2")
+            return None
+
+        # contour of the blob in image
+        contour = self.contour()
+
+        points = []
+        # list of contour points converted to suitable format to pass into cv2.minEnclosingCircle()        
+        for pair in contour:
+            points.append([[pair[0], pair[1]]])
+
+        points = np.array(points)
+
+        (cen, rad) = cv2.minEnclosingCircle(points);
+
+        return (cen[0], cen[1], rad)
 
 
 #--------------------------------------------- 
