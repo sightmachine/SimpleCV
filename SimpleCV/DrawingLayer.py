@@ -564,7 +564,7 @@ class DrawingLayer:
         This method removes all of the drawing on this layer (i.e. the layer is
         erased completely)
         """
-        self._mSurface = pg.Surface((int(self.width), int(self.height)))
+        self._mSurface = pg.Surface((int(self._mImage.width), int(self._mImage.height)))
         return None
     
     def renderToSurface(self, surf):
