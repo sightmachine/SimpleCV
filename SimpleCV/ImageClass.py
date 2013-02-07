@@ -809,7 +809,7 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
+    _gridLayer = [None,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
 	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
@@ -11819,7 +11819,7 @@ class Image:
         >>>> img.grid([20,20],(255,0,0))
         >>>> img.grid((20,20),(255,0,0),1,True,0)
         """
-        imgTemp = self
+        retVal = self.copy()
         try:
             step_row = self.size()[1]/dimensions[0]
             step_col = self.size()[0]/dimensions[1]
@@ -11837,10 +11837,20 @@ class Image:
             if( j < dimensions[1] ):
                 grid.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        imgTemp._gridLayer[0] = imgTemp.addDrawingLayer(grid) # store grid layer index
-        imgTemp._gridLayer[1] = dimensions
-        return imgTemp
+        retVal._gridLayer[0] = retVal.addDrawingLayer(grid) # store grid layer index
+        retVal._gridLayer[1] = dimensions
+        return retVal
 	
+    def removeGrid(self):
+        
+        if self._gridLayer[0] is not None:
+            grid = self.removeDrawingLayer(self._gridLayer[0])
+            self._gridLayer=[None,[0, 0]]
+            return grid
+        else:
+            return None
+        
+        
     def findGridLines(self):
 
         """

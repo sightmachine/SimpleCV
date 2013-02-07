@@ -3006,6 +3006,17 @@ def test_grid():
     name_stem = "test_image_grid"
     perform_diff(result,name_stem,12.0)
 
+def test_removeGrid():
+	img = Image("lenna")
+	gridImage = img.grid()
+	dlayer = gridImage.removeGrid()
+	if dlayer is None:
+		assert False
+	dlayer1 = gridImage.removGrid()
+	if dlayer1 is not None:
+		assert False
+	pass
+
 def test_cluster():
   img = Image("lenna")
   blobs = img.findBlobs()
