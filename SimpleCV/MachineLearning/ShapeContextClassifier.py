@@ -9,7 +9,7 @@ try:
     from sklearn import neighbors
 except:
     print "Need scikits learn installed"
-    exit
+    #exit()
     
 
 """
