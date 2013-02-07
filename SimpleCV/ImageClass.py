@@ -11843,6 +11843,27 @@ class Image:
 	
     def removeGrid(self):
         
+        """
+        **SUMMARY**
+        
+                Remove Grid Layer from the Image.   
+
+        **PARAMETERS**
+    
+                None
+
+        **RETURNS**
+
+                Drawing Layer corresponding to the Grid Layer
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> gridLayer = img.removeGrid()
+        
+        """
+        
         if self._gridLayer[0] is not None:
             grid = self.removeDrawingLayer(self._gridLayer[0])
             self._gridLayer=[None,[0, 0]]
