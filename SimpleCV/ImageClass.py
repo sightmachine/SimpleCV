@@ -2504,7 +2504,7 @@ class Image:
             	 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
                  return True
                  
-    def scale(self, width, height = -1):
+    def scale(self, width, height = -1, interpolation=cv.CV_INTER_LINEAR):
         """
         **SUMMARY**
 
@@ -2518,6 +2518,8 @@ class Image:
           is a floating point value, this is the scaling factor. 
 
         * *height* - the new height in pixels.
+        
+        * *interpolation* - how to generate new pixels that don't match the original pixels. Argument goes direction to cv.Resize. See http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html?highlight=resize#cv2.resize for more details
 
         **RETURNS**
 
@@ -2546,7 +2548,7 @@ class Image:
            
 
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap)
+        cv.Resize(self.getBitmap(), scaled_bitmap, interpolation)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
     
@@ -4493,7 +4495,7 @@ class Image:
     def __sub__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.SubS(self.getBitmap(), other, newbitmap)
+            cv.SubS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4502,7 +4504,7 @@ class Image:
     def __add__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AddS(self.getBitmap(), other, newbitmap)
+            cv.AddS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4511,7 +4513,7 @@ class Image:
     def __and__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AndS(self.getBitmap(), other, newbitmap)
+            cv.AndS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4520,7 +4522,7 @@ class Image:
     def __or__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.OrS(self.getBitmap(), other, newbitmap)
+            cv.OrS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -12058,16 +12060,6 @@ class Image:
         >>> template = Image("template.png")
         >>> img = camera.getImage()
         >>> fs = img.macthSIFTKeyPoints(template)
-        
-        **NOTES**
-
-        If you would prefer to work with the raw keypoints and descriptors each image keeps
-        a local cache of the raw values. These are named:
-        
-        | self._mKeyPoints # A Tuple of keypoint objects
-        | self._mKPDescriptors # The descriptor as a floating point numpy array
-        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
-        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
 
         **SEE ALSO**
         
@@ -12156,16 +12148,6 @@ class Image:
         >>> template = Image("myTemplate.png")
         >>> result = img.drawSIFTKeypointMatch(self,template,300.00):
 
-        **NOTES**
-
-        If you would prefer to work with the raw keypoints and descriptors each image keeps
-        a local cache of the raw values. These are named:
-        
-        self._mKeyPoints # A tuple of keypoint objects
-        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
-
         **SEE ALSO**
 
         :py:meth:`drawKeypointMatches`
@@ -12189,6 +12171,79 @@ class Image:
             resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
         return resultImg
 
+    def findFeatures(self, method="szeliski", threshold=1000):
+        """
+        **SUMMARY**
+
+        Find szeilski or Harris features in the image.
+        Harris features correspond to Harris corner detection in the image.
+
+        Read more: 
+
+        Harris Features: http://en.wikipedia.org/wiki/Corner_detection
+        szeliski Features: http://research.microsoft.com/en-us/um/people/szeliski/publications.htm
+
+        **PARAMETERS**
+
+        * *method* - Features type
+        * *threshold* - threshold val
+
+        **RETURNS**
+
+        A list of Feature objects corrseponding to the feature points. 
+
+        **EXAMPLE**
+
+        >>> img = Image("corner_sample.png")
+        >>> fpoints = img.findFeatures("harris", 2000)
+        >>> for f in fpoints:
+            ... f.draw()
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointMatch`
+
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+            return None
+        img = self.getGrayNumpyCv2()
+        blur = cv2.GaussianBlur(img, (3, 3), 0)
+
+        Ix = cv2.Sobel(blur, cv2.CV_32F, 1, 0)
+        Iy = cv2.Sobel(blur, cv2.CV_32F, 0, 1)
+
+        Ix_Ix = np.multiply(Ix, Ix)
+        Iy_Iy = np.multiply(Iy, Iy)
+        Ix_Iy = np.multiply(Ix, Iy)
+
+        Ix_Ix_blur = cv2.GaussianBlur(Ix_Ix, (5, 5), 0)
+        Iy_Iy_blur = cv2.GaussianBlur(Iy_Iy, (5, 5), 0)
+        Ix_Iy_blur = cv2.GaussianBlur(Ix_Iy, (5, 5), 0)
+
+        harris_thresh = threshold*5000
+        alpha = 0.06
+        detA = Ix_Ix_blur * Iy_Iy_blur - Ix_Iy_blur**2
+        traceA = Ix_Ix_blur + Iy_Iy_blur
+        feature_list = []
+        if method == "szeliski":
+            harmonic_mean = detA / traceA
+            for j, i in np.argwhere(harmonic_mean > threshold):
+                feature_list.append(Feature(self, i, j, ((i, j), (i, j), (i, j), (i, j))))
+                
+        elif method == "harris":
+            harris_function = detA - (alpha*traceA*traceA)
+            for j,i in np.argwhere(harris_function > harris_thresh):
+                feature_list.append(Feature(self, i, j, ((i, j), (i, j), (i, j), (i, j))))
+        else:
+            logger.warning("Invalid method.")
+            return None
+        return feature_list
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer
