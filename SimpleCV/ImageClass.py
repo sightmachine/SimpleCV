@@ -809,7 +809,7 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
+    _gridLayer = [None,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
 	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
@@ -2504,7 +2504,7 @@ class Image:
             	 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
                  return True
                  
-    def scale(self, width, height = -1):
+    def scale(self, width, height = -1, interpolation=cv.CV_INTER_LINEAR):
         """
         **SUMMARY**
 
@@ -2518,6 +2518,8 @@ class Image:
           is a floating point value, this is the scaling factor. 
 
         * *height* - the new height in pixels.
+        
+        * *interpolation* - how to generate new pixels that don't match the original pixels. Argument goes direction to cv.Resize. See http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html?highlight=resize#cv2.resize for more details
 
         **RETURNS**
 
@@ -2546,7 +2548,7 @@ class Image:
            
 
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap)
+        cv.Resize(self.getBitmap(), scaled_bitmap, interpolation)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
     
@@ -4493,7 +4495,7 @@ class Image:
     def __sub__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.SubS(self.getBitmap(), other, newbitmap)
+            cv.SubS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4502,7 +4504,7 @@ class Image:
     def __add__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AddS(self.getBitmap(), other, newbitmap)
+            cv.AddS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4511,7 +4513,7 @@ class Image:
     def __and__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AndS(self.getBitmap(), other, newbitmap)
+            cv.AndS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4520,7 +4522,7 @@ class Image:
     def __or__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.OrS(self.getBitmap(), other, newbitmap)
+            cv.OrS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4552,7 +4554,9 @@ class Image:
         newbitmap = self.getEmpty() 
         cv.Not(self.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
-
+    
+    def __invert__(self):
+        return self.invert()
 
     def max(self, other):
         """
@@ -11815,7 +11819,7 @@ class Image:
         >>>> img.grid([20,20],(255,0,0))
         >>>> img.grid((20,20),(255,0,0),1,True,0)
         """
-        imgTemp = self
+        retVal = self.copy()
         try:
             step_row = self.size()[1]/dimensions[0]
             step_col = self.size()[0]/dimensions[1]
@@ -11833,10 +11837,41 @@ class Image:
             if( j < dimensions[1] ):
                 grid.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        imgTemp._gridLayer[0] = imgTemp.addDrawingLayer(grid) # store grid layer index
-        imgTemp._gridLayer[1] = dimensions
-        return imgTemp
+        retVal._gridLayer[0] = retVal.addDrawingLayer(grid) # store grid layer index
+        retVal._gridLayer[1] = dimensions
+        return retVal
 	
+    def removeGrid(self):
+        
+        """
+        **SUMMARY**
+        
+                Remove Grid Layer from the Image.   
+
+        **PARAMETERS**
+    
+                None
+
+        **RETURNS**
+
+                Drawing Layer corresponding to the Grid Layer
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> gridLayer = img.removeGrid()
+        
+        """
+        
+        if self._gridLayer[0] is not None:
+            grid = self.removeDrawingLayer(self._gridLayer[0])
+            self._gridLayer=[None,[0, 0]]
+            return grid
+        else:
+            return None
+        
+        
     def findGridLines(self):
 
         """
@@ -12043,29 +12078,19 @@ class Image:
         **PARAMETERS**
 
         * *template* - A template image. 
-        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
+        * *quality* - The feature quality metric. This can be any value between about 100 and 500. Lower
           values should return fewer, but higher quality features.
  
         **RETURNS** 
 
         A Tuple of lists consisting of matched KeyPoints found on the image and matched
-        keypoints found on the template.
+        keypoints found on the template. keypoints are sorted according to lowest distance.
          
         **EXAMPLE**
         
         >>> template = Image("template.png")
         >>> img = camera.getImage()
         >>> fs = img.macthSIFTKeyPoints(template)
-        
-        **NOTES**
-
-        If you would prefer to work with the raw keypoints and descriptors each image keeps
-        a local cache of the raw values. These are named:
-        
-        | self._mKeyPoints # A Tuple of keypoint objects
-        | self._mKPDescriptors # The descriptor as a floating point numpy array
-        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
-        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
 
         **SEE ALSO**
         
@@ -12094,21 +12119,37 @@ class Image:
 
         idx, dist = self._getFLANNMatches(sd, td)
         dist = dist[:,0]/2500.0
+        dist = dist.reshape(-1,).tolist()
+        idx = idx.reshape(-1).tolist()
+        indices = range(len(dist))
+        indices.sort(key=lambda i: dist[i])
+        dist = [dist[i] for i in indices]
+        idx = [idx[i] for i in indices]
         sfs = []
         for i, dis in itertools.izip(idx, dist):
             if dis < quality:
                 sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
+            else:
+                break #since sorted
 
         idx, dist = self._getFLANNMatches(td, sd)
         dist = dist[:,0]/2500.0
+        dist = dist.reshape(-1,).tolist()
+        idx = idx.reshape(-1).tolist()
+        indices = range(len(dist))
+        indices.sort(key=lambda i: dist[i])
+        dist = [dist[i] for i in indices]
+        idx = [idx[i] for i in indices]
         tfs = []
         for i, dis in itertools.izip(idx, dist):
             if dis < quality:
                 tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
+            else:
+                break
 
         return sfs, tfs
         
-    def drawSIFTKeyPointMatch(self, template, quality=200, width=1):
+    def drawSIFTKeyPointMatch(self, template, distance=200, num=-1, width=1):
         """
         **SUMMARY**
 
@@ -12121,8 +12162,10 @@ class Image:
         **PARAMETERS**
 
         * *template* - A template image. 
-        * *quality* - The feature quality metric. This can be any value between about 300 and 500. Higher
-          values should return fewer, but higher quality features. 
+        * *distance* - This can be any value between about 100 and 500. Lower value should
+                        return less number of features but higher quality features.
+        * *num* -   Number of features you want to draw. Features are sorted according to the
+                    dist from min to max.
         * *width* - The width of the drawn line.
 
         **RETURNS**
@@ -12136,16 +12179,6 @@ class Image:
         >>> template = Image("myTemplate.png")
         >>> result = img.drawSIFTKeypointMatch(self,template,300.00):
 
-        **NOTES**
-
-        If you would prefer to work with the raw keypoints and descriptors each image keeps
-        a local cache of the raw values. These are named:
-        
-        self._mKeyPoints # A tuple of keypoint objects
-        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
-
         **SEE ALSO**
 
         :py:meth:`drawKeypointMatches`
@@ -12157,13 +12190,91 @@ class Image:
             return
         resultImg = template.sideBySide(self,scale=False)
         hdif = (self.height-template.height)/2
-        sfs, tfs = self.matchSIFTKeyPoints(template, quality)
-        for skp, tkp in itertools.izip(sfs, tfs):
+        sfs, tfs = self.matchSIFTKeyPoints(template, distance)
+        maxlen = min(len(sfs), len(tfs))
+        if num < 0 or num > maxlen:
+            num = maxlen
+        for i in range(num):
+            skp = sfs[i]
+            tkp = tfs[i]
             pt_a = (int(tkp.y), int(tkp.x)+hdif)
             pt_b = (int(skp.y)+template.width, int(skp.x))
             resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
         return resultImg
 
+    def findFeatures(self, method="szeliski", threshold=1000):
+        """
+        **SUMMARY**
+
+        Find szeilski or Harris features in the image.
+        Harris features correspond to Harris corner detection in the image.
+
+        Read more: 
+
+        Harris Features: http://en.wikipedia.org/wiki/Corner_detection
+        szeliski Features: http://research.microsoft.com/en-us/um/people/szeliski/publications.htm
+
+        **PARAMETERS**
+
+        * *method* - Features type
+        * *threshold* - threshold val
+
+        **RETURNS**
+
+        A list of Feature objects corrseponding to the feature points. 
+
+        **EXAMPLE**
+
+        >>> img = Image("corner_sample.png")
+        >>> fpoints = img.findFeatures("harris", 2000)
+        >>> for f in fpoints:
+            ... f.draw()
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointMatch`
+
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+            return None
+        img = self.getGrayNumpyCv2()
+        blur = cv2.GaussianBlur(img, (3, 3), 0)
+
+        Ix = cv2.Sobel(blur, cv2.CV_32F, 1, 0)
+        Iy = cv2.Sobel(blur, cv2.CV_32F, 0, 1)
+
+        Ix_Ix = np.multiply(Ix, Ix)
+        Iy_Iy = np.multiply(Iy, Iy)
+        Ix_Iy = np.multiply(Ix, Iy)
+
+        Ix_Ix_blur = cv2.GaussianBlur(Ix_Ix, (5, 5), 0)
+        Iy_Iy_blur = cv2.GaussianBlur(Iy_Iy, (5, 5), 0)
+        Ix_Iy_blur = cv2.GaussianBlur(Ix_Iy, (5, 5), 0)
+
+        harris_thresh = threshold*5000
+        alpha = 0.06
+        detA = Ix_Ix_blur * Iy_Iy_blur - Ix_Iy_blur**2
+        traceA = Ix_Ix_blur + Iy_Iy_blur
+        feature_list = []
+        if method == "szeliski":
+            harmonic_mean = detA / traceA
+            for j, i in np.argwhere(harmonic_mean > threshold):
+                feature_list.append(Feature(self, i, j, ((i, j), (i, j), (i, j), (i, j))))
+                
+        elif method == "harris":
+            harris_function = detA - (alpha*traceA*traceA)
+            for j,i in np.argwhere(harris_function > harris_thresh):
+                feature_list.append(Feature(self, i, j, ((i, j), (i, j), (i, j), (i, j))))
+        else:
+            logger.warning("Invalid method.")
+            return None
+        return feature_list
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
 from SimpleCV.Stream import JpegStreamer

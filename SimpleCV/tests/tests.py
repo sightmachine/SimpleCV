@@ -3006,6 +3006,17 @@ def test_grid():
     name_stem = "test_image_grid"
     perform_diff(result,name_stem,12.0)
 
+def test_removeGrid():
+	img = Image("lenna")
+	gridImage = img.grid()
+	dlayer = gridImage.removeGrid()
+	if dlayer is None:
+		assert False
+	dlayer1 = gridImage.removGrid()
+	if dlayer1 is not None:
+		assert False
+	pass
+
 def test_cluster():
   img = Image("lenna")
   blobs = img.findBlobs()
@@ -3097,3 +3108,13 @@ def test_matchSIFTKeyPoints():
                 assert False
     else:
         assert False
+
+def test_findFeatures():
+    img = Image('../sampleimages/mtest.png')
+    h_features = img.findFeatures("harris", threshold=500)
+    s_features = img.findFeatures("szeliski", threshold=500)
+    if h_features and s_features:
+      pass
+    else:
+      assert False
+      
