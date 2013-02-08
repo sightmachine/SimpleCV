@@ -3012,7 +3012,7 @@ def test_removeGrid():
 	dlayer = gridImage.removeGrid()
 	if dlayer is None:
 		assert False
-	dlayer1 = gridImage.removGrid()
+	dlayer1 = gridImage.removeGrid()
 	if dlayer1 is not None:
 		assert False
 	pass
