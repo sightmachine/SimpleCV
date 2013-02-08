@@ -3098,6 +3098,14 @@ def test_logicalXOR():
         assert False
         
 def test_matchSIFTKeyPoints():
+    try:
+        import cv2
+    except ImportError:
+        pass
+        return
+    if not "2.4.3" in cv2.__version__:
+        pass
+        return
     img = Image("lenna")
     skp, tkp =  img.matchSIFTKeyPoints(img)
     if len(skp) == len(tkp):
