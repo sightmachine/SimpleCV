@@ -1050,6 +1050,7 @@ class FeatureSet(list):
         """
         try :
             from sklearn.cluster import KMeans, Ward
+            from sklearn import __version__
         except :
             logger.warning("install scikits-learning package")
             return
@@ -1073,7 +1074,10 @@ class FeatureSet(list):
             X.append(featureVector)
                 
         if method == "kmeans":
-            k_means = KMeans(init='random', n_clusters=k, n_init=10).fit(X)        
+            if (float(__version__) > 0.11):
+                k_means = KMeans(init='random', n_clusters=k, n_init=10).fit(X)        
+            else:
+                k_means = KMeans(init='random', k=k, n_init=10).fit(X)
             KClusters = [ FeatureSet([]) for i in range(k)]
             for i in range(len(self)):
                 KClusters[k_means.labels_[i]].append(self[i])
