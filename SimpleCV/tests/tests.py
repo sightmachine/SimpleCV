@@ -48,6 +48,7 @@ logo_inverted = "../sampleimages/simplecv_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 circles = "../sampleimages/circles.png"
 webp = "../sampleimages/simplecv.webp"
+rat_mask = "../sampleimages/RatMask.png"
 
 #alpha masking images
 topImg = "../sampleimages/RatTop.png"
@@ -3097,3 +3098,11 @@ def test_matchSIFTKeyPoints():
                 assert False
     else:
         assert False
+
+def test_bounding_circle():
+    img = Image(rat_mask)
+    nimg = img.boundingCircle()
+
+    results = [nimg]
+    name_stem = "test_bounding_circle"
+    perform_diff(results, name_stem)
