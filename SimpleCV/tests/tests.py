@@ -3117,4 +3117,13 @@ def test_findFeatures():
       pass
     else:
       assert False
-      
+
+def test_ColorMap():
+  img = Image('../sampleimages/mtest.png')
+  blobs = img.findBlobs()
+  cm = ColorMap((Color.RED,Color.YELLOW,Color.BLUE),min(blobs.area()),max(blobs.area()))
+  for b in blobs:
+    b.draw(cm[b.area()])
+  result = [img]
+  name_stem = "test_color_map"
+  perform_diff(result,name_stem,1.0)    
