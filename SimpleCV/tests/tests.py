@@ -48,6 +48,7 @@ logo_inverted = "../sampleimages/simplecv_inverted.png"
 ocrimage = "../sampleimages/ocr-test.png"
 circles = "../sampleimages/circles.png"
 webp = "../sampleimages/simplecv.webp"
+rat_mask = "../sampleimages/RatMask.png"
 
 #alpha masking images
 topImg = "../sampleimages/RatTop.png"
@@ -3118,3 +3119,15 @@ def test_findFeatures():
     else:
       assert False
       
+def test_bounding_circle():
+    img = Image(rat_mask)
+    blobs = img.findBlobs()
+
+    for i in range(len(blobs)):
+        (x,y,r) = blobs[i].boundingCircle()
+        img.drawCircle((x,y), r, Color.WHITE)
+
+    results = [img]
+    name_stem = "test_bounding_circle"
+
+    perform_diff(results, name_stem)
