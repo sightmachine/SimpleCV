@@ -3374,14 +3374,14 @@ class Image:
             logger.warning("Unable to import cv2")
             return None
 
-        if (point[0] > img.size()[0] or point[1] > img.size()[1]
+        if (point[0] > self.size()[0] or point[1] > self.size()[1]
             or point[0] < 0 or point[1] < 0):
             logger.warning("Error - Invalid point")
             return None
 
-        img = img.binarize()
-        img_arr = img.getNumpyCv2()[:,:,0].astype(np.float32).transpose()
-        new_arr = Image(img.getEmpty()).getNumpyCv2()[:,:,0].astype(float32).transpose()
+        self = self.binarize()
+        img_arr = self.getNumpyCv2()[:,:,0].astype(np.float32).transpose()
+        new_arr = Image(self.getEmpty()).getNumpyCv2()[:,:,0].astype(float32).transpose()
         new_arr[x,y] = 255
 
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
