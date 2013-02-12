@@ -3103,9 +3103,11 @@ def test_bounding_circle():
     img = Image(rat_mask)
     blobs = img.findBlobs()
     
-    results = []
     for i in range(len(blobs)):
-      results.append(blobs[i].boundingCircle())
+        (x,y,r) = blobs[i].boundingCircle()
+        img.drawCircle((x,y), r, Color.WHITE)
 
+    results = [img]
     name_stem = "test_bounding_circle"
+    
     perform_diff(results, name_stem)
