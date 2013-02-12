@@ -3366,6 +3366,12 @@ class Image:
         **RETURNS**
 
         A binary image consisting of a single blob or connected component
+		
+		**EXAMPLE**
+		
+		>>> img = Image("shapes.png")
+		>>> point = (251, 114)
+		>>> img2 = img.connectedComponent(point)
         """
 
         try:
@@ -3379,10 +3385,10 @@ class Image:
             logger.warning("Error - Invalid point")
             return None
 
-        self = self.binarize()
+        self = self.binarize().invert()
         img_arr = self.getNumpyCv2()[:,:,0].astype(np.float32).transpose()
         new_arr = Image(self.getEmpty()).getNumpyCv2()[:,:,0].astype(np.float32).transpose()
-        new_arr[x,y] = 255
+        new_arr[point[0],point[1]] = 255
 
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
 
