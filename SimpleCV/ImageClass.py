@@ -3381,7 +3381,7 @@ class Image:
 
         self = self.binarize()
         img_arr = self.getNumpyCv2()[:,:,0].astype(np.float32).transpose()
-        new_arr = Image(self.getEmpty()).getNumpyCv2()[:,:,0].astype(float32).transpose()
+        new_arr = Image(self.getEmpty()).getNumpyCv2()[:,:,0].astype(np.float32).transpose()
         new_arr[x,y] = 255
 
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
