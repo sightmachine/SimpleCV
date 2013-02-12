@@ -3347,6 +3347,58 @@ class Image:
             return None
             
         return FeatureSet(blobs).sortArea()
+
+    def connectedComponent(self, point):
+        """
+        **SUMMARY**
+
+        This method takes input as a point and extracts the connected components
+        of the image rooted at that point.
+
+        Preferably a binary image should be passed, but this method binarizes
+        the image nevertheless
+
+        **PARAMETERS**
+
+        * *point* - This point will be the seed or root from whose associated
+                    connected points will be extracted
+
+        **RETURNS**
+
+        A binary image consisting of a single blob or connected component
+        """
+
+        try:
+            import cv2
+        except:
+            logger.warning("Unable to import cv2")
+            return None
+
+        if (point[0] > img.size()[0] or point[1] > img.size()[1]
+            or point[0] < 0 or point[1] < 0):
+            logger.warning("Error - Invalid point")
+            return None
+
+        img = img.binarize()
+        img_arr = img.getNumpyCv2()[:,:,0].astype(np.float32).transpose()
+        new_arr = Image(img.getEmpty()).getNumpyCv2()[:,:,0].astype(float32).transpose()
+        new_arr[x,y] = 255
+
+        element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+
+        done = False
+        old_dil = new_arr
+
+        while (not done):
+            dil = cv2.dilate(old_dil, element)
+            dil = cv2.bitwise_and(dil, img_arr)
+
+            if ((dil == old_dil).all()):
+                done = True
+            else:
+                  old_dil = dil
+
+        return Image(dil)
     
     def findSkintoneBlobs(self, minsize=10, maxsize=0,dilate_iter=1):
         """
@@ -12283,54 +12335,3 @@ from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
 
-    def connectedComponent(self, point):
-        """
-        **SUMMARY**
-
-        This method takes input as a point and extracts the connected components
-        of the image rooted at that point.
-
-        Preferably a binary image should be passed, but this method binarizes
-        the image nevertheless
-
-        **PARAMETERS**
-
-        * *point* - This point will be the seed or root from whose associated
-                    connected points will be extracted
-
-        **RETURNS**
-
-        A binary image consisting of a single blob or connected component
-        """
-
-        try:
-            import cv2
-        except:
-            logger.warning("Unable to import cv2")
-            return None
-
-        if (point[0] > img.size()[0] or point[1] > img.size()[1]
-            or point[0] < 0 or point[1] < 0):
-            logger.warning("Error - Invalid point")
-            return None
-
-        img = img.binarize()
-        img_arr = img.getNumpyCv2()[:,:,0].astype(np.float32).transpose()
-        new_arr = Image(img.getEmpty()).getNumpyCv2()[:,:,0].astype(float32).transpose()
-        new_arr[x,y] = 255
-
-        element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
-
-        done = False
-        old_dil = new_arr
-
-        while (not done):
-            dil = cv2.dilate(old_dil, element)
-            dil = cv2.bitwise_and(dil, img_arr)
-
-            if ((dil == old_dil).all()):
-                done = True
-            else:
-                  old_dil = dil
-
-        return Image(dil)
