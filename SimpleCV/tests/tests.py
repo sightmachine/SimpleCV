@@ -3101,8 +3101,11 @@ def test_matchSIFTKeyPoints():
 
 def test_bounding_circle():
     img = Image(rat_mask)
-    nimg = img.boundingCircle()
+    blobs = img.findBlobs()
+    
+    results = []
+    for i in range(len(blobs)):
+      results.append(blobs[i].boundingCircle())
 
-    results = [nimg]
     name_stem = "test_bounding_circle"
     perform_diff(results, name_stem)
