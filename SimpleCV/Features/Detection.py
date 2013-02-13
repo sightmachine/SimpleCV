@@ -820,6 +820,10 @@ class TemplateMatch(Feature):
                        (x,y+h)]
         self._updateExtents()
 
+    def crop(self):
+        (maxx,minx,maxy,miny) = self.extents()
+        return self.image.crop(minx,miny,maxx-minx,maxy-miny)
+        
     def draw(self, color = Color.GREEN, width = 1):      
         """  
         **SUMMARY**
