@@ -7178,15 +7178,15 @@ class Image:
         
         """
         if(template_image == None):
-            print "Need image for matching"
+            logger.warning( "Need image for matching")
             return
 
         if(template_image.width > self.width):
-            print "Image too wide"
+            logger.warning( "Image too wide")
             return
 
         if(template_image.height > self.height):
-            print "Image too tall"
+            logger.warning("Image too tall")
             return
 
         check = 0; # if check = 0 we want maximal value, otherwise minimal
