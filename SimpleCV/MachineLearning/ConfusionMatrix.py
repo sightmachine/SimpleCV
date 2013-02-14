@@ -68,3 +68,33 @@ class ConfusionMatrix():
         correct = self.confusionMatrix[[self.nameMap[className]],self.nameMap[className]]
         total = count - correct
         return int(total[0])
+
+    def toString(self,pad_sz=7):
+        retVal = 50*'#'
+        retVal += "\n"
+        retVal += "Correct " + str(self.getCorrectPercent()) + "\n"
+        retVal += "Incorrect " + str(self.getIncorrectPercent()) + "\n"
+        retVal += 50*'#'
+        retVal += '\n'
+        wrdLen = 0
+        sz = pad_sz
+        for c in self.classList:
+            if( len(c) > wrdLen ):
+                wrdLen = len(c)
+
+        top=(wrdLen+1)* " "
+        for c in self.classList:
+            top = top + c[0:np.min([len(c),sz])].rjust(sz," ")+"|"
+        retVal += top+"\n"
+        for i in range(0,len(self.classList)):
+            line = self.classList[i].rjust(wrdLen," ")+"|"
+            nums = self.confusionMatrix[i]
+            for n in nums:
+                line += str(n).rjust(sz," ") + "|"
+            retVal += line+"\n"
+        retVal += 50*'#'
+        retVal += "\n"
+        return retVal
+
+
+    
