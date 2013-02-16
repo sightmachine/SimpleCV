@@ -12302,6 +12302,94 @@ class Image:
             resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
         return resultImg
 
+    def stegaEncode(self,message):
+        """
+        **SUMMARY**
+
+        A simple steganography tool for hidding messages in images.
+        **PARAMETERS**
+        
+        * *message* -A message string that you would like to encode.
+
+        **RETURNS**
+
+        Your message encoded in the returning image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img2 = img.stegaEncode("HELLO WORLD!")
+        >>>> img2.save("TopSecretImg.png")
+        >>>> img3 = Image("TopSecretImg.png")
+        >>>> img3.stegaDecode() 
+
+        **NOTES**
+
+        More here:
+        http://en.wikipedia.org/wiki/Steganography
+        You will need to install stepic:
+        http://domnit.org/stepic/doc/pydoc/stepic.html
+
+        You may need to monkey with jpeg compression
+        as it seems to degrade the encoded message.
+
+        PNG sees to work quite well.
+        
+        """
+
+        try:
+            import stepic
+        except ImportError:
+            logger.warning("stepic library required")
+            return None
+        warnings.simplefilter("ignore")
+        pilImg = pil.frombuffer("RGB",self.size(),self.toString())
+        stepic.encode_inplace(pilImg,message)
+        retVal = Image(pilImg)
+        return retVal.flipVertical()
+        
+    def stegaDecode(self):
+        """
+        **SUMMARY**
+
+        A simple steganography tool for hidding and finding
+        messages in images.
+
+        **RETURNS**
+
+        Your message decoded in the image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img2 = img.stegaEncode("HELLO WORLD!")
+        >>>> img2.save("TopSecretImg.png")
+        >>>> img3 = Image("TopSecretImg.png")
+        >>>> img3.stegaDecode() 
+
+        **NOTES**
+
+        More here:
+        http://en.wikipedia.org/wiki/Steganography
+        You will need to install stepic:
+        http://domnit.org/stepic/doc/pydoc/stepic.html
+        
+        You may need to monkey with jpeg compression
+        as it seems to degrade the encoded message.
+
+        PNG sees to work quite well.
+        
+        """        
+        try:
+            import stepic
+        except ImportError:
+            logger.warning("stepic library required")
+            return None
+        warnings.simplefilter("ignore")        
+        pilImg = pil.frombuffer("RGB",self.size(),self.toString())
+        result = stepic.decode(pilImg)
+        return result        
+        
     def findFeatures(self, method="szeliski", threshold=1000):
         """
         **SUMMARY**

@@ -2155,8 +2155,7 @@ def test_findHaarFeatures():
   
   results = [img]
   name_stem = "test_findHaarFeatures"
-  perform_diff(results,name_stem)        
-    
+  perform_diff(results,name_stem)            
     
 
 def test_biblical_flood_fill():
@@ -3135,3 +3134,14 @@ def test_ColorMap():
   result = [img]
   name_stem = "test_color_map"
   perform_diff(result,name_stem,1.0)    
+
+
+def test_Steganograpy():
+  img = Image(logo)
+  msg = 'How do I SimpleCV?'
+  img.stegaEncode(msg)
+  img.save(logo)
+  img2 = Image(logo)
+  msg2 = img2.stegaDecode()
+  pass
+ 
