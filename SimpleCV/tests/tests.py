@@ -3144,4 +3144,11 @@ def test_Steganograpy():
   img2 = Image(logo)
   msg2 = img2.stegaDecode()
   pass
- 
+
+def test_watershed():
+    img = Image('../sampleimages/wshed.jpg')
+    img1 = img.watershed()
+    img2 = img.watershed(color=True)
+    result = [img1,img2]
+    name_stem = "test_watershed"
+    perform_diff(result,name_stem,3.0)
