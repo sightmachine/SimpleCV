@@ -518,15 +518,308 @@ class CAMShift(Tracking):
         return self.ellipse
 
 class LK(Tracking):
+    """
+    **SUMMARY**
+ 
+    LK Tracking class is used for Lucas-Kanade Tracking algorithm. It's 
+    derived from Tracking Class. Apart from all the properties of Tracking class,
+    LK has few other properties. Since in LK tracking method, we obtain tracking
+    points, we have functionalities to draw those points on the image.
+    
+    """
     
     def __init__(self, img, bb, pts):
+        """
+        **SUMMARY**
+        
+        Initializes all the required parameters and attributes of the class.
+        
+        **PARAMETERS**
+        
+        * *img* - SimpleCV.ImageClass.Image
+        * *bb* - A tuple consisting of (x, y, w, h) of the bounding box
+        * *pts* - List of all the tracking points
+        
+        **RETURNS**
+        
+        SimpleCV.Features.Tracking.LK object
+        
+        **EXAMPLE**
+        
+        >>> track = Tracking(image, bb, pts)
+        """
+
         self = Tracking.__init__(self, img, bb)
         self.pts = pts
         
     def getTrackedPoints(self):
+        """
+        **SUMMARY**
+        
+        Returns all the points which are being tracked.
+        
+        **RETURNS**
+        
+        A list
+        
+        **EXAMPLE**
+        
+        >>> track = LK(image, bb, pts)
+        >>> pts = track.getTrackedPoints()
+        """
         return self.pts
     
     def drawTrackerPoints(self, color=Color.GREEN, radius=1, thickness=1):
+        """
+        **SUMMARY**
+        
+        Draw all the points which are being tracked.
+
+        **PARAMETERS**
+        * *color* - Color of the point
+        * *radius* - Radius of the point
+        *thickness* - thickness of the circle point
+        
+        **RETURNS**
+        
+        Nothing
+        
+        **EXAMPLE**
+        
+        >>> track = LK(image, bb, pts)
+        >>> track.drawTrackerPoints()
+        """
         if type(self.pts) is not type(None):
             for pt in self.pts:
                 self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
+
+class SURFTracker(Tracking):
+    """
+    **SUMMARY**
+ 
+    SURFTracker class is used for SURF Based keypoints matching tracking algorithm. 
+    It's derived from Tracking Class. Apart from all the properties of Tracking class SURFTracker 
+    has few other properties.
+
+    Matches keypoints from the template image and the current frame.
+    flann based matcher is used to match the keypoints.
+    Density based clustering is used classify points as in-region (of bounding box)
+    and out-region points. Using in-region points, new bounding box is predicted using
+    k-means.
+    """
+    def __init__(self, img, new_pts, detector, descriptor, templateImg, skp, sd, tkp, td):
+        """
+        **SUMMARY**
+        
+        Initializes all the required parameters and attributes of the class.
+        
+        **PARAMETERS**
+        
+        * *img* - SimpleCV.Image
+        * *new_pts* - List of all the tracking points found in the image. - list of cv2.KeyPoint
+        * *detector* - SURF detector - cv2.FeatureDetector
+        * *descriptor* - SURF descriptor - cv2.DescriptorExtractor
+        * *templateImg* - Template Image (First image) - SimpleCV.Image
+        * *skp* - image keypoints - list of cv2.KeyPoint
+        * *sd* - image descriptor - numpy.ndarray
+        * *tkp* - Template Imaeg keypoints - list of cv2.KeyPoint
+        * *td* - Template image descriptor - numpy.ndarray
+        
+        **RETURNS**
+        
+        SimpleCV.Features.Tracking.SURFTracker object
+        
+        **EXAMPLE**
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.4.3 requried")
+            return None
+        np_pts = np.asarray([kp.pt for kp in new_pts])
+        t, pts, center = cv2.kmeans(np.asarray(np_pts, dtype=np.float32), K=1, bestLabels=None,
+                            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER, 1, 10), attempts=1, 
+                            flags=cv2.KMEANS_RANDOM_CENTERS)
+        max_x = int(max(np_pts[:, 0]))
+        min_x = int(min(np_pts[:, 0]))
+        max_y = int(max(np_pts[:, 1]))
+        min_y = int(min(np_pts[:, 1]))
+
+        bb =  (min_x-5, min_y-5, max_x-min_x+5, max_y-min_y+5)
+        print bb
+
+        self = Tracking.__init__(self, img, bb)
+        print self.area
+        self.templateImg = templateImg
+        self.skp = skp
+        self.sd = sd
+        self.tkp = tkp
+        self.td = td
+        self.pts = np_pts
+        self.detector = detector
+        self.descriptor = descriptor
+
+    def getTrackedPoints(self):
+        """
+        **SUMMARY**
+        
+        Returns all the points which are being tracked.
+        
+        **RETURNS**
+        
+        A list of points.
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> pts = track.getTrackedPoints()
+        """
+        return self.pts
+    
+    def drawTrackerPoints(self, color=Color.GREEN, radius=1, thickness=1):
+        """
+        **SUMMARY**
+        
+        Draw all the points which are being tracked.
+
+        **PARAMETERS**
+        * *color* - Color of the point
+        * *radius* - Radius of the point
+        *thickness* - thickness of the circle point
+        
+        **RETURNS**
+        
+        Nothing
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track.drawTrackerPoints()
+        """
+        if type(self.pts) is not type(None):
+            for pt in self.pts:
+                self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
+
+    def getDetector(self):
+        """
+        **SUMMARY**
+        
+        Returns SURF detector which is being used.
+        
+        **RETURNS**
+        
+        detector - cv2.Detctor
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> detector = track.getDetector()
+        """
+        return self.detector
+
+    def getDescriptor(self):
+        """
+        **SUMMARY**
+        
+        Returns SURF descriptor extractor which is being used.
+        
+        **RETURNS**
+        
+        detector - cv2.DescriptorExtractor
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> descriptor= track.getDescriptor()
+        """
+        return self.descriptor
+
+    def getImageKeyPoints(self):
+        """
+        **SUMMARY**
+        
+        Returns all the keypoints which are found on the image.
+        
+        **RETURNS**
+        
+        A list of points.
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> skp = track.getImageKeyPoints()
+        """
+        return self.skp
+
+    def getImageDescriptor(self):
+        """
+        **SUMMARY**
+        
+        Returns the image descriptor.
+        
+        **RETURNS**
+        
+        Image descriptor - numpy.ndarray
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> sd = track.getImageDescriptor()
+        """
+        return self.sd
+
+    def getTemplateKeyPoints(self):
+        """
+        **SUMMARY**
+        
+        Returns all the keypoints which are found on the template Image.
+        
+        **RETURNS**
+        
+        A list of points.
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> tkp = track.getTemplateKeyPoints()
+        """
+        return self.tkp
+
+    def getTemplateDescriptor(self):
+        """
+        **SUMMARY**
+        
+        Returns the template image descriptor.
+        
+        **RETURNS**
+        
+        Image descriptor - numpy.ndarray
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> td = track.getTemplateDescriptor()
+        """
+        return self.td
+
+    def getTemplateImage(self):
+        """
+        **SUMMARY**
+        
+        Returns Template Image.
+        
+        **RETURNS**
+        
+        Template Image - SimpleCV.Image
+        
+        **EXAMPLE**
+        
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> templateImg = track.getTemplateImage()
+        """
+        return self.templateImg
+
+
+
+

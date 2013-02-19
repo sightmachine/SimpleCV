@@ -571,7 +571,7 @@ class Display:
         if button == 5:
             self.mouseWheelDown = 1
       
-    def checkEvents(self):
+    def checkEvents(self,returnStrings=False):
         """
         **SUMMARY**
 
@@ -582,6 +582,10 @@ class Display:
           This method must be called (or :py:meth:`isDone` or :py:meth:`isNotDone`) to
           perform mouse event checking. 
 
+        **PARAMETERS**
+
+        * *returnStrings* - pygame returns an enumerated int by default, when this is set to
+                            true we return a list of strings. 
         **RETURNS**
 
         A list of key down events. Parse them with pg.K_<lowercase_letter>
@@ -613,7 +617,10 @@ class Display:
             if event.type == pg.MOUSEBUTTONDOWN:
                 self._setButtonState(1, event.button)
             if event.type == pg.KEYDOWN:
-                key.append(event.key)
+                if(returnStrings):
+                    key.append(pg.key.name(event.key))
+                else:
+                    key.append(event.key)
 
         pressed = pg.key.get_pressed()
 

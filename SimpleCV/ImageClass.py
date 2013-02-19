@@ -809,7 +809,7 @@ class Image:
     _pgsurface = ""
     _cv2Numpy = None #numpy array for OpenCV >= 2.3
     _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
-    _gridLayer = [-1,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
+    _gridLayer = [None,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
 	
     #For DFT Caching 
     _DFT = [] #an array of 2 channel (real,imaginary) 64F images
@@ -2504,7 +2504,7 @@ class Image:
             	 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
                  return True
                  
-    def scale(self, width, height = -1):
+    def scale(self, width, height = -1, interpolation=cv.CV_INTER_LINEAR):
         """
         **SUMMARY**
 
@@ -2518,6 +2518,8 @@ class Image:
           is a floating point value, this is the scaling factor. 
 
         * *height* - the new height in pixels.
+        
+        * *interpolation* - how to generate new pixels that don't match the original pixels. Argument goes direction to cv.Resize. See http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html?highlight=resize#cv2.resize for more details
 
         **RETURNS**
 
@@ -2546,7 +2548,7 @@ class Image:
            
 
         scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap)
+        cv.Resize(self.getBitmap(), scaled_bitmap, interpolation)
         return Image(scaled_bitmap, colorSpace=self._colorSpace)
 
     
@@ -4493,7 +4495,7 @@ class Image:
     def __sub__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.SubS(self.getBitmap(), other, newbitmap)
+            cv.SubS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4502,7 +4504,7 @@ class Image:
     def __add__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AddS(self.getBitmap(), other, newbitmap)
+            cv.AddS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4511,7 +4513,7 @@ class Image:
     def __and__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.AndS(self.getBitmap(), other, newbitmap)
+            cv.AndS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -4520,7 +4522,7 @@ class Image:
     def __or__(self, other):
         newbitmap = self.getEmpty() 
         if is_number(other):
-            cv.OrS(self.getBitmap(), other, newbitmap)
+            cv.OrS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
         else:
             cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
@@ -7176,15 +7178,15 @@ class Image:
         
         """
         if(template_image == None):
-            print "Need image for matching"
+            logger.warning( "Need image for matching")
             return
 
         if(template_image.width > self.width):
-            print "Image too wide"
+            logger.warning( "Image too wide")
             return
 
         if(template_image.height > self.height):
-            print "Image too tall"
+            logger.warning("Image too tall")
             return
 
         check = 0; # if check = 0 we want maximal value, otherwise minimal
@@ -11169,6 +11171,13 @@ class Image:
         ts.drawPath()
         ts[-1].image.show()
         ==========================================================
+
+        SURF based Tracker:
+        Matches keypoints from the template image and the current frame.
+        flann based matcher is used to match the keypoints.
+        Density based clustering is used classify points as in-region (of bounding box)
+        and out-region points. Using in-region points, new bounding box is predicted using
+        k-means.
         """
         if not ts and not img:
             print "Inavlid. Must provide FeatureSet or Image"
@@ -11223,7 +11232,7 @@ class Image:
             new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
             ts.append(CAMShift(self, track_window, new_ellipse))
             
-        if method.lower() == "lk":
+        elif method.lower() == "lk":
             img1 = self.crop(bb[0],bb[1],bb[2],bb[3])
             g = img1.getGrayNumpyCv2()
             pt = cv2.goodFeaturesToTrack(g, maxCorners = 4000, qualityLevel = 0.6,
@@ -11276,6 +11285,92 @@ class Image:
             if bb1[1] <= 0:
                 bb1[1] = 1
             ts.append(LK(self, bb1, new_pts))
+
+        elif method.lower() == "surf":
+            try:
+                from scipy.spatial import distance as Dis
+                from sklearn.cluster import DBSCAN
+            except ImportError:
+                logger.warning("sklearn required")
+                return None
+            if "2.4.3" not in cv2.__version__:
+                logger.warning("OpenCV >= 2.4.3 required")
+                return None
+
+            if len(ts) == 0:
+                # Get template keypoints
+                templateImg = img
+                detector = cv2.FeatureDetector_create("SURF")
+                descriptor = cv2.DescriptorExtractor_create("SURF")
+
+                templateImg_cv2 = templateImg.getNumpyCv2()[bb[1]:bb[1]+bb[3], bb[0]:bb[0]+bb[2]]
+                tkp = detector.detect(templateImg_cv2)
+                tkp, td = descriptor.compute(templateImg_cv2, tkp)
+
+            else:
+                templateImg = ts[-1].templateImg
+                tkp = ts[-1].tkp
+                td = ts[-1].td
+                detector = ts[-1].detector
+                descriptor = ts[-1].descriptor
+
+            img = self.getNumpyCv2()
+            # Get image keypoints
+            skp = detector.detect(img)
+            skp, sd = descriptor.compute(img, skp)
+
+            # flann based matcher
+            flann_params = dict(algorithm=1, trees=4)
+            flann = cv2.flann_Index(sd, flann_params)
+            idx, dist = flann.knnSearch(td, 1, params={})
+            del flann
+            
+            # filter points using distnace criteria
+            dist = (dist[:,0]/2500.0).reshape(-1,).tolist()
+            idx = idx.reshape(-1).tolist()
+            indices = sorted(range(len(dist)), key=lambda i: dist[i])
+
+            dist = [dist[i] for i in indices]
+            idx = [idx[i] for i in indices]
+            skp_final = []
+            skp_final_labelled=[]
+            data_cluster=[]
+            distance=100
+            for i, dis in itertools.izip(idx, dist):
+                if dis < distance:
+                    skp_final.append(skp[i])
+                    data_cluster.append((skp[i].pt[0], skp[i].pt[1]))
+
+            #Use Denstiy based clustering to further fitler out keypoints
+            n_data = np.asarray(data_cluster)
+            D = Dis.squareform(Dis.pdist(n_data))
+            S = 1 - (D/np.max(D))
+            area = bb[2]*bb[3]
+            # Still worried about this
+            """
+            print area, "area"
+            if area < 5626:
+                eps_val = 0.3
+            elif area >= 5625 and area < 10000:
+                eps_val = 0.4
+            elif area >= 10000 and area < 40000:
+                eps_val = 0.5
+            elif area >= 40000 and area < 90000:
+                eps_val = 0.7
+            else:
+                eps_val = 0.8
+            """
+            eps_val = 0.6
+            print eps_val, "eps_val"
+            db = DBSCAN(eps=eps_val, min_samples=5).fit(S)
+            core_samples = db.core_sample_indices_
+            labels = db.labels_
+            for label, i in zip(labels, range(len(labels))):
+                if label==0:
+                    skp_final_labelled.append(skp_final[i])
+
+            ts.append(SURFTracker(self, skp_final_labelled, detector, descriptor, templateImg, skp, sd, tkp, td))
+
         return ts
 
     def _to32F(self):
@@ -11296,6 +11391,8 @@ class Image:
         self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
         cv.SetData(self._bitmap, mydict['image'])
         self._colorSpace = mydict['colorspace']
+        self.width = mydict['size'][0]
+        self.height = mydict['size'][1]
 
     def area(self):
       '''
@@ -11817,7 +11914,7 @@ class Image:
         >>>> img.grid([20,20],(255,0,0))
         >>>> img.grid((20,20),(255,0,0),1,True,0)
         """
-        imgTemp = self
+        retVal = self.copy()
         try:
             step_row = self.size()[1]/dimensions[0]
             step_col = self.size()[0]/dimensions[1]
@@ -11835,10 +11932,41 @@ class Image:
             if( j < dimensions[1] ):
                 grid.line((step_col*j,0), (step_col*j,self.size()[1]), color, width, antialias, alpha)
                 j = j + 1
-        imgTemp._gridLayer[0] = imgTemp.addDrawingLayer(grid) # store grid layer index
-        imgTemp._gridLayer[1] = dimensions
-        return imgTemp
+        retVal._gridLayer[0] = retVal.addDrawingLayer(grid) # store grid layer index
+        retVal._gridLayer[1] = dimensions
+        return retVal
 	
+    def removeGrid(self):
+        
+        """
+        **SUMMARY**
+        
+                Remove Grid Layer from the Image.   
+
+        **PARAMETERS**
+    
+                None
+
+        **RETURNS**
+
+                Drawing Layer corresponding to the Grid Layer
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.grid([20,20],(255,0,0))
+        >>>> gridLayer = img.removeGrid()
+        
+        """
+        
+        if self._gridLayer[0] is not None:
+            grid = self.removeDrawingLayer(self._gridLayer[0])
+            self._gridLayer=[None,[0, 0]]
+            return grid
+        else:
+            return None
+        
+        
     def findGridLines(self):
 
         """
@@ -12033,7 +12161,7 @@ class Image:
     def matchSIFTKeyPoints(self, template, quality=200):
         """
         **SUMMARY**
-
+        
         matchSIFTKeypoint allows you to match a template image with another image using 
         SIFT keypoints. The method extracts keypoints from each image, uses the Fast Local
         Approximate Nearest Neighbors algorithm to find correspondences between the feature
@@ -12058,16 +12186,6 @@ class Image:
         >>> template = Image("template.png")
         >>> img = camera.getImage()
         >>> fs = img.macthSIFTKeyPoints(template)
-        
-        **NOTES**
-
-        If you would prefer to work with the raw keypoints and descriptors each image keeps
-        a local cache of the raw values. These are named:
-        
-        | self._mKeyPoints # A Tuple of keypoint objects
-        | self._mKPDescriptors # The descriptor as a floating point numpy array
-        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
-        | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
 
         **SEE ALSO**
         
@@ -12080,7 +12198,12 @@ class Image:
         try:
             import cv2
         except ImportError:
-            logger.warning("OpenCV >= 2.3.0 required")
+            logger.warning("OpenCV >= 2.4.3 required")
+            return None
+        if not "2.4.3" in cv2.__version__:
+            # I don't know; they might roll out 2.4.3.2
+            logger.warning("OpenCV >= 2.4.3 required")
+            return None
         if template == None:
             return None
         detector = cv2.FeatureDetector_create("SIFT")
@@ -12156,16 +12279,6 @@ class Image:
         >>> template = Image("myTemplate.png")
         >>> result = img.drawSIFTKeypointMatch(self,template,300.00):
 
-        **NOTES**
-
-        If you would prefer to work with the raw keypoints and descriptors each image keeps
-        a local cache of the raw values. These are named:
-        
-        self._mKeyPoints # A tuple of keypoint objects
-        See: http://opencv.itseez.com/modules/features2d/doc/common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string. 
-
         **SEE ALSO**
 
         :py:meth:`drawKeypointMatches`
@@ -12189,8 +12302,169 @@ class Image:
             resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
         return resultImg
 
+    def stegaEncode(self,message):
+        """
+        **SUMMARY**
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK
+        A simple steganography tool for hidding messages in images.
+        **PARAMETERS**
+        
+        * *message* -A message string that you would like to encode.
+
+        **RETURNS**
+
+        Your message encoded in the returning image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img2 = img.stegaEncode("HELLO WORLD!")
+        >>>> img2.save("TopSecretImg.png")
+        >>>> img3 = Image("TopSecretImg.png")
+        >>>> img3.stegaDecode() 
+
+        **NOTES**
+
+        More here:
+        http://en.wikipedia.org/wiki/Steganography
+        You will need to install stepic:
+        http://domnit.org/stepic/doc/pydoc/stepic.html
+
+        You may need to monkey with jpeg compression
+        as it seems to degrade the encoded message.
+
+        PNG sees to work quite well.
+        
+        """
+
+        try:
+            import stepic
+        except ImportError:
+            logger.warning("stepic library required")
+            return None
+        warnings.simplefilter("ignore")
+        pilImg = pil.frombuffer("RGB",self.size(),self.toString())
+        stepic.encode_inplace(pilImg,message)
+        retVal = Image(pilImg)
+        return retVal.flipVertical()
+        
+    def stegaDecode(self):
+        """
+        **SUMMARY**
+
+        A simple steganography tool for hidding and finding
+        messages in images.
+
+        **RETURNS**
+
+        Your message decoded in the image.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> img2 = img.stegaEncode("HELLO WORLD!")
+        >>>> img2.save("TopSecretImg.png")
+        >>>> img3 = Image("TopSecretImg.png")
+        >>>> img3.stegaDecode() 
+
+        **NOTES**
+
+        More here:
+        http://en.wikipedia.org/wiki/Steganography
+        You will need to install stepic:
+        http://domnit.org/stepic/doc/pydoc/stepic.html
+        
+        You may need to monkey with jpeg compression
+        as it seems to degrade the encoded message.
+
+        PNG sees to work quite well.
+        
+        """        
+        try:
+            import stepic
+        except ImportError:
+            logger.warning("stepic library required")
+            return None
+        warnings.simplefilter("ignore")        
+        pilImg = pil.frombuffer("RGB",self.size(),self.toString())
+        result = stepic.decode(pilImg)
+        return result        
+        
+    def findFeatures(self, method="szeliski", threshold=1000):
+        """
+        **SUMMARY**
+
+        Find szeilski or Harris features in the image.
+        Harris features correspond to Harris corner detection in the image.
+
+        Read more: 
+
+        Harris Features: http://en.wikipedia.org/wiki/Corner_detection
+        szeliski Features: http://research.microsoft.com/en-us/um/people/szeliski/publications.htm
+
+        **PARAMETERS**
+
+        * *method* - Features type
+        * *threshold* - threshold val
+
+        **RETURNS**
+
+        A list of Feature objects corrseponding to the feature points. 
+
+        **EXAMPLE**
+
+        >>> img = Image("corner_sample.png")
+        >>> fpoints = img.findFeatures("harris", 2000)
+        >>> for f in fpoints:
+            ... f.draw()
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`drawKeypointMatches`
+        :py:meth:`findKeypoints`
+        :py:meth:`findKeypointMatch`
+
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+            return None
+        img = self.getGrayNumpyCv2()
+        blur = cv2.GaussianBlur(img, (3, 3), 0)
+
+        Ix = cv2.Sobel(blur, cv2.CV_32F, 1, 0)
+        Iy = cv2.Sobel(blur, cv2.CV_32F, 0, 1)
+
+        Ix_Ix = np.multiply(Ix, Ix)
+        Iy_Iy = np.multiply(Iy, Iy)
+        Ix_Iy = np.multiply(Ix, Iy)
+
+        Ix_Ix_blur = cv2.GaussianBlur(Ix_Ix, (5, 5), 0)
+        Iy_Iy_blur = cv2.GaussianBlur(Iy_Iy, (5, 5), 0)
+        Ix_Iy_blur = cv2.GaussianBlur(Ix_Iy, (5, 5), 0)
+
+        harris_thresh = threshold*5000
+        alpha = 0.06
+        detA = Ix_Ix_blur * Iy_Iy_blur - Ix_Iy_blur**2
+        traceA = Ix_Ix_blur + Iy_Iy_blur
+        feature_list = []
+        if method == "szeliski":
+            harmonic_mean = detA / traceA
+            for j, i in np.argwhere(harmonic_mean > threshold):
+                feature_list.append(Feature(self, i, j, ((i, j), (i, j), (i, j), (i, j))))
+                
+        elif method == "harris":
+            harris_function = detA - (alpha*traceA*traceA)
+            for j,i in np.argwhere(harris_function > harris_thresh):
+                feature_list.append(Feature(self, i, j, ((i, j), (i, j), (i, j), (i, j))))
+        else:
+            logger.warning("Invalid method.")
+            return None
+        return feature_list
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *

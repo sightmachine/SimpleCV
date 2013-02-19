@@ -25,10 +25,10 @@ class ConfusionMatrix():
         self.totalCount += 1
 
     def getCorrectPercent(self):
-        return np.around(float(self.correctCount)/float(self.totalCount),2)
+        return np.around(float(self.correctCount)/float(self.totalCount),4)
 
     def getIncorrectPercent(self):
-        return np.around(float(self.incorrectCount)/float(self.totalCount),2)
+        return np.around(float(self.incorrectCount)/float(self.totalCount),4)
 
     def getClassCorrectPercent(self, className):
         total = float(np.sum(self.confusionMatrix[:,self.nameMap[className]]))
@@ -68,3 +68,37 @@ class ConfusionMatrix():
         correct = self.confusionMatrix[[self.nameMap[className]],self.nameMap[className]]
         total = count - correct
         return int(total[0])
+
+    def toString(self,pad_sz=7):
+        retVal = 50*'#'
+        retVal += "\n"
+        retVal += "Total Data Points " + str(self.totalCount) + "\n"
+        retVal += "Correct Data Points " + str(self.correctCount) + "\n"
+        retVal += "Incorrect Data Points " + str(self.incorrectCount) + "\n"
+        retVal += "\n"
+        retVal += "Correct " + str(100.00*self.getCorrectPercent()) + "%\n"
+        retVal += "Incorrect " + str(100.00*self.getIncorrectPercent()) + "% \n"
+        retVal += 50*'#'
+        retVal += '\n'
+        wrdLen = 0
+        sz = pad_sz
+        for c in self.classList:
+            if( len(c) > wrdLen ):
+                wrdLen = len(c)
+
+        top=(wrdLen+1)* " "
+        for c in self.classList:
+            top = top + c[0:np.min([len(c),sz])].rjust(sz," ")+"|"
+        retVal += top+"\n"
+        for i in range(0,len(self.classList)):
+            line = self.classList[i].rjust(wrdLen," ")+"|"
+            nums = self.confusionMatrix[i]
+            for n in nums:
+                line += str(n).rjust(sz," ") + "|"
+            retVal += line+"\n"
+        retVal += 50*'#'
+        retVal += "\n"
+        return retVal
+
+
+    

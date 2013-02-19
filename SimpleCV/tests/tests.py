@@ -2155,8 +2155,7 @@ def test_findHaarFeatures():
   
   results = [img]
   name_stem = "test_findHaarFeatures"
-  perform_diff(results,name_stem)        
-    
+  perform_diff(results,name_stem)            
     
 
 def test_biblical_flood_fill():
@@ -3006,6 +3005,17 @@ def test_grid():
     name_stem = "test_image_grid"
     perform_diff(result,name_stem,12.0)
 
+def test_removeGrid():
+	img = Image("lenna")
+	gridImage = img.grid()
+	dlayer = gridImage.removeGrid()
+	if dlayer is None:
+		assert False
+	dlayer1 = gridImage.removeGrid()
+	if dlayer1 is not None:
+		assert False
+	pass
+
 def test_cluster():
   img = Image("lenna")
   blobs = img.findBlobs()
@@ -3087,6 +3097,14 @@ def test_logicalXOR():
         assert False
         
 def test_matchSIFTKeyPoints():
+    try:
+        import cv2
+    except ImportError:
+        pass
+        return
+    if not "2.4.3" in cv2.__version__:
+        pass
+        return
     img = Image("lenna")
     skp, tkp =  img.matchSIFTKeyPoints(img)
     if len(skp) == len(tkp):
@@ -3097,3 +3115,33 @@ def test_matchSIFTKeyPoints():
                 assert False
     else:
         assert False
+
+def test_findFeatures():
+    img = Image('../sampleimages/mtest.png')
+    h_features = img.findFeatures("harris", threshold=500)
+    s_features = img.findFeatures("szeliski", threshold=500)
+    if h_features and s_features:
+      pass
+    else:
+      assert False
+
+def test_ColorMap():
+  img = Image('../sampleimages/mtest.png')
+  blobs = img.findBlobs()
+  cm = ColorMap((Color.RED,Color.YELLOW,Color.BLUE),min(blobs.area()),max(blobs.area()))
+  for b in blobs:
+    b.draw(cm[b.area()])
+  result = [img]
+  name_stem = "test_color_map"
+  perform_diff(result,name_stem,1.0)    
+
+
+def test_Steganograpy():
+  img = Image(logo)
+  msg = 'How do I SimpleCV?'
+  img.stegaEncode(msg)
+  img.save(logo)
+  img2 = Image(logo)
+  msg2 = img2.stegaDecode()
+  pass
+ 
