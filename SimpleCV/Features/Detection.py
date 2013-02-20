@@ -423,7 +423,19 @@ class Line(Feature):
 
     def cross(self,other):
         return np.cross(self.getVector(),other.getVector())
-        
+
+    def extendToImageEdges(self):
+        x = np.array([self.end_points[1][0],self.end_points[0][0]])
+        y = np.array([self.end_points[1][1],self.end_points[0][1]])
+                    
+        xmax_idx = np.where(np.max(x)==x)
+        xmin_idx = np.where(np.min(x)==x)
+        m = (y[xmin_idx]-y[xmax_idx])/(np.min(x)-np.max(x))
+        b = self.end_points[0][1]-(m*self.end_points[0][0])
+        p0 = (0,b)
+        p1 = (self.image.width,(self.image.width)*m+b)
+        return Line(self.image,[p0,p1])
+
 ######################################################################
 class Barcode(Feature):
     """
