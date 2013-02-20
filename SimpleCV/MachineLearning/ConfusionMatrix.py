@@ -25,10 +25,16 @@ class ConfusionMatrix():
         self.totalCount += 1
 
     def getCorrectPercent(self):
-        return np.around(float(self.correctCount)/float(self.totalCount),4)
+        if( self.totalCount > 0 and self.correctCount ):
+            return np.around(float(self.correctCount)/float(self.totalCount),4)
+        else:
+            return 0.00
 
     def getIncorrectPercent(self):
-        return np.around(float(self.incorrectCount)/float(self.totalCount),4)
+        if( self.totalCount > 0 and self.correctCount ):
+            return np.around(float(self.incorrectCount)/float(self.totalCount),4)
+        else:
+            return 0.00
 
     def getClassCorrectPercent(self, className):
         total = float(np.sum(self.confusionMatrix[:,self.nameMap[className]]))
