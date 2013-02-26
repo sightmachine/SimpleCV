@@ -2345,7 +2345,7 @@ class AVTCamera(FrameSource):
         "StatPacketResent": ("Uint32", "R/V")
         }
 
-    
+   
 
     class AVTCameraInfo(ct.Structure):
         """
@@ -2375,7 +2375,10 @@ class AVTCamera(FrameSource):
             ("InterfaceId", ct.c_ulong),
             ("InterfaceType", ct.c_int)
         ]
-    
+
+        def __repr__(self):
+          return "<SimpleCV.Camera.AVTCameraInfo - UniqueId: %s>" % (self.UniqueId)
+
     class AVTFrame(ct.Structure):
         _fields_ = [
             ("ImageBuffer", ct.POINTER(ct.c_char)),
