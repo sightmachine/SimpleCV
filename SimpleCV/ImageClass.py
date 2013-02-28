@@ -12534,7 +12534,7 @@ class Image:
             return None
         return feature_list
 
-    def watershed(self , color = False):
+    def watershed(self, mask=None, erode=2,dilate=2, useMyMask=False):
         """
         **SUMMARY**
 
@@ -12546,7 +12546,10 @@ class Image:
 
         **PARAMETERS**
 
-        * *color* - Selects the kind of output user wants, a colored image or a grayscale image.
+        * *mask* - an optional binary mask. If none is provided we do a binarize and invert.
+        * *erode* - the number of times to erode the mask to find the foreground.
+        * *dilate* - the number of times to dilate the mask to find possible background.
+        * *useMyMask* - if this is true we do not modify the mask.
 
         **RETURNS**
 
@@ -12557,32 +12560,89 @@ class Image:
         >>> img = Image("/sampleimages/wshed.jpg")
         >>> img1 = img.watershed()
         >>> img1.show()
-        >>> img2 = img.watershed(color=True)
-        >>> img2.show()
 
+        # here is an example of how to create your own mask
 
+        >>> img = Image('lenna')
+        >>> myMask = Image((img.width,img.height))
+        >>> myMask = myMask.floodFill((0,0),color=Color.WATERSHED_BG)
+        >>> mask = img.threshold(128)
+        >>> myMask = (myMask-mask.dilate(2)+mask.erode(2))
+        >>> result = img.watershed(mask=myMask,useMyMask=True)
+
+        **SEE ALSO**
+        Color.WATERSHED_FG - The watershed foreground color
+        Color.WATERSHED_BG - The watershed background color
+        Color.WATERSHED_UNSURE - The watershed not sure if fg or bg color.
+
+        TODO: Allow the user to pass in a function that defines the watershed mask.
         """
 
-        import cv2
-        imgTemp = self.getNumpyCv2()
-        gray = cv2.cvtColor(imgTemp,cv2.cv.CV_BGR2GRAY)
-        ret,thresh = cv2.threshold(gray,0,255,cv2.cv.CV_THRESH_OTSU)
-        #Creating the marker
-        fg = cv2.erode(thresh,None,iterations = 2) #get the foreground of the image
-        bgt = cv2.dilate(thresh,None,iterations = 3)
-        ret,bg = cv2.threshold(bgt,1,128,1) #get the background
-        marker = cv2.add(fg,bg)
-        m = np.int32(marker)
-        cv2.watershed(imgTemp,m)
+        try:
+            import cv2
+        except ImportError:
+            logger.warning("OpenCV >= 2.3.0 required")
+            return None
+        output = self.getEmpty(3)
+        if mask is None:
+            mask = self.binarize().invert()
+        newmask = None 
+        if( not useMyMask ):
+            newmask = Image((self.width,self.height))
+            newmask = newmask.floodFill((0,0),color=Color.WATERSHED_BG)            
+            newmask = (newmask-mask.dilate(dilate)+mask.erode(erode))
+        else:
+            newmask = mask            
+        m = np.int32(newmask.getGrayNumpyCv2())
+        cv2.watershed(self.getNumpyCv2(),m)
         m = cv2.convertScaleAbs(m)
         ret,thresh = cv2.threshold(m,0,255,cv2.cv.CV_THRESH_OTSU)
-        retVal = cv2.bitwise_and(imgTemp,imgTemp,mask = thresh)
-        retVal = Image(retVal,cv2image=True)
-        if color:
-            return retVal
-        else:
-            return retVal.toGray()
+        retVal = Image(thresh,cv2image=True)
+        return retVal
 
+    def findBlobsFromWatershed(self,mask=None,erode=2,dilate=2,useMyMask=False,invert=False,minsize=20,maxsize=None):
+        """
+        **SUMMARY**
+
+        Implements the watershed algorithm on the input image with an optional mask and t
+        hen uses the mask to find blobs.
+
+        Read more:
+
+        Watershed: "http://en.wikipedia.org/wiki/Watershed_(image_processing)"
+
+        **PARAMETERS**
+
+        * *mask* - an optional binary mask. If none is provided we do a binarize and invert.
+        * *erode* - the number of times to erode the mask to find the foreground.
+        * *dilate* - the number of times to dilate the mask to find possible background.
+        * *useMyMask* - if this is true we do not modify the mask.
+        * *invert* - invert the resulting mask before finding blobs.
+        * *minsize* - minimum blob size in pixels.
+        * *maxsize* - the maximum blob size in pixels.
+
+        **RETURNS**
+
+        A feature set of blob features. 
+
+        **EXAMPLE**
+
+        >>> img = Image("/sampleimages/wshed.jpg")
+        >>> mask = img.threshold(100).dilate(3)
+        >>> blobs = img.findBlobsFromWatershed(mask)
+        >>> blobs.show()
+
+        **SEE ALSO**
+        Color.WATERSHED_FG - The watershed foreground color
+        Color.WATERSHED_BG - The watershed background color
+        Color.WATERSHED_UNSURE - The watershed not sure if fg or bg color.
+        
+        """        
+        newmask = self.watershed(mask,erode,dilate,useMyMask)
+        if( invert ):
+            newmask = mask.invert()
+        return self.findBlobsFromMask(newmask,minsize=minsize,maxsize=maxsize)
+        
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *

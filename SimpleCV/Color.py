@@ -76,7 +76,9 @@ class Color:
     MAYBE_BACKGROUND = (64,64,64)
     MAYBE_FOREGROUND =  (192,192,192)
     FOREGROUND = (255,255,255)
-
+    WATERSHED_FG = (255,255,255) # Watershed foreground
+    WATERSHED_BG = (128,128,128) # Watershed background
+    WATERSHED_UNSURE = (0,0,0) # Watershed either fg or bg color
     colorlist = [
                 BLACK,
                 WHITE,

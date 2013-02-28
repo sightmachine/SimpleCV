@@ -3186,7 +3186,18 @@ def test_Steganograpy():
 def test_watershed():
     img = Image('../sampleimages/wshed.jpg')
     img1 = img.watershed()
-    img2 = img.watershed(color=True)
-    result = [img1,img2]
+    img2 = img.watershed(dilate=3,erode=2)
+    img3 = img.watershed(mask=img.threshold(128),erode=1,dilate=1)
+    myMask = Image((img.width,img.height))
+    myMask = myMask.floodFill((0,0),color=Color.WATERSHED_BG)
+    mask = img.threshold(128)
+    myMask = (myMask-mask.dilate(2)+mask.erode(2))
+    img4 = img.watershed(mask=myMask,useMyMask=True)
+    blobs = img.findBlobsFromWatershed(dilate=3,erode=2)
+    blobs = img.findBlobsFromWatershed()
+    blobs = img.findBlobsFromWatershed(mask=img.threshold(128),erode=1,dilate=1)
+    blobs = img.findBlobsFromWatershed(mask=img.threshold(128),erode=1,dilate=1,invert=True)
+    blobs = img.findBlobsFromWatershed(mask=myMask,useMyMask=True)
+    result = [img1,img2,img3,img4]
     name_stem = "test_watershed"
     perform_diff(result,name_stem,3.0)
