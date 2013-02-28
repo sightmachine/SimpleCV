@@ -884,7 +884,18 @@ class Kinect(FrameSource):
     you can getImage() and getDepth() for separate channel images
     
     """
-    def __init__(self):
+    def __init__(self, device_number=0):
+        """
+        **SUMMARY**
+
+        In the kinect contructor, device_number indicates which kinect to
+        connect to. It defaults to 0.
+
+        **PARAMETERS**
+
+        * *device_number* - The index of the kinect, these go from 0 upward.
+        """
+        self.deviceNumber = device_number
         if not FREENECT_ENABLED:
             logger.warning("You don't seem to have the freenect library installed.  This will make it hard to use a Kinect.")
   
@@ -907,7 +918,7 @@ class Kinect(FrameSource):
         >>>   k.getImage().show()
 
         """
-        video = freenect.sync_get_video()[0]
+        video = freenect.sync_get_video(self.deviceNumber)[0]
         self.capturetime = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
         return Image(video.transpose([1,0,2]), self)
@@ -933,7 +944,7 @@ class Kinect(FrameSource):
         >>>   result.show()
         """
 
-        depth = freenect.sync_get_depth()[0]
+        depth = freenect.sync_get_depth(self.deviceNumber)[0]
         self.capturetime = time.time()
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
@@ -945,7 +956,7 @@ class Kinect(FrameSource):
     #if you want to actually do computations with the depth
     def getDepthMatrix(self):
         self.capturetime = time.time()
-        return freenect.sync_get_depth()[0]
+        return freenect.sync_get_depth(self.deviceNumber)[0]
   
 
 
@@ -2171,6 +2182,7 @@ class StereoCamera :
         cv.Remap(imgRight, dst2, map2x, map2y)
         return Image(dst1), Image(dst2)
         
+
         
 class AVTCamera(FrameSource):
     """
@@ -2197,7 +2209,7 @@ class AVTCamera(FrameSource):
     >>> img = cam.getImage()
     >>> img.show()
     """
-    
+    _pvinfo = { }    
     _properties = {
         "AcqEndTriggerEvent": ("Enum", "R/W"),
         "AcqEndTriggerMode": ("Enum", "R/W"),
@@ -2344,7 +2356,7 @@ class AVTCamera(FrameSource):
         "StatPacketResent": ("Uint32", "R/V")
         }
 
-    
+   
 
     class AVTCameraInfo(ct.Structure):
         """
@@ -2374,7 +2386,10 @@ class AVTCamera(FrameSource):
             ("InterfaceId", ct.c_ulong),
             ("InterfaceType", ct.c_int)
         ]
-    
+
+        def __repr__(self):
+          return "<SimpleCV.Camera.AVTCameraInfo - UniqueId: %s>" % (self.UniqueId)
+
     class AVTFrame(ct.Structure):
         _fields_ = [
             ("ImageBuffer", ct.POINTER(ct.c_char)),
@@ -2405,6 +2420,9 @@ class AVTCamera(FrameSource):
             self.ImageBufferSize = ct.c_ulong(buffersize)
             self.AncillaryBuffer = 0
             self.AncillaryBufferSize = 0
+            self.img = None
+            self.hasImage = False 
+            self.frame = None
         
     
     def __init__(self, camera_id = -1, properties = {}):
@@ -2417,7 +2435,9 @@ class AVTCamera(FrameSource):
         else:
             self.dll = ct.CDLL("libPvAPI.so")
             
-        self.dll.PvInitialize()
+        if not self._pvinfo.get("initialized", False):
+            self.dll.PvInitialize()
+            self._pvinfo['initialized'] = True
         #initialize.  Note that we rely on listAllCameras being the next
         #call, since it blocks on cameras initializing
         
@@ -2426,7 +2446,7 @@ class AVTCamera(FrameSource):
         if not len(camlist):
             raise Exception("Couldn't find any cameras with the PvAVT driver.  Use SampleViewer to confirm you have one connected.")
         
-        if int(camera_id) == camera_id: #camera was passed as an index reference
+        if camera_id < 9000: #camera was passed as an index reference
             if camera_id == -1:  #accept -1 for "first camera"
                 camera_id = 0
             
@@ -2435,10 +2455,10 @@ class AVTCamera(FrameSource):
         self.handle = ct.c_uint()
         self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle))
         self.dll.PvCaptureStart(self.handle)
+        self.uniqueid = camera_id
         
-        self.setProperty("AcquisitionMode","Continuous")
+        self.setProperty("AcquisitionMode","SingleFrame")
         self.setProperty("FrameStartTriggerMode","Freerun")
-        self.runCommand("AcquisitionStart")
         
         if properties.get("mode", "RGB") == 'gray':
             self.setProperty("PixelFormat", "Mono8")
@@ -2494,6 +2514,10 @@ class AVTCamera(FrameSource):
         * ConfigFileSave
         * TimeStampReset
         * TimeStampValueLatch
+        
+        **RETURNS**
+        
+        0 on success
         
         **EXAMPLE**
         >>>c = AVTCamera()
@@ -2628,11 +2652,63 @@ class AVTCamera(FrameSource):
         >>>c = AVTCamera()
         >>>c.getImage().show()
         """
+        self.runCommand("AcquisitionStart")
         frame = self._getFrame()
-
-        return Image(pil.fromstring(self.imgformat, 
+        img = Image(pil.fromstring(self.imgformat, 
             (self.width, self.height), 
             frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+        self.runCommand("AcquisitionStop")
+	return img
+
+
+    def setupASyncMode(self):
+        self.setProperty('AcquisitionMode','SingleFrame')
+        self.setProperty('FrameStartTriggerMode','Software')
+        
+        
+    def setupSyncMode(self):
+        self.setProperty('AcquisitionMode','Continuous')
+        self.setProperty('FrameStartTriggerMode','FreeRun')
+
+    def unbuffer(self):
+        img = Image(pil.fromstring(self.imgformat, 
+                                   (self.width, self.height), 
+                                   self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
+
+        return img
+
+    def callee(self):
+        print "Callee called"
+        print "How do I simplecv?"
+        print self
+        return
+#            print self
+            #img = Image(pil.fromstring(self.imgformat, 
+            #                           (self.width, self.height), 
+            #                           self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
+            #self.runCommand("AcquisitionStop")
+            #self.img = img
+            #self.hasImage = True
+
+    import ctypes as ct
+    def getImageAsync(self):
+        """
+        """
+        self.runCommand("AcquisitionStart")
+        self.hasImage = False
+        self.frame = self.AVTFrame(self.buffersize)
+        print self.frame
+        sanitycheck = False
+        def fml():
+            print "BERKS CANT SIMPLECV"
+            sanitycheck = True
+            print self
+            
+        ALLIEDCBFUNC = ct.CFUNCTYPE(ct.c_void_p)
+        cbfunc = ALLIEDCBFUNC(fml)
+        self.dll.PvCaptureQueueFrame(self.handle, ct.byref(self.frame), cbfunc)
+        self.runCommand("FrameStartTriggerSoftware")
+        self.runCommand("AcquisitionStop")        
     
     def _refreshFrameStats(self):
         self.width = self.getProperty("Width")
@@ -2643,9 +2719,7 @@ class AVTCamera(FrameSource):
         if self.pixelformat == 'Mono8':
             self.imgformat = 'L'
         
-        
-        
-    def _getFrame(self, timeout = 60000):
+    def _getFrame(self, timeout = 5000):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
         frame = self.AVTFrame(self.buffersize)
