@@ -155,7 +155,7 @@ class TurkingModule:
             y = y + spacing
         return img
         
-    def turk(self,saveFiles=True,disp_size=(800,600),showKeys=True,font_size=16,color=Color.RED,spacing=10 ):
+    def turk(self,saveOriginal=False,disp_size=(800,600),showKeys=True,font_size=16,color=Color.RED,spacing=10 ):
         """
         **SUMMARY**
 
@@ -167,6 +167,7 @@ class TurkingModule:
 
         **PARAMETERS**
 
+        * *saveOriginal* - if true save the original image versus the preprocessed image. 
         * *disp_size* - size of the display to create.
         * *showKeys* - Show the key mapping for the turking. Note that on small images this may not render correctly.
         * *font_size* - the font size for the turking display.
@@ -211,7 +212,10 @@ class TurkingModule:
                     keys = disp.checkEvents(True)
                     for k in keys:
                         if k in self.keyMap:
-                            self._saveIt(sample,self.keyMap[k])
+                            if saveOriginal:
+                                self._saveIt(img,self.keyMap[k])
+                            else:
+                                self._saveIt(sample,self.keyMap[k])
                             gotKey = True
                         if k == 'space':
                             gotKey = True # skip
