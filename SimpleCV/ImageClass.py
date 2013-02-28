@@ -12464,6 +12464,55 @@ class Image:
             return None
         return feature_list
 
+    def watershed(self , color = False):
+        """
+        **SUMMARY**
+
+        Implements the Watershed algorithm on the input image.
+
+        Read more: 
+
+        Watershed: "http://en.wikipedia.org/wiki/Watershed_(image_processing)"
+
+        **PARAMETERS**
+
+        * *color* - Selects the kind of output user wants, a colored image or a grayscale image.
+
+        **RETURNS**
+
+        The Watershed image 
+
+        **EXAMPLE**
+
+        >>> img = Image("/sampleimages/wshed.jpg")
+        >>> img1 = img.watershed()
+        >>> img1.show()
+        >>> img2 = img.watershed(color=True)
+        >>> img2.show()
+
+        
+        """
+
+        import cv2
+        imgTemp = self.getNumpyCv2()
+        gray = cv2.cvtColor(imgTemp,cv2.cv.CV_BGR2GRAY)
+        ret,thresh = cv2.threshold(gray,0,255,cv2.cv.CV_THRESH_OTSU)
+        #Creating the marker
+        fg = cv2.erode(thresh,None,iterations = 2) #get the foreground of the image
+        bgt = cv2.dilate(thresh,None,iterations = 3)
+        ret,bg = cv2.threshold(bgt,1,128,1) #get the background
+        marker = cv2.add(fg,bg)
+        m = np.int32(marker)
+        cv2.watershed(imgTemp,m)
+        m = cv2.convertScaleAbs(m)
+        ret,thresh = cv2.threshold(m,0,255,cv2.cv.CV_THRESH_OTSU)
+        retVal = cv2.bitwise_and(imgTemp,imgTemp,mask = thresh)
+        retVal = Image(retVal,cv2image=True)
+        if color:
+            return retVal
+        else:
+            return retVal.toGray()
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
