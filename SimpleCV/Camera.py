@@ -884,7 +884,18 @@ class Kinect(FrameSource):
     you can getImage() and getDepth() for separate channel images
     
     """
-    def __init__(self):
+    def __init__(self, device_number=0):
+        """
+        **SUMMARY**
+
+        In the kinect contructor, device_number indicates which kinect to
+        connect to. It defaults to 0.
+
+        **PARAMETERS**
+
+        * *device_number* - The index of the kinect, these go from 0 upward.
+        """
+        self.deviceNumber = device_number
         if not FREENECT_ENABLED:
             logger.warning("You don't seem to have the freenect library installed.  This will make it hard to use a Kinect.")
   
@@ -907,7 +918,7 @@ class Kinect(FrameSource):
         >>>   k.getImage().show()
 
         """
-        video = freenect.sync_get_video()[0]
+        video = freenect.sync_get_video(self.deviceNumber)[0]
         self.capturetime = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
         return Image(video.transpose([1,0,2]), self)
@@ -933,7 +944,7 @@ class Kinect(FrameSource):
         >>>   result.show()
         """
 
-        depth = freenect.sync_get_depth()[0]
+        depth = freenect.sync_get_depth(self.deviceNumber)[0]
         self.capturetime = time.time()
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
@@ -945,7 +956,7 @@ class Kinect(FrameSource):
     #if you want to actually do computations with the depth
     def getDepthMatrix(self):
         self.capturetime = time.time()
-        return freenect.sync_get_depth()[0]
+        return freenect.sync_get_depth(self.deviceNumber)[0]
   
 
 
