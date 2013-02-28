@@ -38,15 +38,15 @@ while display.isNotDone():
             data = str(barcode.data)
             print data
             if mydict.has_key(data):
-                mydict[data] = mydict[data] + 1 
+                mydict[data] = mydict[data] + 1
             else:
-                mydict[data] = 1 
+                mydict[data] = 1
     img.drawText("Click to scan.",10,10,color=Color.RED)
     myItem = "Last item scanned: " + data
     img.drawText(myItem,10,30)
     img.save(display) #display
-    
-#write to a CSV file. 
+
+#write to a CSV file.
 target= open( myfile, "wb" )
 wtr= csv.writer( target )
 wtr.writerow( ["item","count"])

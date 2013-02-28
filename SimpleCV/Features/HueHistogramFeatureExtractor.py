@@ -7,19 +7,19 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
     Create a Hue Histogram feature extractor. This feature extractor
     takes in an image, gets the hue channel, bins the number of pixels
     with a particular Hue, and returns the results.
-    
-    mNBins - the number of Hue bins. 
+
+    mNBins - the number of Hue bins.
     """
     mNBins = 16
     def __init__(self, mNBins=16):
         #we define the black (positive) and white (negative) regions of an image
-        #to get our haar wavelet 
+        #to get our haar wavelet
         self.mNBins = mNBins
 
     def extract(self, img):
         """
         This feature extractor takes in a color image and returns a normalized color
-        histogram of the pixel counts of each hue. 
+        histogram of the pixel counts of each hue.
         """
         img = img.toHLS()
         h = img.getEmpty(1)
@@ -29,7 +29,7 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
         hist = np.histogram(npa,self.mNBins,normed=True,range=(0,255))
         return hist[0].tolist()
 
-    
+
     def getFieldNames(self):
         """
         This method gives the names of each field in the feature vector in the

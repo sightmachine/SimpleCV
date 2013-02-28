@@ -19,7 +19,7 @@ for j in range(0,len(blobs)):
 img2 = img2.applyLayers()
 img = img.applyLayers()
 img3 = img.sideBySide(img2,'bottom')
-    
+
 for j in range(0,3):
     data = blobs[j].ShapeContextMatch(blobs2[j])
     mapvals = data[0]
@@ -31,5 +31,3 @@ for j in range(0,3):
         rhsShift = (rhs[0],rhs[1]+img.height)
         img3.drawLine(lhs,rhsShift,color=color.getRandom(),thickness=1)
         img3.show()
-
-

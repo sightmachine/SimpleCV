@@ -2,7 +2,7 @@ from SimpleCV import Image, Features, Color, ImageSet, Display
 from SimpleCV.MachineLearning import TurkingModule
 # This example shows how to use the turking module.
 # by turking we mean manually sorting and classifying images
-# ostensibly for supervised learning 
+# ostensibly for supervised learning
 
 # return images of all the big blobs in our source images
 def preprocess(img):
@@ -39,4 +39,4 @@ for c in classes:
     iset.show(0.1)
 
 # save the results
-turker.save('junkAndStuff.pkl')    
+turker.save('junkAndStuff.pkl')

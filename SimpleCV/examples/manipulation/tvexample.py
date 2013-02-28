@@ -15,6 +15,6 @@ c = Camera()
 d = Display(tv.size())
 
 while d.isNotDone():
-   bwimage = c.getImage().grayscale().resize(tv.width, tv.height)
-   on_tv = tv + bwimage.warp(tv_coordinates)
-   on_tv.save(d)
+    bwimage = c.getImage().grayscale().resize(tv.width, tv.height)
+    on_tv = tv + bwimage.warp(tv_coordinates)
+    on_tv.save(d)

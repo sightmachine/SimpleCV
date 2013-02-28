@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
-# So this script is in a bit of a hack state right now. 
-# This script reads 
+# So this script is in a bit of a hack state right now.
+# This script reads
 #
 #
 #
@@ -28,7 +28,7 @@ import pycurl
 import os
 import shutil
 socket.setdefaulttimeout(30)  #30 second time out on sockets before they throw
-#an exception.  I've been having trouble with urllib.urlopen hanging in the 
+#an exception.  I've been having trouble with urllib.urlopen hanging in the
 #flickr API.  This will show up as exceptions.IOError.
 
 #the time out needs to be pretty long, it seems, because the flickr servers can be slow
@@ -37,7 +37,7 @@ socket.setdefaulttimeout(30)  #30 second time out on sockets before they throw
 #returns a query and the search times to attempt to get a desired number of photos
 #this needs serious refactoring -KAS
 def DoSearch(fapi,query_string,desired_photos):
-    # number of seconds to skip per query  
+    # number of seconds to skip per query
     #timeskip = 62899200 #two years
     #timeskip = 604800  #one week
     timeskip = 172800  #two days
@@ -60,61 +60,61 @@ def DoSearch(fapi,query_string,desired_photos):
 
     while (maxtime < endtime):
 
-        #new approach - adjust maxtime until we get the desired number of images 
+        #new approach - adjust maxtime until we get the desired number of images
         #within a block. We'll need to keep upper bounds and lower
-        #lower bound is well defined (mintime), but upper bound is not. We can't 
+        #lower bound is well defined (mintime), but upper bound is not. We can't
         #search all the way from endtime.
-    
+
         lower_bound = mintime + 900 #lower bound OF the upper time limit. must be at least 15 minutes or zero results
         upper_bound = mintime + timeskip * 20 #upper bound of the upper time limit
         maxtime     = .95 * lower_bound + .05 * upper_bound
-    
-        print '\nBinary search on time range upper bound' 
+
+        print '\nBinary search on time range upper bound'
         print 'Lower bound is ' + str(datetime.fromtimestamp(lower_bound))
         print 'Upper bound is ' + str(datetime.fromtimestamp(upper_bound))
-    
+
         keep_going = 6 #search stops after a fixed number of iterations
         while( keep_going > 0 and maxtime < endtime):
             try:
                 rsp = fapi.photos_search(api_key=flickrAPIKey,
                                         ispublic="1",
                                         media="photos",
-                                        per_page="250", 
+                                        per_page="250",
                                         page="1",
                                         has_geo = "0", #bbox="-180, -90, 180, 90",
                                         text=query_string,
-                                        accuracy="6", #6 is region level. 
+                                        accuracy="6", #6 is region level.
                                         min_upload_date=str(mintime),
                                         max_upload_date=str(maxtime))
-                          
+
                 #we want to catch these failures somehow and keep going.
                 time.sleep(1)
                 fapi.testFailure(rsp)
                 total_images = rsp.photos[0]['total'];
                 null_test = int(total_images); #want to make sure this won't crash later on for some reason
                 null_test = float(total_images);
-        
+
                 print '\nnumimgs: ' + total_images
                 print 'mintime: ' + str(mintime) + ' maxtime: ' + str(maxtime) + ' timeskip:  ' + str(maxtime - mintime)
-            
+
                 if( int(total_images) > desired_photos ):
                     print 'too many photos in block, reducing maxtime'
                     upper_bound = maxtime
                     maxtime = (lower_bound + maxtime) / 2 #midpoint between current value and lower bound.
-                
+
                 if( int(total_images) < desired_photos):
                     print 'too few photos in block, increasing maxtime'
                     lower_bound = maxtime
                     maxtime = (upper_bound + maxtime) / 2
-                
+
                 print 'Lower bound is ' + str(datetime.fromtimestamp(lower_bound))
                 print 'Upper bound is ' + str(datetime.fromtimestamp(upper_bound))
-            
+
                 if( int(total_images) > 0): #only if we're not in a degenerate case
                     keep_going = keep_going - 1
                 else:
-                    upper_bound = upper_bound + timeskip;    
-            
+                    upper_bound = upper_bound + timeskip;
+
             except KeyboardInterrupt:
                 print('Keyboard exception while querying for images, exiting\n')
                 raise
@@ -125,14 +125,14 @@ def DoSearch(fapi,query_string,desired_photos):
                 #print inst           # __str__ allows args to printed directly
                 print ('Exception encountered while querying for images\n')
 
-        #end of while binary search    
+        #end of while binary search
         print 'finished binary search'
         return([mintime,maxtime,total_images,rsp])
 
 
 
 ###########################################################################
-# Modify this section to reflect your data and specific search 
+# Modify this section to reflect your data and specific search
 ###########################################################################
 # flickr auth information:
 # change these to your flickr api keys and secret
@@ -154,13 +154,13 @@ num_queries = 0
 
 for line in query_file:
     if line[0] != '#' and len(line) > 1:  #line end character is 2 long?
-      print line[0:len(line)-1]
-      if line[0] != '-':
-        pos_queries = pos_queries + [line[0:len(line)-1]]
-        num_queries = num_queries + 1
-      if line[0] == '-':
-        neg_queries = neg_queries + ' ' + line[0:len(line)-1]
-        
+        print line[0:len(line)-1]
+        if line[0] != '-':
+            pos_queries = pos_queries + [line[0:len(line)-1]]
+            num_queries = num_queries + 1
+        if line[0] == '-':
+            neg_queries = neg_queries + ' ' + line[0:len(line)-1]
+
 query_file.close()
 print 'positive queries:  '
 print pos_queries
@@ -168,75 +168,75 @@ print 'negative queries:  ' + neg_queries
 print 'num_queries = ' + str(num_queries)
 #this is the desired number of photos in each block
 
-    
+
 # make a new FlickrAPI instance
 fapi = FlickrAPI(flickrAPIKey, flickrSecret)
 
 for current_tag in range(0, num_queries):
-  
+
     print('TOP OF LOOP')
     # change this to the location where you want to put your output file
     try:
         stats = os.stat(rootpath)
     except OSError:
         os.mkdir(rootpath)
-        
+
     outpath = rootpath+pos_queries[current_tag]+'/'
     try:
         os.mkdir(outpath)
     except OSError:
         shutil.rmtree(outpath,True)
         os.mkdir(outpath)
-       
+
     out_file = open(rootpath + pos_queries[current_tag] + '.txt','w')
     ###########################################################################
-    
+
     #form the query string.
     query_string = pos_queries[current_tag] + ' ' + neg_queries
     print '\n\nquery_string is ' + query_string
-    
+
     total_images_queried = 0;
     [mintime,maxtime,total_images,rsp] = DoSearch(fapi,query_string,desired_photos)
 
     print('GETTING TOTATL IMAGES:'+str(total_images))
     s = '\nmintime: ' + str(mintime) + ' maxtime: ' + str(maxtime)
     print s
-    out_file.write(s + '\n') 
+    out_file.write(s + '\n')
     i = getattr(rsp,'photos',None)
     if i:
-            
+
         s = 'numimgs: ' + total_images
         print s
         out_file.write(s + '\n')
-        
+
         current_image_num = 1;
-        
+
         num = 4 # CHANGE THIS BACK int(rsp.photos[0]['pages'])
         s =  'total pages: ' + str(num)
         print s
         out_file.write(s + '\n')
-        
+
         #only visit 16 pages max, to try and avoid the dreaded duplicate bug
         #16 pages = 4000 images, should be duplicate safe.  Most interesting pictures will be taken.
-        
+
         num_visit_pages = min(16,num)
-        
+
         s = 'visiting only ' + str(num_visit_pages) + ' pages ( up to ' + str(num_visit_pages * 250) + ' images)'
         print s
         out_file.write(s + '\n')
-        
+
         total_images_queried = total_images_queried + min((num_visit_pages * 250), int(total_images))
 
         #print 'stopping before page ' + str(int(math.ceil(num/3) + 1)) + '\n'
-    
+
         pagenum = 1;
 
         counter = -1
         while( pagenum <= num_visit_pages ):
         #for pagenum in range(1, num_visit_pages + 1):  #page one is searched twice
-            
+
             print '  page number ' + str(pagenum)
-            
+
             try:
                 print("PAGE")
                 print(pagenum)
@@ -244,19 +244,19 @@ for current_tag in range(0, num_queries):
                 rsp = fapi.photos_search(api_key=flickrAPIKey,
                                         ispublic="1",
                                         media="photos",
-                                        per_page="250", 
+                                        per_page="250",
                                         page=str(pagenum),
                                         has_geo = "0",
                                         text=query_string,
                                         #extras = "tags, original_format, license, geo, date_taken, date_upload, o_dims, views",
-                                        #accuracy="6", #6 is region level. 
+                                        #accuracy="6", #6 is region level.
                                         min_upload_date=str(1121832000),#mintime),
                                         max_upload_date=str(1192165200))#maxtime))
-                
+
                 #rsp = fapi.photos_search(api_key=flickrAPIKey,
                  #                   ispublic="1",
                   #                  media="photos",
-                   #                 per_page="250", 
+                   #                 per_page="250",
                     #                page='0', #str(pagenum),
                      #               sort="interestingness-desc",
                       #              has_geo = "0", #bbox="-180, -90, 180, 90",
@@ -292,7 +292,7 @@ for current_tag in range(0, num_queries):
                             if b!=None:
                                 counter = counter + 1
                                 ##print(http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg)
-                                
+
                                 myurl = 'http://farm'+b['farm']+".static.flickr.com/"+b['server']+"/"+b['id']+"_"+b['secret']+'.jpg'
                                 fname = outpath+pos_queries[current_tag]+str(counter)+'.jpg' #b['id']+"_"+b['secret']+'.jpg'
                                 print(myurl)
@@ -310,28 +310,28 @@ for current_tag in range(0, num_queries):
                                 out_file.write('URL: '+myurl+'\n')
                                 out_file.write('File: '+ fname+'\n')
                                 out_file.write('photo: ' + b['id'] + ' ' + b['secret'] + ' ' + b['server'] + '\n')
-                                out_file.write('owner: ' + b['owner'] + '\n') 
+                                out_file.write('owner: ' + b['owner'] + '\n')
                                 out_file.write('title: ' + b['title'].encode("ascii","replace") + '\n')
-                                
+
                                 out_file.write('originalsecret: ' + b['originalsecret'] + '\n')
                                 out_file.write('originalformat: ' + b['originalformat'] + '\n')
                                 out_file.write('o_height: ' + b['o_height'] + '\n')
                                 out_file.write('o_width: ' + b['o_width'] + '\n')
                                 out_file.write('datetaken: ' + b['datetaken'].encode("ascii","replace") + '\n')
                                 out_file.write('dateupload: ' + b['dateupload'].encode("ascii","replace") + '\n')
-                                
+
                                 out_file.write('tags: ' + b['tags'].encode("ascii","replace") + '\n')
-                                
+
                                 out_file.write('license: ' + b['license'].encode("ascii","replace") + '\n')
                                 out_file.write('latitude: '  + b['latitude'].encode("ascii","replace") + '\n')
                                 out_file.write('longitude: ' + b['longitude'].encode("ascii","replace") + '\n')
                                 out_file.write('accuracy: '  + b['accuracy'].encode("ascii","replace") + '\n')
-                                
+
                                 out_file.write('views: ' + b['views'] + '\n')
                                 out_file.write('interestingness: ' + str(current_image_num) + ' out of ' + str(total_images) + '\n');
                                 out_file.write('\n')
                                 current_image_num = current_image_num + 1;
-               
+
             print('')
             pagenum = pagenum + 1;  #this is in the else exception block.  Itwon't increment for a failure.
             #this block is indented such that it will only run if there are no exceptions

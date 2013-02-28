@@ -14,7 +14,7 @@ class ConfusionMatrix():
         for obj in classList:
             self.nameMap[obj] = idx
             idx = idx + 1
-            
+
     def addDataPoint(self,truth_name,test_name):
         self.confusionMatrix[self.nameMap[truth_name]][self.nameMap[test_name]] += 1
         if( truth_name == test_name ):
@@ -63,7 +63,7 @@ class ConfusionMatrix():
         incorrect = total-correct
         return incorrect
 
-            
+
     def getClassCount(self,className):
         return np.sum(self.confusionMatrix[:,self.nameMap[className]])
 
@@ -105,6 +105,3 @@ class ConfusionMatrix():
         retVal += 50*'#'
         retVal += "\n"
         return retVal
-
-
-    

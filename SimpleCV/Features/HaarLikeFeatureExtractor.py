@@ -1,6 +1,6 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
-from SimpleCV.Features.HaarLikeFeature import * 
+from SimpleCV.Features.HaarLikeFeature import *
 from SimpleCV.Features.FeatureExtractorBase import *
 
 class HaarLikeFeatureExtractor(FeatureExtractorBase):
@@ -20,7 +20,7 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         """
         fname - The feature file name
         do45 - if this is true we use the regular integral image plus the
-        45 degree integral image 
+        45 degree integral image
         """
         #we define the black (positive) and white (negative) regions of an image
         #to get our haar wavelet
@@ -48,9 +48,9 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         temp = f.read()
         f.close()
         data = temp.split()
-        count = int(data.pop(0)) 
+        count = int(data.pop(0))
         self.mFeatureset = []
-        if(nfeats > -1): 
+        if(nfeats > -1):
             count = min(count,nfeats)
         while len(data) > 0:
             name = data.pop(0)
@@ -63,10 +63,10 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
             feat = HaarLikeFeature(name,region)
             self.mFeatureSet.append(feat)
         return None
-    
+
     def saveWavelets(self, fname):
         """
-        Save wavelets to file 
+        Save wavelets to file
         """
         f = open(fname,'w')
         f.write(str(len(self.mFeatureSet))+'\n\n')
@@ -74,15 +74,15 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
             self.mFeatureSet[i].writeToFile(f)
         f.close()
         return None
-    
+
     def extract(self, img):
         """
         This extractor takes in an image, creates the integral image, applies
-        the Haar cascades, and returns the result as a feature vector. 
-        """        
+        the Haar cascades, and returns the result as a feature vector.
+        """
         regular = img.integralImage()
         retVal = []
-        
+
         for i in range(len(self.mFeatureSet)):
             retVal.append(self.mFeatureSet[i].apply(regular))
         if(self.mDo45):
@@ -90,7 +90,7 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
             for i in range(len(self.mFeatureSet)):
                 retVal.append(self.mFeatureSet[i].apply(regular))
         return retVal
-    
+
     def getFieldNames(self):
         """
         This method gives the names of each field in the feature vector in the

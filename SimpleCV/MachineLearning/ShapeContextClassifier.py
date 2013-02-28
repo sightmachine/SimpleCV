@@ -10,7 +10,7 @@ try:
 except:
     print "Need scikits learn installed"
     #exit()
-    
+
 
 """
 Classify an object based on shape context
@@ -38,15 +38,15 @@ class ShapeContextClassifier():
         for i in range(0,len(images)):
             print "precomputing " + images[i].filename
             self.imgMap[labels[i]] = images[i]
-           
+
             pts,desc,count  = self._image2FeatureVector(images[i])
-            self.blobCount[labels[i]] = count 
+            self.blobCount[labels[i]] = count
             self.ptMap[labels[i]] = pts
             self.descMap[labels[i]] = desc
             knn = neighbors.KNeighborsClassifier()
-            knn.fit(desc,range(0,len(pts))) 
+            knn.fit(desc,range(0,len(pts)))
             self.knnMap[labels[i]] = knn
-            
+
     def _image2FeatureVector(self,img):
         """
         generate a list of points, SC descriptors, and the count of points
@@ -60,22 +60,22 @@ class ShapeContextClassifier():
             count = len(blobs)
             for b in blobs:
                 fulllist += b._filterSCPoints()
-                raw_descriptors = blobs[0]._generateSC(fulllist) 
+                raw_descriptors = blobs[0]._generateSC(fulllist)
         return fulllist,raw_descriptors,count
 
-    
+
     def _getMatch(self,model_scd,test_scd):
         correspondence,distance = self._doMatching(model_scd,test_scd)
         return self._matchQuality(distances)
 
-    def _doMatching(self,model_name,test_scd):       
+    def _doMatching(self,model_name,test_scd):
         myPts = len(test_scd)
         otPts = len(self.ptMap[model_name])
         # some magic metric that keeps features
         # with a lot of points from dominating
         #metric = 1.0 + np.log10( np.max([myPts,otPts])/np.min([myPts,otPts])) # <-- this could be moved to after the sum
         otherIdx = []
-        distance = [] 
+        distance = []
         import warnings
         warnings.simplefilter("ignore")
         results = []
@@ -123,9 +123,9 @@ class ShapeContextClassifier():
                 result,std = self._matchQuality(distances)
                 matchDict[key] = result
                 matchStd[key] = std
-                
+
         return points,descriptors,count,matchDict, matchStd
-                
+
     def classify(self,image, blobFilter=True):
         """
         Classify an input image.
@@ -140,9 +140,9 @@ class ShapeContextClassifier():
         best_name = "No Match"
         for k,v in matchDict.items():
             if ( v < best ):
-                best = v 
+                best = v
                 best_name = k
-           
+
         return best_name, best, matchDict, matchStd
 
     def getTopNMatches(self,image,n=3, blobFilter = True):
@@ -162,4 +162,3 @@ class ShapeContextClassifier():
         for k in best_matches:
             retList.append((k,matchDict[k]))
         return retList[0:n], matchDict, matchStd
-

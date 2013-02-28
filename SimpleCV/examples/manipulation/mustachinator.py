@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 
 
 from operator import add
@@ -31,10 +31,9 @@ while display.isNotDone():
             xm = nose.x -(nose.width()/2)
             ym = nose.y -(nose.height()/2)
             #calculate the mustache position
-            xmust = xf+xm-(stache.width/2)+(nose.width()/2)           
+            xmust = xf+xm-(stache.width/2)+(nose.width()/2)
             ymust = yf+ym+(2*nose.height()/3)
             #blit the stache/mask onto the image
             img = img.blit(stache,pos=(xmust,ymust),mask = mask)
 
     img.save(display) #display
-

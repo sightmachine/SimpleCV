@@ -42,7 +42,7 @@ class TurkingModule:
 
     >>>> def ScaleIng(img):
     >>>>    return img.resize(100,100).invert()
-    
+
     >>>> turker = TurkingModule(['./data/'],['./turked/'],['apple','banana','cherry'],['a','b','c'],preProcess=GetBlobs,postProcess=ScaleInv]
     >>>> turker.turk()
     >>>> # ~~~ stuff ~~~
@@ -57,8 +57,8 @@ class TurkingModule:
 
         #if( not os.access(out_path,os.W_OK) ):
         #    print "Output path is not writeable."
-        #    raise Exception("Output path is not writeable.")            
-            
+        #    raise Exception("Output path is not writeable.")
+
         self.keyBindings = key_bindings
         self.classes = classList
         self.countMap = {}
@@ -71,7 +71,7 @@ class TurkingModule:
             raise Exception("Must have a key for each class.")
         for key,cls in zip(key_bindings,classList):
             self.keyMap[key] = cls
-        # this should work 
+        # this should work
 
         if( preprocess is None ):
             def fakeProcess(img):
@@ -98,7 +98,7 @@ class TurkingModule:
                 self.srcImgs += imgSet
 
         if( not osp.exists(out_path) ):
-                os.mkdir(out_path)
+            os.mkdir(out_path)
         for c in classList:
             outdir = out_path+c+'/'
             self.directoryMap[c] = outdir
@@ -110,7 +110,7 @@ class TurkingModule:
             fc = glob.glob(searchstr)
             self.countMap[c] = len(fc)
             self.classMap[c] = ImageSet(self.directoryMap[c])
- 
+
     def _saveIt(self,img,classType):
         img.clearLayers()
         path = self.out_path + classType + "/" + classType+str(self.countMap[classType])+".png"
@@ -119,7 +119,7 @@ class TurkingModule:
         self.classMap[classType].append(img)
         img.save(path)
         self.countMap[classType] = self.countMap[classType] + 1
-        
+
     def getClass(self,className):
         """
         **SUMMARY**
@@ -154,7 +154,7 @@ class TurkingModule:
             img.drawText(str,10,y,fontsize=font_size,color=color)
             y = y + spacing
         return img
-        
+
     def turk(self,saveOriginal=False,disp_size=(800,600),showKeys=True,font_size=16,color=Color.RED,spacing=10 ):
         """
         **SUMMARY**
@@ -167,7 +167,7 @@ class TurkingModule:
 
         **PARAMETERS**
 
-        * *saveOriginal* - if true save the original image versus the preprocessed image. 
+        * *saveOriginal* - if true save the original image versus the preprocessed image.
         * *disp_size* - size of the display to create.
         * *showKeys* - Show the key mapping for the turking. Note that on small images this may not render correctly.
         * *font_size* - the font size for the turking display.
@@ -180,19 +180,19 @@ class TurkingModule:
         via the getClass method.
 
         **EXAMPLE**
-        
+
         >>>> def GetBlobs(img):
         >>>>     blobs = img.findBlobs()
         >>>>     return [b.mMask for b in blobs]
 
         >>>> def ScaleIng(img):
         >>>>     return img.resize(100,100).invert()
-    
+
         >>>> turker = TurkingModule(['./data/'],['./turked/'],['apple','banana','cherry'],['a','b','c'],preProcess=GetBlobs,postProcess=ScaleInv]
         >>>> turker.turk()
         >>>> # ~~~ stuff ~~~
         >>>> turker.save('./derp.pkl')
-        
+
         ** TODO **
         TODO: fix the display so that it renders correctly no matter what the image size.
         TODO: Make it so you can stop and start turking at any given spot in the process
@@ -205,7 +205,7 @@ class TurkingModule:
             for sample in samples:
                 if( showKeys ):
                     sample = self._drawControls(sample,font_size,color,spacing )
-                   
+
                 sample.save(disp)
                 gotKey = False
                 while( not gotKey ):
@@ -220,7 +220,7 @@ class TurkingModule:
                         if k == 'space':
                             gotKey = True # skip
                         if k == 'escape':
-                            return 
+                            return
 
     def save(self,fname):
         """

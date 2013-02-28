@@ -1,6 +1,6 @@
 from SimpleCV import *
 import string
-import pickle 
+import pickle
 color = Color()
 
 subset = 5
@@ -58,7 +58,7 @@ for test in testset:
     matchImg.drawText(label,10,45,color=Color.RED,fontsize=30)
     matchImg.show()
     fname = "match"+str(i)+".png"
-    i = i + 1 
+    i = i + 1
     matchImg.save(fname)
     classifications.append((test.filename,result))
     print result

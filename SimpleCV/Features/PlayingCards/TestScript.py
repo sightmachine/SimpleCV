@@ -15,7 +15,7 @@ def GetParallelSets(line_fs,parallel_thresh=25):
                 result.append(np.Inf)
             else:
                 result.append(np.abs(line_fs[i].cross(line_fs[j])))
-            
+
     result = np.array(result)
     # reshape it
     result = result.reshape(sz,sz)
@@ -23,12 +23,12 @@ def GetParallelSets(line_fs,parallel_thresh=25):
     l1,l2=np.where(result<parallel_thresh)
     idxs = zip(l1,l2)
     retVal = []
-    # now construct the line pairs 
+    # now construct the line pairs
     for idx in idxs:
         retVal.append((line_fs[idx[0]],line_fs[idx[1]]))
     return retVal
 
-    
+
 pcf = PlayingCardFactory()
 data,labels = GetFullDataSet()
 print len(data)
@@ -69,7 +69,7 @@ for d in datapoints:
         img.show()
         time.sleep(.5)
         #l.show(color=Color.RED,width=3)
-    
+
     # fs = pcf.process(img)
     # r = (None,None)
     # if( fs is not None ):
