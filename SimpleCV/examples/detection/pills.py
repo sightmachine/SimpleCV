@@ -17,28 +17,27 @@ packblobs = i.findBlobs(minsize=10) #find the bright silver on back blackground,
 
 #run through the list of pills (blobs) found and check their color and markup the image when they are found
 for idx in range(len(packblobs)):
-  pack = packblobs[idx].crop()
+    pack = packblobs[idx].crop()
 
-  pills = pack.hueDistance(pillcolor, minsaturation = saturation_threshold)
-  pills = pills.binarize(127)
+    pills = pack.hueDistance(pillcolor, minsaturation = saturation_threshold)
+    pills = pills.binarize(127)
 
-  bm = BlobMaker()
-  pills = bm.extractFromBinary(pills,pills,minsize=pill_size)
-  if not pills:
-     continue
+    bm = BlobMaker()
+    pills = bm.extractFromBinary(pills,pills,minsize=pill_size)
+    if not pills:
+        continue
 
-  pillcount = len(pills)
-  if pillcount != expected_pillcount:
-    print "pack at %d, %d had %d pills" % (packblobs[idx].x, packblobs[idx].y, pillcount)
-    i.drawText("Pills Found: " + str(pillcount), 10, 10, fontsize = 20)
-    i.drawText("Pills Expected: " + str(expected_pillcount), 10, 30, fontsize = 20)
-  for p in pills:
-     p.image = pack
-     p.drawHull( color = Color.RED, width = 5 )
-  i.dl().blit(pack.applyLayers(), packblobs[idx].points[0])
-  packblobs[idx].drawHull(color = Color.BLUE, width = 5)
+    pillcount = len(pills)
+    if pillcount != expected_pillcount:
+        print "pack at %d, %d had %d pills" % (packblobs[idx].x, packblobs[idx].y, pillcount)
+        i.drawText("Pills Found: " + str(pillcount), 10, 10, fontsize = 20)
+        i.drawText("Pills Expected: " + str(expected_pillcount), 10, 30, fontsize = 20)
+    for p in pills:
+        p.image = pack
+        p.drawHull( color = Color.RED, width = 5 )
+    i.dl().blit(pack.applyLayers(), packblobs[idx].points[0])
+    packblobs[idx].drawHull(color = Color.BLUE, width = 5)
 
 #Continue to show the image
 while True:
     i.show()
-

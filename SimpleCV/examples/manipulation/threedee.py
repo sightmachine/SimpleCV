@@ -38,4 +38,3 @@ for i in range(4):
     print output.save(temp = True)
     output.show()
     time.sleep(2)
-

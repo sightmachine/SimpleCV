@@ -12,14 +12,14 @@ cam = Camera()
 path = "./data/"
 ext = ".png"
 suit_ptr = 0
-rank_ptr = 0 
+rank_ptr = 0
 current_dir = ""
 allDone = False
 for s in SUITS:
     for r in RANKS:
         directory = path+s+"/"+r+"/"
         if not os.path.exists(directory):
-            os.makedirs(directory)        
+            os.makedirs(directory)
 print "Current Data: " + str(RANKS[rank_ptr])+str(SUITS[suit_ptr])
 while not allDone :
     keys = disp.checkEvents()
@@ -42,9 +42,9 @@ while not allDone :
                 print rank_ptr
                 rank_ptr = rank_ptr + 1
         print "Current Data" + str(RANKS[rank_ptr])+str(SUITS[suit_ptr])
-                
+
     img.drawLine((0,img.height/4),(img.width,img.height/4),color=Color.RED,thickness=3)
     img.drawLine((0,3*img.height/4),(img.width,3*img.height/4),color=Color.RED,thickness=3)
     img.drawLine((img.width/3,0),(img.width/3,img.height),color=Color.RED,thickness=3)
     img.drawLine((2*img.width/3,0),(2*img.width/3,img.height   ),color=Color.RED,thickness=3)
-    img.save(disp) 
+    img.save(disp)

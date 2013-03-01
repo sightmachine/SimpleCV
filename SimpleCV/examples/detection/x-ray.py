@@ -36,4 +36,3 @@ while display.isNotDone():
     image.getDrawingLayer().blit(xray_image, (crop_x, crop_y)) #draw the cropped image onto the current image
 
     image.save(display)
-

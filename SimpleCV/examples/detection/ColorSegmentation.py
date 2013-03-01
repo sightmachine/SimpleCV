@@ -55,6 +55,5 @@ while not display.isDone():
         #img.save(display)
         img = img.applyLayers();
         display.writeFrame(img)
- 
+
     time.sleep(0.001)
-    

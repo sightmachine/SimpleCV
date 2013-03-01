@@ -22,7 +22,7 @@ class Display:
 
     Because SimpleCV performs this scaling there are two sets of input mouse coordinates,
     the (mousex,mousey) which scale to the image, and (mouseRawX, mouseRawY) which
-    do are the actual screen coordinates. 
+    do are the actual screen coordinates.
 
     * pygame.FULLSCREEN: create a fullscreen display.
     * pygame.DOUBLEBUF: recommended for HWSURFACE or OPENGL.
@@ -50,9 +50,9 @@ class Display:
     * mouseMiddle: the state of the middle button.
     * mouseWheelUp: scroll wheel has been moved up.
     * mouseWheelDown: the wheel has been clicked towards the bottom of the mouse.
-    
+
     **EXAMPLE**
-    
+
     >>> display = Display(resolution = (800, 600)) #create a new display to draw images on
     >>> cam = Camera() #initialize the camera
     >>> done = False # setup boolean to stop the program
@@ -63,7 +63,7 @@ class Display:
     >>>      display.done = True
 
     """
-    
+
     resolution = ''
     sourceresolution = ''
     sourceoffset = ''
@@ -71,10 +71,10 @@ class Display:
     eventhandler = ''
     mq = ''
     done = False
-    mouseX = 0 # These are the scaled mouse values. If you want to do image manipulation use these. 
+    mouseX = 0 # These are the scaled mouse values. If you want to do image manipulation use these.
     mouseY = 0
     mouseRawX = 0 # Raw x and y are the actual position on the screen
-    mouseRawY = 0 # versus the position on the image. 
+    mouseRawY = 0 # versus the position on the image.
     mouseLeft = 0
     mouseMiddle = 0
     mouseRight = 0
@@ -96,7 +96,7 @@ class Display:
 
     def __repr__(self):
         return "<SimpleCV.Display Object resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.resolution, self.imgw, self.imgh, hex(id(self)))
-    
+
     def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
         """
         **SUMMARY**
@@ -108,16 +108,16 @@ class Display:
         you just need to start IPython Notebooks and open in your browser.
 
         **PARAMETERS**
-        
-        * *resolution* - the size of the diplay in pixels. 
+
+        * *resolution* - the size of the diplay in pixels.
         * *flags* - ???
-        * *title* - the title bar on the display. 
+        * *title* - the title bar on the display.
         * *displaytype* - The type of display. Options are as follows:
-        
+
           * 'standard' - A pygame window.
           * 'notebook' - Ipython Web Notebook output
-       
-        * *headless* - If False we ignore healess mode. If true all rendering is suspended. 
+
+        * *headless* - If False we ignore healess mode. If true all rendering is suspended.
 
         **EXAMPLE**
 
@@ -127,13 +127,13 @@ class Display:
         >>> disp = Display(displaytype='notebook')
         >>> img = Image('simplecv')
         >>> img.save(disp)
-        
+
         """
         global PYGAME_INITIALIZED
 
         if headless:
-          os.environ["SDL_VIDEODRIVER"] = "dummy"
-        
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+
         if not PYGAME_INITIALIZED:
             if not displaytype == 'notebook':
                 pg.init()
@@ -151,7 +151,7 @@ class Display:
         self.displaytype = displaytype
 
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
-        self.mouseRawY = 0 # versus the position on the image. 
+        self.mouseRawY = 0 # versus the position on the image.
         self.resolution = resolution
         if not displaytype == 'notebook':
             self.screen = pg.display.set_mode(resolution, flags)
@@ -159,21 +159,21 @@ class Display:
         pg.display.set_icon(scvLogo.getPGSurface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
-          
+
     def leftButtonUpPosition(self):
         """
         **SUMMARY**
-        
+
         Returns the position where the left mouse button went up.
 
         .. warning::
-          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
-          in your main display loop for this method to work. 
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone`
+          in your main display loop for this method to work.
 
         **RETURNS**
-        
+
         An (x,y) mouse postion tuple where the mouse went up.
-        
+
         **EXAMPLE**
 
         >>> disp = Display((600,800))
@@ -194,27 +194,27 @@ class Display:
         :py:meth:`rightButtonDownPostion`
         :py:meth:`pointsToBoundingBox`
 
-      
+
         """
         return self.leftButtonUp
 
     def leftButtonDownPosition(self):
         """
         **SUMMARY**
-        
+
         Returns the position where the left mouse button went down.
 
         .. warning::
-          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
-          in your main display loop for this method to work. 
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone`
+          in your main display loop for this method to work.
 
 
         **RETURNS**
-        
+
         An (x,y) mouse postion tuple where the mouse went up.
-        
+
         **EXAMPLE**
-        
+
         >>> disp = Display((600,800))
         >>> cam = Camera()
         >>> while(disp.isNotDone()):
@@ -234,7 +234,7 @@ class Display:
         :py:meth:`pointsToBoundingBox`
         :py:meth:`checkEvents`
 
-        
+
         """
 
         return self.leftButtonDown
@@ -242,20 +242,20 @@ class Display:
     def rightButtonUpPosition(self):
         """
         **SUMMARY**
-        
+
         Returns the position where the right mouse button went up.
 
         .. warning::
-          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
-          in your main display loop for this method to work. 
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone`
+          in your main display loop for this method to work.
 
 
         **RETURNS**
-        
+
         An (x,y) mouse postion tuple where the mouse went up.
-        
+
         **EXAMPLE**
-        
+
         >>> disp = Display((600,800))
         >>> cam = Camera()
         >>> while(disp.isNotDone()):
@@ -287,17 +287,17 @@ class Display:
     def rightButtonDownPosition(self):
         """
         **SUMMARY**
-        
+
         Returns the position where the right mouse button went down.
 
         .. warning::
-          You must call :py:meth:`checkEvents` or :py:meth:`isDone` 
-          in your main display loop for this method to work. 
+          You must call :py:meth:`checkEvents` or :py:meth:`isDone`
+          in your main display loop for this method to work.
 
         **RETURNS**
-        
+
         An (x,y) mouse postion tuple where the mopuse went down.
-        
+
         **EXAMPLE**
 
         >>> disp = Display((600,800))
@@ -326,13 +326,13 @@ class Display:
         """
         **SUMMARY**
 
-        Given two screen cooridnates return the bounding box in x,y,w,h format.         
+        Given two screen cooridnates return the bounding box in x,y,w,h format.
         This is helpful for drawing regions on the display.
 
         **RETURNS**
-        
+
         The bounding box from two coordinates as a ( x,y,w,h) tuple.
-        
+
         **EXAMPLE**
 
         >>> disp = Display((600,800))
@@ -345,7 +345,7 @@ class Display:
         >>>     bb = disp.pointsToBoundingBox(up,dwn)
         >>>     img.drawRectangle(bb[0],bb[1],bb[2],bb[3])
         >>>   img.save(disp)
-        
+
 
         **SEE ALSO**
 
@@ -367,34 +367,34 @@ class Display:
 
         writeFrame copies the given Image object to the display, you can also use
         Image.save()
-        
+
         Write frame trys to fit the image to the display with the minimum ammount
         of distortion possible. When fit=True write frame will decide how to scale
         the image such that the aspect ratio is maintained and the smallest amount
         of distorition possible is completed. This means the axis that has the minimum
-        scaling needed will be shrunk or enlarged to match the display.        
-        
-        
+        scaling needed will be shrunk or enlarged to match the display.
+
+
         **PARAMETERS**
-        
-        * *img* -  the SimpleCV image to save to the display. 
+
+        * *img* -  the SimpleCV image to save to the display.
         * *fit* - When fit=False write frame will crop and center the image as best it can.
           If the image is too big it is cropped and centered. If it is too small
           it is centered. If it is too big along one axis that axis is cropped and
           the other axis is centered if necessary.
 
-        
+
         **RETURNS**
-        
+
         Nothing.
 
         **EXAMPLE**
-        
+
         >>> img = Image("lenna")
         >>> disp = Display((512,512))
         >>> disp.writeFrame(img)
-        
- 
+
+
         """
         # Grrrrr we're going to need to re-write this functionality
         # So if the image is the right size do nothing
@@ -408,7 +408,7 @@ class Display:
         #   if one / both axis is too big - crop it
         #   if one / both too small - center along axis
         #
-        # this is getting a little long. Probably needs to be refactored. 
+        # this is getting a little long. Probably needs to be refactored.
         wndwAR = float(self.resolution[0])/float(self.resolution[1])
         imgAR = float(img.width)/float(img.height)
         self.sourceresolution = img.size()
@@ -422,16 +422,16 @@ class Display:
         if( img.size() == self.resolution): # we have to resize
             s = img.getPGSurface()
             self.screen.blit(s, s.get_rect())
-            pg.display.flip() 
+            pg.display.flip()
         elif( imgAR == wndwAR ):
             self.xscale = (float(img.width)/float(self.resolution[0]))
             self.yscale = (float(img.height)/float(self.resolution[1]))
             img = img.scale(self.resolution[0], self.resolution[1])
             s = img.getPGSurface()
             self.screen.blit(s, s.get_rect())
-            pg.display.flip() 
+            pg.display.flip()
         elif(fit):
-            #scale factors 
+            #scale factors
             wscale = (float(img.width)/float(self.resolution[0]))
             hscale = (float(img.height)/float(self.resolution[1]))
             targetw = img.width
@@ -500,14 +500,14 @@ class Display:
             self.xoffset = targetx
             self.yoffset = targety
             self.xscale = (float(self.imgw)/float(targetw))
-            self.yscale = (float(self.imgh)/float(targeth))     
+            self.yscale = (float(self.imgh)/float(targeth))
         else: # we're going to crop instead
             self.doClamp = False
             targetx = 0
             targety = 0
             cornerx = 0
             cornery = 0
-            if(img.width <= self.resolution[0] and img.height <= self.resolution[1] ): # center a too small image 
+            if(img.width <= self.resolution[0] and img.height <= self.resolution[1] ): # center a too small image
                 #we're too small just center the thing
                 targetx = (self.resolution[0]/2)-(img.width/2)
                 targety = (self.resolution[1]/2)-(img.height/2)
@@ -553,12 +553,12 @@ class Display:
             self.yoffset = cornery
             black = pg.Surface((self.resolution[0], self.resolution[1]))
             black.fill((0,0,0))
-            self.screen.blit(black,black.get_rect())                    
+            self.screen.blit(black,black.get_rect())
             self.screen.blit(s,(targetx,targety))
             pg.display.flip()
-                
 
-      
+
+
     def _setButtonState(self, state, button):
         if button == 1:
             self.mouseLeft = state
@@ -570,22 +570,26 @@ class Display:
             self.mouseWheelUp = 1
         if button == 5:
             self.mouseWheelDown = 1
-      
-    def checkEvents(self):
+
+    def checkEvents(self,returnStrings=False):
         """
         **SUMMARY**
 
         CheckEvents checks the pygame event queue and sets the internal display
         values based on any new generated events.
-        
-        .. warning:: 
-          This method must be called (or :py:meth:`isDone` or :py:meth:`isNotDone`) to
-          perform mouse event checking. 
 
+        .. warning::
+          This method must be called (or :py:meth:`isDone` or :py:meth:`isNotDone`) to
+          perform mouse event checking.
+
+        **PARAMETERS**
+
+        * *returnStrings* - pygame returns an enumerated int by default, when this is set to
+                            true we return a list of strings.
         **RETURNS**
 
         A list of key down events. Parse them with pg.K_<lowercase_letter>
-        
+
         """
         self.mouseWheelUp = self.mouseWheelDown = 0
         self.lastLeftButton = self.mouseLeft
@@ -609,11 +613,14 @@ class Display:
             if event.type == pg.MOUSEBUTTONUP:
 
                 self._setButtonState(0, event.button)
-                
+
             if event.type == pg.MOUSEBUTTONDOWN:
                 self._setButtonState(1, event.button)
             if event.type == pg.KEYDOWN:
-                key.append(event.key)
+                if(returnStrings):
+                    key.append(pg.key.name(event.key))
+                else:
+                    key.append(event.key)
 
         pressed = pg.key.get_pressed()
 
@@ -632,25 +639,25 @@ class Display:
             self.done = True
 
         return key
-            
+
     def isDone(self):
         """
         **SUMMARY**
 
         Checks the event queue and returns True if a quit event has been issued.
-        
+
         **RETURNS**
-        
+
         True on a quit event, False otherwise.
 
         **EXAMPLE**
-        
+
         >>> disp = Display()
         >>> cam = Camera()
         >>> while not disp.isDone():
         >>>   img = cam.getImage()
         >>>   img.save(disp)
-       
+
         """
         self.checkEvents()
         return self.done
@@ -662,20 +669,20 @@ class Display:
         Checks the event queue and returns False as long as the quit event hasn't been issued.
 
         **RETURNS**
-        
+
         False on a quit event, True otherwise.
 
         **EXAMPLE**
-        
+
         >>> disp = Display()
         >>> cam = Camera()
         >>> while disp.isNotDone():
         >>>   img = cam.getImage()
         >>>   img.save(disp)
-       
+
         """
         return not self.isDone()
-    
+
     def _clamp(self,x,y):
         """
         clamp all values between zero and the image width
@@ -686,13 +693,13 @@ class Display:
             rx = self.imgw
         if(x < 0 ):
             rx = 0
-        
+
         if(y > self.imgh):
             ry = self.imgh
         if(y < 0 ):
-            ry = 0   
+            ry = 0
         return (rx,ry)
-        
+
     def quit(self):
         """
         quit the pygame instance

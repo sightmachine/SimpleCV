@@ -29,28 +29,28 @@ coins = img.invert().findBlobs(minsize=200)
 
 #Here we compute the scale factor
 if coins:
-		c = coins[-1]
-		diameter = c.radius() * 2
-		sizeRatio = quarterSize / diameter
+    c = coins[-1]
+    diameter = c.radius() * 2
+    sizeRatio = quarterSize / diameter
 
 #Now we print the measurements back on the picture
 for coin in coins:
-		#get the physical size of the coin
-		size = (coin.radius() * 2) * sizeRatio
-		#label the coin accordingly
-		if size > 18 and size < 20:
-			text = "Type: penny"
-		elif size > 20 and size < 23:
-			text = "Type: nickel"
-		elif size > 16 and size < 18:
-			text = "Type: dime"
-		elif size > 23 and size < 26:
-			text = "Type: quarter"
-		else:
-			text = "unknown"
+    #get the physical size of the coin
+    size = (coin.radius() * 2) * sizeRatio
+    #label the coin accordingly
+    if size > 18 and size < 20:
+        text = "Type: penny"
+    elif size > 20 and size < 23:
+        text = "Type: nickel"
+    elif size > 16 and size < 18:
+        text = "Type: dime"
+    elif size > 23 and size < 26:
+        text = "Type: quarter"
+    else:
+        text = "unknown"
 
-		text = text + ", Size:" + str(size) + "mm"
-		img.drawText(text, coin.x, coin.y)
+    text = text + ", Size:" + str(size) + "mm"
+    img.drawText(text, coin.x, coin.y)
 
 img.show()
 time.sleep(10)
