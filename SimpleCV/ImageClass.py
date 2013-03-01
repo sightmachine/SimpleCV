@@ -4482,14 +4482,14 @@ class Image:
 
     def __setitem__(self, coord, value):
         value = tuple(reversed(value))  #RGB -> BGR
-        # TODO - this needs to be refactored
-        if(coord[0] >= self.width or coord[1] >= self.height or coord[0]<0 or coord[1] < 0):
-            return
-        if is_tuple(self.getMatrix()[tuple(reversed(coord))]):
-            self.getMatrix()[tuple(reversed(coord))] = value
-        else:
+
+        if(isinstance(coord[0],slice)):
             cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
             self._clearBuffers("_matrix")
+        else:
+            self.getMatrix()[tuple(reversed(coord))] = value
+            self._clearBuffers("_matrix")
+
 
 
     def __sub__(self, other):
