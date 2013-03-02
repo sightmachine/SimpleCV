@@ -12642,6 +12642,75 @@ class Image:
         if( invert ):
             newmask = mask.invert()
         return self.findBlobsFromMask(newmask,minsize=minsize,maxsize=maxsize)
+
+    def maxValue(self,locations=False):
+        """
+        **SUMMARY**
+        Returns the brightest/maximum pixel value in the
+        grayscale image. This method can also return the
+        locations of pixels with this value.
+
+        **PARAMETERS**
+
+        * *locations* - If true return the location of pixels
+           that have this value.
+        
+        **RETURNS**
+
+        The maximum value and optionally the list of points as
+        a list of (x,y) tuples.
+        
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> max = img.maxValue()
+        >>> min, pts = img.minValue(locations=True)
+        >>> img2 = img.stretch(min,max)
+
+        """
+        if(locations):
+            val = np.max(self.getGrayNumpy())
+            x,y = np.where(self.getGrayNumpy()==val)
+            locs = zip(x.tolist(),y.tolist())
+            return val,locs
+        else:
+            val = np.max(self.getGrayNumpy())
+            return val
+                
+    def minValue(self,locations=False):
+        """
+        **SUMMARY**
+        Returns the darkest/minimum pixel value in the
+        grayscale image. This method can also return the
+        locations of pixels with this value.
+
+        **PARAMETERS**
+
+        * *locations* - If true return the location of pixels
+           that have this value.
+        
+        **RETURNS**
+
+        The minimum value and optionally the list of points as
+        a list of (x,y) tuples.
+        
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> max = img.maxValue()
+        >>> min, pts = img.minValue(locations=True)
+        >>> img2 = img.stretch(min,max)
+
+        """
+        if(locations):
+            val = np.min(self.getGrayNumpy())
+            x,y = np.where(self.getGrayNumpy()==val)
+            locs = zip(x.tolist(),y.tolist())
+            return val,locs
+        else:
+            val = np.min(self.getGrayNumpy())
+            return val
+            
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer
