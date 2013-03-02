@@ -161,7 +161,7 @@ def setup_shell():
 
         return scvShell
 
-def run_notebook():
+def run_notebook(mainArgs):
     'Run the ipython notebook server'
     from IPython.frontend.html.notebook import notebookapp
     from IPython.frontend.html.notebook import kernelmanager
@@ -172,10 +172,11 @@ def run_notebook():
 
     kernelmanager.MappingKernelManager.first_beat=30.0
     app = notebookapp.NotebookApp.instance()
-    app.initialize([
+    mainArgs += [
             '--port', '5050',
             '--c', code,
-            ])
+            ]
+    app.initialize(mainArgs)
     app.start()
     sys.exit()
 
@@ -195,7 +196,7 @@ def main(*args):
     if len(sys.argv) > 1 and len(sys.argv[1]) > 1:
         flag = sys.argv[1]
         if flag == "notebook" and IPVER > 10:
-            run_notebook()
+            run_notebook(sys.argv[1:])
             sys.exit()
 
         elif flag == 'update':
