@@ -3204,3 +3204,11 @@ def test_watershed():
     result = [img1,img2,img3,img4]
     name_stem = "test_watershed"
     perform_diff(result,name_stem,3.0)
+
+def test_minmax():
+    img = Image('../sampleimages/wshed.jpg')
+    min = img.minValue()
+    min,pts = img.minValue(locations=True)
+    max = img.maxValue()
+    max,pts = img.maxValue(locations=True)
+    pass

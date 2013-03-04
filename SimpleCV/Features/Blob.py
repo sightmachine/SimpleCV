@@ -870,12 +870,6 @@ class Blob(Feature):
         radius = min(w,h) / 2
         idealcircle.dl().circle((w/2, h/2), radius, filled= True, color=Color.WHITE)
         idealcircle = idealcircle.applyLayers()
-        print self.mHullMask
-        print idealcircle
-        print self.mHullMask.width
-        print self.mHullMask.height
-        print idealcircle.width
-        print idealcircle.height
         netdiff = (idealcircle - self.mHullMask) + (self.mHullMask - idealcircle)
         numblack, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
