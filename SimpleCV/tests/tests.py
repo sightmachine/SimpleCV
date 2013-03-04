@@ -3212,3 +3212,84 @@ def test_minmax():
     max = img.maxValue()
     max,pts = img.maxValue(locations=True)
     pass
+
+def testROIFeature():
+    img = Image(testimageclr)
+    mask = img.threshold(248).dilate(5)
+    blobs = img.findBlobsFromMask(mask,minsize=1)
+    x,y = np.where(mask.getGrayNumpy()>0)
+    xmin = np.min(x)
+    xmax = np.max(x)
+    ymin = np.min(y)
+    ymax = np.max(y)
+    w = xmax-xmin
+    h = ymax-ymin
+    roiList = []
+
+    def subtest(data,effect):
+        broke = False
+        first = effect(data[0])
+        i = 0
+        for d in data:
+            e = effect(d)
+            print (i,e)
+            i = i + 1
+            if( first != e ):
+                broke = True
+        return broke
+
+    broi = ROI(blobs)
+    broi2 = ROI(blobs,image=img)
+
+    roiList.append(ROI(x=x,y=y,image=img))
+    roiList.append(ROI(x=list(x),y=list(y),image=img))
+    roiList.append(ROI(x=tuple(x),y=tuple(y),image=img))
+    roiList.append(ROI(zip(x,y),image=img))
+    roiList.append(ROI((xmin,ymin),(xmax,ymax),image=img))
+    roiList.append(ROI(xmin,ymin,w,h,image=img))
+    roiList.append(ROI([(xmin,ymin),(xmax,ymin),(xmax,ymax),(xmin,ymax)],image=img))
+    roiList.append(ROI(roiList[0]))
+
+    # test the basics
+    def toXYWH( roi ):
+        return roi.toXYWH()
+        
+    if( subtest(roiList,toXYWH) ):
+        assert False
+    broi.translate(10,10)
+    broi.translate(-10)
+    broi.translate(y=-10)
+    broi.toTLAndBR()
+    broi.toPoints()
+    broi.toUnitXYWH()
+    broi.toUnitTLAndBR()
+    broi.toUnitPoints()
+    roiList[0].crop()
+    newROI=ROI(zip(x,y),image=mask)
+    test = newROI.crop()
+    xroi,yroi = np.where(test.getGrayNumpy()>128)
+    roiPts = zip(xroi,yroi)
+    realPts = newROI.CoordTransformPts(roiPts)
+    unitROI = newROI.CoordTransformPts(roiPts,output="ROI_UNIT")
+    unitSRC = newROI.CoordTransformPts(roiPts,output="SRC_UNIT")
+    src1 = newROI.CoordTransformPts(roiPts,intype="SRC_UNIT",output='SRC')
+    src2 = newROI.CoordTransformPts(roiPts,intype="ROI_UNIT",output='SRC')
+    src3 = newROI.CoordTransformPts(roiPts,intype="SRC_UNIT",output='ROI')
+    src4 = newROI.CoordTransformPts(roiPts,intype="ROI_UNIT",output='ROI')
+    fs = newROI.splitX(10)
+    fs = newROI.splitX(.5,unitVals=True)
+    for f in fs:
+        f.draw(color=Color.BLUE)
+    fs = newROI.splitX(newROI.xtl+10,srcVals=True)
+    xs = newROI.xtl
+    fs = newROI.splitX([10,20])
+    fs = newROI.splitX([xs+10,xs+20,xs+30],srcVals=True)
+    fs = newROI.splitX([0.3,0.6,0.9],unitVals=True)
+    fs = newROI.splitY(10)
+    fs = newROI.splitY(.5,unitVals=True)
+    for f in fs:
+        f.draw(color=Color.BLUE)
+    fs = newROI.splitY(newROI.ytl+30,srcVals=True)
+    testROI = ROI(blobs[0],mask)
+    for b in blobs[1:]:
+        testROI.merge(b)
