@@ -5207,13 +5207,19 @@ class Image:
         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
-        retVal = self.getEmpty()
-        if(type(rotMatrix) == np.ndarray ):
-            rotMatrix = npArray2cvMat(rotMatrix)
-        cv.WarpPerspective(self.getBitmap(), retVal, rotMatrix)
-        return Image(retVal, colorSpace=self._colorSpace)
-
-
+        try:
+            import cv2
+            if( type(rotMatrix) !=  np.ndarray ):
+                rotMatrix = np.array(rotMat)
+            retVal = cv2.warpPerspective(src=np.array(self.getMatrix()), dsize=(self.height,self.width),M=rotMatrix,flags = cv2.INTER_CUBIC)
+            return Image(retVal, colorSpace=self._colorSpace)
+        except:            
+            retVal = self.getEmpty()
+            if(type(rotMatrix) == np.ndarray ):
+                rotMatrix = npArray2cvMat(rotMatrix)
+            cv.WarpPerspective(self.getBitmap(), retVal, rotMatrix)
+            return Image(retVal, colorSpace=self._colorSpace)
+            
     def getPixel(self, x, y):
         """
         **SUMMARY**
@@ -7248,15 +7254,15 @@ class Image:
 
         """
         if(template_image == None):
-            logger.warning( "Need image for matching")
+            logger.info( "Need image for matching")
             return
 
         if(template_image.width > self.width):
-            logger.warning( "Image too wide")
+            logger.info( "Image too wide")
             return
 
         if(template_image.height > self.height):
-            logger.warning("Image too tall")
+            logger.info("Image too tall")
             return
 
         check = 0; # if check = 0 we want maximal value, otherwise minimal
@@ -8057,7 +8063,7 @@ class Image:
             for i in range(0,len(idx)):
                 if( result[i] ):
                     lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
 
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
