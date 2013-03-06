@@ -118,7 +118,8 @@ class Color:
                 DEFAULT
                 ]
 
-    def getRandom(self):
+    @classmethod
+    def getRandom(cls):
         """
         **SUMMARY**
 
@@ -137,8 +138,8 @@ class Color:
         >>> img.show()
 
         """
-        r = random.randint(1, (len(self.colorlist) - 1))
-        return self.colorlist[r]
+        r = random.randint(1, (len(cls.colorlist) - 1))
+        return cls.colorlist[r]
 
     @classmethod
     def hsv(cls, tuple):
