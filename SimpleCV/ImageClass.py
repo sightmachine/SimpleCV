@@ -8030,20 +8030,19 @@ class Image:
         :py:meth:`findKeypoints`
 
         """
-
         try:
             import cv2
         except:
-            logger.warning("Can't Match Keypoints without OpenCV >= 2.3.0")
+            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
             return
-
+            
         if template == None:
-            return None
-
+          return None
+        
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
-            logger.warning("I didn't get any keypoints. Image might be too uniform or blurry." )
+            warnings.warn("I didn't get any keypoints. Image might be too uniform or blurry." )
             return None
 
         template_points = float(td.shape[0])
@@ -8057,17 +8056,17 @@ class Image:
         result = p*magic_ratio < minDist #, = np.where( p*magic_ratio < minDist )
         pr = result.shape[0]/float(dist.shape[0])
 
-        if( pr >  minMatch and len(result)>4 ): # if more than minMatch % matches we go ahead and get the data
+        if( pr > minMatch and len(result)>4 ): # if more than minMatch % matches we go ahead and get the data
             lhs = []
             rhs = []
             for i in range(0,len(idx)):
                 if( result[i] ):
-                    lhs.append((tkp[i].pt[0], tkp[i].pt[1]))
-                    rhs.append((skp[idx[i]].pt[1], skp[idx[i]].pt[0]))
-
+                    lhs.append((tkp[i].pt[1], tkp[i].pt[0]))
+                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+            
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
-            if( len(rhs_pt) < 16  or len(lhs_pt) < 16 ):
+            if( len(rhs_pt) < 16 or len(lhs_pt) < 16 ):
                 return None
             homography = []
             (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
@@ -8086,19 +8085,15 @@ class Image:
             pt2p = np.array(pt2*np.matrix(homography))
             pt3p = np.array(pt3*np.matrix(homography))
             #update and clamp the corners to get our template in the other image
-            pt0i = (float(abs(pt0p[0][0]+xo)),float(abs(pt0p[0][1]+yo)))
-            pt1i = (float(abs(pt1p[0][0]+xo)),float(abs(pt1p[0][1]+yo)))
-            pt2i = (float(abs(pt2p[0][0]+xo)),float(abs(pt2p[0][1]+yo)))
-            pt3i = (float(abs(pt3p[0][0]+xo)),float(abs(pt3p[0][1]+yo)))
-            #print "--------------------------"
-            #print str(pt0)+"--->"+str(pt0p)+"--->"+str(pt0i)
-            #print str(pt1)+"--->"+str(pt1p)+"--->"+str(pt1i)
-            #print str(pt2)+"--->"+str(pt2p)+"--->"+str(pt2i)
-            #print str(pt3)+"--->"+str(pt3p)+"--->"+str(pt3i)
-
+            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo))
+            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
+            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
+            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
             #construct the feature set and return it.
             fs = FeatureSet()
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
+            #the homography matrix is necessary for many purposes like image stitching.
+            fs.append(homography)
             return fs
         else:
             return None
