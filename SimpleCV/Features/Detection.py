@@ -1575,20 +1575,8 @@ class KeypointMatch(Feature):
         axes aligned box masked to just include the image data of the minimum bounding
         rectangle.
         """
-        TL = self.topLeftCorner()
-        print TL
-        print self.width()
-        print self.height()
-        print self.points
-        print self._minRect
         raw = self.image.crop(TL[0],TL[1],self.width(),self.height()) # crop the minbouding rect
-        mask = Image((self.width(),self.height()))
-        mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
-        mask = mask.applyLayers()
-        print (mask.width,mask.height)
-        print (raw.width,raw.height)
-        mask.blit(raw,(0,0),alpha=None,mask=mask)
-        return mask
+        return raw
 
     def meanColor(self):
         """
