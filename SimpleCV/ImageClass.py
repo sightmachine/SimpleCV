@@ -10330,20 +10330,20 @@ class Image:
         **EXAMPLE**
 
         >>> im = Image("lenna")
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=True,grayscale=False)
 
         Output image: http://i.imgur.com/5LS3e.png
 
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=False,grayscale=False)
 
         Output img: http://i.imgur.com/QlCAY.png
 
         >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=True,grayscale=True)
 
         Output img: http://i.imgur.com/BYYnp.png
 
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=False,grayscale=True)
 
         Output img: http://i.imgur.com/BYYnp.png
 
@@ -10398,20 +10398,20 @@ class Image:
         **EXAMPLE**
 
         >>> im = Image("lenna")
-        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=True,grayscale=False)
 
         Output image: http://i.imgur.com/DttJv.png
 
-        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=False,grayscale=False)
 
         Output img: http://i.imgur.com/PWn4o.png
 
         >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=True,grayscale=True)
 
         Output img: http://i.imgur.com/9hX5J.png
 
-        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=False,grayscale=True)
 
         Output img: http://i.imgur.com/MXI5T.png
 
@@ -10474,20 +10474,20 @@ class Image:
         Gaussian Filters:
 
         >>> im = Image("lenna")
-        >>> img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        >>> img = im.applyUnsharpMask(2,grayscale=False) #highboost filtering
 
         output image: http://i.imgur.com/A1pZf.png
 
-        >>> img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        >>> img = im.applyUnsharpMask(1,grayscale=False) #unsharp masking
 
         output image: http://i.imgur.com/smCdL.png
 
         >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        >>> img = im.applyUnsharpMask(2,grayscale=True) #highboost filtering
 
         output image: http://i.imgur.com/VtGzl.png
 
-        >>> img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        >>> img = im.applyUnsharpMask(1,grayscale=True) #unsharp masking
 
         output image: http://i.imgur.com/bywny.png
 
