@@ -10,9 +10,9 @@ import time
 import ctypes as ct
 
 #Globals
-_cameras = [] 
+_cameras = []
 _camera_polling_thread = ""
- 
+
 
 class FrameBufferThread(threading.Thread):
     """
@@ -46,20 +46,20 @@ class FrameSource:
     Any sources of images inheirit from it
 
     """
-    _calibMat = "" #Intrinsic calibration matrix 
+    _calibMat = "" #Intrinsic calibration matrix
     _distCoeff = "" #Distortion matrix
     _threadcapturetime = '' #when the last picture was taken
     capturetime = '' #timestamp of the last aquired image
-    
+
     def __init__(self):
         return
-    
+
     def getProperty(self, p):
         return None
-  
+
     def getAllProperties(self):
         return {}
-  
+
     def getImage(self):
         return None
 
@@ -73,66 +73,66 @@ class FrameSource:
         The easiest way to run calibration is to run the
         calibrate.py file under the tools directory for SimpleCV.
         This will walk you through the calibration process.
-    
+
         **PARAMETERS**
 
-        * *imageList* - is a list of images of color calibration images. 
-    
-        * *grid_sz* - is the actual grid size of the calibration grid, the unit used will be 
+        * *imageList* - is a list of images of color calibration images.
+
+        * *grid_sz* - is the actual grid size of the calibration grid, the unit used will be
           the calibration unit value (i.e. if in doubt use meters, or U.S. standard)
-    
+
         * *dimensions* - is the the count of the *interior* corners in the calibration grid.
           So for a grid where there are 4x4 black grid squares has seven interior corners.
-          
+
         **RETURNS**
 
         The camera's intrinsic matrix.
 
         **EXAMPLE**
-        
+
         See :py:module:calibrate.py
 
         """
         # This routine was adapted from code originally written by:
         # Abid. K  -- abidrahman2@gmail.com
         # See: https://github.com/abidrahmank/OpenCV-Python/blob/master/Other_Examples/camera_calibration.py
-    
+
         warn_thresh = 1
-        n_boards = 0	#no of boards
-        board_w = int(dimensions[0])	# number of horizontal corners
-        board_h = int(dimensions[1])	# number of vertical corners
+        n_boards = 0    #no of boards
+        board_w = int(dimensions[0])    # number of horizontal corners
+        board_h = int(dimensions[1])    # number of vertical corners
         n_boards = int(len(imageList))
-        board_n = board_w * board_h		# no of total corners
-        board_sz = (board_w, board_h)	#size of board
+        board_n = board_w * board_h             # no of total corners
+        board_sz = (board_w, board_h)   #size of board
         if( n_boards < warn_thresh ):
-            logger.warning("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" ) 
-    
+            logger.warning("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" )
+
         #  creation of memory storages
         image_points = cv.CreateMat(n_boards * board_n, 2, cv.CV_32FC1)
         object_points = cv.CreateMat(n_boards * board_n, 3, cv.CV_32FC1)
         point_counts = cv.CreateMat(n_boards, 1, cv.CV_32SC1)
         intrinsic_matrix = cv.CreateMat(3, 3, cv.CV_32FC1)
         distortion_coefficient = cv.CreateMat(5, 1, cv.CV_32FC1)
-    
-        #	capture frames of specified properties and modification of matrix values
+
+        #       capture frames of specified properties and modification of matrix values
         i = 0
-        z = 0		# to print number of frames
+        z = 0           # to print number of frames
         successes = 0
         imgIdx = 0
-        #	capturing required number of views
+        #       capturing required number of views
         while(successes < n_boards):
             found = 0
             img = imageList[imgIdx]
             (found, corners) = cv.FindChessboardCorners(img.getGrayscaleMatrix(), board_sz,
-                                                     cv.CV_CALIB_CB_ADAPTIVE_THRESH | 
+                                                     cv.CV_CALIB_CB_ADAPTIVE_THRESH |
                                                      cv.CV_CALIB_CB_FILTER_QUADS)
             corners = cv.FindCornerSubPix(img.getGrayscaleMatrix(), corners,(11, 11),(-1, -1),
-                                        (cv.CV_TERMCRIT_EPS + cv.CV_TERMCRIT_ITER, 30, 0.1)) 	
+                                        (cv.CV_TERMCRIT_EPS + cv.CV_TERMCRIT_ITER, 30, 0.1))
             # if got a good image,draw chess board
             if found == 1:
                 corner_count = len(corners)
                 z = z + 1
-      
+
             # if got a good image, add to matrix
             if len(corners) == board_n:
                 step = successes * board_n
@@ -146,15 +146,15 @@ class FrameSource:
                     k = k + 1
                 cv.Set2D(point_counts, successes, 0, board_n)
                 successes = successes + 1
-    
+
         # now assigning new matrices according to view_count
         if( successes < warn_thresh ):
-            logger.warning("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes, warn_thresh)) 
-    
+            logger.warning("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes, warn_thresh))
+
         object_points2 = cv.CreateMat(successes * board_n, 3, cv.CV_32FC1)
         image_points2 = cv.CreateMat(successes * board_n, 2, cv.CV_32FC1)
         point_counts2 = cv.CreateMat(successes, 1, cv.CV_32SC1)
-    
+
         for i in range(successes * board_n):
             cv.Set2D(image_points2, i, 0, cv.Get2D(image_points, i, 0))
             cv.Set2D(image_points2, i, 1, cv.Get2D(image_points, i, 1))
@@ -163,7 +163,7 @@ class FrameSource:
             cv.Set2D(object_points2, i, 2, cv.Get2D(object_points, i, 2))
         for i in range(successes):
             cv.Set2D(point_counts2, i, 0, cv.Get2D(point_counts, i, 0))
-    
+
         cv.Set2D(intrinsic_matrix, 0, 0, 1.0)
         cv.Set2D(intrinsic_matrix, 1, 1, 1.0)
         rcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
@@ -180,8 +180,8 @@ class FrameSource:
         """
         **SUMMARY**
 
-        This function returns a cvMat of the camera's intrinsic matrix. 
-        If there is no matrix defined the function returns None. 
+        This function returns a cvMat of the camera's intrinsic matrix.
+        If there is no matrix defined the function returns None.
 
         """
         return self._calibMat
@@ -191,30 +191,30 @@ class FrameSource:
         **SUMMARY**
 
         If given an image, apply the undistortion given by the camera's matrix and return the result.
-        
+
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort points of
         measurement and return them in the original coordinate system.
-        
+
         **PARAMETERS**
-        
+
         * *image_or_2darray* - an image or an ndarray.
-        
+
         **RETURNS**
-        
-        The undistorted image or the undistorted points. If the camera is un-calibrated 
+
+        The undistorted image or the undistorted points. If the camera is un-calibrated
         we return None.
 
         **EXAMPLE**
-        
+
         >>> img = cam.getImage()
         >>> result = cam.undistort(img)
 
-        
+
         """
         if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
             logger.warning("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
             return None
-           
+
         if (type(image_or_2darray) == InstanceType and image_or_2darray.__class__ == Image):
             inImg = image_or_2darray # we have an image
             retVal = inImg.getEmpty()
@@ -228,12 +228,12 @@ class FrameSource:
                 arr = cv.fromarray(np.array(image_or_2darray))
                 mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv.CV_64FC2)
                 cv.Merge(arr[:, 0], arr[:, 1], None, None, mat)
-             
+
             upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv.CV_64FC2)
             cv.UndistortPoints(mat, upoints, self._calibMat, self._distCoeff)
-            
-            #undistorted.x = (x* focalX + principalX);  
-            #undistorted.y = (y* focalY + principalY);  
+
+            #undistorted.x = (x* focalX + principalX);
+            #undistorted.y = (y* focalY + principalY);
             return (np.array(upoints[:, 0]) *\
                 [self.getCameraMatrix()[0, 0], self.getCameraMatrix()[1, 1]] +\
                 [self.getCameraMatrix()[0, 2], self.getCameraMatrix()[1, 2]])[:, 0]
@@ -243,15 +243,15 @@ class FrameSource:
         **SUMMARY**
 
         Using the overridden getImage method we retrieve the image and apply the undistortion
-        operation. 
+        operation.
 
 
         **RETURNS**
-        
+
         The latest image from the camera after applying undistortion.
 
         **EXAMPLE**
-        
+
         >>> cam = Camera()
         >>> cam.loadCalibration("mycam.xml")
         >>> while True:
@@ -260,8 +260,8 @@ class FrameSource:
 
         """
         return self.undistort(self.getImage())
-  
-  
+
+
     def saveCalibration(self, filename):
         """
         **SUMMARY**
@@ -270,17 +270,17 @@ class FrameSource:
         The default extension is .xml.
 
         **PARAMETERS**
-        
+
         * *fileneame* - The file name, without an extension, to which to save the calibration data.
-        
+
         **RETURNS**
 
-        Returns true if the file was saved , false otherwise. 
+        Returns true if the file was saved , false otherwise.
 
         **EXAMPLE**
 
         See :py:module:calibrate.py
-        
+
 
         """
         if( type(self._calibMat) != cv.cvmat ):
@@ -291,10 +291,10 @@ class FrameSource:
 
         if( type(self._distCoeff) != cv.cvmat ):
             logger.warning("FrameSource.saveCalibration: No calibration distortion present, can't save.")
-        else:      
+        else:
             distFName = filename + "Distortion.xml"
             cv.Save(distFName, self._distCoeff)
-        
+
         return None
 
     def loadCalibration(self, filename):
@@ -307,17 +307,17 @@ class FrameSource:
         then load the calibration file "MyWebcam"
 
         **PARAMETERS**
-        
+
         * *fileneame* - The file name, without an extension, to which to save the calibration data.
-        
+
         **RETURNS**
 
-        Returns true if the file was loaded , false otherwise. 
+        Returns true if the file was loaded , false otherwise.
 
         **EXAMPLE**
 
         See :py:module:calibrate.py
- 
+
         """
         retVal = False
         intrFName = filename + "Intrinsic.xml"
@@ -327,9 +327,9 @@ class FrameSource:
         if( type(self._distCoeff) == cv.cvmat
             and type(self._calibMat) == cv.cvmat):
             retVal = True
-    
+
         return retVal
-    
+
     def live(self):
         """
         **SUMMARY**
@@ -348,7 +348,7 @@ class FrameSource:
         """
 
         start_time = time.time()
-        
+
         from SimpleCV.Display import Display
         i = self.getImage()
         d = Display(i.size())
@@ -356,43 +356,43 @@ class FrameSource:
         col = Color.RED
 
         while d.isNotDone():
-          i = self.getImage()
-          elapsed_time = time.time() - start_time
-          
-
-          if d.mouseLeft:
-            txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
-            i.dl().text(txt, (10,i.height / 2), color=col)
-            txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
-            i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-            print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            i = self.getImage()
+            elapsed_time = time.time() - start_time
 
 
-          if elapsed_time > 0 and elapsed_time < 5:
-            
-            i.dl().text("In live mode", (10,10), color=col)
-            i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
-            i.dl().text("Right click will kill the live image", (10,30), color=col)
+            if d.mouseLeft:
+                txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+                i.dl().text(txt, (10,i.height / 2), color=col)
+                txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+                i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
 
-          
-          i.save(d)
-          if d.mouseRight:
-            print "Closing Window"
-            d.done = True
 
-        
+            if elapsed_time > 0 and elapsed_time < 5:
+
+                i.dl().text("In live mode", (10,10), color=col)
+                i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+                i.dl().text("Right click will kill the live image", (10,30), color=col)
+
+
+            i.save(d)
+            if d.mouseRight:
+                print "Closing Window"
+                d.done = True
+
+
         pg.quit()
- 
+
 class Camera(FrameSource):
     """
     **SUMMARY**
 
     The Camera class is the class for managing input from a basic camera.  Note
-    that once the camera is initialized, it will be locked from being used 
+    that once the camera is initialized, it will be locked from being used
     by other processes.  You can check manually if you have compatible devices
     on linux by looking for /dev/video* devices.
 
-    This class wrappers OpenCV's cvCapture class and associated methods.  
+    This class wrappers OpenCV's cvCapture class and associated methods.
     Read up on OpenCV's CaptureFromCAM method for more details if you need finer
     control than just basic frame retrieval
     """
@@ -400,8 +400,8 @@ class Camera(FrameSource):
     thread = ""
     pygame_camera = False
     pygame_buffer = ""
-  
-  
+
+
     prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
         "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
         "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
@@ -429,49 +429,49 @@ class Camera(FrameSource):
 
         **PARAMETERS**
 
-        * *camera_index* - The index of the camera, these go from 0 upward, and are system specific. 
-        * *prop_set* - The property set for the camera (i.e. a dict of camera properties). 
+        * *camera_index* - The index of the camera, these go from 0 upward, and are system specific.
+        * *prop_set* - The property set for the camera (i.e. a dict of camera properties).
 
         .. Warning::
-          For most web cameras only the width and height properties are supported. Support 
-          for all of the other parameters varies by camera and operating system. 
+          For most web cameras only the width and height properties are supported. Support
+          for all of the other parameters varies by camera and operating system.
 
-        * *threaded* - If True we constantly debuffer the camera, otherwise the user 
+        * *threaded* - If True we constantly debuffer the camera, otherwise the user
           must do this manually.
 
-        * *calibrationfile* - A calibration file to load. 
+        * *calibrationfile* - A calibration file to load.
 
-   
+
         """
 
-        
+
 
         #This is to add support for XIMEA cameras.
         if isinstance(camera_index, str):
-          if camera_index.lower() == 'ximea':
-            camera_index = 1100
-        
+            if camera_index.lower() == 'ximea':
+                camera_index = 1100
+
         self.capture = cv.CaptureFromCAM(camera_index) #This fixes bug with opencv not being able to grab frames from webcams on linux
-        
+
         if "delay" in prop_set:
-          time.sleep(prop_set['delay'])
-        
+            time.sleep(prop_set['delay'])
+
         if platform.system() == "Linux" and (prop_set.has_key("height") or cv.GrabFrame(self.capture) == False):
             import pygame.camera
             pygame.camera.init()
             threaded = True  #pygame must be threaded
             if camera_index == -1:
-              camera_index = 0
+                camera_index = 0
             if(prop_set.has_key("height") and prop_set.has_key("width")):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index))
 
             try:
-              self.capture.start()
+                self.capture.start()
             except:
-              logger.warning("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
-              return
+                logger.warning("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
+                return
             time.sleep(0)
             self.pygame_buffer = self.capture.get_image()
             self.pygame_camera = True
@@ -479,9 +479,9 @@ class Camera(FrameSource):
             self.threaded = False
             if (platform.system() == "Windows"):
                 threaded = False
-        
+
             if (not self.capture):
-                return None 
+                return None
 
             #set any properties in the constructor
             for p in prop_set.keys():
@@ -496,11 +496,11 @@ class Camera(FrameSource):
                 _camera_polling_thread.daemon = True
                 _camera_polling_thread.start()
                 time.sleep(0) #yield to thread
-        
+
         if calibrationfile:
             self.loadCalibration(calibrationfile)
-          
-        
+
+
     #todo -- make these dynamic attributes of the Camera class
     def getProperty(self, prop):
         """
@@ -509,8 +509,8 @@ class Camera(FrameSource):
         Retrieve the value of a given property, wrapper for cv.GetCaptureProperty
 
         .. Warning::
-          For most web cameras only the width and height properties are supported. Support 
-          for all of the other parameters varies by camera and operating system. 
+          For most web cameras only the width and height properties are supported. Support
+          for all of the other parameters varies by camera and operating system.
 
         **PARAMETERS**
 
@@ -526,16 +526,16 @@ class Camera(FrameSource):
         >>> prop = cam.getProperty("width")
         """
         if self.pygame_camera:
-          if prop.lower() == 'width':
-            return self.capture.get_size()[0]
-          elif prop.lower() == 'height':
-            return self.capture.get_size()[1]
-          else:
-            return False
-            
+            if prop.lower() == 'width':
+                return self.capture.get_size()[0]
+            elif prop.lower() == 'height':
+                return self.capture.get_size()[1]
+            else:
+                return False
+
         if prop in self.prop_map:
             return cv.GetCaptureProperty(self.capture, self.prop_map[prop])
-        return False 
+        return False
 
     def getAllProperties(self):
         """
@@ -544,18 +544,18 @@ class Camera(FrameSource):
         Return all properties from the camera.
 
         **RETURNS**
-        
-        A dict of all the camera properties. 
+
+        A dict of all the camera properties.
 
         """
         if self.pygame_camera:
             return False
-        props = {} 
+        props = {}
         for p in self.prop_map:
             props[p] = self.getProperty(p)
-    
+
         return props
- 
+
     def getImage(self):
         """
         **SUMMARY**
@@ -567,20 +567,20 @@ class Camera(FrameSource):
         We're working on how to solve this problem.
 
         **RETURNS**
-        
+
         A SimpleCV Image from the camera.
 
         **EXAMPLES**
-        
+
         >>> cam = Camera()
         >>> while True:
         >>>    cam.getImage().show()
 
         """
-        
+
         if self.pygame_camera:
             return Image(self.pygame_buffer.copy())
-        
+
         if (not self.threaded):
             cv.GrabFrame(self.capture)
             self.capturetime = time.time()
@@ -593,53 +593,53 @@ class Camera(FrameSource):
         return Image(newimg, self)
 
 
-          
+
 class VirtualCamera(FrameSource):
     """
     **SUMMARY**
 
-    The virtual camera lets you test algorithms or functions by providing 
+    The virtual camera lets you test algorithms or functions by providing
     a Camera object which is not a physically connected device.
-    
+
     Currently, VirtualCamera supports "image", "imageset" and "video" source types.
-   
+
     **USAGE**
 
     * For image, pass the filename or URL to the image
     * For the video, the filename
     * For imageset, you can pass either a path or a list of [path, extension]
     * For directory you treat a directory to show the latest file, an example would be where a security camera logs images to the directory, calling .getImage() will get the latest in the directory
-    
+
     """
     source = ""
     sourcetype = ""
     lastmtime = 0
-  
+
     def __init__(self, s, st, start=1):
         """
         **SUMMARY**
 
-        The constructor takes a source, and source type. 
-        
+        The constructor takes a source, and source type.
+
         **PARAMETERS**
-        
+
         * *s* - the source of the imagery.
         * *st* - the type of the virtual camera. Valid strings include:
-        * *start* - the number of the frame that you want to start with. 
-          
+        * *start* - the number of the frame that you want to start with.
+
           * "image" - a single still image.
           * "video" - a video file.
           * "imageset" - a SimpleCV image set.
           * "directory" - a VirtualCamera for loading a directory
 
         **EXAMPLE**
-          
+
         >>> vc = VirtualCamera("img.jpg", "image")
         >>> vc = VirtualCamera("video.mpg", "video")
         >>> vc = VirtualCamera("./path_to_images/", "imageset")
         >>> vc = VirtualCamera("video.mpg", "video", 300)
         >>> vc = VirtualCamera("./imgs", "directory")
-        
+
 
         """
         self.source = s
@@ -648,7 +648,7 @@ class VirtualCamera(FrameSource):
         if start==0:
             start=1
         self.start = start
-        
+
         if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset" or self.sourcetype == "directory"):
             print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
             print '\tVirtualCamera("filename","video")'
@@ -656,7 +656,7 @@ class VirtualCamera(FrameSource):
             print '\tVirtualCamera("./path_to_images","imageset")'
             print '\tVirtualCamera("./path_to_images","directory")'
             return None
-        
+
         if (type(self.source) == list):
             for source_file in self.source:
                 if not os.path.exists(source_file):
@@ -666,33 +666,33 @@ class VirtualCamera(FrameSource):
             if not os.path.exists(self.source):
                 print 'Error: In VirtualCamera()\n\t"%s" was not found.' % self.source
                 return None
-            
+
         if (self.sourcetype == "imageset"):
             self.source = ImageSet()
             if (type(s) == list):
                 self.source.load(*s)
             else:
                 self.source.load(s)
-        
+
         if (self.sourcetype == 'video'):
             self.capture = cv.CaptureFromFile(self.source)
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
 
         if (self.sourcetype == 'directory'):
             pass
-            
-    
+
+
     def getImage(self):
         """
         **SUMMARY**
 
         Retrieve an Image-object from the virtual camera.
         **RETURNS**
-        
+
         A SimpleCV Image from the camera.
 
         **EXAMPLES**
-        
+
         >>> cam = VirtualCamera()
         >>> while True:
         >>>    cam.getImage().show()
@@ -700,39 +700,39 @@ class VirtualCamera(FrameSource):
         """
         if (self.sourcetype == 'image'):
             return Image(self.source, self)
-            
+
         if (self.sourcetype == 'imageset'):
             img = self.source[self.counter % len(self.source)]
             self.counter = self.counter + 1
             return img
-        
+
         if (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
 
         if (self.sourcetype == 'directory'):
             img = self.findLastestImage(self.source, 'bmp')
             return Image(img, self)
-    
+
     def rewind(self, start=None):
         """
         **SUMMARY**
 
         Rewind the Video source back to the given frame.
         Available for only video sources.
-        
+
         **PARAMETERS**
-        
+
         start - the number of the frame that you want to rewind to.
-                if not provided, the video source would be rewound 
+                if not provided, the video source would be rewound
                 to the starting frame number you provided or rewound
                 to the beginning.
-        
+
         **RETURNS**
-        
+
         None
 
         **EXAMPLES**
-        
+
         >>> cam = VirtualCamera("filename.avi", "video", 120)
         >>> i=0
         >>> while i<60:
@@ -748,24 +748,24 @@ class VirtualCamera(FrameSource):
                 if start==0:
                     start=1
                 cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, start-1)
-                
+
     def getFrame(self, frame):
         """
         **SUMMARY**
 
         Get the provided numbered frame from the video source.
         Available for only video sources.
-        
+
         **PARAMETERS**
-        
+
         frame -  the number of the frame
-        
+
         **RETURNS**
-        
+
         Image
 
         **EXAMPLES**
-        
+
         >>> cam = VirtualCamera("filename.avi", "video", 120)
         >>> cam.getFrame(400).show()
 
@@ -776,24 +776,24 @@ class VirtualCamera(FrameSource):
             img = self.getImage()
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame)
             return img
-    
+
     def skipFrames(self, n):
         """
         **SUMMARY**
 
         Skip n number of frames.
         Available for only video sources.
-        
+
         **PARAMETERS**
-        
+
         n - number of frames to be skipped.
-        
+
         **RETURNS**
-        
+
         None
 
         **EXAMPLES**
-        
+
         >>> cam = VirtualCamera("filename.avi", "video", 120)
         >>> i=0
         >>> while i<60:
@@ -806,20 +806,20 @@ class VirtualCamera(FrameSource):
         if (self.sourcetype == 'video'):
             number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame + n - 1)
-    
+
     def getFrameNumber(self):
         """
         **SUMMARY**
 
         Get the current frame number of the video source.
         Available for only video sources.
-        
+
         **RETURNS**
-        
+
         * *int* - number of the frame
 
         **EXAMPLES**
-        
+
         >>> cam = VirtualCamera("filename.avi", "video", 120)
         >>> i=0
         >>> while i<60:
@@ -836,7 +836,7 @@ class VirtualCamera(FrameSource):
     def findLastestImage(self, directory='.', extension='png'):
         """
         **SUMMARY**
-        
+
         This function finds the latest file in a directory
         with a given extension.
 
@@ -853,7 +853,7 @@ class VirtualCamera(FrameSource):
 
         >>> cam = VirtualCamera('imgs/', 'png') #find all .png files in 'img' directory
         >>> cam.getImage() # Grab the latest image from that directory
-        
+
         """
         max_mtime = 0
         max_dir = None
@@ -862,44 +862,55 @@ class VirtualCamera(FrameSource):
         for dirname,subdirs,files in os.walk(directory):
             for fname in files:
                 if fname.split('.')[-1] == extension:
-                  full_path = os.path.join(dirname, fname)
-                  mtime = os.stat(full_path).st_mtime
-                  if mtime > max_mtime:
-                      max_mtime = mtime
-                      max_dir = dirname
-                      max_file = fname
-                      self.lastmtime = mtime
-                      max_full_path = os.path.abspath(os.path.join(dirname, fname))
-        
+                    full_path = os.path.join(dirname, fname)
+                    mtime = os.stat(full_path).st_mtime
+                    if mtime > max_mtime:
+                        max_mtime = mtime
+                        max_dir = dirname
+                        max_file = fname
+                        self.lastmtime = mtime
+                        max_full_path = os.path.abspath(os.path.join(dirname, fname))
+
         #if file is being written, block until mtime is at least 100ms old
         while time.mktime(time.localtime()) - os.stat(max_full_path).st_mtime < 0.1:
             time.sleep(0)
-        
+
         return max_full_path
- 
+
 class Kinect(FrameSource):
     """
     **SUMMARY**
-    
+
     This is an experimental wrapper for the Freenect python libraries
     you can getImage() and getDepth() for separate channel images
-    
+
     """
-    def __init__(self):
+    def __init__(self, device_number=0):
+        """
+        **SUMMARY**
+
+        In the kinect contructor, device_number indicates which kinect to
+        connect to. It defaults to 0.
+
+        **PARAMETERS**
+
+        * *device_number* - The index of the kinect, these go from 0 upward.
+        """
+        self.deviceNumber = device_number
         if not FREENECT_ENABLED:
             logger.warning("You don't seem to have the freenect library installed.  This will make it hard to use a Kinect.")
-  
+
     #this code was borrowed from
     #https://github.com/amiller/libfreenect-goodies
     def getImage(self):
         """
         **SUMMARY**
-        
-        This method returns the Kinect camera image. 
+
+        This method returns the Kinect camera image.
 
         **RETURNS**
-        
-        The Kinect's color camera image. 
+
+        The Kinect's color camera image.
 
         **EXAMPLE**
 
@@ -908,21 +919,21 @@ class Kinect(FrameSource):
         >>>   k.getImage().show()
 
         """
-        video = freenect.sync_get_video()[0]
+        video = freenect.sync_get_video(self.deviceNumber)[0]
         self.capturetime = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
         return Image(video.transpose([1,0,2]), self)
-  
+
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def getDepth(self):
         """
         **SUMMARY**
-        
-        This method returns the Kinect depth image. 
+
+        This method returns the Kinect depth image.
 
         **RETURNS**
-        
-        The Kinect's depth camera image as a grayscale image. 
+
+        The Kinect's depth camera image as a grayscale image.
 
         **EXAMPLE**
 
@@ -934,20 +945,20 @@ class Kinect(FrameSource):
         >>>   result.show()
         """
 
-        depth = freenect.sync_get_depth()[0]
+        depth = freenect.sync_get_depth(self.deviceNumber)[0]
         self.capturetime = time.time()
         np.clip(depth, 0, 2**10 - 1, depth)
         depth >>= 2
         depth = depth.astype(np.uint8).transpose()
-    
-        return Image(depth, self) 
-  
+
+        return Image(depth, self)
+
     #we're going to also support a higher-resolution (11-bit) depth matrix
     #if you want to actually do computations with the depth
     def getDepthMatrix(self):
         self.capturetime = time.time()
-        return freenect.sync_get_depth()[0]
-  
+        return freenect.sync_get_depth(self.deviceNumber)[0]
+
 
 
 class JpegStreamReader(threading.Thread):
@@ -961,69 +972,69 @@ class JpegStreamReader(threading.Thread):
     url = ""
     currentframe = ""
     _threadcapturetime = ""
-  
+
     def run(self):
-      
+
         f = ''
-        
+
         if re.search('@', self.url):
             authstuff = re.findall('//(\S+)@', self.url)[0]
             self.url = re.sub("//\S+@", "//", self.url)
             user, password = authstuff.split(":")
-            
-            #thank you missing urllib2 manual 
+
+            #thank you missing urllib2 manual
             #http://www.voidspace.org.uk/python/articles/urllib2.shtml#id5
             password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
             password_mgr.add_password(None, self.url, user, password)
-            
+
             handler = urllib2.HTTPBasicAuthHandler(password_mgr)
             opener = urllib2.build_opener(handler)
-            
+
             f = opener.open(self.url)
         else:
             f = urllib2.urlopen(self.url)
-        
+
         headers = f.info()
         if (headers.has_key("content-type")):
             headers['Content-type'] = headers['content-type'] #force ucase first char
-    
+
         if not headers.has_key("Content-type"):
             logger.warning("Tried to load a JpegStream from " + self.url + ", but didn't find a content-type header!")
             return
-    
+
         (multipart, boundary) = headers['Content-type'].split("boundary=")
         if not re.search("multipart", multipart, re.I):
             logger.warning("Tried to load a JpegStream from " + self.url + ", but the content type header was " + multipart + " not multipart/replace!")
-            return 
-    
+            return
+
         buff = ''
         data = f.readline().strip()
-        length = 0 
+        length = 0
         contenttype = "jpeg"
-    
+
         #the first frame contains a boundarystring and some header info
         while (1):
             #print data
             if (re.search(boundary, data.strip()) and len(buff)):
                 #we have a full jpeg in buffer.  Convert to an image
                 if contenttype == "jpeg":
-                    self.currentframe = buff 
+                    self.currentframe = buff
                     self._threadcapturetime = time.time()
                 buff = ''
-      
+
             if (re.match("Content-Type", data, re.I)):
                 #set the content type, if provided (default to jpeg)
                 (header, typestring) = data.split(":")
                 (junk, contenttype) = typestring.strip().split("/")
-      
+
             if (re.match("Content-Length", data, re.I)):
                 #once we have the content length, we know how far to go jfif
                 (header, length) = data.split(":")
                 length = int(length.strip())
-               
+
             if (re.search("JFIF", data, re.I) or re.search("\xff\xd8\xff\xdb", data) or len(data) > 55):
-                # we have reached the start of the image 
-                buff = '' 
+                # we have reached the start of the image
+                buff = ''
                 if length and length > len(data):
                     buff += data + f.read(length - len(data)) #read the remainder of the image
                     if contenttype == "jpeg":
@@ -1031,14 +1042,14 @@ class JpegStreamReader(threading.Thread):
                         self._threadcapturetime = time.time()
                 else:
                     while (not re.search(boundary, data)):
-                        buff += data 
+                        buff += data
                         data = f.readline()
-          
-                    endimg, junk = data.split(boundary) 
+
+                    endimg, junk = data.split(boundary)
                     buff += endimg
                     data = boundary
                     continue
-                    
+
             data = f.readline() #load the next (header) line
             time.sleep(0) #let the other threads go
 
@@ -1046,22 +1057,22 @@ class JpegStreamCamera(FrameSource):
     """
     **SUMMARY**
 
-    The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage() 
-    
+    The JpegStreamCamera takes a URL of a JPEG stream and treats it like a camera.  The current frame can always be accessed with getImage()
+
     Requires the Python Imaging Library: http://www.pythonware.com/library/pil/handbook/index.htm
-    
-    **EXAMPLE**  
-  
+
+    **EXAMPLE**
+
     Using your Android Phone as a Camera. Softwares like IP Webcam can be used.
-    
+
     >>> cam = JpegStreamCamera("http://192.168.65.101:8080/videofeed") # your IP may be different.
     >>> img = cam.getImage()
     >>> img.show()
-    
+
     """
     url = ""
     camthread = ""
-    
+
     def __init__(self, url):
         if not PIL_ENABLED:
             logger.warning("You need the Python Image Library (PIL) to use the JpegStreamCamera")
@@ -1073,7 +1084,7 @@ class JpegStreamCamera(FrameSource):
         self.camthread.url = self.url
         self.camthread.daemon = True
         self.camthread.start()
-  
+
     def getImage(self):
         """
         **SUMMARY**
@@ -1088,7 +1099,7 @@ class JpegStreamCamera(FrameSource):
                     warnings.warn("Timeout fetching JpegStream at " + self.url)
                     return
                 time.sleep(0.1)
-                
+
         self.capturetime = self.camthread._threadcapturetime
         return Image(pil.open(StringIO(self.camthread.currentframe)), self)
 
@@ -1101,18 +1112,18 @@ class Scanner(FrameSource):
 
     The Scanner lets you use any supported SANE-compatable scanner as a SimpleCV camera
     List of supported devices: http://www.sane-project.org/sane-supported-devices.html
-        
+
     Requires the PySANE wrapper for libsane.  The sane scanner object
-    is available for direct manipulation at Scanner.device 
-    
-    This scanner object is heavily modified from 
+    is available for direct manipulation at Scanner.device
+
+    This scanner object is heavily modified from
     https://bitbucket.org/DavidVilla/pysane
-    
+
     Constructor takes an index (default 0) and a list of SANE options
-    (default is color mode).  
-    
-    **EXAMPLE**  
-  
+    (default is color mode).
+
+    **EXAMPLE**
+
     >>> scan = Scanner(0, { "mode": "gray" })
     >>> preview = scan.getPreview()
     >>> stuff = preview.findBlobs(minsize = 1000)
@@ -1125,7 +1136,7 @@ class Scanner(FrameSource):
     >>> scan.setROI() #reset region of interest
     >>> img.show()
 
-    
+
     """
     usbid = None
     manufacturer = None
@@ -1134,7 +1145,7 @@ class Scanner(FrameSource):
     device = None
     max_x = None
     max_y = None
-        
+
     def __init__(self, id = 0, properties = { "mode": "color"}):
         global _SANE_INIT
         import sane
@@ -1145,18 +1156,18 @@ class Scanner(FrameSource):
             except:
                 warn("Initializing pysane failed, do you have pysane installed?")
                 return
-    
+
         devices = sane.get_devices()
         if not len(devices):
             warn("Did not find a sane-compatable device")
             return
-        
+
         self.usbid, self.manufacturer, self.model, self.kind = devices[id]
-        
+
         self.device = sane.open(self.usbid)
         self.max_x = self.device.br_x
         self.max_y = self.device.br_y #save our extents for later
-        
+
         for k, v in properties.items():
             setattr(self.device, k, v)
 
@@ -1167,7 +1178,7 @@ class Scanner(FrameSource):
         Retrieve an Image-object from the scanner.  Any ROI set with
         setROI() is taken into account.
         **RETURNS**
-        
+
         A SimpleCV Image.  Note that whatever the scanner mode is,
         SimpleCV will return a 3-channel, 8-bit image.
 
@@ -1176,14 +1187,14 @@ class Scanner(FrameSource):
         >>> scan.getImage().show()
         """
         return Image(self.device.scan())
-        
+
     def getPreview(self):
         """
         **SUMMARY**
-        
-        Retrieve a preview-quality Image-object from the scanner. 
+
+        Retrieve a preview-quality Image-object from the scanner.
         **RETURNS**
-        
+
         A SimpleCV Image.  Note that whatever the scanner mode is,
         SimpleCV will return a 3-channel, 8-bit image.
 
@@ -1195,14 +1206,14 @@ class Scanner(FrameSource):
         img = Image(self.device.scan())
         self.preview = False
         return img
-        
+
     def getAllProperties(self):
         """
         **SUMMARY**
 
         Return a list of all properties and values from the scanner
         **RETURNS**
-        
+
         Dictionary of active options and values.  Inactive options appear
         as "None"
 
@@ -1216,17 +1227,17 @@ class Scanner(FrameSource):
             if hasattr(self.device, prop):
                 val = getattr(self.device, prop)
             props[prop] = val
-            
+
         return props
-        
+
     def printProperties(self):
-    
+
         """
         **SUMMARY**
 
         Print detailed information about the SANE device properties
         **RETURNS**
-        
+
         Nothing
 
         **EXAMPLES**
@@ -1238,13 +1249,13 @@ class Scanner(FrameSource):
                 print self.device[prop]
             except:
                 pass
-                
+
     def getProperty(self, prop):
         """
         **SUMMARY**
         Returns a single property value from the SANE device
         equivalent to Scanner.device.PROPERTY
-        
+
         **RETURNS**
         Value for option or None if missing/inactive
 
@@ -1254,21 +1265,21 @@ class Scanner(FrameSource):
         color
         """
         if hasattr(self.device, prop):
-           return getattr(self.device, prop)
+            return getattr(self.device, prop)
         return None
-        
-        
+
+
     def setROI(self, topleft = (0,0), bottomright = (-1,-1)):
         """
         **SUMMARY**
         Sets an ROI for the scanner in the current resolution.  The
         two parameters, topleft and bottomright, will default to the
-        device extents, so the ROI can be reset by calling setROI with 
+        device extents, so the ROI can be reset by calling setROI with
         no parameters.
-        
-        The ROI is set by SANE in resolution independent units (default 
+
+        The ROI is set by SANE in resolution independent units (default
         MM) so resolution can be changed after ROI has been set.
-        
+
         **RETURNS**
         None
 
@@ -1276,27 +1287,27 @@ class Scanner(FrameSource):
         >>> scan = Scanner()
         >>> scan.setROI((50, 50), (100,100))
         >>> scan.getImage().show() # a very small crop on the scanner
-        
-        
+
+
         """
         self.device.tl_x = self.px2mm(topleft[0])
         self.device.tl_y = self.px2mm(topleft[1])
         if bottomright[0] == -1:
-            self.device.br_x = self.max_x 
+            self.device.br_x = self.max_x
         else:
             self.device.br_x = self.px2mm(bottomright[0])
-        
+
         if bottomright[1] == -1:
             self.device.br_y = self.max_y
         else:
             self.device.br_y = self.px2mm(bottomright[1])
-        
+
     def setProperty(self, prop, val):
         """
         **SUMMARY**
         Assigns a property value from the SANE device
         equivalent to Scanner.device.PROPERTY = VALUE
-        
+
         **RETURNS**
         None
 
@@ -1314,7 +1325,7 @@ class Scanner(FrameSource):
         """
         **SUMMARY**
         Helper function to convert native scanner resolution to millimeter units
-        
+
         **RETURNS**
         Float value
 
@@ -1328,19 +1339,19 @@ class DigitalCamera(FrameSource):
     """
     **SUMMARY**
 
-    The DigitalCamera takes a point-and-shoot camera or high-end slr and uses it as a Camera.  The current frame can always be accessed with getPreview() 
-    
+    The DigitalCamera takes a point-and-shoot camera or high-end slr and uses it as a Camera.  The current frame can always be accessed with getPreview()
+
     Requires the PiggyPhoto Library: https://github.com/alexdu/piggyphoto
-    
-    **EXAMPLE**  
-    
+
+    **EXAMPLE**
+
     >>> cam = DigitalCamera()
     >>> pre = cam.getPreview()
     >>> pre.findBlobs().show()
-    >>> 
+    >>>
     >>> img = cam.getImage()
     >>> img.show()
-    
+
     """
     camera = None
     usbid = None
@@ -1356,7 +1367,7 @@ class DigitalCamera(FrameSource):
         devices = piggyphoto.cameraList(autodetect=True).toList()
         if not len(devices):
             warn("No compatible digital cameras attached")
-            return            
+            return
 
         self.device, self.usbid = devices[id]
         self.camera = piggyphoto.camera()
@@ -1367,7 +1378,7 @@ class DigitalCamera(FrameSource):
 
         Retrieve an Image-object from the camera with the highest quality possible.
         **RETURNS**
-        
+
         A SimpleCV Image.
 
         **EXAMPLES**
@@ -1387,26 +1398,26 @@ class DigitalCamera(FrameSource):
 
         Retrieve an Image-object from the camera with the preview quality from the camera.
         **RETURNS**
-        
+
         A SimpleCV Image.
 
         **EXAMPLES**
         >>> cam = DigitalCamera()
         >>> cam.getPreview().show()
-        """        
+        """
         fd, path = tempfile.mkstemp()
         self.camera.capture_preview(path)
         img = Image(path)
         os.close(fd)
         os.remove(path)
-        
-        return img       
+
+        return img
 
 class ScreenCamera():
     """
     **SUMMARY**
     ScreenCapture is a camera class would allow you to capture all or part of the screen and return it as a color image.
-    
+
     Requires the pyscreenshot Library: https://github.com/vijaym123/pyscreenshot
 
     **EXAMPLE**
@@ -1418,13 +1429,13 @@ class ScreenCamera():
     >>> img.show()
     """
     _roi = None
-    
+
     def __init__(self):
         if not PYSCREENSHOT_ENABLED:
             warn("Initializing pyscreenshot failed. Install pyscreenshot from https://github.com/vijaym123/pyscreenshot")
             return None
-     
-    def getResolution(self):          
+
+    def getResolution(self):
         """
         **DESCRIPTION**
 
@@ -1432,7 +1443,7 @@ class ScreenCamera():
 
         **PARAMETERS**
         None
-                      
+
         **RETURNS**
         returns the resolution.
 
@@ -1448,10 +1459,10 @@ class ScreenCamera():
         """
         **DESCRIPTION**
         To set the region of interest.
-        
+
         **PARAMETERS**
         * *roi* - tuple - It is a tuple of size 4. where region of interest is to the center of the screen.
-        
+
         **RETURNS**
         None
 
@@ -1465,7 +1476,7 @@ class ScreenCamera():
         if isinstance(roi,tuple) and len(roi)==4:
             self._roi = roi
         return
-        
+
     def getImage(self):
         """
         **DESCRIPTION**
@@ -1474,7 +1485,7 @@ class ScreenCamera():
 
         **PARAMETERS**
         None
-        
+
         **RETURNS**
         Returns the region of interest if setROI is used.
         else returns the original capture of the screenshot.
@@ -1492,27 +1503,27 @@ class ScreenCamera():
             print "Error croping the image. ROI specified is not correct."
             return None
         return img
-     
+
 
 class StereoImage:
     """
     **SUMMARY**
-    
+
     This class is for binaculor Stereopsis. That is exactrating 3D information from two differing views of a scene(Image). By comparing the two images, the relative depth information can be obtained.
-    
+
     - Fundamental Matrix : F : a 3 x 3 numpy matrix, is a relationship between any two images of the same scene that constrains where the projection of points from the scene can occur in both images. see : http://en.wikipedia.org/wiki/Fundamental_matrix_(computer_vision)
-    
-    - Homography Matrix : H : a 3 x 3 numpy matrix, 
-    
-    - ptsLeft : The matched points on the left image. 
-    
+
+    - Homography Matrix : H : a 3 x 3 numpy matrix,
+
+    - ptsLeft : The matched points on the left image.
+
     - ptsRight : The matched points on the right image.
-    
-    -findDisparityMap and findDepthMap - provides 3D information. 
-    
-    for more information on stereo vision, visit : http://en.wikipedia.org/wiki/Computer_stereo_vision 
-    
-    **EXAMPLE**  
+
+    -findDisparityMap and findDepthMap - provides 3D information.
+
+    for more information on stereo vision, visit : http://en.wikipedia.org/wiki/Computer_stereo_vision
+
+    **EXAMPLE**
     >>> img1 = Image('sampleimages/stereo_view1.png')
     >>> img2 = Image('sampleimages/stereo_view2.png')
     >>> stereoImg = StereoImage(img1,img2)
@@ -1520,29 +1531,29 @@ class StereoImage:
     """
     def __init__( self, imgLeft , imgRight ):
         self.ImageLeft = imgLeft
-    	self.ImageRight = imgRight
+        self.ImageRight = imgRight
         if self.ImageLeft.size() != self.ImageRight.size():
             logger.warning('Left and Right images should have the same size.')
             return None
-    	else:
-    	    self.size = self.ImageLeft.size()
-    	
+        else:
+            self.size = self.ImageLeft.size()
+
     def findFundamentalMat(self, thresh=500.00, minDist=0.15 ):
         """
-        **SUMMARY**        
+        **SUMMARY**
 
         This method returns the fundamental matrix F such that (P_2).T F P_1 = 0
 
         **PARAMETERS**
 
         * *thresh* - The feature quality metric. This can be any value between about 300 and 500. Higher
-          values should return fewer, but higher quality features. 
-        * *minDist* - The value below which the feature correspondence is considered a match. This 
+          values should return fewer, but higher quality features.
+        * *minDist* - The value below which the feature correspondence is considered a match. This
           is the distance between two feature vectors. Good values are between 0.05 and 0.3
 
-        **RETURNS**   
+        **RETURNS**
         Return None if it fails.
-        * *F* -  Fundamental matrix as ndarray. 
+        * *F* -  Fundamental matrix as ndarray.
         * *matched_pts1* - the matched points (x, y) in img1
         * *matched_pts2* - the matched points (x, y) in img2
 
@@ -1553,7 +1564,7 @@ class StereoImage:
         >>> F,pts1,pts2 = stereoImg.findFundamentalMat()
 
         **NOTE**
-        If you deal with the fundamental matrix F directly, be aware of (P_2).T F P_1 = 0 
+        If you deal with the fundamental matrix F directly, be aware of (P_2).T F P_1 = 0
         where P_2 and P_1 consist of (y, x, 1)
         """
 
@@ -1598,21 +1609,21 @@ class StereoImage:
 
     def findHomography( self, thresh=500.00, minDist=0.15):
         """
-        **SUMMARY**        
+        **SUMMARY**
 
         This method returns the homography H such that P2 ~ H P1
 
         **PARAMETERS**
 
         * *thresh* - The feature quality metric. This can be any value between about 300 and 500. Higher
-          values should return fewer, but higher quality features. 
-        * *minDist* - The value below which the feature correspondence is considered a match. This 
+          values should return fewer, but higher quality features.
+        * *minDist* - The value below which the feature correspondence is considered a match. This
           is the distance between two feature vectors. Good values are between 0.05 and 0.3
 
-        **RETURNS**   
-     
+        **RETURNS**
+
         Return None if it fails.
-        * *H* -  homography as ndarray. 
+        * *H* -  homography as ndarray.
         * *matched_pts1* - the matched points (x, y) in img1
         * *matched_pts2* - the matched points (x, y) in img2
 
@@ -1675,18 +1686,18 @@ class StereoImage:
         **PARAMETERS**
 
         * *method* :
-                 *BM* - Block Matching algorithm, this is a real time algorithm. 
+                 *BM* - Block Matching algorithm, this is a real time algorithm.
                  *SGBM* - Semi Global Block Matching algorithm, this is not a real time algorithm.
                  *GC* - Graph Cut algorithm, This is not a real time algorithm.
-             
+
         * *nDisparity* - Maximum disparity value. This should be multiple of 16
-        * *scale* - Scale factor 
-        
-        **RETURNS**   
-     
+        * *scale* - Scale factor
+
+        **RETURNS**
+
         Return None if it fails.
         Returns Disparity Map Image
-        
+
         **EXAMPLE**
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
@@ -1700,76 +1711,76 @@ class StereoImage:
         if nDisparity % 16 !=0 :
             if nDisparity < 16 :
                 nDisparity = 16
-            nDisparity = (nDisparity/16)*16         
+            nDisparity = (nDisparity/16)*16
         try :
             if method == 'BM':
-               disparity = cv.CreateMat(c, r, cv.CV_32F)
-               state = cv.CreateStereoBMState()
-               state.SADWindowSize = 41
-               state.preFilterType = 1
-               state.preFilterSize = 41
-               state.preFilterCap = 31
-               state.minDisparity = -8
-               state.numberOfDisparities = nDisparity
-               state.textureThreshold = 10
-               #state.speckleRange = 32
-               #state.speckleWindowSize = 100
-               state.uniquenessRatio=15
-               cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
-               disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
-               cv.Normalize( disparity, disparity_visual, 0, 256, cv.CV_MINMAX )
-               disparity_visual = Image(disparity_visual)
-               return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
-            
+                disparity = cv.CreateMat(c, r, cv.CV_32F)
+                state = cv.CreateStereoBMState()
+                state.SADWindowSize = 41
+                state.preFilterType = 1
+                state.preFilterSize = 41
+                state.preFilterCap = 31
+                state.minDisparity = -8
+                state.numberOfDisparities = nDisparity
+                state.textureThreshold = 10
+                #state.speckleRange = 32
+                #state.speckleWindowSize = 100
+                state.uniquenessRatio=15
+                cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
+                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
+                cv.Normalize( disparity, disparity_visual, 0, 256, cv.CV_MINMAX )
+                disparity_visual = Image(disparity_visual)
+                return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
+
             elif method == 'GC':
-               disparity_left = cv.CreateMat(c, r, cv.CV_32F)
-               disparity_right = cv.CreateMat(c, r, cv.CV_32F)
-               state = cv.CreateStereoGCState(nDisparity, 8)
-               state.minDisparity = -8
-               cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
-               disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
-               cv.Normalize( disparity_left, disparity_left_visual, 0, 256, cv.CV_MINMAX )
-               #cv.Scale(disparity_left, disparity_left_visual, -scale)
-               disparity_left_visual = Image(disparity_left_visual)
-               return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY) 
+                disparity_left = cv.CreateMat(c, r, cv.CV_32F)
+                disparity_right = cv.CreateMat(c, r, cv.CV_32F)
+                state = cv.CreateStereoGCState(nDisparity, 8)
+                state.minDisparity = -8
+                cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
+                disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
+                cv.Normalize( disparity_left, disparity_left_visual, 0, 256, cv.CV_MINMAX )
+                #cv.Scale(disparity_left, disparity_left_visual, -scale)
+                disparity_left_visual = Image(disparity_left_visual)
+                return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
 
             elif method == 'SGBM':
-               try:
-                   import cv2
-                   ver = cv2.__version__
-                   if ver.startswith("$Rev :"):
-                       logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
-                       return None
-               except:
+                try:
+                    import cv2
+                    ver = cv2.__version__
+                    if ver.startswith("$Rev :"):
+                        logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
+                        return None
+                except:
                     logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
                     return None
-               state = cv2.StereoSGBM()    
-               state.SADWindowSize = 41
-               state.preFilterCap = 31
-               state.minDisparity = 0
-               state.numberOfDisparities = nDisparity
-               #state.speckleRange = 32
-               #state.speckleWindowSize = 100
-               state.disp12MaxDiff = 1
-               state.fullDP=False
-               state.P1 = 8 * 1 * 41 * 41
-               state.P2 = 32 * 1 * 41 * 41
-               state.uniquenessRatio=15
-               disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
-               return Image(disparity)
-            
-            else :     
-               logger.warning("Unknown method. Choose one method amoung BM or SGBM or GC !")
-               return None
-                
+                state = cv2.StereoSGBM()
+                state.SADWindowSize = 41
+                state.preFilterCap = 31
+                state.minDisparity = 0
+                state.numberOfDisparities = nDisparity
+                #state.speckleRange = 32
+                #state.speckleWindowSize = 100
+                state.disp12MaxDiff = 1
+                state.fullDP=False
+                state.P1 = 8 * 1 * 41 * 41
+                state.P2 = 32 * 1 * 41 * 41
+                state.uniquenessRatio=15
+                disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
+                return Image(disparity)
+
+            else :
+                logger.warning("Unknown method. Choose one method amoung BM or SGBM or GC !")
+                return None
+
         except :
-          logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")    
-          return None
-                 
+            logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")
+            return None
+
     def Eline( self, point, F ,whichImage):
         """
-        **SUMMARY**    
-    
+        **SUMMARY**
+
         This method returns, line feature object.
 
         **PARAMETERS**
@@ -1778,9 +1789,9 @@ class StereoImage:
         * *F* - Fundamental matrix.
         * *whichImage* - Index of the image (1 or 2) that contains the point
 
-        **RETURNS**        
+        **RETURNS**
 
-        epipolar line, in the form of line feature object. 
+        epipolar line, in the form of line feature object.
 
         **EXAMPLE**
 
@@ -1804,27 +1815,27 @@ class StereoImage:
         if whichImage == 1 :
             return Line( self.ImageLeft, [pts1,pts2] )
         elif whichImage == 2 :
-            return Line( self.ImageRight, [pts1,pts2] )	     
+            return Line( self.ImageRight, [pts1,pts2] )
 
     def projectPoint( self, point, H ,whichImage):
         """
-        **SUMMARY**    
-    
-        This method returns the corresponding point (x, y) 
+        **SUMMARY**
+
+        This method returns the corresponding point (x, y)
 
         **PARAMETERS**
 
         * *point* - Input point (x, y)
         * *whichImage* - Index of the image (1 or 2) that contains the point
-        * *H* - Homography that can be estimated 
+        * *H* - Homography that can be estimated
                 using StereoCamera.findHomography()
 
-        **RETURNS**        
+        **RETURNS**
 
         Corresponding point (x, y) as tuple
 
         **EXAMPLE**
-        
+
         >>> img1 = Image("sampleimages/stereo_view1.png")
         >>> img2 = Image("sampleimages/stereo_view2.png")
         >>> stereoImg = StereoImage(img1,img2)
@@ -1841,59 +1852,59 @@ class StereoImage:
             corres_pt = np.linalg.inv(H) * point.T
         corres_pt = corres_pt / corres_pt[2]
         return (float(corres_pt[1]), float(corres_pt[0]))
-        
+
 class StereoCamera :
     """
-    Stereo Camera is a class dedicated for calibration stereo camera. It also has functionalites for 
-    rectification and getting undistorted Images.    
-    
+    Stereo Camera is a class dedicated for calibration stereo camera. It also has functionalites for
+    rectification and getting undistorted Images.
+
     This class can be used to calculate various parameters related to both the camera's :
       -> Camera Matrix
       -> Distortion coefficients
-      -> Rotation and Translation matrix 
-      -> Rectification transform (rotation matrix) 
+      -> Rotation and Translation matrix
+      -> Rectification transform (rotation matrix)
       -> Projection matrix in the new (rectified) coordinate systems
-      -> Disparity-to-depth mapping matrix (Q) 
+      -> Disparity-to-depth mapping matrix (Q)
     """
     def __init__(self):
         return
-                                
+
     def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8, 5), gridsize=0.027, WinSize = (352,288)):
         """
         **SUMMARY**
-        Stereo Calibration is a way in which you obtain the parameters that will allow you to calculate 3D information of the scene. 
-        Once both the camera's are initialized. 
+        Stereo Calibration is a way in which you obtain the parameters that will allow you to calculate 3D information of the scene.
+        Once both the camera's are initialized.
          -> Press [Space] once chessboard is identified in both the camera's.
          -> Press [esc] key to exit the calibration process.
-    
+
         **PARAMETERS**
         * *camLeft* - Left camera index.
         * *camRight* - Right camera index.
         * *nboards* - Number of samples or multiple views of the chessboard in different positions and orientations with your stereo camera.
         * *chessboard* - A tuple of Cols, Rows in the chessboard (used for calibration).
         * *gridsize* - chessboard grid size in real units
-        * *WinSize* - This is the window resolution. 
-    
+        * *WinSize* - This is the window resolution.
+
         **RETURNS**
         A tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success
-                   where CM1 -> Camera Matrix for left camera, 
-                         CM2 -> Camera Matrix for right camera, 
-                         D1 -> Vector of distortion coefficients for left camera, 
-                         D2 -> Vector of distortion coefficients for right camera, 
-                         R -> Rotation matrix between the left and the right camera coordinate systems, 
-                         T -> Translation vector between the left and the right coordinate systems of the cameras, 
-                         E -> Essential matrix, 
+                   where CM1 -> Camera Matrix for left camera,
+                         CM2 -> Camera Matrix for right camera,
+                         D1 -> Vector of distortion coefficients for left camera,
+                         D2 -> Vector of distortion coefficients for right camera,
+                         R -> Rotation matrix between the left and the right camera coordinate systems,
+                         T -> Translation vector between the left and the right coordinate systems of the cameras,
+                         E -> Essential matrix,
                          F -> Fundamental matrix
 
         **EXAMPLE**
         >>> StereoCam = StereoCamera()
-        >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40) 
-        
+        >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40)
+
         **Note**
-        Press space to capture the images.      
+        Press space to capture the images.
         """
         count = 0
-        n1="Left" 
+        n1="Left"
         n2="Right"
         try :
             captureLeft = cv.CaptureFromCAM(camLeft)
@@ -1901,7 +1912,7 @@ class StereoCamera :
             cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
             frameLeft = cv.QueryFrame(captureLeft)
             cv.FindChessboardCorners(frameLeft, (chessboard))
-            
+
             captureRight = cv.CaptureFromCAM(camRight)
             cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
             cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
@@ -1910,17 +1921,17 @@ class StereoCamera :
         except :
             print "Error Initialising the Left and Right camera"
             return None
-              
+
         imagePoints1 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
         imagePoints2 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
-  
+
         objectPoints = cv.CreateMat(1, chessboard[0] * chessboard[1] * nboards, cv.CV_64FC3)
         nPoints = cv.CreateMat(1, nboards, cv.CV_32S)
-    
+
         # the intrinsic camera matrices
         CM1 = cv.CreateMat(3, 3, cv.CV_64F)
         CM2 = cv.CreateMat(3, 3, cv.CV_64F)
-    
+
         # the distortion coefficients of both cameras
         D1 = cv.CreateMat(1, 5, cv.CV_64F)
         D2 = cv.CreateMat(1, 5, cv.CV_64F)
@@ -1939,57 +1950,57 @@ class StereoCamera :
             frameRight = cv.QueryFrame(captureRight)
             cv.Flip(frameRight, frameRight, 1)
             k = cv.WaitKey(3)
-    
+
             cor1 = cv.FindChessboardCorners(frameLeft, (chessboard))
             if cor1[0] :
-               cv.DrawChessboardCorners(frameLeft, (chessboard), cor1[1], cor1[0])
-               cv.ShowImage(n1, frameLeft)
-    
+                cv.DrawChessboardCorners(frameLeft, (chessboard), cor1[1], cor1[0])
+                cv.ShowImage(n1, frameLeft)
+
             cor2 = cv.FindChessboardCorners(frameRight, (chessboard))
             if cor2[0]:
-               cv.DrawChessboardCorners(frameRight, (chessboard), cor2[1], cor2[0])
-               cv.ShowImage(n2, frameRight)
-    
+                cv.DrawChessboardCorners(frameRight, (chessboard), cor2[1], cor2[0])
+                cv.ShowImage(n2, frameRight)
+
             if cor1[0] and cor2[0] and k==0x20:
-               print count
-               for i in range(0, len(cor1[1])):
+                print count
+                for i in range(0, len(cor1[1])):
                     cv.Set1D(imagePoints1, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor1[1][i][0], cor1[1][i][1]))
-                    cv.Set1D(imagePoints2, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor2[1][i][0], cor2[1][i][1]))    
-        
-               count += 1
-         
-               if count == nboards:
-                   cv.DestroyAllWindows()
-                   for i in range(nboards):
-                       for j in range(chessboard[1]):
-                          for k in range(chessboard[0]):
-                              cv.Set1D(objectPoints, i * chessboard[1] * chessboard[0] + j * chessboard[0] + k, (k * gridsize, j * gridsize, 0))
-            
-                   for i in range(nboards):
-                       cv.Set1D(nPoints, i, chessboard[0] * chessboard[1])
+                    cv.Set1D(imagePoints2, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor2[1][i][0], cor2[1][i][1]))
 
-            
-                   cv.SetIdentity(CM1)
-                   cv.SetIdentity(CM2)
-                   cv.Zero(D1)
-                   cv.Zero(D2)
+                count += 1
 
-                   print "Running stereo calibration..."
-                   del(camLeft)
-                   del(camRight)
-                   cv.StereoCalibrate(objectPoints, imagePoints1, imagePoints2, nPoints, CM1, D1, CM2, D2, WinSize, R, T, E, F,
-                                     flags=cv.CV_CALIB_SAME_FOCAL_LENGTH | cv.CV_CALIB_ZERO_TANGENT_DIST)
-            
-                   print "Done."
-                   return (CM1, CM2, D1, D2, R, T, E, F)                
+                if count == nboards:
+                    cv.DestroyAllWindows()
+                    for i in range(nboards):
+                        for j in range(chessboard[1]):
+                            for k in range(chessboard[0]):
+                                cv.Set1D(objectPoints, i * chessboard[1] * chessboard[0] + j * chessboard[0] + k, (k * gridsize, j * gridsize, 0))
+
+                    for i in range(nboards):
+                        cv.Set1D(nPoints, i, chessboard[0] * chessboard[1])
+
+
+                    cv.SetIdentity(CM1)
+                    cv.SetIdentity(CM2)
+                    cv.Zero(D1)
+                    cv.Zero(D2)
+
+                    print "Running stereo calibration..."
+                    del(camLeft)
+                    del(camRight)
+                    cv.StereoCalibrate(objectPoints, imagePoints1, imagePoints2, nPoints, CM1, D1, CM2, D2, WinSize, R, T, E, F,
+                                      flags=cv.CV_CALIB_SAME_FOCAL_LENGTH | cv.CV_CALIB_ZERO_TANGENT_DIST)
+
+                    print "Done."
+                    return (CM1, CM2, D1, D2, R, T, E, F)
 
             cv.ShowImage(n1, frameLeft)
-            cv.ShowImage(n2, frameRight)   
+            cv.ShowImage(n2, frameRight)
             if k == 0x1b:
                 print "ESC pressed. Exiting. WARNING: NOT ENOUGH CHESSBOARDS FOUND YET"
                 cv.DestroyAllWindows()
                 break
-      
+
     def saveCalibration(self,calibration=None, fname="Stereo",cdir="."):
         """
         **SUMMARY**
@@ -2006,17 +2017,17 @@ class StereoCamera :
 
         **PARAMETERS**
         * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
-                      where CM1 -> Camera Matrix for left camera, 
-                            CM2 -> Camera Matrix for right camera, 
-                            D1 -> Vector of distortion coefficients for left camera, 
-                            D2 -> Vector of distortion coefficients for right camera, 
-                            R -> Rotation matrix between the left and the right camera coordinate systems, 
-                            T -> Translation vector between the left and the right coordinate systems of the cameras, 
-                            E -> Essential matrix, 
+                      where CM1 -> Camera Matrix for left camera,
+                            CM2 -> Camera Matrix for right camera,
+                            D1 -> Vector of distortion coefficients for left camera,
+                            D2 -> Vector of distortion coefficients for right camera,
+                            R -> Rotation matrix between the left and the right camera coordinate systems,
+                            T -> Translation vector between the left and the right coordinate systems of the cameras,
+                            E -> Essential matrix,
                             F -> Fundamental matrix
 
 
-        **RETURNS**        
+        **RETURNS**
         return True on success and saves the calibration files.
 
         **EXAMPLE**
@@ -2037,10 +2048,10 @@ class StereoCamera :
             cv.Save("{0}/{1}".format(cdir, filenames[7]), F)
             print "Calibration parameters written to directory '{0}'.".format(cdir)
             return True
-        
+
         except :
             return False
-        
+
     def loadCalibration(self,fname="Stereo",dir="."):
         """
         **SUMMARY**
@@ -2050,20 +2061,20 @@ class StereoCamera :
         **PARAMETERS**
         * *fname* - is the prefix of the calibration files.
         * *dir* - is the directory in which files are present.
-    
+
         **RETURNS*
         return a tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success.
-                      where CM1 -> Camera Matrix for left camera, 
-                            CM2 -> Camera Matrix for right camera, 
-                            D1 -> Vector of distortion coefficients for left camera, 
-                            D2 -> Vector of distortion coefficients for right camera, 
-                            R -> Rotation matrix between the left and the right camera coordinate systems, 
-                            T -> Translation vector between the left and the right coordinate systems of the cameras, 
-                            E -> Essential matrix, 
+                      where CM1 -> Camera Matrix for left camera,
+                            CM2 -> Camera Matrix for right camera,
+                            D1 -> Vector of distortion coefficients for left camera,
+                            D2 -> Vector of distortion coefficients for right camera,
+                            R -> Rotation matrix between the left and the right camera coordinate systems,
+                            T -> Translation vector between the left and the right coordinate systems of the cameras,
+                            E -> Essential matrix,
                             F -> Fundamental matrix
-     
+
         else returns false
-     
+
         **EXAMPLE**
         >>> StereoCam = StereoCamera()
         >>> loadedCalibration = StereoCam.loadCalibration(fname="Stereo1")
@@ -2080,36 +2091,36 @@ class StereoCamera :
             F = cv.Load("{0}/{1}".format(dir, filenames[7]))
             print "Calibration files loaded from dir '{0}'.".format(dir)
             return (CM1, CM2, D1, D2, R, T, E, F)
-      
+
         except :
-            return False    
-  
+            return False
+
     def stereoRectify(self,calib=None,WinSize=(352,288)):
         """
         **SUMMARY**
         Computes rectification transforms for each head of a calibrated stereo camera.
-    
+
         **PARAMETERS**
         * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
-                      where CM1 -> Camera Matrix for left camera, 
-                            CM2 -> Camera Matrix for right camera, 
-                            D1 -> Vector of distortion coefficients for left camera, 
-                            D2 -> Vector of distortion coefficients for right camera, 
-                            R -> Rotation matrix between the left and the right camera coordinate systems, 
-                            T -> Translation vector between the left and the right coordinate systems of the cameras, 
-                            E -> Essential matrix, 
+                      where CM1 -> Camera Matrix for left camera,
+                            CM2 -> Camera Matrix for right camera,
+                            D1 -> Vector of distortion coefficients for left camera,
+                            D2 -> Vector of distortion coefficients for right camera,
+                            R -> Rotation matrix between the left and the right camera coordinate systems,
+                            T -> Translation vector between the left and the right coordinate systems of the cameras,
+                            E -> Essential matrix,
                             F -> Fundamental matrix
-    
+
         **RETURNS**
         On success returns a a tuple of the format -> (R1, R2, P1, P2, Q, roi)
-            where 
-               R1 - Rectification transform (rotation matrix) for the left camera. 
+            where
+               R1 - Rectification transform (rotation matrix) for the left camera.
                R2 - Rectification transform (rotation matrix) for the right camera.
                P1 - Projection matrix in the new (rectified) coordinate systems for the left camera.
                P2 - Projection matrix in the new (rectified) coordinate systems for the right camera.
-               Q - disparity-to-depth mapping matrix.                        
+               Q - disparity-to-depth mapping matrix.
 
-        **EXAMPLE**  
+        **EXAMPLE**
         >>> StereoCam = StereoCamera()
         >>> calibration = StereoCam.loadCalibration(fname="Stereo1")
         >>> rectification = StereoCam.stereoRectify(calibration)
@@ -2119,30 +2130,30 @@ class StereoCamera :
         R2 = cv.CreateMat(3, 3, cv.CV_64F)
         P1 = cv.CreateMat(3, 4, cv.CV_64F)
         P2 = cv.CreateMat(3, 4, cv.CV_64F)
-        Q = cv.CreateMat(4, 4, cv.CV_64F)  
-  
+        Q = cv.CreateMat(4, 4, cv.CV_64F)
+
         print "Running stereo rectification..."
-  
+
         (leftroi, rightroi) = cv.StereoRectify(CM1, CM2, D1, D2, WinSize, R, T, R1, R2, P1, P2, Q)
         roi = []
         roi.append(max(leftroi[0], rightroi[0]))
         roi.append(max(leftroi[1], rightroi[1]))
-        roi.append(min(leftroi[2], rightroi[2]))          
+        roi.append(min(leftroi[2], rightroi[2]))
         roi.append(min(leftroi[3], rightroi[3]))
         print "Done."
         return (R1, R2, P1, P2, Q, roi)
-    
+
     def getImagesUndistort(self,imgLeft, imgRight, calibration, rectification, WinSize=(352,288)):
-        """ 
+        """
         **SUMMARY**
         Rectify two images from the calibration and rectification parameters.
 
         **PARAMETERS**
-        * *imgLeft* - Image captured from left camera and needs to be rectified. 
+        * *imgLeft* - Image captured from left camera and needs to be rectified.
         * *imgRight* - Image captures from right camera and need to be rectified.
         * *calibration* - A calibration tuple of the format (CM1, CM2, D1, D2, R, T, E, F)
         * *rectification* - A rectification tuple of the format (R1, R2, P1, P2, Q, roi)
-    
+
         **RETURNS**
         returns rectified images in a tuple -> (imgLeft,imgRight)
         >>> StereoCam = StereoCamera()
@@ -2156,14 +2167,14 @@ class StereoCamera :
         imgRight = imgRight.getMatrix()
         (CM1, CM2, D1, D2, R, T, E, F) = calibration
         (R1, R2, P1, P2, Q, roi) = rectification
-  
+
         dst1 = cv.CloneMat(imgLeft)
         dst2 = cv.CloneMat(imgRight)
         map1x = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
         map2x = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
         map1y = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
         map2y = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
-     
+
         #print "Rectifying images..."
         cv.InitUndistortRectifyMap(CM1, D1, R1, P1, map1x, map1y)
         cv.InitUndistortRectifyMap(CM2, D2, R2, P2, map2x, map2y)
@@ -2171,7 +2182,7 @@ class StereoCamera :
         cv.Remap(imgLeft, dst1, map1x, map1y)
         cv.Remap(imgRight, dst2, map2x, map2y)
         return Image(dst1), Image(dst2)
-        
+
 
 class AVTCameraThread(threading.Thread):
     camera = None
@@ -2260,26 +2271,27 @@ class AVTCamera(FrameSource):
     **SUMMARY**
     AVTCamera is a ctypes wrapper for the Prosilica/Allied Vision cameras,
     such as the "manta" series.
-    
+
     These require the PvAVT binary driver from Allied Vision:
     http://www.alliedvisiontec.com/us/products/1108.html
-    
+
     Note that as of time of writing the new VIMBA driver is not available
     for Mac/Linux - so this uses the legacy PvAVT drive
-    
+
     Props to Cixelyn, whos py-avt-pvapi module showed how to get much
     of this working https://bitbucket.org/Cixelyn/py-avt-pvapi
-    
-    All camera properties are directly from the PvAVT manual -- if not 
+
+    All camera properties are directly from the PvAVT manual -- if not
     specified it will default to whatever the camera state is.  Cameras
-    can either by 
-    
+    can either by
+
     **EXAMPLE**
-    >>> cam = AVTCamera(0, {"width": 656, "height": 492}) 
+    >>> cam = AVTCamera(0, {"width": 656, "height": 492})
     >>>
     >>> img = cam.getImage()
     >>> img.show()
     """
+
     
     _buffer = None # Buffer to store images
     _buffersize = 10 # Number of images to keep in the rolling image buffer for threads
@@ -2434,13 +2446,13 @@ class AVTCamera(FrameSource):
         "StatPacketResent": ("Uint32", "R/V")
         }
 
-   
+
 
     class AVTCameraInfo(ct.Structure):
         """
         AVTCameraInfo is an internal ctypes.Structure-derived class which
         contains metadata about cameras on the local network.
-        
+
         Properties include:
         * UniqueId
         * CameraName
@@ -2466,7 +2478,7 @@ class AVTCamera(FrameSource):
         ]
 
         def __repr__(self):
-          return "<SimpleCV.Camera.AVTCameraInfo - UniqueId: %s>" % (self.UniqueId)
+            return "<SimpleCV.Camera.AVTCameraInfo - UniqueId: %s>" % (self.UniqueId)
 
     class AVTFrame(ct.Structure):
         _fields_ = [
@@ -2476,7 +2488,7 @@ class AVTCamera(FrameSource):
             ("AncillaryBufferSize", ct.c_int),
             ("Context", ct.c_int*4),
             ("_reserved1", ct.c_ulong*8),
-            
+
             ("Status", ct.c_int),
             ("ImageSize", ct.c_ulong),
             ("AncillarySize", ct.c_ulong),
@@ -2490,75 +2502,77 @@ class AVTCamera(FrameSource):
             ("FrameCount", ct.c_ulong),
             ("TimestampLo", ct.c_ulong),
             ("TimestampHi", ct.c_ulong),
-            ("_reserved2", ct.c_ulong*32)    
+            ("_reserved2", ct.c_ulong*32)
         ]
-    
+
         def __init__(self, buffersize):
             self.ImageBuffer = ct.create_string_buffer(buffersize)
             self.ImageBufferSize = ct.c_ulong(buffersize)
             self.AncillaryBuffer = 0
             self.AncillaryBufferSize = 0
             self.img = None
-            self.hasImage = False 
+            self.hasImage = False
             self.frame = None
+
         
     
     def __init__(self, camera_id = -1, properties = {}, threaded = False):
         #~ super(AVTCamera, self).__init__()
         import platform
-        
+
         if platform.system() == "Windows":
             self.dll = ct.windll.LoadLibrary("PvAPI.dll")
         elif platform.system() == "Darwin":
             self.dll = ct.CDLL("libPvAPI.dylib", ct.RTLD_GLOBAL)
         else:
             self.dll = ct.CDLL("libPvAPI.so")
-            
+
         if not self._pvinfo.get("initialized", False):
             self.dll.PvInitialize()
             self._pvinfo['initialized'] = True
         #initialize.  Note that we rely on listAllCameras being the next
         #call, since it blocks on cameras initializing
-        
+
         camlist = self.listAllCameras()
-        
+
         if not len(camlist):
             raise Exception("Couldn't find any cameras with the PvAVT driver.  Use SampleViewer to confirm you have one connected.")
-        
+
         if camera_id < 9000: #camera was passed as an index reference
             if camera_id == -1:  #accept -1 for "first camera"
                 camera_id = 0
-            
+
             camera_id = camlist[camera_id].UniqueId
 
-      
+
         self.handle = ct.c_uint()
         self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle))
         self.dll.PvCaptureStart(self.handle)
         self.uniqueid = camera_id
-        
+
         self.setProperty("AcquisitionMode","SingleFrame")
         self.setProperty("FrameStartTriggerMode","Freerun")
-        
+
         if properties.get("mode", "RGB") == 'gray':
             self.setProperty("PixelFormat", "Mono8")
         else:
             self.setProperty("PixelFormat", "Rgb24")
-        
+
         #give some compatablity with other cameras
         if properties.get("mode", ""):
             properties.pop("mode")
-        
+
         if properties.get("height", ""):
             properties["Height"] = properties["height"]
             properties.pop("height")
-        
+
         if properties.get("width", ""):
             properties["Width"] = properties["width"]
             properties.pop("width")
-        
+
         for p in properties:
             self.setProperty(p, properties[p])
+
 
         if threaded:
           self._thread = AVTCameraThread(self)
@@ -2578,30 +2592,31 @@ class AVTCamera(FrameSource):
         self._thread.daemon = True
         self._buffer = deque(maxlen=self._buffersize)
         self._thread.start()
-        
+
+
     def listAllCameras(self):
         """
         **SUMMARY**
         List all cameras attached to the host
-        
+
         **RETURNS**
         List of AVTCameraInfo objects, otherwise empty list
-        
+
         """
         camlist = (self.AVTCameraInfo*100)()
         starttime = time.time()
         while int(camlist[0].UniqueId) == 0 and time.time() - starttime < 10:
             self.dll.PvCameraListEx(ct.byref(camlist), 100, None, ct.sizeof(self.AVTCameraInfo))
             time.sleep(0.1) #keep checking for cameras until timeout
-        
-        
+
+
         return [cam for cam in camlist if cam.UniqueId != 0]
-    
+
     def runCommand(self,command):
         """
         **SUMMARY**
         Runs a PvAVT Command on the camera
-        
+
         Valid Commands include:
         * FrameStartTriggerSoftware
         * AcquisitionAbort
@@ -2611,35 +2626,35 @@ class AVTCamera(FrameSource):
         * ConfigFileSave
         * TimeStampReset
         * TimeStampValueLatch
-        
+
         **RETURNS**
-        
+
         0 on success
-        
+
         **EXAMPLE**
         >>>c = AVTCamera()
         >>>c.runCommand("TimeStampReset")
         """
         return self.dll.PvCommandRun(self.handle,command)
-    
+
     def getProperty(self, name):
         """
         **SUMMARY**
         This retrieves the value of the AVT Camera attribute
-        
+
         There are around 140 properties for the AVT Camera, so reference the
         AVT Camera and Driver Attributes pdf that is provided with
         the driver for detailed information
-        
+
         Note that the error codes are currently ignored, so empty values
         may be returned.
-        
+
         **EXAMPLE**
         >>>c = AVTCamera()
         >>>print c.getProperty("ExposureValue")
         """
         valtype, perm = self._properties.get(name, (None, None))
-        
+
         if not valtype:
             return None
 
@@ -2651,7 +2666,7 @@ class AVTCamera(FrameSource):
             err = self.dll.PvAttrEnumGet(self.handle, name, val, 100, ct.byref(vallen))
             val = str(val[:vallen.value])
         elif valtype == "Uint32":
-            val = ct.c_uint() 
+            val = ct.c_uint()
             err = self.dll.PvAttrUint32Get(self.handle, name, ct.byref(val))
             val = int(val.value)
         elif valtype == "Float32":
@@ -2667,59 +2682,59 @@ class AVTCamera(FrameSource):
             val = ct.c_bool()
             err = self.dll.PvAttrBooleanGet(self.handle, name, ct.byref(val))
             val = bool(val.value)
-        
+
         #TODO, handle error codes
-        
+
         return val
-  
+
     #TODO, implement the PvAttrRange* functions
     #def getPropertyRange(self, name)
-        
+
     def getAllProperties(self):
         """
         **SUMMARY**
-        This returns a dict with the name and current value of the 
+        This returns a dict with the name and current value of the
         documented PvAVT attributes
-        
+
         CAVEAT: it addresses each of the properties individually, so
         this may take time to run if there's network latency
-        
+
         **EXAMPLE**
         >>>c = AVTCamera(0)
         >>>props = c.getAllProperties()
         >>>print props['ExposureValue']
-        
+
         """
         props = {}
         for p in self._properties.keys():
             props[p] = self.getProperty(p)
-        
+
         return props
-  
+
     def setProperty(self, name, value, skip_buffer_size_check=False):
         """
         **SUMMARY**
-        This sets the value of the AVT Camera attribute.  
-        
+        This sets the value of the AVT Camera attribute.
+
         There are around 140 properties for the AVT Camera, so reference the
         AVT Camera and Driver Attributes pdf that is provided with
         the driver for detailed information
-        
-        By default, we will also refresh the height/width and bytes per 
+
+        By default, we will also refresh the height/width and bytes per
         frame we're expecting -- you can manually bypass this if you want speed
-        
+
         Returns the raw PvAVT error code (0 = success)
-        
+
         **Example**
         >>>c = AVTCamera()
         >>>c.setProperty("ExposureValue", 30000)
         >>>c.getImage().show()
         """
         valtype, perm = self._properties.get(name, (None, None))
-        
+
         if not valtype:
             return None
-        
+
         if valtype == "Uint32":
             err = self.dll.PvAttrUint32Set(self.handle, name, ct.c_uint(int(value)))
         elif valtype == "Float32":
@@ -2730,11 +2745,11 @@ class AVTCamera(FrameSource):
             err = self.dll.PvAttrStringSet(self.handle, name, str(value))
         elif valtype == "Boolean":
             err = self.dll.PvAttrBooleanSet(self.handle, name, ct.c_bool(bool(value)))
-        
+
         #just to be safe, re-cache the camera metadata
         if not skip_buffer_size_check:
             self._refreshFrameStats()
-    
+
         return err
 
     def getImage(self):
@@ -2744,11 +2759,12 @@ class AVTCamera(FrameSource):
         what the image characteristics on the camera, the Image returned
         will be RGB 8 bit depth, if camera is in greyscale mode it will
         be 3 identical channels.
-        
+
         **EXAMPLE**
         >>>c = AVTCamera()
         >>>c.getImage().show()
         """
+
         if self.threaded:
           self._thread.lock.acquire()
           try:
@@ -2768,68 +2784,22 @@ class AVTCamera(FrameSource):
         return img
 
 
-
     def setupASyncMode(self):
         self.setProperty('AcquisitionMode','SingleFrame')
         self.setProperty('FrameStartTriggerMode','Software')
-        
-        
+
+
     def setupSyncMode(self):
         self.setProperty('AcquisitionMode','Continuous')
         self.setProperty('FrameStartTriggerMode','FreeRun')
 
     def unbuffer(self):
-        img = Image(pil.fromstring(self.imgformat, 
-                                   (self.width, self.height), 
+        img = Image(pil.fromstring(self.imgformat,
+                                   (self.width, self.height),
                                    self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
 
         return img
 
-    def callee(self):
-        print "Callee called"
-        print "How do I simplecv?"
-        print self
-        return
-#            print self
-            #img = Image(pil.fromstring(self.imgformat, 
-            #                           (self.width, self.height), 
-            #                           self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
-            #self.runCommand("AcquisitionStop")
-            #self.img = img
-            #self.hasImage = True
-
-    import ctypes as ct
-    def getImageAsync(self):
-        """
-        """
-        #~ self.runCommand("AcquisitionStart")
-        #~ self.hasImage = False
-        #~ self.frame = self.AVTFrame(self.buffersize)
-        #~ print self.frame
-        #~ sanitycheck = False
-        #~ def fml():
-            #~ print "BERKS CANT SIMPLECV"
-            #~ sanitycheck = True
-            #~ print self
-            #~ 
-        #~ ALLIEDCBFUNC = ct.CFUNCTYPE(ct.c_void_p)
-        #~ cbfunc = ALLIEDCBFUNC(fml)
-        #~ self.dll.PvCaptureQueueFrame(self.handle, ct.byref(self.frame), cbfunc)
-        #~ self.runCommand("FrameStartTriggerSoftware")
-        #~ self.runCommand("AcquisitionStop")
-        
-        if not self.thread.isAlive():
-          self.thread.start()
-          
-          while not self.thread.isAlive():
-            print 'sleeping'
-            time.sleep(0.01)
-
-        self.thread.lock.acquire()
-        i = self._currentimage
-        self.thread.lock.release()
-        return i
-    
     def _refreshFrameStats(self):
         self.width = self.getProperty("Width")
         self.height = self.getProperty("Height")
@@ -2838,7 +2808,7 @@ class AVTCamera(FrameSource):
         self.imgformat = 'RGB'
         if self.pixelformat == 'Mono8':
             self.imgformat = 'L'
-        
+
     def _getFrame(self, timeout = 5000):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
@@ -2857,4 +2827,3 @@ class AVTCamera(FrameSource):
           return None
           
         return frame
-        

@@ -20,7 +20,7 @@ def surftest():
             img1.show()
         except KeyboardInterrupt:
             break
-            
+
 def getBBFromUser(cam, d):
     p1 = None
     p2 = None
@@ -31,7 +31,7 @@ def getBBFromUser(cam, d):
             img.save(d)
             dwn = d.leftButtonDownPosition()
             up = d.leftButtonUpPosition()
-            
+
             if dwn:
                 p1 = dwn
             if up:
@@ -43,11 +43,11 @@ def getBBFromUser(cam, d):
             break
     if not p1 or not p2:
         return None
-    
+
     xmax = np.max((p1[0],p2[0]))
     xmin = np.min((p1[0],p2[0]))
     ymax = np.max((p1[1],p2[1]))
     ymin = np.min((p1[1],p2[1]))
     return (img,(xmin,ymin,xmax-xmin,ymax-ymin))
-    
+
 surftest()

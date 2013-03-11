@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from SimpleCV import * 
+from SimpleCV import *
 
 FACECASCADE = 'face.xml'
 
@@ -11,14 +11,14 @@ testneighbor_in = "sampleimages/04000.jpg"
 testneighbor_out = "sampleimages/04000_face.jpg"
 
 def test_haarcascade():
-  img = Image(testimage)
-  faces = img.findHaarFeatures(FACECASCADE)
+    img = Image(testimage)
+    faces = img.findHaarFeatures(FACECASCADE)
 
-  if (faces):
-    faces.draw()
-    img.save(testoutput)
-  else: 
-    assert False
+    if (faces):
+        faces.draw()
+        img.save(testoutput)
+    else:
+        assert False
 
 def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
     img = Image(img_in)

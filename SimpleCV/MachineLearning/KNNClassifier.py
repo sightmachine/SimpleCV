@@ -15,12 +15,12 @@ is as follows.
 5. Tweak parameters as necessary.
 6. Repeat until you reach the desired accuracy.
 7. Save the classifier.
-8. Deploy using the classify method. 
+8. Deploy using the classify method.
 """
 class KNNClassifier:
     """
     This class encapsulates a K- Nearest Neighbor Classifier.
-    
+
     See http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
     """
     mClassNames = []
@@ -34,7 +34,7 @@ class KNNClassifier:
     mOrangeDomain = None
 
     mDistDict = {}
-    
+
     def __init__(self,featureExtractors,k=1,dist=None):
         """
         dist = distance algorithm
@@ -43,7 +43,7 @@ class KNNClassifier:
         if not ORANGE_ENABLED:
             logger.warning("The required orange machine learning library is not installed")
             return None
-        
+
         self.mDistDict = {
             'Hamming': orange.ExamplesDistanceConstructor_Hamming(), # Hamming - only good for discrete variables
             'Maximal': orange.ExamplesDistance_Maximal(),
@@ -51,8 +51,8 @@ class KNNClassifier:
             'Euclidean':orange.ExamplesDistanceConstructor_Euclidean(),
             'Normalized':None
         }
-        
-        
+
+
         self.mFeatureExtractors =  featureExtractors
         if( dist is not None ):
             self.mDistType = self.mDistDict[dist];
@@ -63,13 +63,13 @@ class KNNClassifier:
         self.mDataSetOrange = []
         self.mClassifier = None
         self.mOrangeDomain = None
-        
+
     def setK(self,k):
         """
         Note that training and testing will need to be redone.
         """
         self.mK = k
-    
+
     def setDistanceMetric(self,dist):
         """
         Note that training and testing will need to be redone.
@@ -83,7 +83,7 @@ class KNNClassifier:
         return pickle.load(file(fname))
     load = classmethod(load)
 
-    
+
     def save(self, fname):
         """
         Save the classifier to file
@@ -99,7 +99,7 @@ class KNNClassifier:
         self.mOrangeDomain = None
         del mydict['mOrangeDomain']
         return mydict
-    
+
     def __setstate__(self, mydict):
         self.__dict__ = mydict
         colNames = []
@@ -107,15 +107,15 @@ class KNNClassifier:
             colNames.extend(extractor.getFieldNames())
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
-        
-    
+
+
     def classify(self, image):
         """
         Classify a single image. Takes in an image and returns the string
         of the classification.
-        
+
         Make sure you haved loaded the feauture extractors and the training data.
-        
+
         """
         featureVector = []
         for extractor in self.mFeatureExtractors: #get the features
@@ -127,26 +127,26 @@ class KNNClassifier:
         c = self.mClassifier(test[0]) #classify
         return str(c) #return to class name
 
-    
+
     def setFeatureExtractors(self, extractors):
         """
         Add a list of feature extractors to the classifier. These feature extractors
         must match the ones used to train the classifier. If the classifier is already
-        trained then this method will require that you retrain the data. 
+        trained then this method will require that you retrain the data.
         """
         self.mFeatureExtractors = extractors
         return None
-    
+
     def _trainPath(self,path,className,subset,disp,verbose):
         count = 0
-        files = [] 
+        files = []
         for ext in IMAGE_FORMATS:
             files.extend(glob.glob( os.path.join(path, ext)))
         if(subset > 0):
             nfiles = min(subset,len(files))
         else:
             nfiles = len(files)
-        badFeat = False   
+        badFeat = False
         for i in range(nfiles):
             infile = files[i]
             if verbose:
@@ -159,11 +159,11 @@ class KNNClassifier:
                     featureVector.extend(feats)
                 else:
                     badFeat = True
-                    
+
             if(badFeat):
                 badFeat = False
                 continue
-            
+
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             text = 'Training: ' + className
@@ -171,25 +171,25 @@ class KNNClassifier:
             count = count + 1
             del img
         return count
-        
+
     def train(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
         """
         Train the classifier.
-        paths the order of the paths in the same order as the class type 
-        
+        paths the order of the paths in the same order as the class type
+
         - Note all image classes must be in seperate directories
         - The class names must also align to the directories
-        
+
         disp - if display is a display we show images and class label,
         otherwise nothing is done.
-        
+
         subset - if subset = -1 we use the whole dataset. If subset = # then we
         use min(#images,subset)
-        
+
         savedata - if save data is None nothing is saved. If savedata is a file
         name we save the data to a tab delimited file.
-        
-        verbose - print confusion matrix and file names 
+
+        verbose - print confusion matrix and file names
         returns [%Correct %Incorrect Confusion_Matrix]
         """
         count = 0
@@ -197,15 +197,15 @@ class KNNClassifier:
         # fore each class, get all of the data in the path and train
         for i in range(len(classNames)):
             count = count + self._trainPath(paths[i],classNames[i],subset,disp,verbose)
-           
+
         colNames = []
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
-        
+
         if(count <= 0):
             logger.warning("No features extracted - bailing")
             return None
-        
+
         # push our data into an orange example table
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
@@ -215,7 +215,7 @@ class KNNClassifier:
         self.mLearner =  orange.kNNLearner()
         self.mLearner.k = self.mK
         if(self.mDistType is not None):
-            self.mClassifier.distanceConstructor = self.mDistType        
+            self.mClassifier.distanceConstructor = self.mDistType
         self.mClassifier = self.mLearner(self.mDataSetOrange)
         correct = 0
         incorrect = 0
@@ -223,12 +223,12 @@ class KNNClassifier:
             c = self.mClassifier(self.mDataSetOrange[i])
             test = self.mDataSetOrange[i].getclass()
             if verbose:
-                print "original", test, "classified as", c 
+                print "original", test, "classified as", c
             if(test==c):
                 correct = correct + 1
             else:
                 incorrect = incorrect + 1
-                
+
         good = 100*(float(correct)/float(count))
         bad = 100*(float(incorrect)/float(count))
 
@@ -247,26 +247,26 @@ class KNNClassifier:
         return [good, bad, confusion]
 
 
-    
-    
+
+
     def test(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
         """
         Train the classifier.
-        paths the order of the paths in the same order as the class type 
-        
+        paths the order of the paths in the same order as the class type
+
         - Note all image classes must be in seperate directories
         - The class names must also align to the directories
-        
+
         disp - if display is a display we show images and class label,
         otherwise nothing is done.
-        
+
         subset - if subset = -1 we use the whole dataset. If subset = # then we
         use min(#images,subset)
-        
+
         savedata - if save data is None nothing is saved. If savedata is a file
         name we save the data to a tab delimited file.
-        
-        verbose - print confusion matrix and file names 
+
+        verbose - print confusion matrix and file names
         returns [%Correct %Incorrect Confusion_Matrix]
         """
         count = 0
@@ -276,21 +276,21 @@ class KNNClassifier:
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
             self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
-        
+
         dataset = []
         for i in range(len(classNames)):
             [dataset,cnt,crct] =self._testPath(paths[i],classNames[i],dataset,subset,disp,verbose)
             count = count + cnt
             correct = correct + crct
-            
+
 
         testData = orange.ExampleTable(self.mOrangeDomain,dataset)
-        
+
         if savedata is not None:
             orange.saveTabDelimited (savedata, testData)
 
         confusion = 0
-        if( len(self.mClassNames) > 2 ):                
+        if( len(self.mClassNames) > 2 ):
             crossValidator = orngTest.learnAndTestOnTestData([self.mLearner],self.mDataSetOrange,testData)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
@@ -303,14 +303,14 @@ class KNNClassifier:
             print "\t"+"\t".join(classes)
             for className, classConfusions in zip(classes, confusion):
                 print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
-            
+
         return [good, bad, confusion]
-    
+
     def _testPath(self,path,className,dataset,subset,disp,verbose):
         count = 0
         correct = 0
         badFeat = False
-        files = [] 
+        files = []
         for ext in IMAGE_FORMATS:
             files.extend(glob.glob( os.path.join(path, ext)))
         if(subset > 0):
@@ -332,7 +332,7 @@ class KNNClassifier:
             if( badFeat ):
                 del img
                 badFeat = False
-                continue 
+                continue
             featureVector.extend([className])
             dataset.append(featureVector)
             test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
@@ -342,12 +342,12 @@ class KNNClassifier:
                 text =  "Classified as " + str(c)
                 self._WriteText(disp,img,text, Color.GREEN)
                 correct = correct + 1
-            else:   
+            else:
                 text =  "Mislassified as " + str(c)
                 self._WriteText(disp,img,text, Color.RED)
             count = count + 1
             del img
-            
+
         return([dataset,count,correct])
 
     def _WriteText(self, disp, img, txt,color):
@@ -360,4 +360,3 @@ class KNNClassifier:
             img.addDrawingLayer(layer)
             img.applyLayers()
             img.save(disp)
-    

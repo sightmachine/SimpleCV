@@ -1,6 +1,6 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
-from SimpleCV.Color import * 
+from SimpleCV.Color import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Features.Detection import *
 """
@@ -18,7 +18,7 @@ def GetParallelSets(line_fs,parallel_thresh=2):
                 result.append(np.Inf)
             else:
                 result.append(np.abs(line_fs[i].cross(line_fs[j])))
-            
+
     result = np.array(result)
     # reshape it
     result = result.reshape(sz,sz)
@@ -26,7 +26,7 @@ def GetParallelSets(line_fs,parallel_thresh=2):
     l1,l2=np.where(result<parallel_thresh)
     idxs = zip(l1,l2)
     retVal = []
-    # now construct the line pairs 
+    # now construct the line pairs
     for idx in idxs:
         retVal.append((line_fs[idx[0]],line_fs[idx[1]]))
     return retVal

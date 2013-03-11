@@ -21,9 +21,9 @@ import logging
 import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
-import scipy.cluster.vq as scv    
+import scipy.cluster.vq as scv
 import scipy.linalg as nla  # for linear algebra / least squares
-import math # math... who does that 
+import math # math... who does that
 import copy # for deep copy
 import numpy as np
 import scipy.spatial.distance as spsd
@@ -66,7 +66,7 @@ try:
     from PIL import Image as pil
     from PIL import ImageFont as pilImageFont
     from PIL import ImageDraw as pilImageDraw
-    from PIL import GifImagePlugin 
+    from PIL import GifImagePlugin
     getheader = GifImagePlugin.getheader
     getdata   = GifImagePlugin.getdata
 except ImportError:
@@ -86,8 +86,8 @@ ZXING_ENABLED = True
 try:
     import zxing
 except ImportError:
-    ZXING_ENABLED = False    
-    
+    ZXING_ENABLED = False
+
 OCR_ENABLED = True
 try:
     import tesseract
@@ -100,7 +100,7 @@ try:
     import pyscreenshot
 except ImportError:
     PYSCREENSHOT_ENABLED = False
-    
+
 ORANGE_ENABLED = True
 try:
     import orange
@@ -290,7 +290,7 @@ def read_logging_level(log_level):
     }
 
     if isinstance(log_level,str):
-       log_level = log_level.lower()
+        log_level = log_level.lower()
 
     if log_level in levels_dict:
         return levels_dict[log_level]
@@ -329,14 +329,14 @@ def set_logging(log_level,myfilename = None):
     """
 
     if myfilename and ipython_version:
-         try:
-             if ipython_version.startswith("0.10"):
-                 __IPYTHON__.set_custom_exc((Exception,), ipython_exception_handler)
-             else:
-                 ip = get_ipython()
-                 ip.set_custom_exc((Exception,), ipython_exception_handler)
-         except NameError: #In case the interactive shell is not being used
-             sys.exc_clear()
+        try:
+            if ipython_version.startswith("0.10"):
+                __IPYTHON__.set_custom_exc((Exception,), ipython_exception_handler)
+            else:
+                ip = get_ipython()
+                ip.set_custom_exc((Exception,), ipython_exception_handler)
+        except NameError: #In case the interactive shell is not being used
+            sys.exc_clear()
 
 
     level = read_logging_level(log_level)

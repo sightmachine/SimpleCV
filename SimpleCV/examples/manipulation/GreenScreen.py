@@ -21,4 +21,3 @@ time.sleep(5)
 result = (gs-matte)+(background-matte.invert())
 result.show()
 time.sleep(5)
-

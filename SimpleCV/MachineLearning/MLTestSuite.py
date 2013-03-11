@@ -60,34 +60,34 @@ path = [cactus_path,cup_path,basket_path]
 classes = ['cactus','cup','basket']
 props ={
         'KernelType':'Poly', #default is a RBF Kernel
-        'SVMType':'C',     #default is C 
+        'SVMType':'C',     #default is C
         'nu':None,          # NU for SVM NU
         'c':None,           #C for SVM C - the slack variable
         'degree':3,      #degree for poly kernels - defaults to 3
         'coef':None,        #coef for Poly/Sigmoid defaults to 0
-        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples       
+        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples
     }
 print('Train')
 classifierSVMP = SVMClassifier(extractors,props)
 classifierSVMP.train(path,classes,disp=display,subset=n) #train
 print('Test')
 [pos,neg,confuse] = classifierSVMP.test(path,classes,disp=display,subset=n)
-files = [] 
+files = []
 for ext in IMAGE_FORMATS:
-        files.extend(glob.glob( os.path.join(path[0], ext)))
+    files.extend(glob.glob( os.path.join(path[0], ext)))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierSVMP.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = classifierSVMP.classify(img)
+    print(files[i]+' -> '+cname)
 classifierSVMP.save('PolySVM.pkl')
 print('Reloading from file')
 testSVM = SVMClassifier.load('PolySVM.pkl')
 #testSVM.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testSVM.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testSVM.classify(img)
+    print(files[i]+' -> '+cname)
 
 print('###############################################################################')
 print('SVMRBF   ')
@@ -97,12 +97,12 @@ path = [cactus_path,cup_path,basket_path]
 classes = ['cactus','cup','basket']
 props ={
         'KernelType':'RBF', #default is a RBF Kernel
-        'SVMType':'NU',     #default is C 
+        'SVMType':'NU',     #default is C
         'nu':None,          # NU for SVM NU
         'c':None,           #C for SVM C - the slack variable
         'degree':None,      #degree for poly kernels - defaults to 3
         'coef':None,        #coef for Poly/Sigmoid defaults to 0
-        'gamma':None,       #kernel param for poly/rbf/sigma  
+        'gamma':None,       #kernel param for poly/rbf/sigma
     }
 print('Train')
 classifierSVMRBF = SVMClassifier(extractors,props)
@@ -111,20 +111,20 @@ print('Test')
 [pos,neg,confuse] = classifierSVMRBF.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierSVMRBF.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = classifierSVMRBF.classify(img)
+    print(files[i]+' -> '+cname)
 classifierSVMRBF.save('RBFSVM.pkl')
 print('Reloading from file')
 testSVMRBF = SVMClassifier.load('RBFSVM.pkl')
 #testSVMRBF.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testSVMRBF.classify(img)
-        print(files[i]+' -> '+cname)
-        
-        
+    img = Image(files[i])
+    cname = testSVMRBF.classify(img)
+    print(files[i]+' -> '+cname)
+
+
 print('###############################################################################')
 print('Bayes')
 extractors = [haar]
@@ -137,18 +137,18 @@ print('Test')
 [pos,neg,confuse] = classifierBayes.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierBayes.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = classifierBayes.classify(img)
+    print(files[i]+' -> '+cname)
 classifierBayes.save('Bayes.pkl')
 print('Reloading from file')
 testBayes = NaiveBayesClassifier.load('Bayes.pkl')
 testBayes.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testBayes.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testBayes.classify(img)
+    print(files[i]+' -> '+cname)
 
 print('###############################################################################')
 
@@ -165,19 +165,19 @@ print('Test')
 [pos,neg,confuse] = classifierForest.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierForest.classify(img)
-        print(files[i]+' -> '+cname)
-        
+    img = Image(files[i])
+    cname = classifierForest.classify(img)
+    print(files[i]+' -> '+cname)
+
 classifierForest.save('forest.pkl')
 print('Reloading from file')
 testForest = TreeClassifier.load('forest.pkl')
 testForest.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testForest.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testForest.classify(img)
+    print(files[i]+' -> '+cname)
 
 print('###############################################################################')
 print('Bagged Tree')
@@ -191,19 +191,19 @@ print('Test')
 [pos,neg,confuse] = classifierBagTree.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierBagTree.classify(img)
-        print(files[i]+' -> '+cname)
-        
+    img = Image(files[i])
+    cname = classifierBagTree.classify(img)
+    print(files[i]+' -> '+cname)
+
 classifierBagTree.save('bagtree.pkl')
 print('Reloading from file')
 testBagTree = TreeClassifier.load('bagtree.pkl')
 testBagTree.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testBagTree.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testBagTree.classify(img)
+    print(files[i]+' -> '+cname)
 
 
 
@@ -219,17 +219,17 @@ print('Test')
 [pos,neg,confuse] = classifierTree.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierTree.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = classifierTree.classify(img)
+    print(files[i]+' -> '+cname)
 print('Reloading from file')
 classifierTree.save('tree.pkl')
 testTree = TreeClassifier.load('tree.pkl')
 testTree.setFeatureExtractors(extractors)
 for i in range(10):
-        img = Image(files[i])
-        cname = testTree.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testTree.classify(img)
+    print(files[i]+' -> '+cname)
 
 print('###############################################################################')
 print('Boosted Tree')
@@ -243,10 +243,10 @@ print('Test')
 [pos,neg,confuse] = classifierBTree.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierBTree.classify(img)
-        print(files[i]+' -> '+cname)
-        
+    img = Image(files[i])
+    cname = classifierBTree.classify(img)
+    print(files[i]+' -> '+cname)
+
 classifierBTree.save('btree.pkl')
 print('Reloading from file')
 
@@ -254,9 +254,9 @@ testBoostTree = TreeClassifier.load('btree.pkl')
 testBoostTree.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testBoostTree.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testBoostTree.classify(img)
+    print(files[i]+' -> '+cname)
 
 
 
@@ -273,19 +273,19 @@ print('Test')
 [pos,neg,confuse] = classifierKNN.test(path,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = classifierKNN.classify(img)
-        print(files[i]+' -> '+cname)
-        
+    img = Image(files[i])
+    cname = classifierKNN.classify(img)
+    print(files[i]+' -> '+cname)
+
 classifierKNN.save('knn.pkl')
 print('Reloading from file')
 testKNN = KNNClassifier.load('knn.pkl')
 testKNN.setFeatureExtractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
-        img = Image(files[i])
-        cname = testKNN.classify(img)
-        print(files[i]+' -> '+cname)
+    img = Image(files[i])
+    cname = testKNN.classify(img)
+    print(files[i]+' -> '+cname)
 
 
 print ""
