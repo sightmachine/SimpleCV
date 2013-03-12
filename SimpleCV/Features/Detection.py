@@ -1576,17 +1576,10 @@ class KeypointMatch(Feature):
         rectangle.
         """
         TL = self.topLeftCorner()
-        print TL
-        print self.width()
-        print self.height()
-        print self.points
-        print self._minRect
         raw = self.image.crop(TL[0],TL[1],self.width(),self.height()) # crop the minbouding rect
         mask = Image((self.width(),self.height()))
         mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
         mask = mask.applyLayers()
-        print (mask.width,mask.height)
-        print (raw.width,raw.height)
         mask.blit(raw,(0,0),alpha=None,mask=mask)
         return mask
 
@@ -1725,8 +1718,20 @@ class ROI(Feature):
         >>> roi = ROI(x,y,img)
 
         """
-        
-        self.image = image
+        #After forgetting to set img=Image I put this catch
+        # in to save some debugging headache. 
+        if( isinstance(y,Image) ):
+            self.image = y
+            y = None
+        elif( isinstance(w,Image) ):
+            self.image = w
+            w = None
+        elif( isinstance(h,Image) ):
+            self.image = h
+            h = None
+        else:
+            self.image = image
+            
         if( image is None and isinstance(x,(Feature,FeatureSet))):
             if( isinstance(x,Feature) ):
                 self.image = x.image
@@ -1739,6 +1744,7 @@ class ROI(Feature):
             self.subFeatures = FeatureSet(x)
 
         result = self._standardize(x,y,w,h)
+        print result
         if result is None:
             logger.warning("Could not create an ROI from your data.")
             return
@@ -2436,7 +2442,6 @@ class ROI(Feature):
         self._updateExtents()
 
     def _standardize(self,x,y=None,w=None,h=None):
-
         if(isinstance(x,np.ndarray)):
             x = x.tolist()
         if(isinstance(y,np.ndarray)):
@@ -2477,7 +2482,7 @@ class ROI(Feature):
         # [x,y,w,h] (x,y,w,h)
         elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, long, float))
              and y == None and w == None and h == None):
-                x,y,w,h = x
+            x,y,w,h = x
         # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
         # x of the form [[x,y],[x1,y1],[x2,y2],[x3,y3]]
         # x of the form ([x,y],[x1,y1],[x2,y2],[x3,y3])

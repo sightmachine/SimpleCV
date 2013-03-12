@@ -9387,7 +9387,6 @@ class Image:
         #create a single channel image, thresholded to parameters
         if( mask.width != self.width or mask.height != self.height ):
             logger.warning("ImageClass.findBlobsFromMask - your mask does not match the size of your image")
-            print "FML"
             return None
 
         blobmaker = BlobMaker()
