@@ -2113,7 +2113,6 @@ class ROI(Feature):
         >>> pts = roi.CoordTransformPts(pts)
         >>> #yt are no in the space of the original image.
         """
-
         if( self.image is None ):
             logger.warning("No image to perform that calculation")
             return None
@@ -2137,7 +2136,7 @@ class ROI(Feature):
         # we are going to go to src unit coordinates
         # and then we'll go back.
         if( intype == "SRC" ):
-            xtemp = [xt/float(imgsize) for xt in x]
+            xtemp = [xt/float(imgsz) for xt in x]
         elif( intype == "ROI" ):
             xtemp = [(xt+offset)/float(imgsz) for xt in x]
         elif( intype == "ROI_UNIT"):
@@ -2152,9 +2151,9 @@ class ROI(Feature):
         if( output == "SRC" ):
             retVal = [int(xt*imgsz) for xt in xtemp]
         elif( output == "ROI" ):
-            xtemp = [int((xt*imgsz)-offset) for xt in xtemp]
+            retVal = [int((xt*imgsz)-offset) for xt in xtemp]
         elif( output == "ROI_UNIT"):
-            xtemp = [int(((xt*imgsz)-offset)/float(roisz)) for xt in xtemp]
+            retVal = [int(((xt*imgsz)-offset)/float(roisz)) for xt in xtemp]
         elif( output == "SRC_UNIT"):
             retVal = xtemp
         else:
