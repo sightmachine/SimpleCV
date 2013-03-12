@@ -1740,7 +1740,6 @@ class ROI(Feature):
             self.subFeatures = FeatureSet(x)
 
         result = self._standardize(x,y,w,h)
-        print result
         if result is None:
             logger.warning("Could not create an ROI from your data.")
             return
