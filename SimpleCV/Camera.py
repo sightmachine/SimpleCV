@@ -5,6 +5,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
+from collections import deque
 import time
 import ctypes as ct
 
@@ -2183,6 +2184,87 @@ class StereoCamera :
         return Image(dst1), Image(dst2)
 
 
+class AVTCameraThread(threading.Thread):
+    camera = None
+    run = True
+    verbose = False
+    lock = None
+    logger = None
+    framerate = 0
+
+
+    def __init__(self, camera):
+        super(AVTCameraThread, self).__init__()
+        self._stop = threading.Event()
+        self.camera = camera
+        self.lock = threading.Lock()
+        self.name = 'Thread-Camera-ID-' + str(self.camera.uniqueid)
+
+      
+    def run(self):
+        counter = 0
+        timestamp = time.time()
+        
+        while self.run:
+          self.lock.acquire()
+          self.camera.runCommand("AcquisitionStart")
+          frame = self.camera._getFrame(1000)
+          
+          if frame:            
+            img = Image(pil.fromstring(self.camera.imgformat, 
+              (self.camera.width, self.camera.height), 
+              frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+            self.camera._buffer.appendleft(img)
+            
+          self.camera.runCommand("AcquisitionStop")
+          self.lock.release()
+          counter += 1
+          time.sleep(0.01)
+
+          if time.time() - timestamp >= 1:
+            self.camera.framerate = counter
+            counter = 0
+            timestamp = time.time()
+            
+
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
+  
+
+
+AVTCameraErrors = [
+    ("ePvErrSuccess",        "No error"),
+    ("ePvErrCameraFault",        "Unexpected camera fault"),
+    ("ePvErrInternalFault",        "Unexpected fault in PvApi or driver"),
+    ("ePvErrBadHandle",        "Camera handle is invalid"),
+    ("ePvErrBadParameter",        "Bad parameter to API call"),
+    ("ePvErrBadSequence",        "Sequence of API calls is incorrect"),
+    ("ePvErrNotFound",        "Camera or attribute not found"),
+    ("ePvErrAccessDenied",        "Camera cannot be opened in the specified mode"),
+    ("ePvErrUnplugged",        "Camera was unplugged"),
+    ("ePvErrInvalidSetup",        "Setup is invalid (an attribute is invalid)"),
+    ("ePvErrResources",       "System/network resources or memory not available"),
+    ("ePvErrBandwidth",       "1394 bandwidth not available"),
+    ("ePvErrQueueFull",       "Too many frames on queue"),
+    ("ePvErrBufferTooSmall",       "Frame buffer is too small"),
+    ("ePvErrCancelled",       "Frame cancelled by user"),
+    ("ePvErrDataLost",       "The data for the frame was lost"),
+    ("ePvErrDataMissing",       "Some data in the frame is missing"),
+    ("ePvErrTimeout",       "Timeout during wait"),
+    ("ePvErrOutOfRange",       "Attribute value is out of the expected range"),
+    ("ePvErrWrongType",       "Attribute is not this type (wrong access function)"),
+    ("ePvErrForbidden",       "Attribute write forbidden at this time"),
+    ("ePvErrUnavailable",       "Attribute is not available at this time"),
+    ("ePvErrFirewall",       "A firewall is blocking the traffic (Windows only)"),
+  ]
+def pverr(errcode):
+  if errcode:
+    raise Exception(": ".join(AVTCameraErrors[errcode]))
+
 
 class AVTCamera(FrameSource):
     """
@@ -2209,7 +2291,15 @@ class AVTCamera(FrameSource):
     >>> img = cam.getImage()
     >>> img.show()
     """
-    _pvinfo = { }
+
+    
+    _buffer = None # Buffer to store images
+    _buffersize = 10 # Number of images to keep in the rolling image buffer for threads
+    _lastimage = None # Last image loaded into memory
+    _thread = None
+    _framerate = 0
+    threaded = False
+    _pvinfo = { }    
     _properties = {
         "AcqEndTriggerEvent": ("Enum", "R/W"),
         "AcqEndTriggerMode": ("Enum", "R/W"),
@@ -2424,8 +2514,10 @@ class AVTCamera(FrameSource):
             self.hasImage = False
             self.frame = None
 
-
-    def __init__(self, camera_id = -1, properties = {}):
+        
+    
+    def __init__(self, camera_id = -1, properties = {}, threaded = False):
+        #~ super(AVTCamera, self).__init__()
         import platform
 
         if platform.system() == "Windows":
@@ -2451,6 +2543,7 @@ class AVTCamera(FrameSource):
                 camera_id = 0
 
             camera_id = camlist[camera_id].UniqueId
+
 
         self.handle = ct.c_uint()
         self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle))
@@ -2480,7 +2573,26 @@ class AVTCamera(FrameSource):
         for p in properties:
             self.setProperty(p, properties[p])
 
+
+        if threaded:
+          self._thread = AVTCameraThread(self)
+          self._thread.daemon = True
+          self._buffer = deque(maxlen=self._buffersize)
+          self._thread.start()
+          self.threaded = True
+          
         self._refreshFrameStats()
+
+    def restart(self):
+        """
+        This tries to restart the camera thread
+        """
+        self._thread.stop()
+        self._thread = AVTCameraThread(self)
+        self._thread.daemon = True
+        self._buffer = deque(maxlen=self._buffersize)
+        self._thread.start()
+
 
     def listAllCameras(self):
         """
@@ -2652,12 +2764,23 @@ class AVTCamera(FrameSource):
         >>>c = AVTCamera()
         >>>c.getImage().show()
         """
-        self.runCommand("AcquisitionStart")
-        frame = self._getFrame()
-        img = Image(pil.fromstring(self.imgformat,
-            (self.width, self.height),
-            frame.ImageBuffer[:int(frame.ImageBufferSize)]))
-        self.runCommand("AcquisitionStop")
+
+        if self.threaded:
+          self._thread.lock.acquire()
+          try:
+              img = self._buffer.pop()
+              self._lastimage = img
+          except IndexError:
+              img = self._lastimage
+          self._thread.lock.release()
+
+        else:
+          self.runCommand("AcquisitionStart")
+          frame = self._getFrame()
+          img = Image(pil.fromstring(self.imgformat, 
+              (self.width, self.height), 
+              frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+          self.runCommand("AcquisitionStop")
         return img
 
 
@@ -2677,39 +2800,6 @@ class AVTCamera(FrameSource):
 
         return img
 
-    def callee(self):
-        print "Callee called"
-        print "How do I simplecv?"
-        print self
-        return
-#            print self
-            #img = Image(pil.fromstring(self.imgformat,
-            #                           (self.width, self.height),
-            #                           self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
-            #self.runCommand("AcquisitionStop")
-            #self.img = img
-            #self.hasImage = True
-
-    import ctypes as ct
-    def getImageAsync(self):
-        """
-        """
-        self.runCommand("AcquisitionStart")
-        self.hasImage = False
-        self.frame = self.AVTFrame(self.buffersize)
-        print self.frame
-        sanitycheck = False
-        def fml():
-            print "BERKS CANT SIMPLECV"
-            sanitycheck = True
-            print self
-
-        ALLIEDCBFUNC = ct.CFUNCTYPE(ct.c_void_p)
-        cbfunc = ALLIEDCBFUNC(fml)
-        self.dll.PvCaptureQueueFrame(self.handle, ct.byref(self.frame), cbfunc)
-        self.runCommand("FrameStartTriggerSoftware")
-        self.runCommand("AcquisitionStop")
-
     def _refreshFrameStats(self):
         self.width = self.getProperty("Width")
         self.height = self.getProperty("Height")
@@ -2722,7 +2812,18 @@ class AVTCamera(FrameSource):
     def _getFrame(self, timeout = 5000):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
-        frame = self.AVTFrame(self.buffersize)
-        self.dll.PvCaptureQueueFrame(self.handle, ct.byref(frame), None)
-        self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout)
+        try:
+          frame = self.AVTFrame(self.buffersize)
+          pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(frame), None) )
+          try:
+            pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
+          except Exception, e:
+            #~ print "Excepted:", e
+            return None
+            
+        except Exception, e:
+          #~ print "Exception:", e
+          #~ import ipdb;ipdb.set_trace()
+          return None
+          
         return frame

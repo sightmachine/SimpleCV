@@ -8009,7 +8009,7 @@ class Image:
         >>> img = camera.getImage()
         >>> fs = img.findKeypointMatch(template)
         >>> if( fs is not None ):
-        >>>      fs[0].draw()
+        >>>      fs.draw()
         >>>      img.show()
 
         **NOTES**
@@ -8038,7 +8038,7 @@ class Image:
             
         if template == None:
           return None
-        
+        fs = FeatureSet()
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
         if( skp == None or tkp == None ):
@@ -8072,28 +8072,22 @@ class Image:
             (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
             w = template.width
             h = template.height
-            yo = homography[0][2] # get the x/y offset from the affine transform
-            xo = homography[1][2]
-            # draw our template
-            pt0 = np.array([0,0,1])
-            pt1 = np.array([0,h,1])
-            pt2 = np.array([w,h,1])
-            pt3 = np.array([w,0,1])
-            # apply the affine transform to our points
-            pt0p = np.array(pt0*np.matrix(homography))
-            pt1p = np.array(pt1*np.matrix(homography))
-            pt2p = np.array(pt2*np.matrix(homography))
-            pt3p = np.array(pt3*np.matrix(homography))
-            #update and clamp the corners to get our template in the other image
-            pt0i = (abs(pt0p[0][0]+xo),abs(pt0p[0][1]+yo))
-            pt1i = (abs(pt1p[0][0]+xo),abs(pt1p[0][1]+yo))
-            pt2i = (abs(pt2p[0][0]+xo),abs(pt2p[0][1]+yo))
-            pt3i = (abs(pt3p[0][0]+xo),abs(pt3p[0][1]+yo))
+            
+            pts = np.array([[0,0],[0,h],[w,h],[w,0]], dtype="float32")
+            
+            pPts = cv2.perspectiveTransform(np.array([pts]), homography)
+            
+            pt0i = (pPts[0][0][1], pPts[0][0][0])
+            pt1i = (pPts[0][1][1], pPts[0][1][0])
+            pt2i = (pPts[0][2][1], pPts[0][2][0])
+            pt3i = (pPts[0][3][1], pPts[0][3][0])
+            
             #construct the feature set and return it.
-            fs = FeatureSet()
+            fs = FeatureSet() 
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
             #the homography matrix is necessary for many purposes like image stitching.
-            fs.append(homography)
+            #fs.append(homography) # No need to add homography as it is already being
+            #added in KeyPointMatch class.
             return fs
         else:
             return None
@@ -10330,20 +10324,20 @@ class Image:
         **EXAMPLE**
 
         >>> im = Image("lenna")
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=True,grayscale=False)
 
         Output image: http://i.imgur.com/5LS3e.png
 
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=False,grayscale=False)
 
         Output img: http://i.imgur.com/QlCAY.png
 
         >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=True,grayscale=True)
 
         Output img: http://i.imgur.com/BYYnp.png
 
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
+        >>> img = im.applyButterworth(dia=400,order=2,highpass=False,grayscale=True)
 
         Output img: http://i.imgur.com/BYYnp.png
 
@@ -10398,20 +10392,20 @@ class Image:
         **EXAMPLE**
 
         >>> im = Image("lenna")
-        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=True,grayscale=False)
 
         Output image: http://i.imgur.com/DttJv.png
 
-        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=False,grayscale=False)
 
         Output img: http://i.imgur.com/PWn4o.png
 
         >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=True,grayscale=True)
 
         Output img: http://i.imgur.com/9hX5J.png
 
-        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
+        >>> img = im.applyGaussianfilter(dia=400,highpass=False,grayscale=True)
 
         Output img: http://i.imgur.com/MXI5T.png
 
@@ -10474,20 +10468,20 @@ class Image:
         Gaussian Filters:
 
         >>> im = Image("lenna")
-        >>> img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
+        >>> img = im.applyUnsharpMask(2,grayscale=False) #highboost filtering
 
         output image: http://i.imgur.com/A1pZf.png
 
-        >>> img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
+        >>> img = im.applyUnsharpMask(1,grayscale=False) #unsharp masking
 
         output image: http://i.imgur.com/smCdL.png
 
         >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
+        >>> img = im.applyUnsharpMask(2,grayscale=True) #highboost filtering
 
         output image: http://i.imgur.com/VtGzl.png
 
-        >>> img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
+        >>> img = im.applyUnsharpMask(1,grayscale=True) #unsharp masking
 
         output image: http://i.imgur.com/bywny.png
 
