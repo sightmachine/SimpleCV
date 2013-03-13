@@ -5,7 +5,7 @@ python:
 before_install:
   - sudo apt-get update
   - sudo apt-get build-dep python-numpy python-scipy
-  - sudo apt-get install opencv python-opencv
+  - sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv libcv-dev libcvaux-dev libhighgui-dev
 
 install: "pip install -r requirements.txt --use-mirrors"
 
