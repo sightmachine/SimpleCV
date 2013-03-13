@@ -5,7 +5,10 @@ python:
 before_install:
   - sudo apt-get update
   - sudo apt-get build-dep python-numpy python-scipy
+  - sudo apt-get install opencv python-opencv
 
 install: "pip install -r requirements.txt --use-mirrors"
 
-script: nosetests
+script:
+- cd SimpleCV/tests/
+- nosetests tests.py
