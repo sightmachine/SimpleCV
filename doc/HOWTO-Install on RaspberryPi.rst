@@ -25,7 +25,8 @@ Instructions on how to install SimpleCV on the RaspberryPi
 	mkdir ~/Code
 	cd ~/Code
 	git clone git://github.com/ingenuitas/SimpleCV.git
-	./scripts/install/ubuntu/simplecv-install.sh
+	cd SimpleCV
+	sudo python setup.py develop
 	
 5) After allowing those commands to run for a while (it is going to take a while, go
    grab a drink), SimpleCV should be all set up. Connect a compatible camera to the
