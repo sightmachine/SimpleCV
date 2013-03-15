@@ -5,6 +5,7 @@ Instructions on how to install SimpleCV on the RaspberryPi
    board to ethernet.
 
 	Username: pi
+
 	Password: raspberry
 
 2) Network should be up and running with dhcp, if not
