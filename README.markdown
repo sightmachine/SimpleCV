@@ -115,6 +115,7 @@ Commands (for Lion)::
     /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
     brew install opencv
     brew install git
+    brew tap homebrew/headonly
     brew install --HEAD smpeg
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi 
     ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
