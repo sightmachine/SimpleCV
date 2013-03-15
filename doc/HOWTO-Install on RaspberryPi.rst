@@ -2,9 +2,8 @@
 Instructions on how to install SimpleCV on the RaspberryPi
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-======================================
-==      With SimpleCV Disk Img      ==
-======================================
+With SimpleCV Disk Img
+======================
 
 1) Download the image
 
@@ -14,9 +13,8 @@ Instructions on how to install SimpleCV on the RaspberryPi
 
 	user@machine:~$ zcat squeeze_simplecv_pi.image.gz | sudo dd bs=1M of=/dev/sdb
 
-======================================
-==    Without SimpleCV Disk Img     ==
-======================================
+Without SimpleCV Disk Img
+=========================
 
 1) Power up the raspberry pi and log in. Connect the 
    board to ethernet.
