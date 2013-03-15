@@ -4,8 +4,9 @@ Instructions on how to install SimpleCV on the RaspberryPi
 1) Power up the raspberry pi and log in. Connect the 
    board to ethernet.
 
-	Username: pi
+::
 
+	Username: pi
 	Password: raspberry
 
 2) Network should be up and running with dhcp, if not
@@ -13,28 +14,32 @@ Instructions on how to install SimpleCV on the RaspberryPi
 
 3) Run the following command to install the necessary dependancies
 
+::
+
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-setuptools python-pip
 
 4) SimpleCV should now be ready to install. Download SimpleCV from github 
    and install from the source.
 
+::
+
 	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
 
 Alternatively, you can install SimpleCV from source.
 
+::
+
 	mkdir ~/Code
-
 	cd ~/Code
-
 	git clone git://github.com/ingenuitas/SimpleCV.git
-
 	cd SimpleCV
-
 	sudo python setup.py develop
 	
 5) After allowing those commands to run for a while (it is going to take a while, go
    grab a drink), SimpleCV should be all set up. Connect a compatible camera to the
    board's usb input and open up the simplecv shell
+
+::
 
 	raspberry@pi:~$ simplecv
 
