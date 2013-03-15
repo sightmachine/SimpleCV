@@ -20,12 +20,16 @@ Instructions on how to install SimpleCV on the RaspberryPi
 
 	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
 
-4.5) Alternatively, you can install SimpleCV from source.
+Alternatively, you can install SimpleCV from source.
 
 	mkdir ~/Code
+
 	cd ~/Code
+
 	git clone git://github.com/ingenuitas/SimpleCV.git
+
 	cd SimpleCV
+
 	sudo python setup.py develop
 	
 5) After allowing those commands to run for a while (it is going to take a while, go
