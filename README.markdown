@@ -9,6 +9,7 @@ Quick Links:
     * [Arch Linux](#archlinux)
     * [Windows](#windows)
     * [MacOS](#macos)
+    * [Raspberry Pi](#rasppi)
  * [SimpleCV Shell](#shell)
  * [Videos & Tutorials](#videos)
  * [SimpleCV on Mobile - Android](#mobile)
@@ -187,6 +188,12 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install pip
     pip install ipython
     pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
+
+
+<a id="rasppi"></a>
+#### RASPBERRY PI 
+
+* [Installation instructions can be found here.](https://github.com/ingenuitas/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
 
 ---------------------------
 <a id="shell"></a>
