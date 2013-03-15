@@ -1,5 +1,5 @@
-Instructions on how to install SimpleCV on the RaspberryPi
-==========================================================
+Installing SimpleCV on the Raspberry Pi
+=======================================
 
 1) Power up the raspberry pi and log in. Connect the 
    board to ethernet.
