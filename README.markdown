@@ -22,7 +22,7 @@ Quick Links:
 <a id="about"></a>
 ## About
 ---------------------------
-Make computers see with SimpleCV, the Open Source Framework for Vision
+Make computers see with SimpleCV, the Open Source Framework for Computer Vision
 
 SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.    
 It provides a concise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
