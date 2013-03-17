@@ -3293,3 +3293,12 @@ def testROIFeature():
     testROI = ROI(blobs[0],mask)
     for b in blobs[1:]:
         testROI.merge(b)
+
+def test_findKeypointClusters():
+    img = Image('simplecv')
+    kpc = img.findKeypointClusters()
+    if len(kpc) <= 0:
+      assert False
+    else:
+      pass
+

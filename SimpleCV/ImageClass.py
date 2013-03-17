@@ -12706,9 +12706,10 @@ class Image:
             return val
 
     
-    def findKeypointClusters(self, num_of_clusters = 5):
+    def findKeypointClusters(self, num_of_clusters = 5, order='dsc'):
         '''
-        This function finds keypoint clusters in an image.
+        This function is meant to try and find interesting areas of an
+        image. It does this by finding keypoint clusters in an image.
         It uses keypoint (ORB) detection to locate points of interest
         and then uses kmeans clustering to get the X,Y coordinates of
         those clusters of keypoints. You provide the expected number
@@ -12716,7 +12717,8 @@ class Image:
         and rank order of the number of Keypoints around those clusters
 
         **PARAMETERS**
-        * num_of_clusters - The number of clusters you are looking for
+        * num_of_clusters - The number of clusters you are looking for (default: 5)
+        * order - The rank order you would like the points returned in, dsc or asc, (default: dsc)
 
 
         **EXAMPLE**
@@ -12736,21 +12738,19 @@ class Image:
         xycentroids, xylabels = scv.kmeans2(xypoints, num_of_clusters)
         xycounts = np.array([])
         
-        for i in range(num_of_points):
+        for i in range(num_of_clusters ):
             xycounts = np.append(xycounts, len(np.where(xylabels == i)[-1]))
             
-        rank_order = xycounts.argsort()[::-1] #get the max to min rank order
-
-        #~ for r in rank_order:
-            #~ self.drawText(str(r), xycentroids[r][0], xycentroids[r][1], Color.YELLOW, 40)
-
+        merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids)))
+        clusters = [c[1:] for c in merged]
+        if order.lower() == 'dsc':
+            clusters = clusters[::-1]
 
         fs = FeatureSet()
-        for xy in xycentroids:
-            f = KeypointClusterFeature(self, xy[0], xy[1])
-            f.rank_order = rank_order
+        for x,y in clusters:
+            f = Corner(self, x, y)
             fs.append(f)
-            
+  
         return fs
         
       
