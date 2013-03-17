@@ -12704,7 +12704,56 @@ class Image:
         else:
             val = np.min(self.getGrayNumpy())
             return val
+
+    
+    def findKeypointClusters(self, num_of_clusters = 5):
+        '''
+        This function finds keypoint clusters in an image.
+        It uses keypoint (ORB) detection to locate points of interest
+        and then uses kmeans clustering to get the X,Y coordinates of
+        those clusters of keypoints. You provide the expected number
+        of clusters and you will get back a list of the X,Y coordinates
+        and rank order of the number of Keypoints around those clusters
+
+        **PARAMETERS**
+        * num_of_clusters - The number of clusters you are looking for
+
+
+        **EXAMPLE**
+        
+        >>> img = Image('simplecv')
+        >>> clusters = img.findKeypointClusters()
+        >>> clusters.draw()
+        >>> img.show()
+
+        **RETURNS**
+        
+        FeatureSet
+        '''
+        from SimpleCV.Features.KeypointClusterFeature import KeypointClusterFeature
+        keypoints = self.findKeypoints(flavor='ORB')
+        xypoints = np.array([(f.x,f.y) for f in keypoints])
+        xycentroids, xylabels = scv.kmeans2(xypoints, num_of_clusters)
+        xycounts = np.array([])
+        
+        for i in range(num_of_points):
+            xycounts = np.append(xycounts, len(np.where(xylabels == i)[-1]))
             
+        rank_order = xycounts.argsort()[::-1] #get the max to min rank order
+
+        #~ for r in rank_order:
+            #~ self.drawText(str(r), xycentroids[r][0], xycentroids[r][1], Color.YELLOW, 40)
+
+
+        fs = FeatureSet()
+        for xy in xycentroids:
+            f = KeypointClusterFeature(self, xy[0], xy[1])
+            f.rank_order = rank_order
+            fs.append(f)
+            
+        return fs
+        
+      
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer
