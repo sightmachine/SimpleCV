@@ -12732,11 +12732,10 @@ class Image:
         
         FeatureSet
         '''
-        try:
-          keypoints = self.findKeypoints(flavor='ORB') #find the keypoints
-        except:
+        keypoints = self.findKeypoints(flavor='ORB') #find the keypoints
+        if keypoints is None:
           keypoints = self.findCorners() #fallback to corners
-        
+
         if keypoints == None or keypoints <= 0:
           return None
           
