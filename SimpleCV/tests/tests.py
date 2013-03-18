@@ -1827,8 +1827,6 @@ def test_keypoint_match():
         f.draw()
         f.getHomography()
         f.getMinRect()
-        f.meanColor()
-        f.crop()
         f.x
         f.y
         f.coordinates()
