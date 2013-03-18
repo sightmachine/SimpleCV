@@ -7818,7 +7818,7 @@ class Image:
                 DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
                 self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                 self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
-                if( len(self._mKPDescriptors) == 0 ):
+                if( self._mKPDescriptors == None or len(self._mKPDescriptors) == 0 ):
                     return None, None
                 self._mKPFlavor = flavor
                 del FeatureDetector
@@ -12733,21 +12733,25 @@ class Image:
         FeatureSet
         '''
         from SimpleCV.Features.KeypointClusterFeature import KeypointClusterFeature
-        keypoints = self.findKeypoints(flavor='ORB')
+        keypoints = self.findKeypoints(flavor='ORB') #find the keypoints
+        
+        if keypoints == None or keypoints <= 0:
+          return None
+          
         xypoints = np.array([(f.x,f.y) for f in keypoints])
-        xycentroids, xylabels = scv.kmeans2(xypoints, num_of_clusters)
+        xycentroids, xylabels = scv.kmeans2(xypoints, num_of_clusters) # find the clusters of keypoints
         xycounts = np.array([])
         
-        for i in range(num_of_clusters ):
+        for i in range(num_of_clusters ): #count the frequency of occurences for sorting
             xycounts = np.append(xycounts, len(np.where(xylabels == i)[-1]))
             
-        merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids)))
-        clusters = [c[1:] for c in merged]
+        merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids))) #sort based on occurence
+        clusters = [c[1:] for c in merged] # strip out just the values ascending
         if order.lower() == 'dsc':
-            clusters = clusters[::-1]
+            clusters = clusters[::-1] #reverse if descending
 
         fs = FeatureSet()
-        for x,y in clusters:
+        for x,y in clusters: #map the values to a feature set
             f = Corner(self, x, y)
             fs.append(f)
   
