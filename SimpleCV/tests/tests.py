@@ -1797,7 +1797,7 @@ def test_keypoint_extraction():
         assert False
     results = [img1,img2,img3]
     name_stem = "test_keypoint_extraction"
-    perform_diff(results,name_stem,tolerance=3.0)
+    perform_diff(results,name_stem,tolerance=4.0)
 
 
 def test_keypoint_match():
