@@ -12732,7 +12732,6 @@ class Image:
         
         FeatureSet
         '''
-        from SimpleCV.Features.KeypointClusterFeature import KeypointClusterFeature
         keypoints = self.findKeypoints(flavor='ORB') #find the keypoints
         
         if keypoints == None or keypoints <= 0:

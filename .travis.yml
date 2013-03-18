@@ -14,4 +14,4 @@ virtualenv:
 
 script:
 - cd SimpleCV/tests/
-- nosetests tests.py
+- nosetests -v tests.py
