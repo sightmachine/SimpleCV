@@ -782,7 +782,6 @@ def test_image_perspective():
     name_stem = "test_image_perspective"
     perform_diff(results,name_stem)
 
-
     if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
         assert False
 

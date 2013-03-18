@@ -7962,7 +7962,7 @@ class Image:
             if( result[i] ):
                 pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
                 pt_b = (skp[idx[i]].pt[1]+template.width,skp[idx[i]].pt[0])
-                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=width)
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(),thickness=width)
         return resultImg
 
 
