@@ -7826,7 +7826,7 @@ class Image:
                 DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
                 self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
                 self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
-                if( len(self._mKPDescriptors) == 0 ):
+                if( self._mKPDescriptors == None or len(self._mKPDescriptors) == 0 ):
                     return None, None
                 self._mKPFlavor = flavor
                 del FeatureDetector
@@ -7970,7 +7970,7 @@ class Image:
             if( result[i] ):
                 pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
                 pt_b = (skp[idx[i]].pt[1]+template.width,skp[idx[i]].pt[0])
-                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(Color()),thickness=width)
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(),thickness=width)
         return resultImg
 
 
@@ -12712,7 +12712,61 @@ class Image:
         else:
             val = np.min(self.getGrayNumpy())
             return val
+
+    
+    def findKeypointClusters(self, num_of_clusters = 5, order='dsc'):
+        '''
+        This function is meant to try and find interesting areas of an
+        image. It does this by finding keypoint clusters in an image.
+        It uses keypoint (ORB) detection to locate points of interest
+        and then uses kmeans clustering to get the X,Y coordinates of
+        those clusters of keypoints. You provide the expected number
+        of clusters and you will get back a list of the X,Y coordinates
+        and rank order of the number of Keypoints around those clusters
+
+        **PARAMETERS**
+        * num_of_clusters - The number of clusters you are looking for (default: 5)
+        * order - The rank order you would like the points returned in, dsc or asc, (default: dsc)
+
+
+        **EXAMPLE**
+        
+        >>> img = Image('simplecv')
+        >>> clusters = img.findKeypointClusters()
+        >>> clusters.draw()
+        >>> img.show()
+
+        **RETURNS**
+        
+        FeatureSet
+        '''
+        keypoints = self.findKeypoints(flavor='ORB') #find the keypoints
+        if keypoints is None:
+          keypoints = self.findCorners() #fallback to corners
+
+        if keypoints == None or keypoints <= 0:
+          return None
+          
+        xypoints = np.array([(f.x,f.y) for f in keypoints])
+        xycentroids, xylabels = scv.kmeans2(xypoints, num_of_clusters) # find the clusters of keypoints
+        xycounts = np.array([])
+        
+        for i in range(num_of_clusters ): #count the frequency of occurences for sorting
+            xycounts = np.append(xycounts, len(np.where(xylabels == i)[-1]))
             
+        merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids))) #sort based on occurence
+        clusters = [c[1:] for c in merged] # strip out just the values ascending
+        if order.lower() == 'dsc':
+            clusters = clusters[::-1] #reverse if descending
+
+        fs = FeatureSet()
+        for x,y in clusters: #map the values to a feature set
+            f = Corner(self, x, y)
+            fs.append(f)
+  
+        return fs
+        
+      
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer

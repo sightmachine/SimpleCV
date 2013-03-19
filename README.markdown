@@ -9,6 +9,7 @@ Quick Links:
     * [Arch Linux](#archlinux)
     * [Windows](#windows)
     * [MacOS](#macos)
+    * [Raspberry Pi](#rasppi)
  * [SimpleCV Shell](#shell)
  * [Videos & Tutorials](#videos)
  * [SimpleCV on Mobile - Android](#mobile)
@@ -21,7 +22,7 @@ Quick Links:
 <a id="about"></a>
 ## About
 ---------------------------
-Make computers see with SimpleCV, the Open Source Framework for Vision
+Make computers see with SimpleCV, the Open Source Framework for Computer Vision
 
 SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.    
 It provides a concise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
@@ -114,6 +115,7 @@ Commands (for Lion)::
     /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
     brew install opencv
     brew install git
+    brew tap homebrew/headonly
     brew install --HEAD smpeg
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi 
     ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
@@ -187,6 +189,12 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install pip
     pip install ipython
     pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
+
+
+<a id="rasppi"></a>
+#### RASPBERRY PI 
+
+* [Installation instructions can be found here.](https://github.com/ingenuitas/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
 
 ---------------------------
 <a id="shell"></a>

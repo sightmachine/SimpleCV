@@ -1,5 +1,5 @@
-https://github.com/numpy/numpy/zipball/master
-https://github.com/scipy/scipy/zipball/master
+numpy
+scipy
 PIL
 ipython
 
