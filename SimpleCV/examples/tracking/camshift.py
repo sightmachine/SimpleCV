@@ -12,7 +12,7 @@ def camshift():
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("camshift",fs1,img,bb1,num_frames=5, nframes=60)
+            fs1 = img1.track("CAMshift",fs1,img,bb1,num_frames=5)
             fs1.drawBB()
             fs1.drawPath()
             fs1.showCoordinates()
