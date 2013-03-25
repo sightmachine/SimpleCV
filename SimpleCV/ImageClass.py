@@ -852,7 +852,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False, cv2image=False):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False, cv2image=False, webp=False):
         """
         **SUMMARY**
 
@@ -989,27 +989,33 @@ class Image:
             else:
                 self._bitmap = source
                 self._colorSpace = ColorSpace.BGR
-        elif (type(source) == type(str())):
+        elif (type(source) == type(str()) or source.__class__.__name__ == 'StringIO'):
             if source == '':
                 raise IOError("No filename provided to Image constructor")
 
-            elif source.split('.')[-1] == 'webp':
-
+        
+            elif webp or source.split('.')[-1] == 'webp':
                 try:
-                    from webm import decode as webmDecode
-                except ImportError:
-                    logger.warning('The webm module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
-                    return
+                    if source.__class__.__name__ == 'StringIO':
+                      source.seek(0) # set the stringIO to the begining
+                    self._pil = pil.open(source)
+                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                except:
+                    try:
+                        from webm import decode as webmDecode
+                    except ImportError:
+                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                        return
 
-                WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
-                result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
-                webpImage = pil.frombuffer(
-                    "RGB", (result.width, result.height), str(result.bitmap),
-                    "raw", "RGB", 0, 1
-                )
-                self._pil = webpImage.convert("RGB")
-                self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-                self.filename = source
+                    WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
+                    result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
+                    webpImage = pil.frombuffer(
+                        "RGB", (result.width, result.height), str(result.bitmap),
+                        "raw", "RGB", 0, 1
+                    )
+                    self._pil = webpImage.convert("RGB")
+                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                    self.filename = source
                 cv.SetData(self._bitmap, self._pil.tostring())
                 cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
 
@@ -2217,8 +2223,9 @@ class Image:
 
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
-
+        
         if not isinstance(filehandle_or_filename, basestring):
+            
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
@@ -2266,23 +2273,30 @@ class Image:
                 if (not mode):
                     mode = "jpeg"
 
-                saveimg.getPIL().save(fh, mode, **params)
-                self.filehandle = fh #set the filename for future save operations
-                self.filename = ""
+                try:
+                  saveimg.getPIL().save(fh, mode, **params) # The latest version of PIL / PILLOW supports webp, try this first, if not gracefully fallback
+                  self.filehandle = fh #set the filename for future save operations
+                  self.filename = ""
+                  return 1
+                except Exception, e:
+                  if mode.lower() != 'webp':
+                    raise e
+                
 
             if verbose:
                 print self.filename
 
-            return 1
+            if not mode.lower() == 'webp':
+                return 1
 
         #make a temporary file location if there isn't one
         if not filehandle_or_filename:
             filename = tempfile.mkstemp(suffix=".png")[-1]
         else:
             filename = filehandle_or_filename
-
+        
         #allow saving in webp format
-        if re.search('\.webp$', filename):
+        if mode == 'webp' or re.search('\.webp$', filename):
             try:
                 #newer versions of PIL support webp format, try that first
                 self.getPIL().save(filename, **params)
@@ -2306,8 +2320,11 @@ class Image:
                     IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH * 3
                 )
                 result = webmEncode.EncodeRGB(image)
-
-                file(filename.format("RGB"), "wb").write(result.data)
+                
+                if filehandle_or_filename.__class__.__name__ == 'StringIO':
+                  filehandle_or_filename.write(result.data)
+                else:
+                  file(filename.format("RGB"), "wb").write(result.data)
                 return 1
         #if the user is passing kwargs use the PIL save method.
         if( params ): #usually this is just the compression rate for the image
