@@ -108,6 +108,8 @@ Steps:
 
 Before you do these you must install XCode from the App Store and run the installer!  I'd also run these someplace you don't mind dumping a little code:
 
+
+For lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11, if you encounter this problem please submit an issue on github. 
 Commands (for Lion)::
 
     mkdir ~/Code
