@@ -6039,7 +6039,7 @@ class Image:
         return None
 
 
-    def removeDrawingLayer(self, index):
+    def removeDrawingLayer(self, index = -1):
         """
         **SUMMARY**
 
@@ -6053,27 +6053,11 @@ class Image:
 
         This method returns the removed drawing layer.
 
-        **SUMMARY**
-
-        Insert a new layer into the layer stack at the specified index.
-
-        **PARAMETERS**
-
-        * *layer* - A drawing layer with crap you want to draw.
-        * *index* - The index at which to insert the layer.
-
-        **RETURNS**
-
-        None - that's right - nothing.
-
-        **EXAMPLE**
+        **EXAMPLES**
 
         >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width,img.height))
-        >>> myLayer2 = DrawingLayer((img.width,img.height))
-        >>> #Draw on the layers
-        >>> img.insertDrawingLayer(myLayer1,1) # on top
-        >>> img.insertDrawingLayer(myLayer2,2) # on the bottom
+        >>> img.removeDrawingLayer(1) # removes the layer with index = 1
+        >>> img.removeDrawingLayer() # if no index is specified it removes the top layer
 
 
         **SEE ALSO**
@@ -6094,7 +6078,10 @@ class Image:
         :py:meth:`blit`
 
         """
-        return self._mLayers.pop(index)
+        try:
+            return self._mLayers.pop(index)
+        except IndexError:
+            print 'Not a valid index or No layers to remove!'
 
 
     def getDrawingLayer(self, index = -1):
@@ -6143,9 +6130,10 @@ class Image:
         if not len(self._mLayers):
             layer = DrawingLayer(self.size())
             self.addDrawingLayer(layer)
-
-
-        return self._mLayers[index]
+        try:
+            return self._mLayers[index]
+        except IndexError:
+            print 'Not a valid index'
 
 
     def dl(self, index = -1):
