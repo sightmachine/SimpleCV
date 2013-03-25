@@ -931,6 +931,14 @@ class Image:
             elif tmpname == "lenna":
                 imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','lenna.png')
                 source = imgpth
+            elif tmpname == "lyle":
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','LyleJune1973.png')
+                source = imgpth
+            elif tmpname == "parity":
+                choice = random.choice(['LyleJune1973.png','lenna.png'])
+                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages',choice)
+                source = imgpth
+                
             elif sample:
                 imgpth = os.path.join(LAUNCH_PATH, 'sampleimages', source)
                 source = imgpth

@@ -270,6 +270,8 @@ class Line(Feature):
         >>> l = img.findLines()
         >>> c = l[0].findIntersection[1]
 
+
+        TODO: THIS NEEDS TO RETURN A TUPLE OF FLOATS
         """
         if self.slope == float("inf"):
             x = self.end_points[0][0]
