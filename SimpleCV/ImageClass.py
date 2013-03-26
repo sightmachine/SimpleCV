@@ -7214,7 +7214,7 @@ class Image:
             cv.Filter2D(self.getBitmap(),retVal,myKernel,center)
         return Image(retVal)
 
-    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM"):
+    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM", grayscale=True):
         """
         **SUMMARY**
 
@@ -7252,7 +7252,8 @@ class Image:
           * CCOEFF_NORM   -
           * CCORR         - Cross correlation
           * CCORR_NORM    - Normalize cross correlation
-
+        * *grayscale* - Boolean - If false, template Match is found using BGR image.
+        
         **EXAMPLE**
 
         >>> image = Image("/path/to/img.png")
@@ -7302,8 +7303,10 @@ class Image:
                                 cv.CV_32FC1)
 
         #choose template matching method to be used
-
-        cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+        if grayscale:
+            cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+        else:
+            cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, method )
         mean = np.mean(matches)
         sd = np.std(matches)
         if(check > 0):
