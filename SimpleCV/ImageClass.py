@@ -11758,6 +11758,7 @@ class Image:
                 retVal.image = self
                 retVal.pt1 = (x,0)
                 retVal.pt2 = (x,self.height)
+                retVal.col = x
                 x = np.ones((1,self.height))[0]*x
                 y = range(0,self.height,1)
                 pts = zip(x,y)
@@ -11772,6 +11773,7 @@ class Image:
                 retVal.image = self
                 retVal.pt1 = (0,y)
                 retVal.pt2 = (self.width,y)
+                retVal.row = y
                 y = np.ones((1,self.width))[0]*y
                 x = range(0,self.width,1)
                 pts = zip(x,y)
@@ -11864,6 +11866,38 @@ class Image:
             warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
             return None
         retVal = Image(gray)
+        return retVal
+
+    def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None):
+        if x is None and y is None and pt1 is None and pt2 is None:
+            gray = self.getGrayNumpy()
+            if linescan.row is not None:
+                if len(linescan) == self.width:
+                    gray[:,linescan.row] = linescan[:]
+                else:
+                    warnings.warn("LineScan Size and Image size do not match")
+                    return None
+
+            elif linescan.col is not None:
+                if len(linescan) == self.height:
+                    gray[linescan.col,:] = linescan[:]
+                else:
+                    warnings.warn("LineScan Size and Image size do not match")
+                    return None
+            elif linescan.pt1 and linescan.pt2:
+                pts = self.bresenham_line(linescan.pt1, linescan.pt2)
+                if( len(linescan) != len(pts) ):
+                    linescan = linescan.resample(len(pts))
+                linescan = np.array(linescan)
+                idx = 0
+                for pt in pts:
+                    gray[pt[0],pt[1]]=linescan[idx]
+                    idx = idx+1
+                    
+            retVal = Image(gray)
+        else:
+            retVal = self.setLineScan(x, y, pt1, pt2)
+
         return retVal
 
 

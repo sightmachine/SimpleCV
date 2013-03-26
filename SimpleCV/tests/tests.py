@@ -3299,3 +3299,14 @@ def test_findKeypointClusters():
     else:
       pass
 
+def test_replaceLineScan():
+    img = Image("lenna")
+    ls = img.getLineScan(x=100)
+    ls[50] = 0
+    newimg = img.replaceLineScan(ls)
+    if newimg[100, 50][0] == 0:
+        pass
+    else:
+        assert False
+
+

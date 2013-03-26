@@ -35,6 +35,8 @@ class LineScan(list):
         self.image = None
         self.pt1 = None
         self.pt2 = None
+        self.row = None
+        self.col = None
         for key in kwargs:
             if key == 'pointLocs':
                 if kwargs[key] is not None:
@@ -48,6 +50,12 @@ class LineScan(list):
             if key == 'pt2':
                 if kwargs[key] is not None:
                     self.pt2 = kwargs[key]
+            if key == "x":
+                if kwargs[key] is not None:
+                    self.col = kwargs[key]
+            if key == "y":
+                if kwargs[key] is not None:
+                    self.row = kwargs[key]
 
         if(self.pointLoc is None):
             self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
@@ -888,3 +896,66 @@ class LineScan(list):
             out.append(lut[pt])
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         return retVal
+
+    def medianFilter(self, kernel_size=5):
+        """
+        **SUMMARY**
+
+        Apply median filter on the data
+
+        **PARAMETERS**
+
+        * *kernel_size* - Size of the filter (should be odd int) - int
+
+        **RETURNS**
+
+        A LineScan object with the median filter applied to the values.
+
+        **EXAMPLE**
+
+        >>> ls = img.getLineScan(x=10)
+        >>> mf = ls.medianFilter()
+        >>> plt.plot(ls)
+        >>> plt.plot(mf)
+        """
+        try:
+            from scipy.signal import medfilt
+        except ImportError:
+            warnings.warn("Scipy vesion >= 0.11 requierd.")
+            return None
+        if kernel_size % 2 == 0:
+            kernel_size-=1
+            print "Kernel Size should be odd. New kernel size =" , (kernel_size)
+        
+        medfilt_array = medfilt(np.asarray(self[:]), kernel_size)
+        retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
+        return retVal
+
+    def detrend(self):
+        """
+        **SUMMARY**
+
+        Detren the data
+
+        **PARAMETERS**
+
+        **RETURNS**
+
+        A LineScan object with detrened data.
+
+        **EXAMPLE**
+
+        >>> ls = img.getLineScan(x=10)
+        >>> dt = ls.detrend()
+        >>> plt.plot(ls)
+        >>> plt.plot(dt)
+        """
+        try:
+            from scipy.signal import detrend as sdetrend
+        except ImportError:
+            warnings.warn("Scipy vesion >= 0.11 requierd.")
+            return None
+        detrend_arr = sdetrend(np.asarray(self[:]))
+        retVal = LineScan(detrend_arr.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
+        return retVal
+
