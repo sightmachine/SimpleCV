@@ -91,10 +91,15 @@ Run the following commands:
     pacman -S python2-numpy opencv2.3.1_a-4 python-pygame python2-setuptools ipython2 python2-pip
     pip install https://github.com/ingenuitas/SimpleCV/zipball/master
 
-<a id="macos"></a>
+<a id="macos">
 ### Mac OS X (10.6 and above)
+</a>
+
+**General OSX Overview**
 
 Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
+
+Before you do these you must install XCode from the App Store and run the installer!  
 
 Steps:
 
@@ -106,8 +111,100 @@ Steps:
 * easy_install pip, install mercurial and use pip install pygame
 * clone simplecv and python setup.py install
 
-Before you do these you must install XCode from the App Store and run the installer!  I'd also run these someplace you don't mind dumping a little code:
 
+---------------------------
+**Explicit (as in every step) instructions compliments of JHawkins**
+
+* Install Xcode via App Store
+* Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across from Command Line Tools
+* If Terminal is already running, shut it down and reopen it. 
+* OS X's permissions on /usr/local are too restrictive and must be changed via:
+   
+    sudo chown -R 'whoami' /usr/local
+
+* Install homebrew via Terminal using:
+
+    ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+
+* Ignore the single warning that instructs you to install Xcode's CLI tools (you did that already in step 4)
+* To verify that homebrew is installed correctly and working, run:
+
+    brew doctor
+
+* Address any errors before moving on. Remember, Google is your friend.
+  Note: If you run VM's on my via Parallels and run into multiple warnings related to "osxfuse" thi go to System Preferences >> FUSE for OS X >> Click Remove OSXFUSE. I can add it back later if needed.
+  Once the doctor tells you that you are 'raring to brew', run:
+
+    brew update
+    followed by
+    brew upgrade
+
+* Install OpenCV via homebrew by running:
+
+    brew install opencv
+
+* Be sure to add the requested line to you ~/.bash_profile:
+
+    export PYTHONPATH="/usr/local/lib/python2.7/site-packages:$PYTHONPATH"
+
+* Install Git via homebrew by running:
+
+    brew install git
+
+* Install SDL dependencies (can anyone clarify this?) via homebrew by running:
+
+    brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
+
+* Install XQuartz from https://xquartz.macosforge.org. Homebrew can't install smpeg at the time of this writing however there is a workaround:
+
+    brew tap homebrew/headonly
+    brew install --HEAD smpeg
+
+  If you get a connection refused error, wait a minute and try again.
+* Install PIL via homebrew by running:
+
+    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
+
+* Manually create a few PIL symlinks:
+
+    * sudo ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
+    * sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
+    * sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
+    * sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
+
+* Install PIP by running:
+
+    sudo easy_install pip
+    
+* Install the Scipy Superpack from http://fonnesbeck.github.com/ScipySuperpack/
+* Install Mercurial via homebrew by running:
+
+     brew install mercurial
+     
+* Install pygame via PIP by running:
+
+    sudo pip install hg+http://bitbucket.org/pygame/pygame
+
+* Install SimpleCV via PIP by running:
+
+    sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+
+* Install SimpleCV from the git repo and then run setup. *We suggest using the develop branch.*
+
+    * git clone https://github.com/ingenuitas/SimpleCV.git
+    * cd SimpleCV/
+    * sudo python setup.py install.
+
+* Test by running simplecv in the command line:
+
+    simplecv
+
+* If it starts (it should!) be sure to check out:
+
+     example
+
+--------------------------------
+**Lion Take Two**
 
 For lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11, if you encounter this problem please submit an issue on github. 
 Commands (for Lion)::
