@@ -11758,6 +11758,7 @@ class Image:
                 retVal.image = self
                 retVal.pt1 = (x,0)
                 retVal.pt2 = (x,self.height)
+                retVal.col = x
                 x = np.ones((1,self.height))[0]*x
                 y = range(0,self.height,1)
                 pts = zip(x,y)
@@ -11772,6 +11773,7 @@ class Image:
                 retVal.image = self
                 retVal.pt1 = (0,y)
                 retVal.pt2 = (self.width,y)
+                retVal.row = y
                 y = np.ones((1,self.width))[0]*y
                 x = range(0,self.width,1)
                 pts = zip(x,y)
@@ -11802,7 +11804,30 @@ class Image:
 
     def setLineScan(self, linescan,x=None,y=None,pt1=None,pt2=None):
         """
+        **SUMMARY**
 
+        This function helps you put back the linescan in the image.
+
+        **PARAMETERS**
+        * *linescan* - LineScan object
+        * *x* - put  line scan at the column x.
+        * *y* - put line scan at the row y.
+        * *pt1* - put line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.Image 
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> a = img.getLineScan(x=10)
+        >>> for index in range(len(a)):
+            ... a[index] = 0
+        >>> newimg = img.putLineScan(a, x=50)
+        >>> newimg.show()
+        # This will show you a black line in column 50.
         """
         #retVal = self.toGray()
         gray = self.getGrayNumpy()
@@ -11864,6 +11889,69 @@ class Image:
             warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
             return None
         retVal = Image(gray)
+        return retVal
+
+    def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None):
+        """
+        **SUMMARY**
+
+        This function easily lets you replace the linescan in the image.
+        Once you get the LineScan object, you might want to edit it. Perform
+        some task, apply some filter etc and now you want to put it back where
+        you took it from. By using this function, it is not necessary to specify
+        where to put the data. It will automatically replace where you took the 
+        LineScan from.
+
+        **PARAMETERS**
+        * *linescan* - LineScan object
+        * *x* - put  line scan at the column x.
+        * *y* - put line scan at the row y.
+        * *pt1* - put line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.Image 
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> a = img.getLineScan(x=10)
+        >>> for index in range(len(a)):
+            ... a[index] = 0
+        >>> newimg = img.replaceLineScan(a)
+        >>> newimg.show()
+        # This will show you a black line in column 10.
+        """
+        if x is None and y is None and pt1 is None and pt2 is None:
+            gray = self.getGrayNumpy()
+            if linescan.row is not None:
+                if len(linescan) == self.width:
+                    gray[:,linescan.row] = linescan[:]
+                else:
+                    warnings.warn("LineScan Size and Image size do not match")
+                    return None
+
+            elif linescan.col is not None:
+                if len(linescan) == self.height:
+                    gray[linescan.col,:] = linescan[:]
+                else:
+                    warnings.warn("LineScan Size and Image size do not match")
+                    return None
+            elif linescan.pt1 and linescan.pt2:
+                pts = self.bresenham_line(linescan.pt1, linescan.pt2)
+                if( len(linescan) != len(pts) ):
+                    linescan = linescan.resample(len(pts))
+                linescan = np.array(linescan)
+                idx = 0
+                for pt in pts:
+                    gray[pt[0],pt[1]]=linescan[idx]
+                    idx = idx+1
+                    
+            retVal = Image(gray)
+        else:
+            retVal = self.setLineScan(x, y, pt1, pt2)
+
         return retVal
 
 
