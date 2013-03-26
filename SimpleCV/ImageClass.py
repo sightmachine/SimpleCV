@@ -11804,7 +11804,30 @@ class Image:
 
     def setLineScan(self, linescan,x=None,y=None,pt1=None,pt2=None):
         """
+        **SUMMARY**
 
+        This function helps you put back the linescan in the image.
+
+        **PARAMETERS**
+        * *linescan* - LineScan object
+        * *x* - put  line scan at the column x.
+        * *y* - put line scan at the row y.
+        * *pt1* - put line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.Image 
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> a = img.getLineScan(x=10)
+        >>> for index in range(len(a)):
+            ... a[index] = 0
+        >>> newimg = img.putLineScan(a, x=50)
+        >>> newimg.show()
+        # This will show you a black line in column 50.
         """
         #retVal = self.toGray()
         gray = self.getGrayNumpy()
@@ -11869,6 +11892,37 @@ class Image:
         return retVal
 
     def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None):
+        """
+        **SUMMARY**
+
+        This function easily lets you replace the linescan in the image.
+        Once you get the LineScan object, you might want to edit it. Perform
+        some task, apply some filter etc and now you want to put it back where
+        you took it from. By using this function, it is not necessary to specify
+        where to put the data. It will automatically replace where you took the 
+        LineScan from.
+
+        **PARAMETERS**
+        * *linescan* - LineScan object
+        * *x* - put  line scan at the column x.
+        * *y* - put line scan at the row y.
+        * *pt1* - put line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.Image 
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> a = img.getLineScan(x=10)
+        >>> for index in range(len(a)):
+            ... a[index] = 0
+        >>> newimg = img.replaceLineScan(a)
+        >>> newimg.show()
+        # This will show you a black line in column 10.
+        """
         if x is None and y is None and pt1 is None and pt2 is None:
             gray = self.getGrayNumpy()
             if linescan.row is not None:
