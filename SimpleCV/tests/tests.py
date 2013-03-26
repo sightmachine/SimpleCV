@@ -1326,6 +1326,18 @@ def test_template_match():
 
     pass
 
+def test_template_match_RGB():
+    source = Image("../sampleimages/templatetest.png")
+    template = Image("../sampleimages/template.png")
+    t = 2
+    fs = source.findTemplate(template,threshold=t, grayscale=False)
+    fs.draw()
+    results = [source]
+    name_stem = "test_template_match"
+    perform_diff(results,name_stem)
+
+    pass
+
 
 def test_image_intergralimage():
     img = Image(logo)
