@@ -63,7 +63,7 @@ except ImportError:
 PIL_ENABLED = True
 try:
     import Image as pil
-    from Image.GifImagePlugin import getheader, getdata
+    from GifImagePlugin import getheader, getdata
 except ImportError:
     try:
         import PIL.Image as pil
