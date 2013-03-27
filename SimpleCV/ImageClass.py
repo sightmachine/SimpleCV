@@ -11813,6 +11813,7 @@ class Image:
             # an invalid combination - warn
             warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
             return None
+        retVal.channel = channel
         return retVal
 
     def setLineScan(self, linescan,x=None,y=None,pt1=None,pt2=None,channel = -1):
@@ -11846,10 +11847,10 @@ class Image:
         """
         #retVal = self.toGray()
         if channel == -1:
-            img = self.getGrayNumpy()
+            img = np.copy(self.getGrayNumpy())
         else:
             try:
-                img = self.getNumpy()[:,:,channel]
+                img = np.copy(self.getNumpy()[:,:,channel])
             except IndexError:
                 print 'Channel missing!'
                 return None
@@ -11914,12 +11915,12 @@ class Image:
         if channel == -1:
             retVal = Image(img)
         else:
-            temp = self.getNumpy()
+            temp = np.copy(self.getNumpy())
             temp[:,:,channel] = img
             retVal = Image(temp)
         return retVal
 
-    def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None, channel = -1):
+    def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None, channel = None):
         """
         **SUMMARY**
 
@@ -11953,26 +11954,31 @@ class Image:
         >>> newimg.show()
         # This will show you a black line in column 10.
         """
-        if channel == -1:
-            img = self.getGrayNumpy()
-        else:
-            try:
-                img = self.getNumpy()[:,:,channel]
-            except IndexError:
-                print 'Channel missing!'
-                return None        
+        
 
-        if x is None and y is None and pt1 is None and pt2 is None:
+        if x is None and y is None and pt1 is None and pt2 is None and channel is None:
+            
+            if linescan.channel == -1:
+                img = np.copy(self.getGrayNumpy())
+            else:
+                try:
+                    img = np.copy(self.getNumpy()[:,:,linescan.channel])
+                except IndexError:
+                    print 'Channel missing!'
+                    return None
+
             if linescan.row is not None:
                 if len(linescan) == self.width:
-                    img[:,linescan.row] = linescan[:]
+                    ls = np.array(linescan)
+                    img[:,linescan.row] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
 
             elif linescan.col is not None:
                 if len(linescan) == self.height:
-                    img[linescan.col,:] = linescan[:]
+                    ls = np.array(linescan)
+                    img[linescan.col,:] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
@@ -11986,16 +11992,18 @@ class Image:
                     img[pt[0],pt[1]]=linescan[idx]
                     idx = idx+1
             
-            if channel == -1:
+            if linescan.channel == -1:
                 retVal = Image(img)
             else:
-                temp = self.getNumpy()
-                temp[:,:,channel] = img
+                temp = np.copy(self.getNumpy())
+                temp[:,:,linescan.channel] = img
                 retVal = Image(temp)
 
         else:
-            retVal = self.setLineScan(linescan,x, y, pt1, pt2,channel)
-
+            if channel is None:
+                retVal = self.setLineScan(linescan , x, y, pt1, pt2, linescan.channel)
+            else:
+                retVal = self.setLineScan(linescan , x, y, pt1, pt2, channel)
         return retVal
 
 
