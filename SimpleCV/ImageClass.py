@@ -11721,13 +11721,13 @@ class Image:
             retVal = hist[0]
         return retVal
 
-    def getLineScan(self,x=None,y=None,pt1=None,pt2=None):
+    def getLineScan(self,x=None,y=None,pt1=None,pt2=None,channel = -1):
         """
         **SUMMARY**
 
-        This function converts the image to grayscale and then pulls
-        out a series of pixel values as a linescan object that can
-        be manipulated furter.
+        This function takes in a channel of an image or grayscale by default
+        and then pulls out a series of pixel values as a linescan object
+        than can be manipulated further.
 
         **PARAMETERS**
         * *x* - Take a vertical line scan at the column x.
@@ -11735,6 +11735,8 @@ class Image:
         * *pt1* - Take a line scan between two points on the line
                   the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
+                      If set to -1 it operates with gray scale values
         **RETURNS**
 
         A SimpleCV.LineScan object or None if the method fails.
@@ -11752,12 +11754,20 @@ class Image:
         >>>> plt.show()
 
         """
-        # We may want an option to choose the a channel here
-        gray = self.getGrayNumpy()
+
+        if channel == -1:
+            img = self.getGrayNumpy()
+        else:
+            try:
+                img = self.getNumpy()[:,:,channel]
+            except IndexError:
+                print 'Channel missing!'
+                return None
+
         retVal = None
         if( x is not None and y is None and pt1 is None and pt2 is None):
             if( x >= 0 and x < self.width):
-                retVal = LineScan(gray[x,:])
+                retVal = LineScan(img[x,:])
                 retVal.image = self
                 retVal.pt1 = (x,0)
                 retVal.pt2 = (x,self.height)
@@ -11772,7 +11782,7 @@ class Image:
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
-                retVal = LineScan(gray[:,y])
+                retVal = LineScan(img[:,y])
                 retVal.image = self
                 retVal.pt1 = (0,y)
                 retVal.pt2 = (self.width,y)
@@ -11793,7 +11803,7 @@ class Image:
               x is None and y is None):
 
             pts = self.bresenham_line(pt1,pt2)
-            retVal = LineScan([gray[p[0],p[1]] for p in pts])
+            retVal = LineScan([img[p[0],p[1]] for p in pts])
             retVal.pointLoc = pts
             retVal.image = self
             retVal.pt1 = pt1
@@ -11805,7 +11815,7 @@ class Image:
             return None
         return retVal
 
-    def setLineScan(self, linescan,x=None,y=None,pt1=None,pt2=None):
+    def setLineScan(self, linescan,x=None,y=None,pt1=None,pt2=None,channel = -1):
         """
         **SUMMARY**
 
@@ -11818,6 +11828,8 @@ class Image:
         * *pt1* - put line scan between two points on the line
                   the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
+                      If set to -1 it operates with gray scale values
         **RETURNS**
 
         A SimpleCV.Image 
@@ -11833,7 +11845,15 @@ class Image:
         # This will show you a black line in column 50.
         """
         #retVal = self.toGray()
-        gray = self.getGrayNumpy()
+        if channel == -1:
+            img = self.getGrayNumpy()
+        else:
+            try:
+                img = self.getNumpy()[:,:,channel]
+            except IndexError:
+                print 'Channel missing!'
+                return None
+
         if( x is None and y is None and pt1 is None and pt2 is None):
             if(linescan.pt1 is None or linescan.pt2 is None):
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
@@ -11859,7 +11879,7 @@ class Image:
                     linescan = linescan.resample(self.height)
                 #check for number of points
                 linescan = np.array(linescan)
-                gray[x,:] = linescan[:]
+                img[x,:] = linescan[:]
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
 
@@ -11869,7 +11889,7 @@ class Image:
                     linescan = linescan.resample(self.width)
                 #check for number of points
                 linescan = np.array(linescan)
-                gray[:,y] = linescan[:]
+                img[:,y] = linescan[:]
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
                 # warn and return None
@@ -11886,15 +11906,20 @@ class Image:
             linescan = np.array(linescan)
             idx = 0
             for pt in pts:
-                gray[pt[0],pt[1]]=linescan[idx]
+                img[pt[0],pt[1]]=linescan[idx]
                 idx = idx+1
         else:
             warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
             return None
-        retVal = Image(gray)
+        if channel == -1:
+            retVal = Image(img)
+        else:
+            temp = self.getNumpy()
+            temp[:,:,channel] = img
+            retVal = Image(temp)
         return retVal
 
-    def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None):
+    def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None, channel = -1):
         """
         **SUMMARY**
 
@@ -11912,6 +11937,8 @@ class Image:
         * *pt1* - put line scan between two points on the line
                   the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
+                      If set to -1 it operates with gray scale values
         **RETURNS**
 
         A SimpleCV.Image 
@@ -11926,18 +11953,26 @@ class Image:
         >>> newimg.show()
         # This will show you a black line in column 10.
         """
+        if channel == -1:
+            img = self.getGrayNumpy()
+        else:
+            try:
+                img = self.getNumpy()[:,:,channel]
+            except IndexError:
+                print 'Channel missing!'
+                return None        
+
         if x is None and y is None and pt1 is None and pt2 is None:
-            gray = self.getGrayNumpy()
             if linescan.row is not None:
                 if len(linescan) == self.width:
-                    gray[:,linescan.row] = linescan[:]
+                    img[:,linescan.row] = linescan[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
 
             elif linescan.col is not None:
                 if len(linescan) == self.height:
-                    gray[linescan.col,:] = linescan[:]
+                    img[linescan.col,:] = linescan[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
@@ -11948,12 +11983,18 @@ class Image:
                 linescan = np.array(linescan)
                 idx = 0
                 for pt in pts:
-                    gray[pt[0],pt[1]]=linescan[idx]
+                    img[pt[0],pt[1]]=linescan[idx]
                     idx = idx+1
-                    
-            retVal = Image(gray)
+            
+            if channel == -1:
+                retVal = Image(img)
+            else:
+                temp = self.getNumpy()
+                temp[:,:,channel] = img
+                retVal = Image(temp)
+
         else:
-            retVal = self.setLineScan(x, y, pt1, pt2)
+            retVal = self.setLineScan(linescan,x, y, pt1, pt2,channel)
 
         return retVal
 
