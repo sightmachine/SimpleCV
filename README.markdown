@@ -120,7 +120,7 @@ Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across 
 If Terminal is already running, shut it down and reopen it  
 OS X's permissions on /usr/local are too restrictive and must be changed via:
 
-    sudo chown -R 'whoami' /usr/local
+    sudo chown -R `whoami` /usr/local
 
 Install homebrew via Terminal using:
 
