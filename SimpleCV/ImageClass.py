@@ -1932,8 +1932,9 @@ class Image:
         if self._numpy != "":
             return self._numpy
 
-
-        self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
+        RGBimg = self.toRGB() #assure colorspace is in RGB, otherwise it will be inverted in the following conversion!
+        
+        self._numpy = np.array(RGBimg.getMatrix()).swapaxes(0,1) #the swap converts back to column-major form
         return self._numpy
 
     def getNumpyCv2(self):
@@ -1965,7 +1966,8 @@ class Image:
         """
 
         if type(self._cv2Numpy) is not np.ndarray:
-            self._cv2Numpy = np.array(self.getMatrix())
+            RGBimg = self.toRGB() #assure colorspace is in RGB, otherwise it will be inverted!
+            self._cv2Numpy = np.array(RGBimg.getMatrix())
         return self._cv2Numpy
 
     def getGrayNumpyCv2(self):
@@ -3879,7 +3881,7 @@ class Image:
         cv.CvtColor(self._bitmap, temp, cv.CV_RGB2HLS)
         tempMat = cv.GetMat(temp) #convert the bitmap to a matrix
         #now apply the color curve correction
-        tempMat = np.array(self.getMatrix()).copy()
+        tempMat = self.getNumpyCv2().copy() #FIXME is copy really needed...maybe if format caching is used?
         tempMat[:, :, 0] = np.take(hCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(sCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(lCurve.mCurve, tempMat[:, :, 2])
@@ -3921,7 +3923,7 @@ class Image:
         :py:meth:`applyHLSCurve`
 
         """
-        tempMat = np.array(self.getMatrix()).copy()
+        tempMat = self.getNumpyCv2().copy() #FIXME is copy really needed?...maybe if format caching is used
         tempMat[:, :, 0] = np.take(bCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(gCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(rCurve.mCurve, tempMat[:, :, 2])
@@ -5236,7 +5238,7 @@ class Image:
             import cv2
             if( type(rotMatrix) !=  np.ndarray ):
                 rotMatrix = np.array(rotMat)
-            retVal = cv2.warpPerspective(src=np.array(self.getMatrix()), dsize=(self.height,self.width),M=rotMatrix,flags = cv2.INTER_CUBIC)
+            retVal = cv2.warpPerspective(src=self.getNumpyCv2(), dsize=(self.height,self.width),M=rotMatrix,flags = cv2.INTER_CUBIC)
             return Image(retVal, colorSpace=self._colorSpace)
         except:            
             retVal = self.getEmpty()
