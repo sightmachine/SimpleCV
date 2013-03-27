@@ -136,7 +136,9 @@ Note: If you run VM's on my via Parallels and run into multiple warnings related
 Once the doctor tells you that you are 'raring to brew', run:
 
     brew update
-    followed by
+
+followed by
+
     brew upgrade
 
 Install OpenCV via homebrew by running:
