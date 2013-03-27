@@ -24,7 +24,7 @@ class LineScan(list):
     >>>> img = Image('lenna')
     >>>> s = img.getLineScan(y=128)
     >>>> ss = s.smooth()
-    >>>> plt.plot(s)class LineScan(list):
+    >>>> plt.plot(s)
     >>>> plt.plot(ss)
     >>>> plt.show()
     """
