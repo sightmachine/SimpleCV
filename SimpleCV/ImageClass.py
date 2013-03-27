@@ -1965,7 +1965,8 @@ class Image:
         """
 
         if type(self._cv2Numpy) is not np.ndarray:
-            self._cv2Numpy = np.array(self.getMatrix())
+            RGBimg = self.toRGB() #assure colorspace is in RGB, otherwise it will be inverted!
+            self._cv2Numpy = np.array(RGBimg.getMatrix())
         return self._cv2Numpy
 
     def getGrayNumpyCv2(self):
