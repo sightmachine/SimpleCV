@@ -959,3 +959,40 @@ class LineScan(list):
         retVal = LineScan(detrend_arr.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
         return retVal
 
+    def blur(self, radius=3):
+        '''
+        
+        **SUMMARY**
+
+        Blurs the linescan using the basic window blur technique.
+
+        **PARAMETERS**
+
+        * *radius* - The radius of the blurring window.
+
+        **RETURNS**
+
+        A blurred LineScan object.
+
+        **EXAMPLE**
+
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> sl = img.getLineScan(y=128)
+        >>>> plt.plot(sl)
+        >>>> plt.plot(sl.blur(7))
+        >>>> plt.show()
+
+
+        '''
+        blurred=list()
+        for k in range(0,len(self)):
+            if(k<radius):
+                start=0
+            else:
+                start = k-radius
+            stop=k+radius+1
+            sl=self[start:stop]
+            blurred.append(sum(sl)/len(sl))
+        retVal = LineScan(blurred,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2,x=self.col,y=self.row)
+        return retVal 

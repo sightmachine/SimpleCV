@@ -3321,4 +3321,12 @@ def test_replaceLineScan():
     else:
         assert False
 
+def test_LineScan_blur():
+    img = Image('lenna')
+    ls = img.getLineScan(y=120)
+    blurred_ls= ls.blur(radius=5)
+    if blurred_ls[50] == sum(ls[45:56])/(11):
+        pass
+    else:
+        assert False
 
