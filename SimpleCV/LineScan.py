@@ -2,6 +2,7 @@
 from SimpleCV.base import *
 import scipy.signal as sps
 import scipy.optimize as spo
+import numpy as np
 import copy
 
 
@@ -23,7 +24,7 @@ class LineScan(list):
     >>>> img = Image('lenna')
     >>>> s = img.getLineScan(y=128)
     >>>> ss = s.smooth()
-    >>>> plt.plot(s)
+    >>>> plt.plot(s)class LineScan(list):
     >>>> plt.plot(ss)
     >>>> plt.show()
     """
@@ -533,7 +534,7 @@ class LineScan(list):
             kt = kl
         out = np.convolve(self,np.array(kernel,dtype='float32'))
         out = out[kt:-1*kl]
-        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2,channel=self.channel)
         #retVal.image = self.image
         #retVal.pointLoc = self.pointLoc
         return retVal
@@ -963,3 +964,45 @@ class LineScan(list):
         retVal = LineScan(detrend_arr.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
         return retVal
 
+    def runningAverage(self, diameter=3, algo="uniform"):
+        """
+        **SUMMARY**
+
+        Finds the running average by either using a uniform kernel or using a gaussian kernel.
+        The gaussian kernelis calculated from the standard normal distribution formulae.
+
+        **PARAMETERS**
+
+        * *diameter* - Size of the window (should be odd int) - int
+
+        * *algo* - "uniform" (default) / "gaussian" - used to decide the kernel - string
+
+        **RETURNS**
+
+        A LineScan object with the kernel of the provided algorithm applied.
+
+        **EXAMPLE**
+
+        >>> ls = img.getLineScan(x=10)
+        >>> ra = ls.runningAverage()
+        >>> rag = ls.runningAverage(15,algo="gaussian")
+        >>> plt.plot(ls)
+        >>> plt.plot(ra)
+        >>> plt.plot(rag)
+        >>> plt.show()
+        
+        """
+
+        if diameter%2 == 0:
+            warnings.warn("Diameter must be an odd integer")
+            return None
+        if algo=="uniform":
+            kernel=list(1/float(diameter)*np.ones(diameter))
+        elif algo=="gaussian":
+            kernel=list()
+            r=float(diameter)/2
+            for i in range(-int(r),int(r)+1):
+                kernel.append(np.exp(-i**2/(2*(r/3)**2))/(np.sqrt(2*np.pi)*(r/3)))
+        
+        return LineScan(map(int,self.convolve(kernel)),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row, channel=self.channel)
+                
