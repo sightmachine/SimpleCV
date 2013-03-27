@@ -37,6 +37,7 @@ class LineScan(list):
         self.pt2 = None
         self.row = None
         self.col = None
+        self.channel = -1
         for key in kwargs:
             if key == 'pointLocs':
                 if kwargs[key] is not None:
@@ -56,7 +57,10 @@ class LineScan(list):
             if key == "y":
                 if kwargs[key] is not None:
                     self.row = kwargs[key]
-
+            if key == "channel":
+                if kwargs[key] is not None:
+                    self.channel = kwargs[key]
+                    
         if(self.pointLoc is None):
             self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
 
