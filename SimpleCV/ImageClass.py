@@ -3923,7 +3923,7 @@ class Image:
         :py:meth:`applyHLSCurve`
 
         """
-        tempMat = np.array(self.getMatrix()).copy()
+        tempMat = self.getNumpyCv2().copy() #FIXME is copy really needed?...maybe if format caching is used
         tempMat[:, :, 0] = np.take(bCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(gCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(rCurve.mCurve, tempMat[:, :, 2])
