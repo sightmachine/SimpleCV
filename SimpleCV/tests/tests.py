@@ -3320,5 +3320,11 @@ def test_replaceLineScan():
         pass
     else:
         assert False
-
+    ls = img.getLineScan(x=100,channel=1)
+    ls[50] = 0
+    newImg = img.replaceLineScan(ls)
+    if newImg[100,50][1] == 0:
+        pass
+    else:
+        assert False
 
