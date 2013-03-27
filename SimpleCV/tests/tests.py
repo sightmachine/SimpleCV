@@ -3031,11 +3031,11 @@ def test_LineScan():
         ls4 = ls3.fitToModel(aLine)
         ls4.getModelParameters(aLine)
     img = Image("lenna")
-    ls = img.getLineScan(x=128)
+    ls = img.getLineScan(x=128,channel=1)
     lsstuff(ls)
     ls = img.getLineScan(y=128)
     lsstuff(ls)
-    ls = img.getLineScan(pt1 = (0,0), pt2=(128,128))
+    ls = img.getLineScan(pt1 = (0,0), pt2=(128,128),channel=2)
     lsstuff(ls)
     pass
 
