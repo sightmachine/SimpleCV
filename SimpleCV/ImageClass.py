@@ -1932,8 +1932,9 @@ class Image:
         if self._numpy != "":
             return self._numpy
 
-
-        self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
+        RGBimg = self.toRGB() #assure colorspace is in RGB, otherwise it will be inverted in the following conversion!
+        
+        self._numpy = np.array(RGBimg.getMatrix()).transpose([1, 0, 2])
         return self._numpy
 
     def getNumpyCv2(self):
