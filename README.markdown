@@ -149,6 +149,10 @@ Be sure to add the requested line to you ~/.bash_profile:
 
     export PYTHONPATH="/usr/local/lib/python2.7/site-packages:$PYTHONPATH"
 
+Source your ~/.bash_profile file so that the changes take effect:
+
+    source ~/.bash_profile
+
 Install Git via homebrew by running:
 
     brew install git
