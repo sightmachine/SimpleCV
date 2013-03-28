@@ -3328,3 +3328,12 @@ def test_replaceLineScan():
     else:
         assert False
 
+def test_runningAverage():
+    img = Image('lenna')
+    ls = img.getLineScan(y=120)
+    ra=ls.runningAverage(5)
+    if ra[50] == sum(ls[48:53])/5:
+        pass
+    else:
+        assert False
+
