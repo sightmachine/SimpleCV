@@ -197,7 +197,7 @@ Install pygame via PIP by running:
 
     git clone https://github.com/ingenuitas/SimpleCV.git
     cd SimpleCV/
-    sudo python setup.py install.
+    sudo python setup.py install
 
 **JHawkins' Instructions** Install SimpleCV via PIP by running:
 
