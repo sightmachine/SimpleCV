@@ -9840,9 +9840,9 @@ class Image:
 
         >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.lowPassFilter([0.2,0.1,0.2])
-        >>> lpf.show()
-        >>> lpf.getDFTLogMagnitude().show()
+        >>> hpf = img.highPassFilter([0.2,0.1,0.2])
+        >>> hpf.show()
+        >>> hpf.getDFTLogMagnitude().show()
 
         **NOTES**
 
@@ -9955,7 +9955,7 @@ class Image:
 
         >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.highPassFilter([0.2,0.2,0.05])
+        >>> lpf = img.lowPassFilter([0.2,0.2,0.05])
         >>> lpf.show()
         >>> lpf.getDFTLogMagnitude().show()
 
