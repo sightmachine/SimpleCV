@@ -1853,6 +1853,229 @@ class StereoImage:
         corres_pt = corres_pt / corres_pt[2]
         return (float(corres_pt[1]), float(corres_pt[0]))
 
+    def get3DImage(self, Q, method="BM", state=None):
+        """
+        **SUMMARY**
+
+        This method returns the 3D depth image using reprojectImageTo3D method.
+
+        **PARAMETERS**
+
+        * *Q* - reprojection Matrix (disparity to depth matrix)
+        * *method* - Stereo Correspondonce method to be used.
+                   - "BM" - Stereo BM
+                   - "SGBM" - Stereo SGBM
+        * *state* - dictionary corresponding to parameters of
+                    stereo correspondonce.
+                    SADWindowSize - odd int
+                    nDisparity - int
+                    minDisparity  - int
+                    preFilterCap - int
+                    preFilterType - int (only BM)
+                    speckleRange - int
+                    speckleWindowSize - int
+                    P1 - int (only SGBM)
+                    P2 - int (only SGBM)
+                    fullDP - Bool (only SGBM)
+                    uniquenessRatio - int
+                    textureThreshold - int (only BM)
+
+        **RETURNS**
+
+        SimpleCV.Image representing 3D depth Image
+        also StereoImage.Image3D gives OpenCV 3D Depth Image of CV_32F type.
+
+        **EXAMPLE**
+
+        >>> lImage = Image("l.jpg")
+        >>> rImage = Image("r.jpg")
+        >>> stereo = StereoImage(lImage, rImage)
+        >>> Q = cv.Load("Q.yml")
+        >>> stereo.get3DImage(Q).show()
+
+        >>> state = {"SADWindowSize":9, "nDisparity":112, "minDisparity":-39}
+        >>> stereo.get3DImage(Q, "BM", state).show()
+        >>> stereo.get3DImage(Q, "SGBM", state).show()
+        """
+        imgLeft = self.ImageLeft
+        imgRight = self.ImageRight
+        cv2flag = True
+        try:
+            import cv2
+        except ImportError:
+            cv2flag = False
+        import cv2.cv as cv
+        (r, c) = self.size
+        if method == "BM":
+            sbm = cv.CreateStereoBMState()
+            disparity = cv.CreateMat(c, r, cv.CV_32F)
+            if state:
+                SADWindowSize = state.get("SADWindowSize")
+                preFilterCap = state.get("preFilterCap")
+                minDisparity = state.get("minDisparity")
+                numberOfDisparities = state.get("nDisparity")
+                uniquenessRatio = state.get("uniquenessRatio")
+                speckleRange = state.get("speckleRange")
+                speckleWindowSize = state.get("speckleWindowSize")
+                textureThreshold = state.get("textureThreshold")
+                speckleRange = state.get("speckleRange")
+                speckleWindowSize = state.get("speckleWindowSize")
+                preFilterType = state.get("perFilterType")
+
+                if SADWindowSize is not None:
+                    sbm.SADWindowSize = SADWindowSize
+                if preFilterCap is not None:
+                    sbm.preFilterCap = preFilterCap
+                if minDisparity is not None:
+                    sbm.minDisparity = minDisparity
+                if numberOfDisparities is not None:
+                    sbm.numberOfDisparities = nDisparity
+                if uniquenessRatio is not None:
+                    sbm.uniquenessRatio = uniquenessRatio
+                if speckleRange is not None:
+                    sbm.speckleRange = speckleRange
+                if speckleWindowSize is not None:
+                    sbm.speckleWindowSize = speckleWindowSize
+                if textureThreshold is not None:
+                    sbm.textureThreshold = textureThreshold
+                if preFilterType is not None:
+                    sbm.preFilterType = preFilterType
+            else:
+                sbm.SADWindowSize = 9
+                sbm.preFilterType = 1
+                sbm.preFilterSize = 5
+                sbm.preFilterCap = 61
+                sbm.minDisparity = -39
+                sbm.numberOfDisparities = 112
+                sbm.textureThreshold = 507
+                sbm.uniquenessRatio= 0
+                sbm.speckleRange = 8
+                sbm.speckleWindowSize = 0
+
+            gray_left = imgLeft.getGrayscaleMatrix()
+            gray_right = imgRight.getGrayscaleMatrix()
+            cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, sbm)
+            disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
+
+        elif method == "SGBM":
+            if not cv2flag:
+                warnings.warn("Can't Use SGBM without OpenCV >= 2.4. Use SBM instead.")
+            sbm = cv2.StereoSGBM()
+            if state:
+                SADWindowSize = state.get("SADWindowSize")
+                preFilterCap = state.get("preFilterCap")
+                minDisparity = state.get("minDisparity")
+                numberOfDisparities = state.get("nDisparity")
+                P1 = state.get("P1")
+                P2 = state.get("P2")
+                uniquenessRatio = state.get("uniquenessRatio")
+                speckleRange = state.get("speckleRange")
+                speckleWindowSize = state.get("speckleWindowSize")
+                fullDP = state.get("fullDP")
+
+                if SADWindowSize is not None:
+                    sbm.SADWindowSize = SADWindowSize
+                if preFilterCap is not None:
+                    sbm.preFilterCap = preFilterCap
+                if minDisparity is not None:
+                    sbm.minDisparity = minDisparity
+                if numberOfDisparities is not None:
+                    sbm.numberOfDisparities = nDisparity
+                if P1 is not None:
+                    sbm.P1 = P1
+                if P2 is not None:
+                    sbm.P2 = P2
+                if uniquenessRatio is not None:
+                    sbm.uniquenessRatio = uniquenessRatio
+                if speckleRange is not None:
+                    sbm.speckleRange = speckleRange
+                if speckleWindowSize is not None:
+                    sbm.speckleWindowSize = speckleWindowSize
+                if fullDP is not None:
+                    sbm.fullDP = fullDP
+            else:
+                sbm.SADWindowSize = 9;
+                sbm.numberOfDisparities = 96;
+                sbm.preFilterCap = 63;
+                sbm.minDisparity = -21;
+                sbm.uniquenessRatio = 7;
+                sbm.speckleWindowSize = 0;
+                sbm.speckleRange = 8;
+                sbm.disp12MaxDiff = 1;
+                sbm.fullDP = False;
+
+            disparity = sbm.compute(imgLeft.getGrayNumpyCv2(), imgRight.getGrayNumpyCv2())
+            
+        else:
+            warnings.warn("Unknown method. Returning None")
+            return None
+
+        if cv2flag:
+            if not isinstance(Q, np.ndarray):
+                Q = np.array(Q)
+            if not isinstance(disparity, np.ndarray):
+                disparity = np.array(disparity)
+            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
+            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+            retVal = Image(Image3D_normalize, cv2image=True)
+        else:
+            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_32FC3)
+            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_8UC3)
+            cv.ReprojectImageTo3D(disparity, Image3D, Q)
+            cv.Normalize(Image3D, Image3D_normalize, 0, 255, cv.CV_MINMAX, CV_8UC3)
+            retVal = Image(Image3D_normalize)
+        self.Image3D = Image3D
+        return retVal
+
+    def get3DImageFromDisparity(self, disparity, Q):
+        """
+        **SUMMARY**
+
+        This method returns the 3D depth image using reprojectImageTo3D method.
+
+        **PARAMETERS**
+        * *disparity* - Disparity Image
+        * *Q* - reprojection Matrix (disparity to depth matrix)
+
+        **RETURNS**
+
+        SimpleCV.Image representing 3D depth Image
+        also StereoCamera.Image3D gives OpenCV 3D Depth Image of CV_32F type.
+
+        **EXAMPLE**
+
+        >>> lImage = Image("l.jpg")
+        >>> rImage = Image("r.jpg")
+        >>> stereo = StereoCamera()
+        >>> Q = cv.Load("Q.yml")
+        >>> disp = stereo.findDisparityMap()
+        >>> stereo.get3DImageFromDisparity(disp, Q)
+        """
+        cv2flag = True
+        try:
+            import cv2
+        except ImportError:
+            cv2flag = False
+            import cv2.cv as cv
+
+        if cv2flag:
+            if not isinstance(Q, np.ndarray):
+                Q = np.array(Q)
+            disparity = disparity.getNumpyCv2()    
+            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
+            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+            retVal = Image(Image3D_normalize, cv2image=True)
+        else:
+            disparity = disparity.getMatrix()
+            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_32FC3)
+            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_8UC3)
+            cv.ReprojectImageTo3D(disparity, Image3D, Q)
+            cv.Normalize(Image3D, Image3D_normalize, 0, 255, cv.CV_MINMAX, CV_8UC3)
+            retVal = Image(Image3D_normalize)
+        self.Image3D = Image3D
+        return retVal
+        
+
 class StereoCamera :
     """
     Stereo Camera is a class dedicated for calibration stereo camera. It also has functionalites for
@@ -2182,6 +2405,96 @@ class StereoCamera :
         cv.Remap(imgLeft, dst1, map1x, map1y)
         cv.Remap(imgRight, dst2, map2x, map2y)
         return Image(dst1), Image(dst2)
+
+    def get3DImage(self, leftIndex, rightIndex, Q, method="BM", state=None):
+        """
+        **SUMMARY**
+
+        This method returns the 3D depth image using reprojectImageTo3D method.
+
+        **PARAMETERS**
+        * *leftIndex* - Index of left camera
+        * *rightIndex* - Index of right camera
+        * *Q* - reprojection Matrix (disparity to depth matrix)
+        * *method* - Stereo Correspondonce method to be used.
+                   - "BM" - Stereo BM
+                   - "SGBM" - Stereo SGBM
+        * *state* - dictionary corresponding to parameters of
+                    stereo correspondonce.
+                    SADWindowSize - odd int
+                    nDisparity - int
+                    minDisparity  - int
+                    preFilterCap - int
+                    preFilterType - int (only BM)
+                    speckleRange - int
+                    speckleWindowSize - int
+                    P1 - int (only SGBM)
+                    P2 - int (only SGBM)
+                    fullDP - Bool (only SGBM)
+                    uniquenessRatio - int
+                    textureThreshold - int (only BM)
+
+        **RETURNS**
+
+        SimpleCV.Image representing 3D depth Image
+        also StereoCamera.Image3D gives OpenCV 3D Depth Image of CV_32F type.
+
+        **EXAMPLE**
+
+        >>> lImage = Image("l.jpg")
+        >>> rImage = Image("r.jpg")
+        >>> stereo = StereoCamera()
+        >>> Q = cv.Load("Q.yml")
+        >>> stereo.get3DImage(1, 2, Q).show()
+
+        >>> state = {"SADWindowSize":9, "nDisparity":112, "minDisparity":-39}
+        >>> stereo.get3DImage(1, 2, Q, "BM", state).show()
+        >>> stereo.get3DImage(1, 2, Q, "SGBM", state).show()
+        """
+        cv2flag = True
+        try:
+            import cv2
+        except ImportError:
+            cv2flag = False
+            import cv2.cv as cv
+        if cv2flag:
+            camLeft = cv2.VideoCapture(leftIndex)
+            camRight = cv2.VideoCapture(rightIndex)
+            if camLeft.isOpened():
+                _, imgLeft = camLeft.read()
+            else:
+                warnings.warn("Unable to open left camera")
+                return None
+            if camRight.isOpened():
+                _, imgRight = camRight.read()
+            else:
+                warnings.warn("Unable to open right camera")
+                return None
+            imgLeft = Image(imgLeft, cv2image=True)
+            imgRight = Image(imgRight, cv2image=True)
+        else:
+            camLeft = cv.CaptureFromCAM(leftIndex)
+            camRight = cv.CaptureFromCAM(rightIndex)
+            imgLeft = cv.QueryFrame(camLeft)
+            if imgLeft is None:
+                warnings.warn("Unable to open left camera")
+                return None
+
+            imgRight = cv.QueryFrame(camRight)
+            if imgRight is None:
+                warnings.warn("Unable to open right camera")
+                return None
+
+            imgLeft = Image(imgLeft, cv2image=True)
+            imgRight = Image(imgRight, cv2image=True)
+
+        del camLeft
+        del camRight
+
+        stereoImages = StereoImage(imgLeft, imgRight)
+        Image3D_normalize = stereoImages.get3DImage(Q, method, state)
+        self.Image3D = stereoImages.Image3D
+        return Image3D_normalize
 
 
 class AVTCameraThread(threading.Thread):
