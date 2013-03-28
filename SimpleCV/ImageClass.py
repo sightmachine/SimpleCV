@@ -10372,21 +10372,20 @@ class Image:
         :py:meth:`applyUnsharpMask`
 
         """
+        #reimplemented with faster, vectorized filter kernel creation
         w,h = self.size()
-        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
-        dia = int(dia/((w/64.0+h/64.0)/2.0))
-        if highpass:
-            for i in range(64):
-                for j in range(64):
-                    d = sqrt((j-32)**2+(i-32)**2)
-                    flt[i,j] = 255-(255/(1+(d/dia)**(order*2)))
-        else:
-            for i in range(64):
-                for j in range(64):
-                    d = sqrt((j-32)**2+(i-32)**2)
-                    flt[i,j] = 255/(1+(d/dia)**(order*2))
-
-        flt = Image(flt)
+        intensity_scale = 2**8 - 1 #for now 8-bit
+        sz_x            = 64       #for now constant, symmetric
+        sz_y            = 64       #for now constant, symmetric
+        x0              = sz_x/2.0 #for now, on center 
+        y0              = sz_y/2.0 #for now, on center
+        #efficient "vectorized" computation
+        X, Y = np.meshgrid(np.arange(sz_x), np.arange(sz_y))
+        D = np.sqrt((X-x0)**2+(Y-y0)**2)
+        flt = intensity_scale/(1.0 + (D/dia)**(order*2)) 
+        if highpass:     #then invert the filter
+            flt = intensity_scale - flt
+        flt    = Image(flt) #numpy arrays are in row-major form...doesn't matter for symmetric filter 
         flt_re = flt.resize(w,h)
         img = self.applyDFTFilter(flt_re,grayscale)
         return img
