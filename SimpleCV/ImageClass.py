@@ -5235,8 +5235,8 @@ class Image:
         try:
             import cv2
             if( type(rotMatrix) !=  np.ndarray ):
-                rotMatrix = np.array(rotMat)
-            retVal = cv2.warpPerspective(src=np.array(self.getMatrix()), dsize=(self.height,self.width),M=rotMatrix,flags = cv2.INTER_CUBIC)
+                rotMatrix = np.array(rotMatrix)
+            retVal = cv2.warpPerspective(src=np.array(self.getMatrix()), dsize=(self.width,self.height),M=rotMatrix,flags = cv2.INTER_CUBIC)
             return Image(retVal, colorSpace=self._colorSpace, cv2image=True)
         except:            
             retVal = self.getEmpty()

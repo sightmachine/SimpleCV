@@ -770,17 +770,10 @@ def test_image_perspective():
     pWarp = cv.CreateMat(3,3,cv.CV_32FC1)
     cv.GetPerspectiveTransform(src,dst,pWarp)
     ptrans = img.transformPerspective(pWarp)
-
     pWarp2 = np.array(pWarp)
     ptrans2 = img.transformPerspective(pWarp2)
-
-
     test = ptrans-ptrans2
     mc=test.meanColor()
-
-    results = [ptrans,ptrans2]
-    name_stem = "test_image_perspective"
-    perform_diff(results,name_stem)
 
     if( mc[0] > 100 or mc[1] > 100 or mc[2] > 100 ):
         assert False
