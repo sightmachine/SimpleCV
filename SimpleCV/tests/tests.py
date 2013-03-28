@@ -773,7 +773,13 @@ def test_image_perspective():
     pWarp2 = np.array(pWarp)
     ptrans2 = img.transformPerspective(pWarp2)
     test = ptrans-ptrans2
+    np_test = test.getNumpy()
     mc=test.meanColor()
+    results = [ptrans,ptrans2]
+    name_stem = "test_image_perspective"
+    # Threshold kept high, otherwise test will fail
+    # difference between original image warped image will be always huge
+    perform_diff(results,name_stem, 100)
 
     if( mc[0] > 100 or mc[1] > 100 or mc[2] > 100 ):
         assert False
