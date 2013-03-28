@@ -5217,7 +5217,7 @@ class Image:
         >>> img = Image("lenna")
         >>> points = ((50,0),(img.width+50,0),(img.width,img.height),(0,img.height))
         >>> src = ((30, 30), (img.width-10, 70), (img.width-1-40, img.height-1+30),(20,img.height+10))
-        >>> result = cv.createMat(3,3,cv.CV_32FC1)
+        >>> result = cv.CreateMat(3,3,cv.CV_32FC1)
         >>> cv.GetPerspectiveTransform(src,points,result)
         >>> img.transformPerspective(result).show()
 
@@ -5237,7 +5237,7 @@ class Image:
             if( type(rotMatrix) !=  np.ndarray ):
                 rotMatrix = np.array(rotMat)
             retVal = cv2.warpPerspective(src=np.array(self.getMatrix()), dsize=(self.height,self.width),M=rotMatrix,flags = cv2.INTER_CUBIC)
-            return Image(retVal, colorSpace=self._colorSpace)
+            return Image(retVal, colorSpace=self._colorSpace, cv2image=True)
         except:            
             retVal = self.getEmpty()
             if(type(rotMatrix) == np.ndarray ):
