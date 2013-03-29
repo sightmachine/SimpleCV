@@ -31,8 +31,11 @@ class LineScan(list):
     pointLoc = None
     image = None
 
-    def __init__(self,*args,**kwargs):
-        list.__init__(self,*args)
+    def __init__(self, args, **kwargs):
+        if isinstance(args, np.ndarray):
+            if args.dtype == np.uint8:
+                args = args.tolist()
+        list.__init__(self,args)
         self.image = None
         self.pt1 = None
         self.pt2 = None
