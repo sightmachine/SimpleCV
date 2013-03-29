@@ -33,8 +33,7 @@ class LineScan(list):
 
     def __init__(self, args, **kwargs):
         if isinstance(args, np.ndarray):
-            if args.dtype == np.uint8:
-                args = args.tolist()
+            args = args.tolist()
         list.__init__(self,args)
         self.image = None
         self.pt1 = None
