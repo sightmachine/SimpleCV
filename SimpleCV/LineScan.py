@@ -90,25 +90,47 @@ class LineScan(list):
 
     def __sub__(self,other):
         
-        retVal = LineScan(map(operator.sub,self,other))
+        if len(self) == len(other):
+            retVal = LineScan(map(operator.sub,self,other))
+        else:
+            print 'Size mismatch'
+            return None
         retVal._update(self)
         return retVal
 
     def __add__(self,other):
         
-        retVal = LineScan(map(operator.add,self,other))
+        if len(self) == len(other):
+            retVal = LineScan(map(operator.add,self,other))
+        else:
+            print 'Size mismatch'
+            return None
         retVal._update(self)
         return retVal
 
     def __mul__(self,other):
 
-        retVal = LineScan(map(operator.mul,self,other))
+        if len(self) == len(other):
+            retVal = LineScan(map(operator.mul,self,other))
+        else:
+            print 'Size mismatch'
+            return None
+
         retVal._update(self)
         return retVal
 
     def __div__(self,other):
 
-        retVal = LineScan(map(operator.div,self,other))
+        if len(self) == len(other):
+            try:
+                retVal = LineScan(map(operator.div,self,other))
+            except ZeroDivisionError:
+                print 'Second LineScan contains zeros'
+                return None
+        else:
+            print 'Size mismatch'
+            return None
+
         retVal._update(self)
         return retVal
 

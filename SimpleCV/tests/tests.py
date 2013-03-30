@@ -3468,8 +3468,6 @@ def test_LineScan_add():
     ls = img.getLineScan(x=20)
     l = ls + ls
     a = int(ls[20]) + int(ls[20])
-    if a > 255:
-        a = 255
     if a == l[20]:
         pass
     else:
@@ -3480,8 +3478,6 @@ def test_LineScan_mul():
     ls = img.getLineScan(x=20)
     l = ls * ls
     a = int(ls[20]) * int(ls[20])
-    if a > 255:
-        a = 255
     if a == l[20]:
         pass
     else:
@@ -3492,8 +3488,6 @@ def test_LineScan_div():
     ls = img.getLineScan(x=20)
     l = ls / ls
     a = int(ls[20]) / int(ls[20])
-    if a > 255:
-        a = 255
     if a == l[20]:
         pass
     else:
