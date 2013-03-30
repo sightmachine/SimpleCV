@@ -4,6 +4,7 @@ import scipy.signal as sps
 import scipy.optimize as spo
 import numpy as np
 import copy
+import operator
 
 
 class LineScan(list):
@@ -86,6 +87,31 @@ class LineScan(list):
         Deprecated since python 2.0, now using __getitem__
         """
         return self.__getitem__(slice(i,j))
+
+    def __sub__(self,other):
+        
+        retVal = LineScan(np.clip(map(operator.sub,self,other),0,255).tolist())
+        retVal._update(self)
+        return retVal
+
+    def __add__(self,other):
+        
+        retVal = LineScan(np.clip(map(operator.add,self,other),0,255).tolist())
+        retVal._update(self)
+        return retVal
+
+    def __mul__(self,other):
+
+        retVal = LineScan(np.clip(map(operator.mul,self,other),0,255).tolist())
+        retVal._update(self)
+        return retVal
+
+    def __div__(self,other):
+
+        retVal = LineScan(np.clip(map(operator.div,self,other),0,255).tolist())
+        retVal._update(self)
+        return retVal
+
 
     def _update(self, linescan):
         """
