@@ -90,25 +90,25 @@ class LineScan(list):
 
     def __sub__(self,other):
         
-        retVal = LineScan(np.clip(map(operator.sub,self,other),0,255).tolist())
+        retVal = LineScan(map(operator.sub,self,other))
         retVal._update(self)
         return retVal
 
     def __add__(self,other):
         
-        retVal = LineScan(np.clip(map(operator.add,self,other),0,255).tolist())
+        retVal = LineScan(map(operator.add,self,other))
         retVal._update(self)
         return retVal
 
     def __mul__(self,other):
 
-        retVal = LineScan(np.clip(map(operator.mul,self,other),0,255).tolist())
+        retVal = LineScan(map(operator.mul,self,other))
         retVal._update(self)
         return retVal
 
     def __div__(self,other):
 
-        retVal = LineScan(np.clip(map(operator.div,self,other),0,255).tolist())
+        retVal = LineScan(map(operator.div,self,other))
         retVal._update(self)
         return retVal
 
