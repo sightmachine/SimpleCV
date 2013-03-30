@@ -87,6 +87,21 @@ class LineScan(list):
         """
         return self.__getitem__(slice(i,j))
 
+    def _update(self, linescan):
+        """
+        ** SUMMARY**
+
+        Updates LineScan's Instance Objects.
+
+        """
+        self.image = linescan.image
+        self.pt1 = linescan.pt1
+        self.pt2 = linescan.pt2
+        self.row = linescan.row
+        self.col = linescan.col
+        self.channel = linescan.channel
+        self.pointLoc = linescan.pointLoc
+
 
     def smooth(self,degree=3):
         """
@@ -131,8 +146,7 @@ class LineScan(list):
         front += smoothed
         front += self[-1*degree:]
         retVal = LineScan(front,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
-        #retVal.image = self.image
-        #retVal.pointLoc = self.pointLoc
+        retVal._update(self)
         return retVal
 
     def normalize(self):
@@ -158,8 +172,7 @@ class LineScan(list):
         temp = np.array(self, dtype='float32')
         temp = temp / np.max(temp)
         retVal = LineScan(list(temp[:]),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
-        #retVal.image = self.image
-        #retVal.pointLoc = self.pointLoc
+        retVal._update(self)
         return retVal
 
     def scale(self,value_range=(0,1)):
@@ -199,8 +212,7 @@ class LineScan(list):
         b = np.max(value_range)
         temp = (((b-a)/(vmax-vmin))*(temp-vmin))+a
         retVal = LineScan(list(temp[:]),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
-        #retVal.image = self.image
-        #retVal.pointLoc = self.pointLoc
+        retVal._update(self)
         return retVal
 
     def minima(self):
@@ -408,8 +420,7 @@ class LineScan(list):
         y = linspace(pts[0,1],pts[-1,1],n)
         pts = zip(x,y)
         retVal = LineScan(list(signal),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
-        #retVal.image = self.image
-        #retVal.pointLoc = pts
+        retVal._update(self)
         return retVal
 
 
@@ -458,6 +469,7 @@ class LineScan(list):
         popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
         yvals = f(xvals,*popt)
         retVal = LineScan(list(yvals),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal._update(self)
         return retVal
 
 
@@ -537,8 +549,7 @@ class LineScan(list):
         out = np.convolve(self,np.array(kernel,dtype='float32'))
         out = out[kt:-1*kl]
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2,channel=self.channel)
-        #retVal.image = self.image
-        #retVal.pointLoc = self.pointLoc
+        retVal._update(self)
         return retVal
 
     def fft(self):
@@ -745,6 +756,7 @@ class LineScan(list):
             else:
                 out.append(high)
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal._update(self)
         return retVal
 
     def invert(self,max=255):
@@ -776,6 +788,7 @@ class LineScan(list):
         for pt in self:
             out.append(255-pt)
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal._update(self)
         return retVal
 
     def median(self,sz=5):
@@ -815,6 +828,7 @@ class LineScan(list):
         for pt in self[-1*skip:]:
             out.append(pt)
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal._update(self)
         return retVal
 
     def findFirstIdxEqualTo(self,value=255):
@@ -902,6 +916,7 @@ class LineScan(list):
         for pt in self:
             out.append(lut[pt])
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal._update(self)
         return retVal
 
     def medianFilter(self, kernel_size=5):
@@ -936,6 +951,7 @@ class LineScan(list):
         
         medfilt_array = medfilt(np.asarray(self[:]), kernel_size)
         retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
+        retVal._update(self)
         return retVal
 
     def detrend(self):
@@ -964,6 +980,7 @@ class LineScan(list):
             return None
         detrend_arr = sdetrend(np.asarray(self[:]))
         retVal = LineScan(detrend_arr.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
+        retVal._update(self)
         return retVal
 
     def runningAverage(self, diameter=3, algo="uniform"):
@@ -1005,6 +1022,7 @@ class LineScan(list):
             r=float(diameter)/2
             for i in range(-int(r),int(r)+1):
                 kernel.append(np.exp(-i**2/(2*(r/3)**2))/(np.sqrt(2*np.pi)*(r/3)))
-        
-        return LineScan(map(int,self.convolve(kernel)),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row, channel=self.channel)
+        retVal = LineScan(map(int,self.convolve(kernel)))
+        retVal._update(self)
+        return retVal
                 
