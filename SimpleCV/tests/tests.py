@@ -3453,3 +3453,48 @@ def test_linescan_detrend():
         pass
     else:
         assert False
+
+def test_LineScan_sub():
+    img = Image('lenna')
+    ls = img.getLineScan(x=200)
+    ls1 = ls - ls
+    if ls1[23] == 0:
+        pass
+    else:
+        assert False
+
+def test_LineScan_add():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls + ls
+    a = int(ls[20]) + int(ls[20])
+    if a > 255:
+        a = 255
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_LineScan_mul():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls * ls
+    a = int(ls[20]) * int(ls[20])
+    if a > 255:
+        a = 255
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_LineScan_div():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls / ls
+    a = int(ls[20]) / int(ls[20])
+    if a > 255:
+        a = 255
+    if a == l[20]:
+        pass
+    else:
+        assert False
