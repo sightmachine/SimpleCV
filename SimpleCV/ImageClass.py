@@ -4300,7 +4300,7 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-        retVal = self.getEmpty()
+
         retVal = self.getEmpty()
         temp = self.getEmpty()
         kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
@@ -5699,7 +5699,7 @@ class Image:
         **SUMMARY**
 
         Region select is similar to crop, but instead of taking a position and width
-        and height values it simply takes to points on the image and returns the selected
+        and height values it simply takes two points on the image and returns the selected
         region. This is very helpful for creating interactive scripts that require
         the user to select a region.
 
