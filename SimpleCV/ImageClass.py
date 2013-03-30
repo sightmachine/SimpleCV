@@ -11875,8 +11875,8 @@ class Image:
                 if( len(linescan) != self.height ):
                     linescan = linescan.resample(self.height)
                 #check for number of points
-                linescan = np.array(linescan)
-                img[x,:] = linescan[:]
+                #linescan = np.array(linescan)
+                img[x,:] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
 
@@ -11885,8 +11885,8 @@ class Image:
                 if( len(linescan) != self.width ):
                     linescan = linescan.resample(self.width)
                 #check for number of points
-                linescan = np.array(linescan)
-                img[:,y] = linescan[:]
+                #linescan = np.array(linescan)
+                img[:,y] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
                 # warn and return None
@@ -11900,7 +11900,8 @@ class Image:
             pts = self.bresenham_line(pt1,pt2)
             if( len(linescan) != len(pts) ):
                 linescan = linescan.resample(len(pts))
-            linescan = np.array(linescan)
+            #linescan = np.array(linescan)
+            linescan = np.clip(linescan[:], 0, 255)
             idx = 0
             for pt in pts:
                 img[pt[0],pt[1]]=linescan[idx]
@@ -11965,7 +11966,7 @@ class Image:
 
             if linescan.row is not None:
                 if len(linescan) == self.width:
-                    ls = np.array(linescan)
+                    ls = np.clip(linescan, 0, 255)
                     img[:,linescan.row] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
@@ -11973,7 +11974,7 @@ class Image:
 
             elif linescan.col is not None:
                 if len(linescan) == self.height:
-                    ls = np.array(linescan)
+                    ls = np.clip(linescan, 0, 255)
                     img[linescan.col,:] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
@@ -11982,10 +11983,10 @@ class Image:
                 pts = self.bresenham_line(linescan.pt1, linescan.pt2)
                 if( len(linescan) != len(pts) ):
                     linescan = linescan.resample(len(pts))
-                linescan = np.array(linescan)
+                ls = np.clip(linescan[:], 0, 255)
                 idx = 0
                 for pt in pts:
-                    img[pt[0],pt[1]]=linescan[idx]
+                    img[pt[0],pt[1]]=ls[idx]
                     idx = idx+1
             
             if linescan.channel == -1:
