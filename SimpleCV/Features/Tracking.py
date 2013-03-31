@@ -636,7 +636,36 @@ class SURFTracker(Tracking):
             import cv2
         except ImportError:
             logger.warning("OpenCV >= 2.4.3 requried")
-            return None
+            return
+        if td is None:
+            bb = (1, 1, 1, 1)
+            self = Tracking.__init__(self, img, bb)
+            return
+        if len(new_pts) < 1:
+            bb = (1, 1, 1, 1)
+            self = Tracking.__init__(self, img, bb)
+            self.pts = None
+            self.templateImg = templateImg
+            self.skp = skp
+            self.sd = sd
+            self.tkp = tkp
+            self.td = td
+            self.detector = detector
+            self.descriptor = descriptor
+            return
+        if sd is None:
+            bb = (1, 1, 1, 1)
+            self = Tracking.__init__(self, img, bb)
+            self.pts = None
+            self.templateImg = templateImg
+            self.skp = skp
+            self.sd = sd
+            self.tkp = tkp
+            self.td = td
+            self.detector = detector
+            self.descriptor = descriptor
+            return
+
         np_pts = np.asarray([kp.pt for kp in new_pts])
         t, pts, center = cv2.kmeans(np.asarray(np_pts, dtype=np.float32), K=1, bestLabels=None,
                             criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER, 1, 10), attempts=1,
@@ -647,10 +676,10 @@ class SURFTracker(Tracking):
         min_y = int(min(np_pts[:, 1]))
 
         bb =  (min_x-5, min_y-5, max_x-min_x+5, max_y-min_y+5)
-        print bb
+        #print bb
 
         self = Tracking.__init__(self, img, bb)
-        print self.area
+        #print self.area
         self.templateImg = templateImg
         self.skp = skp
         self.sd = sd

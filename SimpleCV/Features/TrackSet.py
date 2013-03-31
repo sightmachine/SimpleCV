@@ -54,6 +54,8 @@ class TrackSet(FeatureSet):
         """
         list.append(self,f)
         ts = self
+        if ts[0].area <= 0:
+            return
         f.sizeRatio = float(ts[-1].area)/float(ts[0].area)
         f.vel = self.__pixelVelocity()
         f.rt_vel = self.__pixleVelocityRealTime()

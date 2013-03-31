@@ -11189,7 +11189,6 @@ class Image:
         **PARAMETERS**
 
         * *method* - str - The Tracking Algorithm to be applied
-                          * "CAMShift"
         * *ts* - TrackSet - SimpleCV.Features.TrackSet.
         * *img* - Image - Image to be tracked.
                 - list - List of Images to be tracked.
@@ -11197,6 +11196,12 @@ class Image:
         * *num_frames* - int - Number of previous frames to be used for
                                Forward Backward Error
         * *nframes* - int - Number of frames to be stored in the TrackSet
+
+        Available Tracking Methods
+
+         - CamShift
+         - LK
+         - SURF
 
         **RETURNS**
 
@@ -11206,16 +11211,18 @@ class Image:
 
         **HOW TO**
 
-        >>> ts = img.track("camshift", img1, bb)
+        >>> ts = img.track("camshift", img=img1, bb=bb)
+
         # Here TrackSet is returned. img, bb, new bb, and other
         # necessary attributes will be included in the trackset.
         # After getting the trackset you need not provide the bounding box
         # or image. You provide TrackSet as parameter to track().
         # Bounding box and image will be taken from the trackset.
         # So. now
+
         >>> ts = new_img.track("camshift",ts, num_frames = 4)
 
-        # The new Tracking feature will be appended to the give trackset
+        # The new Tracking feature will be appended to the given trackset
         # and that will be returned.
         # So, to use it in loop
         ==========================================================
@@ -11225,19 +11232,22 @@ class Image:
         ts = img.track( img=img, bb=bb)
         while (True):
             img = cam.getImage()
-            ts = img.track(ts)
+            ts = img.track("camshift", ts=ts)
 
         ==========================================================
+
         ts = []
         while (some_condition_here):
             img = cam.getImage()
             ts = img.track("camshift",ts,img0,bb)
+
             # now here in first loop iteration since ts is empty,
             # img0 and bb will be considered.
             # New tracking object will be created and added in ts (TrackSet)
             # After first iteration, ts is not empty and hence the previous
             # image frames and bounding box will be taken from ts and img0
             # and bb will be ignored.
+
         ==========================================================
         # Instead of loop, give a list of images to be tracked.
 
@@ -11248,6 +11258,18 @@ class Image:
         ts[-1].image.show()
         ==========================================================
 
+        READ MORE:
+
+        CAMShift Tracker:
+        Uses meanshift based CAMShift thresholding technique. Blobs and objects with
+        single tone or tracked very efficiently. CAMshift should be preferred if you 
+        are trying to track faces. It is optimized to track faces.
+
+        LK (Lucas Kanade) Tracker:
+        It is based on LK Optical Flow. It calculates Optical flow in frame1 to frame2 
+        and also in frame2 to frame1 and using back track error, filters out false
+        positives.
+
         SURF based Tracker:
         Matches keypoints from the template image and the current frame.
         flann based matcher is used to match the keypoints.
@@ -11256,11 +11278,11 @@ class Image:
         k-means.
         """
         if not ts and not img:
-            print "Inavlid. Must provide FeatureSet or Image"
+            print "Invalid Input. Must provide FeatureSet or Image"
             return None
 
         if not ts and not bb:
-            print "Inavlid. Must provide Bounding Box with Image"
+            print "Invalid Input. Must provide Bounding Box with Image"
             return None
 
         if not ts:
@@ -11287,6 +11309,9 @@ class Image:
         if method.lower() == "camshift":
             hsv = self.toHSV().getNumpyCv2()
             mask = cv2.inRange(hsv, np.array((0., 60., 32.)), np.array((180., 255., 255.)))
+            if not isinstance(bb, tuple):
+                bb = tuple(bb)
+            bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
             x0, y0, w, h = bb
             x1 = x0 + w -1
             y1 = y0 + h -1
@@ -11309,6 +11334,7 @@ class Image:
             ts.append(CAMShift(self, track_window, new_ellipse))
 
         elif method.lower() == "lk":
+            bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
             img1 = self.crop(bb[0],bb[1],bb[2],bb[3])
             g = img1.getGrayNumpyCv2()
             pt = cv2.goodFeaturesToTrack(g, maxCorners = 4000, qualityLevel = 0.6,
@@ -11369,12 +11395,14 @@ class Image:
             except ImportError:
                 logger.warning("sklearn required")
                 return None
-            if "2.4.3" not in cv2.__version__:
+            versions = ["2.4.2","2.4.3", "2.4.4"]
+            if cv2.__version__ not in versions:
                 logger.warning("OpenCV >= 2.4.3 required")
                 return None
 
             if len(ts) == 0:
                 # Get template keypoints
+                bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
                 templateImg = img
                 detector = cv2.FeatureDetector_create("SURF")
                 descriptor = cv2.DescriptorExtractor_create("SURF")
@@ -11395,6 +11423,12 @@ class Image:
             skp = detector.detect(img)
             skp, sd = descriptor.compute(img, skp)
 
+            if td is None:
+                print "Descriptors are Empty"
+                return None
+            if sd is None:
+                ts.append(SURFTracker(self, skp, detector, descriptor, templateImg, skp, sd, tkp, td))
+                return ts
             # flann based matcher
             flann_params = dict(algorithm=1, trees=4)
             flann = cv2.flann_Index(sd, flann_params)
@@ -11423,21 +11457,8 @@ class Image:
             S = 1 - (D/np.max(D))
             area = bb[2]*bb[3]
             # Still worried about this
-            """
-            print area, "area"
-            if area < 5626:
-                eps_val = 0.3
-            elif area >= 5625 and area < 10000:
-                eps_val = 0.4
-            elif area >= 10000 and area < 40000:
-                eps_val = 0.5
-            elif area >= 40000 and area < 90000:
-                eps_val = 0.7
-            else:
-                eps_val = 0.8
-            """
-            eps_val = 0.6
-            print eps_val, "eps_val"
+            eps_val = 0.69
+            #print eps_val, "eps_val"
             db = DBSCAN(eps=eps_val, min_samples=5).fit(S)
             core_samples = db.core_sample_indices_
             labels = db.labels_
