@@ -3469,20 +3469,17 @@ def test_getFREAKDescriptor():
     except ImportError:
         pass
     if '$Rev' in cv2.__version__:
-        print cv2.__version__
         pass
-    print cv2.__version__
-    try:
-        if int(cv2.__version__.replace('.','0'))<20402:
+    else:
+        if int(cv2.__version__.replace('.','0'))>=20402:
+            img = Image("lenna")
+            flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
+            for flavor in flavors:
+                f, d = img.getFREAKDescriptor(flavor)
+                if len(f) == 0:
+                    assert False
+                if d.shape[0] != len(f) and d.shape[1] != 64:
+                    assert False
+        else:
             pass
-    except ValueError:
-        pass
-    img = Image("lenna")
-    flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
-    for flavor in flavors:
-        f, d = img.getFREAKDescriptor(flavor)
-        if len(f) == 0:
-            assert False
-        if d.shape[0] != len(f) and d.shape[1] != 64:
-            assert False
     pass
