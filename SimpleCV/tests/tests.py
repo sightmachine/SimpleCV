@@ -3469,9 +3469,13 @@ def test_getFREAKDescriptor():
     except ImportError:
         pass
     print cv2.__version__
-    if cv2.__version__.startswith("$Rev:"):
+    if cv2.__version__.startswith('$Rev:'):
+        # I don't know somehow this condition is failing in the tests
         pass
-    if int(cv2.__version__.replace('.','0'))<20402:
+    try:
+        if int(cv2.__version__.replace('.','0'))<20402:
+            pass
+    except ValueError:
         pass
     img = Image("lenna")
     flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
