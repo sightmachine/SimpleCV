@@ -7702,6 +7702,16 @@ class Image:
 
                  See: http://en.wikipedia.org/wiki/Scale-invariant_feature_transform
 
+                 "BRISK" - Binary Robust Invariant Scalable Keypoints
+
+                  See: http://www.asl.ethz.ch/people/lestefan/personal/BRISK
+
+                 "FREAK" - Fast Retina Keypoints
+
+                  See: http://www.ivpe.com/freak.htm
+                  Note: It's a keypoint descriptor and not a KeyPoint detector. SIFT KeyPoints
+                  are detected and FERAK is used to extract keypoint descriptor.
+
         highQuality - The SURF descriptor comes in two forms, a vector of 64 descriptor
                       values and a vector of 128 descriptor values. The latter are "high"
                       quality descriptors.
@@ -7791,7 +7801,7 @@ class Image:
                     self._mKPFlavor = "STAR"
                     del starer
 
-            elif( new_version >= 2 and flavor in ["SURF", "FAST"] ):
+            elif( new_version >= 2 and flavor in ["SURF", "FAST", "FREAK"] ):
                 if( flavor == "SURF" and new_version==2):
                     surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
                     #mask = self.getGrayNumpy()
@@ -7807,6 +7817,16 @@ class Image:
 
                     self._mKPFlavor = "SURF"
                     del surfer
+
+                elif( flavor == "FREAK" ):
+                    detector = cv2.FeatureDetector_create("SIFT")
+                    extractor = cv2.DescriptorExtractor_create("FREAK")
+                    self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
+                    self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpyCv2(), self._mKeyPoints)
+                    self._mKPFlavor = "SURF"
+                    del detector
+                    del extractor
+
 
                 if( flavor == "SURF" and new_version==3):
                     surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
@@ -7829,7 +7849,7 @@ class Image:
                     self._mKPFlavor = "FAST"
                     del faster
 
-            elif( new_version >=1  and flavor in ["ORB", "SIFT", "SURF"] ):
+            elif( new_version >=1  and flavor in ["ORB", "SIFT", "SURF", "BRISK"] ):
                 FeatureDetector = cv2.FeatureDetector_create(flavor)
                 DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
                 self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
@@ -8163,6 +8183,16 @@ class Image:
 
             See: http://en.wikipedia.org/wiki/Scale-invariant_feature_transform
 
+          * "BRISK" - Binary Robust Invariant Scalable Keypoints
+
+            See: http://www.asl.ethz.ch/people/lestefan/personal/BRISK
+
+           * "FREAK" - Fast Retina Keypoints
+
+             See: http://www.ivpe.com/freak.htm
+             Note: It's a keypoint descriptor and not a KeyPoint detector. SIFT KeyPoints
+             are detected and FERAK is used to extract keypoint descriptor.
+
         * *highQuality* - The SURF descriptor comes in two forms, a vector of 64 descriptor
           values and a vector of 128 descriptor values. The latter are "high"
           quality descriptors.
@@ -8205,7 +8235,7 @@ class Image:
         else:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
-        if( flavor in ["ORB", "SIFT", "SURF"]  and kp!=None and d !=None ):
+        if( flavor in ["ORB", "SIFT", "SURF", "BRISK", "FREAK"]  and kp!=None and d !=None ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
         elif(flavor in ["FAST", "STAR", "MSER", "Dense"] and kp!=None ):
@@ -12928,6 +12958,71 @@ class Image:
             fs.append(f)
   
         return fs
+
+    def getFREAKDescriptor(self, flavor="SURF"):
+        """
+        **SUMMARY**
+
+        Compute FREAK Descriptor of given keypoints.
+        FREAK - Fast Retina Keypoints.
+        Read more: http://www.ivpe.com/freak.htm
+
+        Keypoints can be extracted using following detectors.
+
+        - SURF
+        - SIFT
+        - BRISK
+        - ORB
+        - STAR
+        - MSER
+        - FAST
+        - Dense
+
+        **PARAMETERS**
+
+        * *flavor* - Detector (see above list of detectors) - string
+
+        **RETURNS**
+
+        * FeatureSet* - A feature set of KeyPoint Features.
+        * Descriptor* - FREAK Descriptor
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> fs, des = img.getFREAKDescriptor("ORB")
+
+        """
+        try:
+            import cv2
+        except ImportError:
+            warnings.warn("OpenCV version >= 2.4.2 requierd")
+            return None
+
+        if cv2.__version__.startswith('$Rev:'):
+            warnings.warn("OpenCV version >= 2.4.2 requierd")
+            return None
+
+        if int(cv2.__version__.replace('.','0'))<20402:
+            warnings.warn("OpenCV version >= 2.4.2 requierd")
+            return None
+            
+        flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
+        if flavor not in flavors:
+            warnings.warn("Unkown Keypoints detector. Returning None.")
+            return None
+        detector = cv2.FeatureDetector_create(flavor)
+        extractor = cv2.DescriptorExtractor_create("FREAK")
+        self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
+        self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpyCv2(), 
+                                                                   self._mKeyPoints)
+        fs = FeatureSet()
+        for i in range(len(self._mKeyPoints)):
+            fs.append(KeyPoint(self, self._mKeyPoints[i], self._mKPDescriptors[i], flavor))
+
+        return fs, self._mKPDescriptors
+
+
         
       
         
