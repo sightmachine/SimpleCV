@@ -3127,6 +3127,36 @@ class Image:
         except:
             return None
 
+    def gammaCorrect(self, gamma = 1):
+        
+        """
+        **DESCRIPTION**
+
+        Transforms an image according to Gamma Correction also known as 
+        Power Law Transform.
+        
+        **PARAMETERS**
+
+        * *gamma* - A real number. For negative values, the output will simply
+        be a white image.
+
+        **RETURNS**
+
+        A Gamma corrected Grayscale image.
+
+        **EXAMPLE**
+
+        >>> img = Image('SimpleCV/sampleimages/family_watching_television_1958.jpg')
+        >>> img.show()
+        >>> img.gammaCorrect(1.5).show()
+        >>> img.gammaCorrect(0.7).show()
+ 
+        """
+        scale = 255.0
+        src = self.getGrayNumpy()
+        dst = (((1.0/scale)*src)**gamma)*scale
+        return Image(dst, colorSpace = ColorSpace.GRAY)
+
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         **SUMMARY**
@@ -12910,9 +12940,9 @@ class Image:
             fs.append(f)
   
         return fs
-        
-      
-        
+
+
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
