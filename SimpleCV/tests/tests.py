@@ -1789,13 +1789,22 @@ def test_keypoint_extraction():
     img1 = Image("../sampleimages/KeypointTemplate2.png")
     img2 = Image("../sampleimages/KeypointTemplate2.png")
     img3 = Image("../sampleimages/KeypointTemplate2.png")
+    img4 = Image("../sampleimages/KeypointTemplate2.png")
 
     kp1 = img1.findKeypoints()
     kp2 = img2.findKeypoints(highQuality=True)
     kp3 = img3.findKeypoints(flavor="STAR")
+    if not cv2.__version__.startswith("$Rev:"):
+        kp4 = img4.findKeypoints(flavor="BRISK")
+        kp4.draw()
+        if len(kp4) == 0:
+            assert False
     kp1.draw()
     kp2.draw()
     kp3.draw()
+    
+
+    
     #TODO: Fix FAST binding
     #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
     if( len(kp1)==190 and
@@ -3453,3 +3462,24 @@ def test_linescan_detrend():
         pass
     else:
         assert False
+
+def test_getFREAKDescriptor():
+    try:
+        import cv2
+    except ImportError:
+        pass
+    if '$Rev' in cv2.__version__:
+        pass
+    else:
+        if int(cv2.__version__.replace('.','0'))>=20402:
+            img = Image("lenna")
+            flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
+            for flavor in flavors:
+                f, d = img.getFREAKDescriptor(flavor)
+                if len(f) == 0:
+                    assert False
+                if d.shape[0] != len(f) and d.shape[1] != 64:
+                    assert False
+        else:
+            pass
+    pass
