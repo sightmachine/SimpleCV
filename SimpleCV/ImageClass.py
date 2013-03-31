@@ -7787,13 +7787,6 @@ class Image:
                     self._mKPFlavor = "FAST"
                     del faster
 
-                elif( flavor == "BRISK"):
-                    detector = cv2.BRISK(thresh=thresh/50, octaves=0)
-                    self._mKeyPoints. self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpyCv2(), None)
-                    self._mKPFlavor = "BRISK"
-                    del detector
-
-
                 #elif( flavor == "MSER"):
                 #    mserer = cv2.MSER()
                 #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
@@ -12984,9 +12977,15 @@ class Image:
         except ImportError:
             warnings.warn("OpenCV version >= 2.4.2 requierd")
             return None
+
+        if cv2.__version__.startswith('$Rev:'):
+            warnings.warn("OpenCV version >= 2.4.2 requierd")
+            return None
+
         if int(cv2.__version__.replace('.','0'))<20402:
             warnings.warn("OpenCV version >= 2.4.2 requierd")
             return None
+            
         flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
         if flavor not in flavors:
             warnings.warn("Unkown Keypoints detector. Returning None.")

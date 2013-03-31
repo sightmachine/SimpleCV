@@ -1794,11 +1794,13 @@ def test_keypoint_extraction():
     kp1 = img1.findKeypoints()
     kp2 = img2.findKeypoints(highQuality=True)
     kp3 = img3.findKeypoints(flavor="STAR")
-    kp4 = img4.findKeypoints(flavor="BRISK")
+    if not cv2.__version__.startswith("$Rev:"):
+        kp4 = img4.findKeypoints(flavor="BRISK")
+        kp4.draw()
     kp1.draw()
     kp2.draw()
     kp3.draw()
-    kp4.draw()
+    
 
     if len(kp4) == 0:
         assert False
@@ -3464,6 +3466,8 @@ def test_getFREAKDescriptor():
     try:
         import cv2
     except ImportError:
+        pass
+    if cv2.__version__.startswith('$Rev:'):
         pass
     if int(cv2.__version__.replace('.','0'))<20402:
         pass
