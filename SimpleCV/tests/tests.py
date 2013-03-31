@@ -3468,10 +3468,10 @@ def test_getFREAKDescriptor():
         import cv2
     except ImportError:
         pass
-    print cv2.__version__
-    if cv2.__version__.startswith('$Rev:'):
-        # I don't know somehow this condition is failing in the tests
+    if '$Rev' in cv2.__version__:
+        print cv2.__version__
         pass
+    print cv2.__version__
     try:
         if int(cv2.__version__.replace('.','0'))<20402:
             pass
