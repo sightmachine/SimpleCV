@@ -785,9 +785,7 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        temp = np.array(self)
-        retVal = np.mean(temp, dtype=np.float64)
-        return retVal
+        return float(sum(self))/len(self)
 
     def variance(self):
         """
@@ -806,9 +804,11 @@ class LineScan(list):
         >>>> var
 
         """
-        temp = np.array(self)
-        retVal = np.var(temp, dtype=np.float64)
-        return retVal
+        mean = float(sum(self))/len(self)
+        summation = 0
+        for num in self:
+            summation += (num - mean)**2
+        return summation/len(self)
 
     def std(self):
         """
@@ -832,9 +832,11 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        temp = np.array(self)
-        retVal = np.std(temp, dtype=np.float64)
-        return retVal
+        mean = float(sum(self))/len(self)
+        summation = 0
+        for num in self:
+            summation += (num - mean)**2
+        return np.sqrt(summation/len(self))
 
     def median(self,sz=5):
         """
