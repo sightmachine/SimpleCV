@@ -389,10 +389,14 @@ def predictBB(bb0, pt0, pt1, nPts):
         for j in range(i+1,nPts):
             temp0 = ((pt0[i][0] - pt0[j][0])**2 + (pt0[i][1] - pt0[j][1])**2)**0.5
             temp1 = ((pt1[i][0] - pt1[j][0])**2 + (pt1[i][1] - pt1[j][1])**2)**0.5
-            dist0.append(float(temp1)/temp0)
+            if temp0 != 0:
+                dist0.append(float(temp1)/temp0)
+            else:
+                dist0.append(1.0)
             
     shift = getMedianUnmanaged(dist0)
-    
+    if shift is None:
+        return(bb0, 1.0)
     s0 = 0.5 * (shift - 1) * getBBWidth(bb0)
     s1 = 0.5 * (shift - 1) * getBBHeight(bb0)
     

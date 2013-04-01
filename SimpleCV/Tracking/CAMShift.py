@@ -105,6 +105,8 @@ def CAMShiftTracker(img, bb, ts, **kwargs):
     prob &= mask
     term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
     new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
+    if track_window[2] == 0 or track_window[3] == 0:
+        track_window = bb
     track = CAMShift(img, track_window, new_ellipse)
 
     return track
