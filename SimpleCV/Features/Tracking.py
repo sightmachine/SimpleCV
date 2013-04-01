@@ -848,3 +848,12 @@ class SURFTracker(Tracking):
         >>> templateImg = track.getTemplateImage()
         """
         return self.templateImg
+
+class MFTracker(Tracking):
+    def __init__(self, img, bb, shift):
+        self = Tracking.__init__(self, img, bb)
+        self.shift = shift
+
+    def getShift(self):
+        return self.shift
+

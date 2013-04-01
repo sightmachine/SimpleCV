@@ -11432,6 +11432,10 @@ class Image:
             track = surfTracker(self, bb, ts, **kwargs)
             ts.append(track)
 
+        elif method.lower() == "mftrack":
+            track = MFTrack(self, bb, ts, img, **kwargs)
+            ts.append(track)
+
         return ts
 
     def _to32F(self):
@@ -12961,7 +12965,7 @@ class Image:
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
-from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker
+from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
