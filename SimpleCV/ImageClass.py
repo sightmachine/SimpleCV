@@ -13038,7 +13038,7 @@ class Image:
 
       return vals[:limit]
     
-    def tvDenoising(self, gray=False, weight=50, eps=0.0002, max_iter=200, resize=-1):
+    def tvDenoising(self, gray=False, weight=50, eps=0.0002, max_iter=200, resize=1):
         """
         **SUMMARY**
 
@@ -13080,7 +13080,7 @@ class Image:
             print 'Enter a valid resize value'
             return None
 
-        if resize != -1:
+        if resize != 1:
             img = img.resize(int(img.width*resize),int(img.height*resize))
 
         if gray is True:
@@ -13096,7 +13096,7 @@ class Image:
         retVal = img * denoise_mat
 
         retVal = Image(retVal)
-        if resize != -1:
+        if resize != 1:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal      
