@@ -12470,7 +12470,7 @@ class Image:
             logger.warning("OpenCV >= 2.4.3 required")
             return None
         if template == None:
-            return None
+            return None    
         detector = cv2.FeatureDetector_create("SIFT")
         descriptor = cv2.DescriptorExtractor_create("SIFT")
         img = self.getNumpyCv2()

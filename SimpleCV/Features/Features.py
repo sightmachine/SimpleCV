@@ -1067,7 +1067,7 @@ class FeatureSet(list):
             if 'shape' in properties:
                 featureVector.extend(i.mHu)
             if 'position' in properties:
-                featureVector.extend(i.coordinates())
+                featureVector.extend(i.extents())
             if not featureVector :
                 logger.warning("properties parameter is not specified properly")
                 return
