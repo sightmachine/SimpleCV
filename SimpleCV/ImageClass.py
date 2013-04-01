@@ -5499,7 +5499,7 @@ class Image:
         return retVal
 
 
-    def crop(self, x , y = None, w = None, h = None, centered=False):
+    def crop(self, x , y = None, w = None, h = None, centered=False, smart=False):
         """
         **SUMMARY**
         Consider you want to crop a image with the following dimension :
@@ -5537,6 +5537,8 @@ class Image:
         * *h* - Int - the height of the cropped region in pixels.
         * *centered*  - Boolean - if True we treat the crop region as being the center
           coordinate and a width and height. If false we treat it as the top left corner of the crop region.
+        * *smart* - Will make sure you don't try and crop outside the image size, so if your image is 100x100 and you tried a crop like img.crop(50,50,100,100), it will autoscale the crop to the max width.
+        
 
         **RETURNS**
 
@@ -5552,11 +5554,27 @@ class Image:
         >>> img.crop([(50,40),(178,168)]) # two point form
         >>> img.crop([x1,x2,x3,x4,x5],[y1,y1,y3,y4,y5]) # list of x's and y's
         >>> img.crop([(x,y),(x,y),(x,y),(x,y),(x,y)] # list of (x,y)
+        >>> img.crop(x,y,100,100, smart=True)
         **SEE ALSO**
 
         :py:meth:`embiggen`
         :py:meth:`regionSelect`
         """
+
+        if smart:
+          if x > self.width:
+            x = self.width
+          elif x < 0:
+            x = 0
+          elif y > self.height:
+            y = self.height
+          elif y < 0:
+            y = 0
+          elif (x + w) > self.width:
+            w = self.width - x
+          elif (y + h) > self.height:
+            h = self.height - y
+          
         if(isinstance(x,np.ndarray)):
             x = x.tolist()
         if(isinstance(y,np.ndarray)):
