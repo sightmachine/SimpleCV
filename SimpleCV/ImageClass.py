@@ -3137,12 +3137,11 @@ class Image:
         
         **PARAMETERS**
 
-        * *gamma* - A real number. For negative values, the output will simply
-        be a white image.
+        * *gamma* - A non-negative real number.
 
         **RETURNS**
 
-        A Gamma corrected Grayscale image.
+        A Gamma corrected image.
 
         **EXAMPLE**
 
@@ -3152,10 +3151,12 @@ class Image:
         >>> img.gammaCorrect(0.7).show()
  
         """
+        if gamma < 0:
+            return "Gamma should be a non-negative real number"
         scale = 255.0
-        src = self.getGrayNumpy()
+        src = self.getNumpy()
         dst = (((1.0/scale)*src)**gamma)*scale
-        return Image(dst, colorSpace = ColorSpace.GRAY)
+        return Image(dst)
 
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
