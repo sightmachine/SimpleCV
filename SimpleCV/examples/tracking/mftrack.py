@@ -9,11 +9,13 @@ def mftest():
     d = Display(img.size())
     bb1 = getBBFromUser(cam,d)
     fs1=[]
+    img = cam.getImage()
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("mftrack",fs1,img,bb1, numM=15, numN=15, winsize=12)
-            fs1.drawBB()
+            fs1 = img1.track("mftrack",fs1,img,bb1, numM=10, numN=10, winsize=10)
+            print fs1[-1].shift, "shift"
+            fs1.drawBB(color=(255,0,0))
             fs1.drawPath()
             img1.show()
         except KeyboardInterrupt:

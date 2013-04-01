@@ -866,7 +866,7 @@ class MFTracker(Tracking):
 
     """
     def __init__(self, img, bb, shift):
-                """
+        """
         **SUMMARY**
 
         Initializes all the required parameters and attributes of the class.
@@ -932,7 +932,7 @@ class MFTracker(Tracking):
         img = f.image
         shift = f.shift
         if not pos:
-            imgsize = img.size()t
+            imgsize = img.size()
             pos = (imgsize[0]-120, 50)
         if not size:
             size = 16
