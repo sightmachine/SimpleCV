@@ -525,18 +525,8 @@ class LineScan(list):
         **SEE ALSO**
 
         """
-        k = len(kernel)
-        if( k%2 == 0):
-            kl = (k/2)-1
-            kt = k/2
-        else:
-            kl = (k-1)/2
-            kt = kl
-        out = np.convolve(self,np.array(kernel,dtype='float32'))
-        out = out[kt:-1*kl]
+        out = np.convolve(self,np.array(kernel,dtype='float32'),'same')
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2,channel=self.channel)
-        #retVal.image = self.image
-        #retVal.pointLoc = self.pointLoc
         return retVal
 
     def fft(self):
@@ -776,6 +766,76 @@ class LineScan(list):
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         return retVal
 
+    def mean(self):
+        """
+        **SUMMARY**
+
+        Computes the statistical mean of the signal.
+
+        **RETURNS**
+
+        The mean of the LineScan object.
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> avg = ls.mean()
+        >>>> plt.plot(ls)
+        >>>> plt.axhline(y = avg)
+        >>>> plt.show()
+
+        """
+        temp = np.array(self)
+        retVal = np.mean(temp, dtype=np.float64)
+        return retVal
+
+    def variance(self):
+        """
+        **SUMMARY**
+
+        Computes the variance of the signal.
+
+        **RETURNS**
+
+        The variance of the LineScan object.
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> var = ls.variance()
+        >>>> var
+
+        """
+        temp = np.array(self)
+        retVal = np.var(temp, dtype=np.float64)
+        return retVal
+
+    def std(self):
+        """
+        **SUMMARY**
+
+        Computes the standard deviation of the signal.
+
+        **RETURNS**
+
+        The standard deviation of the LineScan object.
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> avg = ls.mean()
+        >>>> std = ls.std()
+        >>>> plt.plot(ls)
+        >>>> plt.axhline(y = avg)
+        >>>> plt.axhline(y = avg - std, color ='r')
+        >>>> plt.axhline(y = avg + std, color ='r')
+        >>>> plt.show()
+
+        """
+        temp = np.array(self)
+        retVal = np.std(temp, dtype=np.float64)
+        return retVal
+
     def median(self,sz=5):
         """
         **SUMMARY**
@@ -1005,4 +1065,3 @@ class LineScan(list):
                 kernel.append(np.exp(-i**2/(2*(r/3)**2))/(np.sqrt(2*np.pi)*(r/3)))
         
         return LineScan(map(int,self.convolve(kernel)),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row, channel=self.channel)
-                
