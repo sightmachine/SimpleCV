@@ -19,7 +19,6 @@ def CAMShiftTracker(img, bb, ts, **kwargs):
     * *ts*  - TrackSet - SimpleCV.Features.TrackSet.
 
     Optional PARAMETERS:
-    (docs from http://docs.opencv.org/)
 
     lower      - Lower HSV value for inRange thresholding
                  tuple of (H, S, V)
