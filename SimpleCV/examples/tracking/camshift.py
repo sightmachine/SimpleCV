@@ -1,5 +1,5 @@
 from SimpleCV import *
-
+# Example for CAMShift Tracker
 def foo(image):
     return image.meanColor()
 

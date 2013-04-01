@@ -1,9 +1,9 @@
 from SimpleCV import *
-
+# Example for Media Flow Tracker.
 def foo(image):
     return image.meanColor()
 
-def camshift():
+def mftest():
     cam = Camera()
     img = cam.getImage()
     d = Display(img.size())
@@ -50,4 +50,4 @@ def getBBFromUser(cam, d):
     print xmin,ymin,xmax,ymax
     return (xmin,ymin,xmax-xmin,ymax-ymin)
 
-camshift()
+mftest()

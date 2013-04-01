@@ -546,7 +546,7 @@ class LK(Tracking):
 
         **EXAMPLE**
 
-        >>> track = Tracking(image, bb, pts)
+        >>> track = LK(image, bb, pts)
         """
 
         self = Tracking.__init__(self, img, bb)
@@ -850,10 +850,92 @@ class SURFTracker(Tracking):
         return self.templateImg
 
 class MFTracker(Tracking):
+    """
+    **SUMMARY**
+
+    MFTracker class is used for Median Flow Tracking algorithm. It's
+    derived from Tracking Class. Apart from all the properties of Tracking class,
+    MFTracker has few other properties.
+
+    Media Flow Tracker is the base tracker that is used in OpenTLD. It is based on
+    Optical Flow. It calculates optical flow of the points in the bounding box from
+    frame 1 to frame 2 and from frame 2 to frame 1 and using back track error, removes
+    false positives. As the name suggests, it takes the median of the flow, and eliminates
+    points.
+
+
+    """
     def __init__(self, img, bb, shift):
+                """
+        **SUMMARY**
+
+        Initializes all the required parameters and attributes of the class.
+
+        **PARAMETERS**
+
+        * *img* - SimpleCV.ImageClass.Image
+        * *bb* - A tuple consisting of (x, y, w, h) of the bounding box
+        * *shift* - Object Shift calcluated in Median Flow
+
+        **RETURNS**
+
+        SimpleCV.Features.Tracking.MFTracker object
+
+        **EXAMPLE**
+
+        >>> track = MFTracker(image, bb, shift)
+        """
         self = Tracking.__init__(self, img, bb)
         self.shift = shift
 
     def getShift(self):
+        """
+        **SUMMARY**
+
+        Returns object shift that was calcluated in Median Flow.
+
+        **RETURNS**
+
+        float
+
+        **EXAMPLE**
+
+        >>> track = MFTracker(image, bb, pts)
+        >>> pts = track.getShift()
+        """
         return self.shift
 
+    def showShift(self, pos=None, color=Color.GREEN, size=None):
+        """
+        **SUMMARY**
+
+        Show the Pixel Veloctiy (pixels/second) of the object in text on the image.
+
+        **PARAMETERS**
+        * *pos* - A tuple consisting of x, y values. where to put to the text
+        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *size* - Fontsize of the text
+
+        **RETURNS**
+
+        Nada. Nothing. Zilch.
+
+        **EXAMPLE**
+        >>> ts = []
+        >>> while True:
+            ... img1 = cam.getImage()
+            ... ts = img1.track("mftrack", ts, img, bb)
+            ... ts[-1].showShift()
+            ... img1.show()
+        """
+        f = self
+        img = f.image
+        shift = f.shift
+        if not pos:
+            imgsize = img.size()t
+            pos = (imgsize[0]-120, 50)
+        if not size:
+            size = 16
+        text = "Shift = %.2f" % (shift)
+        img.drawText(text, pos[0], pos[1], color, size)
+        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
