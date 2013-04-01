@@ -1802,9 +1802,6 @@ def test_keypoint_extraction():
     kp1.draw()
     kp2.draw()
     kp3.draw()
-    
-
-    
     #TODO: Fix FAST binding
     #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
     if( len(kp1)==190 and
@@ -3483,3 +3480,33 @@ def test_getFREAKDescriptor():
         else:
             pass
     pass
+
+def test_LineScan_add():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls + ls
+    a = int(ls[20]) + int(ls[20])
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_LineScan_mul():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls * ls
+    a = int(ls[20]) * int(ls[20])
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_LineScan_div():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls / ls
+    a = int(ls[20]) / int(ls[20])
+    if a == l[20]:
+        pass
+    else:
+        assert False
