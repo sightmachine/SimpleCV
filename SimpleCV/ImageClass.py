@@ -13040,8 +13040,38 @@ class Image:
 
         return fs, self._mKPDescriptors
 
+    def getGrayHistogramCounts(self, bins = 255, limit=-1):
+      '''
+      This function returns a list of tuples of greyscale pixel counts
+      by frequency.  This would be useful in determining the dominate
+      pixels (peaks) of the greyscale image.
 
-        
+      **PARAMETERS**
+
+      * *bins* - The number of bins for the hisogram, defaults to 255 (greyscale)
+      * *limit* - The number of counts to return, default is all
+
+      **RETURNS**
+
+      * List * - A list of tuples of (frequency, value)
+
+      **EXAMPLE**
+
+      >>> img = Image("lenna")
+      >>> counts = img.getGrayHistogramCounts()
+      >>> counts[0] #the most dominate pixel color tuple of frequency and value
+      >>> counts[1][1] #the second most dominate pixel color value
+      '''
+
+      hist = self.histogram(bins)
+      vals = [(e,h) for h,e in enumerate(hist)]
+      vals.sort()
+      vals.reverse()
+
+      if limit == -1:
+        limit = bins
+
+      return vals[:limit]
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
