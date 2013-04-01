@@ -13076,6 +13076,10 @@ class Image:
         
         img = self.copy()
         
+        if resize <= 0:
+            print 'Enter a valid resize value'
+            return None
+
         if resize != -1:
             img = img.resize(int(img.width*resize),int(img.height*resize))
 
