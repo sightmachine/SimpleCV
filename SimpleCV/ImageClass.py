@@ -11209,7 +11209,7 @@ class Image:
             retVal = self.mergeChannels(b,g,r)
         return retVal
 
-    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3, nframes=300):
+    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3, nframes=300, **kwargs):
         """
         **DESCRIPTION**
 
@@ -11337,86 +11337,12 @@ class Image:
             ts.trimList(50)
 
         if method.lower() == "camshift":
-            hsv = self.toHSV().getNumpyCv2()
-            mask = cv2.inRange(hsv, np.array((0., 60., 32.)), np.array((180., 255., 255.)))
-            if not isinstance(bb, tuple):
-                bb = tuple(bb)
-            bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
-            x0, y0, w, h = bb
-            x1 = x0 + w -1
-            y1 = y0 + h -1
-            hsv_roi = hsv[y0:y1, x0:x1]
-            mask_roi = mask[y0:y1, x0:x1]
-            hist = cv2.calcHist( [hsv_roi], [0], mask_roi, [16], [0, 180] )
-            cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX);
-            hist_flat = hist.reshape(-1)
-            imgs = [hsv]
-            if len(ts) > num_frames and num_frames > 1:
-                for feat in ts[-num_frames:]:
-                    imgs.append(feat.image.toHSV().getNumpyCv2())
-            else:
-                imgs.append(img.toHSV().getNumpyCv2())
-
-            prob = cv2.calcBackProject(imgs, [0], hist_flat, [0, 180], 1)
-            prob &= mask
-            term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
-            new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
-            ts.append(CAMShift(self, track_window, new_ellipse))
+            track = CamShift(self, bb, ts, **kwargs)
+            ts.append(track)
 
         elif method.lower() == "lk":
-            bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
-            img1 = self.crop(bb[0],bb[1],bb[2],bb[3])
-            g = img1.getGrayNumpyCv2()
-            pt = cv2.goodFeaturesToTrack(g, maxCorners = 4000, qualityLevel = 0.6,
-                                         minDistance = 2, blockSize = 2)
-            if type(pt) == type(None):
-                ts.append(LK(self, bb, pt))
-                return ts
-            for i in xrange(len(pt)):
-                pt[i][0][0] = pt[i][0][0]+bb[0]
-                pt[i][0][1] = pt[i][0][1]+bb[1]
-            p0 = np.float32(pt).reshape(-1, 1, 2)
-            oldg = img.getGrayNumpyCv2()
-            newg = self.getGrayNumpyCv2()
-            p1, st, err = cv2.calcOpticalFlowPyrLK(oldg, newg, p0, None, winSize  = (10, 10),
-                                                   maxLevel = 10,
-                                                   criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-            p0r, st, err = cv2.calcOpticalFlowPyrLK(newg, oldg, p1, None, winSize  = (10, 10),
-                                                    maxLevel = 10,
-                                                    criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-
-            d = abs(p0-p0r).reshape(-1, 2).max(-1)
-            good = d < 1
-            new_pts=[]
-            for pts, val in itertools.izip(p1, good):
-                if val:
-                    new_pts.append([pts[0][0], pts[0][1]])
-            if ts[-1:]:
-                old_pts = ts[-1].pts
-                if type(old_pts) == type(None):
-                    old_pts = new_pts
-            else:
-                old_pts = new_pts
-            dx=[]
-            dy=[]
-            for p1, p2 in itertools.izip(old_pts, new_pts):
-                dx.append(p2[0]-p1[0])
-                dy.append(p2[1]-p1[1])
-            if not dx or not dy:
-                ts.append(LK(self, bb, new_pts))
-                return ts
-            cen_dx = round(sum(dx)/len(dx))/3
-            cen_dy = round(sum(dy)/len(dy))/3
-            bb1 = [bb[0]+cen_dx, bb[1]+cen_dy, bb[2], bb[3]]
-            if bb1[0] <= 0:
-                bb1[0] = 1
-            if bb1[0]+bb1[2] >= self.width:
-                bb1[0] = self.width - bb1[2] - 1
-            if bb1[1]+bb1[3] >= self.height:
-                bb1[1] = self.height - bb1[3] - 1
-            if bb1[1] <= 0:
-                bb1[1] = 1
-            ts.append(LK(self, bb1, new_pts))
+            track = lk(self, bb, ts, img, **kwargs)
+            ts.append(track)
 
         elif method.lower() == "surf":
             try:
@@ -11429,74 +11355,8 @@ class Image:
             if cv2.__version__ not in versions:
                 logger.warning("OpenCV >= 2.4.3 required")
                 return None
-
-            if len(ts) == 0:
-                # Get template keypoints
-                bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
-                templateImg = img
-                detector = cv2.FeatureDetector_create("SURF")
-                descriptor = cv2.DescriptorExtractor_create("SURF")
-
-                templateImg_cv2 = templateImg.getNumpyCv2()[bb[1]:bb[1]+bb[3], bb[0]:bb[0]+bb[2]]
-                tkp = detector.detect(templateImg_cv2)
-                tkp, td = descriptor.compute(templateImg_cv2, tkp)
-
-            else:
-                templateImg = ts[-1].templateImg
-                tkp = ts[-1].tkp
-                td = ts[-1].td
-                detector = ts[-1].detector
-                descriptor = ts[-1].descriptor
-
-            img = self.getNumpyCv2()
-            # Get image keypoints
-            skp = detector.detect(img)
-            skp, sd = descriptor.compute(img, skp)
-
-            if td is None:
-                print "Descriptors are Empty"
-                return None
-            if sd is None:
-                ts.append(SURFTracker(self, skp, detector, descriptor, templateImg, skp, sd, tkp, td))
-                return ts
-            # flann based matcher
-            flann_params = dict(algorithm=1, trees=4)
-            flann = cv2.flann_Index(sd, flann_params)
-            idx, dist = flann.knnSearch(td, 1, params={})
-            del flann
-
-            # filter points using distnace criteria
-            dist = (dist[:,0]/2500.0).reshape(-1,).tolist()
-            idx = idx.reshape(-1).tolist()
-            indices = sorted(range(len(dist)), key=lambda i: dist[i])
-
-            dist = [dist[i] for i in indices]
-            idx = [idx[i] for i in indices]
-            skp_final = []
-            skp_final_labelled=[]
-            data_cluster=[]
-            distance=100
-            for i, dis in itertools.izip(idx, dist):
-                if dis < distance:
-                    skp_final.append(skp[i])
-                    data_cluster.append((skp[i].pt[0], skp[i].pt[1]))
-
-            #Use Denstiy based clustering to further fitler out keypoints
-            n_data = np.asarray(data_cluster)
-            D = Dis.squareform(Dis.pdist(n_data))
-            S = 1 - (D/np.max(D))
-            area = bb[2]*bb[3]
-            # Still worried about this
-            eps_val = 0.69
-            #print eps_val, "eps_val"
-            db = DBSCAN(eps=eps_val, min_samples=5).fit(S)
-            core_samples = db.core_sample_indices_
-            labels = db.labels_
-            for label, i in zip(labels, range(len(labels))):
-                if label==0:
-                    skp_final_labelled.append(skp_final[i])
-
-            ts.append(SURFTracker(self, skp_final_labelled, detector, descriptor, templateImg, skp, sd, tkp, td))
+            track = surfTracker(self, bb, ts, **kwargs)
+            ts.append(track)
 
         return ts
 
@@ -13027,6 +12887,7 @@ class Image:
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
+from SimpleCV.Tracking import CamShift, lk, surfTracker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *

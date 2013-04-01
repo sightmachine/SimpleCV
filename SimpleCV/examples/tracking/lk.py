@@ -13,7 +13,7 @@ def lktest():
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("lk",fs1,img,bb1)
+            fs1 = img1.track("lk",fs1,img,bb1, maxCorners = 5000, qualityLevel = 0.8, winSize = (15, 15))
             fs1.drawBB(color=Color.RED)
             print fs1[-1].getBB()
             img1.show()
