@@ -1,29 +1,24 @@
 from SimpleCV import *
-# Example for CAMShift Tracker
+# Example for Media Flow Tracker.
 def foo(image):
     return image.meanColor()
 
-def camshift():
+def mftest():
     cam = Camera()
     img = cam.getImage()
     d = Display(img.size())
     bb1 = getBBFromUser(cam,d)
     fs1=[]
+    img = cam.getImage()
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("camshift",fs1,img,bb1,num_frames=5, nframes=60, lower=(0, 40, 40), upper=(80, 200, 200))
-            fs1.drawBB()
+            fs1 = img1.track("mftrack",fs1,img,bb1, numM=10, numN=10, winsize=10)
+            print fs1[-1].shift, "shift"
+            fs1.drawBB(color=(255,0,0))
             fs1.drawPath()
-            fs1.showCoordinates()
-            fs1.showSizeRatio()
-            fs1.showPixelVelocity()
-            fs1.showPixelVelocityRT()
             img1.show()
         except KeyboardInterrupt:
-            print "Total number of frames tracked",
-            print fs1.trackLength()
-            print fs1.processTrack(foo)
             break
 
 def getBBFromUser(cam, d):
@@ -57,4 +52,4 @@ def getBBFromUser(cam, d):
     print xmin,ymin,xmax,ymax
     return (xmin,ymin,xmax-xmin,ymax-ymin)
 
-camshift()
+mftest()
