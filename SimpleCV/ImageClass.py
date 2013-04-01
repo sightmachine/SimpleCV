@@ -11209,7 +11209,7 @@ class Image:
             retVal = self.mergeChannels(b,g,r)
         return retVal
 
-    def track(self, method="CAMShift", ts=None, img=None, bb=None, num_frames=3, nframes=300, **kwargs):
+    def track(self, method="CAMShift", ts=None, img=None, bb=None, **kwargs):
         """
         **DESCRIPTION**
 
@@ -11327,21 +11327,25 @@ class Image:
             return None
 
         if type(img) == list:
-            ts = self.track(method, ts, img[0], bb, num_frames)
+            ts = self.track(method, ts, img[0], bb, **kwargs)
             for i in img:
-                ts = i.track(method, ts, num_frames=num_frames)
+                ts = i.track(method, ts, **kwargs)
             return ts
 
         # Issue #256 - (Bug) Memory management issue due to too many number of images.
+        nframes = 300
+        if 'nframes' in kwargs:
+            nframes = kwargs['nframes']
+
         if len(ts) > nframes:
             ts.trimList(50)
 
         if method.lower() == "camshift":
-            track = CamShift(self, bb, ts, **kwargs)
+            track = CAMShiftTracker(self, bb, ts, **kwargs)
             ts.append(track)
 
         elif method.lower() == "lk":
-            track = lk(self, bb, ts, img, **kwargs)
+            track = lkTracker(self, bb, ts, img, **kwargs)
             ts.append(track)
 
         elif method.lower() == "surf":
@@ -12887,7 +12891,7 @@ class Image:
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
-from SimpleCV.Tracking import CamShift, lk, surfTracker
+from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *

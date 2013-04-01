@@ -13,7 +13,7 @@ def surftest():
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("surf",fs1,img,bb1, eps_val=0.8, dist=200)
+            fs1 = img1.track("surf",fs1,img,bb1, eps_val=0.8, dist=200, nframes=100)
             fs1.drawBB(color=Color.RED)
             fs1[-1].drawTrackerPoints()
             print fs1[-1].getBB()

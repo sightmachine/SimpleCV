@@ -2,9 +2,80 @@ import cv2
 import numpy as np
 import itertools
 
-def lk(img, bb, ts, oldimg, **kwargs):
+def lkTracker(img, bb, ts, oldimg, **kwargs):
+    """
+    **DESCRIPTION**
+    
+    (Dev Zone)
+
+    Tracking the object surrounded by the bounding box in the given
+    image using Lucas Kanade based Optical Flow method.
+
+    Warning: Use this if you know what you are doing. Better have a 
+    look at Image.track()
+
+    **PARAMETERS**
+
+    * *img* - Image - Image to be tracked.
+    * *bb*  - tuple - Bounding Box tuple (x, y, w, h)
+    * *ts*  - TrackSet - SimpleCV.Features.TrackSet.
+    * *oldimg* - Image - Previous Image.
+
+    Optional PARAMETERS:
+    (docs from http://docs.opencv.org/)
+
+    maxCorners    - Maximum number of corners to return in goodFeaturesToTrack. 
+                    If there are more corners than are found, the strongest of 
+                    them is returned.
+                
+    qualityLevel  - Parameter characterizing the minimal accepted quality of image corners. 
+                    The parameter value is multiplied by the best corner quality measure, 
+                    which is the minimal eigenvalue or the Harris function response. 
+                    The corners with the quality measure less than the product are rejected.
+                    For example, if the best corner has the quality measure = 1500, 
+                    and the qualityLevel=0.01 , then all the corners with the quality measure 
+                    less than 15 are rejected. 
+                  
+    minDistance   - Minimum possible Euclidean distance between the returned corners.
+
+    blockSize     - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood.
+
+    winSize       - size of the search window at each pyramid level.
+
+    maxLevel      - 0-based maximal pyramid level number; if set to 0, pyramids are not used (single level), 
+                    if set to 1, two levels are used, and so on
+
+    **RETURNS**
+
+    SimpleCV.Features.Tracking.LKTracker
+
+    **HOW TO USE**
+
+    >>> cam = Camera()
+    >>> ts = []
+    >>> img = cam.getImage()
+    >>> bb = (100, 100, 300, 300) # get BB from somewhere
+    >>> ts = lkTracker(img, bb, ts, img, maxCorners=4000, qualityLevel=0.5, winSize=(12,12))
+    >>> while (some_condition_here):
+        ... img = cam.getImage()
+        ... bb = ts[-1].bb
+        ... prevImg = img
+        ... ts = lkTracker(img, bb, ts, prevImg, maxCorners=4000, qualityLevel=0.5, winSize=(12,12))
+        ... ts[-1].drawBB()
+        ... img.show()
+
+    This is too much confusing. Better use
+    Image.track() method.
+
+    READ MORE:
+
+    LK (Lucas Kanade) Tracker:
+    It is based on LK Optical Flow. It calculates Optical flow in frame1 to frame2 
+    and also in frame2 to frame1 and using back track error, filters out false
+    positives.
+    """
     maxCorners = 4000
-    qualityLevel = 0.6
+    qualityLevel = 0.08
     minDistance = 2
     blockSize = 3
     winSize = (10, 10)
