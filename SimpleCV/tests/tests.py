@@ -13,7 +13,7 @@ import os, sys, pickle, operator
 from SimpleCV import *
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = True  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated.
 
 #colors
@@ -3483,3 +3483,14 @@ def test_getFREAKDescriptor():
         else:
             pass
     pass
+
+def test_tvDenoising():
+    img = Image('lenna')
+    img1 = img.tvDenoising(gray=False,weight=20)
+    img2 = img.tvDenoising(weight=50,max_iter=250)
+    img3 = img.toGray()
+    img3 = img3.tvDenoising(gray=True,weight=20)
+    img4 = img.tvDenoising(resize=0.5)
+    result = [img1,img2,img3,img4]
+    name_stem = "test_tvDenoising"
+    perform_diff(result,name_stem,3)
