@@ -1794,6 +1794,13 @@ class ROI(Feature):
             ny = self.ytl + ((self.h-nh)/2.0)
             self._rebase([nx,ny,nw,nh])
 
+    def overlaps(self,otherROI):
+        for p in otherROI.points:
+            if( p[0] <= self.maxX() and p[0] >= self.minX() and
+                p[1] <= self.maxY() and p[1] >= self.minY() ):
+                return True
+        return False
+
     def translate(self,x=0,y=0):
         """
         **SUMMARY**
@@ -1824,7 +1831,7 @@ class ROI(Feature):
             x = x[0]
             
         if( isinstance(x,(float,int)) and isinstance(y,(float,int))):
-            self._rebase([self.xtl+x,self.ytl,self.w,self.h])
+            self._rebase([self.xtl+x,self.ytl+y,self.w,self.h])
 
     def toXYWH(self):
         """

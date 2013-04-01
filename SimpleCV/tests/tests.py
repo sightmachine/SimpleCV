@@ -1789,13 +1789,22 @@ def test_keypoint_extraction():
     img1 = Image("../sampleimages/KeypointTemplate2.png")
     img2 = Image("../sampleimages/KeypointTemplate2.png")
     img3 = Image("../sampleimages/KeypointTemplate2.png")
+    img4 = Image("../sampleimages/KeypointTemplate2.png")
 
     kp1 = img1.findKeypoints()
     kp2 = img2.findKeypoints(highQuality=True)
     kp3 = img3.findKeypoints(flavor="STAR")
+    if not cv2.__version__.startswith("$Rev:"):
+        kp4 = img4.findKeypoints(flavor="BRISK")
+        kp4.draw()
+        if len(kp4) == 0:
+            assert False
     kp1.draw()
     kp2.draw()
     kp3.draw()
+    
+
+    
     #TODO: Fix FAST binding
     #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
     if( len(kp1)==190 and
@@ -3336,3 +3345,141 @@ def test_runningAverage():
     else:
         assert False
 
+def lineScan_perform_diff(oLineScan, pLineScan, func, **kwargs):
+    nLineScan = func(oLineScan, **kwargs)
+    diff = sum([(i - j) for i, j in zip(pLineScan, nLineScan)])
+    if diff > 10 or diff < -10:
+        return False
+    return True
+
+def test_linescan_smooth():
+    img = Image("lenna")
+    l1 = img.getLineScan(x=60)
+    l2 = l1.smooth(degree=7)
+    if lineScan_perform_diff(l1, l2, LineScan.smooth, degree=7):
+        pass
+    else:
+        assert False
+
+def test_linescan_normalize():
+    img = Image("lenna")
+    l1 = img.getLineScan(x=90)
+    l2 = l1.normalize()
+    if lineScan_perform_diff(l1, l2, LineScan.normalize):
+        pass
+    else:
+        assert False
+
+def test_linescan_scale():
+    img = Image("lenna")
+    l1 = img.getLineScan(y=90)
+    l2 = l1.scale()
+    if lineScan_perform_diff(l1, l2, LineScan.scale):
+        pass
+    else:
+        assert False
+
+def test_linescan_derivative():
+    img = Image("lenna")
+    l1 = img.getLineScan(y=140)
+    l2 = l1.derivative()
+    if lineScan_perform_diff(l1, l2, LineScan.derivative):
+        pass
+    else:
+        assert False
+
+def test_linescan_resample():
+    img = Image("lenna")
+    l1 = img.getLineScan(pt1=(300, 300), pt2=(450, 500))
+    l2 = l1.resample(n=50)
+    if lineScan_perform_diff(l1, l2, LineScan.resample, n=50):
+        pass
+    else:
+        assert False
+
+def test_linescan_fitToModel():
+    def aLine(x, m, b):
+        return x*m+b
+    img = Image("lenna")
+    l1 = img.getLineScan(y=200)
+    l2 = l1.fitToModel(aLine)
+    if lineScan_perform_diff(l1, l2, LineScan.fitToModel, f=aLine):
+        pass
+    else:
+        assert False
+
+def test_linescan_convolve():
+    kernel = [0, 2, 0, 4, 0, 2, 0]
+    img = Image("lenna")
+    l1 = img.getLineScan(x=400)
+    l2 = l1.convolve(kernel)
+    if lineScan_perform_diff(l1, l2, LineScan.convolve, kernel=kernel):
+        pass
+    else:
+        assert False
+
+def test_linescan_threshold():
+    img = Image("lenna")
+    l1 = img.getLineScan(x=350)
+    l2 = l1.threshold(threshold=200, invert=True)
+    if lineScan_perform_diff(l1, l2, LineScan.threshold, threshold=200, invert=True):
+        pass
+    else:
+        assert False
+
+def test_linescan_invert():
+    img = Image("lenna")
+    l1 = img.getLineScan(y=200)
+    l2 = l1.invert(max=40)
+    if lineScan_perform_diff(l1, l2, LineScan.invert, max=40):
+        pass
+    else:
+        assert False
+
+def test_linescan_median():
+    img = Image("lenna")
+    l1 = img.getLineScan(x=120)
+    l2 = l1.median(sz=9)
+    if lineScan_perform_diff(l1, l2, LineScan.median, sz=9):
+        pass
+    else:
+        assert False
+
+def test_linescan_medianFilter():
+    img = Image("lenna")
+    l1 = img.getLineScan(y=250)
+    l2 = l1.medianFilter(kernel_size=7)
+    if lineScan_perform_diff(l1, l2, LineScan.medianFilter, kernel_size=7):
+        pass
+    else:
+        assert False
+
+def test_linescan_detrend():
+    img = Image("lenna")
+    l1 = img.getLineScan(y=90)
+    l2 = l1.detrend()
+    if lineScan_perform_diff(l1, l2, LineScan.detrend):
+        pass
+    else:
+        assert False
+
+def test_getFREAKDescriptor():
+    try:
+        import cv2
+    except ImportError:
+        pass
+    if '$Rev' in cv2.__version__:
+        pass
+    else:
+        if int(cv2.__version__.replace('.','0'))>=20402:
+            img = Image("lenna")
+            flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
+            for flavor in flavors:
+                f, d = img.getFREAKDescriptor(flavor)
+                if len(f) == 0:
+                    assert False
+                if d.shape[0] != len(f) and d.shape[1] != 64:
+                    assert False
+        else:
+            pass
+    pass
