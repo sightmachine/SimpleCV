@@ -12,18 +12,11 @@ def camshift():
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("mftrack",fs1,img,bb1)
+            fs1 = img1.track("mftrack",fs1,img,bb1, numM=15, numN=15, winsize=12)
             fs1.drawBB()
             fs1.drawPath()
-            fs1.showCoordinates()
-            fs1.showSizeRatio()
-            fs1.showPixelVelocity()
-            fs1.showPixelVelocityRT()
             img1.show()
         except KeyboardInterrupt:
-            print "Total number of frames tracked",
-            print fs1.trackLength()
-            print fs1.processTrack(foo)
             break
 
 def getBBFromUser(cam, d):

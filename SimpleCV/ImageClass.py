@@ -11278,12 +11278,25 @@ class Image:
         distance    - thresholding KNN distance of each feature
                       if KNN distance > distance, point is discarded.
 
+        *MFTrack*
+
+        numM     - Number of points to be tracked in the bounding box
+                   in height direction. 
+                
+        numN     - Number of points to be tracked in the bounding box
+                   in width direction. 
+                  
+        margin   - Margin around the bounding box.
+
+        winsize  - size of the search window at each pyramid level in LK tracker (in int)
+
 
         Available Tracking Methods
 
          - CamShift
          - LK
          - SURF
+         - MFTrack
 
         **RETURNS**
 
@@ -11356,6 +11369,12 @@ class Image:
 
         You can provide some/all/None of the optional parameters listed for SURF.
 
+        for MFTrack
+        >>> ts = []
+        >>> ts = img.track("mftrack", ts, img1, bb, numM=12, numN=12, winsize=15)
+
+        You can provide some/all/None of the optional parameters listed for MFTrack.
+
         Check out Tracking examples provided in the SimpleCV source code.
 
         READ MORE:
@@ -11376,6 +11395,14 @@ class Image:
         Density based clustering is used classify points as in-region (of bounding box)
         and out-region points. Using in-region points, new bounding box is predicted using
         k-means.
+
+        Median Flow Tracker:
+    
+        Media Flow Tracker is the base tracker that is used in OpenTLD. It is based on
+        Optical Flow. It calculates optical flow of the points in the bounding box from
+        frame 1 to frame 2 and from frame 2 to frame 1 and using back track error, removes
+        false positives. As the name suggests, it takes the median of the flow, and eliminates
+        points.
         """
         if not ts and not img:
             print "Invalid Input. Must provide FeatureSet or Image"
