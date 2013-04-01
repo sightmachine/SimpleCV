@@ -13066,12 +13066,15 @@ class Image:
 
         **NOTE**
         This function requires Scikit-image to be installed!
+        To install scikit-image library run: sudo pip install -U scikit-image
+
+        Read More: http://scikit-image.org/
         """
 
         try:
             from skimage.filter import denoise_tv_chambolle
         except ImportError:
-            print 'Scikit-image library not installed'
+            warnings.warn('Scikit-image Library not installed!')
             return None
         
         img = self.copy()
