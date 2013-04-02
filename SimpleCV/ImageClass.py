@@ -13125,6 +13125,102 @@ class Image:
         limit = bins
 
       return vals[:limit]
+
+    def grayPeaks(self, bins = 255, delta = 0, lookahead = 15):
+        """
+        **SUMMARY**
+
+        Takes the histogram of a grayscale image, and returns the peak
+        grayscale intensity values.
+
+        The bins parameter can be used to lump grays together, by default it is 
+        set to 255
+
+        Returns a list of tuples, each tuple contains the grayscale intensity,
+        and the fraction of the image that has it.
+
+        **PARAMETERS**
+
+        * *bins* - the integer number of bins, between 1 and 255.
+
+        * *delta* - the minimum difference betweena peak and the following points,
+                    before a peak may be considered a peak.Useful to hinder the 
+                    algorithm from picking up false peaks towards to end of
+                    the signal.
+
+        * *lookahead* - the distance to lookahead from a peakto determine if it is
+                    an actual peak, should be an integer greater than 0. 
+
+        **RETURNS**
+
+        A list of (grays,fraction) tuples.
+
+        **NOTE**
+
+        Implemented using the techniques used in huetab()
+
+        """
+
+        # The bins are the no of edges bounding an histogram. 
+        # Thus bins= Number of bars in histogram+1 
+        # As range() function is exclusive, 
+        # hence bins+2 is passed as parameter.
+
+        y_axis, x_axis = np.histogram(self.getGrayNumpy(), bins = range(bins+2))
+        x_axis = x_axis[0:bins+1]
+        maxtab = []
+        mintab = []
+        length = len(y_axis)
+        if x_axis is None:
+            x_axis = range(length)
+
+        #perform some checks
+        if length != len(x_axis):
+            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+        if lookahead < 1:
+            raise ValueError, "Lookahead must be above '1' in value"
+        if not (np.isscalar(delta) and delta >= 0):
+            raise ValueError, "delta must be a positive number"
+
+        #needs to be a numpy array
+        y_axis = np.asarray(y_axis)
+
+        #maxima and minima candidates are temporarily stored in
+        #mx and mn respectively
+        mn, mx = np.Inf, -np.Inf
+
+        #Only detect peak if there is 'lookahead' amount of points after it
+        for index, (x, y) in enumerate(zip(x_axis[:-lookahead], y_axis[:-lookahead])):
+            if y > mx:
+                mx = y
+                mxpos = x
+            if y < mn:
+                mn = y
+                mnpos = x
+
+            ####look for max####
+            if y < mx-delta and mx != np.Inf:
+                #Maxima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].max() < mx:
+                    maxtab.append((mxpos, mx))
+                    #set algorithm to only find minima now
+                    mx = np.Inf
+                    mn = np.Inf
+
+            if y > mn+delta and mn != -np.Inf:
+                #Minima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].min() > mn:
+                    mintab.append((mnpos, mn))
+                    #set algorithm to only find maxima now
+                    mn = -np.Inf
+                    mx = -np.Inf
+                
+        retVal = []
+        for intensity, pixelcount in maxtab:
+            retVal.append((intensity, pixelcount / float(self.width * self.height)))
+        return retVal
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
