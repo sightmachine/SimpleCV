@@ -1600,21 +1600,18 @@ class Feature(object):
         """
         **SUMMARY**
 
-        This function calculates the corners of the feature and returns them as
-        a list of (x,y) tuples.
+        This function returns a rectangle which bounds the blob.
 
         **RETURNS**
 
-        A list of (x,y) corner tuples. The order is top left, bottom left, bottom right, top right.
+        A list of [x, y, w, h] where (x, y) are the top left point of the rectangle
+        and w, h are its width and height respectively.
+
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.findBlobs(128)
         >>> print blobs[-1].boundingBox()
-
-        **TO DO**
-
-        Make the order of points go from the top left glockwise.
 
         """
         self._updateExtents()
