@@ -3483,3 +3483,11 @@ def test_getFREAKDescriptor():
         else:
             pass
     pass
+
+def test_grayPeaks():
+    i=Image('lenna')
+    peaks=i.grayPeaks()
+    if peaks==None:
+        assert False
+    else:
+        pass
