@@ -36,7 +36,9 @@ def MFTrack(img, bb, ts, oldimg, **kwargs):
                   
     margin   - Margin around the bounding box.
 
-    winsize  - size of the search window at each pyramid level in LK tracker (in int)
+    winsize_lk  - Optical Flow search window size.
+
+    winsize - Size of quadratic area around the point which is compared.
 
     **RETURNS**
 
@@ -74,6 +76,7 @@ def MFTrack(img, bb, ts, oldimg, **kwargs):
     numN = 10
     margin = 5
     winsize_ncc = 10
+    winsize_lk = 4
 
     for key in kwargs:
         if key == 'numM':
@@ -84,16 +87,18 @@ def MFTrack(img, bb, ts, oldimg, **kwargs):
             margin = kwargs[key]
         elif key == 'winsize':
             winsize_ncc = kwargs[key]
+        elif key == 'winsize_lk':
+            winsize_lk = kwargs[key]
 
     oldg = oldimg.getGrayNumpyCv2()
     newg = img.getGrayNumpyCv2()
-    bb = [bb[0], bb[1], bb[0]+bb[3], bb[1]+bb[3]]
-    bb, shift = fbtrack(oldg, newg, bb, numM, numN, margin, winsize_ncc)
+    bb = [bb[0], bb[1], bb[0]+bb[2], bb[1]+bb[3]]
+    bb, shift = fbtrack(oldg, newg, bb, numM, numN, margin, winsize_ncc, winsize_lk)
     bb = [bb[0], bb[1], bb[2]-bb[0], bb[3]-bb[1]]
     track = MFTracker(img, bb, shift)
     return track
 
-def fbtrack(imgI, imgJ, bb, numM=10, numN=10,margin=5,winsize_ncc=10):
+def fbtrack(imgI, imgJ, bb, numM=10, numN=10,margin=5,winsize_ncc=10, winsize_lk=4):
     """
     **SUMMARY**
     (Dev Zone)
@@ -107,7 +112,7 @@ def fbtrack(imgI, imgJ, bb, numM=10, numN=10,margin=5,winsize_ncc=10):
     numM - Number of points in height direction.
     numN - Number of points in width direction.
     margin - margin (in pixel)
-    winsize_ncc - size of the search window at each pyramid level in LK tracker (in int)
+    winsize_ncc - Size of quadratic area around the point which is compared.
     
     **RETURNS**
     
@@ -120,7 +125,7 @@ def fbtrack(imgI, imgJ, bb, numM=10, numN=10,margin=5,winsize_ncc=10):
     sizePointsArray = nPoints*2
     #print bb, "passed in fbtrack"
     pt = getFilledBBPoints(bb, numM, numN, margin)
-    fb, ncc, status, ptTracked = lktrack(imgI, imgJ, pt, nPoints, winsize_ncc)
+    fb, ncc, status, ptTracked = lktrack(imgI, imgJ, pt, nPoints, winsize_ncc, winsize_lk)
 
     nlkPoints = sum(status)[0]
     
@@ -397,11 +402,14 @@ def predictBB(bb0, pt0, pt1, nPts):
     shift = getMedianUnmanaged(dist0)
     if shift is None:
         return(bb0, 1.0)
+
+    # too much variation in shift is due to some errors
+    if shift > 1.1 or shift < 0.9:
+        shift = 1
     s0 = 0.5 * (shift - 1) * getBBWidth(bb0)
     s1 = 0.5 * (shift - 1) * getBBHeight(bb0)
     
-    if shift == 0:
-        shift = 1
+    
     x1 = bb0[0] - s0 + dx
     y1 = bb0[1] - s1 + dy
     x2 = bb0[2] + s0 + dx
