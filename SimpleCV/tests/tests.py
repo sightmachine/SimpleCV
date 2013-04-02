@@ -3483,3 +3483,19 @@ def test_getFREAKDescriptor():
         else:
             pass
     pass
+
+def test_tvDenoising():
+    
+    try:
+        from skimage.filter import denoise_tv_chambolle
+        img = Image('lenna')
+        img1 = img.tvDenoising(gray=False,weight=20)
+        img2 = img.tvDenoising(weight=50,max_iter=250)
+        img3 = img.toGray()
+        img3 = img3.tvDenoising(gray=True,weight=20)
+        img4 = img.tvDenoising(resize=0.5)
+        result = [img1,img2,img3,img4]
+        name_stem = "test_tvDenoising"
+        perform_diff(result,name_stem,3)
+    except ImportError:
+        pass
