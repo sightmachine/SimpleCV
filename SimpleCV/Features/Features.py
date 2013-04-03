@@ -253,6 +253,48 @@ class FeatureSet(list):
         """
         return FeatureSet(sorted(self, key = lambda f: f.area()))
 
+    def sortX(self):
+        """
+        **SUMMARY**
+
+        Returns a new FeatureSet, with the smallest x coordinates features first.
+
+        **RETURNS**
+
+        A featureset sorted based on area.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> feats = feats.sortX()
+        >>> print feats[-1] # biggest blob
+        >>> print feats[0] # smallest blob
+
+        """
+        return FeatureSet(sorted(self, key = lambda f: f.x))
+
+    def sortY(self):
+        """
+        **SUMMARY**
+
+        Returns a new FeatureSet, with the smallest y coordinates features first.
+
+        **RETURNS**
+
+        A featureset sorted based on area.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> feats = img.findBlobs()
+        >>> feats = feats.sortY()
+        >>> print feats[-1] # biggest blob
+        >>> print feats[0] # smallest blob
+
+        """
+        return FeatureSet(sorted(self, key = lambda f: f.y)) 
+
     def distanceFrom(self, point = (-1, -1)):
         """
         **SUMMARY**

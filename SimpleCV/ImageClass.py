@@ -12890,7 +12890,7 @@ class Image:
             return val
 
     
-    def findKeypointClusters(self, num_of_clusters = 5, order='dsc'):
+    def findKeypointClusters(self, num_of_clusters = 5, order='dsc', flavor='orb'):
         '''
         This function is meant to try and find interesting areas of an
         image. It does this by finding keypoint clusters in an image.
@@ -12916,10 +12916,10 @@ class Image:
         
         FeatureSet
         '''
-        keypoints = self.findKeypoints(flavor='ORB') #find the keypoints
-        if keypoints is None:
+        if flavor.lower() == 'corner':
           keypoints = self.findCorners() #fallback to corners
-
+        else:
+          keypoints = self.findKeypoints(flavor=flavor.upper()) #find the keypoints
         if keypoints == None or keypoints <= 0:
           return None
           
