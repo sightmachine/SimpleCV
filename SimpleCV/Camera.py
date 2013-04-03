@@ -2857,7 +2857,7 @@ class AVTCamera(FrameSource):
 
             camera_id = camlist[camera_id].UniqueId
 
-
+        camera_id = long(camera_id)
         self.handle = ct.c_uint()
         self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle))
         self.dll.PvCaptureStart(self.handle)
