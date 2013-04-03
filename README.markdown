@@ -212,11 +212,7 @@ Before you begin installing SimpleCV make sure you have the folliwng tools insta
 
 * Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer. 
 * Install homebrew https://github.com/mxcl/homebrew/wiki/installation
-* Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak), plus the SDL dependencies for pygame
-*  Homebrew puts the libraries in /usr/local/lib/, which by default isn't in the python sys.path -- either add it, or link the files
-* Install scipy superpack for Mac OSX http://fonnesbeck.github.com/ScipySuperpack/
-* easy_install pip, install mercurial and use pip install pygame
-* clone simplecv and python setup.py install
+
 
 Commands (for Lion)::
 
