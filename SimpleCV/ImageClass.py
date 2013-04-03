@@ -11246,25 +11246,59 @@ class Image:
 
         *CAMShift*
 
+        CAMShift Tracker is based on mean shift thresholding algorithm which is
+        combined with an adaptive region-sizing step. Histogram is calcualted based
+        on the mask provided. If mask is not provided, hsv transformed image of the
+        provided image is thresholded using inRange function (band thresholding).
+
+        lower HSV and upper HSV values are used inRange function. If the user doesn't 
+        provide any range values, default range values are used.
+
+        Histogram is back projected using previous images to get an appropriate image
+        and it passed to camshift function to find the object in the image. Users can 
+        decide the number of images to be used in back projection by providing num_frames.
+
         lower      - Lower HSV value for inRange thresholding
                      tuple of (H, S, V)
+                     Default : (0, 60, 32)
                 
         upper      - Upper HSV value for inRange thresholding
                      tuple of (H, S, V)
+                     Default: (180, 255, 255)
 
         mask       - Mask to calculate Histogram. It's better 
                      if you don't provide one.
+                     Default: calculated using above thresholding ranges.
 
         num_frames - number of frames to be backtracked.
-
+                     Default: 40
 
         *LK*
+
+        LK Tracker is based on Optical Flow method. In brief, optical flow can be
+        defined as the apparent motion of objects caused by the relative motion between
+        an observer and the scene. (Wikipedia).
+
+        LK Tracker first finds some good feature points in the given bounding box in the image.
+        These are the tracker points. In consecutive frames, optical flow of these feature points
+        is calculated. Users can limit the number of feature points by provideing maxCorners and 
+        qualityLevel. number of features will always be less than maxCorners. These feature points
+        are calculated using Harris Corner detector. It returns a matrix with each pixel having
+        some quality value. Only good features are used based upon the qualityLevel provided. better
+        features have better quality measure and hence are more suitable to track.
+
+        Users can set minimum distance between each features by providing minDistance.
+
+        LK tracker finds optical flow using a number of pyramids and users can set this number by
+        providing maxLevel and users can set size of the search window for Optical Flow by setting 
+        winSize.
 
         (docs from http://docs.opencv.org/)
         maxCorners    - Maximum number of corners to return in goodFeaturesToTrack. 
                         If there are more corners than are found, the strongest of 
                         them is returned.
-                
+                        Default: 4000
+
         qualityLevel  - Parameter characterizing the minimal accepted quality of image corners. 
                         The parameter value is multiplied by the best corner quality measure, 
                         which is the minimal eigenvalue or the Harris function response. 
@@ -11272,41 +11306,95 @@ class Image:
                         For example, if the best corner has the quality measure = 1500, 
                         and the qualityLevel=0.01 , then all the corners with the quality measure 
                         less than 15 are rejected. 
+                        Default: 0.08
                   
         minDistance   - Minimum possible Euclidean distance between the returned corners.
+                        Default: 2
 
         blockSize     - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood.
+                        Default: 3
 
         winSize       - size of the search window at each pyramid level.
+                        Default: (10, 10)
 
         maxLevel      - 0-based maximal pyramid level number; if set to 0, pyramids are not used (single level), 
+                        Default: 10
                         if set to 1, two levels are used, and so on
 
 
         *SURF*
 
+        SURF based tracker finds keypoints in the template and computes the descriptor. The template is
+        chosen based on the bounding box provided with the first image. The image is cropped and stored 
+        as template. SURF keypoints are found and descriptor is computed for the template and stored.
+
+        SURF keypoints are found in the image and its descriptor is computed. Image keypoints and template
+        keypoints are matched using K-nearest neighbor algorithm. Matched keypoints are filtered according
+        to the knn distance of the points. Users can set this criteria by setting distance.
+        Density Based Clustering algorithm (DBSCAN) is applied on the matched keypoints to filter out points
+        that are in background. DBSCAN creates a cluster of object points anc background points. These background
+        points are discarded. Users can set certain parameters for DBSCAN which are listed below.
+
+        K-means is applied on matched KeyPoints with k=1 to find the center of the cluster and then bounding
+        box is predicted based upon the position of all the object KeyPoints.
+
         eps_val     - eps for DBSCAN
                       The maximum distance between two samples for them 
-                      to be considered as in the same neighborhood. 
+                      to be considered as in the same neighborhood.
+                      default: 0.69
                 
         min_samples - min number of samples in DBSCAN
                       The number of samples in a neighborhood for a point 
                       to be considered as a core point. 
+                      default: 5
                   
         distance    - thresholding KNN distance of each feature
                       if KNN distance > distance, point is discarded.
+                      default: 100
 
         *MFTrack*
 
-        numM     - Number of points to be tracked in the bounding box
-                   in height direction. 
-                
-        numN     - Number of points to be tracked in the bounding box
-                   in width direction. 
-                  
-        margin   - Margin around the bounding box.
+        Median Flow tracker is similar to LK tracker (based on Optical Flow), but it's more advanced, better and
+        faster.
 
-        winsize  - size of the search window at each pyramid level in LK tracker (in int)
+        In MFTrack, tracking points are decided based upon the number of horizontal and vertical points and window
+        size provided by the user. Unlike LK Tracker, good features are not found which saves a huge amount of time.
+
+        feature points are selected symmetrically in the bounding box.
+        Total number of feature points to be tracked = numM * numN.
+
+        If the width and height of bounding box is 200 and 100 respectively, and numM = 10 and numN = 10,
+        there will be 10 points in the bounding box equally placed(10 points in 200 pixels) in each row. and 10 equally placed
+        points (10 points in 100 pixels) in each column. So total number of tracking points = 100.
+
+        numM > 0
+        numN > 0 (both may not be equal)
+
+        users can provide a margin around the bounding box that will be considered to place feature points and
+        calculate optical flow.
+        Optical flow is calculated from frame1 to frame2 and from frame2 to frame1. There might be some points 
+        which give inaccurate optical flow, to eliminate these points the above method is used. It is called
+        forward-backward error tracking. Optical Flow seach window size can be set usung winsize_lk.
+
+        For each point, comparision is done based on the quadratic area around it.
+        The length of the square window can be set using winsize.
+
+        numM        - Number of points to be tracked in the bounding box
+                      in height direction. 
+                      default: 10
+                
+        numN        - Number of points to be tracked in the bounding box
+                      in width direction.
+                      default: 10 
+                  
+        margin      - Margin around the bounding box.
+                      default: 5
+
+        winsize_lk  - Optical Flow search window size.
+                      default: 4
+
+        winsize     - Size of quadratic area around the point which is compared.
+                      default: 10
 
 
         Available Tracking Methods
@@ -13037,6 +13125,102 @@ class Image:
         limit = bins
 
       return vals[:limit]
+
+    def grayPeaks(self, bins = 255, delta = 0, lookahead = 15):
+        """
+        **SUMMARY**
+
+        Takes the histogram of a grayscale image, and returns the peak
+        grayscale intensity values.
+
+        The bins parameter can be used to lump grays together, by default it is 
+        set to 255
+
+        Returns a list of tuples, each tuple contains the grayscale intensity,
+        and the fraction of the image that has it.
+
+        **PARAMETERS**
+
+        * *bins* - the integer number of bins, between 1 and 255.
+
+        * *delta* - the minimum difference betweena peak and the following points,
+                    before a peak may be considered a peak.Useful to hinder the 
+                    algorithm from picking up false peaks towards to end of
+                    the signal.
+
+        * *lookahead* - the distance to lookahead from a peakto determine if it is
+                    an actual peak, should be an integer greater than 0. 
+
+        **RETURNS**
+
+        A list of (grays,fraction) tuples.
+
+        **NOTE**
+
+        Implemented using the techniques used in huetab()
+
+        """
+
+        # The bins are the no of edges bounding an histogram. 
+        # Thus bins= Number of bars in histogram+1 
+        # As range() function is exclusive, 
+        # hence bins+2 is passed as parameter.
+
+        y_axis, x_axis = np.histogram(self.getGrayNumpy(), bins = range(bins+2))
+        x_axis = x_axis[0:bins+1]
+        maxtab = []
+        mintab = []
+        length = len(y_axis)
+        if x_axis is None:
+            x_axis = range(length)
+
+        #perform some checks
+        if length != len(x_axis):
+            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+        if lookahead < 1:
+            raise ValueError, "Lookahead must be above '1' in value"
+        if not (np.isscalar(delta) and delta >= 0):
+            raise ValueError, "delta must be a positive number"
+
+        #needs to be a numpy array
+        y_axis = np.asarray(y_axis)
+
+        #maxima and minima candidates are temporarily stored in
+        #mx and mn respectively
+        mn, mx = np.Inf, -np.Inf
+
+        #Only detect peak if there is 'lookahead' amount of points after it
+        for index, (x, y) in enumerate(zip(x_axis[:-lookahead], y_axis[:-lookahead])):
+            if y > mx:
+                mx = y
+                mxpos = x
+            if y < mn:
+                mn = y
+                mnpos = x
+
+            ####look for max####
+            if y < mx-delta and mx != np.Inf:
+                #Maxima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].max() < mx:
+                    maxtab.append((mxpos, mx))
+                    #set algorithm to only find minima now
+                    mx = np.Inf
+                    mn = np.Inf
+
+            if y > mn+delta and mn != -np.Inf:
+                #Minima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].min() > mn:
+                    mintab.append((mnpos, mn))
+                    #set algorithm to only find maxima now
+                    mn = -np.Inf
+                    mx = -np.Inf
+                
+        retVal = []
+        for intensity, pixelcount in maxtab:
+            retVal.append((intensity, pixelcount / float(self.width * self.height)))
+        return retVal
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
