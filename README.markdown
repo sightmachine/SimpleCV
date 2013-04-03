@@ -99,21 +99,11 @@ Run the following commands:
 
 Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
 
-Before you do these you must install XCode from the App Store and run the installer!  
-
-Steps:
-
-* Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer. 
-* Install homebrew https://github.com/mxcl/homebrew/wiki/installation
-* Use homebrew to install opencv, git, and the python imaging library (PIL needs the ARCHFLAGS tweak), plus the SDL dependencies for pygame
-*  Homebrew puts the libraries in /usr/local/lib/, which by default isn't in the python sys.path -- either add it, or link the files
-* Install scipy superpack for Mac OSX http://fonnesbeck.github.com/ScipySuperpack/
-* easy_install pip, install mercurial and use pip install pygame
-* clone simplecv and python setup.py install
-
 
 ---------------------------
 **Explicit (as in every step) instructions compliments of JHawkins**
+
+*These instructions are geared towards people who are just getting started with python development on OSX. They will walk you through setting up all the tools you need to build SimpleCV from scratch. If you don't know which instructions you want, you probably want to use these.*
 
 Install Xcode via App Store  
 Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across from Command Line Tools  
@@ -214,7 +204,16 @@ If it starts (it should!) be sure to check out:
 --------------------------------
 **Lion Take Two**
 
-For lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11, if you encounter this problem please submit an issue on github. 
+*This is the abridged set of the instructions. It assumes you have most of the common OSX developer tools installed like brew and pip. 
+If you don't know what Brew or Pip are you probably want to use the instructions above. For OSX Lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11, 
+if you encounter this problem please submit an issue on github.*
+
+Before you begin installing SimpleCV make sure you have the folliwng tools installed. 
+
+* Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer. 
+* Install homebrew https://github.com/mxcl/homebrew/wiki/installation
+
+
 Commands (for Lion)::
 
     mkdir ~/Code
