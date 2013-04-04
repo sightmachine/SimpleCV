@@ -3313,7 +3313,7 @@ def testROIFeature():
 
 def test_findKeypointClusters():
     img = Image('simplecv')
-    kpc = img.findKeypointClusters()
+    kpc = img.findKeypointClusters(flavor='sift')
     if len(kpc) <= 0:
       assert False
     else:
