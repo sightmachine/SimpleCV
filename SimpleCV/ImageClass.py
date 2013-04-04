@@ -550,11 +550,11 @@ class ImageSet(list):
 
         """
         if not directory:
-            print "You need to give a directory to load from"
+            logger.warning("You need to give a directory to load files from.")
             return
 
         if not os.path.exists(directory):
-            print "Invalied image path given"
+            logger.warning( "Invalid image path given.")
             return
 
 
