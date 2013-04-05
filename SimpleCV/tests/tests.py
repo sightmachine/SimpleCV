@@ -3485,9 +3485,18 @@ def test_getFREAKDescriptor():
     pass
 
 def test_grayPeaks():
-    i=Image('lenna')
-    peaks=i.grayPeaks()
-    if peaks==None:
+    i = Image('lenna')
+    peaks = i.grayPeaks()
+    if peaks == None:
+        assert False
+    else:
+        pass
+
+def test_findPeaks():
+    img = Image('lenna')
+    ls = img.getLineScan(x=150)
+    peaks = ls.findPeaks()
+    if peaks == None:
         assert False
     else:
         pass
