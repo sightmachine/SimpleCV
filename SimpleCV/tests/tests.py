@@ -3491,6 +3491,7 @@ def test_grayPeaks():
         assert False
     else:
         pass
+<<<<<<< HEAD
 
 def test_LineScan_sub():
     img = Image('lenna')
@@ -3545,3 +3546,5 @@ def test_tvDenoising():
         perform_diff(result,name_stem,3)
     except ImportError:
         pass
+=======
+>>>>>>> upstream/develop

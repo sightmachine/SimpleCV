@@ -550,11 +550,11 @@ class ImageSet(list):
 
         """
         if not directory:
-            print "You need to give a directory to load from"
+            logger.warning("You need to give a directory to load files from.")
             return
 
         if not os.path.exists(directory):
-            print "Invalied image path given"
+            logger.warning( "Invalid image path given.")
             return
 
 
@@ -12978,7 +12978,7 @@ class Image:
             return val
 
     
-    def findKeypointClusters(self, num_of_clusters = 5, order='dsc', flavor='orb'):
+    def findKeypointClusters(self, num_of_clusters = 5, order='dsc', flavor='surf'):
         '''
         This function is meant to try and find interesting areas of an
         image. It does this by finding keypoint clusters in an image.
@@ -12991,6 +12991,7 @@ class Image:
         **PARAMETERS**
         * num_of_clusters - The number of clusters you are looking for (default: 5)
         * order - The rank order you would like the points returned in, dsc or asc, (default: dsc)
+        * flavor - The keypoint type, or 'corner' for just corners
 
 
         **EXAMPLE**
