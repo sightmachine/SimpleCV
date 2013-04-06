@@ -2,7 +2,7 @@
 # SimpleCV
 --------------------------
 
-![build] https://secure.travis-ci.org/ingenuitas/SimpleCV.png?branch=develop
+![build] (https://secure.travis-ci.org/ingenuitas/SimpleCV.png?branch=develop)
 http://travis-ci.org/ingenuitas/simplecv
 
 
