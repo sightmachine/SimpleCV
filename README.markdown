@@ -1,11 +1,9 @@
+--------------------------
+# SimpleCV
+--------------------------
 
 .. image:: https://secure.travis-ci.org/ingenuitas/SimpleCV.png?branch=develop
    :target: http://travis-ci.org/ingenuitas/simplecv
-
-
-
-# SimpleCV
---------------------------
 
 
 Quick Links:
