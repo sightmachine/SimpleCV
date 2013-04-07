@@ -706,7 +706,7 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.findBlobs(128)
-        >>> blobs[-1].drawHoles(color=Color.GREEN,width=3,alpha=128)
+        >>> blobs[-1].drawHull(color=Color.GREEN,width=3,alpha=128)
         >>> img.show()
 
         """
