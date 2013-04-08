@@ -5,11 +5,6 @@ from SimpleCV.ImageClass import Image
 from SimpleCV.Features.Detection import ShapeContextDescriptor
 import math
 import scipy.stats as sps
-try:
-    from sklearn import neighbors
-except:
-    print "Need scikits learn installed"
-    #exit()
 
 
 """
@@ -26,6 +21,12 @@ class ShapeContextClassifier():
 
         * *labels* - the names of each class of objects.
         """
+        # The below import has been done in init since it throws "Need scikits learn installed" for $import SimpleCV
+        try:
+            from sklearn import neighbors
+        except:
+            print "Need scikits learn installed"
+
         self.imgMap = {}
         self.ptMap = {}
         self.descMap = {}
