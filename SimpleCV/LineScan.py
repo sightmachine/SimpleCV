@@ -3,7 +3,7 @@ from SimpleCV.base import *
 import scipy.signal as sps
 import scipy.optimize as spo
 import numpy as np
-import copy
+import copy, operator
 
 
 class LineScan(list):
@@ -86,6 +86,52 @@ class LineScan(list):
         Deprecated since python 2.0, now using __getitem__
         """
         return self.__getitem__(slice(i,j))
+
+    def __sub__(self,other):
+        
+        if len(self) == len(other):
+            retVal = LineScan(map(operator.sub,self,other))
+        else:
+            print 'Size mismatch'
+            return None
+        retVal._update(self)
+        return retVal
+
+    def __add__(self,other):
+        
+        if len(self) == len(other):
+            retVal = LineScan(map(operator.add,self,other))
+        else:
+            print 'Size mismatch'
+            return None
+        retVal._update(self)
+        return retVal
+
+    def __mul__(self,other):
+
+        if len(self) == len(other):
+            retVal = LineScan(map(operator.mul,self,other))
+        else:
+            print 'Size mismatch'
+            return None
+
+        retVal._update(self)
+        return retVal
+
+    def __div__(self,other):
+
+        if len(self) == len(other):
+            try:
+                retVal = LineScan(map(operator.div,self,other))
+            except ZeroDivisionError:
+                print 'Second LineScan contains zeros'
+                return None
+        else:
+            print 'Size mismatch'
+            return None
+
+        retVal._update(self)
+        return retVal
 
     def _update(self, linescan):
         """

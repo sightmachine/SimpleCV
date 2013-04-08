@@ -13222,6 +13222,74 @@ class Image:
         for intensity, pixelcount in maxtab:
             retVal.append((intensity, pixelcount / float(self.width * self.height)))
         return retVal
+
+    def tvDenoising(self, gray=False, weight=50, eps=0.0002, max_iter=200, resize=1):
+        """
+        **SUMMARY**
+
+        Performs Total Variation Denoising, this filter tries to minimize the
+        total-variation of the image. 
+
+        see : http://en.wikipedia.org/wiki/Total_variation_denoising
+
+        **Parameters**
+
+        * *gray* - Boolean value which identifies the colorspace of
+            the input image. If set to True, filter uses gray scale values,
+            otherwise colorspace is used.
+
+        * *weight* - Denoising weight, it controls the extent of denoising.
+
+        * *eps* - Stopping criteria for the algorithm. If the relative difference
+            of the cost function becomes less than this value, the algorithm stops.
+
+        * *max_iter* - Determines the maximum number of iterations the algorithm
+            goes through for optimizing.
+
+        * *resize* - Parameter to scale up/down the image. If set to
+            1 filter is applied on the original image. This parameter is
+            mostly to speed up the filter.
+
+        **NOTE**
+        This function requires Scikit-image library to be installed!
+        To install scikit-image library run: 
+            sudo pip install -U scikit-image
+
+        Read More: http://scikit-image.org/
+        """
+
+        try:
+            from skimage.filter import denoise_tv_chambolle
+        except ImportError:
+            logger.warn('Scikit-image Library not installed!')
+            return None
+        
+        img = self.copy()
+        
+        if resize <= 0:
+            print 'Enter a valid resize value'
+            return None
+
+        if resize != 1:
+            img = img.resize(int(img.width*resize),int(img.height*resize))
+
+        if gray is True:
+            img = img.getGrayNumpy()
+            multichannel = False
+        elif gray is False:
+            img = img.getNumpy()
+            multichannel = True
+        else:
+            print 'gray value not valid'
+
+        denoise_mat = denoise_tv_chambolle(img,weight,eps,max_iter,multichannel)
+        retVal = img * denoise_mat
+
+        retVal = Image(retVal)
+        if resize != 1:
+            return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
+        else:
+            return retVal
       
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
