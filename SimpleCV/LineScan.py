@@ -1025,4 +1025,48 @@ class LineScan(list):
         retVal = LineScan(map(int,self.convolve(kernel)))
         retVal._update(self)
         return retVal
-                
+
+    def findPeaks(self, window = 30, delta = 3):
+        """
+        **SUMMARY**
+
+        Finds the peaks in a LineScan.
+
+        **PARAMETERS**
+
+        * *window* - the size of the window in which the peak
+         should have the highest value to be considered as a peak.
+         By default this is 15 as it gives appropriate results.
+         The lower this value the more the peaks are returned
+
+        * *delta* - the minimum difference between the peak and 
+        all elements in the window
+
+        **RETURNS**
+
+        A list of (peak position, peak value) tuples.
+
+        **EXAMPLE**
+
+        >>> ls = img.getLineScan(x=10)
+        >>> peaks = ls.findPeaks()
+        >>> print peaks
+        >>> peaks10 = ls.findPeaks(window=10)
+        >>> print peaks10
+        
+        """
+
+        maximum = -np.Inf
+        width = int(window/2.0)
+        peaks = []
+
+        for index,val in enumerate(self):
+            #peak found
+            if val > maximum:
+                maximum = val
+                maxpos = index
+            #checking whether peak satisfies window and delta conditions
+            if max( self[max(0, index-width):index+width])+delta< maximum:
+                peaks.append((maxpos, maximum))
+                maximum = -np.Inf
+        return peaks
