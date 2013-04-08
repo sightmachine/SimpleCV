@@ -440,7 +440,7 @@ class ImageSet(list):
             from IPython.core import display as Idisplay
             for i in self:
                 tf = tempfile.NamedTemporaryFile(suffix=".png")
-                loc = '/tmp/' + tf.name.split('/')[-1]
+                loc = tf.name
                 tf.close()
                 i.save(loc)
                 Idisplay.display(IPImage(filename=loc))
@@ -2266,7 +2266,7 @@ class Image:
 
                     from IPython.core import display as Idisplay
                     tf = tempfile.NamedTemporaryFile(suffix=".png")
-                    loc = '/tmp/' + tf.name.split('/')[-1]
+                    loc = tf.name
                     tf.close()
                     self.save(loc)
                     Idisplay.display(IPImage(filename=loc))
