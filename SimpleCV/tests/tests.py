@@ -3500,3 +3500,57 @@ def test_findPeaks():
         assert False
     else:
         pass
+
+def test_LineScan_sub():
+    img = Image('lenna')
+    ls = img.getLineScan(x=200)
+    ls1 = ls - ls
+    if ls1[23] == 0:
+        pass
+    else:
+        assert False
+
+def test_LineScan_add():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls + ls
+    a = int(ls[20]) + int(ls[20])
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_LineScan_mul():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls * ls
+    a = int(ls[20]) * int(ls[20])
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_LineScan_div():
+    img = Image('lenna')
+    ls = img.getLineScan(x=20)
+    l = ls / ls
+    a = int(ls[20]) / int(ls[20])
+    if a == l[20]:
+        pass
+    else:
+        assert False
+
+def test_tvDenoising():
+    try:
+        from skimage.filter import denoise_tv_chambolle
+        img = Image('lenna')
+        img1 = img.tvDenoising(gray=False,weight=20)
+        img2 = img.tvDenoising(weight=50,max_iter=250)
+        img3 = img.toGray()
+        img3 = img3.tvDenoising(gray=True,weight=20)
+        img4 = img.tvDenoising(resize=0.5)
+        result = [img1,img2,img3,img4]
+        name_stem = "test_tvDenoising"
+        perform_diff(result,name_stem,3)
+    except ImportError:
+        pass
