@@ -56,8 +56,17 @@ The easiest way to install SimpleCV is with the packages for your distribution (
 
 <a id="ubuntu"></a>
 ### Ubuntu 12.04
+Install with pip
+
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip 
-	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/develop
+
+Install using clone of SimpleCV repository
+
+    sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools git
+    git clone https://github.com/ingenuitas/SimpleCV.git
+    cd SimpleCV/
+    sudo python setup.py install
 
 then just run 'simplecv' from the shell.
 
@@ -84,7 +93,7 @@ Run the following commands:
     tar zxvf pygame.tar.gz
     cd ..
     ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
-    ./bin/pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+    ./bin/pip install https://github.com/ingenuitas/SimpleCV/zipball/develop
   
 
 
@@ -92,8 +101,17 @@ Run the following commands:
 
 <a id="archlinux"></a>
 ### Arch Linux
-    pacman -S python2-numpy opencv2.3.1_a-4 python-pygame python2-setuptools ipython2 python2-pip
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+Install using pip
+
+    pacman -S python2-numpy opencv2.4.4_1 python-pygame python2-setuptools ipython2 python2-pip
+    pip install https://github.com/ingenuitas/SimpleCV/zipball/develop
+
+Install using clone of SimpleCV repository
+
+    pacman -S python2-numpy opencv2.4.4_1 python-pygame python2-setuptools ipython2
+    git clone https://github.com/ingenuitas/SimpleCV.git
+    cd SimpleCV/
+    sudo python setup.py install
 
 <a id="macos">
 ### Mac OS X (10.6 and above)
@@ -399,6 +417,7 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 * Tesseract (<http://code.google.com/p/tesseract-ocr/>)
 * python-tesseract (<http://code.google.com/p/python-tesseract/>)
 * Orange (<http://orange.biolab.si>)
+* scikit-learn
 
 
     
