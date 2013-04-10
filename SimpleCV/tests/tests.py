@@ -2223,6 +2223,8 @@ def test_biblical_flood_fill():
     img.floodFill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
     img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
     img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
+    img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5),color=np.array([255,0,0]))
+    img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5),color=[255,0,0])
 
     results = [img]
     name_stem = "test_biblical_flood_fill"

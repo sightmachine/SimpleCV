@@ -9248,6 +9248,9 @@ class Image:
         :py:meth:`findFloodFillBlobs`
 
         """
+        if(isinstance(color,np.ndarray)):
+            color = color.tolist()
+
         if( isinstance(points,tuple) ):
             points = np.array(points)
         # first we guess what the user wants to do
