@@ -9358,7 +9358,10 @@ class Image:
             color = color.tolist()
         elif( isinstance(color,dict) ):
             color = (color['R'],color['G'],color['B'])
- 
+        
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+
         # first we guess what the user wants to do
         # if we get and int/float convert it to a tuple
         if( upper is None and lower is None and tolerance is None ):
