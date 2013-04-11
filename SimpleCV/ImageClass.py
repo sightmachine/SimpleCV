@@ -4954,8 +4954,8 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image('logo')
-        >>> img2 = rotate( 73.00, point=(img.width/2,img.height/2))
-        >>> img3 = rotate( 73.00, fixex=False, point=(img.width/2,img.height/2))
+        >>> img2 = img.rotate( 73.00, point=(img.width/2,img.height/2))
+        >>> img3 = img.rotate( 73.00, fixex=False, point=(img.width/2,img.height/2))
         >>> img4 = img2.sideBySide(img3)
         >>> img4.show()
 
@@ -9248,8 +9248,10 @@ class Image:
         :py:meth:`findFloodFillBlobs`
 
         """
-        if(isinstance(color,np.ndarray)):
+        if( isinstance(color,np.ndarray) ):
             color = color.tolist()
+        elif( isinstance(color,dict) ):
+            color = (color['R'],color['G'],color['B'])
 
         if( isinstance(points,tuple) ):
             points = np.array(points)
@@ -9351,8 +9353,12 @@ class Image:
 
         """
         mask_flag = 255 # flag weirdness
-        if( isinstance(points,tuple) ):
-            points = np.array(points)
+
+        if( isinstance(color,np.ndarray) ):
+            color = color.tolist()
+        elif( isinstance(color,dict) ):
+            color = (color['R'],color['G'],color['B'])
+ 
         # first we guess what the user wants to do
         # if we get and int/float convert it to a tuple
         if( upper is None and lower is None and tolerance is None ):
