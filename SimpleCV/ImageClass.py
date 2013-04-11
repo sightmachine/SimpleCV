@@ -4954,8 +4954,8 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image('logo')
-        >>> img2 = rotate( 73.00, point=(img.width/2,img.height/2))
-        >>> img3 = rotate( 73.00, fixex=False, point=(img.width/2,img.height/2))
+        >>> img2 = img.rotate( 73.00, point=(img.width/2,img.height/2))
+        >>> img3 = img.rotate( 73.00, fixex=False, point=(img.width/2,img.height/2))
         >>> img4 = img2.sideBySide(img3)
         >>> img4.show()
 
@@ -9282,9 +9282,16 @@ class Image:
         if( fixed_range ):
             flags = flags+cv.CV_FLOODFILL_FIXED_RANGE
 
+        #we normalize the color data type
+        if type(color) is list:
+            color = tuple(color)
+        elif type(color) is np.ndarray:
+            color = tuple(color.tolist())
+        elif type(color) is dict:
+            color = (color['R'],color['G'],color['B'])
+
         bmp = self.getEmpty()
         cv.Copy(self.getBitmap(),bmp)
-
         if( len(points.shape) != 1 ):
             for p in points:
                 cv.FloodFill(bmp,tuple(p),color,lower,upper,flags)
@@ -9389,6 +9396,14 @@ class Image:
             cv.Zero(localMask)
         else:
             localMask = mask.embiggen(size=(self.width+2,self.height+2))._getGrayscaleBitmap()
+
+        #we normalize the color data type
+        if type(color) is list:
+            color = tuple(color)
+        elif type(color) is np.ndarray:
+            color = tuple(color.tolist())
+        elif type(color) is dict:
+            color = (color['R'],color['G'],color['B'])
 
         bmp = self.getEmpty()
         cv.Copy(self.getBitmap(),bmp)
