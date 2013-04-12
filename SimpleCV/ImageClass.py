@@ -7359,6 +7359,105 @@ class Image:
 
         return fs
 
+    def findTemplateOnce(self, template_image = None, threshold = 0.2, method = "SQR_DIFF_NORM", grayscale=True):
+        """
+        **SUMMARY**
+
+        This function searches an image for a single template image match.The template
+        image is a smaller image that is searched for in the bigger image.
+        This is a basic pattern finder in an image.  This uses the standard
+        OpenCV template (pattern) matching and cannot handle scaling or rotation
+
+        This method returns the single best match if and only if that
+        match less than the threshold (greater than in the case of
+        some methods).
+        
+        **PARAMETERS**
+
+        * *template_image* - The template image.
+        * *threshold* - Int
+        * *method* -
+
+          * SQR_DIFF_NORM - Normalized square difference
+          * SQR_DIFF      - Square difference
+          * CCOEFF        -
+          * CCOEFF_NORM   -
+          * CCORR         - Cross correlation
+          * CCORR_NORM    - Normalize cross correlation
+        * *grayscale* - Boolean - If false, template Match is found using BGR image.
+        
+        **EXAMPLE**
+
+        >>> image = Image("/path/to/img.png")
+        >>> pattern_image = image.crop(100,100,100,100)
+        >>> found_patterns = image.findTemplateOnce(pattern_image)
+        >>> found_patterns.draw()
+        >>> image.show()
+
+        **RETURNS**
+
+        This method returns a FeatureSet of TemplateMatch objects.
+
+        """
+        if(template_image == None):
+            logger.info( "Need image for template matching.")
+            return
+
+        if(template_image.width > self.width):
+            logger.info( "Template image is too wide for the given image.")
+            return
+
+        if(template_image.height > self.height):
+            logger.info("Template image too tall for the given image.")
+            return
+
+        check = 0; # if check = 0 we want maximal value, otherwise minimal
+        if(method is None or method == "" or method == "SQR_DIFF_NORM"):#minimal
+            method = cv.CV_TM_SQDIFF_NORMED
+            check = 1;
+        elif(method == "SQR_DIFF"): #minimal
+            method = cv.CV_TM_SQDIFF
+            check = 1
+        elif(method == "CCOEFF"): #maximal
+            method = cv.CV_TM_CCOEFF
+        elif(method == "CCOEFF_NORM"): #maximal
+            method = cv.CV_TM_CCOEFF_NORMED
+        elif(method == "CCORR"): #maximal
+            method = cv.CV_TM_CCORR
+        elif(method == "CCORR_NORM"): #maximal
+            method = cv.CV_TM_CCORR_NORMED
+        else:
+            logger.warning("ooops.. I don't know what template matching method you are looking for.")
+            return None
+        #create new image for template matching computation
+        matches = cv.CreateMat( (self.height - template_image.height + 1),
+                                (self.width - template_image.width + 1),
+                                cv.CV_32FC1)
+
+        #choose template matching method to be used
+        if grayscale:
+            cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+        else:
+            cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, method )
+        mean = np.mean(matches)
+        sd = np.std(matches)
+        if(check > 0):
+            if( np.min(matches) <= threshold ):
+                compute = np.where( matches == np.min(matches) )
+            else:
+                return []
+        else:
+            if( np.max(matches) >= threshold ):
+                compute = np.where( matches == np.max(matches) )
+            else:
+                return []
+        mapped = map(tuple, np.column_stack(compute))
+        fs = FeatureSet()
+        for location in mapped:
+            fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
+
+        return fs
+
 
     def readText(self):
         """

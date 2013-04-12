@@ -13,7 +13,7 @@ import os, sys, pickle, operator
 from SimpleCV import *
 from nose.tools import with_setup, nottest
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
+VISUAL_TEST = True  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated.
 
 #colors
@@ -1323,6 +1323,24 @@ def test_template_match():
     name_stem = "test_template_match"
     perform_diff(results,name_stem)
 
+    pass
+
+def test_template_match_once():
+    source = Image("../sampleimages/templatetest.png")
+    template = Image("../sampleimages/template.png")
+    t = 2
+    fs = source.findTemplateOnce(template,threshold=t)
+    if( len(fs) ==  0 ):
+        assert False
+        
+    fs = source.findTemplateOnce(template,threshold=t,grayscale=False)
+    if( len(fs) ==  0 ):
+        assert False
+        
+    fs = source.findTemplateOnce(template,method='CCORR_NORM')
+    if( len(fs) ==  0 ):
+        assert False
+        
     pass
 
 def test_template_match_RGB():
