@@ -3556,3 +3556,18 @@ def test_tvDenoising():
         perform_diff(result,name_stem,3)
     except ImportError:
         pass
+
+def test_edgeSnap():
+	img = Image('shapes.png',sample=True)
+	black = Image((img.width,img.height))
+	l = img.edgeSnap([(174,96),(101,46),(29,94),(102,149)],2)
+	rang = range(len(l) - 1)
+
+	for i in rang:
+		black.drawLine(l[i],l[i + 1],Color.WHITE,3)
+	
+	name_stem = "test_edgeSnap"
+	
+	result = [black]
+	perform_diff(result,name_stem,0.5)
+	

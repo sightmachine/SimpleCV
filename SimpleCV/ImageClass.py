@@ -886,6 +886,7 @@ class Image:
         URL: The source can be a url, but must include the http://
 
         """
+
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
@@ -901,8 +902,9 @@ class Image:
         self._mPalettePercentages = None
         #Temp files
         self._tempFiles = []
+		
 
-
+		
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
         if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
@@ -6257,6 +6259,12 @@ class Image:
         imgSurf = self.getPGSurface(self).copy()
         imgSurf.blit(layer._mSurface, (0, 0))
         return Image(imgSurf)
+
+
+
+
+
+
 
     def mergedLayers(self):
         """
@@ -13293,7 +13301,188 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
-      
+
+
+
+
+    def edgeSnap(self,pointList,step = 5,t1=50,t2=100):
+ 		"""
+        **SUMMARY**
+
+        Given a List of points returns a list of edge points closet to the line joining the points 
+	
+		Each point is a tuple of two numbers
+        
+
+        **Parameters**
+
+        * *step* - Number of pixels along x or y axis to move ahead if no edge is found in vicinity
+
+        * *t1* - Lower Canny Threshold for Edge Detection
+
+		* *t2* - Upper Canny Threshold for Edge Detection
+        
+		"""
+
+		if(len(pointList) == 0 ):
+			return []
+
+		finalList = [(pointList[0][0],pointList[0][1])]
+		if(len(pointList) == 1 ):
+			return finalList
+
+		i = 0
+		while(i < len(pointList) - 1):
+			finalList += self._edgeSnap2(pointList[i],pointList[i+1],step,t1,t2)
+			i+=1
+		
+		return finalList
+
+    def _edgeSnap2(self,start,end,step,t1=50,t2=100):
+ 		"""
+        **SUMMARY**
+
+        Given a two points returns a list of edge points closet to the line joining the points 
+		Point is a tuple of two numbers
+
+        
+
+        **Parameters**
+
+		* *start* - First Point
+
+		* *end* - Second Point
+
+        * *step* - Number of pixels along x or y axis to move ahead if no edge is found in vicinity
+
+        * *t1* - Lower Canny Threshold for Edge Detection
+
+		* *t2* - Upper Canny Threshold for Edge Detection
+        
+		"""
+
+
+
+		class Line:
+			"""
+
+			Helper class to return a line as an iterator
+
+			"""
+
+			def __init__(self,p1,p2,step):
+
+
+				self.x1 = int(p1[0])
+				self.y1 = int(p1[1])
+				self.x2 = int(p2[0])
+				self.y2 = int(p2[1])
+
+
+	
+		
+				self.dt = 0.0	
+				self.t = 0.0
+		
+				self.dy = abs(y2 - y1)
+				self.dx = abs(x2 - x1)
+				#self.slope = abs(float(self.dy)/float(self.dx))
+				if(self.dy > self.dx ):
+					self.dt = float(step)/float(self.dy)
+					self.vertical = True
+				else:
+					self.dt = float(step)/float(self.dx)
+					self.verical = False
+			def __iter__(self):
+				return self
+
+			def next(self):
+				self.t += self.dt
+				if( self.t < 1 ):
+					return int(self.x1 + (self.x2 - self.x1)*self.t),int(self.y1 + (self.y2 - self.y1)*self.t)
+				else:
+					raise StopIteration
+
+
+		def dist(p1,p2):
+			"""
+			Helper function for distance between two points
+			"""
+			return math.hypot(p1[0] - p2[0] , p1[1] - p2[1])
+
+		edgeMap = self.edges(t1,t2).getGrayNumpy()
+
+		#Size of the vicinity around a point which is chked for edges
+		box = step*4
+		x1 = int(start[0])
+		x2 = int(end[0])
+		y1 = int(start[1])
+		y2 = int(end[1])
+
+		xmin = min(x1,x2)
+		xmax = max(x1,x2)
+		ymin = min(y1,y2)
+		ymax = max(y1,y2)		
+	
+		line = Line(start,end,step)
+
+
+		#List of Edge Points		
+
+		finalList = []
+		count = 0
+
+		
+
+
+		#length of the line
+		length = math.hypot(x1 - x2,y1 - y2)
+		rad = length/2
+
+		center = (x1 + x2)/2,(y1 + y2)/2		
+		while(True):
+			
+			try:
+				p = line.next()
+				
+				#if an edge point is "found"
+				found = False
+
+				#checking in a box around the current point for edges
+				for x in range(-box/2,box/2):		
+					for y in range(-box/2,box/2):
+						point = p[0] + x,p[1] + y
+
+						# If an edge point is found , Set the rest of the box black,
+						# so that an edge is current point's vicinity is not detected
+						# while checking for next point
+						if (found):
+							edgeMap[point] = 0
+
+						else:
+				
+							value = edgeMap[point]
+							# Consider the point if it is an edge point and is out of the bounding box
+							#  
+							if(value > 0 and  point[0] < xmax and point[0] > xmin and point[1] > ymin and point[1] < ymax):
+								edgeMap[point] = 0
+								found = True
+
+								#chnage start point of the line to newly found point
+								line = Line(point,end,step)
+
+								# Add point to the list
+								finalList += [ (p[0] + x,p[1] + y)]
+
+
+				
+			except StopIteration:
+				# End point Reached, return
+				finalList += [(end[0],end[1])]
+				return finalList
+        
+
+
         
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
