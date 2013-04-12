@@ -3556,3 +3556,11 @@ def test_tvDenoising():
         perform_diff(result,name_stem,3)
     except ImportError:
         pass
+def test_motionBlur():
+    i = Image('lenna')
+    a = i.motionBlur()
+    b = i.motionBlur(intensity=20, direction = 'sw')
+    if i is not a and i is not b:
+        pass
+    else:
+        assert False
