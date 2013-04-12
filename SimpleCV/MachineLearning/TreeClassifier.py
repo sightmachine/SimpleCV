@@ -1,5 +1,5 @@
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image
+from SimpleCV.ImageClass import *
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Features import FeatureExtractorBase
 
