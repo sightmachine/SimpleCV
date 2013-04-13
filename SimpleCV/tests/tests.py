@@ -3574,3 +3574,29 @@ def test_tvDenoising():
         perform_diff(result,name_stem,3)
     except ImportError:
         pass
+
+def test_faceRecognize():
+    try:
+        import cv2
+        cv2.createFisherFaceRecognizer()
+        f = FaceRecognizer()
+        imgset1 = ImageSet("../sampleimages/facerecognizer/female")
+        label1 = [0]*len(imgset1)
+
+        imgset2 = ImageSet("../sampleimages/facerecognizer/male")
+        label2 = [1]*len(imgset2)
+
+        imgset = imgset1 + imgset2
+        labels = label1 + label2
+        f.train(imgset, labels)
+
+        imgset3 = ImageSet("../sampleimages/facerecognizer/identify")
+        label = []
+        for img in imgset3:
+            label.append(f.predict(img))
+        if label == [0, 0, 1, 1]:
+            pass
+        else:
+            assert False
+    except ImportError, AttributeError:
+        pass
