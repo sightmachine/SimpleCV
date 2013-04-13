@@ -443,8 +443,17 @@ class Camera(FrameSource):
 
 
         """
+        self.index = None
+        self.threaded = False
+        self.capture = None
 
-
+        for cam in _cameras:
+            if camera_index == cam.index:
+                self.threaded = cam.threaded
+                self.capture = cam.capture
+                self.index = cam.index
+                _cameras.append(self)
+                return
 
         #This is to add support for XIMEA cameras.
         if isinstance(camera_index, str):
@@ -452,7 +461,7 @@ class Camera(FrameSource):
                 camera_index = 1100
 
         self.capture = cv.CaptureFromCAM(camera_index) #This fixes bug with opencv not being able to grab frames from webcams on linux
-
+        self.index = camera_index
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
@@ -462,6 +471,7 @@ class Camera(FrameSource):
             threaded = True  #pygame must be threaded
             if camera_index == -1:
                 camera_index = 0
+                self.index = camera_index
             if(prop_set.has_key("height") and prop_set.has_key("width")):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
@@ -591,7 +601,6 @@ class Camera(FrameSource):
         newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
         cv.Copy(frame, newimg)
         return Image(newimg, self)
-
 
 
 class VirtualCamera(FrameSource):
