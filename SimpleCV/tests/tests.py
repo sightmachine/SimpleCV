@@ -3641,7 +3641,7 @@ def test_faceRecognize():
             pass
         else:
             assert False
-    except ImportError, AttributeError:
+    except AttributeError:
         pass
 
         imgset2 = ImageSet("../sampleimages/facerecognizer/male")
