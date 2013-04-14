@@ -13500,6 +13500,34 @@ class Image:
         return retval
 
     def recognizeFace(self, recognizer=None, csvdataset=None, trainingdata=None, face=True, haarcascade=None):
+        """
+        **SUMMARY**
+
+        Predict the class of the face in the image using FaceRecognizer.
+
+        **PARAMETERS**
+
+        * *recognizer*   - Trained FaceRecognizer object
+
+        * *csvdataset*   - CSV dataset whihch would train the FaceRecognizer and predict
+                           class of the image. filename.
+
+        * *trainingdata* - Trained data which would be loaded in FaceRecognizer object.
+                           filaname
+
+        * *face*         - bool - whether the image is a cropped face or not. If not, prvoide
+                           haarcascade which would identify the face in the image.
+
+        * *haarcascade*  - If face is false, prvoide haarcascade which would identify the face
+                           in the image.
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> print img.recognizeFace(trainingdata="training.xml")
+
+        """
         crop_img = self
         if not face:
             if not haarcascade:
