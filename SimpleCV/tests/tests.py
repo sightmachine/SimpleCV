@@ -2906,15 +2906,12 @@ def test_image_temp_save():
     img2 = Image(logo)
     path = []
     path.append(img1.save(temp=True))
-    path.append(img2.save(temp=True, path=".", fname= "Vijay"))
-    path.append(img1.save(temp=True, path=".", fname= "Vijay"))
-    path.append(img2.save(temp=True, path="/home"))
-    path.append(img1.save(temp=True, path="/home", fname= "Vijay"))
+    path.append(img2.save(temp=True))
     for i in path :
         if i==None :
             assert False
-    assert True
 
+    assert True
 
 
 def test_image_set_average():
@@ -2949,7 +2946,12 @@ def test_save_to_gif():
     imgs.append(Image('../sampleimages/tracktest8.jpg'))
     imgs.append(Image('../sampleimages/tracktest9.jpg'))
 
-    assert imgs.save('test_save_to_gif.gif') == len(imgs)
+    filename = "test_save_to_gif.gif"
+    saved = imgs.save(filename)
+
+    os.remove(filename)
+
+    assert saved == len(imgs)
 
 
 def sliceinImageSet():
