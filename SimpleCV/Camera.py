@@ -271,7 +271,7 @@ class FrameSource:
 
         **PARAMETERS**
 
-        * *fileneame* - The file name, without an extension, to which to save the calibration data.
+        * *filename* - The file name, without an extension, to which to save the calibration data.
 
         **RETURNS**
 
@@ -308,7 +308,7 @@ class FrameSource:
 
         **PARAMETERS**
 
-        * *fileneame* - The file name, without an extension, to which to save the calibration data.
+        * *filename* - The file name, without an extension, to which to save the calibration data.
 
         **RETURNS**
 
