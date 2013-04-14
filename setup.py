@@ -29,6 +29,7 @@ setup(name="SimpleCV",
   package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
             'SimpleCV': ['sampleimages/*',
                         'Features/HaarCascades/*',
+                        'Features/FaceRecognizerData/*'
                         'examples/arduino/*',
                         'examples/detection/*',
                         'examples/display/*',
