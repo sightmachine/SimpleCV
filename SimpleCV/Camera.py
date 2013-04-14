@@ -1777,7 +1777,7 @@ class StereoImage:
             logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")
             return None
 
-    def Eline( self, point, F ,whichImage):
+    def Eline (self, point, F, whichImage):
         """
         **SUMMARY**
 
@@ -1802,6 +1802,9 @@ class StereoImage:
         >>> point = pts2[0]
         >>> epiline = mapper.Eline(point,F, 1) #find corresponding Epipolar line in the left image.
         """
+
+        from SimpleCV.Features.Detection import Line
+
         pts1 = (0,0)
         pts2 = self.size
         pt_cvmat = cv.CreateMat(1, 1, cv.CV_32FC2)
@@ -1813,9 +1816,9 @@ class StereoImage:
         pts1 = (pts1[0],(-line_npArray[2]-line_npArray[0]*pts1[0])/line_npArray[1] )
         pts2 = (pts2[0],(-line_npArray[2]-line_npArray[0]*pts2[0])/line_npArray[1] )
         if whichImage == 1 :
-            return Line( self.ImageLeft, [pts1,pts2] )
+            return Line(self.ImageLeft, [pts1,pts2])
         elif whichImage == 2 :
-            return Line( self.ImageRight, [pts1,pts2] )
+            return Line(self.ImageRight, [pts1,pts2])
 
     def projectPoint( self, point, H ,whichImage):
         """
