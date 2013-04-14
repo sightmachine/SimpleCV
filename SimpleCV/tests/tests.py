@@ -846,7 +846,7 @@ def test_camera_calibration():
 
 def test_camera_undistort():
     fakeCamera = FrameSource()
-    fakeCamera.loadCalibration("Default")
+    fakeCamera.loadCalibration("./StereoVision/Default")
     img = Image("../sampleimages/CalibImage0.png")
     img2 = fakeCamera.undistort(img)
 
@@ -854,7 +854,7 @@ def test_camera_undistort():
     name_stem = "test_camera_undistort"
     perform_diff(results,name_stem)
 
-    if( not img2 ): #right now just wait for this to return
+    if (not img2): #right now just wait for this to return
         assert False
 
 def test_image_crop():
