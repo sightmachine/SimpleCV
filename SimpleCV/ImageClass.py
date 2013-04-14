@@ -12034,7 +12034,7 @@ class Image:
                 retVal.pointLoc = pts
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
-                return None
+                # warn and return None
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
@@ -12050,7 +12050,7 @@ class Image:
 
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
-                return None
+                # warn and return None
 
             pass
         elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
@@ -12139,7 +12139,6 @@ class Image:
                 img[x,:] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
-                return None
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
@@ -12150,7 +12149,7 @@ class Image:
                 img[:,y] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
-                return None
+                # warn and return None
 
 
         elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
@@ -13500,6 +13499,111 @@ class Image:
         retval=self.convolve(kernel=kernel/div)
         return retval
         
+   def recognizeFace(self, recognizer=None, csvdataset=None, trainingdata=None, face=True, haarcascade=None):
+        """
+        **SUMMARY**
+
+        Predict the class of the face in the image using FaceRecognizer.
+
+        **PARAMETERS**
+
+        * *recognizer*   - Trained FaceRecognizer object
+
+        * *csvdataset*   - CSV dataset whihch would train the FaceRecognizer and predict
+                           class of the image. filename.
+
+        * *trainingdata* - Trained data which would be loaded in FaceRecognizer object.
+                           filaname
+
+        * *face*         - bool - whether the image is a cropped face or not. If not, prvoide
+                           haarcascade which would identify the face in the image.
+
+        * *haarcascade*  - If face is false, prvoide haarcascade which would identify the face
+                           in the image.
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> print img.recognizeFace(trainingdata="training.xml")
+
+        """
+        crop_img = self
+        if not face:
+            if not haarcascade:
+                haarcascade = "/".join([SimpleCV.__path__,"/Features/HaarCascades/face.xml"])
+            feat = self.findHaarFeatures(haarcascade)
+            if feat:
+                crop_img = feat.sortArea()[-1].crop()
+            else:
+                warnings.warn("Face not found in the image.")
+                return None
+
+        if not recognizer:
+            recognizer = FaceRecognizer()
+            if csvdataset:
+                recognizer.train(csvfile=csvdataset)
+            elif trainingdata:
+                recognizer.load(trainingdata)
+            else:
+                warnings.warn("Neither dataset nor trainingdata provided.")
+                return None
+
+        w, h = recognizer.imageSize
+        label = recognizer.predict(crop_img.resize(w, h))
+        return label   def recognizeFace(self, recognizer=None, csvdataset=None, trainingdata=None, face=True, haarcascade=None):
+        """
+        **SUMMARY**
+
+        Predict the class of the face in the image using FaceRecognizer.
+
+        **PARAMETERS**
+
+        * *recognizer*   - Trained FaceRecognizer object
+
+        * *csvdataset*   - CSV dataset whihch would train the FaceRecognizer and predict
+                           class of the image. filename.
+
+        * *trainingdata* - Trained data which would be loaded in FaceRecognizer object.
+                           filaname
+
+        * *face*         - bool - whether the image is a cropped face or not. If not, prvoide
+                           haarcascade which would identify the face in the image.
+
+        * *haarcascade*  - If face is false, prvoide haarcascade which would identify the face
+                           in the image.
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> print img.recognizeFace(trainingdata="training.xml")
+
+        """
+        crop_img = self
+        if not face:
+            if not haarcascade:
+                haarcascade = "/".join([SimpleCV.__path__,"/Features/HaarCascades/face.xml"])
+            feat = self.findHaarFeatures(haarcascade)
+            if feat:
+                crop_img = feat.sortArea()[-1].crop()
+            else:
+                warnings.warn("Face not found in the image.")
+                return None
+
+        if not recognizer:
+            recognizer = FaceRecognizer()
+            if csvdataset:
+                recognizer.train(csvfile=csvdataset)
+            elif trainingdata:
+                recognizer.load(trainingdata)
+            else:
+                warnings.warn("Neither dataset nor trainingdata provided.")
+                return None
+
+        w, h = recognizer.imageSize
+        label = recognizer.predict(crop_img.resize(w, h))
+        return label
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
