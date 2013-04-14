@@ -13531,7 +13531,8 @@ class Image:
         crop_img = self
         if not face:
             if not haarcascade:
-                haarcascade = "/".join([SimpleCV.__path__,"/Features/HaarCascades/face.xml"])
+                from SimpleCV import __path__
+                haarcascade = "/".join([__path__[0],"/Features/HaarCascades/face.xml"])
             feat = self.findHaarFeatures(haarcascade)
             if feat:
                 crop_img = feat.sortArea()[-1].crop()
