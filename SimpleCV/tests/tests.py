@@ -3623,21 +3623,47 @@ def test_faceRecognize():
         import cv2
         cv2.createFisherFaceRecognizer()
         f = FaceRecognizer()
-        imgset1 = ImageSet("../sampleimages/facerecognizer/female")
+
+        images1 = ["../sampleimages/ff1.pgm",
+                   "../sampleimages/ff2.pgm",
+                   "../sampleimages/ff3.pgm",
+                   "../sampleimages/ff4.pgm",
+                   "../sampleimages/ff5.pgm",
+                   "../sampleimages/ff6.pgm",
+                   "../sampleimages/ff7.pgm",
+                   "../sampleimages/ff8.pgm",
+                   "../sampleimages/ff9.pgm",
+                   "../sampleimages/ff10.pgm"]
+        images2 = ["../sampleimages/fm1.pgm",
+                   "../sampleimages/fm2.pgm",
+                   "../sampleimages/fm3.pgm",
+                   "../sampleimages/fm4.pgm",
+                   "../sampleimages/fm5.pgm",
+                   "../sampleimages/fm6.pgm",
+                   "../sampleimages/fm7.pgm",
+                   "../sampleimages/fm8.pgm",
+                   "../sampleimages/fm9.pgm",
+                   "../sampleimages/fm10.pgm"]
+        images3 = ["../sampleimages/fi1.pgm",
+                   "../sampleimages/fi2.pgm",
+                   "../sampleimages/fi3.pgm",
+                   "../sampleimages/fi4.pgm"]
+
+        imgset1 = ImageSet(images1)
         label1 = [0]*len(imgset1)
 
-        imgset2 = ImageSet("../sampleimages/facerecognizer/male")
+        imgset2 = ImageSet(images2)
         label2 = [1]*len(imgset2)
 
         imgset = imgset1 + imgset2
         labels = label1 + label2
         f.train(imgset, labels)
 
-        imgset3 = ImageSet("../sampleimages/facerecognizer/identify")
+        imgset3 = ImageSet(images3)
         label = []
         for img in imgset3:
             label.append(f.predict(img))
-        if label == [0, 0, 1, 1]:
+        if label == [1, 1, 0, 0]:
             pass
         else:
             assert False

@@ -13429,6 +13429,7 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
+      
 
     def motionBlur(self,intensity=15, direction='NW'):
         """
