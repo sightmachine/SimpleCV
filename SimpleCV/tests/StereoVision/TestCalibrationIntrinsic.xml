@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<TestCalibrationIntrinsic type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>f</dt>
+  <data>
+    2.14784454e+02 0. 3.21294159e+02 0. 1.81076797e+02 2.38200348e+02 0.
+    0. 1.</data></TestCalibrationIntrinsic>
+</opencv_storage>
