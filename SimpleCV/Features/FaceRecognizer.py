@@ -348,3 +348,16 @@ class FaceRecognizer():
             return None
 
         self.model.load(filename)
+        loadfile = open(filename, "r")
+        for line in loadfile.readlines():
+            if "cols" in line:
+                match = re.search("(?<=\>)\w+",line)
+                tsize = int(match.group(0))
+                break
+        loadfile.close()
+        w = int(tsize**0.5)
+        h = tsize/w
+        while(w*h != tsize):
+            w+=1
+            h = tsize/w
+        self.imageSize = (w, h)

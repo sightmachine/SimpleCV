@@ -13401,9 +13401,34 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
-      
-        
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
+
+    def recognizeFace(self, recognizer=None, csvdataset=None, trainingdata=None, face=True, haarcascade=None):
+        crop_img = self
+        if not face:
+            if not haarcascade:
+                haarcascade = "/".join([SimpleCV.__path__,"/Features/HaarCascades/face.xml"])
+            feat = self.findHaarFeatures(haarcascade)
+            if feat:
+                crop_img = feat.sortArea()[-1].crop()
+            else:
+                warnings.warn("Face not found in the image.")
+                return None
+
+        if not recognizer:
+            recognizer = FaceRecognizer()
+            if csvdataset:
+                recognizer.train(csvfile=csvdataset)
+            elif trainingdata:
+                recognizer.load(trainingdata)
+            else:
+                warnings.warn("Neither dataset nor trainingdata provided.")
+                return None
+
+        w, h = recognizer.imageSize
+        label = recognizer.predict(crop_img.resize(w, h))
+        return label
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
