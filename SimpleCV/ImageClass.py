@@ -2959,7 +2959,7 @@ class Image:
             grayscale_ = grayscale
             return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
         else:
-            image_gauss = cv2.GaussianBlur(self.getNumpycv2(), window, sigmaX, sigmaY=sigmaY)
+            image_gauss = cv2.GaussianBlur(self.getNumpyCv2(), window, sigmaX, sigmaY=sigmaY)
 
             if grayscale:
                 return Image(img_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
