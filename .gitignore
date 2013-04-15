@@ -14,6 +14,8 @@ SimpleCV/sampleimages/9d4l.jpg
 SimpleCV/utils/*
 SimpleCV/utils/
 SimpleCV/tests/*.pkl
+SimpleCV/tests/standard/*
+SimpleCV/tests/standard/
 *.ipynb
 *.komodoproject
 SimpleCV/sampleimages/04000_face.jpg

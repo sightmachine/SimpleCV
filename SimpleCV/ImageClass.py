@@ -2949,26 +2949,22 @@ class Image:
                 logger.warning("The aperture (win_x,win_y) must be odd number and greater than 0.")
                 return None
 
-        elif( is_number(window) ):
+        elif (is_number(window)):
             window = (window, window)
 
-        else :
+        else:
             window = (3,3) #set the default aperture window size (3x3)
 
-        if ( not new_version ) :
+        if (not new_version):
             grayscale_ = grayscale
             return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
-        else :
-            if grayscale :
-                img_guass = self.getGrayNumpy()
-                cv2.GaussianBlur(self.getGrayNumpy(),window,sigmaX,img_guass,sigmaY)
-                return Image(img_guass, colorSpace=ColorSpace.GRAY)
+        else:
+            image_gauss = cv2.GaussianBlur(self.getNumpycv2(), window, sigmaX, sigmaY=sigmaY)
 
-            else :
-                img_guass =  self.getNumpy()[:,:, ::-1].transpose([1,0,2])
-                cv2.GaussianBlur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window,sigmaX,img_guass,sigmaY)
-                img_guass = img_guass[:,:, ::-1].transpose([1,0,2])
-                return Image(img_guass,colorSpace=self._colorSpace)
+            if grayscale:
+                return Image(img_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
+            else:
+                return Image(img_gauss, colorSpace=self._colorSpace, cv2image=True)
 
     def invert(self):
         """

@@ -160,7 +160,7 @@ def test_StereoCalibration():
 
 def test_loadCalibration():
     cam = StereoCamera()
-    calbib =  cam.loadCalibration("Stereo",".")
+    calbib =  cam.loadCalibration("Stereo","./StereoVision/")
     if (calbib) :
         assert True
     else :
@@ -168,7 +168,7 @@ def test_loadCalibration():
 
 def test_StereoRectify():
     cam = StereoCamera()
-    calib = cam.loadCalibration("Stereo",".")
+    calib = cam.loadCalibration("Stereo","./StereoVision/")
     rectify = cam.stereoRectify(calib)
     if rectify :
         assert True
@@ -179,7 +179,7 @@ def test_getImagesUndistort():
     img1 = Image(correct_pairs[0][0]).resize(352,288)
     img2 = Image(correct_pairs[0][1]).resize(352,288)
     cam = StereoCamera()
-    calib = cam.loadCalibration("Stereo",".")
+    calib = cam.loadCalibration("Stereo","./StereoVision/")
     rectify = cam.stereoRectify(calib)
     rectLeft,rectRight = cam.getImagesUndistort(img1,img2,calib,rectify)
     if rectLeft and rectRight :
