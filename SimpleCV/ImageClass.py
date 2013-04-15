@@ -4955,7 +4955,7 @@ class Image:
 
         >>> img = Image('logo')
         >>> img2 = img.rotate( 73.00, point=(img.width/2,img.height/2))
-        >>> img3 = img.rotate( 73.00, fixex=False, point=(img.width/2,img.height/2))
+        >>> img3 = img.rotate( 73.00, fixed=False, point=(img.width/2,img.height/2))
         >>> img4 = img2.sideBySide(img3)
         >>> img4.show()
 
