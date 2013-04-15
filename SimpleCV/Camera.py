@@ -444,12 +444,6 @@ class Camera(FrameSource):
 
         """
 
-	if platform.system() == "Linux":
-            user_groups = set(os.getgroups())
-            allowed_groups = set([27, 44])
-            if not user_groups.intersection(allowed_groups):
-                raise IOError("Failed to load camera. Looks like you don't have required permissions.")
-
         #This is to add support for XIMEA cameras.
         if isinstance(camera_index, str):
             if camera_index.lower() == 'ximea':
