@@ -93,6 +93,7 @@ class Display:
     rightButtonDown = None
     rightButtonUp = None
     displaytype = None
+    pressed=[]
 
     def __repr__(self):
         return "<SimpleCV.Display Object resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.resolution, self.imgw, self.imgh, hex(id(self)))
@@ -149,6 +150,7 @@ class Display:
         self.rightButtonDown = None
         self.rightButtonUp = None
         self.displaytype = displaytype
+        self.pressed = pg.key.get_pressed()
 
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image.
@@ -622,7 +624,7 @@ class Display:
                 else:
                     key.append(event.key)
 
-        pressed = pg.key.get_pressed()
+        self.pressed = pg.key.get_pressed()
 
         if( self.lastLeftButton == 0 and self.mouseLeft == 1 ):
             self.leftButtonDown = (self.mouseX,self.mouseY)
@@ -635,7 +637,7 @@ class Display:
             self.rightButtonUp = (self.mouseX,self.mouseY)
 
         #If ESC pressed, end the display
-        if(pressed[27] == 1):
+        if(self.pressed[pg.K_ESCAPE] == 1):
             self.done = True
 
         return key
