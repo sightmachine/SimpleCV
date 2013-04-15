@@ -1225,6 +1225,4 @@ class LineScan(list):
         cj = sps.cspline1d(y)
         retVal = sps.cspline1d_eval(cj,newx,dx=dx,x0=x[0])
         return retVal
-=======
-        return LineScan(map(int,self.convolve(kernel)),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row, channel=self.channel)
->>>>>>> a5a54bf441d446a556019e02421e16e58509c2e1
+
