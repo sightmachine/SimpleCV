@@ -3558,7 +3558,7 @@ def test_tvDenoising():
         pass
 
 def test_edgeSnap():
-    img = Image('shapes.png',sample=True)
+    img = Image('shapes.png',sample=True).edges()
 
     list1 = [(129,32),(19,88),(124,135)]
     list2 = [(484,294),(297,437)]
@@ -3566,9 +3566,9 @@ def test_edgeSnap():
 
     for list_ in list1,list2,list3:
         edgeLines = img.edgeSnap(list_)
-        edgeLines.draw(color = Color.RED,width = 4)
+        edgeLines.draw(color = Color.YELLOW,width = 4)
 
     name_stem = "test_edgeSnap"
     result = [img]
-    perform_diff(result,name_stem,0.6)
+    perform_diff(result,name_stem,0.7)
 

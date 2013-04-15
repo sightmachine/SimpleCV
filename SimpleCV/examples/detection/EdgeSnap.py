@@ -12,14 +12,15 @@ from SimpleCV import *
 
 
 image = Image("shapes.png",sample = True)
+edgeMap = image.edges()
 
 display = Display((image.width,image.height))
 
-image.drawText("Left Click to choose points, Right click to find Edge Points", 10,10,color=Color.BLACK,fontsize=20)
+edgeMap.drawText("Left Click to choose points, Right click to find Edge Points", 10,10,color=Color.WHITE,fontsize=20)
 
 
 points = []
-image.save(display)
+edgeMap.save(display)
 
 while not display.isDone():
 
@@ -29,14 +30,22 @@ while not display.isDone():
 
 
     if(left != None ):
-        image.drawCircle((left[0],left[1]),5,Color.BLUE,-1)
-        image.save(display)
+        edgeMap.drawCircle((left[0],left[1]),5,Color.CYAN,-1)
+        edgeMap.save(display)
         points += [left]
 
     if(right != None ):
-        draw = image.edgeSnap(points)
         
-        if(draw):
-            draw.draw(color = Color.RED,width = 3)
-            image.save(display)
+        featureSet = edgeMap.edgeSnap(points)
+
+        if(featureSet):
+            featureSet.draw(width = 4,color = Color.YELLOW)
+            edgeMap.save(display)
+        
         points = []
+
+
+
+
+
+

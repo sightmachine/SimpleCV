@@ -2164,7 +2164,6 @@ class Image:
         * *params* - This object is used for overloading the PIL save methods. In particular
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
           http://www.pythonware.com/library/pil/handbook/format-jpeg.htm
-
         **EXAMPLES**
 
         To save as a temporary file just use:
@@ -13301,6 +13300,8 @@ class Image:
         Given a List of points returns a list of edge points closet to the line
         joining two successive points, each point is a tuple of two numbers.
 
+        Note : Image must be binary, it is assumed that prior conversion is done
+
         **Parameters**
 
         * *step* - Number of points to skip if no edge is found in vicinity.
@@ -13316,10 +13317,17 @@ class Image:
         
         **EXAMPLE**
 
-        >>> image = Image("logo")
+        >>> image = Image("logo").edges()
         >>> edgeLines = image.edgeSnap([(50,50),(230,200)])
-        >>> edgeLines.draw(color = Color.BLUE,width = 3)
+        >>> edgeLines.draw(color = Color.YELLOW,width = 3)
         """
+
+        imgArray = self.getNumpy()
+        c1 = np.count_nonzero(imgArray )
+        c2 = np.count_nonzero(imgArray - 255)
+        
+        if( c1 + c2 != imgArray.size):
+            raise ValueError,"Image must be binary"
 
         if(len(pointList) < 2 ):
             return None
@@ -13344,6 +13352,8 @@ class Image:
         Given a two points returns a list of edge points closet to the line joining the points 
         Point is a tuple of two numbers
 
+        Note : Image must be binary
+
         **Parameters**
 
         * *start* - First Point
@@ -13363,7 +13373,8 @@ class Image:
         
         """
 
-        edgeMap = self.edges(t1,t2).getGrayNumpy()
+
+        edgeMap = self.getGrayNumpy()
 
         #Size of the box around a point which is checked for edges.
         box = step*4
