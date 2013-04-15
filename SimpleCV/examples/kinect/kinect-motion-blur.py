@@ -4,17 +4,17 @@ from operator import add
 from SimpleCV import *
 from SimpleCV.Display import Display
 
-d = Display(flags = pg.FULLSCREEN)
-#create video streams
+d = Display(flags=pg.FULLSCREEN)
+# create video streams
 
 cam = Kinect()
-#initialize the camera
+# initialize the camera
 frames_to_blur = 4
 frames = ImageSet()
 
-depth = cam.getDepth().stretch(0,200)
+depth = cam.getDepth().stretch(0, 200)
 while True:
-    new_depth = cam.getDepth().stretch(0,200)
+    new_depth = cam.getDepth().stretch(0, 200)
     img = cam.getImage()
     diff_1 = new_depth - depth
     diff_2 = depth - new_depth

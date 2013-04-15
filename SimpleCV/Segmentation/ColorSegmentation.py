@@ -5,6 +5,7 @@ from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 from SimpleCV.Segmentation.SegmentationBase import SegmentationBase
 
+
 class ColorSegmentation(SegmentationBase):
     """
     Perform color segmentation based on a color model or color provided. This class
@@ -23,7 +24,6 @@ class ColorSegmentation(SegmentationBase):
         self.mTruthImg = Image()
         self.mBlobMaker = BlobMaker()
 
-
     def addImage(self, img):
         """
         Add a single image to the segmentation algorithm
@@ -32,12 +32,11 @@ class ColorSegmentation(SegmentationBase):
         self.mCurImg = self.mColorModel.threshold(img)
         return
 
-
     def isReady(self):
         """
         Returns true if the camera has a segmented image ready.
         """
-        return True;
+        return True
 
     def isError(self):
         """
@@ -45,7 +44,7 @@ class ColorSegmentation(SegmentationBase):
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError #need to make a generic error checker
+        return self.mError  # need to make a generic error checker
 
     def resetError(self):
         """
@@ -78,7 +77,7 @@ class ColorSegmentation(SegmentationBase):
         """
         return the segmented blobs from the fg/bg image
         """
-        return self.mBlobMaker.extractFromBinary(self.mCurImg,self.mTruthImg)
+        return self.mBlobMaker.extractFromBinary(self.mCurImg, self.mTruthImg)
 
     # The following are class specific methods
 

@@ -3,7 +3,8 @@ from SimpleCV.base import *
 import scipy.signal as sps
 import scipy.optimize as spo
 import numpy as np
-import copy, operator
+import copy
+import operator
 
 
 class LineScan(list):
@@ -34,7 +35,7 @@ class LineScan(list):
     def __init__(self, args, **kwargs):
         if isinstance(args, np.ndarray):
             args = args.tolist()
-        list.__init__(self,args)
+        list.__init__(self, args)
         self.image = None
         self.pt1 = None
         self.pt2 = None
@@ -63,11 +64,11 @@ class LineScan(list):
             if key == "channel":
                 if kwargs[key] is not None:
                     self.channel = kwargs[key]
-                    
-        if(self.pointLoc is None):
-            self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
 
-    def __getitem__(self,key):
+        if(self.pointLoc is None):
+            self.pointLoc = zip(range(0, len(self)), range(0, len(self)))
+
+    def __getitem__(self, key):
         """
         **SUMMARY**
 
@@ -76,41 +77,41 @@ class LineScan(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if isinstance(key, types.SliceType):  # Or can use 'try:' for speed
             return LineScan(list.__getitem__(self, key))
         else:
-            return list.__getitem__(self,key)
+            return list.__getitem__(self, key)
 
     def __getslice__(self, i, j):
         """
         Deprecated since python 2.0, now using __getitem__
         """
-        return self.__getitem__(slice(i,j))
+        return self.__getitem__(slice(i, j))
 
-    def __sub__(self,other):
-        
+    def __sub__(self, other):
+
         if len(self) == len(other):
-            retVal = LineScan(map(operator.sub,self,other))
+            retVal = LineScan(map(operator.sub, self, other))
         else:
             print 'Size mismatch'
             return None
         retVal._update(self)
         return retVal
 
-    def __add__(self,other):
-        
+    def __add__(self, other):
+
         if len(self) == len(other):
-            retVal = LineScan(map(operator.add,self,other))
+            retVal = LineScan(map(operator.add, self, other))
         else:
             print 'Size mismatch'
             return None
         retVal._update(self)
         return retVal
 
-    def __mul__(self,other):
+    def __mul__(self, other):
 
         if len(self) == len(other):
-            retVal = LineScan(map(operator.mul,self,other))
+            retVal = LineScan(map(operator.mul, self, other))
         else:
             print 'Size mismatch'
             return None
@@ -118,11 +119,11 @@ class LineScan(list):
         retVal._update(self)
         return retVal
 
-    def __div__(self,other):
+    def __div__(self, other):
 
         if len(self) == len(other):
             try:
-                retVal = LineScan(map(operator.div,self,other))
+                retVal = LineScan(map(operator.div, self, other))
             except ZeroDivisionError:
                 print 'Second LineScan contains zeros'
                 return None
@@ -148,8 +149,7 @@ class LineScan(list):
         self.channel = linescan.channel
         self.pointLoc = linescan.pointLoc
 
-
-    def smooth(self,degree=3):
+    def smooth(self, degree=3):
         """
         **SUMMARY**
 
@@ -175,23 +175,23 @@ class LineScan(list):
         **NOTES**
         Cribbed from http://www.swharden.com/blog/2008-11-17-linear-data-smoothing-in-python/
         """
-        window=degree*2-1
-        weight=np.array([1.0]*window)
-        weightGauss=[]
+        window = degree * 2 - 1
+        weight = np.array([1.0] * window)
+        weightGauss = []
         for i in range(window):
-            i=i-degree+1
-            frac=i/float(window)
-            gauss=1/(np.exp((4*(frac))**2))
+            i = i - degree + 1
+            frac = i / float(window)
+            gauss = 1 / (np.exp((4 * (frac)) ** 2))
             weightGauss.append(gauss)
-        weight=np.array(weightGauss)*weight
-        smoothed=[0.0]*(len(self)-window)
+        weight = np.array(weightGauss) * weight
+        smoothed = [0.0] * (len(self) - window)
         for i in range(len(smoothed)):
-            smoothed[i]=sum(np.array(self[i:i+window])*weight)/sum(weight)
+            smoothed[i] = sum(np.array(self[i:i + window]) * weight) / sum(weight)
         # recenter the signal so it sits nicely on top of the old
-        front = self[0:(degree-1)]
+        front = self[0:(degree - 1)]
         front += smoothed
-        front += self[-1*degree:]
-        retVal = LineScan(front,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        front += self[-1 * degree:]
+        retVal = LineScan(front, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
@@ -217,11 +217,11 @@ class LineScan(list):
         """
         temp = np.array(self, dtype='float32')
         temp = temp / np.max(temp)
-        retVal = LineScan(list(temp[:]),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal = LineScan(list(temp[:]), image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
-    def scale(self,value_range=(0,1)):
+    def scale(self, value_range=(0, 1)):
         """
         **SUMMARY**
 
@@ -247,7 +247,7 @@ class LineScan(list):
         >>>> plt.plot(sl)
         >>>> plt.plot(sl.scale(value_range(0,255)))
         >>>> plt.show()
-    
+
         **SEE ALSO**
 
         """
@@ -256,8 +256,8 @@ class LineScan(list):
         vmin = np.min(temp)
         a = np.min(value_range)
         b = np.max(value_range)
-        temp = (((b-a)/(vmax-vmin))*(temp-vmin))+a
-        retVal = LineScan(list(temp[:]),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        temp = (((b - a) / (vmax - vmin)) * (temp - vmin)) + a
+        retVal = LineScan(list(temp[:]), image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
@@ -288,13 +288,13 @@ class LineScan(list):
         # value, index, pixel coordinate
         # [(index,value,(pix_x,pix_y))...]
         minvalue = np.min(self)
-        idxs = np.where(np.array(self)==minvalue)[0]
-        minvalue = np.ones((1,len(idxs)))*minvalue # make zipable
+        idxs = np.where(np.array(self) == minvalue)[0]
+        minvalue = np.ones((1, len(idxs))) * minvalue  # make zipable
         minvalue = minvalue[0]
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
-        pts = [(p[0],p[1]) for p in pts] # un numpy this
-        return zip(idxs,minvalue,pts)
+        pts = [(p[0], p[1]) for p in pts]  # un numpy this
+        return zip(idxs, minvalue, pts)
 
     def maxima(self):
         """
@@ -324,13 +324,13 @@ class LineScan(list):
         # value, index, pixel coordinate
         # [(index,value,(pix_x,pix_y))...]
         maxvalue = np.max(self)
-        idxs = np.where(np.array(self)==maxvalue)[0]
-        maxvalue = np.ones((1,len(idxs)))*maxvalue # make zipable
+        idxs = np.where(np.array(self) == maxvalue)[0]
+        maxvalue = np.ones((1, len(idxs))) * maxvalue  # make zipable
         maxvalue = maxvalue[0]
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
-        pts = [(p[0],p[1]) for p in pts] # un numpy
-        return zip(idxs,maxvalue,pts)
+        pts = [(p[0], p[1]) for p in pts]  # un numpy
+        return zip(idxs, maxvalue, pts)
 
     def derivative(self):
         """
@@ -354,12 +354,12 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        temp = np.array(self,dtype='float32')
+        temp = np.array(self, dtype='float32')
         d = [0]
-        d += list(temp[1:]-temp[0:-1])
-        retVal = LineScan(d,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
-        #retVal.image = self.image
-        #retVal.pointLoc = self.pointLoc
+        d += list(temp[1:] - temp[0:-1])
+        retVal = LineScan(d, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
+        # retVal.image = self.image
+        # retVal.pointLoc = self.pointLoc
         return retVal
 
     def localMaxima(self):
@@ -389,13 +389,12 @@ class LineScan(list):
         """
         temp = np.array(self)
         idx = np.r_[True, temp[1:] > temp[:-1]] & np.r_[temp[:-1] > temp[1:], True]
-        idx = np.where(idx==True)[0]
+        idx = np.where(idx == True)[0]
         values = temp[idx]
         pts = np.array(self.pointLoc)
         pts = pts[idx]
-        pts = [(p[0],p[1]) for p in pts] # un numpy
-        return zip(idx,values,pts)
-
+        pts = [(p[0], p[1]) for p in pts]  # un numpy
+        return zip(idx, values, pts)
 
     def localMinima(self):
         """""
@@ -424,14 +423,14 @@ class LineScan(list):
         """
         temp = np.array(self)
         idx = np.r_[True, temp[1:] < temp[:-1]] & np.r_[temp[:-1] < temp[1:], True]
-        idx = np.where(idx==True)[0]
+        idx = np.where(idx == True)[0]
         values = temp[idx]
         pts = np.array(self.pointLoc)
         pts = pts[idx]
-        pts = [(p[0],p[1]) for p in pts] # un numpy
-        return zip(idx,values,pts)
+        pts = [(p[0], p[1]) for p in pts]  # un numpy
+        return zip(idx, values, pts)
 
-    def resample(self,n=100):
+    def resample(self, n=100):
         """
         **SUMMARY**
 
@@ -458,25 +457,23 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        signal = sps.resample(self,n)
+        signal = sps.resample(self, n)
         pts = np.array(self.pointLoc)
         # we assume the pixel points are linear
         # so we can totally do this better manually
-        x = linspace(pts[0,0],pts[-1,0],n)
-        y = linspace(pts[0,1],pts[-1,1],n)
-        pts = zip(x,y)
-        retVal = LineScan(list(signal),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        x = linspace(pts[0, 0], pts[-1, 0], n)
+        y = linspace(pts[0, 1], pts[-1, 1], n)
+        pts = zip(x, y)
+        retVal = LineScan(list(signal), image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
-
     # this needs to be moved out to a cookbook or something
-    #def linear(xdata,m,b):
+    # def linear(xdata,m,b):
     #    return m*xdata+b
-
     # need to add polyfit too
-    #http://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-    def fitToModel(self,f,p0=None):
+    # http://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+    def fitToModel(self, f, p0=None):
         """
         **SUMMARY**
 
@@ -510,16 +507,15 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        yvals = np.array(self,dtype='float32')
-        xvals = range(0,len(yvals),1)
-        popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
-        yvals = f(xvals,*popt)
-        retVal = LineScan(list(yvals),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        yvals = np.array(self, dtype='float32')
+        xvals = range(0, len(yvals), 1)
+        popt, pcov = spo.curve_fit(f, xvals, yvals, p0=p0)
+        yvals = f(xvals, *popt)
+        retVal = LineScan(list(yvals), image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
-
-    def getModelParameters(self,f,p0=None):
+    def getModelParameters(self, f, p0=None):
         """
         **SUMMARY**
 
@@ -549,12 +545,12 @@ class LineScan(list):
         >>>> print p
 
         """
-        yvals = np.array(self,dtype='float32')
-        xvals = range(0,len(yvals),1)
-        popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
+        yvals = np.array(self, dtype='float32')
+        xvals = range(0, len(yvals), 1)
+        popt, pcov = spo.curve_fit(f, xvals, yvals, p0=p0)
         return popt
 
-    def convolve(self,kernel):
+    def convolve(self, kernel):
         """
         **SUMMARY**
 
@@ -585,8 +581,8 @@ class LineScan(list):
         **SEE ALSO**
 
         """
-        out = np.convolve(self,np.array(kernel,dtype='float32'),'same')
-        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2,channel=self.channel)
+        out = np.convolve(self, np.array(kernel, dtype='float32'), 'same')
+        retVal = LineScan(out, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2, channel=self.channel)
         return retVal
 
     def fft(self):
@@ -612,13 +608,12 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        signal = np.array(self,dtype='float32')
+        signal = np.array(self, dtype='float32')
         fft = np.fft.fft(signal)
         freq = np.fft.fftfreq(len(signal))
-        return (fft,freq)
+        return (fft, freq)
 
-
-    def ifft(self,fft):
+    def ifft(self, fft):
         """
         **SUMMARY**
 
@@ -653,7 +648,7 @@ class LineScan(list):
         retVal.pointLoc = self.pointLoc
         return retVal
 
-    def createEmptyLUT(self,defaultVal=-1):
+    def createEmptyLUT(self, defaultVal=-1):
         """
         **SUMMARY**
 
@@ -690,27 +685,27 @@ class LineScan(list):
 
         """
         lut = None
-        if( isinstance(defaultVal,list) or
-            isinstance(defaultVal,tuple)):
-            start = np.clip(defaultVal[0],0,255)
-            stop = np.clip(defaultVal[1],0,255)
-            lut = np.around(np.linspace(start,stop,256),0)
-            lut = np.array(lut,dtype='uint8')
+        if(isinstance(defaultVal, list) or
+           isinstance(defaultVal, tuple)):
+            start = np.clip(defaultVal[0], 0, 255)
+            stop = np.clip(defaultVal[1], 0, 255)
+            lut = np.around(np.linspace(start, stop, 256), 0)
+            lut = np.array(lut, dtype='uint8')
             lut = lut.tolist()
-        elif( defaultVal == 0 ):
-            lut = np.zeros([1,256]).tolist()[0]
-        elif( defaultVal > 0 ):
-            defaultVal = np.clip(defaultVal,1,255)
-            lut = np.ones([1,256])*defaultVal
-            lut = np.array(lut,dtype='uint8')
+        elif(defaultVal == 0):
+            lut = np.zeros([1, 256]).tolist()[0]
+        elif(defaultVal > 0):
+            defaultVal = np.clip(defaultVal, 1, 255)
+            lut = np.ones([1, 256]) * defaultVal
+            lut = np.array(lut, dtype='uint8')
             lut = lut.tolist()[0]
-        elif( defaultVal < 0 ):
-            lut = np.linspace(0,256,256)
-            lut = np.array(lut,dtype='uint8')
+        elif(defaultVal < 0):
+            lut = np.linspace(0, 256, 256)
+            lut = np.array(lut, dtype='uint8')
             lut = lut.tolist()
         return lut
 
-    def fillLUT(self,lut,idxs,value=255):
+    def fillLUT(self, lut, idxs, value=255):
         """
         **SUMMARY**
 
@@ -744,17 +739,17 @@ class LineScan(list):
         """
         # for the love of god keep this small
         # for some reason isInstance is being persnickety
-        if(idxs.__class__.__name__  == 'Image' ):
+        if(idxs.__class__.__name__ == 'Image'):
             npg = idxs.getGrayNumpy()
-            npg = npg.reshape([npg.shape[0]*npg.shape[1]])
+            npg = npg.reshape([npg.shape[0] * npg.shape[1]])
             idxs = npg.tolist()
-        value = np.clip(value,0,255)
+        value = np.clip(value, 0, 255)
         for idx in idxs:
             if(idx >= 0 and idx < len(lut)):
-                lut[idx]=value
+                lut[idx] = value
         return lut
 
-    def threshold(self,threshold=128,invert=False):
+    def threshold(self, threshold=128, invert=False):
         """
         **SUMMARY**
 
@@ -784,19 +779,19 @@ class LineScan(list):
         out = []
         high = 255
         low = 0
-        if( invert ):
+        if(invert):
             high = 0
             low = 255
         for pt in self:
-            if( pt < threshold ):
+            if(pt < threshold):
                 out.append(low)
             else:
                 out.append(high)
-        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal = LineScan(out, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
-    def invert(self,max=255):
+    def invert(self, max=255):
         """
         **SUMMARY**
 
@@ -823,8 +818,8 @@ class LineScan(list):
 
         out = []
         for pt in self:
-            out.append(255-pt)
-        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+            out.append(255 - pt)
+        retVal = LineScan(out, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
@@ -847,7 +842,7 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        return float(sum(self))/len(self)
+        return float(sum(self)) / len(self)
 
     def variance(self):
         """
@@ -866,11 +861,11 @@ class LineScan(list):
         >>>> var
 
         """
-        mean = float(sum(self))/len(self)
+        mean = float(sum(self)) / len(self)
         summation = 0
         for num in self:
-            summation += (num - mean)**2
-        return summation/len(self)
+            summation += (num - mean) ** 2
+        return summation / len(self)
 
     def std(self):
         """
@@ -894,13 +889,13 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        mean = float(sum(self))/len(self)
+        mean = float(sum(self)) / len(self)
         summation = 0
         for num in self:
-            summation += (num - mean)**2
-        return np.sqrt(summation/len(self))
+            summation += (num - mean) ** 2
+        return np.sqrt(summation / len(self))
 
-    def median(self,sz=5):
+    def median(self, sz=5):
         """
         **SUMMARY**
 
@@ -926,21 +921,21 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        if( sz%2==0 ):
-            sz = sz+1
-        skip = int(np.floor(sz/2))
+        if(sz % 2 == 0):
+            sz = sz + 1
+        skip = int(np.floor(sz / 2))
         out = self[0:skip]
         vsz = len(self)
-        for idx in range(skip,vsz-skip):
-            val = np.median(self[(idx-skip):(idx+skip)])
+        for idx in range(skip, vsz - skip):
+            val = np.median(self[(idx - skip):(idx + skip)])
             out.append(val)
-        for pt in self[-1*skip:]:
+        for pt in self[-1 * skip:]:
             out.append(pt)
-        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal = LineScan(out, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
-    def findFirstIdxEqualTo(self,value=255):
+    def findFirstIdxEqualTo(self, value=255):
         """
         **SUMMARY**
 
@@ -962,13 +957,13 @@ class LineScan(list):
         >>>> idx = ls.findFIRSTIDXEqualTo()
 
         """
-        vals = np.where(np.array(self)==value)[0]
+        vals = np.where(np.array(self) == value)[0]
         retVal = None
-        if( len(vals) > 0 ):
+        if(len(vals) > 0):
             retVal = vals[0]
         return retVal
 
-    def findLastIdxEqualTo(self,value=255):
+    def findLastIdxEqualTo(self, value=255):
         """
         **SUMMARY**
 
@@ -991,13 +986,13 @@ class LineScan(list):
 
         """
 
-        vals = np.where(np.array(self)==value)[0]
+        vals = np.where(np.array(self) == value)[0]
         retVal = None
-        if( len(vals) > 0 ):
+        if(len(vals) > 0):
             retVal = vals[-1]
         return retVal
 
-    def applyLUT(self,lut):
+    def applyLUT(self, lut):
         """
         **SUMMARY**
 
@@ -1024,7 +1019,7 @@ class LineScan(list):
         out = []
         for pt in self:
             out.append(lut[pt])
-        retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
+        retVal = LineScan(out, image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2)
         retVal._update(self)
         return retVal
 
@@ -1055,11 +1050,11 @@ class LineScan(list):
             warnings.warn("Scipy vesion >= 0.11 requierd.")
             return None
         if kernel_size % 2 == 0:
-            kernel_size-=1
-            print "Kernel Size should be odd. New kernel size =" , (kernel_size)
-        
+            kernel_size -= 1
+            print "Kernel Size should be odd. New kernel size =", (kernel_size)
+
         medfilt_array = medfilt(np.asarray(self[:]), kernel_size)
-        retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
+        retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2, x=self.col, y=self.row)
         retVal._update(self)
         return retVal
 
@@ -1088,7 +1083,7 @@ class LineScan(list):
             warnings.warn("Scipy vesion >= 0.11 requierd.")
             return None
         detrend_arr = sdetrend(np.asarray(self[:]))
-        retVal = LineScan(detrend_arr.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
+        retVal = LineScan(detrend_arr.astype("uint8").tolist(), image=self.image, pointLoc=self.pointLoc, pt1=self.pt1, pt2=self.pt2, x=self.col, y=self.row)
         retVal._update(self)
         return retVal
 
@@ -1118,24 +1113,24 @@ class LineScan(list):
         >>> plt.plot(ra)
         >>> plt.plot(rag)
         >>> plt.show()
-        
+
         """
 
-        if diameter%2 == 0:
+        if diameter % 2 == 0:
             warnings.warn("Diameter must be an odd integer")
             return None
-        if algo=="uniform":
-            kernel=list(1/float(diameter)*np.ones(diameter))
-        elif algo=="gaussian":
-            kernel=list()
-            r=float(diameter)/2
-            for i in range(-int(r),int(r)+1):
-                kernel.append(np.exp(-i**2/(2*(r/3)**2))/(np.sqrt(2*np.pi)*(r/3)))
-        retVal = LineScan(map(int,self.convolve(kernel)))
+        if algo == "uniform":
+            kernel = list(1 / float(diameter) * np.ones(diameter))
+        elif algo == "gaussian":
+            kernel = list()
+            r = float(diameter) / 2
+            for i in range(-int(r), int(r) + 1):
+                kernel.append(np.exp(-i ** 2 / (2 * (r / 3) ** 2)) / (np.sqrt(2 * np.pi) * (r / 3)))
+        retVal = LineScan(map(int, self.convolve(kernel)))
         retVal._update(self)
         return retVal
 
-    def findPeaks(self, window = 30, delta = 3):
+    def findPeaks(self, window=30, delta=3):
         """
         **SUMMARY**
 
@@ -1148,7 +1143,7 @@ class LineScan(list):
          By default this is 15 as it gives appropriate results.
          The lower this value the more the peaks are returned
 
-        * *delta* - the minimum difference between the peak and 
+        * *delta* - the minimum difference between the peak and
         all elements in the window
 
         **RETURNS**
@@ -1162,25 +1157,25 @@ class LineScan(list):
         >>> print peaks
         >>> peaks10 = ls.findPeaks(window=10)
         >>> print peaks10
-        
+
         """
 
         maximum = -np.Inf
-        width = int(window/2.0)
+        width = int(window / 2.0)
         peaks = []
 
-        for index,val in enumerate(self):
-            #peak found
+        for index, val in enumerate(self):
+            # peak found
             if val > maximum:
                 maximum = val
                 maxpos = index
-            #checking whether peak satisfies window and delta conditions
-            if max( self[max(0, index-width):index+width])+delta< maximum:
+            # checking whether peak satisfies window and delta conditions
+            if max(self[max(0, index - width):index + width]) + delta < maximum:
                 peaks.append((maxpos, maximum))
                 maximum = -np.Inf
         return peaks
 
-    def fitSpline(self,degree=2):
+    def fitSpline(self, degree=2):
         """
         **SUMMARY**
 
@@ -1189,7 +1184,7 @@ class LineScan(list):
 
         **PARAMETERS**
 
-        * *degree* - the precision of the generated spline 
+        * *degree* - the precision of the generated spline
 
         **RETURNS**
 
@@ -1205,11 +1200,11 @@ class LineScan(list):
         >>> plt.show()
         >>> plt.plot(spline)
         >>> plt.show()
-        
+
 <<<<<<< HEAD
         **NOTES**
 
-        Implementation taken from http://www.scipy.org/Cookbook/Interpolation  
+        Implementation taken from http://www.scipy.org/Cookbook/Interpolation
 
         """
         if degree > 4:
@@ -1219,10 +1214,9 @@ class LineScan(list):
             return None
         retVal = None
         y = np.array(self)
-        x = np.arange(0,len(y),1)
+        x = np.arange(0, len(y), 1)
         dx = 1
-        newx = np.arange(0,len(y)-1,pow(0.1,degree))
+        newx = np.arange(0, len(y) - 1, pow(0.1, degree))
         cj = sps.cspline1d(y)
-        retVal = sps.cspline1d_eval(cj,newx,dx=dx,x0=x[0])
+        retVal = sps.cspline1d_eval(cj, newx, dx=dx, x0=x[0])
         return retVal
-

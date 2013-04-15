@@ -2,7 +2,7 @@
 #
 # This library is used to add fonts to images
 
-#load required libraries
+# load required libraries
 from SimpleCV.base import *
 
 
@@ -23,23 +23,22 @@ class Font:
     # These fonts were downloaded from Google at:
     # http://www.http://www.google.com/webfonts
     _fonts = [
-                                            "ubuntu",
-                                            "astloch",
-                                            "carter_one",
-                                            "kranky",
-                                            "la_belle_aurore",
-                                            "monofett",
-                                            "reenie_beanie",
-                                            "shadows_Into_light",
-                                            "special_elite",
-                                            "unifrakturmaguntia",
-                                            "vt323",
-                                            "wallpoet",
-                                            "wire_one"
-                                            ]
+        "ubuntu",
+        "astloch",
+        "carter_one",
+        "kranky",
+        "la_belle_aurore",
+        "monofett",
+        "reenie_beanie",
+        "shadows_Into_light",
+        "special_elite",
+        "unifrakturmaguntia",
+        "vt323",
+        "wallpoet",
+        "wire_one"
+    ]
 
-
-    def __init__(self, fontface = "ubuntu", fontsize = 16):
+    def __init__(self, fontface="ubuntu", fontsize=16):
         """
         This creates a new font object, it uses ubuntu as the default font
         To give it a custom font you can just pass the absolute path
@@ -47,7 +46,6 @@ class Font:
         """
         self.setSize(fontsize)
         self.setFont(fontface)
-
 
     def getFont(self):
         """
@@ -57,7 +55,7 @@ class Font:
         """
         return self._font
 
-    def setFont(self, new_font = 'ubuntu'):
+    def setFont(self, new_font='ubuntu'):
         """
         Set the name of the font listed in the font family
         if the font isn't listed in the font family then pass it the absolute

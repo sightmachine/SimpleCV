@@ -3,6 +3,7 @@ from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 
+
 class FeatureExtractorBase(object):
     """
     The featureExtractorBase class is a way of abstracting the process of collecting
@@ -13,6 +14,7 @@ class FeatureExtractorBase(object):
     """
 
     __metaclass__ = abc.ABCMeta
+
     def load(cls, fname):
         """
         load segmentation settings to file.
@@ -20,13 +22,12 @@ class FeatureExtractorBase(object):
         return pickle.load(file(fname))
     load = classmethod(load)
 
-
     def save(self, fname):
         """
         Save segmentation settings to file.
         """
         output = open(fname, 'wb')
-        pickle.dump(self,output,2) # use two otherwise it borks the system
+        pickle.dump(self, output, 2)  # use two otherwise it borks the system
         output.close()
 
     @abc.abstractmethod

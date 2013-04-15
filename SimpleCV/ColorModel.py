@@ -1,5 +1,5 @@
 # SimpleCV Color Model Library
-#load required libraries
+# load required libraries
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 
@@ -16,23 +16,22 @@ class ColorModel:
     you can useThresholdImage() to return a segmented picture.
 
     """
-    #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
-    #TODO: Work in HSV space
+    # TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
+    # TODO: Work in HSV space
     mIsBackground = True
     mData = {}
     mBits = 1
 
-    def __init__(self, data = None, isBackground=True):
+    def __init__(self, data=None, isBackground=True):
         self.mIsBackground = isBackground
         self.mData = {}
         self.mBits = 1
 
         if data:
             try:
-                [ self.add(d) for d in data ]
+                [self.add(d) for d in data]
             except TypeError:
                 self.add(data)
-
 
     def _makeCanonical(self, data):
         """
@@ -41,34 +40,34 @@ class ColorModel:
         """
         ret = ''
 
-        #first cast everything to a numpy array
+        # first cast everything to a numpy array
         if(data.__class__.__name__ == 'Image'):
-            ret =  data.getNumpy().reshape(-1, 3)
+            ret = data.getNumpy().reshape(-1, 3)
         elif(data.__class__.__name__ == 'cvmat'):
             ret = np.array(data).reshape(-1, 3)
-        elif(data.__class__.__name__ == 'list'  ):
+        elif(data.__class__.__name__ == 'list'):
             temp = []
-            for d in data: #do the bgr conversion
-                t = (d[2],d[1],d[0])
+            for d in data:  # do the bgr conversion
+                t = (d[2], d[1], d[0])
                 temp.append(t)
-            ret = np.array(temp,dtype='uint8')
-        elif (data.__class__.__name__=='tuple'):
-            ret = np.array((data[2],data[1],data[0]),'uint8')
-        elif(data.__class__.__name__=='np.array'):
+            ret = np.array(temp, dtype='uint8')
+        elif (data.__class__.__name__ == 'tuple'):
+            ret = np.array((data[2], data[1], data[0]), 'uint8')
+        elif(data.__class__.__name__ == 'np.array'):
             ret = data
         else:
             logger.warning("ColorModel: color is not in an accepted format!")
             return None
 
-        rs = np.right_shift(ret, self.mBits)  #right shift 4 bits
+        rs = np.right_shift(ret, self.mBits)  # right shift 4 bits
 
-        if( len(rs.shape) > 1 ):
-            uniques = np.unique(rs.view([('',rs.dtype)]*rs.shape[1])).view(rs.dtype).reshape(-1, 3)
+        if(len(rs.shape) > 1):
+            uniques = np.unique(rs.view([('', rs.dtype)] * rs.shape[1])).view(rs.dtype).reshape(-1, 3)
         else:
             uniques = [rs]
-        #create a unique set of colors.  I had to look this one up
+        # create a unique set of colors.  I had to look this one up
 
-        #create a dict of encoded strings
+        # create a dict of encoded strings
         return dict.fromkeys(map(np.ndarray.tostring, uniques), 1)
 
     def reset(self):
@@ -164,13 +163,13 @@ class ColorModel:
         """
         a = 0
         b = 255
-        if( self.mIsBackground == False ):
+        if(self.mIsBackground == False):
             a = 255
             b = 0
 
-        rs = np.right_shift(img.getNumpy(), self.mBits).reshape(-1, 3) #bitshift down and reshape to Nx3
-        mapped = np.array(map(self.mData.has_key, map(np.ndarray.tostring, rs))) #map to True/False based on the model
-        thresh = np.where(mapped, a, b) #replace True and False with fg and bg
+        rs = np.right_shift(img.getNumpy(), self.mBits).reshape(-1, 3)  # bitshift down and reshape to Nx3
+        mapped = np.array(map(self.mData.has_key, map(np.ndarray.tostring, rs)))  # map to True/False based on the model
+        thresh = np.where(mapped, a, b)  # replace True and False with fg and bg
         return Image(thresh.reshape(img.width, img.height))
 
     def contains(self, c):
@@ -197,8 +196,8 @@ class ColorModel:
 
 
        """
-        #reverse the color, cast to uint8, right shift, convert to string, check dict
-        return self.mData.has_key(np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring())
+        # reverse the color, cast to uint8, right shift, convert to string, check dict
+        return np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring() in self.mData
 
     def setIsForeground(self):
         """
@@ -256,7 +255,7 @@ class ColorModel:
         >>> cm.save("mymodel)
 
         """
-        self.mData =  load(open(filename))
+        self.mData = load(open(filename))
 
     def save(self, filename):
         """

@@ -1,5 +1,6 @@
 from SimpleCV.base import *
 
+
 class HaarCascade():
     """
     This class wraps HaarCascade files for the findHaarFeatures file.
@@ -10,18 +11,16 @@ class HaarCascade():
     _mName = None
     _cache = {}
 
-
-
     def __init__(self, fname, name=None):
-        #if fname.isalpha():
+        # if fname.isalpha():
         #     fname = MY_CASCADES_DIR + fname + ".xml"
 
-        if( name is None ):
+        if(name is None):
             self._mName = fname
         else:
             self._mName = name
 
-        if HaarCascade._cache.has_key(fname):
+        if fname in HaarCascade._cache:
             self._mCascade = HaarCascade._cache[fname]
             return
 
@@ -30,7 +29,7 @@ class HaarCascade():
         if no_underscores.isalnum():
             fname = fname + ".xml"
 
-        fhandle = os.path.join(LAUNCH_PATH, 'Features','HaarCascades',fname)
+        fhandle = os.path.join(LAUNCH_PATH, 'Features', 'HaarCascades', fname)
 
         if (not os.path.exists(fhandle)):
             logger.warning("Could not find Haar Cascade file " + fname)
@@ -39,8 +38,8 @@ class HaarCascade():
         self._mCascade = cv.Load(fhandle)
         HaarCascade._cache[fhandle] = self._mCascade
 
-    def load(self, fname, name = None):
-        if( name is None ):
+    def load(self, fname, name=None):
+        if(name is None):
             self._mName = fname
         else:
             self._mName = name
@@ -57,5 +56,5 @@ class HaarCascade():
     def getName(self):
         return self._mName
 
-    def setName(self,name):
+    def setName(self, name):
         self._mName = name

@@ -2,7 +2,7 @@
 #
 # This library is used to modify different color properties of images
 
-#load required libraries
+# load required libraries
 import random
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
@@ -26,7 +26,7 @@ class Color:
     """
     colorlist = []
 
-    #Primary Colors
+    # Primary Colors
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
 
@@ -34,16 +34,15 @@ class Color:
     YELLOW = (255, 255, 0)
     RED = (255, 0, 0)
 
-    LEGO_BLUE = (0,50,150)
-    LEGO_ORANGE = (255,150,40)
+    LEGO_BLUE = (0, 50, 150)
+    LEGO_ORANGE = (255, 150, 40)
 
     VIOLET = (181, 126, 220)
     ORANGE = (255, 165, 0)
     GREEN = (0, 128, 0)
     GRAY = (128, 128, 128)
 
-
-    #Extended Colors
+    # Extended Colors
     IVORY = (255, 255, 240)
     BEIGE = (245, 245, 220)
     WHEAT = (245, 222, 179)
@@ -72,51 +71,51 @@ class Color:
     CRIMSON = (220, 20, 60)
     DEFAULT = (0, 0, 0)
     # These are for the grab cut / findBlobsSmart
-    BACKGROUND = (0,0,0)
-    MAYBE_BACKGROUND = (64,64,64)
-    MAYBE_FOREGROUND =  (192,192,192)
-    FOREGROUND = (255,255,255)
-    WATERSHED_FG = (255,255,255) # Watershed foreground
-    WATERSHED_BG = (128,128,128) # Watershed background
-    WATERSHED_UNSURE = (0,0,0) # Watershed either fg or bg color
+    BACKGROUND = (0, 0, 0)
+    MAYBE_BACKGROUND = (64, 64, 64)
+    MAYBE_FOREGROUND = (192, 192, 192)
+    FOREGROUND = (255, 255, 255)
+    WATERSHED_FG = (255, 255, 255)  # Watershed foreground
+    WATERSHED_BG = (128, 128, 128)  # Watershed background
+    WATERSHED_UNSURE = (0, 0, 0)  # Watershed either fg or bg color
     colorlist = [
-                BLACK,
-                WHITE,
-                BLUE,
-                YELLOW,
-                RED,
-                VIOLET,
-                ORANGE,
-                GREEN,
-                GRAY,
-                IVORY,
-                BEIGE,
-                WHEAT,
-                TAN,
-                KHAKI,
-                SILVER,
-                CHARCOAL,
-                NAVYBLUE,
-                ROYALBLUE,
-                MEDIUMBLUE,
-                AZURE,
-                CYAN,
-                AQUAMARINE,
-                TEAL,
-                FORESTGREEN,
-                OLIVE,
-                LIME,
-                GOLD,
-                SALMON,
-                HOTPINK,
-                FUCHSIA,
-                PUCE,
-                PLUM,
-                INDIGO,
-                MAROON,
-                CRIMSON,
-                DEFAULT
-                ]
+        BLACK,
+        WHITE,
+        BLUE,
+        YELLOW,
+        RED,
+        VIOLET,
+        ORANGE,
+        GREEN,
+        GRAY,
+        IVORY,
+        BEIGE,
+        WHEAT,
+        TAN,
+        KHAKI,
+        SILVER,
+        CHARCOAL,
+        NAVYBLUE,
+        ROYALBLUE,
+        MEDIUMBLUE,
+        AZURE,
+        CYAN,
+        AQUAMARINE,
+        TEAL,
+        FORESTGREEN,
+        OLIVE,
+        LIME,
+        GOLD,
+        SALMON,
+        HOTPINK,
+        FUCHSIA,
+        PUCE,
+        PLUM,
+        INDIGO,
+        MAROON,
+        CRIMSON,
+        DEFAULT
+    ]
 
     @classmethod
     def getRandom(cls):
@@ -188,10 +187,10 @@ class Color:
 
         """
         h_float = colorsys.rgb_to_hsv(*tuple)[0]
-        return h_float*180
+        return h_float * 180
 
     @classmethod
-    def getHueFromBGR(self,color_tuple):
+    def getHueFromBGR(self, color_tuple):
         """
         **SUMMARY**
 
@@ -215,7 +214,7 @@ class Color:
         a = color_tuple
         print a
         h_float = colorsys.rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
-        return h_float*180
+        return h_float * 180
 
     @classmethod
     def hueToRGB(self, h):
@@ -237,12 +236,12 @@ class Color:
         >>> c = Color.huetoRGB(0)
 
         """
-        h = h/180.0
-        r,g,b = colorsys.hsv_to_rgb(h,1,1)
-        return (round(255.0*r),round(255.0*g),round(255.0*b))
+        h = h / 180.0
+        r, g, b = colorsys.hsv_to_rgb(h, 1, 1)
+        return (round(255.0 * r), round(255.0 * g), round(255.0 * b))
 
     @classmethod
-    def hueToBGR(self,h):
+    def hueToBGR(self, h):
         """
         **SUMMARY**
 
@@ -283,9 +282,9 @@ class ColorCurve:
     """
     mCurve = ""
 
-    def __init__(self, curve_vals ):
+    def __init__(self, curve_vals):
         inBins = linspace(0, 255, 256)
-        if( type(curve_vals) == UnivariateSpline ):
+        if(type(curve_vals) == UnivariateSpline):
             self.mCurve = curvVals(inBins)
         else:
             curve_vals = np.array(curve_vals)
@@ -327,27 +326,26 @@ class ColorMap:
     colordistance = 0
     valuerange = 0
 
-
     def __init__(self, color, startmap, endmap):
         self.color = np.array(color)
         if self.color.ndim == 1:  # To check if only one color was passed
-            color = ((color[0],color[1],color[2]),Color.WHITE)
+            color = ((color[0], color[1], color[2]), Color.WHITE)
             self.color = np.array(color)
         self.startmap = float(startmap)
         self.endmap = float(endmap)
-        self.valuerange = float(endmap - startmap) #delta
-        self.colordistance = self.valuerange / float(len(self.color)-1) #gap between colors
+        self.valuerange = float(endmap - startmap)  # delta
+        self.colordistance = self.valuerange / float(len(self.color) - 1)  # gap between colors
 
     def __getitem__(self, value):
         if value > self.endmap:
             value = self.endmap
         elif value < self.startmap:
             value = self.startmap
-        val = (value - self.startmap)/self.colordistance
+        val = (value - self.startmap) / self.colordistance
         alpha = float(val - int(val))
         index = int(val)
-        if index == len(self.color)-1:
+        if index == len(self.color) - 1:
             color = tuple(self.color[index])
             return (int(color[0]), int(color[1]), int(color[2]))
-        color = tuple(self.color[index] * (1-alpha) + self.color[index+1] * (alpha))
+        color = tuple(self.color[index] * (1 - alpha) + self.color[index + 1] * (alpha))
         return (int(color[0]), int(color[1]), int(color[2]))

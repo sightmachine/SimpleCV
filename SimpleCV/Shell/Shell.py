@@ -17,7 +17,7 @@
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-#load system libraries
+# load system libraries
 from SimpleCV.__init__ import *
 
 from subprocess import call, Popen
@@ -27,7 +27,7 @@ import time
 import webbrowser
 import sys
 
-#Load simpleCV libraries
+# Load simpleCV libraries
 from SimpleCV.Shell.Tutorial import *
 from SimpleCV.Shell.Example import *
 try:
@@ -38,9 +38,9 @@ except:
 IPVER = 0
 
 
-#libraries for the shell
+# libraries for the shell
 
-#if ipython version < 0.11
+# if ipython version < 0.11
 try:
     from IPython.Shell import IPShellEmbed
     IPVER = 10
@@ -54,11 +54,12 @@ except:
         raise(e)
 
 
-#Command to clear the shell screen
+# Command to clear the shell screen
 def shellclear():
     if platform.system() == "Windows":
         return
     call("clear")
+
 
 def plot(arg):
     try:
@@ -67,11 +68,11 @@ def plot(arg):
         logger.warning("Matplotlib is not installed and required")
         return
 
-
     print "args", arg
     print "type", type(arg)
     plt.plot(arg)
     plt.show()
+
 
 def hist(arg):
     try:
@@ -81,14 +82,18 @@ def hist(arg):
         return
     plot(pylab.hist(arg)[1])
 
+
 def magic_clear(self, arg):
     shellclear()
+
 
 def magic_forums(self, arg):
     webbrowser.open('http://help.simplecv.org')
 
+
 def magic_walkthrough(self, arg):
     webbrowser.open('http://examples.simplecv.org')
+
 
 def magic_docs(self, arg):
     webbrowser.open('http://www.simplecv.org/doc/')
@@ -97,6 +102,7 @@ def magic_docs(self, arg):
 """
 If you run SimpleCV directly, it will launch an ipython shell
 """
+
 
 def setup_shell():
 
@@ -125,17 +131,15 @@ def setup_shell():
     banner += '\n'
     exit_msg = '\n... [Exiting the SimpleCV interactive shell] ...\n'
 
-
-
-    #IPython version is less than 11
+    # IPython version is less than 11
     if IPVER <= 10:
-        #setup terminal to show SCV prompt
-        argsv = ['-pi1','SimpleCV:\\#>','-pi2','   .\\D.:','-po','SimpleCV:\\#>','-nosep']
+        # setup terminal to show SCV prompt
+        argsv = ['-pi1', 'SimpleCV:\\#>', '-pi2', '   .\\D.:', '-po', 'SimpleCV:\\#>', '-nosep']
 
         scvShell = IPShellEmbed(argsv)
         scvShell.set_banner(banner)
         scvShell.set_exit_msg(exit_msg)
-        scvShell.IP.api.expose_magic("tutorial",magic_tutorial)
+        scvShell.IP.api.expose_magic("tutorial", magic_tutorial)
         scvShell.IP.api.expose_magic("clear", magic_clear)
         scvShell.IP.api.expose_magic("example", magic_examples)
         scvShell.IP.api.expose_magic("forums", magic_forums)
@@ -144,15 +148,15 @@ def setup_shell():
 
         return scvShell
 
-    #IPython version 0.11 or higher
+    # IPython version 0.11 or higher
     else:
         cfg = Config()
         cfg.PromptManager.in_template = "SimpleCV:\\#> "
         cfg.PromptManager.out_template = "SimpleCV:\\#: "
         #~ cfg.InteractiveShellEmbed.prompt_in1 = "SimpleCV:\\#> "
         #~ cfg.InteractiveShellEmbed.prompt_out="SimpleCV:\\#: "
-        scvShell = InteractiveShellEmbed(config=cfg, banner1=banner, exit_msg = exit_msg)
-        scvShell.define_magic("tutorial",magic_tutorial)
+        scvShell = InteractiveShellEmbed(config=cfg, banner1=banner, exit_msg=exit_msg)
+        scvShell.define_magic("tutorial", magic_tutorial)
         scvShell.define_magic("clear", magic_clear)
         scvShell.define_magic("example", magic_examples)
         scvShell.define_magic("forums", magic_forums)
@@ -160,6 +164,7 @@ def setup_shell():
         scvShell.define_magic("docs", magic_docs)
 
         return scvShell
+
 
 def run_notebook(mainArgs):
     'Run the ipython notebook server'
@@ -170,15 +175,16 @@ def run_notebook(mainArgs):
     code += "from SimpleCV import *;"
     code += "init_options_handler.enable_notebook();"
 
-    kernelmanager.MappingKernelManager.first_beat=30.0
+    kernelmanager.MappingKernelManager.first_beat = 30.0
     app = notebookapp.NotebookApp.instance()
     mainArgs += [
-            '--port', '5050',
-            '--c', code,
-            ]
+        '--port', '5050',
+        '--c', code,
+    ]
     app.initialize(mainArgs)
     app.start()
     sys.exit()
+
 
 def self_update():
     URL = "https://github.com/ingenuitas/SimpleCV/zipball/master"
@@ -203,22 +209,20 @@ def main(*args):
             print "Updating SimpleCV....."
             self_update()
 
-
-        if flag in ["--headless","headless"]:
+        if flag in ["--headless", "headless"]:
             # set SDL to use the dummy NULL video driver,
             #   so it doesn't need a windowing system.
             os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-        elif flag in ['--nowarnings','nowarnings']:
+        elif flag in ['--nowarnings', 'nowarnings']:
             log_level = logging.INFO
 
-        elif flag in ['--debug','debug']:
+        elif flag in ['--debug', 'debug']:
             log_level = logging.DEBUG
-
 
     init_logging(log_level)
     shellclear()
 
     scvShell = setup_shell()
-    #Note that all loaded libraries are inherited in the embedded ipython shell
+    # Note that all loaded libraries are inherited in the embedded ipython shell
     sys.exit(scvShell())

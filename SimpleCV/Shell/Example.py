@@ -28,7 +28,7 @@ def magic_examples(self, arg):
         print "Available Examples:"
         print "--------------------------------------------"
         for file in file_names:
-            print "[",counter,"]:",file
+            print "[", counter, "]:", file
             counter += 1
 
         print "Just type example #, to run the example on the list"
@@ -43,7 +43,6 @@ def magic_examples(self, arg):
         except:
             print "Couldn't run example:", files[iarg]
 
-
     elif isinstance(arg, str) and arg.lower() == "joshua":
         print "GREETINGS PROFESSOR FALKEN"
         print ""
@@ -55,7 +54,6 @@ def magic_examples(self, arg):
         print ""
         print "HOW ABOUT A NICE GAME OF CHESS?"
         print ""
-
 
     else:
         print "Example: " + arg + " does not exist, or an error occured"

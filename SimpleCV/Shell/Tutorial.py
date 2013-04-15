@@ -2,15 +2,15 @@
 
 # A Basic SimpleCV interactive shell tutorial
 
-#load required libraries
+# load required libraries
 from SimpleCV import *
 
 from subprocess import call
 from code import InteractiveInterpreter
 import platform
 
-lb = "\n" #linebreak
-tb = "\t" #tab
+lb = "\n"  # linebreak
+tb = "\t"  # tab
 tutorial_interpreter = InteractiveInterpreter(globals())
 logo = None
 img = None
@@ -19,17 +19,20 @@ thumb = None
 eroded = None
 cropped = None
 
-#Command to clear the shell screen
+# Command to clear the shell screen
+
+
 def shellclear():
     if platform.system() == "Windows":
         return
     call("clear")
 
+
 def attempt(variable_name, desired_class):
     prompt_and_run()
     variable = globals().get(variable_name)
 
-    if isinstance(variable,desired_class):
+    if isinstance(variable, desired_class):
         if desired_class == Image:
             if variable.isEmpty():
                 print lb
@@ -42,22 +45,26 @@ def attempt(variable_name, desired_class):
 
     return False
 
+
 def prompt_and_run():
 
     command = raw_input("SimpleCV:> ")
     tutorial_interpreter.runsource(command)
     return command
 
+
 def request_show_command():
     while True:
         if prompt_and_run().endswith('.show()'):
             return
+
 
 def end_tutorial():
     print lb
     print "Type 'quit' to leave the tutorials, or press Enter to move on!"
     command = raw_input("SimpleCV:> ")
     return command.lower() == 'quit'
+
 
 def end_of_tutorial():
     print lb
@@ -66,6 +73,7 @@ def end_of_tutorial():
     print "For more help, go to www.simplecv.org, and don't forget about the"
     print "help function!"
     print lb
+
 
 def command_loop(command, desired_tuple):
     while True:
@@ -77,6 +85,7 @@ def command_loop(command, desired_tuple):
 
         print lb
         print "Oops! %s is still not %s" % (desired_tuple[0], str(desired_tuple[1]))
+
 
 def tutorial_image():
     shellclear()
@@ -99,7 +108,7 @@ def tutorial_image():
     print lb
     print "img = Image(URL_TO_MY_PICTURE) or img = Image(PATH_TO_MY_PICTURE)"
     print lb
-    cmd =  "Example: img = Image('http://www.simplecv.org/sites/all/themes/simplecv/images/logo.png')"
+    cmd = "Example: img = Image('http://www.simplecv.org/sites/all/themes/simplecv/images/logo.png')"
 
     desired_tuple = ('img', Image)
     command_loop(cmd, desired_tuple)
@@ -119,6 +128,7 @@ def tutorial_image():
     if not end_tutorial():
         tutorial_save()
     return
+
 
 def tutorial_save():
     shellclear()
@@ -205,6 +215,7 @@ def tutorial_camera():
         tutorial_copy()
     return
 
+
 def tutorial_copy():
     shellclear()
     print "Copying Images"
@@ -222,7 +233,7 @@ def tutorial_copy():
 
     while True:
         command_loop(cmd, desired_tuple)
-        if clone != img: #Returns False if they have different addresses.
+        if clone != img:  # Returns False if they have different addresses.
             break
 
         print "You have to use the copy() function!"
@@ -243,6 +254,7 @@ def tutorial_copy():
         tutorial_manipulation()
     return
 
+
 def tutorial_manipulation():
     shellclear()
     print "Manipulating Images"
@@ -261,7 +273,7 @@ def tutorial_manipulation():
 
     while True:
         command_loop(cmd, desired_tuple)
-        if thumb.size() == (90,90):
+        if thumb.size() == (90, 90):
             break
 
         print "Your thumbnail's size isn't 90x90! Try again!"
@@ -308,7 +320,6 @@ def tutorial_manipulation():
     return
 
 
-
 def tutorial_slicing():
     shellclear()
     print "Slicing Images"
@@ -344,6 +355,7 @@ def tutorial_slicing():
     print "Correct, you just returned a 5 pixel by 5 pixel image object"
     print lb
     return
+
 
 def tutorial_features():
     shellclear()
@@ -432,14 +444,14 @@ def tutorial_features():
 
     print lb
     print "Alright! This was tutorial 6/6."
-    #print "Next tutorial: ..."
+    # print "Next tutorial: ..."
     return
 
-def magic_tutorial(self,arg):
-    tutorials_dict = {'image': tutorial_image, 'save': tutorial_save,
-                     'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
-                     'copy': tutorial_copy, 'features': tutorial_features}
 
+def magic_tutorial(self, arg):
+    tutorials_dict = {'image': tutorial_image, 'save': tutorial_save,
+                      'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
+                      'copy': tutorial_copy, 'features': tutorial_features}
 
     if (arg == ""):
         shellclear()

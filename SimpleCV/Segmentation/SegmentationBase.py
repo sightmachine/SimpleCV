@@ -3,6 +3,7 @@ from SimpleCV.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 
+
 class SegmentationBase(object):
     """
     Right now I am going to keep this class as brain dead and single threaded as
@@ -22,13 +23,12 @@ class SegmentationBase(object):
         return pickle.load(file(fname))
     load = classmethod(load)
 
-
     def save(self, fname):
         """
         Save segmentation settings to file.
         """
         output = open(fname, 'wb')
-        pickle.dump(self,output,2) # use two otherwise it borks the system
+        pickle.dump(self, output, 2)  # use two otherwise it borks the system
         output.close()
 
     @abc.abstractmethod

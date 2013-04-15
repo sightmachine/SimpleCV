@@ -7,7 +7,7 @@ sw = gtk.ScrolledWindow()
 sw.add(view)
 
 win = gtk.Window(gtk.WINDOW_TOPLEVEL)
-win.resize(800,600)
+win.resize(800, 600)
 win.add(sw)
 win.show_all()
 

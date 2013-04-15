@@ -4,22 +4,24 @@ Example of SURFTracker
 
 from SimpleCV import *
 
+
 def surftest():
     cam = Camera()
     img = cam.getImage()
     d = Display(img.size())
-    img, bb1 = getBBFromUser(cam,d)
-    fs1=[]
+    img, bb1 = getBBFromUser(cam, d)
+    fs1 = []
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("surf",fs1,img,bb1, eps_val=0.8, dist=200, nframes=100)
+            fs1 = img1.track("surf", fs1, img, bb1, eps_val=0.8, dist=200, nframes=100)
             fs1.drawBB(color=Color.RED)
             fs1[-1].drawTrackerPoints()
             print fs1[-1].getBB()
             img1.show()
         except KeyboardInterrupt:
             break
+
 
 def getBBFromUser(cam, d):
     p1 = None
@@ -44,10 +46,10 @@ def getBBFromUser(cam, d):
     if not p1 or not p2:
         return None
 
-    xmax = np.max((p1[0],p2[0]))
-    xmin = np.min((p1[0],p2[0]))
-    ymax = np.max((p1[1],p2[1]))
-    ymin = np.min((p1[1],p2[1]))
-    return (img,(xmin,ymin,xmax-xmin,ymax-ymin))
+    xmax = np.max((p1[0], p2[0]))
+    xmin = np.min((p1[0], p2[0]))
+    ymax = np.max((p1[1], p2[1]))
+    ymin = np.min((p1[1], p2[1]))
+    return (img, (xmin, ymin, xmax - xmin, ymax - ymin))
 
 surftest()

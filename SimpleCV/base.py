@@ -14,26 +14,26 @@ import threading
 import tempfile
 import zipfile
 import pickle
-import glob #for directory scanning
-import abc #abstract base class
+import glob  # for directory scanning
+import abc  # abstract base class
 import colorsys
 import logging
 import pygame as pg
 import scipy.ndimage as ndimage
-import scipy.stats.stats as sss  #for auto white balance
+import scipy.stats.stats as sss  # for auto white balance
 import scipy.cluster.vq as scv
 import scipy.linalg as nla  # for linear algebra / least squares
-import math # math... who does that
-import copy # for deep copy
+import math  # math... who does that
+import copy  # for deep copy
 import numpy as np
 import scipy.spatial.distance as spsd
-import scipy.cluster.vq as cluster #for kmeans
+import scipy.cluster.vq as cluster  # for kmeans
 import pygame as pg
 import platform
 import copy
 import types
 import time
-import itertools #for track
+import itertools  # for track
 
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
@@ -60,7 +60,7 @@ except ImportError:
         raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
 
 
-#optional libraries
+# optional libraries
 PIL_ENABLED = True
 try:
     from PIL import Image as pil
@@ -68,7 +68,7 @@ try:
     from PIL import ImageDraw as pilImageDraw
     from PIL import GifImagePlugin
     getheader = GifImagePlugin.getheader
-    getdata   = GifImagePlugin.getdata
+    getdata = GifImagePlugin.getdata
 except ImportError:
     try:
         import Image as pil
@@ -104,12 +104,13 @@ except ImportError:
 ORANGE_ENABLED = True
 try:
     import orange
-    import orngTest #for cross validation
+    import orngTest  # for cross validation
     import orngStat
-    import orngEnsemble # for bagging / boosting
+    import orngEnsemble  # for bagging / boosting
 
 except ImportError:
     ORANGE_ENABLED = False
+
 
 class InitOptionsHandler(object):
     """
@@ -140,7 +141,9 @@ try:
 except ImportError:
     init_options_handler.set_headless()
 
-#couple quick typecheck helper functions
+# couple quick typecheck helper functions
+
+
 def is_number(n):
     """
     Determines if it is a number or not
@@ -148,6 +151,7 @@ def is_number(n):
     Returns: Type
     """
     return type(n) in (IntType, LongType, FloatType)
+
 
 def is_tuple(n):
     """
@@ -157,6 +161,7 @@ def is_tuple(n):
     """
     return type(n) == tuple
 
+
 def reverse_tuple(n):
     """
     Reverses a tuple
@@ -164,6 +169,7 @@ def reverse_tuple(n):
     Returns: Tuple
     """
     return tuple(reversed(n))
+
 
 def find(f, seq):
     """
@@ -175,6 +181,7 @@ def find(f, seq):
         if (f == item):
             return True
     return False
+
 
 def test():
     """
@@ -212,11 +219,13 @@ def download_and_extract(URL):
 
     return tmpdir
 
+
 def int_to_bin(i):
     """Integer to two bytes"""
     i1 = i % 256
-    i2 = int(i/256)
+    i2 = int(i / 256)
     return chr(i1) + chr(i2)
+
 
 def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
     """
@@ -224,30 +233,30 @@ def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
 
     Returns: cvMatrix
     """
-    if( type(inputMat) == np.ndarray ):
+    if(type(inputMat) == np.ndarray):
         sz = len(inputMat.shape)
         temp_mat = None
-        if( dataType == cv.CV_32FC1 or dataType == cv.CV_32FC2 or dataType == cv.CV_32FC3 or dataType == cv.CV_32FC4 ):
+        if(dataType == cv.CV_32FC1 or dataType == cv.CV_32FC2 or dataType == cv.CV_32FC3 or dataType == cv.CV_32FC4):
             temp_mat = np.array(inputMat, dtype='float32')
-        elif( dataType == cv.CV_8UC1 or  dataType == cv.CV_8UC2 or dataType == cv.CV_8UC3 or dataType == cv.CV_8UC3):
-            temp_mat = np.array(inputMat,dtype='uint8')
+        elif(dataType == cv.CV_8UC1 or dataType == cv.CV_8UC2 or dataType == cv.CV_8UC3 or dataType == cv.CV_8UC3):
+            temp_mat = np.array(inputMat, dtype='uint8')
         else:
             logger.warning("MatrixConversionUtil: the input matrix type is not supported")
             return None
-        if( sz == 1 ): #this needs to be changed so we can do row/col vectors
+        if(sz == 1):  # this needs to be changed so we can do row/col vectors
             retVal = cv.CreateMat(inputMat.shape[0], 1, dataType)
             cv.SetData(retVal, temp_mat.tostring(), temp_mat.dtype.itemsize * temp_mat.shape[0])
-        elif( sz == 2 ):
+        elif(sz == 2):
             retVal = cv.CreateMat(temp_mat.shape[0], temp_mat.shape[1], dataType)
             cv.SetData(retVal, temp_mat.tostring(), temp_mat.dtype.itemsize * temp_mat.shape[1])
-        elif( sz > 2 ):
+        elif(sz > 2):
             logger.warning("MatrixConversionUtil: the input matrix type is not supported")
             return None
         return retVal
     else:
         logger.warning("MatrixConversionUtil: the input matrix type is not supported")
 
-#Logging system - Global elements
+# Logging system - Global elements
 
 consoleHandler = logging.StreamHandler()
 formatter = logging.Formatter('%(levelname)s: %(message)s')
@@ -261,24 +270,28 @@ try:
 except ImportError:
     ipython_version = None
 
-#This is used with sys.excepthook to log all uncaught exceptions.
-#By default, error messages ARE print to stderr.
+# This is used with sys.excepthook to log all uncaught exceptions.
+# By default, error messages ARE print to stderr.
+
+
 def exception_handler(excType, excValue, traceback):
     logger.error("", exc_info=(excType, excValue, traceback))
 
-    #print "Hey!",excValue
-    #excValue has the most important info about the error.
-    #It'd be possible to display only that and hide all the (unfriendly) rest.
+    # print "Hey!",excValue
+    # excValue has the most important info about the error.
+    # It'd be possible to display only that and hide all the (unfriendly) rest.
 
 sys.excepthook = exception_handler
 
-def ipython_exception_handler(shell, excType, excValue, traceback,tb_offset=0):
+
+def ipython_exception_handler(shell, excType, excValue, traceback, tb_offset=0):
     logger.error("", exc_info=(excType, excValue, traceback))
 
 
-#The two following functions are used internally.
+# The two following functions are used internally.
 def init_logging(log_level):
     logger.setLevel(log_level)
+
 
 def read_logging_level(log_level):
     levels_dict = {
@@ -289,7 +302,7 @@ def read_logging_level(log_level):
         5: logging.CRITICAL, "critical": logging.CRITICAL
     }
 
-    if isinstance(log_level,str):
+    if isinstance(log_level, str):
         log_level = log_level.lower()
 
     if log_level in levels_dict:
@@ -297,6 +310,7 @@ def read_logging_level(log_level):
     else:
         print "The logging level given is not valid"
         return None
+
 
 def get_logging_level():
     """
@@ -312,7 +326,8 @@ def get_logging_level():
 
     print "The current logging level is:", levels_dict[logger.getEffectiveLevel()]
 
-def set_logging(log_level,myfilename = None):
+
+def set_logging(log_level, myfilename=None):
     """
     This function sets the threshold for the logging system and, if desired,
     directs the messages to a logfile. Level options:
@@ -335,9 +350,8 @@ def set_logging(log_level,myfilename = None):
             else:
                 ip = get_ipython()
                 ip.set_custom_exc((Exception,), ipython_exception_handler)
-        except NameError: #In case the interactive shell is not being used
+        except NameError:  # In case the interactive shell is not being used
             sys.exc_clear()
-
 
     level = read_logging_level(log_level)
 
@@ -346,12 +360,13 @@ def set_logging(log_level,myfilename = None):
         fileHandler.setLevel(level)
         fileHandler.setFormatter(formatter)
         logger.addHandler(fileHandler)
-        logger.removeHandler(consoleHandler) #Console logging is disabled.
-        print "Now logging to",myfilename,"with level",log_level
+        logger.removeHandler(consoleHandler)  # Console logging is disabled.
+        print "Now logging to", myfilename, "with level", log_level
     elif level:
-        print "Now logging with level",log_level
+        print "Now logging with level", log_level
 
     logger.setLevel(level)
+
 
 def system():
     """
@@ -368,40 +383,41 @@ def system():
     >>> import SimpleCV
     >>> SimpleCV.system()
     """
-    try :
+    try:
         import platform
         print "System : ", platform.system()
         print "OS version : ", platform.version()
         print "Python version :", platform.python_version()
-        try :
+        try:
             from cv2 import __version__
             print "Open CV version : " + __version__
-        except ImportError :
+        except ImportError:
             print "Open CV2 version : " + "2.1"
-        if (PIL_ENABLED) :
+        if (PIL_ENABLED):
             print "PIL version : ", pil.VERSION
-        else :
+        else:
             print "PIL module not installed"
-        if (ORANGE_ENABLED) :
+        if (ORANGE_ENABLED):
             print "Orange Version : " + orange.version
-        else :
+        else:
             print "Orange module not installed"
-        try :
+        try:
             import pygame as pg
             print "PyGame Version : " + pg.__version__
         except ImportError:
             print "PyGame module not installed"
-        try :
+        try:
             import pickle
             print "Pickle Version : " + pickle.__version__
-        except :
+        except:
             print "Pickle module not installed"
 
-    except ImportError :
+    except ImportError:
         print "You need to install Platform to use this function"
         print "to install you can use:"
         print "easy_install platform"
     return
+
 
 class LazyProperty(object):
 
@@ -411,12 +427,13 @@ class LazyProperty(object):
         self.__doc__ = func.__doc__
 
     def __get__(self, obj, klass=None):
-        if obj is None: return None
+        if obj is None:
+            return None
         result = obj.__dict__[self.__name__] = self._func(obj)
         return result
 
-#supported image formats regular expression
-IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
-#maximum image size -
-MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.
+# supported image formats regular expression
+IMAGE_FORMATS = ('*.bmp', '*.gif', '*.jpg', '*.jpe', '*.jpeg', '*.png', '*.pbm', '*.pgm', '*.ppm', '*.tif', '*.tiff', '*.webp')
+# maximum image size -
+MAX_DIMENSION = 2 * 6000  # about twice the size of a full 35mm images - if you hit this, you got a lot data.
 LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__)))

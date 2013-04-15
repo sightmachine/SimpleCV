@@ -21,35 +21,35 @@ from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
 from SimpleCV.Display import Display
 
 cam = Camera()
-display = Display((800,600))
+display = Display((800, 600))
 data = "None"
 mydict = dict()
 myfile = "barcode-list.csv"
 
 while display.isNotDone():
-    display.checkEvents()#check for mouse clicks
+    display.checkEvents()  # check for mouse clicks
     img = cam.getImage()
-    img.drawRectangle(img.width/4,img.height/4,img.width/2,img.height/2,color=Color.RED,width=3)
-    if display.mouseLeft: # click the mouse to read
-        img.drawText("reading barcode... wait",10,10)
+    img.drawRectangle(img.width / 4, img.height / 4, img.width / 2, img.height / 2, color=Color.RED, width=3)
+    if display.mouseLeft:  # click the mouse to read
+        img.drawText("reading barcode... wait", 10, 10)
         img.save(display)
         barcode = img.findBarcode()
-        if barcode: # if we have a barcode
+        if barcode:  # if we have a barcode
             data = str(barcode.data)
             print data
-            if mydict.has_key(data):
+            if data in mydict:
                 mydict[data] = mydict[data] + 1
             else:
                 mydict[data] = 1
-    img.drawText("Click to scan.",10,10,color=Color.RED)
+    img.drawText("Click to scan.", 10, 10, color=Color.RED)
     myItem = "Last item scanned: " + data
-    img.drawText(myItem,10,30)
-    img.save(display) #display
+    img.drawText(myItem, 10, 30)
+    img.save(display)  # display
 
-#write to a CSV file.
-target= open( myfile, "wb" )
-wtr= csv.writer( target )
-wtr.writerow( ["item","count"])
+# write to a CSV file.
+target = open(myfile, "wb")
+wtr = csv.writer(target)
+wtr.writerow(["item", "count"])
 for d in mydict.items():
     wtr.writerow(d)
 target.close()

@@ -5,11 +5,10 @@ img = Image('JeepGood.png')
 img = img.invert()
 img2 = Image('JeepGood.png')
 img2 = img2.invert()
-#img2 = img2.resize(img.width,img.height)
+# img2 = img2.resize(img.width,img.height)
 
 blobs = img.findBlobs()
 blobs2 = img2.findBlobs()
-
 
 
 confuse = []
@@ -21,13 +20,13 @@ confuse = []
 i = 0
 for b in blobs:
     for d in blobs2:
-        metric =  b.getMatchMetric(d)
-        result = b.showCorrespondence(d,'bottom')
+        metric = b.getMatchMetric(d)
+        result = b.showCorrespondence(d, 'bottom')
         title = "Match Quality: " + str(metric)
-        result.drawText(title,20,20,color=Color.RED,fontsize=42)
+        result.drawText(title, 20, 20, color=Color.RED, fontsize=42)
         result.show()
-        fname = "SanityCheckExample"+str(i)+".png"
-        i = i+ 1
+        fname = "SanityCheckExample" + str(i) + ".png"
+        i = i + 1
         result.save(fname)
         print "------------------------------"
         print metric
@@ -38,6 +37,6 @@ print confuse
 confuse = np.array(confuse)
 
 
-print confuse.reshape(4,4)
+print confuse.reshape(4, 4)
 
 time.sleep(10)

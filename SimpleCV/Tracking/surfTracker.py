@@ -2,16 +2,17 @@ import cv2
 import numpy as np
 import itertools
 
+
 def surfTracker(img, bb, ts, **kwargs):
     """
     **DESCRIPTION**
-    
+
     (Dev Zone)
 
     Tracking the object surrounded by the bounding box in the given
     image using SURF keypoints.
 
-    Warning: Use this if you know what you are doing. Better have a 
+    Warning: Use this if you know what you are doing. Better have a
     look at Image.track()
 
     **PARAMETERS**
@@ -23,13 +24,13 @@ def surfTracker(img, bb, ts, **kwargs):
     Optional PARAMETERS:
 
     eps_val     - eps for DBSCAN
-                  The maximum distance between two samples for them 
-                  to be considered as in the same neighborhood. 
-                
+                  The maximum distance between two samples for them
+                  to be considered as in the same neighborhood.
+
     min_samples - min number of samples in DBSCAN
-                  The number of samples in a neighborhood for a point 
-                  to be considered as a core point. 
-                  
+                  The number of samples in a neighborhood for a point
+                  to be considered as a core point.
+
     distance    - thresholding KNN distance of each feature
                   if KNN distance > distance, point is discarded.
 
@@ -85,7 +86,7 @@ def surfTracker(img, bb, ts, **kwargs):
         detector = cv2.FeatureDetector_create("SURF")
         descriptor = cv2.DescriptorExtractor_create("SURF")
 
-        templateImg_cv2 = templateImg.getNumpyCv2()[bb[1]:bb[1]+bb[3], bb[0]:bb[0]+bb[2]]
+        templateImg_cv2 = templateImg.getNumpyCv2()[bb[1]:bb[1] + bb[3], bb[0]:bb[0] + bb[2]]
         tkp = detector.detect(templateImg_cv2)
         tkp, td = descriptor.compute(templateImg_cv2, tkp)
 
@@ -117,31 +118,31 @@ def surfTracker(img, bb, ts, **kwargs):
     del flann
 
     # filter points using distnace criteria
-    dist = (dist[:,0]/2500.0).reshape(-1,).tolist()
+    dist = (dist[:, 0] / 2500.0).reshape(-1,).tolist()
     idx = idx.reshape(-1).tolist()
     indices = sorted(range(len(dist)), key=lambda i: dist[i])
 
     dist = [dist[i] for i in indices]
     idx = [idx[i] for i in indices]
     skp_final = []
-    skp_final_labelled=[]
-    data_cluster=[]
-    
+    skp_final_labelled = []
+    data_cluster = []
+
     for i, dis in itertools.izip(idx, dist):
         if dis < distance:
             skp_final.append(skp[i])
             data_cluster.append((skp[i].pt[0], skp[i].pt[1]))
 
-    #Use Denstiy based clustering to further fitler out keypoints
+    # Use Denstiy based clustering to further fitler out keypoints
     n_data = np.asarray(data_cluster)
     D = Dis.squareform(Dis.pdist(n_data))
-    S = 1 - (D/np.max(D))
-    
+    S = 1 - (D / np.max(D))
+
     db = DBSCAN(eps=eps_val, min_samples=min_samples).fit(S)
     core_samples = db.core_sample_indices_
     labels = db.labels_
     for label, i in zip(labels, range(len(labels))):
-        if label==0:
+        if label == 0:
             skp_final_labelled.append(skp_final[i])
 
     track = SURFTracker(img, skp_final_labelled, detector, descriptor, templateImg, skp, sd, tkp, td)
