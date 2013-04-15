@@ -13312,30 +13312,30 @@ class Image:
 
         **RETURNS**
 
-        * List * - A list of tuples , each tuple contains (x,y) values
+        * FeatureSet * - A FeatureSet of Lines
         
         **EXAMPLE**
 
         >>> image = Image("logo")
-        >>> edgePoints = image.edgeSnap([(50,50),(230,200)])
-        >>> for point in edgePoints:
-                image.drawCircle(point,2,Color.RED,-1)
-
+        >>> edgeLines = image.edgeSnap([(50,50),(230,200)])
+        >>> edgeLines.draw(color = Color.BLUE,width = 3)
         """
 
-        if(len(pointList) == 0 ):
+        if(len(pointList) < 2 ):
             return None
 
-        finalList = [(pointList[0][0],pointList[0][1])]
-        if(len(pointList) == 1 ):
-            return finalList
-
+        finalList = [pointList[0]]
+        featureSet  = FeatureSet()
         last = pointList[0]
         for point in pointList[1:None]:
             finalList += self._edgeSnap2(last,point,step,t1,t2)
             last = point
-
-        return finalList
+            
+        last = finalList[0]
+        for point in finalList:
+            featureSet.append(Line(self,(last,point)))
+            last = point
+        return featureSet
 
     def _edgeSnap2(self,start,end,step,t1=50,t2=100):
         """
@@ -13356,6 +13356,10 @@ class Image:
         * *t1* - Lower Canny Threshold for Edge Detection
 
         * *t2* - Upper Canny Threshold for Edge Detection
+
+        **RETURNS**
+
+        * List * - A list of tuples , each tuple contains (x,y) values
         
         """
 

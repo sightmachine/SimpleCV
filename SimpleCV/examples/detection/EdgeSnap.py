@@ -34,11 +34,9 @@ while not display.isDone():
         points += [left]
 
     if(right != None ):
-        draw = image.edgeSnap(points,1)
+        draw = image.edgeSnap(points)
+        
         if(draw):
-            last = draw[0]
-            for point in draw:
-                image.drawLine(last,point,Color.RED,3)
-                last = point
+            draw.draw(color = Color.RED,width = 3)
             image.save(display)
         points = []
