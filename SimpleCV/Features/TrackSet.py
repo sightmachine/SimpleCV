@@ -5,6 +5,7 @@ import cv2.cv as cv
 import cv2
 import time
 
+
 class TrackSet(FeatureSet):
     """
     **SUMMARY**
@@ -28,7 +29,7 @@ class TrackSet(FeatureSet):
 
     def __init__(self):
         self.kalman = None
-        self.predict_pt = (0,0)
+        self.predict_pt = (0, 0)
         self.__kalman()
 
     def append(self, f):
@@ -52,11 +53,11 @@ class TrackSet(FeatureSet):
             ... img = img1
         >>> ts.append(CAMShift(img,bb,ellipse))
         """
-        list.append(self,f)
+        list.append(self, f)
         ts = self
         if ts[0].area <= 0:
             return
-        f.sizeRatio = float(ts[-1].area)/float(ts[0].area)
+        f.sizeRatio = float(ts[-1].area) / float(ts[0].area)
         f.vel = self.__pixelVelocity()
         f.rt_vel = self.__pixleVelocityRealTime()
         self.__setKalman()
@@ -141,8 +142,8 @@ class TrackSet(FeatureSet):
 
         ts = self
         img = self[-1].image
-        for i in range(len(ts)-1):
-            img.drawLine((ts[i].center),(ts[i+1].center), color=color, thickness=thickness)
+        for i in range(len(ts) - 1):
+            img.drawLine((ts[i].center), (ts[i + 1].center), color=color, thickness=thickness)
 
     def draw(self, color=Color.GREEN, rad=1, thickness=1):
         """
@@ -288,7 +289,7 @@ class TrackSet(FeatureSet):
         """
         ts = self
         if len(ts) < 2:
-            return (0,0)
+            return (0, 0)
         dx = ts[-1].x - ts[-2].x
         dy = ts[-1].y - ts[-2].y
         return (dx, dy)
@@ -331,11 +332,11 @@ class TrackSet(FeatureSet):
         """
         ts = self
         if len(ts) < 2:
-            return (0,0)
+            return (0, 0)
         dx = ts[-1].x - ts[-2].x
         dy = ts[-1].y - ts[-2].y
         dt = ts[-1].time - ts[-2].time
-        return (float(dx)/dt, float(dy)/dt)
+        return (float(dx) / dt, float(dy) / dt)
 
     def pixleVelocityRealTime(self):
         """
@@ -387,7 +388,7 @@ class TrackSet(FeatureSet):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 10)
+            pos = (imgsize[0] - 120, 10)
         if not size:
             size = 16
         text = "x = %d  y = %d" % (f.x, f.y)
@@ -421,7 +422,7 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 30)
+            pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
         text = "size = %f" % (f.sizeRatio)
@@ -456,12 +457,12 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         vel = f.vel
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 50)
+            pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel[0], vel[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/frame", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/frame", pos[0], pos[1] + size, color, size)
 
     def showPixelVelocityRT(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -492,12 +493,12 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         vel_rt = f.rt_vel
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 90)
+            pos = (imgsize[0] - 120, 90)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/second", pos[0], pos[1] + size, color, size)
 
     def processTrack(self, func):
         """
@@ -548,10 +549,9 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
         avg = np.float32(f)
         for img in imgs[1:]:
             f = img
-            cv2.accumulateWeighted(f,avg,0.01)
+            cv2.accumulateWeighted(f, avg, 0.01)
             res = cv2.convertScaleAbs(avg)
         return Image(res, cv2image=True)
-
 
     def __kalman(self):
         self.kalman = cv.CreateKalman(4, 2, 0)
@@ -568,27 +568,27 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
             self.kalman_x = ts[-2].x
             self.kalman_y = ts[-2].y
 
-        self.kalman.state_pre[0,0]  = self.kalman_x
-        self.kalman.state_pre[1,0]  = self.kalman_y
-        self.kalman.state_pre[2,0]  = self.predict_pt[0]
-        self.kalman.state_pre[3,0]  = self.predict_pt[1]
+        self.kalman.state_pre[0, 0] = self.kalman_x
+        self.kalman.state_pre[1, 0] = self.kalman_y
+        self.kalman.state_pre[2, 0] = self.predict_pt[0]
+        self.kalman.state_pre[3, 0] = self.predict_pt[1]
 
-        self.kalman.transition_matrix[0,0] = 1
-        self.kalman.transition_matrix[0,1] = 0
-        self.kalman.transition_matrix[0,2] = 1
-        self.kalman.transition_matrix[0,3] = 0
-        self.kalman.transition_matrix[1,0] = 0
-        self.kalman.transition_matrix[1,1] = 1
-        self.kalman.transition_matrix[1,2] = 0
-        self.kalman.transition_matrix[1,3] = 1
-        self.kalman.transition_matrix[2,0] = 0
-        self.kalman.transition_matrix[2,1] = 0
-        self.kalman.transition_matrix[2,2] = 1
-        self.kalman.transition_matrix[2,3] = 0
-        self.kalman.transition_matrix[3,0] = 0
-        self.kalman.transition_matrix[3,1] = 0
-        self.kalman.transition_matrix[3,2] = 0
-        self.kalman.transition_matrix[3,3] = 1
+        self.kalman.transition_matrix[0, 0] = 1
+        self.kalman.transition_matrix[0, 1] = 0
+        self.kalman.transition_matrix[0, 2] = 1
+        self.kalman.transition_matrix[0, 3] = 0
+        self.kalman.transition_matrix[1, 0] = 0
+        self.kalman.transition_matrix[1, 1] = 1
+        self.kalman.transition_matrix[1, 2] = 0
+        self.kalman.transition_matrix[1, 3] = 1
+        self.kalman.transition_matrix[2, 0] = 0
+        self.kalman.transition_matrix[2, 1] = 0
+        self.kalman.transition_matrix[2, 2] = 1
+        self.kalman.transition_matrix[2, 3] = 0
+        self.kalman.transition_matrix[3, 0] = 0
+        self.kalman.transition_matrix[3, 1] = 0
+        self.kalman.transition_matrix[3, 2] = 0
+        self.kalman.transition_matrix[3, 3] = 1
 
         cv.SetIdentity(self.kalman.measurement_matrix, cv.RealScalar(1))
         cv.SetIdentity(self.kalman.process_noise_cov, cv.RealScalar(1e-5))
@@ -597,11 +597,11 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
 
     def __predictKalman(self):
         self.kalman_prediction = cv.KalmanPredict(self.kalman)
-        self.predict_pt  = (self.kalman_prediction[0,0], self.kalman_prediction[1,0])
+        self.predict_pt = (self.kalman_prediction[0, 0], self.kalman_prediction[1, 0])
 
     def __correctKalman(self):
         self.kalman_estimated = cv.KalmanCorrect(self.kalman, self.kalman_measurement)
-        self.state_pt = (self.kalman_estimated[0,0], self.kalman_estimated[1,0])
+        self.state_pt = (self.kalman_estimated[0, 0], self.kalman_estimated[1, 0])
 
     def __changeMeasure(self):
         ts = self
@@ -752,8 +752,8 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
 
         ts = self
         img = self[-1].image
-        for i in range(1, len(ts)-1):
-            img.drawLine((ts[i].predict_pt),(ts[i+1].predict_pt), color=color, thickness=thickness)
+        for i in range(1, len(ts) - 1):
+            img.drawLine((ts[i].predict_pt), (ts[i + 1].predict_pt), color=color, thickness=thickness)
 
     def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -913,5 +913,5 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
 
         ts = self
         img = self[-1].image
-        for i in range(len(ts)-1):
-            img.drawLine((ts[i].state_pt),(ts[i+1].state_pt), color=color, thickness=thickness)
+        for i in range(len(ts) - 1):
+            img.drawLine((ts[i].state_pt), (ts[i + 1].state_pt), color=color, thickness=thickness)

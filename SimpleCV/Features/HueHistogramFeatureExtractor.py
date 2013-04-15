@@ -2,6 +2,7 @@ from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.FeatureExtractorBase import *
 
+
 class HueHistogramFeatureExtractor(FeatureExtractorBase):
     """
     Create a Hue Histogram feature extractor. This feature extractor
@@ -11,9 +12,10 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
     mNBins - the number of Hue bins.
     """
     mNBins = 16
+
     def __init__(self, mNBins=16):
-        #we define the black (positive) and white (negative) regions of an image
-        #to get our haar wavelet
+        # we define the black (positive) and white (negative) regions of an image
+        # to get our haar wavelet
         self.mNBins = mNBins
 
     def extract(self, img):
@@ -23,12 +25,11 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
         """
         img = img.toHLS()
         h = img.getEmpty(1)
-        cv.Split(img.getBitmap(),h,None,None,None)
-        npa = np.array(h[:,:])
-        npa = npa.reshape(1,npa.shape[0]*npa.shape[1])
-        hist = np.histogram(npa,self.mNBins,normed=True,range=(0,255))
+        cv.Split(img.getBitmap(), h, None, None, None)
+        npa = np.array(h[:, :])
+        npa = npa.reshape(1, npa.shape[0] * npa.shape[1])
+        hist = np.histogram(npa, self.mNBins, normed=True, range=(0, 255))
         return hist[0].tolist()
-
 
     def getFieldNames(self):
         """
@@ -37,7 +38,7 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
         """
         retVal = []
         for i in range(self.mNBins):
-            name = "Hue"+str(i)
+            name = "Hue" + str(i)
             retVal.append(name)
         return retVal
 

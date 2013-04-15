@@ -6,6 +6,7 @@ from base import *
 
 PYGAME_INITIALIZED = False
 
+
 class Display:
     """
     **SUMMARY**
@@ -71,10 +72,10 @@ class Display:
     eventhandler = ''
     mq = ''
     done = False
-    mouseX = 0 # These are the scaled mouse values. If you want to do image manipulation use these.
+    mouseX = 0  # These are the scaled mouse values. If you want to do image manipulation use these.
     mouseY = 0
-    mouseRawX = 0 # Raw x and y are the actual position on the screen
-    mouseRawY = 0 # versus the position on the image.
+    mouseRawX = 0  # Raw x and y are the actual position on the screen
+    mouseRawY = 0  # versus the position on the image.
     mouseLeft = 0
     mouseMiddle = 0
     mouseRight = 0
@@ -93,12 +94,12 @@ class Display:
     rightButtonDown = None
     rightButtonUp = None
     displaytype = None
-    pressed=[]
+    pressed = []
 
     def __repr__(self):
         return "<SimpleCV.Display Object resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.resolution, self.imgw, self.imgh, hex(id(self)))
 
-    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
+    def __init__(self, resolution=(640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
         """
         **SUMMARY**
 
@@ -152,12 +153,12 @@ class Display:
         self.displaytype = displaytype
         self.pressed = pg.key.get_pressed()
 
-        self.mouseRawX = 0 # Raw x and y are the actual position on the screen
-        self.mouseRawY = 0 # versus the position on the image.
+        self.mouseRawX = 0  # Raw x and y are the actual position on the screen
+        self.mouseRawY = 0  # versus the position on the image.
         self.resolution = resolution
         if not displaytype == 'notebook':
             self.screen = pg.display.set_mode(resolution, flags)
-        scvLogo = SimpleCV.Image("simplecv").scale(32,32)
+        scvLogo = SimpleCV.Image("simplecv").scale(32, 32)
         pg.display.set_icon(scvLogo.getPGSurface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
@@ -357,11 +358,11 @@ class Display:
         :py:meth:`rightButtonUpPostion`
         :py:meth:`checkEvents`
         """
-        xmax = np.max((pt0[0],pt1[0]))
-        xmin = np.min((pt0[0],pt1[0]))
-        ymax = np.max((pt0[1],pt1[1]))
-        ymin = np.min((pt0[1],pt1[1]))
-        return xmin,ymin,xmax-xmin,ymax-ymin
+        xmax = np.max((pt0[0], pt1[0]))
+        xmin = np.min((pt0[0], pt1[0]))
+        ymax = np.max((pt0[1], pt1[1]))
+        ymin = np.min((pt0[1], pt1[1]))
+        return xmin, ymin, xmax - xmin, ymax - ymin
 
     def writeFrame(self, img, fit=True):
         """
@@ -411,155 +412,153 @@ class Display:
         #   if one / both too small - center along axis
         #
         # this is getting a little long. Probably needs to be refactored.
-        wndwAR = float(self.resolution[0])/float(self.resolution[1])
-        imgAR = float(img.width)/float(img.height)
+        wndwAR = float(self.resolution[0]) / float(self.resolution[1])
+        imgAR = float(img.width) / float(img.height)
         self.sourceresolution = img.size()
-        self.sourceoffset = (0,0)
+        self.sourceoffset = (0, 0)
         self.imgw = img.width
         self.imgh = img.height
         self.xscale = 1.0
         self.yscale = 1.0
         self.xoffset = 0
         self.yoffset = 0
-        if( img.size() == self.resolution): # we have to resize
+        if(img.size() == self.resolution):  # we have to resize
             s = img.getPGSurface()
             self.screen.blit(s, s.get_rect())
             pg.display.flip()
-        elif( imgAR == wndwAR ):
-            self.xscale = (float(img.width)/float(self.resolution[0]))
-            self.yscale = (float(img.height)/float(self.resolution[1]))
+        elif(imgAR == wndwAR):
+            self.xscale = (float(img.width) / float(self.resolution[0]))
+            self.yscale = (float(img.height) / float(self.resolution[1]))
             img = img.scale(self.resolution[0], self.resolution[1])
             s = img.getPGSurface()
             self.screen.blit(s, s.get_rect())
             pg.display.flip()
         elif(fit):
-            #scale factors
-            wscale = (float(img.width)/float(self.resolution[0]))
-            hscale = (float(img.height)/float(self.resolution[1]))
+            # scale factors
+            wscale = (float(img.width) / float(self.resolution[0]))
+            hscale = (float(img.height) / float(self.resolution[1]))
             targetw = img.width
             targeth = img.height
-            if(wscale>1): #we're shrinking what is the percent reduction
-                wscale=1-(1.0/wscale)
-            else: # we need to grow the image by a percentage
-                wscale = 1.0-wscale
+            if(wscale > 1):  # we're shrinking what is the percent reduction
+                wscale = 1 - (1.0 / wscale)
+            else:  # we need to grow the image by a percentage
+                wscale = 1.0 - wscale
 
-            if(hscale>1):
-                hscale=1-(1.0/hscale)
+            if(hscale > 1):
+                hscale = 1 - (1.0 / hscale)
             else:
-                hscale=1.0-hscale
+                hscale = 1.0 - hscale
 
-            if( wscale == 0 ): #if we can get away with not scaling do that
+            if(wscale == 0):  # if we can get away with not scaling do that
                 targetx = 0
-                targety = (self.resolution[1]-img.height)/2
+                targety = (self.resolution[1] - img.height) / 2
                 targetw = img.width
                 targeth = img.height
                 s = img.getPGSurface()
-            elif( hscale == 0 ): #if we can get away with not scaling do that
-                targetx = (self.resolution[0]-img.width)/2
+            elif(hscale == 0):  # if we can get away with not scaling do that
+                targetx = (self.resolution[0] - img.width) / 2
                 targety = 0
                 targetw = img.width
                 targeth = img.height
                 s = img.getPGSurface()
-            elif(wscale < hscale): # the width has less distortion
-                sfactor = float(self.resolution[0])/float(img.width)
-                targetw = int(float(img.width)*sfactor)
-                targeth = int(float(img.height)*sfactor)
-                if( targetw > self.resolution[0] or targeth > self.resolution[1]):
-                    #aw shucks that still didn't work do the other way instead
-                    sfactor = float(self.resolution[1])/float(img.height)
-                    targetw = int(float(img.width)*sfactor)
-                    targeth = int(float(img.height)*sfactor)
-                    targetx = (self.resolution[0]-targetw)/2
+            elif(wscale < hscale):  # the width has less distortion
+                sfactor = float(self.resolution[0]) / float(img.width)
+                targetw = int(float(img.width) * sfactor)
+                targeth = int(float(img.height) * sfactor)
+                if(targetw > self.resolution[0] or targeth > self.resolution[1]):
+                    # aw shucks that still didn't work do the other way instead
+                    sfactor = float(self.resolution[1]) / float(img.height)
+                    targetw = int(float(img.width) * sfactor)
+                    targeth = int(float(img.height) * sfactor)
+                    targetx = (self.resolution[0] - targetw) / 2
                     targety = 0
                 else:
                     targetx = 0
-                    targety = (self.resolution[1]-targeth)/2
-                img = img.scale(targetw,targeth)
+                    targety = (self.resolution[1] - targeth) / 2
+                img = img.scale(targetw, targeth)
                 s = img.getPGSurface()
-            else: #the height has more distortion
-                sfactor = float(self.resolution[1])/float(img.height)
-                targetw = int(float(img.width)*sfactor)
-                targeth = int(float(img.height)*sfactor)
-                if( targetw > self.resolution[0] or targeth > self.resolution[1]):
-                    #aw shucks that still didn't work do the other way instead
-                    sfactor = float(self.resolution[0])/float(img.width)
-                    targetw = int(float(img.width)*sfactor)
-                    targeth = int(float(img.height)*sfactor)
+            else:  # the height has more distortion
+                sfactor = float(self.resolution[1]) / float(img.height)
+                targetw = int(float(img.width) * sfactor)
+                targeth = int(float(img.height) * sfactor)
+                if(targetw > self.resolution[0] or targeth > self.resolution[1]):
+                    # aw shucks that still didn't work do the other way instead
+                    sfactor = float(self.resolution[0]) / float(img.width)
+                    targetw = int(float(img.width) * sfactor)
+                    targeth = int(float(img.height) * sfactor)
                     targetx = 0
-                    targety = (self.resolution[1]-targeth)/2
+                    targety = (self.resolution[1] - targeth) / 2
                 else:
-                    targetx = (self.resolution[0]-targetw)/2
+                    targetx = (self.resolution[0] - targetw) / 2
                     targety = 0
-                img = img.scale(targetw,targeth)
+                img = img.scale(targetw, targeth)
                 s = img.getPGSurface()
-            #clear out the screen so everything is clean
+            # clear out the screen so everything is clean
             black = pg.Surface((self.resolution[0], self.resolution[1]))
-            black.fill((0,0,0))
-            self.screen.blit(black,black.get_rect())
-            self.screen.blit(s,(targetx,targety))
+            black.fill((0, 0, 0))
+            self.screen.blit(black, black.get_rect())
+            self.screen.blit(s, (targetx, targety))
             self.sourceoffset = (targetx, targety)
             pg.display.flip()
             self.xoffset = targetx
             self.yoffset = targety
-            self.xscale = (float(self.imgw)/float(targetw))
-            self.yscale = (float(self.imgh)/float(targeth))
-        else: # we're going to crop instead
+            self.xscale = (float(self.imgw) / float(targetw))
+            self.yscale = (float(self.imgh) / float(targeth))
+        else:  # we're going to crop instead
             self.doClamp = False
             targetx = 0
             targety = 0
             cornerx = 0
             cornery = 0
-            if(img.width <= self.resolution[0] and img.height <= self.resolution[1] ): # center a too small image
-                #we're too small just center the thing
-                targetx = (self.resolution[0]/2)-(img.width/2)
-                targety = (self.resolution[1]/2)-(img.height/2)
+            if(img.width <= self.resolution[0] and img.height <= self.resolution[1]):  # center a too small image
+                # we're too small just center the thing
+                targetx = (self.resolution[0] / 2) - (img.width / 2)
+                targety = (self.resolution[1] / 2) - (img.height / 2)
                 cornerx = targetx
                 cornery = targety
                 s = img.getPGSurface()
-            elif(img.width > self.resolution[0] and img.height > self.resolution[1]): #crop too big on both axes
+            elif(img.width > self.resolution[0] and img.height > self.resolution[1]):  # crop too big on both axes
                 targetw = self.resolution[0]
                 targeth = self.resolution[1]
                 targetx = 0
                 targety = 0
-                x = (img.width-self.resolution[0])/2
-                y = (img.height-self.resolution[1])/2
-                cornerx = -1*x
-                cornery = -1*y
-                img = img.crop(x,y,targetw,targeth)
+                x = (img.width - self.resolution[0]) / 2
+                y = (img.height - self.resolution[1]) / 2
+                cornerx = -1 * x
+                cornery = -1 * y
+                img = img.crop(x, y, targetw, targeth)
                 s = img.getPGSurface()
-            elif( img.width < self.resolution[0] and img.height >= self.resolution[1]): #height too big
-                #crop along the y dimension and center along the x dimension
+            elif(img.width < self.resolution[0] and img.height >= self.resolution[1]):  # height too big
+                # crop along the y dimension and center along the x dimension
                 targetw = img.width
                 targeth = self.resolution[1]
-                targetx = (self.resolution[0]-img.width)/2
+                targetx = (self.resolution[0] - img.width) / 2
                 targety = 0
                 x = 0
-                y = (img.height-self.resolution[1])/2
+                y = (img.height - self.resolution[1]) / 2
                 cornerx = targetx
                 cornery = -1 * y
-                img = img.crop(x,y,targetw,targeth)
+                img = img.crop(x, y, targetw, targeth)
                 s = img.getPGSurface()
-            elif( img.width > self.resolution[0] and img.height <= self.resolution[1]): #width too big
-                #crop along the y dimension and center along the x dimension
+            elif(img.width > self.resolution[0] and img.height <= self.resolution[1]):  # width too big
+                # crop along the y dimension and center along the x dimension
                 targetw = self.resolution[0]
                 targeth = img.height
                 targetx = 0
-                targety = (self.resolution[1]-img.height)/2
-                x = (img.width-self.resolution[0])/2
+                targety = (self.resolution[1] - img.height) / 2
+                x = (img.width - self.resolution[0]) / 2
                 y = 0
                 cornerx = -1 * x
                 cornery = targety
-                img = img.crop(x,y,targetw,targeth)
+                img = img.crop(x, y, targetw, targeth)
                 s = img.getPGSurface()
             self.xoffset = cornerx
             self.yoffset = cornery
             black = pg.Surface((self.resolution[0], self.resolution[1]))
-            black.fill((0,0,0))
-            self.screen.blit(black,black.get_rect())
-            self.screen.blit(s,(targetx,targety))
+            black.fill((0, 0, 0))
+            self.screen.blit(black, black.get_rect())
+            self.screen.blit(s, (targetx, targety))
             pg.display.flip()
-
-
 
     def _setButtonState(self, state, button):
         if button == 1:
@@ -573,7 +572,7 @@ class Display:
         if button == 5:
             self.mouseWheelDown = 1
 
-    def checkEvents(self,returnStrings=False):
+    def checkEvents(self, returnStrings=False):
         """
         **SUMMARY**
 
@@ -608,9 +607,9 @@ class Display:
             if event.type == pg.MOUSEMOTION:
                 self.mouseRawX = event.pos[0]
                 self.mouseRawY = event.pos[1]
-                x = int((event.pos[0]-self.xoffset)*self.xscale)
-                y = int((event.pos[1]-self.yoffset)*self.yscale)
-                (self.mouseX,self.mouseY) = self._clamp(x,y)
+                x = int((event.pos[0] - self.xoffset) * self.xscale)
+                y = int((event.pos[1] - self.yoffset) * self.yscale)
+                (self.mouseX, self.mouseY) = self._clamp(x, y)
                 self.mouseLeft, self.mouseMiddle, self.mouseRight = event.buttons
             if event.type == pg.MOUSEBUTTONUP:
 
@@ -626,17 +625,17 @@ class Display:
 
         self.pressed = pg.key.get_pressed()
 
-        if( self.lastLeftButton == 0 and self.mouseLeft == 1 ):
-            self.leftButtonDown = (self.mouseX,self.mouseY)
-        if( self.lastLeftButton == 1 and self.mouseLeft == 0 ):
-            self.leftButtonUp = (self.mouseX,self.mouseY)
+        if(self.lastLeftButton == 0 and self.mouseLeft == 1):
+            self.leftButtonDown = (self.mouseX, self.mouseY)
+        if(self.lastLeftButton == 1 and self.mouseLeft == 0):
+            self.leftButtonUp = (self.mouseX, self.mouseY)
 
-        if( self.lastRightButton == 0 and self.mouseRight == 1 ):
-            self.rightButtonDown = (self.mouseX,self.mouseY)
-        if( self.lastRightButton == 1 and self.mouseRight == 0 ):
-            self.rightButtonUp = (self.mouseX,self.mouseY)
+        if(self.lastRightButton == 0 and self.mouseRight == 1):
+            self.rightButtonDown = (self.mouseX, self.mouseY)
+        if(self.lastRightButton == 1 and self.mouseRight == 0):
+            self.rightButtonUp = (self.mouseX, self.mouseY)
 
-        #If ESC pressed, end the display
+        # If ESC pressed, end the display
         if(self.pressed[pg.K_ESCAPE] == 1):
             self.done = True
 
@@ -685,7 +684,7 @@ class Display:
         """
         return not self.isDone()
 
-    def _clamp(self,x,y):
+    def _clamp(self, x, y):
         """
         clamp all values between zero and the image width
         """
@@ -693,14 +692,14 @@ class Display:
         ry = y
         if(x > self.imgw):
             rx = self.imgw
-        if(x < 0 ):
+        if(x < 0):
             rx = 0
 
         if(y > self.imgh):
             ry = self.imgh
-        if(y < 0 ):
+        if(y < 0):
             ry = 0
-        return (rx,ry)
+        return (rx, ry)
 
     def quit(self):
         """

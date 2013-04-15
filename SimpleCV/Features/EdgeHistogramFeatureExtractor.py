@@ -13,6 +13,7 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
     bins = the number of bins
     """
     mNBins = 10
+
     def __init__(self, bins=10):
 
         self.mNBins = bins
@@ -21,21 +22,19 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         """
         Extract the line orientation and and length histogram.
         """
-        #I am not sure this is the best normalization constant.
+        # I am not sure this is the best normalization constant.
         retVal = []
-        p = max(img.width,img.height)/2
-        minLine = 0.01*p
-        gap = 0.1*p
-        fs = img.findLines(threshold=10,minlinelength=minLine,maxlinegap=gap)
-        ls = fs.length()/p #normalize to image length
+        p = max(img.width, img.height) / 2
+        minLine = 0.01 * p
+        gap = 0.1 * p
+        fs = img.findLines(threshold=10, minlinelength=minLine, maxlinegap=gap)
+        ls = fs.length() / p  # normalize to image length
         angs = fs.angle()
-        lhist = np.histogram(ls,self.mNBins,normed=True,range=(0,1))
-        ahist = np.histogram(angs,self.mNBins,normed=True,range=(-180,180))
+        lhist = np.histogram(ls, self.mNBins, normed=True, range=(0, 1))
+        ahist = np.histogram(angs, self.mNBins, normed=True, range=(-180, 180))
         retVal.extend(lhist[0].tolist())
         retVal.extend(ahist[0].tolist())
         return retVal
-
-
 
     def getFieldNames(self):
         """
@@ -43,10 +42,10 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         """
         retVal = []
         for i in range(self.mNBins):
-            name = "Length"+str(i)
+            name = "Length" + str(i)
             retVal.append(name)
         for i in range(self.mNBins):
-            name = "Angle"+str(i)
+            name = "Angle" + str(i)
             retVal.append(name)
 
         return retVal
@@ -59,4 +58,4 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         """
         This method returns the total number of fields in the feature vector.
         """
-        return self.mNBins*2
+        return self.mNBins * 2

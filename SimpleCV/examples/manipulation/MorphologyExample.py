@@ -8,16 +8,16 @@ http://en.wikipedia.org/wiki/Mathematical_morphology
 print __doc__
 from SimpleCV import *
 
-display = Display(resolution = (800, 600)) #create a new display to draw images on
-cam = Camera() #initialize the camera
-max_threshold = 1 # this is used for the edge detection
-threshold_step = 1 # this is the amount to adjust the threshold by each time the display is updated
+display = Display(resolution=(800, 600))  # create a new display to draw images on
+cam = Camera()  # initialize the camera
+max_threshold = 1  # this is used for the edge detection
+threshold_step = 1  # this is the amount to adjust the threshold by each time the display is updated
 threshold = max_threshold
 example = 1
 
 
 while display.isNotDone():
-    image = cam.getImage().flipHorizontal() # get image (or frame) from camera
+    image = cam.getImage().flipHorizontal()  # get image (or frame) from camera
 
     # This just automatically cycles through threshold levels
     if(threshold >= 20):
@@ -28,7 +28,6 @@ while display.isNotDone():
             example = example + 1
     else:
         threshold = threshold + threshold_step
-
 
     if(example == 1):
         image = image.erode(threshold)

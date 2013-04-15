@@ -35,7 +35,7 @@ def intToBin(i):
     """ Integer to two bytes """
     # devide in two parts (bytes)
     i1 = i % 256
-    i2 = int( i/256)
+    i2 = int(i / 256)
     # make string (little endian)
     return chr(i1) + chr(i2)
 
@@ -57,7 +57,7 @@ def getAppExt(loops=0):
     bb += "NETSCAPE2.0"
     bb += "\x03\x01"
     if loops == 0:
-        loops = 2**16-1
+        loops = 2 ** 16 - 1
     bb += intToBin(loops)
     bb += '\x00'  # end
     return bb
@@ -68,7 +68,7 @@ def getGraphicsControlExt(duration=0.1):
     each image. Specifies transparancy and duration. """
     bb = '\x21\xF9\x04'
     bb += '\x08'  # no transparancy
-    bb += intToBin( int(duration*100) ) # in 100th of seconds
+    bb += intToBin(int(duration * 100))  # in 100th of seconds
     bb += '\x00'  # no transparant color
     bb += '\x00'  # end
     return bb
@@ -163,21 +163,21 @@ def writeGif(filename, images, duration=0.1, loops=0, dither=1):
     # convert to PIL
     for im in images:
 
-        if True: #isinstance(im,Image.Image):
-            images2.append( im.convert('P',dither=dither) )
+        if True:  # isinstance(im,Image.Image):
+            images2.append(im.convert('P', dither=dither))
 
         elif np and isinstance(im, np.ndarray):
             if im.dtype == np.uint8:
                 pass
             elif im.dtype in [np.float32, np.float64]:
-                im = (im*255).astype(np.uint8)
+                im = (im * 255).astype(np.uint8)
             else:
                 im = im.astype(np.uint8)
             # convert
-            if len(im.shape)==3 and im.shape[2]==3:
-                im = Image.fromarray(im,'RGB').convert('P',dither=dither)
-            elif len(im.shape)==2:
-                im = Image.fromarray(im,'L').convert('P',dither=dither)
+            if len(im.shape) == 3 and im.shape[2] == 3:
+                im = Image.fromarray(im, 'RGB').convert('P', dither=dither)
+            elif len(im.shape) == 2:
+                im = Image.fromarray(im, 'L').convert('P', dither=dither)
             else:
                 raise ValueError("Array has invalid shape to be an image.")
             images2.append(im)
@@ -194,7 +194,6 @@ def writeGif(filename, images, duration=0.1, loops=0, dither=1):
     else:
         durations = [duration for im in images2]
 
-
     # open file
     fp = open(filename, 'wb')
 
@@ -207,10 +206,10 @@ def writeGif(filename, images, duration=0.1, loops=0, dither=1):
 
 
 if __name__ == '__main__':
-    im = np.zeros((200,200), dtype=np.uint8)
-    im[10:30,:] = 100
-    im[:,80:120] = 255
-    im[-50:-40,:] = 50
+    im = np.zeros((200, 200), dtype=np.uint8)
+    im[10:30, :] = 100
+    im[:, 80:120] = 255
+    im[-50:-40, :] = 50
 
-    images = [im*1.0, im*0.8, im*0.6, im*0.4, im*0]
-    writeGif('lala3.gif',images, duration=0.5, dither=0)
+    images = [im * 1.0, im * 0.8, im * 0.6, im * 0.4, im * 0]
+    writeGif('lala3.gif', images, duration=0.5, dither=0)

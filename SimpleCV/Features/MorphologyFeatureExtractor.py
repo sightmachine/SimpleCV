@@ -3,6 +3,7 @@ from SimpleCV.ImageClass import Image
 from SimpleCV.Features.FeatureExtractorBase import *
 from SimpleCV.Features.BlobMaker import *
 
+
 class MorphologyFeatureExtractor(FeatureExtractorBase):
     """
     This feature extractor collects some basic morphology infromation about a given
@@ -13,6 +14,7 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
     mNBins = 9
     mBlobMaker = None
     mThresholdOpeation = None
+
     def __init__(self, thresholdOperation=None):
         """
         The threshold operation is a function of the form
@@ -50,14 +52,14 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         else:
             bwImg = img.binarize()
 
-        if( self.mBlobMaker is None ):
+        if(self.mBlobMaker is None):
             self.mBlobMaker = BlobMaker()
 
-        fs = self.mBlobMaker.extractFromBinary(bwImg,img)
-        if( fs is not None and len(fs) > 0 ):
+        fs = self.mBlobMaker.extractFromBinary(bwImg, img)
+        if(fs is not None and len(fs) > 0):
             fs = fs.sortArea()
             retVal = []
-            retVal.append(fs[0].mArea/fs[0].mPerimeter)
+            retVal.append(fs[0].mArea / fs[0].mPerimeter)
             retVal.append(fs[0].mAspectRatio)
             retVal.append(fs[0].mHu[0])
             retVal.append(fs[0].mHu[1])
@@ -67,7 +69,6 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
             retVal.append(fs[0].mHu[5])
             retVal.append(fs[0].mHu[6])
         return retVal
-
 
     def getFieldNames(self):
         """
@@ -85,7 +86,6 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         retVal.append('Hu5')
         retVal.append('Hu6')
         return retVal
-
 
     def getNumFields(self):
         """

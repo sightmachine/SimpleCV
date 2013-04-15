@@ -3,6 +3,7 @@ from SimpleCV.ImageClass import Image
 from SimpleCV.Features.HaarLikeFeature import *
 from SimpleCV.Features.FeatureExtractorBase import *
 
+
 class HaarLikeFeatureExtractor(FeatureExtractorBase):
     """
     This is used generate Haar like features from an image.  These
@@ -16,20 +17,21 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
 
     mFeatureSet = None
     mDo45 = True
+
     def __init__(self, fname=None, do45=True):
         """
         fname - The feature file name
         do45 - if this is true we use the regular integral image plus the
         45 degree integral image
         """
-        #we define the black (positive) and white (negative) regions of an image
-        #to get our haar wavelet
+        # we define the black (positive) and white (negative) regions of an image
+        # to get our haar wavelet
         self.mDo45 = True
-        self.mFeatureset=None;
+        self.mFeatureset = None
         if(fname is not None):
             self.readWavelets(fname)
 
-    def readWavelets(self, fname,nfeats=-1):
+    def readWavelets(self, fname, nfeats=-1):
         """
         fname = file name
         nfeats = number of features to load from file -1 -> All features
@@ -42,25 +44,25 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         # -1 loads all
         # otherwise loads min(nfeats,features in file)
         self.mFeatureSet = []
-        f = open(fname,'r')
-        #line = f.readline()
-        #count = int(line)
+        f = open(fname, 'r')
+        # line = f.readline()
+        # count = int(line)
         temp = f.read()
         f.close()
         data = temp.split()
         count = int(data.pop(0))
         self.mFeatureset = []
         if(nfeats > -1):
-            count = min(count,nfeats)
+            count = min(count, nfeats)
         while len(data) > 0:
             name = data.pop(0)
             nRegions = int(data.pop(0))
             region = []
             for i in range(nRegions):
-                region.append(tuple(map(float,data[0:5])))
+                region.append(tuple(map(float, data[0:5])))
                 data = data[5:]
 
-            feat = HaarLikeFeature(name,region)
+            feat = HaarLikeFeature(name, region)
             self.mFeatureSet.append(feat)
         return None
 
@@ -68,8 +70,8 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         """
         Save wavelets to file
         """
-        f = open(fname,'w')
-        f.write(str(len(self.mFeatureSet))+'\n\n')
+        f = open(fname, 'w')
+        f.write(str(len(self.mFeatureSet)) + '\n\n')
         for i in range(len(self.mFeatureSet)):
             self.mFeatureSet[i].writeToFile(f)
         f.close()
@@ -97,14 +99,13 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         order in which they are returned. For example, 'xpos' or 'width'
         """
         retVal = []
-        for i in range( len(self.mFeatureSet)):
+        for i in range(len(self.mFeatureSet)):
             retVal.append(self.mFeatureSet[i].mName)
-        if( self.mDo45 ):
-            for i in range( len(self.mFeatureSet)):
-                name = "Angle_"+self.mFeatureSet[i].mName
+        if(self.mDo45):
+            for i in range(len(self.mFeatureSet)):
+                name = "Angle_" + self.mFeatureSet[i].mName
                 retVal.append(name)
         return retVal
-
 
     def getNumFields(self):
         """
@@ -113,4 +114,4 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         mult = 1
         if(self.mDo45):
             mult = 2
-        return mult*len(self.mFeatureset)
+        return mult * len(self.mFeatureset)

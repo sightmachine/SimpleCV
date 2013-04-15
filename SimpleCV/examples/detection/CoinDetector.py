@@ -17,7 +17,7 @@ print __doc__
 
 from SimpleCV import *
 # A quarter is 24.26mm or 0.955in
-quarterSize = 24.26 #millimeters
+quarterSize = 24.26  # millimeters
 
 # This will hold the ratio of the image size to a quarter's actual size
 sizeRatio = 0
@@ -27,17 +27,17 @@ img = Image('coins.jpg', sample=True)
 segmented = img.hueDistance(Color.BLACK)
 coins = img.invert().findBlobs(minsize=200)
 
-#Here we compute the scale factor
+# Here we compute the scale factor
 if coins:
     c = coins[-1]
     diameter = c.radius() * 2
     sizeRatio = quarterSize / diameter
 
-#Now we print the measurements back on the picture
+# Now we print the measurements back on the picture
 for coin in coins:
-    #get the physical size of the coin
+    # get the physical size of the coin
     size = (coin.radius() * 2) * sizeRatio
-    #label the coin accordingly
+    # label the coin accordingly
     if size > 18 and size < 20:
         text = "Type: penny"
     elif size > 20 and size < 23:

@@ -17,6 +17,8 @@ is as follows.
 7. Save the classifier.
 8. Deploy using the classify method.
 """
+
+
 class SVMClassifier:
     """
     This class encapsulates a Naive Bayes Classifier.
@@ -36,35 +38,35 @@ class SVMClassifier:
     mSVMType = {}
 
     mSVMProperties = {
-        'KernelType':'RBF', #default is a RBF Kernel
-        'SVMType':'NU',     #default is C
-        'nu':None,          # NU for SVM NU
-        'c':None,           #C for SVM C - the slack variable
-        'degree':None,      #degree for poly kernels - defaults to 3
-        'coef':None,        #coef for Poly/Sigmoid defaults to 0
-        'gamma':None,       #kernel param for poly/rbf/sigma - default is 1/#samples
+        'KernelType': 'RBF',  # default is a RBF Kernel
+        'SVMType': 'NU',  # default is C
+        'nu': None,          # NU for SVM NU
+        'c': None,  # C for SVM C - the slack variable
+        'degree': None,  # degree for poly kernels - defaults to 3
+        'coef': None,  # coef for Poly/Sigmoid defaults to 0
+        'gamma': None,  # kernel param for poly/rbf/sigma - default is 1/#samples
     }
-    #human readable to CV constant property mapping
+    # human readable to CV constant property mapping
 
-    def __init__(self,featureExtractors,properties=None):
+    def __init__(self, featureExtractors, properties=None):
 
         if not ORANGE_ENABLED:
             logger.warning("The required orange machine learning library is not installed")
             return None
 
         self.mKernelType = {
-            'RBF':orange.SVMLearner.RBF, #Radial basis kernel
-            'Linear':orange.SVMLearner.Linear, #Linear basis kernel
-            'Poly':orange.SVMLearner.Polynomial, #Polynomial kernel
-            'Sigmoid':orange.SVMLearner.Sigmoid #Sigmoid Kernel
+            'RBF': orange.SVMLearner.RBF,  # Radial basis kernel
+            'Linear': orange.SVMLearner.Linear,  # Linear basis kernel
+            'Poly': orange.SVMLearner.Polynomial,  # Polynomial kernel
+            'Sigmoid': orange.SVMLearner.Sigmoid  # Sigmoid Kernel
         }
 
         self.mSVMType = {
-            'NU':orange.SVMLearner.Nu_SVC,
-            'C':orange.SVMLearner.C_SVC
+            'NU': orange.SVMLearner.Nu_SVC,
+            'C': orange.SVMLearner.C_SVC
         }
 
-        self.mFeatureExtractors =  featureExtractors
+        self.mFeatureExtractors = featureExtractors
         if(properties is not None):
             self.mSVMProperties = properties
         self._parameterizeKernel()
@@ -83,9 +85,8 @@ class SVMClassifier:
             self.mSVMProperties = properties
         self._parameterizeKernel()
 
-
     def _parameterizeKernel(self):
-        #Set the parameters for our SVM
+        # Set the parameters for our SVM
         self.mSVMPrototype = orange.SVMLearner()
         self.mSVMPrototype.svm_type = self.mSVMType[self.mSVMProperties["SVMType"]]
         self.mSVMPrototype.kernel_type = self.mKernelType[self.mSVMProperties["KernelType"]]
@@ -93,13 +94,12 @@ class SVMClassifier:
             self.mSVMPrototype.nu = self.mSVMProperties["nu"]
         if(self.mSVMProperties["c"] is not None):
             self.mSVMPrototype.C = self.mSVMProperties["c"]
-        if(self.mSVMProperties["degree"]  is not None):
+        if(self.mSVMProperties["degree"] is not None):
             self.mSVMPrototype.degree = self.mSVMProperties["degree"]
         if(self.mSVMProperties["coef"] is not None):
             self.mSVMPrototype.coef0 = self.mSVMProperties["coef"]
         if(self.mSVMProperties["gamma"] is not None):
             self.mSVMPrototype.gamma = self.mSVMProperties["gamma"]
-
 
     def load(cls, fname):
         """
@@ -108,13 +108,12 @@ class SVMClassifier:
         return pickle.load(file(fname, 'rb'))
     load = classmethod(load)
 
-
     def save(self, fname):
         """
         Save the classifier to file
         """
         output = open(fname, 'wb')
-        pickle.dump(self,output,2) # use two otherwise it w
+        pickle.dump(self, output, 2)  # use two otherwise it w
         output.close()
 
     def __getstate__(self):
@@ -132,10 +131,9 @@ class SVMClassifier:
         colNames = []
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
-        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
-        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable, colNames), orange.EnumVariable("type", values=self.mClassNames))
+        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain, self.mDataSetRaw)
         self.mClassifier = self.mSVMPrototype(self.mDataSetOrange)
-
 
     def classify(self, image):
         """
@@ -146,15 +144,14 @@ class SVMClassifier:
 
         """
         featureVector = []
-        for extractor in self.mFeatureExtractors: #get the features
+        for extractor in self.mFeatureExtractors:  # get the features
             feats = extractor.extract(image)
-            if( feats is not None ):
+            if(feats is not None):
                 featureVector.extend(feats)
         featureVector.extend([self.mClassNames[0]])
-        test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
-        c = self.mClassifier(test[0]) #classify
-        return str(c) #return to class name
-
+        test = orange.ExampleTable(self.mOrangeDomain, [featureVector])
+        c = self.mClassifier(test[0])  # classify
+        return str(c)  # return to class name
 
     def setFeatureExtractors(self, extractors):
         """
@@ -165,13 +162,13 @@ class SVMClassifier:
         self.mFeatureExtractors = extractors
         return None
 
-    def _trainPath(self,path,className,subset,disp,verbose):
+    def _trainPath(self, path, className, subset, disp, verbose):
         count = 0
         files = []
         for ext in IMAGE_FORMATS:
-            files.extend(glob.glob( os.path.join(path, ext)))
+            files.extend(glob.glob(os.path.join(path, ext)))
         if(subset > 0):
-            nfiles = min(subset,len(files))
+            nfiles = min(subset, len(files))
         else:
             nfiles = len(files)
         badFeat = False
@@ -184,7 +181,7 @@ class SVMClassifier:
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
 
-                if( feats is not None ):
+                if(feats is not None):
                     featureVector.extend(feats)
                 else:
                     badFeat = True
@@ -195,12 +192,12 @@ class SVMClassifier:
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             text = 'Training: ' + className
-            self._WriteText(disp,img,text,Color.WHITE)
+            self._WriteText(disp, img, text, Color.WHITE)
             count = count + 1
             del img
         return count
 
-    def train(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
+    def train(self, paths, classNames, disp=None, subset=-1, savedata=None, verbose=True):
         """
         Train the classifier.
         paths the order of the paths in the same order as the class type
@@ -224,7 +221,7 @@ class SVMClassifier:
         self.mClassNames = classNames
         # fore each class, get all of the data in the path and train
         for i in range(len(classNames)):
-            count = count + self._trainPath(paths[i],classNames[i],subset,disp,verbose)
+            count = count + self._trainPath(paths[i], classNames[i], subset, disp, verbose)
 
         colNames = []
         for extractor in self.mFeatureExtractors:
@@ -235,10 +232,10 @@ class SVMClassifier:
             return None
 
         # push our data into an orange example table
-        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
-        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
+        self.mOrangeDomain = orange.Domain(map(orange.FloatVariable, colNames), orange.EnumVariable("type", values=self.mClassNames))
+        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain, self.mDataSetRaw)
         if(savedata is not None):
-            orange.saveTabDelimited (savedata, self.mDataSetOrange)
+            orange.saveTabDelimited(savedata, self.mDataSetOrange)
 
         self.mClassifier = self.mSVMPrototype(self.mDataSetOrange)
         correct = 0
@@ -248,34 +245,31 @@ class SVMClassifier:
             test = self.mDataSetOrange[i].getclass()
             if verbose:
                 print "original", test, "classified as", c
-            if(test==c):
+            if(test == c):
                 correct = correct + 1
             else:
                 incorrect = incorrect + 1
 
-        good = 100*(float(correct)/float(count))
-        bad = 100*(float(incorrect)/float(count))
+        good = 100 * (float(correct) / float(count))
+        bad = 100 * (float(incorrect) / float(count))
 
         confusion = 0
-        if( len(self.mClassNames) > 2 ):
-            crossValidator = orngTest.learnAndTestOnLearnData([self.mSVMPrototype],self.mDataSetOrange)
+        if(len(self.mClassNames) > 2):
+            crossValidator = orngTest.learnAndTestOnLearnData([self.mSVMPrototype], self.mDataSetOrange)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
         if verbose:
-            print("Correct: "+str(good))
-            print("Incorrect: "+str(bad))
+            print("Correct: " + str(good))
+            print("Incorrect: " + str(bad))
             classes = self.mDataSetOrange.domain.classVar.values
             print confusion
-            #print "\t"+"\t".join(classes)
-            #for className, classConfusions in zip(classes, confusion):
+            # print "\t"+"\t".join(classes)
+            # for className, classConfusions in zip(classes, confusion):
             #    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
 
         return [good, bad, confusion]
 
-
-
-
-    def test(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
+    def test(self, paths, classNames, disp=None, subset=-1, savedata=None, verbose=True):
         """
         Train the classifier.
         paths the order of the paths in the same order as the class type
@@ -301,46 +295,45 @@ class SVMClassifier:
         colNames = []
         for extractor in self.mFeatureExtractors:
             colNames.extend(extractor.getFieldNames())
-            self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
+            self.mOrangeDomain = orange.Domain(map(orange.FloatVariable, colNames), orange.EnumVariable("type", values=self.mClassNames))
 
         dataset = []
         for i in range(len(classNames)):
-            [dataset,cnt,crct] =self._testPath(paths[i],classNames[i],dataset,subset,disp,verbose)
+            [dataset, cnt, crct] = self._testPath(paths[i], classNames[i], dataset, subset, disp, verbose)
             count = count + cnt
             correct = correct + crct
 
-
-        testData = orange.ExampleTable(self.mOrangeDomain,dataset)
+        testData = orange.ExampleTable(self.mOrangeDomain, dataset)
 
         if savedata is not None:
-            orange.saveTabDelimited (savedata, testdata)
+            orange.saveTabDelimited(savedata, testdata)
 
         confusion = 0
-        if( len(self.mClassNames) > 2 ):
-            crossValidator = orngTest.learnAndTestOnTestData([self.mSVMPrototype],self.mDataSetOrange,testData)
+        if(len(self.mClassNames) > 2):
+            crossValidator = orngTest.learnAndTestOnTestData([self.mSVMPrototype], self.mDataSetOrange, testData)
             confusion = orngStat.confusionMatrices(crossValidator)[0]
 
-        good = 100*(float(correct)/float(count))
-        bad = 100*(float(count-correct)/float(count))
+        good = 100 * (float(correct) / float(count))
+        bad = 100 * (float(count - correct) / float(count))
         if verbose:
-            print("Correct: "+str(good))
-            print("Incorrect: "+str(bad))
+            print("Correct: " + str(good))
+            print("Incorrect: " + str(bad))
             classes = self.mDataSetOrange.domain.classVar.values
-            print "\t"+"\t".join(classes)
+            print "\t" + "\t".join(classes)
             for className, classConfusions in zip(classes, confusion):
                 print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
 
         return [good, bad, confusion]
 
-    def _testPath(self,path,className,dataset,subset,disp,verbose):
+    def _testPath(self, path, className, dataset, subset, disp, verbose):
         count = 0
         correct = 0
         badFeat = False
         files = []
         for ext in IMAGE_FORMATS:
-            files.extend(glob.glob( os.path.join(path, ext)))
+            files.extend(glob.glob(os.path.join(path, ext)))
         if(subset > 0):
-            nfiles = min(subset,len(files))
+            nfiles = min(subset, len(files))
         else:
             nfiles = len(files)
         for i in range(nfiles):
@@ -351,38 +344,38 @@ class SVMClassifier:
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
-                if( feats is not None ):
+                if(feats is not None):
                     featureVector.extend(feats)
                 else:
                     badFeat = True
-            if( badFeat ):
+            if(badFeat):
                 del img
                 badFeat = False
                 continue
             featureVector.extend([className])
             dataset.append(featureVector)
-            test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
+            test = orange.ExampleTable(self.mOrangeDomain, [featureVector])
             c = self.mClassifier(test[0])
             testClass = test[0].getclass()
-            if(testClass==c):
-                text =  "Classified as " + str(c)
-                self._WriteText(disp,img,text, Color.GREEN)
+            if(testClass == c):
+                text = "Classified as " + str(c)
+                self._WriteText(disp, img, text, Color.GREEN)
                 correct = correct + 1
             else:
-                text =  "Mislassified as " + str(c)
-                self._WriteText(disp,img,text, Color.RED)
+                text = "Mislassified as " + str(c)
+                self._WriteText(disp, img, text, Color.RED)
             count = count + 1
             del img
 
-        return([dataset,count,correct])
+        return([dataset, count, correct])
 
-    def _WriteText(self, disp, img, txt,color):
+    def _WriteText(self, disp, img, txt, color):
         if(disp is not None):
             txt = ' ' + txt + ' '
             img = img.adaptiveScale(disp.resolution)
-            layer = DrawingLayer((img.width,img.height))
+            layer = DrawingLayer((img.width, img.height))
             layer.setFontSize(60)
-            layer.ezViewText(txt,(20,20),fgcolor=color)
+            layer.ezViewText(txt, (20, 20), fgcolor=color)
             img.addDrawingLayer(layer)
             img.applyLayers()
             img.save(disp)

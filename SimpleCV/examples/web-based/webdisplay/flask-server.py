@@ -18,13 +18,15 @@ print __doc__
 
 from flask import Flask, jsonify, render_template, request
 from werkzeug import SharedDataMiddleware
-import tempfile, os
+import tempfile
+import os
 import simplejson as json
 import SimpleCV
 
 
 app = Flask(__name__)
 cam = SimpleCV.Camera()
+
 
 @app.route('/')
 def show(name=None):
@@ -34,6 +36,7 @@ def show(name=None):
     tf.close()
     img.save(loc)
     return render_template('index.html', img=loc)
+
 
 @app.route('/_snapshot')
 def snapshot():
@@ -46,7 +49,7 @@ def snapshot():
     loc = 'static/' + tf.name.split('/')[-1]
     tf.close()
     img.save(loc)
-    print "location",loc
+    print "location", loc
     print "json", json.dumps(loc)
     return json.dumps(loc)
 
@@ -55,6 +58,6 @@ if __name__ == '__main__':
         from werkzeug import SharedDataMiddleware
         import os
         app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
-                '/': os.path.join(os.path.dirname(__file__), 'static')
+            '/': os.path.join(os.path.dirname(__file__), 'static')
         })
     app.run()

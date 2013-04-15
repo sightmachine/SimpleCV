@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import os, sys
+import os
+import sys
 from SimpleCV import *
 from nose.tools import with_setup
 
@@ -16,8 +17,8 @@ def test_virtual_camera_constructor():
     for i in props.keys():
         print str(i) + ": " + str(props[i]) + "\n"
 
-
     pass
+
 
 def test_camera_image():
     mycam = Camera(0)

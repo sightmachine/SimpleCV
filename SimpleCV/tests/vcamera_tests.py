@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import os, sys
+import os
+import sys
 from SimpleCV import *
 from nose.tools import with_setup
 
@@ -20,11 +21,13 @@ def test_camera_constructor():
 
     pass
 
+
 def test_camera_image():
     mycam = VirtualCamera(testimage, "image")
 
     img = mycam.getImage()
     img.save(testoutput)
+
 
 def test_camera_video():
     mycam = VirtualCamera(testvideo, "video")

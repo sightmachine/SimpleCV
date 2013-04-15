@@ -1,18 +1,21 @@
 from SimpleCV import *
 # Example for CAMShift Tracker
+
+
 def foo(image):
     return image.meanColor()
+
 
 def camshift():
     cam = Camera()
     img = cam.getImage()
     d = Display(img.size())
-    bb1 = getBBFromUser(cam,d)
-    fs1=[]
+    bb1 = getBBFromUser(cam, d)
+    fs1 = []
     while True:
         try:
             img1 = cam.getImage()
-            fs1 = img1.track("camshift",fs1,img,bb1,num_frames=5, nframes=60, lower=(0, 40, 40), upper=(80, 200, 200))
+            fs1 = img1.track("camshift", fs1, img, bb1, num_frames=5, nframes=60, lower=(0, 40, 40), upper=(80, 200, 200))
             fs1.drawBB()
             fs1.drawPath()
             fs1.showCoordinates()
@@ -25,6 +28,7 @@ def camshift():
             print fs1.trackLength()
             print fs1.processTrack(foo)
             break
+
 
 def getBBFromUser(cam, d):
     p1 = None
@@ -46,15 +50,15 @@ def getBBFromUser(cam, d):
             time.sleep(0.05)
         except KeyboardInterrupt:
             break
-    print p1,p2
+    print p1, p2
     if not p1 or not p2:
         return None
 
-    xmax = np.max((p1[0],p2[0]))
-    xmin = np.min((p1[0],p2[0]))
-    ymax = np.max((p1[1],p2[1]))
-    ymin = np.min((p1[1],p2[1]))
-    print xmin,ymin,xmax,ymax
-    return (xmin,ymin,xmax-xmin,ymax-ymin)
+    xmax = np.max((p1[0], p2[0]))
+    xmin = np.min((p1[0], p2[0]))
+    ymax = np.max((p1[1], p2[1]))
+    ymin = np.min((p1[1], p2[1]))
+    print xmin, ymin, xmax, ymax
+    return (xmin, ymin, xmax - xmin, ymax - ymin)
 
 camshift()

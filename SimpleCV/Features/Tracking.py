@@ -36,8 +36,8 @@ class Tracking(Feature):
         self.bb_x, self.bb_y, self.w, self.h = self.bb
         self.x, self.y = self.center = self.getCenter()
         self.sizeRatio = 1
-        self.vel = (0,0)
-        self.rt_vel = (0,0)
+        self.vel = (0, 0)
+        self.rt_vel = (0, 0)
         self.area = self.getArea()
         self.time = time.time()
         self.cv2numpy = self.image.getNumpyCv2()
@@ -58,7 +58,7 @@ class Tracking(Feature):
         >>> track = Tracking(img, bb)
         >>> cen = track.getCenter()
         """
-        return (self.bb_x+self.w/2,self.bb_y+self.h/2)
+        return (self.bb_x + self.w / 2, self.bb_y + self.h / 2)
 
     def getArea(self):
         """
@@ -75,7 +75,7 @@ class Tracking(Feature):
         >>> track = Tracking(img, bb)
         >>> area = track.getArea()
         """
-        return self.w*self.h
+        return self.w * self.h
 
     def getImage(self):
         """
@@ -185,7 +185,7 @@ class Tracking(Feature):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 10)
+            pos = (imgsize[0] - 120, 10)
         if not size:
             size = 16
         text = "x = %d  y = %d" % (f.x, f.y)
@@ -218,7 +218,7 @@ class Tracking(Feature):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 30)
+            pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
         text = "size = %f" % (f.sizeRatio)
@@ -252,12 +252,12 @@ class Tracking(Feature):
         vel = f.vel
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 90)
+            pos = (imgsize[0] - 120, 90)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel[0], vel[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/frame", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/frame", pos[0], pos[1] + size, color, size)
 
     def showPixelVelocityRT(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -287,12 +287,12 @@ class Tracking(Feature):
         vel_rt = f.vel_rt
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 50)
+            pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/second", pos[0], pos[1] + size, color, size)
 
     def processTrack(self, func):
         """
@@ -467,6 +467,7 @@ class Tracking(Feature):
         f = self
         f.image.drawCircle(f.state_pt, rad, color, thickness)
 
+
 class CAMShift(Tracking):
     """
     **SUMMARY**
@@ -516,6 +517,7 @@ class CAMShift(Tracking):
         >>> e = track.getEllipse()
         """
         return self.ellipse
+
 
 class LK(Tracking):
     """
@@ -589,9 +591,10 @@ class LK(Tracking):
         >>> track = LK(image, bb, pts)
         >>> track.drawTrackerPoints()
         """
-        if type(self.pts) is not type(None):
+        if not isinstance(self.pts, type(None)):
             for pt in self.pts:
                 self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
+
 
 class SURFTracker(Tracking):
     """
@@ -668,18 +671,18 @@ class SURFTracker(Tracking):
 
         np_pts = np.asarray([kp.pt for kp in new_pts])
         t, pts, center = cv2.kmeans(np.asarray(np_pts, dtype=np.float32), K=1, bestLabels=None,
-                            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER, 1, 10), attempts=1,
-                            flags=cv2.KMEANS_RANDOM_CENTERS)
+                                    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER, 1, 10), attempts=1,
+                                    flags=cv2.KMEANS_RANDOM_CENTERS)
         max_x = int(max(np_pts[:, 0]))
         min_x = int(min(np_pts[:, 0]))
         max_y = int(max(np_pts[:, 1]))
         min_y = int(min(np_pts[:, 1]))
 
-        bb =  (min_x-5, min_y-5, max_x-min_x+5, max_y-min_y+5)
-        #print bb
+        bb = (min_x - 5, min_y - 5, max_x - min_x + 5, max_y - min_y + 5)
+        # print bb
 
         self = Tracking.__init__(self, img, bb)
-        #print self.area
+        # print self.area
         self.templateImg = templateImg
         self.skp = skp
         self.sd = sd
@@ -726,7 +729,7 @@ class SURFTracker(Tracking):
         >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> track.drawTrackerPoints()
         """
-        if type(self.pts) is not type(None):
+        if not isinstance(self.pts, type(None)):
             for pt in self.pts:
                 self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
 
@@ -849,6 +852,7 @@ class SURFTracker(Tracking):
         """
         return self.templateImg
 
+
 class MFTracker(Tracking):
     """
     **SUMMARY**
@@ -933,9 +937,9 @@ class MFTracker(Tracking):
         shift = f.shift
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 50)
+            pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
         text = "Shift = %.2f" % (shift)
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/second", pos[0], pos[1] + size, color, size)

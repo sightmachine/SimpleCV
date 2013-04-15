@@ -2,6 +2,8 @@ from SimpleCV.base import *
 
 
 _jpegstreamers = {}
+
+
 class JpegStreamHandler(SimpleHTTPRequestHandler):
     """
     The JpegStreamHandler handles requests to the threaded HTTP server.
@@ -9,13 +11,10 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
     jpeg.
     """
 
-
     def do_GET(self):
         global _jpegstreamers
 
-
         if (self.path == "/" or not self.path):
-
 
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -34,7 +33,6 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
             """)
             return
 
-
         elif (self.path == "/stream"):
             self.send_response(200)
             self.send_header("Connection", "close")
@@ -45,7 +43,6 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
             self.end_headers()
             (host, port) = self.server.socket.getsockname()[:2]
-
 
             count = 0
             timeout = 0.75
@@ -65,17 +62,14 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
                         return
                     count = count + 1
 
-
                 time.sleep(_jpegstreamers[port].sleeptime)
-
-
 
 
 class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
 
-#factory class for jpegtcpservers
+# factory class for jpegtcpservers
 class JpegStreamer():
     """
     The JpegStreamer class allows the user to stream a jpeg encoded file
@@ -111,8 +105,7 @@ class JpegStreamer():
     counter = 0
     refreshtime = 0
 
-
-    def __init__(self, hostandport = 8080, st=0.1 ):
+    def __init__(self, hostandport=8080, st=0.1):
         global _jpegstreamers
         if (type(hostandport) == int):
             self.port = hostandport
@@ -123,15 +116,13 @@ class JpegStreamer():
         elif (type(hostandport) == tuple):
             (self.host, self.port) = hostandport
 
-
         self.sleeptime = st
         self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
-        self.server_thread = threading.Thread(target = self.server.serve_forever)
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
         _jpegstreamers[self.port] = self
         self.server_thread.daemon = True
         self.server_thread.start()
-        self.framebuffer = self #self referential, ugh.  but gives some bkcompat
-
+        self.framebuffer = self  # self referential, ugh.  but gives some bkcompat
 
     def url(self):
         """
@@ -139,14 +130,11 @@ class JpegStreamer():
         """
         return "http://" + self.host + ":" + str(self.port) + "/"
 
-
     def streamUrl(self):
         """
         Returns the URL of the MJPEG stream. If host and port are not set in the constructor, defaults to "http://localhost:8080/stream/"
         """
         return self.url() + "stream"
-
-
 
 
 class VideoStream():
@@ -183,7 +171,6 @@ class VideoStream():
         my_camera.getImage().save(vs)
     """
 
-
     fps = 25
     filename = ""
     writer = ""
@@ -193,26 +180,23 @@ class VideoStream():
     starttime = 0.0
     framecount = 0
 
-
-    def __init__(self, filename, fps = 25, framefill = True):
+    def __init__(self, filename, fps=25, framefill=True):
         (revextension, revname) = filename[::-1].split(".")
         extension = revextension[::-1]
         self.filename = filename
         self.fps = fps
         self.framefill = framefill
-        #if extension == "mpg":
+        # if extension == "mpg":
         self.fourcc = cv.CV_FOURCC('I', 'Y', 'U', 'V')
-            #self.fourcc = 0
-        #else:
+            # self.fourcc = 0
+        # else:
         #  logger.warning(extension + " is not supported for video writing on this platform, sorry");
         #  return False
-
 
     def initializeWriter(self, size):
         self.writer = cv.CreateVideoWriter(self.filename, self.fourcc, self.fps, size, 1)
         self.videotime = 0.0
         self.starttime = time.time()
-
 
     def writeFrame(self, img):
         """
@@ -226,42 +210,37 @@ class VideoStream():
             self.initializeWriter(img.size())
             self.lastframe = img
 
-
         frametime = 1.0 / float(self.fps)
         targettime = self.starttime + frametime * self.framecount
         realtime = time.time()
         if self.framefill:
-            #see if we need to do anything to adjust to real time
+            # see if we need to do anything to adjust to real time
             if (targettime > realtime + frametime):
-                #if we're more than one frame ahead
-                #save the lastframe, but don't write to videoout
+                # if we're more than one frame ahead
+                # save the lastframe, but don't write to videoout
                 self.lastframe = img
                 return
 
-
             elif (targettime < realtime - frametime):
-                #we're at least one frame behind
+                # we're at least one frame behind
                 framesbehind = int((realtime - targettime) * self.fps) + 1
-                #figure out how many frames behind we are
-
+                # figure out how many frames behind we are
 
                 lastframes = framesbehind / 2
                 for i in range(0, lastframes):
                     self.framecount += 1
                     cv.WriteFrame(self.writer, self.lastframe.getBitmap())
 
-
                 theseframes = framesbehind - lastframes
                 for i in range(0, theseframes):
                     self.framecount += 1
                     cv.WriteFrame(self.writer, img.getBitmap())
-                #split missing frames evenly between the prior and current frame
-            else: #we are on track
+                # split missing frames evenly between the prior and current frame
+            else:  # we are on track
                 self.framecount += 1
                 cv.WriteFrame(self.writer, img.getBitmap())
         else:
             cv.WriteFrame(self.writer, img.getBitmap())
             self.framecount += 1
-
 
         self.lastframe = img

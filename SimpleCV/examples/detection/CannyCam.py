@@ -9,15 +9,15 @@ print __doc__
 
 from SimpleCV import *
 
-cam = Camera() #initialize the camera
-max_threshold = 300 # this is used for the edge detection
-threshold_step = 0.5 # this is the amount to adjust the threshold by each time the display is updated
+cam = Camera()  # initialize the camera
+max_threshold = 300  # this is used for the edge detection
+threshold_step = 0.5  # this is the amount to adjust the threshold by each time the display is updated
 threshold = max_threshold
 
 while True:
-    image = cam.getImage() # get image (or frame) from camera
-    flipped_image = image.flipHorizontal() # flip it so it looks mirrored
-    edged_image = flipped_image.edges(threshold) # get the image edges
+    image = cam.getImage()  # get image (or frame) from camera
+    flipped_image = image.flipHorizontal()  # flip it so it looks mirrored
+    edged_image = flipped_image.edges(threshold)  # get the image edges
 
     # This just automatically cycles through threshold levels
     if(threshold <= 0):
@@ -25,5 +25,5 @@ while True:
     else:
         threshold = threshold - 0.5
 
-    edged_image.drawText("Current Edge Threshold:" + str(threshold), 10,10, fontsize=30, color=Color.GREEN)
+    edged_image.drawText("Current Edge Threshold:" + str(threshold), 10, 10, fontsize=30, color=Color.GREEN)
     edged_image.show()

@@ -15,21 +15,21 @@ from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 
-#Download the dataset
+# Download the dataset
 machine_learning_data_set = 'https://github.com/downloads/ingenuitas/SimpleCV/nuts_bolts.zip'
 data_path = download_and_extract(machine_learning_data_set)
 print 'Test Images Downloaded at:', data_path
 
-display = Display((800,600)) #Display to show the images
+display = Display((800, 600))  # Display to show the images
 target_names = ['bolt', 'nut']
 
 print 'Loading Bolts for Training'
-bolts = ImageSet(data_path + '/data/supervised/bolts') #Load Bolts for training
-bolt_blobs = [b.findBlobs()[0] for b in bolts] #exact the blobs for our features
-tmp_data = [] #array to store data features
-tmp_target = [] #array to store targets
+bolts = ImageSet(data_path + '/data/supervised/bolts')  # Load Bolts for training
+bolt_blobs = [b.findBlobs()[0] for b in bolts]  # exact the blobs for our features
+tmp_data = []  # array to store data features
+tmp_target = []  # array to store targets
 
-for b in bolt_blobs: #Format Data for SVM
+for b in bolt_blobs:  # Format Data for SVM
     tmp_data.append([b.area(), b.height(), b.width()])
     tmp_target.append(0)
 
@@ -58,7 +58,7 @@ for b in unbolt_blobs:
     img = b.image
     img.drawText(name)
     img.save(display)
-    print "Predicted:",name,", Guess:",probability[0], target_names[0],",", probability[1], target_names[1]
+    print "Predicted:", name, ", Guess:", probability[0], target_names[0], ",", probability[1], target_names[1]
 
 print 'Running prediction on nuts now'
 untrained_nuts = ImageSet(data_path + '/data/unsupervised/nuts')
@@ -70,4 +70,4 @@ for n in unnut_blobs:
     img = n.image
     img.drawText(name)
     img.save(display)
-    print "Predicted:",name,", Guess:",probability[0], target_names[0],",", probability[1], target_names[1]
+    print "Predicted:", name, ", Guess:", probability[0], target_names[0], ",", probability[1], target_names[1]
