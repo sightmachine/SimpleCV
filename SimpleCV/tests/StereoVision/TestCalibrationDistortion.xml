@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<TestCalibrationDistortion type_id="opencv-matrix">
+  <rows>5</rows>
+  <cols>1</cols>
+  <dt>f</dt>
+  <data>
+    -4.57079243e-03 -5.34662604e-03 -4.86934045e-03 2.59529357e-03
+    2.32212665e-03</data></TestCalibrationDistortion>
+</opencv_storage>
