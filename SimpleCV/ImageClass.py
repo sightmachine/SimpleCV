@@ -13315,7 +13315,8 @@ class Image:
         **Parameters**
 
         * *intensity* - The intensity of the motion blur effect. Basically defines
-            the size of the filter used in the process.
+            the size of the filter used in the process. It has to be an integer.
+            0 intensity implies no blurring.
 
         * *direction* - The direction of the motion. It is a string taking values
             left, right, up, down as well as N, S, E, W for north, south, east, west 
@@ -13334,8 +13335,12 @@ class Image:
         """
         mid = int(intensity/2)
         tmp = np.identity(intensity)
+        
+        if intensity == 0:
+            warnings.warn("0 intensity means no blurring")
+            return self
 
-        if intensity % 2 is 0:
+        elif intensity % 2 is 0:
             div=mid
             for i in range(mid, intensity-1):
                 tmp[i][i] = 0
