@@ -8,10 +8,11 @@ from SimpleCV.Color import Color
 from collections import deque
 import time
 import ctypes as ct
-
+import subprocess
 #Globals
 _cameras = []
 _camera_polling_thread = ""
+_index = []
 
 
 class FrameBufferThread(threading.Thread):
@@ -415,6 +416,7 @@ class Camera(FrameSource):
     def __init__(self, camera_index = -1, prop_set = {}, threaded = True, calibrationfile = ''):
         global _cameras
         global _camera_polling_thread
+        global _index
         """
         **SUMMARY**
 
@@ -443,16 +445,38 @@ class Camera(FrameSource):
 
 
         """
+        self.index = None
+        self.threaded = False
+        self.capture = None
+        
+        if platform.system() == "Linux" and -1 in _index and camera_index != -1 and camera_index not in _index:
+            process = subprocess.Popen(["lsof /dev/video"+str(camera_index)],shell=True,stdout=subprocess.PIPE)
+            data = process.communicate()
+            if data[0]:
+                camera_index = -1
 
+        if platform.system() == "Linux" and camera_index == -1:
+            process = subprocess.Popen(["lsof /dev/video*"],shell=True,stdout=subprocess.PIPE)
+            data = process.communicate()
+            if data[0]:
+                camera_index = int(data[0].split("\n")[1].split()[-1][-1])
 
+        for cam in _cameras:
+            if camera_index == cam.index:
+                self.threaded = cam.threaded
+                self.capture = cam.capture
+                self.index = cam.index
+                _cameras.append(self)
+                return
 
         #This is to add support for XIMEA cameras.
         if isinstance(camera_index, str):
             if camera_index.lower() == 'ximea':
                 camera_index = 1100
+                _index.append(camera_index)
 
         self.capture = cv.CaptureFromCAM(camera_index) #This fixes bug with opencv not being able to grab frames from webcams on linux
-
+        self.index = camera_index
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
@@ -462,6 +486,9 @@ class Camera(FrameSource):
             threaded = True  #pygame must be threaded
             if camera_index == -1:
                 camera_index = 0
+                self.index = camera_index
+                _index.append(camera_index)
+                print _index
             if(prop_set.has_key("height") and prop_set.has_key("width")):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
@@ -476,6 +503,7 @@ class Camera(FrameSource):
             self.pygame_buffer = self.capture.get_image()
             self.pygame_camera = True
         else:
+            _index.append(camera_index)
             self.threaded = False
             if (platform.system() == "Windows"):
                 threaded = False
@@ -591,7 +619,6 @@ class Camera(FrameSource):
         newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
         cv.Copy(frame, newimg)
         return Image(newimg, self)
-
 
 
 class VirtualCamera(FrameSource):
