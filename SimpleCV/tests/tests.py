@@ -3591,3 +3591,28 @@ def test_tvDenoising():
         perform_diff(result,name_stem,3)
     except ImportError:
         pass
+
+def test_motionBlur():
+    i = Image('lenna')
+    d = ('n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw')
+    i0 = i.motionBlur(intensity = 20, direction = d[0])
+    i1 = i.motionBlur(intensity = 20, direction = d[1])
+    i2 = i.motionBlur(intensity = 20, direction = d[2])
+    i3 = i.motionBlur(intensity = 20, direction = d[3])
+    i4 = i.motionBlur(intensity = 10, direction = d[4])
+    i5 = i.motionBlur(intensity = 10, direction = d[5])
+    i6 = i.motionBlur(intensity = 10, direction = d[6])
+    i7 = i.motionBlur(intensity = 10, direction = d[7])
+    a = i.motionBlur(intensity = 0)
+    c = 0
+    img = (i0, i1, i2, i3, i4, i5, i6, i7)
+    for im in img:
+        if im is not i:
+            c += 1
+
+    if c == 8 and a is i:
+        pass
+    else:
+        assert False
+
+

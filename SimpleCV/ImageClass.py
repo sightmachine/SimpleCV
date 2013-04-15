@@ -13429,7 +13429,75 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
-      
+
+    def motionBlur(self,intensity=15, direction='NW'):
+        """
+        **SUMMARY**
+
+        Performs the motion blur of an Image. Uses different filters to find out
+        the motion blur in different directions.
+
+        see : https://en.wikipedia.org/wiki/Motion_blur
+
+        **Parameters**
+
+        * *intensity* - The intensity of the motion blur effect. Basically defines
+            the size of the filter used in the process. It has to be an integer.
+            0 intensity implies no blurring.
+
+        * *direction* - The direction of the motion. It is a string taking values
+            left, right, up, down as well as N, S, E, W for north, south, east, west 
+            and NW, NE, SW, SE for northwest and so on. 
+            default is NW
+
+        **RETURNS**
+
+        An image with the specified motion blur filter applied.
+
+        **EXAMPLE**
+        >>> i = Image ('lenna')
+        >>> mb = i.motionBlur()
+        >>> mb.show()
+        
+        """
+        mid = int(intensity/2)
+        tmp = np.identity(intensity)
+        
+        if intensity == 0:
+            warnings.warn("0 intensity means no blurring")
+            return self
+
+        elif intensity % 2 is 0:
+            div=mid
+            for i in range(mid, intensity-1):
+                tmp[i][i] = 0
+        else:
+            div=mid+1
+            for i in range(mid+1, intensity-1):
+                tmp[i][i]=0
+
+        if direction == 'right' or direction.upper() == 'E':
+            kernel = np.concatenate((np.zeros((1,mid)),np.ones((1,mid+1))),axis=1)
+        elif direction == 'left' or direction.upper() == 'W':
+            kernel = np.concatenate((np.ones((1,mid+1)),np.zeros((1,mid))),axis=1)
+        elif direction == 'up' or direction.upper() == 'N':
+            kernel = np.concatenate((np.ones((1+mid,1)),np.zeros((mid,1))),axis=0)
+        elif direction == 'down' or direction.upper() == 'S':
+            kernel = np.concatenate((np.zeros((mid,1)),np.ones((mid+1,1))),axis=0)
+        elif direction.upper() == 'NW':
+            kernel = tmp
+        elif direction.upper() == 'NE':
+            kernel = np.fliplr(tmp)
+        elif direction.upper() == 'SW':
+            kernel = np.flipud(tmp)
+        elif direction.upper() == 'SE':
+            kernel = np.flipud(np.fliplr(tmp))
+        else:
+            warnings.warn("Please enter a proper direction")
+            return None
+        
+        retval=self.convolve(kernel=kernel/div)
+        return retval
         
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
