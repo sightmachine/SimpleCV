@@ -247,7 +247,7 @@ class LineScan(list):
         >>>> plt.plot(sl)
         >>>> plt.plot(sl.scale(value_range(0,255)))
         >>>> plt.show()
-
+    
         **SEE ALSO**
 
         """
@@ -1116,3 +1116,48 @@ class LineScan(list):
                 peaks.append((maxpos, maximum))
                 maximum = -np.Inf
         return peaks
+
+    def fitSpline(self,degree=2):
+        """
+        **SUMMARY**
+
+        A function to generate a spline curve fitting over the points in LineScan with
+        order of precision given by the parameter degree
+
+        **PARAMETERS**
+
+        * *degree* - the precision of the generated spline 
+
+        **RETURNS**
+
+        The spline as a LineScan fitting over the initial values of LineScan
+
+        **EXAMPLE**
+
+        >>> import matplotlib.pyplot as plt
+        >>> img = Image("lenna")
+        >>> ls = img.getLineScan(pt1=(10,10)),pt2=(20,20)).normalize()
+        >>> spline = ls.fitSpline()
+        >>> plt.plot(ls)
+        >>> plt.show()
+        >>> plt.plot(spline)
+        >>> plt.show()
+        
+        **NOTES**
+
+        Implementation taken from http://www.scipy.org/Cookbook/Interpolation  
+
+        """
+        if degree > 4:
+            degree = 4  # No significant improvement with respect to time usage
+        if degree < 1:
+            warnings.warn('LineScan.fitSpline - degree needs to be >= 1')
+            return None
+        retVal = None
+        y = np.array(self)
+        x = np.arange(0,len(y),1)
+        dx = 1
+        newx = np.arange(0,len(y)-1,pow(0.1,degree))
+        cj = sps.cspline1d(y)
+        retVal = sps.cspline1d_eval(cj,newx,dx=dx,x0=x[0])
+        return retVal
