@@ -886,7 +886,6 @@ class Image:
         URL: The source can be a url, but must include the http://
 
         """
-
         self._mLayers = []
         self.camera = camera
         self._colorSpace = colorSpace
