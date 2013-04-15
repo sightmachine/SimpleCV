@@ -903,6 +903,7 @@ class Image:
         #Temp files
         self._tempFiles = []
 
+
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
         if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
