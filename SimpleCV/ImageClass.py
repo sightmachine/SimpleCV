@@ -13294,9 +13294,6 @@ class Image:
         else:
             return retVal
 
-
-
-
     def edgeSnap(self,pointList,step = 1,t1=50,t2=100):
         """
         **SUMMARY**
@@ -13437,10 +13434,7 @@ class Image:
         finalList += [end]
         return finalList
 
-        
 
-
-        
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
