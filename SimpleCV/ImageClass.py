@@ -3123,6 +3123,37 @@ class Image:
         except:
             return None
 
+    def gammaCorrect(self, gamma = 1):
+        
+        """
+        **DESCRIPTION**
+
+        Transforms an image according to Gamma Correction also known as 
+        Power Law Transform.
+        
+        **PARAMETERS**
+
+        * *gamma* - A non-negative real number.
+
+        **RETURNS**
+
+        A Gamma corrected image.
+
+        **EXAMPLE**
+
+        >>> img = Image('SimpleCV/sampleimages/family_watching_television_1958.jpg')
+        >>> img.show()
+        >>> img.gammaCorrect(1.5).show()
+        >>> img.gammaCorrect(0.7).show()
+ 
+        """
+        if gamma < 0:
+            return "Gamma should be a non-negative real number"
+        scale = 255.0
+        src = self.getNumpy()
+        dst = (((1.0/scale)*src)**gamma)*scale
+        return Image(dst)
+
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
         """
         **SUMMARY**
@@ -13400,6 +13431,7 @@ class Image:
             return retVal
       
         
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer

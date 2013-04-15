@@ -249,6 +249,21 @@ def test_image_smooth():
     perform_diff(result,name_stem)
     pass
 
+def test_image_gammaCorrect():
+    img = Image(topImg)
+    img2 = img.gammaCorrect(1)
+    img3 = img.gammaCorrect(0.5)
+    img4 = img.gammaCorrect(2)
+    result = []
+    result.append(img3)
+    result.append(img4)
+    name_stem = "test_image_gammaCorrect"
+    perform_diff(result, name_stem)
+    if ((img3.meanColor() >= img2.meanColor()) and (img4.meanColor() <= img2.meanColor())):
+        pass
+    else:
+        assert False
+
 def test_image_binarize():
     img =  Image(testimage2)
     binary = img.binarize()
