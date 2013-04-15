@@ -448,14 +448,14 @@ class Camera(FrameSource):
         self.index = None
         self.threaded = False
         self.capture = None
-        
+
         if platform.system() == "Linux" and -1 in _index and camera_index != -1 and camera_index not in _index:
             process = subprocess.Popen(["lsof /dev/video"+str(camera_index)],shell=True,stdout=subprocess.PIPE)
             data = process.communicate()
             if data[0]:
                 camera_index = -1
 
-        if platform.system() == "Linux" and camera_index == -1:
+        elif platform.system() == "Linux" and camera_index == -1 and -1 not in _index:
             process = subprocess.Popen(["lsof /dev/video*"],shell=True,stdout=subprocess.PIPE)
             data = process.communicate()
             if data[0]:
