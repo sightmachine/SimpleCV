@@ -13401,8 +13401,151 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
-      
+
+    def edgeSnap(self,pointList,step = 1,t1=50,t2=100):
+        """
+        **SUMMARY**
+
+        Given a List of points returns a list of edge points closet to the line
+        joining two successive points, each point is a tuple of two numbers.
+
+        **Parameters**
+
+        * *step* - Number of points to skip if no edge is found in vicinity.
+                   Keep this small if you want to sharply follow a curve
+
+        * *t1* - Lower Canny Threshold for Edge Detection
+
+        * *t2* - Upper Canny Threshold for Edge Detection
+
+        **RETURNS**
+
+        * FeatureSet * - A FeatureSet of Lines
         
+        **EXAMPLE**
+
+        >>> image = Image("logo")
+        >>> edgeLines = image.edgeSnap([(50,50),(230,200)])
+        >>> edgeLines.draw(color = Color.BLUE,width = 3)
+        """
+
+        if(len(pointList) < 2 ):
+            return None
+
+        finalList = [pointList[0]]
+        featureSet  = FeatureSet()
+        last = pointList[0]
+        for point in pointList[1:None]:
+            finalList += self._edgeSnap2(last,point,step,t1,t2)
+            last = point
+            
+        last = finalList[0]
+        for point in finalList:
+            featureSet.append(Line(self,(last,point)))
+            last = point
+        return featureSet
+
+    def _edgeSnap2(self,start,end,step,t1=50,t2=100):
+        """
+        **SUMMARY**
+
+        Given a two points returns a list of edge points closet to the line joining the points 
+        Point is a tuple of two numbers
+
+        **Parameters**
+
+        * *start* - First Point
+
+        * *end* - Second Point
+
+        * *step* - Number of points to skip if no edge is found in vicinity
+                   Keep this low to detect sharp curves
+
+        * *t1* - Lower Canny Threshold for Edge Detection
+
+        * *t2* - Upper Canny Threshold for Edge Detection
+
+        **RETURNS**
+
+        * List * - A list of tuples , each tuple contains (x,y) values
+        
+        """
+
+        edgeMap = self.edges(t1,t2).getGrayNumpy()
+
+        #Size of the box around a point which is checked for edges.
+        box = step*4
+
+        xmin = min(start[0],end[0])
+        xmax = max(start[0],end[0])
+        ymin = min(start[1],end[1])
+        ymax = max(start[1],end[1])
+
+        line = self.bresenham_line(start,end)
+
+        #List of Edge Points.
+        finalList = []
+        i = 0
+        
+        #Closest any point has ever come to the end point
+        overallMinDist = None
+
+        while  i < len(line) :
+            
+            x,y = line[i]
+            
+            #Get the matrix of points fromx around current point.
+            region = edgeMap[x-box:x+box,y-box:y+box]
+
+            #Condition at the boundary of the image
+            if(region.shape[0] == 0 or region.shape[1] == 0):
+                i += step
+                continue
+
+            #Index of all Edge points
+            indexList = np.argwhere(region>0)
+            if (indexList.size > 0):
+                
+                #Center the coordinates around the point
+                indexList -= box
+                minDist = None
+
+                # Incase multiple edge points exist, choose the one closest
+                # to the end point
+                for ix,iy in indexList:
+                    dist = math.hypot(x+ix-end[0],iy+y-end[1])
+                    if(minDist ==None or dist < minDist ):
+                        dx,dy = ix,iy
+                        minDist = dist
+
+                # The distance of the new point is compared with the least 
+                # distance computed till now, the point is rejected if it's
+                # comparitively more. This is done so that edge points don't
+                # wrap around a curve instead of heading towards the end point
+                if(overallMinDist!= None and minDist > overallMinDist*1.1):
+                    i+=step
+                    continue
+
+                if( overallMinDist == None or minDist < overallMinDist ):
+                    overallMinDist = minDist
+
+                # Reset the points in the box so that they are not detected
+                # during the next iteration.
+                edgeMap[x-box:x+box,y-box:y+box] = 0
+
+                # Keep all the points in the bounding box
+                if( xmin <= x+dx <= xmax and ymin <= y+dx <=ymax):
+                    #Add the point to list and redefine the line
+                    line =[(x+dx,y+dy)] + self.bresenham_line((x+dx, y+dy), end)
+                    finalList += [(x+dx,y+dy)]
+                
+                    i = 0
+            
+            i += step 
+        finalList += [end]
+        return finalList
+
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
