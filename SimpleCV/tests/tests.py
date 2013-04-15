@@ -2548,7 +2548,7 @@ def test_feature_angles():
 
     results = [img,img2,img3]
     name_stem = "test_feature_angles"
-    perform_diff(results,name_stem,tolerance=9.0)
+    perform_diff(results,name_stem,tolerance=11.0)
 
 def test_feature_angles_rotate():
     img = Image("../sampleimages/rotation2.png")
