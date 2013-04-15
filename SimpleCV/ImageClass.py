@@ -13402,7 +13402,7 @@ class Image:
         else:
             return retVal
 
-    def recognizeFace(self, recognizer=None, csvdataset=None, trainingdata=None, face=True, haarcascade=None):
+    def recognizeFace(self, recognizer=None):
         """
         **SUMMARY**
 
@@ -13412,50 +13412,84 @@ class Image:
 
         * *recognizer*   - Trained FaceRecognizer object
 
-        * *csvdataset*   - CSV dataset whihch would train the FaceRecognizer and predict
-                           class of the image. filename.
+        **EXAMPLES**
 
-        * *trainingdata* - Trained data which would be loaded in FaceRecognizer object.
-                           filaname
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> recognizer = FaceRecognizer()
+        >>> recognizer.load("training.xml")
+        >>> print img.recognizeFace(recognizer)
+        """
+        try:
+            import cv2
+            if not hasattr(cv2, "createFisherFaceRecognizer"):
+                warnings.warn("OpenCV >= 2.4.4 required to use this.")
+                return None
+        except ImportError:
+            warnings.warn("OpenCV >= 2.4.4 required to use this.")
+            return None
 
-        * *face*         - bool - whether the image is a cropped face or not. If not, prvoide
-                           haarcascade which would identify the face in the image.
+        if not isinstance(recognizer, SimpleCV.Features.FaceRecognizer):
+            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            return None
 
-        * *haarcascade*  - If face is false, prvoide haarcascade which would identify the face
-                           in the image.
+        w, h = recognizer.imageSize
+        label = recognizer.predict(self.resize(w, h))
+        return label
+
+    def findAndRecognizeFaces(self, recognizer, cascade=None):
+        """
+        **SUMMARY**
+
+        Predict the class of the face in the image using FaceRecognizer.
+
+        **PARAMETERS**
+
+        * *recognizer*  - Trained FaceRecognizer object
+
+        * *cascade*     -haarcascade which would identify the face
+                         in the image.
 
         **EXAMPLES**
 
         >>> cam = Camera()
         >>> img = cam.getImage()
-        >>> print img.recognizeFace(trainingdata="training.xml")
-
+        >>> recognizer = FaceRecognizer()
+        >>> recognizer.load("training.xml")
+        >>> feat = img.findAndRecognizeFaces(recognizer, "face.xml")
+        >>> for feature, label in feat:
+            ... i = feature.crop()
+            ... i.drawText(str(label))
+            ... i.show()
         """
-        crop_img = self
-        if not face:
-            if not haarcascade:
-                from SimpleCV import __path__
-                haarcascade = "/".join([__path__[0],"/Features/HaarCascades/face.xml"])
-            feat = self.findHaarFeatures(haarcascade)
-            if feat:
-                crop_img = feat.sortArea()[-1].crop()
-            else:
-                warnings.warn("Face not found in the image.")
+        try:
+            import cv2
+            if not hasattr(cv2, "createFisherFaceRecognizer"):
+                warnings.warn("OpenCV >= 2.4.4 required to use this.")
                 return None
+        except ImportError:
+            warnings.warn("OpenCV >= 2.4.4 required to use this.")
+            return None
 
-        if not recognizer:
-            recognizer = FaceRecognizer()
-            if csvdataset:
-                recognizer.train(csvfile=csvdataset)
-            elif trainingdata:
-                recognizer.load(trainingdata)
-            else:
-                warnings.warn("Neither dataset nor trainingdata provided.")
-                return None
+        if not isinstance(recognizer, SimpleCV.Features.FaceRecognizer):
+            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            return None
 
-        w, h = recognizer.imageSize
-        label = recognizer.predict(crop_img.resize(w, h))
-        return label
+        if not cascade:
+            from SimpleCV import __path__
+            cascade = "/".join([__path__[0],"/Features/HaarCascades/face.xml"])
+
+        faces = self.findHaarFeatures(cascade)
+        if not faces:
+            warnings.warn("Faces not found in the image.")
+            return None
+
+        retVal = []
+        for face in faces:
+            label = face.crop().recognizeFace(recognizer)
+            retVal.append([face, label])
+        return retval
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
