@@ -585,17 +585,8 @@ class LineScan(list):
         **SEE ALSO**
 
         """
-        k = len(kernel)
-        if( k%2 == 0):
-            kl = (k/2)-1
-            kt = k/2
-        else:
-            kl = (k-1)/2
-            kt = kl
-        out = np.convolve(self,np.array(kernel,dtype='float32'))
-        out = out[kt:-1*kl]
+        out = np.convolve(self,np.array(kernel,dtype='float32'),'same')
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2,channel=self.channel)
-        retVal._update(self)
         return retVal
 
     def fft(self):
@@ -836,6 +827,78 @@ class LineScan(list):
         retVal = LineScan(out,image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         retVal._update(self)
         return retVal
+
+    def mean(self):
+        """
+        **SUMMARY**
+
+        Computes the statistical mean of the signal.
+
+        **RETURNS**
+
+        The mean of the LineScan object.
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> avg = ls.mean()
+        >>>> plt.plot(ls)
+        >>>> plt.axhline(y = avg)
+        >>>> plt.show()
+
+        """
+        return float(sum(self))/len(self)
+
+    def variance(self):
+        """
+        **SUMMARY**
+
+        Computes the variance of the signal.
+
+        **RETURNS**
+
+        The variance of the LineScan object.
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> var = ls.variance()
+        >>>> var
+
+        """
+        mean = float(sum(self))/len(self)
+        summation = 0
+        for num in self:
+            summation += (num - mean)**2
+        return summation/len(self)
+
+    def std(self):
+        """
+        **SUMMARY**
+
+        Computes the standard deviation of the signal.
+
+        **RETURNS**
+
+        The standard deviation of the LineScan object.
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> avg = ls.mean()
+        >>>> std = ls.std()
+        >>>> plt.plot(ls)
+        >>>> plt.axhline(y = avg)
+        >>>> plt.axhline(y = avg - std, color ='r')
+        >>>> plt.axhline(y = avg + std, color ='r')
+        >>>> plt.show()
+
+        """
+        mean = float(sum(self))/len(self)
+        summation = 0
+        for num in self:
+            summation += (num - mean)**2
+        return np.sqrt(summation/len(self))
 
     def median(self,sz=5):
         """
@@ -1143,6 +1206,7 @@ class LineScan(list):
         >>> plt.plot(spline)
         >>> plt.show()
         
+<<<<<<< HEAD
         **NOTES**
 
         Implementation taken from http://www.scipy.org/Cookbook/Interpolation  
@@ -1161,3 +1225,6 @@ class LineScan(list):
         cj = sps.cspline1d(y)
         retVal = sps.cspline1d_eval(cj,newx,dx=dx,x0=x[0])
         return retVal
+=======
+        return LineScan(map(int,self.convolve(kernel)),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row, channel=self.channel)
+>>>>>>> a5a54bf441d446a556019e02421e16e58509c2e1
