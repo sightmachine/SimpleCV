@@ -13503,7 +13503,7 @@ class Image:
         """
         **SUMMARY**
 
-        Predict the class of the face in the image using FaceRecognizer.
+        Find faces in the image using FaceRecognizer and predict their class.
 
         **PARAMETERS**
 
@@ -13526,7 +13526,7 @@ class Image:
             warnings.warn("OpenCV >= 2.4.4 required to use this.")
             return None
 
-        if not isinstance(recognizer, SimpleCV.Features.FaceRecognizer):
+        if not isinstance(recognizer, FaceRecognizer):
             warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
             return None
 
@@ -13568,7 +13568,7 @@ class Image:
             warnings.warn("OpenCV >= 2.4.4 required to use this.")
             return None
 
-        if not isinstance(recognizer, SimpleCV.Features.FaceRecognizer):
+        if not isinstance(recognizer, FaceRecognizer):
             warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
             return None
 
@@ -13585,7 +13585,7 @@ class Image:
         for face in faces:
             label = face.crop().recognizeFace(recognizer)
             retVal.append([face, label])
-        return retval
+        return retVal
 
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
