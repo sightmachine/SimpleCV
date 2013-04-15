@@ -421,7 +421,6 @@ class ImageSet(list):
         **RETURNS**
 
         Nothing.
-
         **EXAMPLE**
 
         >>> imgs = ImageSet()
