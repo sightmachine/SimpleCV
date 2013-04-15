@@ -13297,181 +13297,146 @@ class Image:
 
 
 
-    def edgeSnap(self,pointList,step = 5,t1=50,t2=100):
- 		"""
+    def edgeSnap(self,pointList,step = 1,t1=50,t2=100):
+        """
         **SUMMARY**
 
-        Given a List of points returns a list of edge points closet to the line joining the points 
-	
-		Each point is a tuple of two numbers
-        
+        Given a List of points returns a list of edge points closet to the line
+        joining the points, each point is a tuple of two numbers.
 
         **Parameters**
 
-        * *step* - Number of pixels along x or y axis to move ahead if no edge is found in vicinity
+        * *step* - Number of pixels along x or y axis to move ahead if 
+                   no edge is found in vicinity. Keep this small if you want to
+                   sharply follow a curve
 
         * *t1* - Lower Canny Threshold for Edge Detection
 
-		* *t2* - Upper Canny Threshold for Edge Detection
+        * *t2* - Upper Canny Threshold for Edge Detection
+
+        **RETURNS**
+
+        * List * - A list of tuples , each tuple contains (x,y) values
         
-		"""
+        **EXAMPLE**
 
-		if(len(pointList) == 0 ):
-			return []
+        >>> image = Image("logo")
+        >>> edgePoints = image.edgeSnap([(50,50),(230,200)])
+        >>> for point in edgePoints:
+                image.drawCircle(point,2,Color.RED,-1)
 
-		finalList = [(pointList[0][0],pointList[0][1])]
-		if(len(pointList) == 1 ):
-			return finalList
+        """
 
-		i = 0
-		while(i < len(pointList) - 1):
-			finalList += self._edgeSnap2(pointList[i],pointList[i+1],step,t1,t2)
-			i+=1
-		
-		return finalList
+        if(len(pointList) == 0 ):
+            return None
+
+        finalList = [(pointList[0][0],pointList[0][1])]
+        if(len(pointList) == 1 ):
+            return finalList
+
+        last = pointList[0]
+        for point in pointList[1:None]:
+            finalList += self._edgeSnap2(last,point,step,t1,t2)
+            last = point
+
+        return finalList
 
     def _edgeSnap2(self,start,end,step,t1=50,t2=100):
- 		"""
+        """
         **SUMMARY**
 
         Given a two points returns a list of edge points closet to the line joining the points 
-		Point is a tuple of two numbers
-
-        
+        Point is a tuple of two numbers
 
         **Parameters**
 
-		* *start* - First Point
+        * *start* - First Point
 
-		* *end* - Second Point
+        * *end* - Second Point
 
-        * *step* - Number of pixels along x or y axis to move ahead if no edge is found in vicinity
+        * *step* - Number of points to skip if no edge is found in vicinity
+                   Keep this low to detect sharp curves
 
         * *t1* - Lower Canny Threshold for Edge Detection
 
-		* *t2* - Upper Canny Threshold for Edge Detection
+        * *t2* - Upper Canny Threshold for Edge Detection
         
-		"""
+        """
 
+        edgeMap = self.edges(t1,t2).getGrayNumpy()
 
+        #Size of the box around a point which is checked for edges.
+        box = step*4
 
-		class Line:
-			"""
+        xmin = min(start[0],end[0])
+        xmax = max(start[0],end[0])
+        ymin = min(start[1],end[1])
+        ymax = max(start[1],end[1])
 
-			Helper class to return a line as an iterator
+        line = self.bresenham_line(start,end)
 
-			"""
+        #List of Edge Points.
+        finalList = []
+        i = 0
+        
+        #Closest any point has ever come to the end point
+        overallMinDist = None
 
-			def __init__(self,p1,p2,step):
+        while  i < len(line) :
+            
+            x,y = line[i]
+            
+            #Get the matrix of points fromx around current point.
+            region = edgeMap[x-box:x+box,y-box:y+box]
 
+            #Condition at the boundary of the image
+            if(region.shape[0] == 0 or region.shape[1] == 0):
+                i += step
+                continue
 
-				self.x1 = int(p1[0])
-				self.y1 = int(p1[1])
-				self.x2 = int(p2[0])
-				self.y2 = int(p2[1])
+            #Index of all Edge points
+            indexList = np.argwhere(region>0)
+            if (indexList.size > 0):
+                
+                #Center the coordinates around the point
+                indexList -= box
+                minDist = None
 
+                # Incase multiple edge points exist, choose the one closest
+                # to the end point
+                for ix,iy in indexList:
+                    dist = math.hypot(x+ix-end[0],iy+y-end[1])
+                    if(minDist ==None or dist < minDist ):
+                        dx,dy = ix,iy
+                        minDist = dist
 
-	
-		
-				self.dt = 0.0	
-				self.t = 0.0
-		
-				self.dy = abs(y2 - y1)
-				self.dx = abs(x2 - x1)
-				#self.slope = abs(float(self.dy)/float(self.dx))
-				if(self.dy > self.dx ):
-					self.dt = float(step)/float(self.dy)
-					self.vertical = True
-				else:
-					self.dt = float(step)/float(self.dx)
-					self.verical = False
-			def __iter__(self):
-				return self
+                # The distance of the new point is compared with the least 
+                # distance computed till now, the point is rejected if it's
+                # comparitively more. This is done so that edge points don't
+                # wrap around a curve instead of heading towards the end point
+                if(overallMinDist!= None and minDist > overallMinDist*1.1):
+                    i+=step
+                    continue
 
-			def next(self):
-				self.t += self.dt
-				if( self.t < 1 ):
-					return int(self.x1 + (self.x2 - self.x1)*self.t),int(self.y1 + (self.y2 - self.y1)*self.t)
-				else:
-					raise StopIteration
+                if( overallMinDist == None or minDist < overallMinDist ):
+                    overallMinDist = minDist
 
+                # Reset the points in the box so that they are not detected
+                # during the next iteration.
+                edgeMap[x-box:x+box,y-box:y+box] = 0
 
-		def dist(p1,p2):
-			"""
-			Helper function for distance between two points
-			"""
-			return math.hypot(p1[0] - p2[0] , p1[1] - p2[1])
+                # Keep all the points in the bounding box
+                if( xmin <= x+dx <= xmax and ymin <= y+dx <=ymax):
+                    #Add the point to list and redefine the line
+                    line =[(x+dx,y+dy)] + self.bresenham_line((x+dx, y+dy), end)
+                    finalList += [(x+dx,y+dy)]
+                
+                    i = 0
+            
+            i += step 
+        finalList += [end]
+        return finalList
 
-		edgeMap = self.edges(t1,t2).getGrayNumpy()
-
-		#Size of the vicinity around a point which is chked for edges
-		box = step*4
-		x1 = int(start[0])
-		x2 = int(end[0])
-		y1 = int(start[1])
-		y2 = int(end[1])
-
-		xmin = min(x1,x2)
-		xmax = max(x1,x2)
-		ymin = min(y1,y2)
-		ymax = max(y1,y2)		
-	
-		line = Line(start,end,step)
-
-
-		#List of Edge Points		
-
-		finalList = []
-		count = 0
-
-		
-
-
-		#length of the line
-		length = math.hypot(x1 - x2,y1 - y2)
-		rad = length/2
-
-		center = (x1 + x2)/2,(y1 + y2)/2		
-		while(True):
-			
-			try:
-				p = line.next()
-				
-				#if an edge point is "found"
-				found = False
-
-				#checking in a box around the current point for edges
-				for x in range(-box/2,box/2):		
-					for y in range(-box/2,box/2):
-						point = p[0] + x,p[1] + y
-
-						# If an edge point is found , Set the rest of the box black,
-						# so that an edge is current point's vicinity is not detected
-						# while checking for next point
-						if (found):
-							edgeMap[point] = 0
-
-						else:
-				
-							value = edgeMap[point]
-							# Consider the point if it is an edge point and is out of the bounding box
-							#  
-							if(value > 0 and  point[0] < xmax and point[0] > xmin and point[1] > ymin and point[1] < ymax):
-								edgeMap[point] = 0
-								found = True
-
-								#chnage start point of the line to newly found point
-								line = Line(point,end,step)
-
-								# Add point to the list
-								finalList += [ (p[0] + x,p[1] + y)]
-
-
-				
-			except StopIteration:
-				# End point Reached, return
-				finalList += [(end[0],end[1])]
-				return finalList
         
 
 

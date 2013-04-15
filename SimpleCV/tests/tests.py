@@ -3558,16 +3558,23 @@ def test_tvDenoising():
         pass
 
 def test_edgeSnap():
-	img = Image('shapes.png',sample=True)
-	black = Image((img.width,img.height))
-	l = img.edgeSnap([(174,96),(101,46),(29,94),(102,149)],2)
-	rang = range(len(l) - 1)
+    img = Image('shapes.png',sample=True)
+    black = Image((img.width,img.height))
 
-	for i in rang:
-		black.drawLine(l[i],l[i + 1],Color.WHITE,3)
-	
-	name_stem = "test_edgeSnap"
-	
-	result = [black]
-	perform_diff(result,name_stem,0.5)
-	
+    list1 = [(129,32),(19,88),(124,135)]
+    list2 = [(484,294),(297,437)]
+    list3 = [(158,357),(339,82)]
+
+    for list_ in list1,list2,list3:
+        print list_
+        edgePoints = img.edgeSnap(list_)
+        last = edgePoints[0]
+        for point in edgePoints[1:None]:
+            black.drawLine(last,point,Color.WHITE,3)
+            last = point
+
+    name_stem = "test_edgeSnap"
+
+    result = [black]
+    perform_diff(result,name_stem,0.5)
+

@@ -5,37 +5,40 @@ Left-click to define points for snapping ( Blue )
 Right-click to start the process, Detected Edge points will be shown in Red
 
 '''
+print __doc__
+
 from SimpleCV import *
 
 
 
-img = Image("shapes.png",sample = True)
+image = Image("shapes.png",sample = True)
 
+display = Display((image.width,image.height))
 
-disp = Display((img.width,img.height))
-
-img.drawText("Left Click to choose points, right click to find Edge POints", 10,10,color=Color.BLACK,fontsize=20)
+image.drawText("Left Click to choose points, Right click to find Edge Points", 10,10,color=Color.BLACK,fontsize=20)
 
 
 points = []
+image.save(display)
 
-img.save(disp)
-while not disp.isDone():
+while not display.isDone():
 
-	time.sleep(0.01)
-	left = disp.leftButtonDownPosition()
-	right = disp.rightButtonDownPosition()
+    time.sleep(0.01)
+    left = display.leftButtonDownPosition()
+    right = display.rightButtonDownPosition()
 
 
-	if(left != None ):
-		img.drawCircle((left[0],left[1]),3,Color.BLUE,-1)
-		img.save(disp)
-		points += [left]
+    if(left != None ):
+        image.drawCircle((left[0],left[1]),5,Color.BLUE,-1)
+        image.save(display)
+        points += [left]
 
-	if(right != None ):		
-		draw = img.edgeSnap(points,2)
-		l = range(len(draw) - 1)
-		for i in l:
-			img.drawLine(draw[i],draw[i+1],Color.RED,2)
-		img.save(disp)
-		points = []
+    if(right != None ):
+        draw = image.edgeSnap(points,1)
+        if(draw):
+            last = draw[0]
+            for point in draw:
+                image.drawLine(last,point,Color.RED,3)
+                last = point
+            image.save(display)
+        points = []
