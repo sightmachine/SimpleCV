@@ -13299,13 +13299,12 @@ class Image:
         **SUMMARY**
 
         Given a List of points returns a list of edge points closet to the line
-        joining the points, each point is a tuple of two numbers.
+        joining two successive points, each point is a tuple of two numbers.
 
         **Parameters**
 
-        * *step* - Number of pixels along x or y axis to move ahead if 
-                   no edge is found in vicinity. Keep this small if you want to
-                   sharply follow a curve
+        * *step* - Number of points to skip if no edge is found in vicinity.
+                   Keep this small if you want to sharply follow a curve
 
         * *t1* - Lower Canny Threshold for Edge Detection
 

@@ -1,5 +1,5 @@
 '''
-This example illustrated the edgeSnap function in the Image class
+This example illustrates the edgeSnap function in the Image class
 
 Left-click to define points for snapping ( Blue )
 Right-click to start the process, Detected Edge points will be shown in Red
