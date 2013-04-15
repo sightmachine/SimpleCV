@@ -15,7 +15,7 @@ def identifyGender():
         crop_image = feat.sortArea()[-1].crop()
         feat.sortArea()[-1].draw()
 
-    f.load(SimpleCV.__path__[0]+"/"+"Features/FaceRecognizerData/AT_T_Gender_Data.xml")
+    f.load(SimpleCV.__path__[0]+"/"+"Features/FaceRecognizerData/GenderData.xml")
     w, h = f.imageSize
     crop_image = crop_image.resize(w, h)
     label = f.predict(crop_image)
