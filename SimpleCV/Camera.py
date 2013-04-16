@@ -705,7 +705,12 @@ class VirtualCamera(FrameSource):
             return img
 
         elif (self.sourcetype == 'video'):
-            return Image(cv.QueryFrame(self.capture), self)
+            # cv.QueryFrame returns None if the video is finished
+            frame = cv.QueryFrame(self.capture)
+            if frame:
+                return Image(frame, self)
+            else:
+                return None
 
         elif (self.sourcetype == 'directory'):
             img = self.findLastestImage(self.source, 'bmp')
