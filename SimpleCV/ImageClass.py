@@ -421,6 +421,7 @@ class ImageSet(list):
         **RETURNS**
 
         Nothing.
+
         **EXAMPLE**
 
         >>> imgs = ImageSet()
@@ -2163,6 +2164,7 @@ class Image:
         * *params* - This object is used for overloading the PIL save methods. In particular
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
           http://www.pythonware.com/library/pil/handbook/format-jpeg.htm
+
         **EXAMPLES**
 
         To save as a temporary file just use:
