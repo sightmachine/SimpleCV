@@ -2929,6 +2929,7 @@ def test_image_temp_save():
     assert True
 
 
+
 def test_image_set_average():
     iset = ImageSet()
     iset.append(Image("./../sampleimages/tracktest0.jpg"))
@@ -3615,4 +3616,55 @@ def test_motionBlur():
     else:
         assert False
 
+def test_faceRecognize():
+    try:
+        import cv2
+        if hasattr(cv2, "createFisherFaceRecognizer"):
+            f = FaceRecognizer()
+            images1 = ["../sampleimages/ff1.jpg",
+                       "../sampleimages/ff2.jpg",
+                       "../sampleimages/ff3.jpg",
+                       "../sampleimages/ff4.jpg",
+                       "../sampleimages/ff5.jpg"]
+            
+            images2 = ["../sampleimages/fm1.jpg",
+                       "../sampleimages/fm2.jpg",
+                       "../sampleimages/fm3.jpg",
+                       "../sampleimages/fm4.jpg",
+                       "../sampleimages/fm5.jpg"]
+            
+            images3 = ["../sampleimages/fi1.jpg",
+                       "../sampleimages/fi2.jpg",
+                       "../sampleimages/fi3.jpg",
+                       "../sampleimages/fi4.jpg"]
+            
+            imgset1 = []
+            imgset2 = []
+            imgset3 = []
+            for img in images1:
+                imgset1.append(Image(img))
+            label1 = [0]*len(imgset1)
 
+            for img in images2:
+                imgset2.append(Image(img))
+            label2 = [1]*len(imgset2)
+
+            imgset = imgset1 + imgset2
+            labels = label1 + label2
+            f.train(imgset, labels)
+
+            for img in images3:
+                imgset3.append(Image(img))
+
+            label = []
+            for img in imgset3:
+                label.append(f.predict(img))
+            
+            if label == [1, 1, 0, 0]:
+                pass
+            else:
+                assert False
+        else:
+            pass
+    except ImportError:
+        pass
