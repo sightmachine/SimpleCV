@@ -149,9 +149,10 @@ class Display:
         self.leftButtonUp = None
         self.rightButtonDown = None
         self.rightButtonUp = None
-        self.displaytype = displaytype
-        self.pressed = pg.key.get_pressed()
-
+        self.pressed = None
+        self.displaytype = displaytype 
+        # NOTE: NO PYGAME CALLS SHOULD BE MADE IN INIT AS THEY KILLL
+        # THE DISPLAY IN IPYTHON NOTEBOOKS       
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image.
         self.resolution = resolution
