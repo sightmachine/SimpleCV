@@ -12034,7 +12034,7 @@ class Image:
                 retVal.pointLoc = pts
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
-                # warn and return None
+                return None
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
@@ -12050,7 +12050,7 @@ class Image:
 
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
-                # warn and return None
+                return None
 
             pass
         elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
@@ -12139,7 +12139,7 @@ class Image:
                 img[x,:] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
-
+                return None
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
                 if( len(linescan) != self.width ):
@@ -12149,9 +12149,7 @@ class Image:
                 img[:,y] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
-                # warn and return None
-
-
+                return None
         elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
               (isinstance(pt2,tuple) or isinstance(pt2,list)) and
               len(pt1) == 2 and len(pt2) == 2 and
@@ -13429,7 +13427,6 @@ class Image:
         else:
             return retVal
       
-
     def motionBlur(self,intensity=15, direction='NW'):
         """
         **SUMMARY**

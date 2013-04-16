@@ -3616,8 +3616,6 @@ def test_motionBlur():
     else:
         assert False
 
-
-
 def test_faceRecognize():
     try:
         import cv2
@@ -3669,22 +3667,4 @@ def test_faceRecognize():
         else:
             pass
     except ImportError:
-        pass
-
-        imgset2 = ImageSet("../sampleimages/facerecognizer/male")
-        label2 = [1]*len(imgset2)
-
-        imgset = imgset1 + imgset2
-        labels = label1 + label2
-        f.train(imgset, labels)
-
-        imgset3 = ImageSet("../sampleimages/facerecognizer/identify")
-        label = []
-        for img in imgset3:
-            label.append(f.predict(img))
-        if label == [0, 0, 1, 1]:
-            pass
-        else:
-            assert False
-    except ImportError, AttributeError:
         pass
