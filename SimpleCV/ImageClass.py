@@ -13234,37 +13234,37 @@ class Image:
         return fs, self._mKPDescriptors
 
     def getGrayHistogramCounts(self, bins = 255, limit=-1):
-      '''
-      This function returns a list of tuples of greyscale pixel counts
-      by frequency.  This would be useful in determining the dominate
-      pixels (peaks) of the greyscale image.
+        '''
+        This function returns a list of tuples of greyscale pixel counts
+        by frequency.  This would be useful in determining the dominate
+        pixels (peaks) of the greyscale image.
+  
+        **PARAMETERS**
+  
+        * *bins* - The number of bins for the hisogram, defaults to 255 (greyscale)
+        * *limit* - The number of counts to return, default is all
 
-      **PARAMETERS**
+        **RETURNS**
 
-      * *bins* - The number of bins for the hisogram, defaults to 255 (greyscale)
-      * *limit* - The number of counts to return, default is all
+        * List * - A list of tuples of (frequency, value)
 
-      **RETURNS**
+        **EXAMPLE**
 
-      * List * - A list of tuples of (frequency, value)
+        >>> img = Image("lenna")
+        >>> counts = img.getGrayHistogramCounts()
+        >>> counts[0] #the most dominate pixel color tuple of frequency and value
+        >>> counts[1][1] #the second most dominate pixel color value
+        '''
 
-      **EXAMPLE**
+        hist = self.histogram(bins)
+        vals = [(e,h) for h,e in enumerate(hist)]
+        vals.sort()
+        vals.reverse()
 
-      >>> img = Image("lenna")
-      >>> counts = img.getGrayHistogramCounts()
-      >>> counts[0] #the most dominate pixel color tuple of frequency and value
-      >>> counts[1][1] #the second most dominate pixel color value
-      '''
+        if limit == -1:
+            limit = bins
 
-      hist = self.histogram(bins)
-      vals = [(e,h) for h,e in enumerate(hist)]
-      vals.sort()
-      vals.reverse()
-
-      if limit == -1:
-        limit = bins
-
-      return vals[:limit]
+        return vals[:limit]
 
     def grayPeaks(self, bins = 255, delta = 0, lookahead = 15):
         """
