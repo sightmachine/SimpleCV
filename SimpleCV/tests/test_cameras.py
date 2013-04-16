@@ -25,3 +25,18 @@ def test_camera_image():
     img = mycam.getImage()
     img.save(testoutput)
     pass
+
+def test_camera_multiple_instances():
+    cam1 = Camera()
+    img1 = cam1.getImage()
+    cam2 = Camera()
+    img2 = cam2.getImage()
+
+    if not cam1 or not cam2 or not img1 or not img2:
+        assert False
+
+    cam3 = Camera(0) # given that default webcam index is 0. 
+    img3 = cam3.getImaeg()
+
+    if not cam3 or not img3:
+        assert False
