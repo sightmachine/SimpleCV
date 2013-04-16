@@ -13498,8 +13498,11 @@ class Image:
         
         retval=self.convolve(kernel=kernel/div)
         return retval
-        
 
+        def smartRotate(self):
+            print 'smart'
+
+#last
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
