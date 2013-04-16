@@ -647,7 +647,7 @@ class VirtualCamera(FrameSource):
             start=1
         self.start = start
 
-        if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset" or self.sourcetype == "directory"):
+        if self.sourcetype not in ["video", "image", "imageset", "directory"]:
             print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
             print '\tVirtualCamera("filename","video")'
             print '\tVirtualCamera("filename","image")'
@@ -672,11 +672,11 @@ class VirtualCamera(FrameSource):
             else:
                 self.source.load(s)
 
-        if (self.sourcetype == 'video'):
+        elif (self.sourcetype == 'video'):
             self.capture = cv.CaptureFromFile(self.source)
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
 
-        if (self.sourcetype == 'directory'):
+        elif (self.sourcetype == 'directory'):
             pass
 
 
@@ -699,15 +699,15 @@ class VirtualCamera(FrameSource):
         if (self.sourcetype == 'image'):
             return Image(self.source, self)
 
-        if (self.sourcetype == 'imageset'):
+        elif (self.sourcetype == 'imageset'):
             img = self.source[self.counter % len(self.source)]
             self.counter = self.counter + 1
             return img
 
-        if (self.sourcetype == 'video'):
+        elif (self.sourcetype == 'video'):
             return Image(cv.QueryFrame(self.capture), self)
 
-        if (self.sourcetype == 'directory'):
+        elif (self.sourcetype == 'directory'):
             img = self.findLastestImage(self.source, 'bmp')
             return Image(img, self)
 
