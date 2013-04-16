@@ -5,14 +5,13 @@ from SimpleCV import *
 from nose.tools import with_setup
 
 
-testimage = "sampleimages/9dots4lines.png"
-testvideo = "sampleimages/fasteners.mpg"
-testoutput = "sampleimages/cam.jpg"
+testimage = "../sampleimages/9dots4lines.png"
+testvideo = "../sampleimages/ball.mov"
+testoutput = "standard/vc.jpg"
 
 
 def test_camera_constructor():
     mycam = VirtualCamera(testimage, "image")
-
     props = mycam.getAllProperties()
 
     for i in props.keys():
@@ -31,3 +30,4 @@ def test_camera_video():
 
     img = mycam.getImage()
     img.save(testoutput)
+    assert img.size() == (320, 240)
