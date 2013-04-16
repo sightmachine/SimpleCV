@@ -3619,9 +3619,9 @@ def test_smartRotate():
     i1 = Image('guitar.jpg',sample = True)
     i2 = Image('tilted_glass.jpg',sample = True)
 
-    ir1 = i1.smartRotate()
-    ir2 = i2.smartRotate()
+    ir1 = i1.smartRotate(fixed = False)
+    ir2 = i2.smartRotate(fixed = False)
     result = [ir1,ir2]
     name_stem = "test_smartRotate"
-    perform_diff(result,name_stem,.3)
+    perform_diff(result,name_stem,.2)
 
