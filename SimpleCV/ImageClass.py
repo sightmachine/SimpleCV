@@ -4848,7 +4848,7 @@ class Image:
 
     #this function contains two functions -- the basic edge detection algorithm
     #and then a function to break the lines down given a threshold parameter
-    def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
+    def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100, useStandard=False):
         """
         **SUMMARY**
 
@@ -4864,6 +4864,7 @@ class Image:
         * *maxlinegap* - how much gap is allowed between line segments to consider them the same line .
         * *cannyth1* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
         * *cannyth2* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
+        * *useStandard* - use standard or probabilistic Hough transform.
 
         **RETURNS**
 
@@ -4883,17 +4884,27 @@ class Image:
 
         """
         em = self._getEdgeMap(cannyth1, cannyth2)
-
-
-        lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
-
-
+        
+        
         linesFS = FeatureSet()
-        for l in lines:
-            linesFS.append(Line(self, l))
+        
+        if useStandard:
+            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            for rho, theta in lines[:100]:
+                a = math.cos(theta)
+                b = math.sin(theta)
+                x0 = a*rho
+                y0 = b*rho
+                k = math.sqrt( self.size()[0]**2 + self.size()[1]**2 )
+                pt1 = ( int(round(x0 + k*(-b))), int(round(y0 + k*a)) )
+                pt2 = ( int(round(x0 - k*(-b))), int(round(y0 - k*a)) )
+                linesFS.append(Line(self, (pt1, pt2)))
+        else:
+            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            for l in lines:
+                linesFS.append(Line(self, l))
+        
         return linesFS
-
-
 
 
     def findChessboard(self, dimensions = (8, 5), subpixel = True):
