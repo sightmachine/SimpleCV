@@ -3615,4 +3615,13 @@ def test_motionBlur():
     else:
         assert False
 
+def test_smartRotate():
+    i1 = Image('guitar.jpg',sample = True)
+    i2 = Image('tilted_glass.jpg',sample = True)
+
+    ir1 = i1.smartRotate()
+    ir2 = i2.smartRotate()
+    result = [ir1,ir2]
+    name_stem = "test_smartRotate"
+    perform_diff(result,name_stem,.3)
 
