@@ -2212,7 +2212,7 @@ class Image:
                     num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
                 num.sort()
                 fnum = num[-1]+1
-                filename = glob.os.path.join(path,filename+str(fnum)+".png")
+                filename = glob.os.path.join(path,filename+("%07d" % fnum)+".png")
                 self._tempFiles.append((filename,cleanTemp))
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
@@ -13421,7 +13421,8 @@ class Image:
             img = img.getNumpy()
             multichannel = True
         else:
-            print 'gray value not valid'
+            warnings.warn('gray value not valid')
+            return None
 
         denoise_mat = denoise_tv_chambolle(img,weight,eps,max_iter,multichannel)
         retVal = img * denoise_mat
