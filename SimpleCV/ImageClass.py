@@ -13294,23 +13294,22 @@ class Image:
         else:
             return retVal
 
-    def edgeSnap(self,pointList,step = 1,t1=50,t2=100):
+    def edgeSnap(self,pointList,step = 1):
         """
         **SUMMARY**
 
-        Given a List of points returns a list of edge points closet to the line
-        joining two successive points, each point is a tuple of two numbers.
+        Given a List of points finds edges closet to the line joining two 
+        successive points, edges are returned as a FeatureSet of
+        Lines.
 
         Note : Image must be binary, it is assumed that prior conversion is done
 
         **Parameters**
 
+       * *pointList* - List of points to be checked for nearby edges.
+
         * *step* - Number of points to skip if no edge is found in vicinity.
                    Keep this small if you want to sharply follow a curve
-
-        * *t1* - Lower Canny Threshold for Edge Detection
-
-        * *t2* - Upper Canny Threshold for Edge Detection
 
         **RETURNS**
 
@@ -13323,10 +13322,11 @@ class Image:
         >>> edgeLines.draw(color = Color.YELLOW,width = 3)
         """
 
-        imgArray = self.getNumpy()
+        imgArray = self.getGrayNumpy()
         c1 = np.count_nonzero(imgArray )
         c2 = np.count_nonzero(imgArray - 255)
         
+        #checking that all values are 0 and 255
         if( c1 + c2 != imgArray.size):
             raise ValueError,"Image must be binary"
 
@@ -13337,7 +13337,7 @@ class Image:
         featureSet  = FeatureSet()
         last = pointList[0]
         for point in pointList[1:None]:
-            finalList += self._edgeSnap2(last,point,step,t1,t2)
+            finalList += self._edgeSnap2(last,point,step)
             last = point
             
         last = finalList[0]
@@ -13346,7 +13346,7 @@ class Image:
             last = point
         return featureSet
 
-    def _edgeSnap2(self,start,end,step,t1=50,t2=100):
+    def _edgeSnap2(self,start,end,step):
         """
         **SUMMARY**
 
@@ -13363,10 +13363,6 @@ class Image:
 
         * *step* - Number of points to skip if no edge is found in vicinity
                    Keep this low to detect sharp curves
-
-        * *t1* - Lower Canny Threshold for Edge Detection
-
-        * *t2* - Upper Canny Threshold for Edge Detection
 
         **RETURNS**
 
