@@ -7926,9 +7926,9 @@ class Image:
                 # cv2.SURF(hessianThreshold, nOctaves, nOctaveLayers, extended, upright)
                 detector = cv2.SURF(thresh, 4, 2, highQuality, 1)
                 if new_version == 0:
-                    self._mKeyPoints, self._mKPDescriptors = detector.detect(self.getGrayNumpyCv2(), None, False)
+                    self._mKeyPoints, self._mKPDescriptors = detector.detect(self.getGrayNumpy(), None, False)
                 else:
-                    self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpyCv2(), None, False)
+                    self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
                 if len(self._mKeyPoints) == 0:
                     return (None, None)
                 if highQuality == 1:
@@ -7938,28 +7938,28 @@ class Image:
 
             elif flavor in _descriptors:
                 detector = getattr(cv2,  flavor)()
-                self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpyCv2(), None, False)
+                self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
             elif flavor == "MSER":
                 if hasattr(cv2, "FeatureDetector_create"):
                     detector = cv2.FeatureDetector_create("MSER")
-                    self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
+                    self._mKeyPoints = detector.detect(self.getGrayNumpy())
         elif flavor == "STAR":
             detector = cv2.StarDetector()
-            self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
+            self._mKeyPoints = detector.detect(self.getGrayNumpy())
         elif flavor == "FAST":
             detector = cv2.FastFeatureDetector(int(thresh), True)
-            self._mKeyPoints = detector.detect(self.getGrayNumpyCv2(), None)
+            self._mKeyPoints = detector.detect(self.getGrayNumpy(), None)
         elif hasattr(cv2, "FeatureDetector_create"):
             if flavor in _descriptors:
                 extractor = cv2.DescriptorExtractor_create(flavor)
                 if flavor == "FREAK":
                     flavor = "SIFT"
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
-                self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpyCv2(), self._mKeyPoints)
+                self._mKeyPoints = detector.detect(self.getGrayNumpy())
+                self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpy(), self._mKeyPoints)
             else:
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
+                self._mKeyPoints = detector.detect(self.getGrayNumpy())
         else:
             warnings.warn("SimpleCV can't seem to find appropriate function with your OpenCV version.")
             return (None, None)
