@@ -13498,9 +13498,97 @@ class Image:
         
         retval=self.convolve(kernel=kernel/div)
         return retval
-        
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
+    def recognizeFace(self, recognizer=None):
+        """
+        **SUMMARY**
+
+        Find faces in the image using FaceRecognizer and predict their class.
+
+        **PARAMETERS**
+
+        * *recognizer*   - Trained FaceRecognizer object
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> recognizer = FaceRecognizer()
+        >>> recognizer.load("training.xml")
+        >>> print img.recognizeFace(recognizer)
+        """
+        try:
+            import cv2
+            if not hasattr(cv2, "createFisherFaceRecognizer"):
+                warnings.warn("OpenCV >= 2.4.4 required to use this.")
+                return None
+        except ImportError:
+            warnings.warn("OpenCV >= 2.4.4 required to use this.")
+            return None
+
+        if not isinstance(recognizer, FaceRecognizer):
+            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            return None
+
+        w, h = recognizer.imageSize
+        label = recognizer.predict(self.resize(w, h))
+        return label
+
+    def findAndRecognizeFaces(self, recognizer, cascade=None):
+        """
+        **SUMMARY**
+
+        Predict the class of the face in the image using FaceRecognizer.
+
+        **PARAMETERS**
+
+        * *recognizer*  - Trained FaceRecognizer object
+
+        * *cascade*     -haarcascade which would identify the face
+                         in the image.
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> recognizer = FaceRecognizer()
+        >>> recognizer.load("training.xml")
+        >>> feat = img.findAndRecognizeFaces(recognizer, "face.xml")
+        >>> for feature, label in feat:
+            ... i = feature.crop()
+            ... i.drawText(str(label))
+            ... i.show()
+        """
+        try:
+            import cv2
+            if not hasattr(cv2, "createFisherFaceRecognizer"):
+                warnings.warn("OpenCV >= 2.4.4 required to use this.")
+                return None
+        except ImportError:
+            warnings.warn("OpenCV >= 2.4.4 required to use this.")
+            return None
+
+        if not isinstance(recognizer, FaceRecognizer):
+            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            return None
+
+        if not cascade:
+            from SimpleCV import __path__
+            cascade = "/".join([__path__[0],"/Features/HaarCascades/face.xml"])
+
+        faces = self.findHaarFeatures(cascade)
+        if not faces:
+            warnings.warn("Faces not found in the image.")
+            return None
+
+        retVal = []
+        for face in faces:
+            label = face.crop().recognizeFace(recognizer)
+            retVal.append([face, label])
+        return retVal
+
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
