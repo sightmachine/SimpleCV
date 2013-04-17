@@ -13419,7 +13419,8 @@ class Image:
             img = img.getNumpy()
             multichannel = True
         else:
-            print 'gray value not valid'
+            warnings.warn('gray value not valid')
+            return None
 
         denoise_mat = denoise_tv_chambolle(img,weight,eps,max_iter,multichannel)
         retVal = img * denoise_mat
