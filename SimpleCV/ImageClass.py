@@ -13498,7 +13498,95 @@ class Image:
         
         retval=self.convolve(kernel=kernel/div)
         return retval
+
+    def smartRotate(self,threshold=80,minLength=30,maxGap=10,t1=50,t2=100,fixed = True):
+        """
+        **SUMMARY**
+
+        Attempts to rotate the image so that the most significant lines are 
+        approximately parellel to horizontal or vertical edges.
+
+        **Parameters**
+
+        * *threshold* - minimum "strength" of the line, used in line detection 
+            step.refer to :py:meth:`findLines` for details.
+        * *minLength* - how many pixels long the line must be to be returned.
+            refer to :py:meth:`findLines` for details.
+        * *maxGap* - how much gap is allowed between line segments to consider 
+            them the same line .refer to :py:meth:`findLines` for details.
+        * *t1* - thresholds used in the edge detection step, 
+            refer to :py:meth:`_getEdgeMap` for details.
+        * *t2* - thresholds used in the edge detection step, 
+            refer to :py:meth:`_getEdgeMap` for details.
+        * *fixed* - if fixed is true,keep the original image dimensions, 
+            otherwise scale the image to fit the rotation
+
+        **RETURNS**
+
+        A rotated image
+
+        **EXAMPLE**
+        >>> i = Image ('image.jpg')
+        >>> i.smartRotate().show()
+
+
+
+        """
+
+        #Array of all angled of detected lines.
+        angArray = np.array([])
+        #Array of lengths of dtected lines.
+        lenArray = np.array([])
         
+        #Point about which to rotate.
+        x = 0
+        y = 0
+
+
+        lines = self.findLines(threshold,minLength,maxGap,t1,t1)
+        n = len(lines)
+        for line in lines:
+
+            #Store lengths and angles of lines.
+            lenArray = np.append(lenArray,line.length())
+            angArray = np.append(angArray,line.angle())
+
+            #Find the mean of centers of all lines. ( I know i should be dividing by 2 )
+            x += line.end_points[0][0] + line.end_points[1][0]
+            y += line.end_points[0][1] + line.end_points[1][1]
+
+        if(n == 0 ):
+            logger.warning('No suitable features in image detected, returning original Image')
+            return self
+
+        #Dividing by 2 now, to save time.
+        x = x/(2*n)
+        y = y/(2*n)
+        index = 0
+        mini = None
+
+        for angle in range(180):
+            
+            #Difference in orientation of line from vertical and horizontal.
+            ang1 = abs(angArray - 90 + angle)
+            ang2 = abs(angArray + 90 + angle)
+            ang3 = abs(angArray + angle )
+            
+            #Compute deviation every line is from being vertical or horizontal.
+            angMin = np.minimum(np.minimum(ang1,ang2),ang3)
+
+            #Multiply length of each line from its deviation. The bigger the 
+            #the more significant it's contribution to 'value' if it is not
+            #vertical or horizontal. 
+            value = np.sum(np.multiply(lenArray,angMin))
+            
+            #Find anfle which gives minimum 'value'
+            if( mini == None or value < mini ):
+                mini = value
+                index = angle
+        #rotate image
+        return self.rotate(-index,point = [x,y],fixed = fixed)
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
