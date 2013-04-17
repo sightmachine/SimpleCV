@@ -13528,7 +13528,7 @@ class Image:
         **EXAMPLE**
         >>> i = Image ('image.jpg')
         >>> i.smartRotate().show()
-        >>> mb.show()
+
 
 
         """
