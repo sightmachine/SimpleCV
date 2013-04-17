@@ -63,7 +63,7 @@ class Line(Feature):
 
     The Line class is returned by the findLines function, but can also be initialized with any two points.
 
-    >>> l = Line(Image, point1, point2)
+    >>> l = Line(Image, (point1, point2))
 
     Where point1 and point2 are (x,y) coordinate tuples.
 
