@@ -85,8 +85,13 @@ class ImageSet(list):
     def __init__(self, directory = None):
         if not directory:
             return
+
         if isinstance(directory,list):
-            super(ImageSet,self).__init__(directory)
+            if isinstance(directory[0], Image):
+                super(ImageSet,self).__init__(directory)
+            elif isinstance(directory[0], str) or isinstance(directory[0], unicode):
+                super(ImageSet,self).__init__(map(Image, directory))
+
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
             pth = __init__file__
 
