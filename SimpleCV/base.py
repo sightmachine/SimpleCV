@@ -355,18 +355,25 @@ def set_logging(log_level,myfilename = None):
 
 def system():
     """
+    
     **SUMMARY**
+    
     Output of this function includes various informations related to system and library.
-    Main purpose :
-       1) While submiting a bug, report the output of this function
-       2) Checking the current version and later upgrading the library based on the output
-
+    
+    Main purpose:
+    - While submiting a bug, report the output of this function
+    - Checking the current version and later upgrading the library based on the output
+    
     **RETURNS**
+    
     None
 
     **EXAMPLE**
-    >>> import SimpleCV
-    >>> SimpleCV.system()
+      
+      >>> import SimpleCV
+      >>> SimpleCV.system()
+      
+      
     """
     try :
         import platform
