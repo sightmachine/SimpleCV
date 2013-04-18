@@ -13454,7 +13454,7 @@ class Image:
 
         **EXAMPLE**
         >>> img = Image ('lenna')
-        >>> blur = i.motionBlur(40,45)
+        >>> blur = img.motionBlur(40,45)
         >>> blur.show()
         
         """
