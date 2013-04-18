@@ -646,7 +646,7 @@ class VirtualCamera(FrameSource):
             start=1
         self.start = start
 
-        if not (self.sourcetype == "video" or self.sourcetype == "image" or self.sourcetype == "imageset" or self.sourcetype == "directory"):
+        if self.sourcetype not in ["video", "image", "imageset", "directory"]:
             print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
             print '\tVirtualCamera("filename","video")'
             print '\tVirtualCamera("filename","image")'
@@ -654,28 +654,30 @@ class VirtualCamera(FrameSource):
             print '\tVirtualCamera("./path_to_images","directory")'
             return None
 
-        if (type(self.source) == list):
-            for source_file in self.source:
-                if not os.path.exists(source_file):
-                    print 'Error: In VirtualCamera()\n\t"%s" was not found.' % source_file
-                    return None
         else:
-            if not os.path.exists(self.source):
+            if isinstance(self.source,str) and not os.path.exists(self.source):
                 print 'Error: In VirtualCamera()\n\t"%s" was not found.' % self.source
                 return None
 
         if (self.sourcetype == "imageset"):
-            self.source = ImageSet()
-            if (type(s) == list):
-                self.source.load(*s)
+            if( isinstance(s,ImageSet) ):
+                self.source = s
+            elif( isinstance(s,(list,str)) ):
+                self.source = ImageSet()
+                if (isinstance(s,list)):
+                    self.source.load(*s)
+                else:
+                    self.source.load(s)
             else:
-                self.source.load(s)
+                warnings.warn('Virtual Camera is unable to figure out the contents of your ImageSet, it must be a directory, list of directories, or an ImageSet object')
+            
 
-        if (self.sourcetype == 'video'):
+        elif (self.sourcetype == 'video'):
+         
             self.capture = cv.CaptureFromFile(self.source)
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
 
-        if (self.sourcetype == 'directory'):
+        elif (self.sourcetype == 'directory'):
             pass
 
 
@@ -696,18 +698,26 @@ class VirtualCamera(FrameSource):
 
         """
         if (self.sourcetype == 'image'):
+            self.counter = self.counter + 1
             return Image(self.source, self)
 
-        if (self.sourcetype == 'imageset'):
+        elif (self.sourcetype == 'imageset'):
+            print len(self.source)
             img = self.source[self.counter % len(self.source)]
             self.counter = self.counter + 1
             return img
 
-        if (self.sourcetype == 'video'):
-            return Image(cv.QueryFrame(self.capture), self)
+        elif (self.sourcetype == 'video'):
+            # cv.QueryFrame returns None if the video is finished
+            frame = cv.QueryFrame(self.capture)
+            if frame:
+                return Image(frame, self)
+            else:
+                return None
 
-        if (self.sourcetype == 'directory'):
+        elif (self.sourcetype == 'directory'):
             img = self.findLastestImage(self.source, 'bmp')
+            self.counter = self.counter + 1
             return Image(img, self)
 
     def rewind(self, start=None):
@@ -746,6 +756,9 @@ class VirtualCamera(FrameSource):
                     start=1
                 cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, start-1)
 
+        else:
+            self.counter = 0
+
     def getFrame(self, frame):
         """
         **SUMMARY**
@@ -773,6 +786,14 @@ class VirtualCamera(FrameSource):
             img = self.getImage()
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame)
             return img
+        elif (self.sourcetype == 'imageset'):
+            img = None
+            if( frame < len(self.source)):
+                img = self.source[frame]
+            return img
+        else:
+            return None
+
 
     def skipFrames(self, n):
         """
@@ -803,6 +824,10 @@ class VirtualCamera(FrameSource):
         if (self.sourcetype == 'video'):
             number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame + n - 1)
+        elif (self.sourcetype == 'imageset'):
+            self.counter = (self.counter + n) % len(self.source)
+        else:
+            self.counter = self.counter + n
 
     def getFrameNumber(self):
         """
@@ -829,6 +854,8 @@ class VirtualCamera(FrameSource):
         if (self.sourcetype == 'video'):
             number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             return number_frame
+        else:
+            return self.counter
 
     def findLastestImage(self, directory='.', extension='png'):
         """

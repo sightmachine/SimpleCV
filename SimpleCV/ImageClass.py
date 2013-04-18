@@ -85,8 +85,13 @@ class ImageSet(list):
     def __init__(self, directory = None):
         if not directory:
             return
+
         if isinstance(directory,list):
-            super(ImageSet,self).__init__(directory)
+            if isinstance(directory[0], Image):
+                super(ImageSet,self).__init__(directory)
+            elif isinstance(directory[0], str) or isinstance(directory[0], unicode):
+                super(ImageSet,self).__init__(map(Image, directory))
+
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
             pth = __init__file__
 
@@ -2207,7 +2212,7 @@ class Image:
                     num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
                 num.sort()
                 fnum = num[-1]+1
-                filename = glob.os.path.join(path,filename+str(fnum)+".png")
+                filename = glob.os.path.join(path,filename+("%07d" % fnum)+".png")
                 self._tempFiles.append((filename,cleanTemp))
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
@@ -12140,7 +12145,6 @@ class Image:
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
                 return None
-
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
                 if( len(linescan) != self.width ):
@@ -12151,8 +12155,6 @@ class Image:
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
                 return None
-
-
         elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
               (isinstance(pt2,tuple) or isinstance(pt2,list)) and
               len(pt1) == 2 and len(pt2) == 2 and
@@ -13234,37 +13236,37 @@ class Image:
         return fs, self._mKPDescriptors
 
     def getGrayHistogramCounts(self, bins = 255, limit=-1):
-      '''
-      This function returns a list of tuples of greyscale pixel counts
-      by frequency.  This would be useful in determining the dominate
-      pixels (peaks) of the greyscale image.
+        '''
+        This function returns a list of tuples of greyscale pixel counts
+        by frequency.  This would be useful in determining the dominate
+        pixels (peaks) of the greyscale image.
+  
+        **PARAMETERS**
+  
+        * *bins* - The number of bins for the hisogram, defaults to 255 (greyscale)
+        * *limit* - The number of counts to return, default is all
 
-      **PARAMETERS**
+        **RETURNS**
 
-      * *bins* - The number of bins for the hisogram, defaults to 255 (greyscale)
-      * *limit* - The number of counts to return, default is all
+        * List * - A list of tuples of (frequency, value)
 
-      **RETURNS**
+        **EXAMPLE**
 
-      * List * - A list of tuples of (frequency, value)
+        >>> img = Image("lenna")
+        >>> counts = img.getGrayHistogramCounts()
+        >>> counts[0] #the most dominate pixel color tuple of frequency and value
+        >>> counts[1][1] #the second most dominate pixel color value
+        '''
 
-      **EXAMPLE**
+        hist = self.histogram(bins)
+        vals = [(e,h) for h,e in enumerate(hist)]
+        vals.sort()
+        vals.reverse()
 
-      >>> img = Image("lenna")
-      >>> counts = img.getGrayHistogramCounts()
-      >>> counts[0] #the most dominate pixel color tuple of frequency and value
-      >>> counts[1][1] #the second most dominate pixel color value
-      '''
+        if limit == -1:
+            limit = bins
 
-      hist = self.histogram(bins)
-      vals = [(e,h) for h,e in enumerate(hist)]
-      vals.sort()
-      vals.reverse()
-
-      if limit == -1:
-        limit = bins
-
-      return vals[:limit]
+        return vals[:limit]
 
     def grayPeaks(self, bins = 255, delta = 0, lookahead = 15):
         """
@@ -13419,7 +13421,8 @@ class Image:
             img = img.getNumpy()
             multichannel = True
         else:
-            print 'gray value not valid'
+            warnings.warn('gray value not valid')
+            return None
 
         denoise_mat = denoise_tv_chambolle(img,weight,eps,max_iter,multichannel)
         retVal = img * denoise_mat
@@ -13429,7 +13432,7 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
-
+      
     def motionBlur(self,intensity=15, direction='NW'):
         """
         **SUMMARY**
@@ -13499,8 +13502,96 @@ class Image:
         retval=self.convolve(kernel=kernel/div)
         return retval
         
+    def recognizeFace(self, recognizer=None):
+        """
+        **SUMMARY**
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
+        Find faces in the image using FaceRecognizer and predict their class.
+
+        **PARAMETERS**
+
+        * *recognizer*   - Trained FaceRecognizer object
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> recognizer = FaceRecognizer()
+        >>> recognizer.load("training.xml")
+        >>> print img.recognizeFace(recognizer)
+        """
+        try:
+            import cv2
+            if not hasattr(cv2, "createFisherFaceRecognizer"):
+                warnings.warn("OpenCV >= 2.4.4 required to use this.")
+                return None
+        except ImportError:
+            warnings.warn("OpenCV >= 2.4.4 required to use this.")
+            return None
+
+        if not isinstance(recognizer, FaceRecognizer):
+            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            return None
+
+        w, h = recognizer.imageSize
+        label = recognizer.predict(self.resize(w, h))
+        return label
+
+    def findAndRecognizeFaces(self, recognizer, cascade=None):
+        """
+        **SUMMARY**
+
+        Predict the class of the face in the image using FaceRecognizer.
+
+        **PARAMETERS**
+
+        * *recognizer*  - Trained FaceRecognizer object
+
+        * *cascade*     -haarcascade which would identify the face
+                         in the image.
+
+        **EXAMPLES**
+
+        >>> cam = Camera()
+        >>> img = cam.getImage()
+        >>> recognizer = FaceRecognizer()
+        >>> recognizer.load("training.xml")
+        >>> feat = img.findAndRecognizeFaces(recognizer, "face.xml")
+        >>> for feature, label in feat:
+            ... i = feature.crop()
+            ... i.drawText(str(label))
+            ... i.show()
+        """
+        try:
+            import cv2
+            if not hasattr(cv2, "createFisherFaceRecognizer"):
+                warnings.warn("OpenCV >= 2.4.4 required to use this.")
+                return None
+        except ImportError:
+            warnings.warn("OpenCV >= 2.4.4 required to use this.")
+            return None
+
+        if not isinstance(recognizer, FaceRecognizer):
+            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            return None
+
+        if not cascade:
+            from SimpleCV import __path__
+            cascade = "/".join([__path__[0],"/Features/HaarCascades/face.xml"])
+
+        faces = self.findHaarFeatures(cascade)
+        if not faces:
+            warnings.warn("Faces not found in the image.")
+            return None
+
+        retVal = []
+        for face in faces:
+            label = face.crop().recognizeFace(recognizer)
+            retVal.append([face, label])
+        return retVal
+
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
