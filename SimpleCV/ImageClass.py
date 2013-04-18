@@ -13537,7 +13537,7 @@ class Image:
         
         r, g, b = self.splitChannels()
         weight = map(float,weight)
-        s = sum(weight)
+        s = abs(sum(weight))
         channel = channel.lower()
 
         if s==0.:
