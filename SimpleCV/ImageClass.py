@@ -858,7 +858,9 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-        "_pgsurface": ""}
+        "_pgsurface": "",
+        "_cv2GrayNumpy": "",
+        "_cv2Numpy":""}
 
     #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
     _uncroppedX = 0
@@ -7943,125 +7945,67 @@ class Image:
             if not ver.startswith('$Rev:'):
                 if int(ver.replace('.','0'))>=20400:
                     new_version = 1
-                if int(ver.replace('.','0'))>=20402:
-                    new_version = 2
-                if int(ver.replace('.','0'))>=20403:
-                    new_version = 3
         except:
-            logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
-            return
+            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
+            return (None, None)
 
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
 
-        if( not(self._mKeyPoints) or self._mKPFlavor != flavor ):
-            if ( new_version == 0):
-                if( flavor == "SURF" ):
-                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1)
-                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
-                    if( len(self._mKPDescriptors) == 0 ):
-                        return None, None
+        _detectors = ["SIFT", "SURF", "FAST", "STAR", "FREAK", "ORB", "BRISK", "MSER", "Dense"]
+        _descriptors = ["SIFT", "SURF", "ORB", "FREAK", "BRISK"]
+        if flavor not in _detectors:
+            warnings.warn("Invalid choice of keypoint detector.")
+            return (None, None)
 
-                    if( highQuality == 1 ):
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                    else:
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+        if self._mKeyPoints != None and self._mKPFlavor == flavor:
+            return (self._mKeyPoints, self._mKPDescriptors)
 
-                    self._mKPFlavor = "SURF"
-                    del surfer
+        if hasattr(cv2, flavor):
 
-                elif( flavor == "FAST" and not (int(ver.split(' ')[1])>=4557)) :
-                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                    self._mKPDescriptors = None
-                    self._mKPFlavor = "FAST"
-                    del faster
+            if flavor == "SURF":
+                # cv2.SURF(hessianThreshold, nOctaves, nOctaveLayers, extended, upright)
+                detector = cv2.SURF(thresh, 4, 2, highQuality, 1)
+                if new_version == 0:
+                    self._mKeyPoints, self._mKPDescriptors = detector.detect(self.getGrayNumpy(), None, False)
+                else:
+                    self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
+                if len(self._mKeyPoints) == 0:
+                    return (None, None)
+                if highQuality == 1:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1, 128))
+                else:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1, 64))
 
-                #elif( flavor == "MSER"):
-                #    mserer = cv2.MSER()
-                #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
-                #    self._mKPDescriptors = None
-                #    self._mKPFlavor = "MSER"
-                #    del mserer
-
-                elif( flavor == "STAR"):
-                    starer = cv2.StarDetector()
-                    self._mKeyPoints = starer.detect(self.getGrayNumpy())
-                    self._mKPDescriptors = None
-                    self._mKPFlavor = "STAR"
-                    del starer
-
-            elif( new_version >= 2 and flavor in ["SURF", "FAST", "FREAK"] ):
-                if( flavor == "SURF" and new_version==2):
-                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
-                    #mask = self.getGrayNumpy()
-                    #mask.fill(255)
-                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,useProvidedKeypoints = False)
-                    if( len(self._mKPDescriptors) == 0 ):
-                        return None, None
-
-                    if( highQuality == 1 ):
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                    else:
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-
-                    self._mKPFlavor = "SURF"
-                    del surfer
-
-                elif( flavor == "FREAK" ):
-                    detector = cv2.FeatureDetector_create("SIFT")
-                    extractor = cv2.DescriptorExtractor_create("FREAK")
-                    self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
-                    self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpyCv2(), self._mKeyPoints)
-                    self._mKPFlavor = "SURF"
-                    del detector
-                    del extractor
-
-
-                if( flavor == "SURF" and new_version==3):
-                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
-                    self._mKeyPoints,self._mKPDescriptors = surfer.detectAndCompute(self.getGrayNumpy(),None,useProvidedKeypoints = False)
-                    if( len(self._mKPDescriptors) == 0 ):
-                        return None, None
-
-                    if( highQuality == 1 ):
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                    else:
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-
-                    self._mKPFlavor = "SURF"
-                    del surfer
-
-                elif( flavor == "FAST" ):
-                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                    self._mKPDescriptors = None
-                    self._mKPFlavor = "FAST"
-                    del faster
-
-            elif( new_version >=1  and flavor in ["ORB", "SIFT", "SURF", "BRISK"] ):
-                FeatureDetector = cv2.FeatureDetector_create(flavor)
-                DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
-                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
-                self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
-                if( self._mKPDescriptors == None or len(self._mKPDescriptors) == 0 ):
-                    return None, None
-                self._mKPFlavor = flavor
-                del FeatureDetector
-
-            elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
-                FeatureDetector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = flavor
-                del FeatureDetector
-
+            elif flavor in _descriptors:
+                detector = getattr(cv2,  flavor)()
+                self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
+            elif flavor == "MSER":
+                if hasattr(cv2, "FeatureDetector_create"):
+                    detector = cv2.FeatureDetector_create("MSER")
+                    self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        elif flavor == "STAR":
+            detector = cv2.StarDetector()
+            self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        elif flavor == "FAST":
+            detector = cv2.FastFeatureDetector(int(thresh), True)
+            self._mKeyPoints = detector.detect(self.getGrayNumpy(), None)
+        elif hasattr(cv2, "FeatureDetector_create"):
+            if flavor in _descriptors:
+                extractor = cv2.DescriptorExtractor_create(flavor)
+                if flavor == "FREAK":
+                    flavor = "SIFT"
+                detector = cv2.FeatureDetector_create(flavor)
+                self._mKeyPoints = detector.detect(self.getGrayNumpy())
+                self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpy(), self._mKeyPoints)
             else:
-                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
-                return None, None
-
-        return self._mKeyPoints,self._mKPDescriptors
+                detector = cv2.FeatureDetector_create(flavor)
+                self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        else:
+            warnings.warn("SimpleCV can't seem to find appropriate function with your OpenCV version.")
+            return (None, None)
+        return (self._mKeyPoints, self._mKPDescriptors)
 
     def _getFLANNMatches(self,sd,td):
         """
