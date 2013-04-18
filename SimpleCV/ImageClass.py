@@ -2741,17 +2741,19 @@ class Image:
         see : http://en.wikipedia.org/wiki/Median_filter
 
         **Parameters**
-        * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y.
-                   - By default it is set to 3x3, i.e window = (3x3).
-
+        
+        * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y. By default it is set to 3x3, i.e window = (3x3).
+        
         **Note**
+        
         win_x and win_y should be greater than zero, a odd number and equal.
 
         For OpenCV versions <= 2.3.0
-        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
 
         For OpenCV versions >= 2.3.0
-        -- cv2.medianBlur function is called.
+        cv2.medianBlur function is called.
+        
         """
         try:
             import cv2
@@ -3334,6 +3336,7 @@ class Image:
 
     def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5,appx_level=3):
         """
+        
         **SUMMARY**
 
         Find blobs  will look for continuous
@@ -3358,8 +3361,8 @@ class Image:
         * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the
           approximation edge - lower numbers yield better approximation.
 
-          .. Warning::
-          This parameter must be an odd number.
+          .. warning::
+            This parameter must be an odd number.
 
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
 
@@ -3467,6 +3470,8 @@ class Image:
         **PARAMETERS**
 
         * *dilate_iter* - the number of times to run the dilation operation.
+        
+        
         **RETURNS**
 
         Returns a binary mask.
@@ -5533,16 +5538,19 @@ class Image:
 
     def crop(self, x , y = None, w = None, h = None, centered=False, smart=False):
         """
+        
         **SUMMARY**
-        Consider you want to crop a image with the following dimension :
+        
+        Consider you want to crop a image with the following dimension::
 
-        (x,y)
+            (x,y)
             +--------------+
             |              |
             |              |h
             |              |
             +--------------+
                   w      (x1,y1)
+        
 
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
@@ -11032,6 +11040,7 @@ class Image:
 
     def fitContour(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
         """
+        
         **SUMMARY**
 
         This method tries to fit a list of points to lines in the image. The list of points
@@ -11060,6 +11069,7 @@ class Image:
         * Continuity
         * Curvature
         * Image (Gradient)
+        
         Each Weighted by Specified Parameter:
 
         Total Energy = Alpha*Continuity + Beta*Curvature + Gamma*Image
@@ -11372,6 +11382,7 @@ class Image:
 
     def track(self, method="CAMShift", ts=None, img=None, bb=None, **kwargs):
         """
+        
         **DESCRIPTION**
 
         Tracking the object surrounded by the bounding box in the given
@@ -11381,9 +11392,9 @@ class Image:
 
         * *method* - str - The Tracking Algorithm to be applied
         * *ts* - TrackSet - SimpleCV.Features.TrackSet.
-        * *img* - Image - Image to be tracked.
-                - list - List of Images to be tracked.
+        * *img* - Image - Image to be tracked or list - List of Images to be tracked.
         * *bb* - tuple - Bounding Box tuple (x, y, w, h)
+        
 
         **Optional Parameters**
 
@@ -11401,20 +11412,10 @@ class Image:
         and it passed to camshift function to find the object in the image. Users can 
         decide the number of images to be used in back projection by providing num_frames.
 
-        lower      - Lower HSV value for inRange thresholding
-                     tuple of (H, S, V)
-                     Default : (0, 60, 32)
-                
-        upper      - Upper HSV value for inRange thresholding
-                     tuple of (H, S, V)
-                     Default: (180, 255, 255)
-
-        mask       - Mask to calculate Histogram. It's better 
-                     if you don't provide one.
-                     Default: calculated using above thresholding ranges.
-
-        num_frames - number of frames to be backtracked.
-                     Default: 40
+        lower - Lower HSV value for inRange thresholding. tuple of (H, S, V). Default : (0, 60, 32)
+        upper - Upper HSV value for inRange thresholding. tuple of (H, S, V). Default: (180, 255, 255)
+        mask - Mask to calculate Histogram. It's better if you don't provide one. Default: calculated using above thresholding ranges.
+        num_frames - number of frames to be backtracked. Default: 40
 
         *LK*
 
@@ -11437,33 +11438,12 @@ class Image:
         winSize.
 
         (docs from http://docs.opencv.org/)
-        maxCorners    - Maximum number of corners to return in goodFeaturesToTrack. 
-                        If there are more corners than are found, the strongest of 
-                        them is returned.
-                        Default: 4000
-
-        qualityLevel  - Parameter characterizing the minimal accepted quality of image corners. 
-                        The parameter value is multiplied by the best corner quality measure, 
-                        which is the minimal eigenvalue or the Harris function response. 
-                        The corners with the quality measure less than the product are rejected.
-                        For example, if the best corner has the quality measure = 1500, 
-                        and the qualityLevel=0.01 , then all the corners with the quality measure 
-                        less than 15 are rejected. 
-                        Default: 0.08
-                  
-        minDistance   - Minimum possible Euclidean distance between the returned corners.
-                        Default: 2
-
-        blockSize     - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood.
-                        Default: 3
-
-        winSize       - size of the search window at each pyramid level.
-                        Default: (10, 10)
-
-        maxLevel      - 0-based maximal pyramid level number; if set to 0, pyramids are not used (single level), 
-                        Default: 10
-                        if set to 1, two levels are used, and so on
-
+        maxCorners - Maximum number of corners to return in goodFeaturesToTrack. If there are more corners than are found, the strongest of them is returned. Default: 4000
+        qualityLevel - Parameter characterizing the minimal accepted quality of image corners. The parameter value is multiplied by the best corner quality measure, which is the minimal eigenvalue or the Harris function response. The corners with the quality measure less than the product are rejected. For example, if the best corner has the quality measure = 1500,  and the qualityLevel=0.01 , then all the corners with the quality measure less than 15 are rejected. Default: 0.08
+        minDistance - Minimum possible Euclidean distance between the returned corners. Default: 2
+        blockSize - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood. Default: 3
+        winSize - size of the search window at each pyramid level. Default: (10, 10)
+        maxLevel - 0-based maximal pyramid level number; if set to 0, pyramids are not used (single level), Default: 10 if set to 1, two levels are used, and so on
 
         *SURF*
 
@@ -11924,6 +11904,7 @@ class Image:
 
     def horizontalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
         """
+        
         **DESCRIPTION**
 
         This method generates histogram of the number of grayscale pixels
@@ -11933,18 +11914,13 @@ class Image:
         is helpful for doing basic morphological analysis.
 
         **PARAMETERS**
+        
         * *bins* - The number of bins to use.
-        * *threshold* - The grayscale threshold. We count pixels greater
-                       than this value.
-
-        * *normalize* - If normalize is true we normalize the bin counts
-                        to sum to one. Otherwise we return the number of
-                        pixels.
-        * *forPlot* - If this is true we return the bin indicies, the bin
-                      counts, and the bin widths as a tuple. We can use
-                      these values in pyplot.bar to quickly plot the
-                      histogram.
-
+        * *threshold* - The grayscale threshold. We count pixels greater than this value.
+        * *normalize* - If normalize is true we normalize the bin counts to sum to one. Otherwise we return the number of pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin counts, and the bin widths as a tuple. We can use these values in pyplot.bar to quickly plot the histogram.
+        
+        
         **RETURNS**
 
         The default settings return the raw bin counts moving from top to
@@ -11957,7 +11933,7 @@ class Image:
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
-        >>>> plt.bar(*img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+        >>>> plt.bar(img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
         >>>> plt.show())
 
         **NOTES**
@@ -11991,13 +11967,14 @@ class Image:
         than can be manipulated further.
 
         **PARAMETERS**
+        
         * *x* - Take a vertical line scan at the column x.
         * *y* - Take a horizontal line scan at the row y.
-        * *pt1* - Take a line scan between two points on the line
-                  the line scan values always go in the +x direction
+        * *pt1* - Take a line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
-        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
-                      If set to -1 it operates with gray scale values
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
+        
+        
         **RETURNS**
 
         A SimpleCV.LineScan object or None if the method fails.
@@ -12084,14 +12061,15 @@ class Image:
         This function helps you put back the linescan in the image.
 
         **PARAMETERS**
+        
         * *linescan* - LineScan object
         * *x* - put  line scan at the column x.
         * *y* - put line scan at the row y.
-        * *pt1* - put line scan between two points on the line
-                  the line scan values always go in the +x direction
+        * *pt1* - put line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
-        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
-                      If set to -1 it operates with gray scale values
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
+        
+        
         **RETURNS**
 
         A SimpleCV.Image 
@@ -12105,6 +12083,7 @@ class Image:
         >>> newimg = img.putLineScan(a, x=50)
         >>> newimg.show()
         # This will show you a black line in column 50.
+        
         """
         #retVal = self.toGray()
         if channel == -1:
@@ -12182,6 +12161,7 @@ class Image:
 
     def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None, channel = None):
         """
+        
         **SUMMARY**
 
         This function easily lets you replace the linescan in the image.
@@ -12192,14 +12172,15 @@ class Image:
         LineScan from.
 
         **PARAMETERS**
+        
         * *linescan* - LineScan object
         * *x* - put  line scan at the column x.
         * *y* - put line scan at the row y.
-        * *pt1* - put line scan between two points on the line
-                  the line scan values always go in the +x direction
+        * *pt1* - put line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
-        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
-                      If set to -1 it operates with gray scale values
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
+
+        
         **RETURNS**
 
         A SimpleCV.Image 
@@ -12213,6 +12194,7 @@ class Image:
         >>> newimg = img.replaceLineScan(a)
         >>> newimg.show()
         # This will show you a black line in column 10.
+        
         """
         
 
