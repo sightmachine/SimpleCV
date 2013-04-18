@@ -11437,7 +11437,7 @@ class Image:
         providing maxLevel and users can set size of the search window for Optical Flow by setting 
         winSize.
 
-        (docs from http://docs.opencv.org/)
+        docs from http://docs.opencv.org/
         maxCorners - Maximum number of corners to return in goodFeaturesToTrack. If there are more corners than are found, the strongest of them is returned. Default: 4000
         qualityLevel - Parameter characterizing the minimal accepted quality of image corners. The parameter value is multiplied by the best corner quality measure, which is the minimal eigenvalue or the Harris function response. The corners with the quality measure less than the product are rejected. For example, if the best corner has the quality measure = 1500,  and the qualityLevel=0.01 , then all the corners with the quality measure less than 15 are rejected. Default: 0.08
         minDistance - Minimum possible Euclidean distance between the returned corners. Default: 2
@@ -11461,19 +11461,9 @@ class Image:
         K-means is applied on matched KeyPoints with k=1 to find the center of the cluster and then bounding
         box is predicted based upon the position of all the object KeyPoints.
 
-        eps_val     - eps for DBSCAN
-                      The maximum distance between two samples for them 
-                      to be considered as in the same neighborhood.
-                      default: 0.69
-                
-        min_samples - min number of samples in DBSCAN
-                      The number of samples in a neighborhood for a point 
-                      to be considered as a core point. 
-                      default: 5
-                  
-        distance    - thresholding KNN distance of each feature
-                      if KNN distance > distance, point is discarded.
-                      default: 100
+        eps_val - eps for DBSCAN. The maximum distance between two samples for them to be considered as in the same neighborhood. default: 0.69
+        min_samples - min number of samples in DBSCAN. The number of samples in a neighborhood for a point to be considered as a core point. default: 5
+        distance - thresholding KNN distance of each feature. if KNN distance > distance, point is discarded. default: 100
 
         *MFTrack*
 
@@ -11526,6 +11516,7 @@ class Image:
          - LK
          - SURF
          - MFTrack
+         
 
         **RETURNS**
 
@@ -11536,6 +11527,7 @@ class Image:
         **HOW TO**
 
         >>> ts = img.track("camshift", img=img1, bb=bb)
+        
 
         Here TrackSet is returned. All the necessary attributes will be included in the trackset.
         After getting the trackset you need not provide the bounding box or image. You provide TrackSet as parameter to track().
@@ -11545,30 +11537,27 @@ class Image:
         >>> ts = new_img.track("camshift",ts)
 
         The new Tracking feature will be appended to the given trackset and that will be returned.
-        So, to use it in loop
-        ==========================================================
+        So, to use it in loop::
 
-        img = cam.getImage()
-        bb = (img.width/4,img.height/4,img.width/4,img.height/4)
-        ts = img.track(img=img, bb=bb)
-        while (True):
-            img = cam.getImage()
-            ts = img.track("camshift", ts=ts)
+          img = cam.getImage()
+          bb = (img.width/4,img.height/4,img.width/4,img.height/4)
+          ts = img.track(img=img, bb=bb)
+          while (True):
+              img = cam.getImage()
+              ts = img.track("camshift", ts=ts)
 
-        ==========================================================
+          ts = []
+          while (some_condition_here):
+              img = cam.getImage()
+              ts = img.track("camshift",ts,img0,bb)
 
-        ts = []
-        while (some_condition_here):
-            img = cam.getImage()
-            ts = img.track("camshift",ts,img0,bb)
-
+        
         now here in first loop iteration since ts is empty, img0 and bb will be considered.
         New tracking object will be created and added in ts (TrackSet)
         After first iteration, ts is not empty and hence the previous
         image frames and bounding box will be taken from ts and img0
         and bb will be ignored.
 
-        ==========================================================
         # Instead of loop, give a list of images to be tracked.
 
         ts = []
@@ -11576,23 +11565,25 @@ class Image:
         ts = img0.track("camshift", ts, imgs, bb)
         ts.drawPath()
         ts[-1].image.show()
-        ==========================================================
 
         Using Optional Parameters:
 
         for CAMShift
+        
         >>> ts = []
         >>> ts = img.track("camshift", ts, img1, bb, lower=(40, 100, 100), upper=(100, 250, 250))
 
         You can provide some/all/None of the optional parameters listed for CAMShift.
 
         for LK
+        
         >>> ts = []
         >>> ts = img.track("lk", ts, img1, bb, maxCorners=4000, qualityLevel=0.5, minDistance=3)
 
         You can provide some/all/None of the optional parameters listed for LK.
 
         for SURF
+        
         >>> ts = []
         >>> ts = img.track("surf", ts, img1, bb, eps_val=0.7, min_samples=8, distance=200)
 
