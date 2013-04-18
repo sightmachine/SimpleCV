@@ -13460,44 +13460,45 @@ class Image:
         >>> mb.show()
         
         """
-        mid = int(intensity/2)
-        tmp = np.identity(intensity)
-        
-        if intensity == 0:
-            warnings.warn("0 intensity means no blurring")
+        kernel = np.zeros((intensity,intensity))
+        if(intensity == 1):
             return self
-
-        elif intensity % 2 is 0:
-            div=mid
-            for i in range(mid, intensity-1):
-                tmp[i][i] = 0
-        else:
-            div=mid+1
-            for i in range(mid+1, intensity-1):
-                tmp[i][i]=0
-
-        if direction == 'right' or direction.upper() == 'E':
-            kernel = np.concatenate((np.zeros((1,mid)),np.ones((1,mid+1))),axis=1)
-        elif direction == 'left' or direction.upper() == 'W':
-            kernel = np.concatenate((np.ones((1,mid+1)),np.zeros((1,mid))),axis=1)
-        elif direction == 'up' or direction.upper() == 'N':
-            kernel = np.concatenate((np.ones((1+mid,1)),np.zeros((mid,1))),axis=0)
-        elif direction == 'down' or direction.upper() == 'S':
-            kernel = np.concatenate((np.zeros((mid,1)),np.ones((mid+1,1))),axis=0)
-        elif direction.upper() == 'NW':
-            kernel = tmp
-        elif direction.upper() == 'NE':
-            kernel = np.fliplr(tmp)
-        elif direction.upper() == 'SW':
-            kernel = np.flipud(tmp)
-        elif direction.upper() == 'SE':
-            kernel = np.flipud(np.fliplr(tmp))
-        else:
-            warnings.warn("Please enter a proper direction")
-            return None
-        
-        retval=self.convolve(kernel=kernel/div)
-        return retval
+        mid = float(intensity) /2  #if intensity%2 else intensity/2 - 1
+        #mid = intensity/2
+        i = int(angle)/180
+        diff = int(angle) - i*180
+        rad = math.radians(angle)
+        x1,y1 = intensity/2,intensity/2
+        x2 = int(x1-(intensity-1)/2*math.sin(rad))
+        y2 = int(y1 -(intensity-1)/2*math.cos(rad))
+#        if(diff == 0):
+#             x1,y1 = intensity/2,intensity/2
+#            x2,y2 = intensity/2,0
+#        elif(diff == 90 ):
+#            x1,y1 = intensity/2,intensity/2
+#            x2,y2 = 0,intensity/2
+#        elif ( 45 <= angle <= 135 ):
+#            x1,y1 = intensity/2,intensity/2
+#            x2 = intensity-1
+#            y2 = min(x1 + int(intensity/2*math.cos(rad)/math.sin(rad) ),intensity-1)
+#        else:
+#            x1,y1 = intensity/2,intensity/2
+#            y2 = 0
+#            #print 'off = ',int(intensity/2*math.sin(rad)/math.cos(rad) )
+#            x2 = min(y1 + int(intensity/2*math.sin(rad)/math.cos(rad) ),intensity-1)
+            
+        #x1,x2,y1,y2 =  int(mid+x1),int(mid+x2),int(mid+y1),int(mid+y2)
+        print '***********'
+        print x1,y1
+        print x2,y2
+        line = self.bresenham_line((x1,y1),(x2,y2))
+        x = [p[0] for p in line]
+        y = [p[1] for p in line]
+        #print indices
+        #x = []
+        kernel[x,y] = 1
+        kernel = kernel/len(line)
+        return self.convolve(kernel = kernel
         
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
