@@ -93,12 +93,7 @@ class ImageSet(list):
                 super(ImageSet,self).__init__(map(Image, directory))
 
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
-            pth = __init__file__
-
-            if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                pth = pth.split('\\')[-2]
-            else:
-                pth = pth.split('/')[-2]
+            pth = LAUNCH_PATH
             pth = os.path.realpath(pth)
             directory = os.path.join(pth, 'sampleimages')
             self.load(directory)
@@ -233,47 +228,67 @@ class ImageSet(list):
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
+        
         **SUMMARY**
+        
         Uploads all the images to imgur or flickr or dropbox. In verbose mode URL values are printed.
-
+        
+        
         **PARAMETERS**
+        
         * *api_key* - a string of the API key.
-        * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
-        * *verbose* - If verbose is true all values are printed to the
-          screen
-
+        * *api_secret* - (required only for flickr and dropbox ) a string of the API secret.
+        * *verbose* - If verbose is true all values are printed to the screen
+        
+        
         **RETURNS**
-        if uploading is successful,
-          - Imgur return the original image URL on success and None if it fails.
-          - Flick returns True on success, else returns False.
-          - dropbox returns True on success.
+        
+        if uploading is successful
+        
+        - Imgur return the original image URL on success and None if it fails.
+        - Flick returns True on success, else returns False.
+        - dropbox returns True on success.
+        
 
         **EXAMPLE**
-        TO upload image to imgur
+        
+        TO upload image to imgur::
+        
           >>> imgset = ImageSet("/home/user/Desktop")
           >>> result = imgset.upload( 'imgur',"MY_API_KEY1234567890" )
           >>> print "Uploaded To: " + result[0]
+          
 
-        To upload image to flickr
+        To upload image to flickr::
+        
           >>> imgset.upload('flickr','api_key','api_secret')
           >>> imgset.upload('flickr') #Once the api keys and secret keys are cached.
 
-        To upload image to dropbox
+        To upload image to dropbox::
+        
           >>> imgset.upload('dropbox','api_key','api_secret')
           >>> imgset.upload('dropbox') #Once the api keys and secret keys are cached.
 
         **NOTES**
+        
         .. Warning::
           This method requires two packages to be installed
           -PyCurl
           -flickr api.
           -dropbox
-
+        
+        
         .. Warning::
-          You must supply your own API key. See here:
-          - http://imgur.com/register/api_anon
-          - http://www.flickr.com/services/api/misc.api_keys.html
-          - https://www.dropbox.com/developers/start/setup#python
+          You must supply your own API key.
+
+
+        Find more about API keys:
+        
+        - http://imgur.com/register/api_anon
+        - http://www.flickr.com/services/api/misc.api_keys.html
+        - https://www.dropbox.com/developers/start/setup#python
+        
+        
         """
         try :
             for i in self:
@@ -402,6 +417,7 @@ class ImageSet(list):
 
     def save(self, destination=None, dt=0.2, verbose = False, displaytype=None):
         """
+        
         **SUMMARY**
 
         This is a quick way to save all the images in a data set.
@@ -418,6 +434,8 @@ class ImageSet(list):
         * *dt* - time between frames, for creating gif files.
         * *verbose* - print the path of the saved files to the console.
         * *displaytype* - the method use for saving or displaying images.
+        
+        
         valid values are:
 
         * 'notebook' - display to the ipython notebook.
@@ -840,7 +858,9 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-        "_pgsurface": ""}
+        "_pgsurface": "",
+        "_cv2GrayNumpy": "",
+        "_cv2Numpy":""}
 
     #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
     _uncroppedX = 0
@@ -2182,18 +2202,17 @@ class Image:
         Save also supports IPython Notebooks when passing it a Display object
         that has been instainted with the notebook flag.
 
-        To do this just use:
+        To do this just use::
 
-        >>> disp = Display(displaytype='notebook')
-        >>> img.save(disp)
+          >>> disp = Display(displaytype='notebook')
+          >>> img.save(disp)
 
         .. Note::
-          You must have IPython notebooks installed for this to work
-
-          path and filename are valid if and only if temp is set to True.
+          You must have IPython notebooks installed for this to work path and filename are valid if and only if temp is set to True.
 
         .. attention::
           We need examples for all save methods as they are unintuitve.
+        
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
@@ -2212,7 +2231,7 @@ class Image:
                     num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
                 num.sort()
                 fnum = num[-1]+1
-                filename = glob.os.path.join(path,filename+str(fnum)+".png")
+                filename = glob.os.path.join(path,filename+("%07d" % fnum)+".png")
                 self._tempFiles.append((filename,cleanTemp))
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
@@ -2389,46 +2408,63 @@ class Image:
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
+        
         Uploads image to imgur or flickr or dropbox. In verbose mode URL values are printed.
 
         **PARAMETERS**
+        
         * *api_key* - a string of the API key.
         * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
-        * *verbose* - If verbose is true all values are printed to the
-          screen
+        * *verbose* - If verbose is true all values are printed to the screen
+        
 
         **RETURNS**
-        if uploading is successful,
-         - Imgur return the original image URL on success and None if it fails.
-         - Flick returns True on success, else returns False.
-         - dropbox returns True on success.
+        
+        if uploading is successful
+        
+        - Imgur return the original image URL on success and None if it fails.
+        - Flick returns True on success, else returns False.
+        - dropbox returns True on success.
+        
 
         **EXAMPLE**
-        TO upload image to imgur
-           >>> img = Image("lenna")
-           >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
-           >>> print "Uploaded To: " + result[0]
+        
+        TO upload image to imgur::
+          
+          >>> img = Image("lenna")
+          >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
+          >>> print "Uploaded To: " + result[0]
+          
 
-        To upload image to flickr
-           >>> img.upload('flickr','api_key','api_secret')
-           >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
+        To upload image to flickr::
+          
+          >>> img.upload('flickr','api_key','api_secret')
+          >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
+          
 
-        To upload image to dropbox
-           >>> img.upload('dropbox','api_key','api_secret')
-           >>> img.invert().upload('dropbox') #Once the api keys and secret keys are cached.
+        To upload image to dropbox::
+          
+          >>> img.upload('dropbox','api_key','api_secret')
+          >>> img.invert().upload('dropbox') #Once the api keys and secret keys are cached.
+          
 
         **NOTES**
+        
         .. Warning::
-           This method requires two packages to be installed
-           -PyCurl
-           -flickr api.
-           -dropbox
+          This method requires two packages to be installed
+          
+          - PyCurl
+          - flickr api.
+          - dropbox
+          
 
         .. Warning::
-           You must supply your own API key. See here:
-           - http://imgur.com/register/api_anon
-           - http://www.flickr.com/services/api/misc.api_keys.html
-           - https://www.dropbox.com/developers/start/setup#python
+          You must supply your own API key. See here:
+          
+          - http://imgur.com/register/api_anon
+          - http://www.flickr.com/services/api/misc.api_keys.html
+          - https://www.dropbox.com/developers/start/setup#python
+          
         """
         if ( dest=='imgur' ) :
             try:
@@ -2741,17 +2777,19 @@ class Image:
         see : http://en.wikipedia.org/wiki/Median_filter
 
         **Parameters**
-        * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y.
-                   - By default it is set to 3x3, i.e window = (3x3).
-
+        
+        * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y. By default it is set to 3x3, i.e window = (3x3).
+        
         **Note**
+        
         win_x and win_y should be greater than zero, a odd number and equal.
 
         For OpenCV versions <= 2.3.0
-        -- this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
+        this acts as Convience function derived from the :py:meth:`smooth` method. Which internally calls cv.Smooth
 
         For OpenCV versions >= 2.3.0
-        -- cv2.medianBlur function is called.
+        cv2.medianBlur function is called.
+        
         """
         try:
             import cv2
@@ -3334,6 +3372,7 @@ class Image:
 
     def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5,appx_level=3):
         """
+        
         **SUMMARY**
 
         Find blobs  will look for continuous
@@ -3358,8 +3397,8 @@ class Image:
         * *appx_level* - The blob approximation level - an integer for the maximum distance between the true edge and the
           approximation edge - lower numbers yield better approximation.
 
-          .. Warning::
-          This parameter must be an odd number.
+          .. warning::
+            This parameter must be an odd number.
 
         * *threshconstant* - The difference from the local mean to use for thresholding in Otsu's method. *TODO - make this match binarize*
 
@@ -3467,6 +3506,8 @@ class Image:
         **PARAMETERS**
 
         * *dilate_iter* - the number of times to run the dilation operation.
+        
+        
         **RETURNS**
 
         Returns a binary mask.
@@ -5533,16 +5574,19 @@ class Image:
 
     def crop(self, x , y = None, w = None, h = None, centered=False, smart=False):
         """
+        
         **SUMMARY**
-        Consider you want to crop a image with the following dimension :
+        
+        Consider you want to crop a image with the following dimension::
 
-        (x,y)
+            (x,y)
             +--------------+
             |              |
             |              |h
             |              |
             +--------------+
                   w      (x1,y1)
+        
 
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
@@ -7901,125 +7945,67 @@ class Image:
             if not ver.startswith('$Rev:'):
                 if int(ver.replace('.','0'))>=20400:
                     new_version = 1
-                if int(ver.replace('.','0'))>=20402:
-                    new_version = 2
-                if int(ver.replace('.','0'))>=20403:
-                    new_version = 3
         except:
-            logger.warning("Can't run Keypoints without OpenCV >= 2.3.0")
-            return
+            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
+            return (None, None)
 
         if( forceReset ):
             self._mKeyPoints = None
             self._mKPDescriptors = None
 
-        if( not(self._mKeyPoints) or self._mKPFlavor != flavor ):
-            if ( new_version == 0):
-                if( flavor == "SURF" ):
-                    surfer = cv2.SURF(thresh,_extended=highQuality,_upright=1)
-                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,False)
-                    if( len(self._mKPDescriptors) == 0 ):
-                        return None, None
+        _detectors = ["SIFT", "SURF", "FAST", "STAR", "FREAK", "ORB", "BRISK", "MSER", "Dense"]
+        _descriptors = ["SIFT", "SURF", "ORB", "FREAK", "BRISK"]
+        if flavor not in _detectors:
+            warnings.warn("Invalid choice of keypoint detector.")
+            return (None, None)
 
-                    if( highQuality == 1 ):
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                    else:
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
+        if self._mKeyPoints != None and self._mKPFlavor == flavor:
+            return (self._mKeyPoints, self._mKPDescriptors)
 
-                    self._mKPFlavor = "SURF"
-                    del surfer
+        if hasattr(cv2, flavor):
 
-                elif( flavor == "FAST" and not (int(ver.split(' ')[1])>=4557)) :
-                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                    self._mKPDescriptors = None
-                    self._mKPFlavor = "FAST"
-                    del faster
+            if flavor == "SURF":
+                # cv2.SURF(hessianThreshold, nOctaves, nOctaveLayers, extended, upright)
+                detector = cv2.SURF(thresh, 4, 2, highQuality, 1)
+                if new_version == 0:
+                    self._mKeyPoints, self._mKPDescriptors = detector.detect(self.getGrayNumpy(), None, False)
+                else:
+                    self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
+                if len(self._mKeyPoints) == 0:
+                    return (None, None)
+                if highQuality == 1:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1, 128))
+                else:
+                    self._mKPDescriptors = self._mKPDescriptors.reshape((-1, 64))
 
-                #elif( flavor == "MSER"):
-                #    mserer = cv2.MSER()
-                #    self._mKeyPoints = mserer.detect(self.getGrayNumpy(),None)
-                #    self._mKPDescriptors = None
-                #    self._mKPFlavor = "MSER"
-                #    del mserer
-
-                elif( flavor == "STAR"):
-                    starer = cv2.StarDetector()
-                    self._mKeyPoints = starer.detect(self.getGrayNumpy())
-                    self._mKPDescriptors = None
-                    self._mKPFlavor = "STAR"
-                    del starer
-
-            elif( new_version >= 2 and flavor in ["SURF", "FAST", "FREAK"] ):
-                if( flavor == "SURF" and new_version==2):
-                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
-                    #mask = self.getGrayNumpy()
-                    #mask.fill(255)
-                    self._mKeyPoints,self._mKPDescriptors = surfer.detect(self.getGrayNumpy(),None,useProvidedKeypoints = False)
-                    if( len(self._mKPDescriptors) == 0 ):
-                        return None, None
-
-                    if( highQuality == 1 ):
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                    else:
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-
-                    self._mKPFlavor = "SURF"
-                    del surfer
-
-                elif( flavor == "FREAK" ):
-                    detector = cv2.FeatureDetector_create("SIFT")
-                    extractor = cv2.DescriptorExtractor_create("FREAK")
-                    self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
-                    self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpyCv2(), self._mKeyPoints)
-                    self._mKPFlavor = "SURF"
-                    del detector
-                    del extractor
-
-
-                if( flavor == "SURF" and new_version==3):
-                    surfer = cv2.SURF(hessianThreshold=thresh,extended=highQuality,upright=1)
-                    self._mKeyPoints,self._mKPDescriptors = surfer.detectAndCompute(self.getGrayNumpy(),None,useProvidedKeypoints = False)
-                    if( len(self._mKPDescriptors) == 0 ):
-                        return None, None
-
-                    if( highQuality == 1 ):
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,128))
-                    else:
-                        self._mKPDescriptors = self._mKPDescriptors.reshape((-1,64))
-
-                    self._mKPFlavor = "SURF"
-                    del surfer
-
-                elif( flavor == "FAST" ):
-                    faster = cv2.FastFeatureDetector(threshold=int(thresh),nonmaxSuppression=True)
-                    self._mKeyPoints = faster.detect(self.getGrayNumpy())
-                    self._mKPDescriptors = None
-                    self._mKPFlavor = "FAST"
-                    del faster
-
-            elif( new_version >=1  and flavor in ["ORB", "SIFT", "SURF", "BRISK"] ):
-                FeatureDetector = cv2.FeatureDetector_create(flavor)
-                DescriptorExtractor = cv2.DescriptorExtractor_create(flavor)
-                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
-                self._mKeyPoints,self._mKPDescriptors = DescriptorExtractor.compute(self.getGrayNumpy(),self._mKeyPoints)
-                if( self._mKPDescriptors == None or len(self._mKPDescriptors) == 0 ):
-                    return None, None
-                self._mKPFlavor = flavor
-                del FeatureDetector
-
-            elif( new_version >= 1 and flavor in ["FAST", "STAR", "MSER", "Dense"] ):
-                FeatureDetector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = FeatureDetector.detect(self.getGrayNumpy())
-                self._mKPDescriptors = None
-                self._mKPFlavor = flavor
-                del FeatureDetector
-
+            elif flavor in _descriptors:
+                detector = getattr(cv2,  flavor)()
+                self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
+            elif flavor == "MSER":
+                if hasattr(cv2, "FeatureDetector_create"):
+                    detector = cv2.FeatureDetector_create("MSER")
+                    self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        elif flavor == "STAR":
+            detector = cv2.StarDetector()
+            self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        elif flavor == "FAST":
+            detector = cv2.FastFeatureDetector(int(thresh), True)
+            self._mKeyPoints = detector.detect(self.getGrayNumpy(), None)
+        elif hasattr(cv2, "FeatureDetector_create"):
+            if flavor in _descriptors:
+                extractor = cv2.DescriptorExtractor_create(flavor)
+                if flavor == "FREAK":
+                    flavor = "SIFT"
+                detector = cv2.FeatureDetector_create(flavor)
+                self._mKeyPoints = detector.detect(self.getGrayNumpy())
+                self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpy(), self._mKeyPoints)
             else:
-                logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
-                return None, None
-
-        return self._mKeyPoints,self._mKPDescriptors
+                detector = cv2.FeatureDetector_create(flavor)
+                self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        else:
+            warnings.warn("SimpleCV can't seem to find appropriate function with your OpenCV version.")
+            return (None, None)
+        return (self._mKeyPoints, self._mKPDescriptors)
 
     def _getFLANNMatches(self,sd,td):
         """
@@ -11032,6 +11018,7 @@ class Image:
 
     def fitContour(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
         """
+        
         **SUMMARY**
 
         This method tries to fit a list of points to lines in the image. The list of points
@@ -11060,6 +11047,7 @@ class Image:
         * Continuity
         * Curvature
         * Image (Gradient)
+        
         Each Weighted by Specified Parameter:
 
         Total Energy = Alpha*Continuity + Beta*Curvature + Gamma*Image
@@ -11372,6 +11360,7 @@ class Image:
 
     def track(self, method="CAMShift", ts=None, img=None, bb=None, **kwargs):
         """
+        
         **DESCRIPTION**
 
         Tracking the object surrounded by the bounding box in the given
@@ -11381,9 +11370,9 @@ class Image:
 
         * *method* - str - The Tracking Algorithm to be applied
         * *ts* - TrackSet - SimpleCV.Features.TrackSet.
-        * *img* - Image - Image to be tracked.
-                - list - List of Images to be tracked.
+        * *img* - Image - Image to be tracked or list - List of Images to be tracked.
         * *bb* - tuple - Bounding Box tuple (x, y, w, h)
+        
 
         **Optional Parameters**
 
@@ -11401,20 +11390,10 @@ class Image:
         and it passed to camshift function to find the object in the image. Users can 
         decide the number of images to be used in back projection by providing num_frames.
 
-        lower      - Lower HSV value for inRange thresholding
-                     tuple of (H, S, V)
-                     Default : (0, 60, 32)
-                
-        upper      - Upper HSV value for inRange thresholding
-                     tuple of (H, S, V)
-                     Default: (180, 255, 255)
-
-        mask       - Mask to calculate Histogram. It's better 
-                     if you don't provide one.
-                     Default: calculated using above thresholding ranges.
-
-        num_frames - number of frames to be backtracked.
-                     Default: 40
+        lower - Lower HSV value for inRange thresholding. tuple of (H, S, V). Default : (0, 60, 32)
+        upper - Upper HSV value for inRange thresholding. tuple of (H, S, V). Default: (180, 255, 255)
+        mask - Mask to calculate Histogram. It's better if you don't provide one. Default: calculated using above thresholding ranges.
+        num_frames - number of frames to be backtracked. Default: 40
 
         *LK*
 
@@ -11436,34 +11415,13 @@ class Image:
         providing maxLevel and users can set size of the search window for Optical Flow by setting 
         winSize.
 
-        (docs from http://docs.opencv.org/)
-        maxCorners    - Maximum number of corners to return in goodFeaturesToTrack. 
-                        If there are more corners than are found, the strongest of 
-                        them is returned.
-                        Default: 4000
-
-        qualityLevel  - Parameter characterizing the minimal accepted quality of image corners. 
-                        The parameter value is multiplied by the best corner quality measure, 
-                        which is the minimal eigenvalue or the Harris function response. 
-                        The corners with the quality measure less than the product are rejected.
-                        For example, if the best corner has the quality measure = 1500, 
-                        and the qualityLevel=0.01 , then all the corners with the quality measure 
-                        less than 15 are rejected. 
-                        Default: 0.08
-                  
-        minDistance   - Minimum possible Euclidean distance between the returned corners.
-                        Default: 2
-
-        blockSize     - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood.
-                        Default: 3
-
-        winSize       - size of the search window at each pyramid level.
-                        Default: (10, 10)
-
-        maxLevel      - 0-based maximal pyramid level number; if set to 0, pyramids are not used (single level), 
-                        Default: 10
-                        if set to 1, two levels are used, and so on
-
+        docs from http://docs.opencv.org/
+        maxCorners - Maximum number of corners to return in goodFeaturesToTrack. If there are more corners than are found, the strongest of them is returned. Default: 4000
+        qualityLevel - Parameter characterizing the minimal accepted quality of image corners. The parameter value is multiplied by the best corner quality measure, which is the minimal eigenvalue or the Harris function response. The corners with the quality measure less than the product are rejected. For example, if the best corner has the quality measure = 1500,  and the qualityLevel=0.01 , then all the corners with the quality measure less than 15 are rejected. Default: 0.08
+        minDistance - Minimum possible Euclidean distance between the returned corners. Default: 2
+        blockSize - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood. Default: 3
+        winSize - size of the search window at each pyramid level. Default: (10, 10)
+        maxLevel - 0-based maximal pyramid level number; if set to 0, pyramids are not used (single level), Default: 10 if set to 1, two levels are used, and so on
 
         *SURF*
 
@@ -11481,19 +11439,9 @@ class Image:
         K-means is applied on matched KeyPoints with k=1 to find the center of the cluster and then bounding
         box is predicted based upon the position of all the object KeyPoints.
 
-        eps_val     - eps for DBSCAN
-                      The maximum distance between two samples for them 
-                      to be considered as in the same neighborhood.
-                      default: 0.69
-                
-        min_samples - min number of samples in DBSCAN
-                      The number of samples in a neighborhood for a point 
-                      to be considered as a core point. 
-                      default: 5
-                  
-        distance    - thresholding KNN distance of each feature
-                      if KNN distance > distance, point is discarded.
-                      default: 100
+        eps_val - eps for DBSCAN. The maximum distance between two samples for them to be considered as in the same neighborhood. default: 0.69
+        min_samples - min number of samples in DBSCAN. The number of samples in a neighborhood for a point to be considered as a core point. default: 5
+        distance - thresholding KNN distance of each feature. if KNN distance > distance, point is discarded. default: 100
 
         *MFTrack*
 
@@ -11546,6 +11494,7 @@ class Image:
          - LK
          - SURF
          - MFTrack
+         
 
         **RETURNS**
 
@@ -11556,6 +11505,7 @@ class Image:
         **HOW TO**
 
         >>> ts = img.track("camshift", img=img1, bb=bb)
+        
 
         Here TrackSet is returned. All the necessary attributes will be included in the trackset.
         After getting the trackset you need not provide the bounding box or image. You provide TrackSet as parameter to track().
@@ -11565,30 +11515,27 @@ class Image:
         >>> ts = new_img.track("camshift",ts)
 
         The new Tracking feature will be appended to the given trackset and that will be returned.
-        So, to use it in loop
-        ==========================================================
+        So, to use it in loop::
 
-        img = cam.getImage()
-        bb = (img.width/4,img.height/4,img.width/4,img.height/4)
-        ts = img.track(img=img, bb=bb)
-        while (True):
-            img = cam.getImage()
-            ts = img.track("camshift", ts=ts)
+          img = cam.getImage()
+          bb = (img.width/4,img.height/4,img.width/4,img.height/4)
+          ts = img.track(img=img, bb=bb)
+          while (True):
+              img = cam.getImage()
+              ts = img.track("camshift", ts=ts)
 
-        ==========================================================
+          ts = []
+          while (some_condition_here):
+              img = cam.getImage()
+              ts = img.track("camshift",ts,img0,bb)
 
-        ts = []
-        while (some_condition_here):
-            img = cam.getImage()
-            ts = img.track("camshift",ts,img0,bb)
-
+        
         now here in first loop iteration since ts is empty, img0 and bb will be considered.
         New tracking object will be created and added in ts (TrackSet)
         After first iteration, ts is not empty and hence the previous
         image frames and bounding box will be taken from ts and img0
         and bb will be ignored.
 
-        ==========================================================
         # Instead of loop, give a list of images to be tracked.
 
         ts = []
@@ -11596,23 +11543,25 @@ class Image:
         ts = img0.track("camshift", ts, imgs, bb)
         ts.drawPath()
         ts[-1].image.show()
-        ==========================================================
 
         Using Optional Parameters:
 
         for CAMShift
+        
         >>> ts = []
         >>> ts = img.track("camshift", ts, img1, bb, lower=(40, 100, 100), upper=(100, 250, 250))
 
         You can provide some/all/None of the optional parameters listed for CAMShift.
 
         for LK
+        
         >>> ts = []
         >>> ts = img.track("lk", ts, img1, bb, maxCorners=4000, qualityLevel=0.5, minDistance=3)
 
         You can provide some/all/None of the optional parameters listed for LK.
 
         for SURF
+        
         >>> ts = []
         >>> ts = img.track("surf", ts, img1, bb, eps_val=0.7, min_samples=8, distance=200)
 
@@ -11864,6 +11813,7 @@ class Image:
 
     def verticalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
         """
+        
         **DESCRIPTION**
 
         This method generates histogram of the number of grayscale pixels
@@ -11873,17 +11823,12 @@ class Image:
         is helpful for doing basic morphological analysis.
 
         **PARAMETERS**
+        
         * *bins* - The number of bins to use.
-        * *threshold* - The grayscale threshold. We count pixels greater
-                       than this value.
-
-        * *normalize* - If normalize is true we normalize the bin counts
-                        to sum to one. Otherwise we return the number of
-                        pixels.
-        * *forPlot* - If this is true we return the bin indicies, the bin
-                      counts, and the bin widths as a tuple. We can use
-                      these values in pyplot.bar to quickly plot the
-                      histogram.
+        * *threshold* - The grayscale threshold. We count pixels greater than this value.
+        * *normalize* - If normalize is true we normalize the bin countsto sum to one. Otherwise we return the number of pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin counts, and the bin widths as a tuple. We can use these values in pyplot.bar to quickly plot the histogram.
+        
 
         **RETURNS**
 
@@ -11892,14 +11837,16 @@ class Image:
         contains a list of bin labels, the bin counts, and the bin widths.
         This tuple can be used to plot the histogram using
         matplotlib.pyplot.bar function.
-
+        
+        
         **EXAMPLE**
-
-        >>>> import matplotlib.pyplot as plt
-        >>>> img = Image('lenna')
-        >>>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
-        >>>> plt.show())
-
+        
+          >>> import matplotlib.pyplot as plt
+          >>> img = Image('lenna')
+          >>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+          >>> plt.show()
+        
+        
         **NOTES**
 
         See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
@@ -11924,6 +11871,7 @@ class Image:
 
     def horizontalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
         """
+        
         **DESCRIPTION**
 
         This method generates histogram of the number of grayscale pixels
@@ -11933,18 +11881,13 @@ class Image:
         is helpful for doing basic morphological analysis.
 
         **PARAMETERS**
+        
         * *bins* - The number of bins to use.
-        * *threshold* - The grayscale threshold. We count pixels greater
-                       than this value.
-
-        * *normalize* - If normalize is true we normalize the bin counts
-                        to sum to one. Otherwise we return the number of
-                        pixels.
-        * *forPlot* - If this is true we return the bin indicies, the bin
-                      counts, and the bin widths as a tuple. We can use
-                      these values in pyplot.bar to quickly plot the
-                      histogram.
-
+        * *threshold* - The grayscale threshold. We count pixels greater than this value.
+        * *normalize* - If normalize is true we normalize the bin counts to sum to one. Otherwise we return the number of pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin counts, and the bin widths as a tuple. We can use these values in pyplot.bar to quickly plot the histogram.
+        
+        
         **RETURNS**
 
         The default settings return the raw bin counts moving from top to
@@ -11957,7 +11900,7 @@ class Image:
 
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
-        >>>> plt.bar(*img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+        >>>> plt.bar(img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
         >>>> plt.show())
 
         **NOTES**
@@ -11991,13 +11934,14 @@ class Image:
         than can be manipulated further.
 
         **PARAMETERS**
+        
         * *x* - Take a vertical line scan at the column x.
         * *y* - Take a horizontal line scan at the row y.
-        * *pt1* - Take a line scan between two points on the line
-                  the line scan values always go in the +x direction
+        * *pt1* - Take a line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
-        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
-                      If set to -1 it operates with gray scale values
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
+        
+        
         **RETURNS**
 
         A SimpleCV.LineScan object or None if the method fails.
@@ -12084,14 +12028,15 @@ class Image:
         This function helps you put back the linescan in the image.
 
         **PARAMETERS**
+        
         * *linescan* - LineScan object
         * *x* - put  line scan at the column x.
         * *y* - put line scan at the row y.
-        * *pt1* - put line scan between two points on the line
-                  the line scan values always go in the +x direction
+        * *pt1* - put line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
-        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
-                      If set to -1 it operates with gray scale values
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
+        
+        
         **RETURNS**
 
         A SimpleCV.Image 
@@ -12105,6 +12050,7 @@ class Image:
         >>> newimg = img.putLineScan(a, x=50)
         >>> newimg.show()
         # This will show you a black line in column 50.
+        
         """
         #retVal = self.toGray()
         if channel == -1:
@@ -12182,6 +12128,7 @@ class Image:
 
     def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None, channel = None):
         """
+        
         **SUMMARY**
 
         This function easily lets you replace the linescan in the image.
@@ -12192,14 +12139,15 @@ class Image:
         LineScan from.
 
         **PARAMETERS**
+        
         * *linescan* - LineScan object
         * *x* - put  line scan at the column x.
         * *y* - put line scan at the row y.
-        * *pt1* - put line scan between two points on the line
-                  the line scan values always go in the +x direction
+        * *pt1* - put line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
-        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE.
-                      If set to -1 it operates with gray scale values
+        * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
+
+        
         **RETURNS**
 
         A SimpleCV.Image 
@@ -12213,6 +12161,7 @@ class Image:
         >>> newimg = img.replaceLineScan(a)
         >>> newimg.show()
         # This will show you a black line in column 10.
+        
         """
         
 
@@ -13392,11 +13341,14 @@ class Image:
             mostly to speed up the filter.
 
         **NOTE**
+        
         This function requires Scikit-image library to be installed!
-        To install scikit-image library run: 
+        To install scikit-image library run::
+         
             sudo pip install -U scikit-image
 
         Read More: http://scikit-image.org/
+        
         """
 
         try:
@@ -13421,7 +13373,8 @@ class Image:
             img = img.getNumpy()
             multichannel = True
         else:
-            print 'gray value not valid'
+            warnings.warn('gray value not valid')
+            return None
 
         denoise_mat = denoise_tv_chambolle(img,weight,eps,max_iter,multichannel)
         retVal = img * denoise_mat
