@@ -3615,4 +3615,16 @@ def test_motionBlur():
     else:
         assert False
 
+def test_channelMixer():
+    i = Image('lenna')
+    r = i.channelMixer()
+    g = i.channelMixer(channel='g', weight = (1,2,3))
+    b = i.channelMixer(channel='g', weight = (3,2,1))
+    if i != r and i != g and i != b:
+        pass
+    else:
+        assert False
+
+        
+
 
