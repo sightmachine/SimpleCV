@@ -13532,33 +13532,29 @@ class Image:
         Read more at http://docs.gimp.org/en/plug-in-colors-channel-mixer.html
 
         """
-        rgbimg = self.toRGB()
-        #returns none if the image cannot be converted into RGB
-        if rgbimg is None:
-            return None
-
-        imgarray = rgbimg.getNumpy()
-        r = imgarray[:,:,0]
-        g = imgarray[:,:,1]
-        b = imgarray[:,:,2]
+        #though we implement this for RGB still we have to convert it into BGR
+        # as the splitchannel function assumes that the image is BGR
+        
+        r, g, b = self.splitChannels()
         weight = map(float,weight)
         s = sum(weight)
         channel = channel.lower()
 
+        if s==0.:
+            warnings.warn('All values of weight cannot be equal to 0')
+            return None
+
         if channel == 'r':
-            r = weight[0]/s*r + weight[1]/s*g + weight[2]/s*b
+            r = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
         elif channel == 'g':
-            g = weight[0]/s*r + weight[1]/s*g + weight[2]/s*b
+            g = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
         elif channel == 'b':
-            b = weight[0]/s*r + weight[1]/s*g + weight[2]/s*b
+            b = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
         else:
             warnings.warn('Please enter a valid channel(r/g/b)')
             return None
 
-        imgarray[:,:,0] = r
-        imgarray[:,:,1] = g
-        imgarray[:,:,2] = b
-        retVal = Image(imgarray, colorSpace = ColorSpace.RGB )
+        retVal = self.mergeChannels(r = r, g = g, b = b)
         return retVal
 
 
