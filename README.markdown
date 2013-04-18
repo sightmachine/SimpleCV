@@ -2,7 +2,7 @@
 # SimpleCV
 --------------------------
 
-[![Build Status](https://travis-ci.org/ingenuitas/SimpleCV.png?branch=develop)](https://travis-ci.org/ingenuitas/SimpleCV)
+[![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV)
 
 
 Quick Links:
@@ -46,7 +46,7 @@ Here is the simplecv "hello world":
     image = camera.getImage()
     image.show()
 
-For more code snippets, we recommend the [SimpleCV examples website](http://examples.simplecv.org) or looking at our example scripts in [SimpleCV/examples](http://github.com/ingenuitas/SimpleCV/tree/master/SimpleCV/examples)
+For more code snippets, we recommend the [SimpleCV examples website](http://examples.simplecv.org) or looking at our example scripts in [SimpleCV/examples](http://github.com/sightmachine/SimpleCV/tree/master/SimpleCV/examples)
 
 ---------------------------
 <a id="installation"></a>
@@ -59,12 +59,12 @@ The easiest way to install SimpleCV is with the packages for your distribution (
 Install with pip
 
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip 
-	sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/develop
+	sudo pip install https://github.com/sightmachine/SimpleCV/zipball/develop
 
 Install using clone of SimpleCV repository
 
     sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools git
-    git clone https://github.com/ingenuitas/SimpleCV.git
+    git clone https://github.com/sightmachine/SimpleCV.git
     cd SimpleCV/
     sudo python setup.py install
 
@@ -93,7 +93,7 @@ Run the following commands:
     tar zxvf pygame.tar.gz
     cd ..
     ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
-    ./bin/pip install https://github.com/ingenuitas/SimpleCV/zipball/develop
+    ./bin/pip install https://github.com/sightmachine/SimpleCV/zipball/develop
   
 
 
@@ -104,12 +104,12 @@ Run the following commands:
 Install using pip
 
     pacman -S python2-numpy opencv2.4.4_1 python-pygame python2-setuptools ipython2 python2-pip
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/develop
+    pip install https://github.com/sightmachine/SimpleCV/zipball/develop
 
 Install using clone of SimpleCV repository
 
     pacman -S python2-numpy opencv2.4.4_1 python-pygame python2-setuptools ipython2
-    git clone https://github.com/ingenuitas/SimpleCV.git
+    git clone https://github.com/sightmachine/SimpleCV.git
     cd SimpleCV/
     sudo python setup.py install
 
@@ -207,13 +207,13 @@ Install pygame via PIP by running:
 **Note:** SimpleCV's developers made a change (for the better) here that I am including, however everything up to this point is 100% guaranteed to work, because it's exactly what I did. Keeping true to that, I'll present both options. *We both suggest using the develop branch.*  
 **Developer's Instructions** Install SimpleCV from the git repo and then run setup.
 
-    git clone https://github.com/ingenuitas/SimpleCV.git
+    git clone https://github.com/sightmachine/SimpleCV.git
     cd SimpleCV/
     sudo python setup.py install
 
 **JHawkins' Instructions** Install SimpleCV via PIP by running:
 
-    sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+    sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
 Test by running simplecv in the command line:
 
@@ -255,7 +255,7 @@ Commands (for Lion)::
     brew install hg
     sudo pip install hg+http://bitbucket.org/pygame/pygame
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh && source install_superpack.sh
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
+    pip install https://github.com/sightmachine/SimpleCV/zipball/master 
 
 Commands (for Snow Leopard)::
 
@@ -274,7 +274,7 @@ Commands (for Snow Leopard)::
     brew install hg
     sudo pip install https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.zip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/master 
+    pip install https://github.com/sightmachine/SimpleCV/zipball/master 
 
 
 <a id="windows"></a>
@@ -316,13 +316,13 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install cython
     easy_install pip
     pip install ipython
-    pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
+    pip install https://github.com/sightmachine/SimpleCV/zipball/1.3
 
 
 <a id="rasppi"></a>
 #### RASPBERRY PI 
 
-* [Installation instructions can be found here.](https://github.com/ingenuitas/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
+* [Installation instructions can be found here.](https://github.com/sightmachine/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
 
 ---------------------------
 <a id="shell"></a>

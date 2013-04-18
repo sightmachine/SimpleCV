@@ -21,8 +21,7 @@ class FrameBufferThread(threading.Thread):
     This is a helper thread which continually debuffers the camera frames.  If
     you don't do this, cameras may constantly give you a frame behind, which
     causes problems at low sample rates.  This makes sure the frames returned
-    by your camera are fresh.ode/SimpleCV/SimpleCV/Camera.py(2476)listAllCameras()
--> self.dll.PvCameraListEx(ct.byref(camlist), 1, None, ct.sizeof(self.AVTCameraInfo))
+    by your camera are fresh.
 
     """
     def run(self):
@@ -2100,37 +2099,44 @@ class StereoCamera :
 
     def stereoCalibration(self,camLeft, camRight, nboards=30, chessboard=(8, 5), gridsize=0.027, WinSize = (352,288)):
         """
+        
         **SUMMARY**
+        
         Stereo Calibration is a way in which you obtain the parameters that will allow you to calculate 3D information of the scene.
         Once both the camera's are initialized.
-         -> Press [Space] once chessboard is identified in both the camera's.
-         -> Press [esc] key to exit the calibration process.
+        Press [Space] once chessboard is identified in both the camera's.
+        Press [esc] key to exit the calibration process.
 
         **PARAMETERS**
-        * *camLeft* - Left camera index.
-        * *camRight* - Right camera index.
-        * *nboards* - Number of samples or multiple views of the chessboard in different positions and orientations with your stereo camera.
-        * *chessboard* - A tuple of Cols, Rows in the chessboard (used for calibration).
-        * *gridsize* - chessboard grid size in real units
-        * *WinSize* - This is the window resolution.
+        
+        * camLeft - Left camera index.
+        * camRight - Right camera index.
+        * nboards - Number of samples or multiple views of the chessboard in different positions and orientations with your stereo camera.
+        * chessboard - A tuple of Cols, Rows in the chessboard (used for calibration).
+        * gridsize - chessboard grid size in real units
+        * WinSize - This is the window resolution.
 
         **RETURNS**
+        
         A tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success
-                   where CM1 -> Camera Matrix for left camera,
-                         CM2 -> Camera Matrix for right camera,
-                         D1 -> Vector of distortion coefficients for left camera,
-                         D2 -> Vector of distortion coefficients for right camera,
-                         R -> Rotation matrix between the left and the right camera coordinate systems,
-                         T -> Translation vector between the left and the right coordinate systems of the cameras,
-                         E -> Essential matrix,
-                         F -> Fundamental matrix
+        CM1 - Camera Matrix for left camera,
+        CM2 - Camera Matrix for right camera,
+        D1 - Vector of distortion coefficients for left camera,
+        D2 - Vector of distortion coefficients for right camera,
+        R - Rotation matrix between the left and the right camera coordinate systems,
+        T - Translation vector between the left and the right coordinate systems of the cameras,
+        E - Essential matrix,
+        F - Fundamental matrix
 
         **EXAMPLE**
+        
         >>> StereoCam = StereoCamera()
         >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40)
 
         **Note**
+        
         Press space to capture the images.
+        
         """
         count = 0
         n1="Left"
@@ -2232,34 +2238,39 @@ class StereoCamera :
 
     def saveCalibration(self,calibration=None, fname="Stereo",cdir="."):
         """
+        
         **SUMMARY**
+        
         saveCalibration is a method to save the StereoCalibration parameters such as CM1, CM2, D1, D2, R, T, E, F of stereo pair.
         This method returns True on success and saves the calibration in the following format.
-          ->StereoCM1.txt
-          ->StereoCM2.txt
-          ->StereoD1.txt
-          ->StereoD2.txt
-          ->StereoR.txt
-          ->StereoT.txt
-          ->StereoE.txt
-          ->StereoF.txt
-
+        StereoCM1.txt
+        StereoCM2.txt
+        StereoD1.txt
+        StereoD2.txt
+        StereoR.txt
+        StereoT.txt
+        StereoE.txt
+        StereoF.txt
+        
         **PARAMETERS**
-        * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
-                      where CM1 -> Camera Matrix for left camera,
-                            CM2 -> Camera Matrix for right camera,
-                            D1 -> Vector of distortion coefficients for left camera,
-                            D2 -> Vector of distortion coefficients for right camera,
-                            R -> Rotation matrix between the left and the right camera coordinate systems,
-                            T -> Translation vector between the left and the right coordinate systems of the cameras,
-                            E -> Essential matrix,
-                            F -> Fundamental matrix
+        
+        calibration - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
+        CM1 -> Camera Matrix for left camera,
+        CM2 -> Camera Matrix for right camera,
+        D1 -> Vector of distortion coefficients for left camera,
+        D2 -> Vector of distortion coefficients for right camera,
+        R -> Rotation matrix between the left and the right camera coordinate systems,
+        T -> Translation vector between the left and the right coordinate systems of the cameras,
+        E -> Essential matrix,
+        F -> Fundamental matrix
 
 
         **RETURNS**
+        
         return True on success and saves the calibration files.
 
         **EXAMPLE**
+        
         >>> StereoCam = StereoCamera()
         >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40)
         >>> StereoCam.saveCalibration(calibration,fname="Stereo1")
@@ -2283,30 +2294,35 @@ class StereoCamera :
 
     def loadCalibration(self,fname="Stereo",dir="."):
         """
+        
         **SUMMARY**
+        
         loadCalibration is a method to load the StereoCalibration parameters such as CM1, CM2, D1, D2, R, T, E, F of stereo pair.
         This method loads from calibration files and return calibration on success else return false.
-
+        
         **PARAMETERS**
-        * *fname* - is the prefix of the calibration files.
-        * *dir* - is the directory in which files are present.
-
-        **RETURNS*
-        return a tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success.
-                      where CM1 -> Camera Matrix for left camera,
-                            CM2 -> Camera Matrix for right camera,
-                            D1 -> Vector of distortion coefficients for left camera,
-                            D2 -> Vector of distortion coefficients for right camera,
-                            R -> Rotation matrix between the left and the right camera coordinate systems,
-                            T -> Translation vector between the left and the right coordinate systems of the cameras,
-                            E -> Essential matrix,
-                            F -> Fundamental matrix
-
+        
+        fname - is the prefix of the calibration files.
+        dir - is the directory in which files are present.
+        
+        **RETURNS**
+        
+        a tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success.
+        CM1 - Camera Matrix for left camera
+        CM2 - Camera Matrix for right camera
+        D1 - Vector of distortion coefficients for left camera
+        D2 - Vector of distortion coefficients for right camera
+        R - Rotation matrix between the left and the right camera coordinate systems
+        T - Translation vector between the left and the right coordinate systems of the cameras
+        E - Essential matrix
+        F - Fundamental matrix
         else returns false
-
+        
         **EXAMPLE**
+        
         >>> StereoCam = StereoCamera()
         >>> loadedCalibration = StereoCam.loadCalibration(fname="Stereo1")
+        
         """
         filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt", fname+"D2.txt", fname+"R.txt", fname+"T.txt", fname+"E.txt", fname+"F.txt")
         try :
@@ -2326,33 +2342,38 @@ class StereoCamera :
 
     def stereoRectify(self,calib=None,WinSize=(352,288)):
         """
+        
         **SUMMARY**
+        
         Computes rectification transforms for each head of a calibrated stereo camera.
-
+        
         **PARAMETERS**
-        * *calibration* - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
-                      where CM1 -> Camera Matrix for left camera,
-                            CM2 -> Camera Matrix for right camera,
-                            D1 -> Vector of distortion coefficients for left camera,
-                            D2 -> Vector of distortion coefficients for right camera,
-                            R -> Rotation matrix between the left and the right camera coordinate systems,
-                            T -> Translation vector between the left and the right coordinate systems of the cameras,
-                            E -> Essential matrix,
-                            F -> Fundamental matrix
-
+        
+        calibration - is a tuple os the form (CM1, CM2, D1, D2, R, T, E, F)
+        CM1 - Camera Matrix for left camera,
+        CM2 - Camera Matrix for right camera,
+        D1 - Vector of distortion coefficients for left camera,
+        D2 - Vector of distortion coefficients for right camera,
+        R - Rotation matrix between the left and the right camera coordinate systems,
+        T - Translation vector between the left and the right coordinate systems of the cameras,
+        E - Essential matrix,
+        F - Fundamental matrix
+        
         **RETURNS**
+        
         On success returns a a tuple of the format -> (R1, R2, P1, P2, Q, roi)
-            where
-               R1 - Rectification transform (rotation matrix) for the left camera.
-               R2 - Rectification transform (rotation matrix) for the right camera.
-               P1 - Projection matrix in the new (rectified) coordinate systems for the left camera.
-               P2 - Projection matrix in the new (rectified) coordinate systems for the right camera.
-               Q - disparity-to-depth mapping matrix.
-
+        R1 - Rectification transform (rotation matrix) for the left camera.
+        R2 - Rectification transform (rotation matrix) for the right camera.
+        P1 - Projection matrix in the new (rectified) coordinate systems for the left camera.
+        P2 - Projection matrix in the new (rectified) coordinate systems for the right camera.
+        Q - disparity-to-depth mapping matrix.
+        
         **EXAMPLE**
+        
         >>> StereoCam = StereoCamera()
         >>> calibration = StereoCam.loadCalibration(fname="Stereo1")
         >>> rectification = StereoCam.stereoRectify(calibration)
+        
         """
         (CM1, CM2, D1, D2, R, T, E, F) = calib
         R1 = cv.CreateMat(3, 3, cv.CV_64F)
@@ -2360,9 +2381,9 @@ class StereoCamera :
         P1 = cv.CreateMat(3, 4, cv.CV_64F)
         P2 = cv.CreateMat(3, 4, cv.CV_64F)
         Q = cv.CreateMat(4, 4, cv.CV_64F)
-
+        
         print "Running stereo rectification..."
-
+        
         (leftroi, rightroi) = cv.StereoRectify(CM1, CM2, D1, D2, WinSize, R, T, R1, R2, P1, P2, Q)
         roi = []
         roi.append(max(leftroi[0], rightroi[0]))
@@ -2419,6 +2440,7 @@ class StereoCamera :
         This method returns the 3D depth image using reprojectImageTo3D method.
 
         **PARAMETERS**
+        
         * *leftIndex* - Index of left camera
         * *rightIndex* - Index of right camera
         * *Q* - reprojection Matrix (disparity to depth matrix)
@@ -2439,6 +2461,7 @@ class StereoCamera :
                     fullDP - Bool (only SGBM)
                     uniquenessRatio - int
                     textureThreshold - int (only BM)
+                    
 
         **RETURNS**
 
