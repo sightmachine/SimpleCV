@@ -13430,76 +13430,58 @@ class Image:
         else:
             return retVal
 
-    def motionBlur(self,intensity=15, direction='NW'):
+    def motionBlur(self,intensity=15, angle = 0):
         """
         **SUMMARY**
 
-        Performs the motion blur of an Image. Uses different filters to find out
-        the motion blur in different directions.
+        Performs the motion blur of an Image given the intensity and angle
 
         see : https://en.wikipedia.org/wiki/Motion_blur
 
         **Parameters**
 
-        * *intensity* - The intensity of the motion blur effect. Basically defines
-            the size of the filter used in the process. It has to be an integer.
-            0 intensity implies no blurring.
+        * *intensity* - The intensity of the motion blur effect. Governs the 
+            size of the kernel used in convolution
 
-        * *direction* - The direction of the motion. It is a string taking values
-            left, right, up, down as well as N, S, E, W for north, south, east, west 
-            and NW, NE, SW, SE for northwest and so on. 
-            default is NW
+        * *angle* - Angle in degrees at which motion blur will occur. Positive
+            is Clockwise and negative is Anti-Clockwise. 0 blurs from left to 
+            right
+            
 
         **RETURNS**
 
-        An image with the specified motion blur filter applied.
+        An image with the specified motion blur applied.
 
         **EXAMPLE**
-        >>> i = Image ('lenna')
-        >>> mb = i.motionBlur()
-        >>> mb.show()
+        >>> img = Image ('lenna')
+        >>> blur = i.motionBlur(40,45)
+        >>> blur.show()
         
         """
-        kernel = np.zeros((intensity,intensity))
-        if(intensity == 1):
+        
+        intensity = int(intensity)
+
+        if(intensity <= 1):
+            logger.warning('power less than 1 will result in no change')
             return self
-        mid = float(intensity) /2  #if intensity%2 else intensity/2 - 1
-        #mid = intensity/2
-        i = int(angle)/180
-        diff = int(angle) - i*180
+        
+        kernel = np.zeros((intensity,intensity))
+        
         rad = math.radians(angle)
         x1,y1 = intensity/2,intensity/2
+        
         x2 = int(x1-(intensity-1)/2*math.sin(rad))
         y2 = int(y1 -(intensity-1)/2*math.cos(rad))
-#        if(diff == 0):
-#             x1,y1 = intensity/2,intensity/2
-#            x2,y2 = intensity/2,0
-#        elif(diff == 90 ):
-#            x1,y1 = intensity/2,intensity/2
-#            x2,y2 = 0,intensity/2
-#        elif ( 45 <= angle <= 135 ):
-#            x1,y1 = intensity/2,intensity/2
-#            x2 = intensity-1
-#            y2 = min(x1 + int(intensity/2*math.cos(rad)/math.sin(rad) ),intensity-1)
-#        else:
-#            x1,y1 = intensity/2,intensity/2
-#            y2 = 0
-#            #print 'off = ',int(intensity/2*math.sin(rad)/math.cos(rad) )
-#            x2 = min(y1 + int(intensity/2*math.sin(rad)/math.cos(rad) ),intensity-1)
-            
-        #x1,x2,y1,y2 =  int(mid+x1),int(mid+x2),int(mid+y1),int(mid+y2)
-        print '***********'
-        print x1,y1
-        print x2,y2
+        
         line = self.bresenham_line((x1,y1),(x2,y2))
+        
         x = [p[0] for p in line]
         y = [p[1] for p in line]
-        #print indices
-        #x = []
+        
         kernel[x,y] = 1
         kernel = kernel/len(line)
-        return self.convolve(kernel = kernel
-        
+        return self.convolve(kernel = kernel)
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
