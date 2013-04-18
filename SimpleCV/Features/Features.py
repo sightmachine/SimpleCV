@@ -69,10 +69,11 @@ class FeatureSet(list):
         Call the draw() method on each feature in the FeatureSet.
 
         **PARAMETERS**
-       `
+        
         * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
         * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature.
+        
 
         **RETURNS**
 
@@ -1062,20 +1063,18 @@ class FeatureSet(list):
 
     def cluster(self,method="kmeans",properties=None,k=3):
         """
+        
         **SUMMARY**
 
         This function clusters the blobs in the featureSet based on the properties. Properties can be "color", "shape" or "position" of blobs.
         Clustering is done using K-Means or Hierarchical clustering(Ward) algorithm.
 
         **PARAMETERS**
-        * *properties* - It should be a list with any combination of "color", "shape", "position".
-                         Eg : properties = ["color","position"]
-                              properties = ["position","shape"]
-                              properties = ["shape"]
-        * *method*
-                - if method is "kmeans", it will cluster using K-Means algorithm
-                - if the method is "hierarchical", no need to spicify the number of clusters
+        
+        * *properties* - It should be a list with any combination of "color", "shape", "position". properties = ["color","position"]. properties = ["position","shape"]. properties = ["shape"]
+        * *method* - if method is "kmeans", it will cluster using K-Means algorithm, if the method is "hierarchical", no need to spicify the number of clusters
         * *k* - The number of clusters(kmeans).
+        
 
         **RETURNS**
 
@@ -1083,12 +1082,13 @@ class FeatureSet(list):
 
         **EXAMPLE**
 
-        >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> clusters = blobs.cluster(method="kmeans",properties=["color"],k=5)
-        >>> for i in clusters:
-        >>>     i.draw(color=Color.getRandom(),width=5)
-        >>> img.show()
+          >>> img = Image("lenna")
+          >>> blobs = img.findBlobs()
+          >>> clusters = blobs.cluster(method="kmeans",properties=["color"],k=5)
+          >>> for i in clusters:
+          >>>     i.draw(color=Color.getRandom(),width=5)
+          >>> img.show()
+        
         """
         try :
             from sklearn.cluster import KMeans, Ward

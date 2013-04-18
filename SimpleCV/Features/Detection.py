@@ -1,22 +1,21 @@
-# SimpleCV Detection Library
-#
-# This library includes classes for finding things in images
-#
-# FYI -
- # All angles shalt be described in degrees with zero pointing east in the
-# plane of the image with all positive rotations going counter-clockwise.
-# Therefore a rotation from the x-axis to to the y-axis is positive and follows
-# the right hand rule.
-#
+'''
+SimpleCV Detection Library
+
+This library includes classes for finding things in images
+
+FYI -
+All angles shalt be described in degrees with zero pointing east in the
+plane of the image with all positive rotations going counter-clockwise.
+Therefore a rotation from the x-axis to to the y-axis is positive and follows
+the right hand rule.
+'''
+
 #load required libraries
 from SimpleCV.base import *
 from SimpleCV.ImageClass import *
 from SimpleCV.Color import *
 from SimpleCV.Features.Features import Feature, FeatureSet
 
-
-
-######################################################################
 class Corner(Feature):
     """
     **SUMMARY**
@@ -2186,14 +2185,10 @@ class ROI(Feature):
 
         **PARAMETERS**
 
-        * *x*-The split point. Can be a single point or a list of points.
-        the type is determined by the flags.
-
-        * *unitVals* - Use unit vals for the split point. E.g. 0.5 means split
-        at 50% of the ROI.
-
-        * *srcVals* - Use x values relative to the source image rather than
-        relative to the ROI.
+        * *x*-The split point. Can be a single point or a list of points. the type is determined by the flags.
+        * *unitVals* - Use unit vals for the split point. E.g. 0.5 means split at 50% of the ROI.
+        * *srcVals* - Use x values relative to the source image rather than relative to the ROI.
+        
         
         **RETURNS**
         
@@ -2245,14 +2240,9 @@ class ROI(Feature):
 
         **PARAMETERS**
 
-        * *y*-The split point. Can be a single point or a list of points.
-        the type is determined by the flags.
-
-        * *unitVals* - Use unit vals for the split point. E.g. 0.5 means split
-        at 50% of the ROI.
-
-        * *srcVals* - Use x values relative to the source image rather than
-        relative to the ROI.
+        * *y*-The split point. Can be a single point or a list of points. the type is determined by the flags.
+        * *unitVals* - Use unit vals for the split point. E.g. 0.5 means split at 50% of the ROI.
+        * *srcVals* - Use x values relative to the source image rather than relative to the ROI.
         
         **RETURNS**
         
@@ -2302,8 +2292,8 @@ class ROI(Feature):
 
         **PARAMETERS**
 
-        * *regions* - A region or list of regions. Regions are just about anything
-        that has position.
+        * *regions* - A region or list of regions. Regions are just about anything that has position.
+        
 
         **RETURNS**
 
@@ -2311,11 +2301,12 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>>> blobs = img.findBlobs()
-        >>>> roi = ROI(blob[0])
+        >>>  blobs = img.findBlobs()
+        >>>  roi = ROI(blob[0])
         >>>  print roi.toXYWH()
         >>>  roi.merge(blob[2])
         >>>  print roi.toXYWH()
+        
         """
         result = self._standardize(regions)
         if( result is not None ):
