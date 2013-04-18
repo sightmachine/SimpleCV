@@ -13499,7 +13499,69 @@ class Image:
         
         retval=self.convolve(kernel=kernel/div)
         return retval
-        
+    
+    def channelMixer(self, channel = 'r', weight = (1,1,1)):
+        """
+        **SUMMARY**
+
+        Mixes channel of an RGB image based on the weights provided. The output is given at the 
+        channel provided in the parameters. Basically alters the value of one channelg of an RGB
+        image based in the values of other channels and itself. If the image is not RGB then first
+        converts the image to RGB and then mixes channel
+
+        **PARAMETERS**
+
+        * *channel* - The output channel in which the values are to be replaced. 
+        It can have either 'r' or 'g' or 'b'
+
+        * *weight* - The weight of each channel in calculation of the mixed channel.
+        It is a tuple having 3 values.
+
+        **RETURNS**
+
+        A SimpleCV RGB Image with the provided channel replaced with the mixed channel.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = img.channelMixer()
+        >>> Img3 = img.channelMixer(channel = 'g', weights = (3,2,1))
+
+        **NOTE**
+
+        Read more at http://docs.gimp.org/en/plug-in-colors-channel-mixer.html
+
+        """
+        rgbimg = self.toRGB()
+        #returns none if the image cannot be converted into RGB
+        if rgbimg is None:
+            return None
+
+        imgarray = rgbimg.getNumpy()
+        r = imgarray[:,:,0]
+        g = imgarray[:,:,1]
+        b = imgarray[:,:,2]
+        weight = map(float,weight)
+        s = sum(weight)
+        channel = channel.lower()
+
+        if channel == 'r':
+            r = weight[0]/s*r + weight[1]/s*g + weight[2]/s*b
+        elif channel == 'g':
+            g = weight[0]/s*r + weight[1]/s*g + weight[2]/s*b
+        elif channel == 'b':
+            b = weight[0]/s*r + weight[1]/s*g + weight[2]/s*b
+        else:
+            warnings.warn('Please enter a valid channel(r/g/b)')
+            return None
+
+        imgarray[:,:,0] = r
+        imgarray[:,:,1] = g
+        imgarray[:,:,2] = b
+        retVal = Image(imgarray, colorSpace = ColorSpace.RGB )
+        return retVal
+
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
