@@ -233,47 +233,67 @@ class ImageSet(list):
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
+        
         **SUMMARY**
+        
         Uploads all the images to imgur or flickr or dropbox. In verbose mode URL values are printed.
-
+        
+        
         **PARAMETERS**
+        
         * *api_key* - a string of the API key.
-        * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
-        * *verbose* - If verbose is true all values are printed to the
-          screen
-
+        * *api_secret* - (required only for flickr and dropbox ) a string of the API secret.
+        * *verbose* - If verbose is true all values are printed to the screen
+        
+        
         **RETURNS**
-        if uploading is successful,
-          - Imgur return the original image URL on success and None if it fails.
-          - Flick returns True on success, else returns False.
-          - dropbox returns True on success.
+        
+        if uploading is successful
+        
+        - Imgur return the original image URL on success and None if it fails.
+        - Flick returns True on success, else returns False.
+        - dropbox returns True on success.
+        
 
         **EXAMPLE**
-        TO upload image to imgur
+        
+        TO upload image to imgur::
+        
           >>> imgset = ImageSet("/home/user/Desktop")
           >>> result = imgset.upload( 'imgur',"MY_API_KEY1234567890" )
           >>> print "Uploaded To: " + result[0]
+          
 
-        To upload image to flickr
+        To upload image to flickr::
+        
           >>> imgset.upload('flickr','api_key','api_secret')
           >>> imgset.upload('flickr') #Once the api keys and secret keys are cached.
 
-        To upload image to dropbox
+        To upload image to dropbox::
+        
           >>> imgset.upload('dropbox','api_key','api_secret')
           >>> imgset.upload('dropbox') #Once the api keys and secret keys are cached.
 
         **NOTES**
+        
         .. Warning::
           This method requires two packages to be installed
           -PyCurl
           -flickr api.
           -dropbox
-
+        
+        
         .. Warning::
-          You must supply your own API key. See here:
-          - http://imgur.com/register/api_anon
-          - http://www.flickr.com/services/api/misc.api_keys.html
-          - https://www.dropbox.com/developers/start/setup#python
+          You must supply your own API key.
+
+
+        Find more about API keys:
+        
+        - http://imgur.com/register/api_anon
+        - http://www.flickr.com/services/api/misc.api_keys.html
+        - https://www.dropbox.com/developers/start/setup#python
+        
+        
         """
         try :
             for i in self:
@@ -402,6 +422,7 @@ class ImageSet(list):
 
     def save(self, destination=None, dt=0.2, verbose = False, displaytype=None):
         """
+        
         **SUMMARY**
 
         This is a quick way to save all the images in a data set.
@@ -418,6 +439,8 @@ class ImageSet(list):
         * *dt* - time between frames, for creating gif files.
         * *verbose* - print the path of the saved files to the console.
         * *displaytype* - the method use for saving or displaying images.
+        
+        
         valid values are:
 
         * 'notebook' - display to the ipython notebook.
@@ -2182,18 +2205,17 @@ class Image:
         Save also supports IPython Notebooks when passing it a Display object
         that has been instainted with the notebook flag.
 
-        To do this just use:
+        To do this just use::
 
-        >>> disp = Display(displaytype='notebook')
-        >>> img.save(disp)
+          >>> disp = Display(displaytype='notebook')
+          >>> img.save(disp)
 
         .. Note::
-          You must have IPython notebooks installed for this to work
-
-          path and filename are valid if and only if temp is set to True.
+          You must have IPython notebooks installed for this to work path and filename are valid if and only if temp is set to True.
 
         .. attention::
           We need examples for all save methods as they are unintuitve.
+        
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
@@ -2389,46 +2411,63 @@ class Image:
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
+        
         Uploads image to imgur or flickr or dropbox. In verbose mode URL values are printed.
 
         **PARAMETERS**
+        
         * *api_key* - a string of the API key.
         * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
-        * *verbose* - If verbose is true all values are printed to the
-          screen
+        * *verbose* - If verbose is true all values are printed to the screen
+        
 
         **RETURNS**
-        if uploading is successful,
-         - Imgur return the original image URL on success and None if it fails.
-         - Flick returns True on success, else returns False.
-         - dropbox returns True on success.
+        
+        if uploading is successful
+        
+        - Imgur return the original image URL on success and None if it fails.
+        - Flick returns True on success, else returns False.
+        - dropbox returns True on success.
+        
 
         **EXAMPLE**
-        TO upload image to imgur
-           >>> img = Image("lenna")
-           >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
-           >>> print "Uploaded To: " + result[0]
+        
+        TO upload image to imgur::
+          
+          >>> img = Image("lenna")
+          >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
+          >>> print "Uploaded To: " + result[0]
+          
 
-        To upload image to flickr
-           >>> img.upload('flickr','api_key','api_secret')
-           >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
+        To upload image to flickr::
+          
+          >>> img.upload('flickr','api_key','api_secret')
+          >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
+          
 
-        To upload image to dropbox
-           >>> img.upload('dropbox','api_key','api_secret')
-           >>> img.invert().upload('dropbox') #Once the api keys and secret keys are cached.
+        To upload image to dropbox::
+          
+          >>> img.upload('dropbox','api_key','api_secret')
+          >>> img.invert().upload('dropbox') #Once the api keys and secret keys are cached.
+          
 
         **NOTES**
+        
         .. Warning::
-           This method requires two packages to be installed
-           -PyCurl
-           -flickr api.
-           -dropbox
+          This method requires two packages to be installed
+          
+          - PyCurl
+          - flickr api.
+          - dropbox
+          
 
         .. Warning::
-           You must supply your own API key. See here:
-           - http://imgur.com/register/api_anon
-           - http://www.flickr.com/services/api/misc.api_keys.html
-           - https://www.dropbox.com/developers/start/setup#python
+          You must supply your own API key. See here:
+          
+          - http://imgur.com/register/api_anon
+          - http://www.flickr.com/services/api/misc.api_keys.html
+          - https://www.dropbox.com/developers/start/setup#python
+          
         """
         if ( dest=='imgur' ) :
             try:
@@ -11835,6 +11874,7 @@ class Image:
 
     def verticalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
         """
+        
         **DESCRIPTION**
 
         This method generates histogram of the number of grayscale pixels
@@ -11844,17 +11884,12 @@ class Image:
         is helpful for doing basic morphological analysis.
 
         **PARAMETERS**
+        
         * *bins* - The number of bins to use.
-        * *threshold* - The grayscale threshold. We count pixels greater
-                       than this value.
-
-        * *normalize* - If normalize is true we normalize the bin counts
-                        to sum to one. Otherwise we return the number of
-                        pixels.
-        * *forPlot* - If this is true we return the bin indicies, the bin
-                      counts, and the bin widths as a tuple. We can use
-                      these values in pyplot.bar to quickly plot the
-                      histogram.
+        * *threshold* - The grayscale threshold. We count pixels greater than this value.
+        * *normalize* - If normalize is true we normalize the bin countsto sum to one. Otherwise we return the number of pixels.
+        * *forPlot* - If this is true we return the bin indicies, the bin counts, and the bin widths as a tuple. We can use these values in pyplot.bar to quickly plot the histogram.
+        
 
         **RETURNS**
 
@@ -11863,14 +11898,16 @@ class Image:
         contains a list of bin labels, the bin counts, and the bin widths.
         This tuple can be used to plot the histogram using
         matplotlib.pyplot.bar function.
-
+        
+        
         **EXAMPLE**
-
-        >>>> import matplotlib.pyplot as plt
-        >>>> img = Image('lenna')
-        >>>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
-        >>>> plt.show())
-
+        
+          >>> import matplotlib.pyplot as plt
+          >>> img = Image('lenna')
+          >>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
+          >>> plt.show()
+        
+        
         **NOTES**
 
         See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
@@ -13365,11 +13402,14 @@ class Image:
             mostly to speed up the filter.
 
         **NOTE**
+        
         This function requires Scikit-image library to be installed!
-        To install scikit-image library run: 
+        To install scikit-image library run::
+         
             sudo pip install -U scikit-image
 
         Read More: http://scikit-image.org/
+        
         """
 
         try:
