@@ -1,12 +1,13 @@
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image
 
+
 class FaceRecognizer():
 
     def __init__(self):
         """
-        Create a Face Recognizer Class using Fisher Face Recognizer. Uses OpenCV's
-        FaceRecognizer class. Currently supports Fisher Faces.
+        Create a Face Recognizer Class using Fisher Face Recognizer. Uses
+        OpenCV's FaceRecognizer class. Currently supports Fisher Faces.
         """
         self.supported = True
         self.model = None
@@ -14,10 +15,14 @@ class FaceRecognizer():
         self.train_labels = None
         self.csvfiles = []
         self.imageSize = None
-        #Not yet supported
-        #self.eigenValues = None
-        #self.eigenVectors = None
-        #self.mean = None
+        self.labels_dict = {}
+        self.labels_set = []
+        self.int_labels = []
+        self.labels_dict_rev = {}
+        # Not yet supported
+        # self.eigenValues = None
+        # self.eigenVectors = None
+        # self.mean = None
 
         try:
             import cv2
@@ -34,11 +39,14 @@ class FaceRecognizer():
 
         **PARAMETERS**
 
-        * *images*    - A list of Images or ImageSet. All the images must be of same size.
-        * *labels*    - A list of labels(int) corresponding to the image in images. 
+        * *images*    - A list of Images or ImageSet. All the images must be of
+                        same size.
+        * *labels*    - A list of labels(int) corresponding to the image in
+                        images.
                         There must be at least two different labels.
-        * *csvfile*   - You can also provide a csv file with image filenames and labels
-                        instead of providing labels and images separately.
+        * *csvfile*   - You can also provide a csv file with image filenames
+                        and labels instead of providing labels and images
+                        separately.
         * *delimiter* - The delimiter used in csv files.
 
         **RETURNS**
@@ -93,39 +101,45 @@ class FaceRecognizer():
             filereader = csv.reader(f, delimiter=delimiter)
             for row in filereader:
                 images.append(Image(row[0]))
-                labels.append(int(row[1]))
+                labels.append(row[1])
 
         if isinstance(labels, type(None)):
             warnings.warn("Labels not provided. Training not inititated.")
             return None
 
-        labels_set = list(set(labels))
-        if len(labels_set) < 2:
-            warnings.warn("At least two classes/labels are required for training. Training not inititated.")
+        self.labels_set = list(set(labels))
+        i = 0
+        for label in self.labels_set:
+            self.labels_dict.update({label: i})
+            self.labels_dict_rev.update({i: label})
+            i += 1
+
+        if len(self.labels_set) < 2:
+            warnings.warn("At least two classes/labels are required"
+                          "for training. Training not inititated.")
             return None
 
         if len(images) != len(labels):
-            warnings.warn("Mismatch in number of labels and number of training images. Training not initiated.")
+            warnings.warn("Mismatch in number of labels and number of"
+                          "training images. Training not initiated.")
             return None
 
         self.imageSize = images[0].size()
-        for img in images:
-            if img.size() != self.imageSize:
-                warnings.warn("All the images must be of same size. Training not initiated")
-                return None
+        w, h = self.imageSize
+        images = [img if img.size() == self.imageSize else img.resize(w, h)
+                  for img in images]
 
+        self.int_labels = [self.labels_dict[key] for key in labels]
         self.train_labels = labels
-        labels = np.array(labels)
+        labels = np.array(self.int_labels)
         self.train_imgs = images
         cv2imgs = [img.getGrayNumpyCv2() for img in images]
 
         self.model.train(cv2imgs, labels)
-        
         # Not yet supported
-        #self.eigenValues = self.model.getMat("eigenValues")
-        #self.eigenVectors = self.model.getMat("eigenVectors")
-        #self.mean = self.model.getMat("mean")
-        
+        # self.eigenValues = self.model.getMat("eigenValues")
+        # self.eigenVectors = self.model.getMat("eigenVectors")
+        # self.mean = self.model.getMat("mean")
 
     def predict(self, image):
         """
@@ -135,7 +149,8 @@ class FaceRecognizer():
 
         **PARAMETERS**
 
-        * *image*    -  Image.The images must be of the same size as provided in training.
+        * *image*    -  Image.The images must be of the same size as provided
+                        in training.
 
         **RETURNS**
 
@@ -145,11 +160,11 @@ class FaceRecognizer():
 
         >>> f = FaceRecognizer()
         >>> imgs1 = ImageSet(path/to/images_of_type1)
-        >>> labels1 = [0]*len(imgs1)
+        >>> labels1 = ["type1"]*len(imgs1)
         >>> imgs2 = ImageSet(path/to/images_of_type2)
-        >>> labels2 = [1]*len(imgs2)
+        >>> labels2 = ["type2"]*len(imgs2)
         >>> imgs3 = ImageSet(path/to/images_of_type3)
-        >>> labels3 = [2]*len(imgs3)
+        >>> labels3 = ["type3"]*len(imgs3)
         >>> imgs = imgs1 + imgs2 + imgs3
         >>> labels = labels1 + labels2 + labels3
         >>> f.train(imgs, labels)
@@ -175,114 +190,22 @@ class FaceRecognizer():
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
             return None
 
+        if image.size() != self.imageSize:
+            w, h = self.imageSize
+            image = image.resize(w, h)
+
         cv2img = image.getGrayNumpyCv2()
         label, confidence = self.model.predict(cv2img)
-        return label
+        retLabel = self.labels_dict_rev.get(label)
+        if not retLabel:
+            retLabel = label
+        return retLabel
 
-    def update(self, images=None, labels=None, csvfile=None, delimiter=";"):
-        """
-        **SUMMARY**
-
-        Update the training set of the face recognizer.
-
-        **PARAMETERS**
-
-        * *images*    - A list of Images or ImageSet. All the images must be of same size.
-        * *labels*    - A list of labels(int) corresponding to the image in images. 
-                        There must be at least two different labels.
-        * *csvfile*   - You can also provide a csv file with image filenames and labels
-                        instead of providing labels and images separately.
-        * *delimiter* - The delimiter used in csv files.
-
-        **RETURNS**
-
-        Nothing. None.
-
-        **EXAMPLES**
-
-        >>> f = FaceRecognizer()
-        >>> imgs1 = ImageSet(path/to/images_of_type1)
-        >>> labels1 = [0]*len(imgs1)
-        >>> imgs2 = ImageSet(path/to/images_of_type2)
-        >>> labels2 = [1]*len(imgs2)
-        >>> imgs3 = ImageSet(path/to/images_of_type3)
-        >>> labels3 = [2]*len(imgs3)
-        >>> imgs = imgs1 + imgs2 + imgs3
-        >>> labels = labels1 + labels2 + labels3
-        >>> f.train(imgs, labels)
-        >>> img = Image("some_image_of_any_of_the_above_type")
-        >>> print f.predict(img)
-
-        >>> imgs4 = ImageSet(path/to/some_more_images_of_type1)
-        >>> labels4 = [0]*len(imgs4)
-        >>> imgs5 = ImageSet(path/to/some_more_images_of_type2)
-        >>> labels5 = [1]*len(imgs4)
-
-        >>> newimgs = imgs4 + imgs5
-        >>> newlabels = labels4 + labels5
-        >>> f.update(newimgs, newlabels)
-
-        >>> img1 = Image("some_image_of_any_of_the_above_type")
-        >>> print f.predict(img1)
-
-        Save New Fisher Training Data
-        >>> f.save("new_trainingdata.xml")
-
-        Load Fisher Training Data to update.
-        >>> f1 = FaceRecognizer()
-        >>> f1.load("trainingdata.xml")
-        >>> img = Image("some_image_of_any_of_the_above_type")
-        >>> print f1.predict(img)
-
-        >>> f1.load("new_trainingdata.xml")
-        >>> img1 = Image("some_image_of_any_of_the_above_type")
-        >>> print f1.predict(img1)
-
-        #Now Use CSV files for update
-        >>> f1.update(csvfile="CSV_file_name", delimiter=";")
-        >>> img2 = Image("some_image_of_any_of_the_above_type")
-        >>> print f1.predict(img2)
-        """
-
-        if not self.supported:
-            warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
-            return None
-
-        if csvfile:
-            images = []
-            labels = []
-            import csv
-            try:
-                f = open(csvfile, "rb")
-            except IOError:
-                warnings.warn("No such file found. Update not inititated.")
-                return None
-
-            self.csvfiles.append(csvfiles)
-            filereader = csv.reader(csvfile, delimiter=delimiter)
-            for row in filereader:
-                images.append(Image(row[0]))
-                labels.append(int(row[1]))
-
-        if isinstance(labels, type(None)):
-            warnings.warn("Labels not provided. Update not inititated.")
-            return None
-
-        if len(images) != len(labels):
-            warnings.warn("Mismatch in number of labels and number of training images. Update not initiated.")
-            return None
-
-        self.train_labels += labels
-        labels = np.array(labels)
-        self.train_imgs+=imgs
-        cv2imgs = [img.getGrayNumpyCv2() for img in imgs]
-
-        self.model.update(cv2imgs, labels)
-
-        # Not yet supported
-        #self.eigenValues = self.model.getMat("eigenValues")
-        #self.eigenVectors = self.model.getMat("eigenVectors")
-        #self.mean = self.model.getMat("mean")
+    # def update():
+    #     OpenCV 2.4.4 doens't support update yet. It asks to train.
+    #     But it's not updating it.
+    #     Once OpenCV starts supporting update, this function should be added
+    #     it can be found at https://gist.github.com/jayrambhia/5400347
 
     def save(self, filename):
         """
@@ -351,13 +274,13 @@ class FaceRecognizer():
         loadfile = open(filename, "r")
         for line in loadfile.readlines():
             if "cols" in line:
-                match = re.search("(?<=\>)\w+",line)
+                match = re.search("(?<=\>)\w+", line)
                 tsize = int(match.group(0))
                 break
         loadfile.close()
-        w = int(tsize**0.5)
-        h = tsize/w
-        while(w*h != tsize):
-            w+=1
-            h = tsize/w
+        w = int(tsize ** 0.5)
+        h = tsize / w
+        while(w * h != tsize):
+            w += 1
+            h = tsize / w
         self.imageSize = (w, h)

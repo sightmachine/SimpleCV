@@ -3631,14 +3631,14 @@ def test_faceRecognize():
                        "../sampleimages/ff2.jpg",
                        "../sampleimages/ff3.jpg",
                        "../sampleimages/ff4.jpg",
-                       "../sampleimages/ff5.jpg"]
+                        "../sampleimages/ff5.jpg"]
             
             images2 = ["../sampleimages/fm1.jpg",
                        "../sampleimages/fm2.jpg",
                        "../sampleimages/fm3.jpg",
                        "../sampleimages/fm4.jpg",
                        "../sampleimages/fm5.jpg"]
-            
+
             images3 = ["../sampleimages/fi1.jpg",
                        "../sampleimages/fi2.jpg",
                        "../sampleimages/fi3.jpg",
@@ -3647,26 +3647,30 @@ def test_faceRecognize():
             imgset1 = []
             imgset2 = []
             imgset3 = []
+            uimgset1 = []
+            uimgset2 = []
+
             for img in images1:
                 imgset1.append(Image(img))
-            label1 = [0]*len(imgset1)
+            label1 = ["female"]*len(imgset1)
 
             for img in images2:
                 imgset2.append(Image(img))
-            label2 = [1]*len(imgset2)
+            label2 = ["male"]*len(imgset2)
 
             imgset = imgset1 + imgset2
             labels = label1 + label2
+            imgset[4] = imgset[4].resize(400,400)
             f.train(imgset, labels)
 
             for img in images3:
                 imgset3.append(Image(img))
-
+            imgset[2].resize(300, 300)
             label = []
             for img in imgset3:
                 label.append(f.predict(img))
             
-            if label == [1, 1, 0, 0]:
+            if label == ["male", "male", "female", "female"]:
                 pass
             else:
                 assert False
