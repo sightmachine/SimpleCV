@@ -88,12 +88,7 @@ class ImageSet(list):
         if isinstance(directory,list):
             super(ImageSet,self).__init__(directory)
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
-            pth = __init__file__
-            
-            if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                pth = pth.split('\\')[-2]
-            else:
-                pth = pth.split('/')[-2]
+            pth = LAUNCH_PATH
             pth = os.path.realpath(pth)
             directory = os.path.join(pth, 'sampleimages')
             self.load(directory)
