@@ -1737,26 +1737,32 @@ def test_findKeypoints():
         pass
         return
     img = Image(testimage2)
-    kp = img.findKeypoints()
-    for k in kp:
-        k.getObject()
-        k.descriptor()
-        k.quality()
-        k.octave()
-        k.flavor()
-        k.angle()
-        k.coordinates()
-        k.draw()
-        k.distanceFrom()
-        k.meanColor()
-        k.area()
-        k.perimeter()
-        k.width()
-        k.height()
-        k.radius()
-        k.crop()
-
-    kp.draw()
+    flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','FREAK','SIFT','Dense']
+    for flavor in flavors:
+        kp = img.findKeypoints(flavor=flavor)
+        print "trying to find " + flavor + " keypoints."
+        if( kp is not None ):
+            print "Found: " + str(len(kp)) 
+            for k in kp:
+                k.getObject()
+                k.descriptor()
+                k.quality()
+                k.octave()
+                k.flavor()
+                k.angle()
+                k.coordinates()
+                k.draw()
+                k.distanceFrom()
+                k.meanColor()
+                k.area()
+                k.perimeter()
+                k.width()
+                k.height()
+                k.radius()
+                k.crop()    
+            kp.draw()
+        else:
+            print "Found None."
     results = [img]
     name_stem = "test_findKeypoints"
     #~ perform_diff(results,name_stem)

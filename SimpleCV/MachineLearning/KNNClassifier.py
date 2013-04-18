@@ -1,5 +1,5 @@
 from SimpleCV.base import *
-from SimpleCV.ImageClass import Image
+from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.DrawingLayer import *
 from SimpleCV.Features import FeatureExtractorBase
 """
@@ -172,10 +172,39 @@ class KNNClassifier:
             del img
         return count
 
-    def train(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
+    def _trainImageSet(self,imageset,className,subset,disp,verbose):
+        count = 0
+        badFeat = False
+        if (subset>0):
+            imageset = imageset[0:subset]   
+        for img in imageset:
+            if verbose:
+                print "Opening file: " + img.filename
+            featureVector = []
+            for extractor in self.mFeatureExtractors:
+                feats = extractor.extract(img)
+                if( feats is not None ):
+                    featureVector.extend(feats)
+                else:
+                    badFeat = True
+                    
+            if(badFeat):
+                badFeat = False
+                continue
+            
+            featureVector.extend([className])
+            self.mDataSetRaw.append(featureVector)
+            text = 'Training: ' + className
+            self._WriteText(disp,img,text,Color.WHITE)
+            count = count + 1
+            del img
+        return count
+
+    def train(self,images,classNames,disp=None,subset=-1,savedata=None,verbose=True):
         """
         Train the classifier.
-        paths the order of the paths in the same order as the class type
+        images paramater can take in a list of paths or a list of imagesets
+        images - the order of the paths or imagesets must be in the same order as the class type
 
         - Note all image classes must be in seperate directories
         - The class names must also align to the directories
@@ -196,7 +225,10 @@ class KNNClassifier:
         self.mClassNames = classNames
         # fore each class, get all of the data in the path and train
         for i in range(len(classNames)):
-            count = count + self._trainPath(paths[i],classNames[i],subset,disp,verbose)
+            if ( isinstance(images[i], str) ):
+                count = count + self._trainPath(images[i],classNames[i],subset,disp,verbose)
+            else:
+                count = count + self._trainImageSet(images[i],classNames[i],subset,disp,verbose)
 
         colNames = []
         for extractor in self.mFeatureExtractors:
@@ -249,10 +281,11 @@ class KNNClassifier:
 
 
 
-    def test(self,paths,classNames,disp=None,subset=-1,savedata=None,verbose=True):
+    def test(self,images,classNames,disp=None,subset=-1,savedata=None,verbose=True):
         """
-        Train the classifier.
-        paths the order of the paths in the same order as the class type
+        Test the classifier.
+        images paramater can take in a list of paths or a list of imagesets
+        images - the order of the paths or imagesets must be in the same order as the class type
 
         - Note all image classes must be in seperate directories
         - The class names must also align to the directories
@@ -279,9 +312,14 @@ class KNNClassifier:
 
         dataset = []
         for i in range(len(classNames)):
-            [dataset,cnt,crct] =self._testPath(paths[i],classNames[i],dataset,subset,disp,verbose)
-            count = count + cnt
-            correct = correct + crct
+            if ( isinstance(images[i],str) ):
+                [dataset,cnt,crct] =self._testPath(images[i],classNames[i],dataset,subset,disp,verbose)
+                count = count + cnt
+                correct = correct + crct
+            else:
+                [dataset,cnt,crct] =self._testImageSet(images[i],classNames[i],dataset,subset,disp,verbose)
+                count = count + cnt
+                correct = correct + crct
 
 
         testData = orange.ExampleTable(self.mOrangeDomain,dataset)
@@ -348,6 +386,43 @@ class KNNClassifier:
             count = count + 1
             del img
 
+        return([dataset,count,correct])
+
+    def _testImageSet(self,imageset,className,dataset,subset,disp,verbose):
+        count = 0
+        correct = 0
+        badFeat = False
+        if(subset > 0):
+            imageset = imageset[0:subset]
+        for img in imageset:
+            if verbose:
+                print "Opening file: " + img.filename
+            featureVector = []
+            for extractor in self.mFeatureExtractors:
+                feats = extractor.extract(img)
+                if( feats is not None ):
+                    featureVector.extend(feats)
+                else:
+                    badFeat = True
+            if( badFeat ):
+                del img
+                badFeat = False
+                continue 
+            featureVector.extend([className])
+            dataset.append(featureVector)
+            test = orange.ExampleTable(self.mOrangeDomain,[featureVector])
+            c = self.mClassifier(test[0])
+            testClass = test[0].getclass()
+            if(testClass==c):
+                text =  "Classified as " + str(c)
+                self._WriteText(disp,img,text, Color.GREEN)
+                correct = correct + 1
+            else:   
+                text =  "Mislassified as " + str(c)
+                self._WriteText(disp,img,text, Color.RED)
+            count = count + 1
+            del img
+            
         return([dataset,count,correct])
 
     def _WriteText(self, disp, img, txt,color):

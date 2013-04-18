@@ -16,7 +16,7 @@ if not (inp == "" or inp.lower() == "y"):
     sys.exit()
 
 
-machine_learning_data_set = "https://github.com/downloads/ingenuitas/SimpleCV/machine_learning_dataset.zip"
+machine_learning_data_set = "https://github.com/downloads/sightmachine/SimpleCV/machine_learning_dataset.zip"
 data_path = download_and_extract(machine_learning_data_set)
 
 w = 800
@@ -69,9 +69,12 @@ props ={
     }
 print('Train')
 classifierSVMP = SVMClassifier(extractors,props)
-classifierSVMP.train(path,classes,disp=display,subset=n) #train
+data = []
+for p in path:
+    data.append(ImageSet(p))
+classifierSVMP.train(data,classes,disp=display,subset=n) #train
 print('Test')
-[pos,neg,confuse] = classifierSVMP.test(path,classes,disp=display,subset=n)
+[pos,neg,confuse] = classifierSVMP.test(data,classes,disp=display,subset=n)
 files = []
 for ext in IMAGE_FORMATS:
     files.extend(glob.glob( os.path.join(path[0], ext)))
@@ -106,9 +109,13 @@ props ={
     }
 print('Train')
 classifierSVMRBF = SVMClassifier(extractors,props)
-classifierSVMRBF.train(path,classes,disp=display,subset=n) #train
+data = []
+for p in path:
+    data.append(ImageSet(p))
+
+classifierSVMRBF.train(data,classes,disp=display,subset=n) #train
 print('Test')
-[pos,neg,confuse] = classifierSVMRBF.test(path,classes,disp=display,subset=n)
+[pos,neg,confuse] = classifierSVMRBF.test(data,classes,disp=display,subset=n)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
