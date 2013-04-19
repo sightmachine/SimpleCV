@@ -3909,7 +3909,7 @@ class Image:
 
         retVal = self.getEmpty()
         cv.Merge(b,g,r,None,retVal)
-        return Image(retVal);
+        return Image(retVal)
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
         """
@@ -13574,9 +13574,6 @@ class Image:
         Read more at http://docs.gimp.org/en/plug-in-colors-channel-mixer.html
 
         """
-        #though we implement this for RGB still we have to convert it into BGR
-        # as the splitchannel function assumes that the image is BGR
-        
         r, g, b = self.splitChannels()
         weight = map(float,weight)
         s = abs(sum(weight))
