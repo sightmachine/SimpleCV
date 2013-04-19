@@ -744,6 +744,43 @@ class ImageSet(list):
         retVal =  Image(accumulator)
         return retVal
 
+    def computePCA(self,size=(150,150),retention=70):
+        """
+        **SUMMARY**
+
+        Compute PCA of a ImageSet
+
+        **PARAMETERS**
+
+        * *size* - Set the standard size for the dataset. Default size set to 150,150
+        * *retention* - Percentage of eigenvectors to be retained. Parameter for dimensionality 
+            reduction.
+
+        **RETURNS**
+        Features.PCA class.
+
+        **EXAMPLE**
+        >>> i = ImageSet('path/to/images')
+        >>> p = i.computePCA()
+        >>> p.eigenvectors # Returns the eigenvectors of the dataset.
+        >>> p.eigenvalues # Returns the eigenvalues of the dataset.
+        >>> p.backProject().show()
+
+        """
+        try:
+            from SimpleCV.Features import PCA
+        except ImportError:
+            warnings.warn('PCA class not Found')
+            return None
+
+        if len(self) == 0:
+            warnings.warn('No Images in the Set. Load data first')
+            return None
+            
+        p = PCA(self,size,retention) # Create a PCA class
+        p.project()
+
+        return p
 
     def __getitem__(self,key):
         """
