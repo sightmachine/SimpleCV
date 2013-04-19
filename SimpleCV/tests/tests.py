@@ -3694,22 +3694,19 @@ def test_pca():
                 ,'../sampleimages/face9.jpg'
                 ,'../sampleimages/face10.jpg']
 
-    try:
-        p = PCA()
-        i = ImageSet(images)
-        p.loadData(i) # Load dataset using imageset
-        p.setRetention(40) # set retention value
-        p.project() # project
-        i = p.backProject()
-        if i is None:
-            assert False
+    p = PCA()
+    i = ImageSet(images)
+    p.loadData(i) # Load dataset using imageset
+    p.setRetention(40) # set retention value
+    p.project() # project
+    i = p.backProject()
+    if i is None:
+        assert False
 
-        p1 = PCA(images,retention=50)
-        p1.setSize((250,250))
-        p1.project()
-        i1 = p1.backProject()
+    p1 = PCA(images,retention=50)
+    p1.setSize((250,250))
+    p1.project()
+    i1 = p1.backProject()
 
-    except IOError:
-        pass
 
     

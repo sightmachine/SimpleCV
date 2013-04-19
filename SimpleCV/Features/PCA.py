@@ -15,6 +15,8 @@ class PCA:
     **EXAMPLE**
 
     >>> p = PCA("path/to/dataset",retention = 50)
+    >>> p.setSize((250,250))
+    >>> p.setRetention(20)
     >>> p.project()
     >>> p.backProject.show()
 
@@ -102,6 +104,10 @@ class PCA:
         >>> p.setSize((250,250))
 
         """
+
+        if self._dataset is None:
+            warnings.warn('Load dataset first using loadData()')
+            return None
 
         self._width = size[0]
         self._height = size[1]
@@ -218,7 +224,7 @@ class PCA:
 
         """
 
-        if len(self._stdDataset) == 0:
+        if self._stdDataset is None:
             warnings.warn('No Data loaded. Load Data first.')
             return None
 
@@ -254,6 +260,10 @@ class PCA:
         >>> p.backProject().show()
 
         """
+
+        if self._featureMat is None:
+            warnings.warn('Compute PCA first, using project()')
+            return None
 
         self._backProjectionMat = np.dot(self._featureMat.transpose(),self._projectionMat)
         for index in range(len(self.meanValue)):
