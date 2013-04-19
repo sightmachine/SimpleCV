@@ -3682,17 +3682,17 @@ def test_pca():
     except ImportError:
         warning.warn('Cannot import PCA module.')
 
-    images = ['../sampleimages/face1.pgm'
-                ,'../sampleimages/face2.pgm'
-                ,'../sampleimages/face3.pgm'
-                ,'../sampleimages/face4.pgm'
-                ,'../sampleimages/face4.pgm'
-                ,'../sampleimages/face5.pgm'
-                ,'../sampleimages/face6.pgm'
-                ,'../sampleimages/face7.pgm'
-                ,'../sampleimages/face8.pgm'
-                ,'../sampleimages/face9.pgm'
-                ,'../sampleimages/face10.pgm']
+    images = ['../sampleimages/face1.jpg'
+                ,'../sampleimages/face2.jpg'
+                ,'../sampleimages/face3.jpg'
+                ,'../sampleimages/face4.jpg'
+                ,'../sampleimages/face4.jpg'
+                ,'../sampleimages/face5.jpg'
+                ,'../sampleimages/face6.jpg'
+                ,'../sampleimages/face7.jpg'
+                ,'../sampleimages/face8.jpg'
+                ,'../sampleimages/face9.jpg'
+                ,'../sampleimages/face10.jpg']
 
     try:
         p = PCA()
@@ -3707,7 +3707,7 @@ def test_pca():
         p1 = PCA(images,retention=50)
         p1.setSize((250,250))
         p1.project()
-        p1.backProject()
+        i1 = p1.backProject()
 
     except IOError:
         pass
