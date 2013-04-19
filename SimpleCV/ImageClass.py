@@ -3909,7 +3909,7 @@ class Image:
 
         retVal = self.getEmpty()
         cv.Merge(b,g,r,None,retVal)
-        return Image(retVal);
+        return Image(retVal)
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
         """
@@ -13545,6 +13545,60 @@ class Image:
         for face in faces:
             label = face.crop().recognizeFace(recognizer)
             retVal.append([face, label])
+        return retVal
+
+    def channelMixer(self, channel = 'r', weight = (100,100,100)):
+        """
+        **SUMMARY**
+
+        Mixes channel of an RGB image based on the weights provided. The output is given at the 
+        channel provided in the parameters. Basically alters the value of one channelg of an RGB
+        image based in the values of other channels and itself. If the image is not RGB then first
+        converts the image to RGB and then mixes channel
+
+        **PARAMETERS**
+
+        * *channel* - The output channel in which the values are to be replaced. 
+        It can have either 'r' or 'g' or 'b'
+
+        * *weight* - The weight of each channel in calculation of the mixed channel.
+        It is a tuple having 3 values mentioning the percentage of the value of the 
+        channels, from -200% to 200%
+
+        **RETURNS**
+
+        A SimpleCV RGB Image with the provided channel replaced with the mixed channel.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = img.channelMixer()
+        >>> Img3 = img.channelMixer(channel = 'g', weights = (3,2,1))
+
+        **NOTE**
+
+        Read more at http://docs.gimp.org/en/plug-in-colors-channel-mixer.html
+
+        """
+        r, g, b = self.splitChannels()
+        if weight[0] > 200 or weight[1] > 200 or weight[2] >= 200:
+            if weight[0] <-200 or weight[1] < -200 or weight[2] < -200:
+                warnings.warn('Value of weights can be from -200 to 200%')
+                return None
+
+        weight = map(float,weight)
+        channel = channel.lower()
+        if channel == 'r':
+            r = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
+        elif channel == 'g':
+            g = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
+        elif channel == 'b':
+            b = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
+        else:
+            warnings.warn('Please enter a valid channel(r/g/b)')
+            return None
+
+        retVal = self.mergeChannels(r = r, g = g, b = b)
         return retVal
 
 
