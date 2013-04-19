@@ -21,6 +21,10 @@ $(document).ready(function() {
 })(jQuery);
 
 $(function() {
+  $("#welcome-to-simplecv-s-documentation > .toctree-wrapper").html(
+    "<div id=\"subnav\">\n Packages: \n      <ul>\n        <li><a href=\"SimpleCV.html\">SimpleCV</a></li> /\n        <li><a href=\"SimpleCV.Features.html\">Features</a></li> /\n        <li><a href=\"SimpleCV.MachineLearning.html\">MachineLearning</a></li> /\n        <li><a href=\"SimpleCV.Segmentation.html\">Segmentation</a></li>\n      </ul>\n      </div>"
+  )
+
   var validPage = false;
   var validPages = ["/SimpleCV.html", "/SimpleCV.Features.html", "/SimpleCV.MachineLearning.html", "/SimpleCV.Segmentation.html"];
   for(var i=0; i<validPages.length; i++) {
