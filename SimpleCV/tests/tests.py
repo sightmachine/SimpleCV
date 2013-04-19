@@ -3678,8 +3678,8 @@ def test_faceRecognize():
 def test_channelMixer():
     i = Image('lenna')
     r = i.channelMixer()
-    g = i.channelMixer(channel='g', weight = (1,2,3))
-    b = i.channelMixer(channel='g', weight = (3,2,1))
+    g = i.channelMixer(channel='g', weight = (100,20,30))
+    b = i.channelMixer(channel='b', weight = (30,200,10))
     if i != r and i != g and i != b:
         pass
     else:

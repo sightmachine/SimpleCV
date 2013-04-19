@@ -13582,19 +13582,13 @@ class Image:
                 return None
 
         weight = map(float,weight)
-        s = 100.0
         channel = channel.lower()
-
-        if s==0.:
-            warnings.warn('All values of weight cannot be equal to 0')
-            return None
-
         if channel == 'r':
-            r = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
+            r = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
         elif channel == 'g':
-            g = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
+            g = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
         elif channel == 'b':
-            b = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
+            b = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
         else:
             warnings.warn('Please enter a valid channel(r/g/b)')
             return None
