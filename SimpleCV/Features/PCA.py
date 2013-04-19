@@ -28,8 +28,8 @@ class PCA:
     _vectorImgs = None # To store the image set in row vector form. All images stacked up
     _stdDataset = None # To store standard dataset. Images with standard width and height in original color space
     meanDataset = None # To store the mean of the dataset
-    _width = None #Standard width of the Dataset
-    _height = None #Standard height of the Dataset
+    _width = 150 #Standard width of the Dataset
+    _height = 150 #Standard height of the Dataset
     meanValue = None # To store the mean of the images
     _covMat = None # To store the covariance matrix
     eigenValues = None # To store the eigen values
@@ -44,10 +44,9 @@ class PCA:
 
         if isinstance(data,ImageSet):
             self._dataset = data[:]
-        elif isinstance(data,str):
+        elif isinstance(data,str) or isinstance(data,list):
             self._dataset = ImageSet(data)
-        
-        if len(self._dataset) > 0:
+        if self._dataset is not None:
             self._stdDataset = self._dataset.standardize(size[0],size[1]) #Standardize the dataset before processing
             self._width = size[0]
             self._height = size[1]
@@ -77,8 +76,11 @@ class PCA:
         if data is None:
             warnings.warn("No dataset passed")
             return None
-        self._dataset = ImageSet(data) # Load the set of Images to compute PCA 
-        self._stdDataset = self._dataset.standardize(width,height)
+        if isinstance(data,ImageSet):
+            self._dataset = data[:]
+        elif isinstance(data,str) or isinstance(data,list):
+            self._dataset = ImageSet(data) # Load the set of Images to compute PCA 
+        self._stdDataset = self._dataset.standardize(self._width,self._height)
 
     def setSize(self,size = (150,150)):
         """
@@ -103,7 +105,7 @@ class PCA:
 
         self._width = size[0]
         self._height = size[1]
-        self._stdDataset = self._stdDataset.standardize(self._width,self._height)
+        self._stdDataset = self._dataset.standardize(self._width,self._height)
         self.makeVectorImages()
 
     def setRetention(self,retention = 70):

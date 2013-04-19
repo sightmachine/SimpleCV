@@ -3674,3 +3674,42 @@ def test_faceRecognize():
             pass
     except ImportError:
         pass
+
+def test_pca():
+
+    try:
+        from SimpleCV.Features import PCA
+    except ImportError:
+        warning.warn('Cannot import PCA module.')
+
+    images = ['../sampleimages/face1.pgm'
+                ,'../sampleimages/face2.pgm'
+                ,'../sampleimages/face3.pgm'
+                ,'../sampleimages/face4.pgm'
+                ,'../sampleimages/face4.pgm'
+                ,'../sampleimages/face5.pgm'
+                ,'../sampleimages/face6.pgm'
+                ,'../sampleimages/face7.pgm'
+                ,'../sampleimages/face8.pgm'
+                ,'../sampleimages/face9.pgm'
+                ,'../sampleimages/face10.pgm']
+
+    try:
+        p = PCA()
+        i = ImageSet(images)
+        p.loadData(i) # Load dataset using imageset
+        p.setRetention(40) # set retention value
+        p.project() # project
+        i = p.backProject()
+        if i is None:
+            assert False
+
+        p1 = PCA(images,retention=50)
+        p1.setSize((250,250))
+        p1.project()
+        p1.backProject()
+
+    except IOError:
+        pass
+
+    
