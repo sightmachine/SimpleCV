@@ -7989,12 +7989,17 @@ class Image:
             detector = cv2.StarDetector()
             self._mKeyPoints = detector.detect(self.getGrayNumpy())
         elif flavor == "FAST":
+            if not hasattr(cv2, "FastFeatureDetector"):
+                warnings.warn("You need OpenCV >= 2.4.0 to support FAST")
+                return None, None
             detector = cv2.FastFeatureDetector(int(thresh), True)
             self._mKeyPoints = detector.detect(self.getGrayNumpy(), None)
         elif hasattr(cv2, "FeatureDetector_create"):
             if flavor in _descriptors:
                 extractor = cv2.DescriptorExtractor_create(flavor)
                 if flavor == "FREAK":
+                    if new_version == 0:
+                        warnings.warn("You need OpenCV >= 2.4.3 to support FAST")
                     flavor = "SIFT"
                 detector = cv2.FeatureDetector_create(flavor)
                 self._mKeyPoints = detector.detect(self.getGrayNumpy())

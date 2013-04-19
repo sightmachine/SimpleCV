@@ -1737,7 +1737,12 @@ def test_findKeypoints():
         pass
         return
     img = Image(testimage2)
-    flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','FREAK','SIFT','Dense']
+    if cv2.__version__.startswith('$Rev:'):
+        flavors = ['SURF','STAR','SIFT'] # supported in 2.3.1
+    elif cv2.__version__ == '2.4.0' or cv2.__version__ = '2.4.1':
+        flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','SIFT','Dense']
+    else:
+        flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','FREAK','SIFT','Dense']
     for flavor in flavors:
         kp = img.findKeypoints(flavor=flavor)
         print "trying to find " + flavor + " keypoints."
