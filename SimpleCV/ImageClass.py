@@ -13542,6 +13542,63 @@ class Image:
             retVal.append([face, label])
         return retVal
 
+    def channelMixer(self, channel = 'r', weight = (1,1,1)):
+        """
+        **SUMMARY**
+
+        Mixes channel of an RGB image based on the weights provided. The output is given at the 
+        channel provided in the parameters. Basically alters the value of one channelg of an RGB
+        image based in the values of other channels and itself. If the image is not RGB then first
+        converts the image to RGB and then mixes channel
+
+        **PARAMETERS**
+
+        * *channel* - The output channel in which the values are to be replaced. 
+        It can have either 'r' or 'g' or 'b'
+
+        * *weight* - The weight of each channel in calculation of the mixed channel.
+        It is a tuple having 3 values.
+
+        **RETURNS**
+
+        A SimpleCV RGB Image with the provided channel replaced with the mixed channel.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = img.channelMixer()
+        >>> Img3 = img.channelMixer(channel = 'g', weights = (3,2,1))
+
+        **NOTE**
+
+        Read more at http://docs.gimp.org/en/plug-in-colors-channel-mixer.html
+
+        """
+        #though we implement this for RGB still we have to convert it into BGR
+        # as the splitchannel function assumes that the image is BGR
+        
+        r, g, b = self.splitChannels()
+        weight = map(float,weight)
+        s = abs(sum(weight))
+        channel = channel.lower()
+
+        if s==0.:
+            warnings.warn('All values of weight cannot be equal to 0')
+            return None
+
+        if channel == 'r':
+            r = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
+        elif channel == 'g':
+            g = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
+        elif channel == 'b':
+            b = r*(weight[0]/s) + g*(weight[1]/s) + b*(weight[2]/s)
+        else:
+            warnings.warn('Please enter a valid channel(r/g/b)')
+            return None
+
+        retVal = self.mergeChannels(r = r, g = g, b = b)
+        return retVal
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
