@@ -711,7 +711,9 @@ class VirtualCamera(FrameSource):
             # cv.QueryFrame returns None if the video is finished
             frame = cv.QueryFrame(self.capture)
             if frame:
-                return Image(frame, self)
+                img = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
+                cv.Copy(frame, img)
+                return Image(img, self)
             else:
                 return None
 
