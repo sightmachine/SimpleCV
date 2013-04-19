@@ -13542,7 +13542,7 @@ class Image:
             retVal.append([face, label])
         return retVal
 
-    def channelMixer(self, channel = 'r', weight = (1,1,1)):
+    def channelMixer(self, channel = 'r', weight = (100,100,100)):
         """
         **SUMMARY**
 
@@ -13557,7 +13557,8 @@ class Image:
         It can have either 'r' or 'g' or 'b'
 
         * *weight* - The weight of each channel in calculation of the mixed channel.
-        It is a tuple having 3 values.
+        It is a tuple having 3 values mentioning the percentage of the value of the 
+        channels, from -200% to 200%
 
         **RETURNS**
 
@@ -13575,8 +13576,13 @@ class Image:
 
         """
         r, g, b = self.splitChannels()
+        if weight[0] > 200 or weight[1] > 200 or weight[2] >= 200:
+            if weight[0] <-200 or weight[1] < -200 or weight[2] < -200:
+                warnings.warn('Value of weights can be from -200 to 200%')
+                return None
+
         weight = map(float,weight)
-        s = abs(sum(weight))
+        s = 100.0
         channel = channel.lower()
 
         if s==0.:
