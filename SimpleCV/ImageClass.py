@@ -13628,15 +13628,13 @@ class Image:
         """
         img = self.copy()
         grayimg = img.grayscale()
-        graynp = np.copy(grayimg.getGrayNumpy())
         gx = [[1,1,1],[0,0,0],[-1,-1,-1]]
         gy = [[-1,0,1],[-1,0,1],[-1,0,1]]
         grayx = grayimg.convolve(gx)
         grayy = grayimg.convolve(gy)
         grayxnp = np.uint64(grayx.getGrayNumpy())
         grayynp = np.uint64(grayy.getGrayNumpy())
-        graynp = np.sqrt(grayxnp**2+grayynp**2)
-        retVal = Image(graynp)
+        retVal = Image(np.sqrt(grayxnp**2+grayynp**2))
         return retVal
 
 
