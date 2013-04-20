@@ -13628,7 +13628,7 @@ class Image:
         """
         img = self.copy()
         grayimg = img.grayscale()
-        graynp = np.uint64(np.copy(grayimg.getGrayNumpy()))
+        graynp = np.copy(grayimg.getGrayNumpy())
         gx = [[1,1,1],[0,0,0],[-1,-1,-1]]
         gy = [[-1,0,1],[-1,0,1],[-1,0,1]]
         grayx = grayimg.convolve(gx)
