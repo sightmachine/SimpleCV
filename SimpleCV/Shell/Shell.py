@@ -253,7 +253,6 @@ def main(*args):
 
         elif flag in ['--bpython', 'bpython']:
             interface = 'setup_bpython'
-            print interface
         else:
             interface = 'setup_plain'
 
