@@ -13601,6 +13601,20 @@ class Image:
         retVal = self.mergeChannels(r = r, g = g, b = b)
         return retVal
 
+    def prewitt(self):
+        img = self.copy()
+        grayimg = img.grayscale()
+        graynp = np.uint64(np.copy(grayimg.getGrayNumpy()))
+        gx = [[1,1,1],[0,0,0],[-1,-1,-1]]
+        gy = [[-1,0,1],[-1,0,1],[-1,0,1]]
+        grayx = grayimg.convolve(gx)
+        grayy = grayimg.convolve(gy)
+        grayxnp = np.uint64(grayx.getGrayNumpy())
+        grayynp = np.uint64(grayy.getGrayNumpy())
+        graynp = np.sqrt(grayxnp**2+grayynp**2)
+        retVal = Image(graynp)
+        return retVal
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
