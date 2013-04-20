@@ -13602,7 +13602,7 @@ class Image:
         return retVal
 
     def prewitt(self):
-         """
+        """
         **SUMMARY**
 
         Prewitt operator for edge detection
@@ -13624,7 +13624,7 @@ class Image:
         **NOTES**
 
         Read more at: http://en.wikipedia.org/wiki/Prewitt_operator
-       
+        
         """
         img = self.copy()
         grayimg = img.grayscale()
