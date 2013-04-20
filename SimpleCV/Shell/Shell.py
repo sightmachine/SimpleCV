@@ -138,7 +138,8 @@ def setup_ipython():
         cfg.PromptManager.out_template = "SimpleCV:\\#: "
         #~ cfg.InteractiveShellEmbed.prompt_in1 = "SimpleCV:\\#> "
         #~ cfg.InteractiveShellEmbed.prompt_out="SimpleCV:\\#: "
-        scvShell = InteractiveShellEmbed(config=cfg, banner1=banner, exit_msg=exit_msg)
+        scvShell = InteractiveShellEmbed(config=cfg, banner1=banner,
+                                         exit_msg=exit_msg)
         scvShell.define_magic("tutorial", magic_tutorial)
         scvShell.define_magic("clear", magic_clear)
         scvShell.define_magic("example", magic_examples)
@@ -149,7 +150,8 @@ def setup_ipython():
         try:
             from IPython.Shell import IPShellEmbed
 
-            argsv = ['-pi1', 'SimpleCV:\\#>', '-pi2', '   .\\D.:', '-po', 'SimpleCV:\\#>', '-nosep']
+            argsv = ['-pi1', 'SimpleCV:\\#>', '-pi2', '   .\\D.:', '-po',
+                     'SimpleCV:\\#>', '-nosep']
             scvShell = IPShellEmbed(argsv)
             scvShell.set_banner(banner)
             scvShell.set_exit_msg(exit_msg)
