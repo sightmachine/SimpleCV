@@ -13602,6 +13602,30 @@ class Image:
         return retVal
 
     def prewitt(self):
+         """
+        **SUMMARY**
+
+        Prewitt operator for edge detection
+
+        **PARAMETERS**
+
+        None
+
+        **RETURNS**
+
+        Image with prewitt opeartor applied on it
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> p = img.prewitt()
+        >>> p.show()
+
+        **NOTES**
+
+        Read more at: http://en.wikipedia.org/wiki/Prewitt_operator
+       
+        """
         img = self.copy()
         grayimg = img.grayscale()
         graynp = np.uint64(np.copy(grayimg.getGrayNumpy()))
