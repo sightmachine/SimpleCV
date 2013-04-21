@@ -1546,8 +1546,7 @@ class Image:
         else:
             logger.warning("Image.toHSV: There is no supported conversion to HSV colorspace")
             return None
-        #return Image(retVal, colorSpace = ColorSpace.HSV )
-        return Image(retVal, ColorSpace.HSV )
+        return Image(retVal, colorSpace = ColorSpace.HSV )
 
 
     def toXYZ(self):
