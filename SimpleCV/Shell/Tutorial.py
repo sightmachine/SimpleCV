@@ -351,8 +351,8 @@ def tutorial_features():
     print lb
     print "Features are things you are looking for in the picture. They can be"
     print "blobs, corners, lines, etc. Features are sometimes referred to as a"
-    print "fidicual in computer vision. These features are something that is"
-    print "measureable, and something that makes images unique. Features are"
+    print "fiducial in computer vision. These features are something that is"
+    print "measurable, and something that makes images unique. Features are"
     print "something like when comparing things like fruit. In this case the"
     print "features could be the shape and the color, amongst others."
     print lb
