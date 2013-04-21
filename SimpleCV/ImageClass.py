@@ -12252,7 +12252,7 @@ class Image:
 
         return retVal
 
-    def bresenham_line(self, pt1,pt2): #(x,y),(x2,y2)):
+    def bresenham_line(self, (x,y), (x2,y2)):
         """
         Brensenham line algorithm
 
@@ -12260,11 +12260,21 @@ class Image:
 
         This is just a helper method
         """
-        x = np.clip(pt1[0],0,self.width)
-        y = np.clip(pt1[1],0,self.height)
-        x2 = np.clip(pt2[0],0,self.width)
-        y2 = np.clip(pt2[1],0,self.height)
-
+        check = True
+        if not 0 <= x <= self.width or not 0 <= y <= self.height:
+            check = False
+        if not 0 <= x2 <= self.width or not 0 <= y2 <= self.height:
+            check = False
+        
+        if not check:
+            l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
+            if l:
+                ep = l.end_points
+                x, y = ep[0]
+                x2, y2 = ep[1]
+            else:
+                return []
+        
         steep = 0
         coords = []
         dx = abs(x2 - x)
