@@ -33,7 +33,8 @@ class MOGSegmentation(SegmentationBase):
         try:
             import cv2
         except ImportError:
-            raise ImportError("Cannot load OpenCV library which is required by SimpleCV")        
+            raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
+            return                
         
         self.mError = False
         self.mReady = False        
@@ -59,7 +60,7 @@ class MOGSegmentation(SegmentationBase):
             return
 
         self.mColorImg = img
-        self.mDiffImg = Image(self.mBSMOG.apply(img.getNumpy(), None, self.learningRate))
+        self.mDiffImg = Image(self.mBSMOG.apply(img.getNumpyCv2(), None, self.learningRate), cv2image=True) 
         self.mReady = True
         return
 
