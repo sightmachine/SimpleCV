@@ -435,6 +435,8 @@ class Line(Feature):
         """
         pt1, pt2 = self.end_points
         
+        pt1, pt2 = min(pt1, pt2), max(pt1, pt2)
+        
         # Four edges of image
         p1 = (0, 0)
         p2 = (self.image.width, 0)
