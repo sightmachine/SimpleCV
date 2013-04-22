@@ -13601,6 +13601,42 @@ class Image:
         retVal = self.mergeChannels(r = r, g = g, b = b)
         return retVal
 
+    def prewitt(self):
+        """
+        **SUMMARY**
+
+        Prewitt operator for edge detection
+
+        **PARAMETERS**
+
+        None
+
+        **RETURNS**
+
+        Image with prewitt opeartor applied on it
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> p = img.prewitt()
+        >>> p.show()
+
+        **NOTES**
+
+        Read more at: http://en.wikipedia.org/wiki/Prewitt_operator
+        
+        """
+        img = self.copy()
+        grayimg = img.grayscale()
+        gx = [[1,1,1],[0,0,0],[-1,-1,-1]]
+        gy = [[-1,0,1],[-1,0,1],[-1,0,1]]
+        grayx = grayimg.convolve(gx)
+        grayy = grayimg.convolve(gy)
+        grayxnp = np.uint64(grayx.getGrayNumpy())
+        grayynp = np.uint64(grayy.getGrayNumpy())
+        retVal = Image(np.sqrt(grayxnp**2+grayynp**2))
+        return retVal
+
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
