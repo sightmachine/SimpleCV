@@ -28,4 +28,3 @@ for m in methods:
     result.applyLayers()
     result.show()
     time.sleep(3)
-

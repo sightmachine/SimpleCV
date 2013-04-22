@@ -18,4 +18,3 @@ while True:
         bb = faces[-1].boundingBox()
         image = image.pixelize(10,region=(bb[0],bb[1],bb[2],bb[3]))
     image.show() #display the image
-

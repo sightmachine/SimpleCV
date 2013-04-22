@@ -2,21 +2,6 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
 
-from numpy import int32
-from numpy import uint8
-
-from EXIF import *
-
-if not init_options_handler.headless:
-    import pygame as pg
-
-import scipy.ndimage as ndimage
-import scipy.stats.stats as sss  #for auto white balance
-import scipy.cluster.vq as scv    
-import scipy.linalg as nla  # for linear algebra / least squares
-import math # math... who does that 
-import copy # for deep copy
-#import scipy.stats.mode as spsmode
 
 class ColorSpace:
     """
@@ -227,58 +212,6 @@ Valid options: 'thumb', 'small', 'medium', 'large'
       self.extend(add_set)
 
 
-    def upload(self,dest,api_key=None,api_secret=None, verbose = True):
-      """
-      **SUMMARY**
-      Uploads all the images to imgur or flickr or dropbox. In verbose mode URL values are printed.
-          
-      **PARAMETERS**
-      * *api_key* - a string of the API key.
-      * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
-      * *verbose* - If verbose is true all values are printed to the
-        screen
-          
-      **RETURNS**
-      if uploading is successful, 
-        - Imgur return the original image URL on success and None if it fails.
-        - Flick returns True on success, else returns False.
-        - dropbox returns True on success.
-          
-      **EXAMPLE**
-      TO upload image to imgur
-        >>> imgset = ImageSet("/home/user/Desktop")
-        >>> result = imgset.upload( 'imgur',"MY_API_KEY1234567890" )
-        >>> print "Uploaded To: " + result[0] 
-           
-      To upload image to flickr
-        >>> imgset.upload('flickr','api_key','api_secret')
-        >>> imgset.upload('flickr') #Once the api keys and secret keys are cached.
-           
-      To upload image to dropbox
-        >>> imgset.upload('dropbox','api_key','api_secret')
-        >>> imgset.upload('dropbox') #Once the api keys and secret keys are cached.
-              
-      **NOTES**
-      .. Warning::
-        This method requires two packages to be installed 
-        -PyCurl 
-        -flickr api.
-        -dropbox
-           
-      .. Warning::
-        You must supply your own API key. See here: 
-        - http://imgur.com/register/api_anon
-        - http://www.flickr.com/services/api/misc.api_keys.html
-        - https://www.dropbox.com/developers/start/setup#python
-      """
-      try :
-          for i in self:
-              i.upload(dest,api_key,api_secret, verbose)
-          return True
-          
-      except :
-          return False
-             
     def show(self, showtime = 0.25):
       """
       **SUMMARY**
@@ -353,48 +286,48 @@ Valid options: 'thumb', 'small', 'medium', 'large'
 
             converted.append((pil_img.convert('P',dither=dither), img._get_header_anim()))
 
-        try:
-            for img, header_anim in converted:
-                if not previous:
-                    # gather data
-                    palette = getheader(img)[1]
-                    data = getdata(img)
-                    imdes, data = data[0], data[1:]            
-                    header = header_anim
-                    appext = self._get_app_ext(loops)
-                    graphext = self._get_graphics_control_ext(duration)
-                    
-                    # write global header
-                    fp.write(header)
-                    fp.write(palette)
-                    fp.write(appext)
-                    
-                    # write image
-                    fp.write(graphext)
-                    fp.write(imdes)
-                    for d in data:
-                        fp.write(d)
-                    
-                else:
-                    # gather info (compress difference)              
-                    data = getdata(img) 
-                    imdes, data = data[0], data[1:]       
-                    graphext = self._get_graphics_control_ext(duration)
-                    
-                    # write image
-                    fp.write(graphext)
-                    fp.write(imdes)
-                    for d in data:
-                        fp.write(d)
+        #try:
+        for img, header_anim in converted:
+            if not previous:
+                # gather data
+                palette = getheader(img)[1]
+                data = getdata(img)
+                imdes, data = data[0], data[1:]            
+                header = header_anim
+                appext = self._get_app_ext(loops)
+                graphext = self._get_graphics_control_ext(duration)
+                
+                # write global header
+                fp.write(header)
+                fp.write(palette)
+                fp.write(appext)
+                
+                # write image
+                fp.write(graphext)
+                fp.write(imdes)
+                for d in data:
+                    fp.write(d)
+                
+            else:
+                # gather info (compress difference)              
+                data = getdata(img) 
+                imdes, data = data[0], data[1:]       
+                graphext = self._get_graphics_control_ext(duration)
+                
+                # write image
+                fp.write(graphext)
+                fp.write(imdes)
+                for d in data:
+                    fp.write(d)
 
-                previous = img.copy()        
-                frames = frames + 1
+            previous = img.copy()        
+            frames = frames + 1
 
-            fp.write(";") # end gif
+        fp.write(";") # end gif
 
-        finally:
-            fp.close()
-            return frames
+        #finally:
+        #    fp.close()
+        #    return frames
 
     def save(self, destination=None, dt=0.2, verbose = False, displaytype=None):
         """
@@ -440,13 +373,16 @@ Valid options: 'thumb', 'small', 'medium', 'large'
                 return
             from IPython.core import display as Idisplay
             for i in self:
-                loc = i.save(temp=True, cleanTemp=True)
+                tf = tempfile.NamedTemporaryFile(suffix=".png")
+                loc = '/tmp/' + tf.name.split('/')[-1]
+                tf.close()
+                i.save(loc)
                 Idisplay.display(IPImage(filename=loc))
                 return
         else:
             if destination:
                 if destination.endswith(".gif"):
-                    return self._write_gif(destination, dt)
+                    self._write_gif(destination, dt)
                 else:
                     for i in self:
                         i.save(path=destination, temp=True, verbose=verbose)
@@ -513,201 +449,70 @@ Valid options: 'thumb', 'small', 'medium', 'large'
             loaded += 1
 
         return loaded
+
     def load(self, directory = None, extension = None):
-        """
-        **SUMMARY**
-        
-        This function loads up files automatically from the directory you pass
-        it.  If you give it an extension it will only load that extension
-        otherwise it will try to load all know file types in that directory.
-        
-        extension should be in the format:
-        extension = 'png'
-    
-        **PARAMETERS**
-    
-        * *directory* - The path or directory from which to load images. 
-        * *extension* - The extension to use. If none is given png is the default.
+      """
+      **SUMMARY**
 
-        **RETURNS**
-        
-        The number of images in the image set.
-        
-        **EXAMPLE**
-    
-        >>> imgs = ImageSet()
-        >>> imgs.load("images/faces")
-        >>> imgs.load("images/eyes", "png")
-    
-        """
-        if not directory:
-            print "You need to give a directory to load from"
-            return
+      This function loads up files automatically from the directory you pass
+      it.  If you give it an extension it will only load that extension
+      otherwise it will try to load all know file types in that directory.
 
-        if not os.path.exists(directory):
-            print "Invalied image path given"
-            return
-            
+      extension should be in the format:
+      extension = 'png'
+
+      **PARAMETERS**
       
-        if extension:
-            extension = "*." + extension
-            formats = [os.path.join(directory, extension)]
+      * *directory* - The path or directory from which to load images. If this
+      * ends with .gif, it'll read from the gif file accordingly.
+      * *extension* - The extension to use. If none is given png is the default.
+
+      **RETURNS**
+
+      The number of images in the image set.
+
+      **EXAMPLE**
+
+      >>> imgs = ImageSet()
+      >>> imgs.load("images/faces")
+      >>> imgs.load("images/eyes", "png")
+
+      """
+
+      if not directory:
+        print "You need to give a directory to load from"
+        return
+      elif directory.endswith(".gif"):
+        return self._read_gif(directory)
         
-        else:
-            formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
+        
+      if not os.path.exists(directory):
+        print "Invalid image path given"
+        return
+      
+      
+      if extension:
+        extension = "*." + extension
+        formats = [os.path.join(directory, extension)]
+        
+      else:
+        formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
 
       
-        file_set = [glob.glob(p) for p in formats]
+      file_set = [glob.glob(p) for p in formats]
 
-        self.filelist = dict()
+      self.filelist = dict()
 
-        for f in file_set:
-            for i in f:
-                tmp = None
-                try:
-                    tmp = Image(i)
-                    if( tmp is not None and tmp.width > 0 and tmp.height > 0):
-                        if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
-                            self.filelist[tmp.filename.split('\\')[-1]] = tmp
-                        else:
-                            self.filelist[tmp.filename.split('/')[-1]] = tmp
-                        self.append(tmp)
-                except:
-                    continue
-        return len(self)
-
-    def standardize(self,width,height):
-        """
-        **SUMMARY**
-
-        Resize every image in the set to a standard size.
-
-        **PARAMETERS**
-        
-        * *width* - the width that we want for every image in the set.
-        * *height* - the height that we want for every image in the set.
-        
-        **RETURNS**
-        
-        A new image set where every image in the set is scaled to the desired size.
-        
-        **EXAMPLE**
-        
-        >>>> iset = ImageSet("./b/")
-        >>>> thumbnails = iset.standardize(64,64)
-        >>>> for t in thumbnails:
-        >>>>   t.show()
-
-        """
-        retVal = ImageSet()
-        for i in self:
-            retVal.append(i.resize(width,height))
-        return retVal
-    
-    def dimensions(self):
-        """
-        **SUMMARY**
-
-        Return an np.array that are the width and height of every image in the image set.        
-
-        **PARAMETERS**
-        
-        --NONE--
-
-        **RETURNS**
-        A 2xN numpy array where N is the number of images in the set. The first column is
-        the width, and the second collumn is the height. 
-
-        **EXAMPLE**
-        >>> iset = ImageSet("./b/")
-        >>> sz = iset.dimensions()
-        >>> np.max(sz[:,0]) # returns the largest width in the set. 
-
-        """
-        retVal = []
-        for i in self:
-            retVal.append((i.width,i.height))
-        return np.array(retVal)
-
-    def average(self, mode="first", size=(None,None)):
-        """
-        **SUMMARY**
-
-        Casts each in the image set into a 32F image, averages them together and returns the results.
-        If the images are different sizes the method attempts to standarize them. 
-        
-        **PARAMETERS**
-        
-        * *mode* - 
-          * "first" - resize everything to the size of the first image.
-          * "max" - resize everything to be the max width and max height of the set. 
-          * "min" - resize everything to be the min width and min height of the set.
-          * "average" - resize everything to be the average width and height of the set
-          * "fixed" - fixed, use the size tuple provided. 
+      for f in file_set:
+        for i in f:
+          tmp = Image(i)
+          if sys.platform.lower() == 'win32' or sys.platform.lower() == 'win64':
+            self.filelist[tmp.filename.split('\\')[-1]] = tmp
+          else:
+            self.filelist[tmp.filename.split('/')[-1]] = tmp
+          self.append(tmp)
           
-        * *size* - if the mode is set to fixed use this tuple as the size of the resulting image. 
-        
-        **RETURNS**
-        
-        Returns a single image that is the average of all the values. 
-      
-        **EXAMPLE**
-        
-        >>> imgs = ImageSet()
-        >>> imgs.load("images/faces")
-        >>> result = imgs.average(mode="first")
-        >>> result.show()
-
-        **TODO**
-        * Allow the user to pass in an offset parameters that blit the images into the resutl.
-        """
-        fw = 0
-        fh = 0 
-        # figger out how we will handle everything
-        if( len(self) <= 0 ):
-            return ImageSet()
-
-        vals = self.dimensions()
-        if( mode.lower()  == "first" ):
-            fw = self[0].width
-            fh = self[0].height
-        elif( mode.lower()  == "fixed" ):
-            fw = size[0]
-            fh = size[1]
-        elif( mode.lower()  == "max" ):
-            fw = np.max(vals[:,0])
-            fh = np.max(vals[:,1])
-        elif( mode.lower()  == "min" ):
-            fw = np.min(vals[:,0])
-            fh = np.min(vals[:,1])
-        elif( mode.lower()  == "average" ):
-            fw = int(np.average(vals[:,0]))
-            fh = int(np.average(vals[:,1]))
-        #determine if we really need to resize the images
-        t1 = np.sum(vals[:,0]-fw)
-        t2 = np.sum(vals[:,1]-fh)
-        if( t1 != 0 or t2 != 0 ):
-            resized = self.standardize(fw,fh)
-        else:
-            resized = self
-        # Now do the average calculation
-        accumulator = cv.CreateImage((fw,fh), cv.IPL_DEPTH_8U,3)        
-        cv.Zero(accumulator)
-        alpha = float(1.0/len(resized))
-        beta = float((len(resized)-1.0)/len(resized))
-        for i in resized:
-            cv.AddWeighted(i.getBitmap(),alpha,accumulator,beta,0,accumulator)
-        retVal =  Image(accumulator)
-        return retVal
-    
-
-    def __getslice__(self,i,j,k=1):
-        if ( j > len(self)):
-            j = len(self)
-        rmSet = list(set(range(0,len(self)))-set(range(i,j,k)))
-        for rm in rmSet :
-            del(self[rm])
-        return self    
+      return len(self)
   
 class Image:
     """
@@ -1034,11 +839,11 @@ class Image:
         """
         try :
            for i in self._tempFiles:
-               if (i[1]):
-                   os.remove(i[0])
+               if (isinstance(i,str)):
+                   os.remove(i)
         except :
            pass
-                      
+           
     def getEXIFData(self):
         """
         **SUMMARY**
@@ -1942,7 +1747,7 @@ class Image:
         :py:meth:`getGrayNumpyCv2`
         
         """
-        if type(self._cv2GrayNumpy) is not np.ndarray:
+        if not type(self._cv2GrayNumpy) is not np.ndarray:
             self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
         return self._cv2GrayNumpy
 
@@ -2077,7 +1882,7 @@ class Image:
         return self.toRGB().getBitmap().tostring()
     
     
-    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
+    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, fname=None, **params):
         """
         **SUMMARY**
 
@@ -2104,10 +1909,8 @@ class Image:
         
         * *path* - path where temporary files needed to be stored
         
-        * *filename* - name(Prefix) of the temporary file.
+        * *fname* - name(Prefix) of the temporary file.
 
-        * *cleanTemp* - This flag is made True if tempfiles are tobe deleted once the object is to be destroyed.
-          
         * *params* - This object is used for overloading the PIL save methods. In particular 
           this method is useful for setting the jpeg compression level. For JPG see this documentation:
           http://www.pythonware.com/library/pil/handbook/format-jpeg.htm          
@@ -2132,7 +1935,7 @@ class Image:
         .. Note::
           You must have IPython notebooks installed for this to work
           
-          path and filename are valid if and only if temp is set to True.
+          path and fname are valid if and only if temp is set to True.
           
         .. attention:: 
           We need examples for all save methods as they are unintuitve. 
@@ -2140,36 +1943,37 @@ class Image:
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
         
-        if temp :
+        if temp and path!=None :
             import glob
-            if filename == None :
-                filename = 'Image'         
-            if path == None :          
-                path=tempfile.gettempdir()
+            if fname==None :
+                fname = 'Image'                
             if glob.os.path.exists(path):
                 path = glob.os.path.abspath(path) 
-                imagefiles = glob.glob(glob.os.path.join(path,filename+"*.png"))
+                imagefiles = glob.glob(glob.os.path.join(path,fname+"*.png"))
                 num = [0]
                 for img in imagefiles :
                     num.append(int(glob.re.findall('[0-9]+$',img[:-4])[-1]))
                 num.sort()
                 fnum = num[-1]+1
-                filename = glob.os.path.join(path,filename+str(fnum)+".png") 
-                self._tempFiles.append((filename,cleanTemp))
-                self.save(self._tempFiles[-1][0])
-                return self._tempFiles[-1][0]
+                fname = glob.os.path.join(path,fname+str(fnum)+".png") 
+                self._tempFiles.append(fname)
+                self.save(self._tempFiles[-1])
+                return self._tempFiles[-1]
             else :
                 print "Path does not exist!"
-        
-        else :
-            if (filename) :
-                filehandle_or_filename = filename + ".png" 
-                                      
+                        
+        #if it's a temporary file
+        elif temp :
+            self._tempFiles.append(tempfile.NamedTemporaryFile(suffix=".png"))
+            self.save(self._tempFiles[-1].name)
+            return self._tempFiles[-1].name
+       
         if (not filehandle_or_filename):
             if (self.filename):
                 filehandle_or_filename = self.filename
             else:
                 filehandle_or_filename = self.filehandle
+
             
         if (len(self._mLayers)):
             saveimg = self.applyLayers()
@@ -2211,11 +2015,14 @@ class Image:
                     return
 
                   from IPython.core import display as Idisplay
-                  loc = self.save(temp=True, cleanTemp=True)
+                  tf = tempfile.NamedTemporaryFile(suffix=".png")
+                  loc = '/tmp/' + tf.name.split('/')[-1]
+                  tf.close()
+                  self.save(loc)
                   Idisplay.display(IPImage(filename=loc))
                   return
                 else:
-                  #self.filename = "" 
+                  self.filename = "" 
                   self.filehandle = fh
                   fh.writeFrame(saveimg)
 
@@ -2317,11 +2124,11 @@ class Image:
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
-        Uploads image to imgur or flickr or dropbox. In verbose mode URL values are printed.
+        Uploads image to imgur or flickr. In verbose mode URL values are printed.
           
         **PARAMETERS**
         * *api_key* - a string of the API key.
-        * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
+        * *api_secret* (required only for flickr) - a string of the API secret.
         * *verbose* - If verbose is true all values are printed to the
           screen
           
@@ -2329,7 +2136,6 @@ class Image:
         if uploading is successful, 
          - Imgur return the original image URL on success and None if it fails.
          - Flick returns True on success, else returns False.
-         - dropbox returns True on success.
           
         **EXAMPLE**
         TO upload image to imgur
@@ -2341,22 +2147,16 @@ class Image:
            >>> img.upload('flickr','api_key','api_secret')
            >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
            
-        To upload image to dropbox
-           >>> img.upload('dropbox','api_key','api_secret')
-           >>> img.invert().upload('dropbox') #Once the api keys and secret keys are cached.
-              
         **NOTES**
         .. Warning::
            This method requires two packages to be installed 
            -PyCurl 
            -flickr api.
-           -dropbox
            
         .. Warning::
            You must supply your own API key. See here: 
            - http://imgur.com/register/api_anon
            - http://www.flickr.com/services/api/misc.api_keys.html
-           - https://www.dropbox.com/developers/start/setup#python
         """
         if ( dest=='imgur' ) :
             try:
@@ -2418,50 +2218,13 @@ class Image:
             	    print "Uploading Failed !"
             	    return False
             else :
-	    	 tf = self.save(temp=True)
-	    	 self.flickr.upload(tf,"Image")
+            	 import tempfile
+                 tf=tempfile.NamedTemporaryFile(suffix='.jpg')
+                 self.save(tf.name)
+	    	 temp = Image(tf.name)
+	    	 self.flickr.upload(tf.name,temp.filehandle)
             return True
-            
-        elif (dest=='dropbox'):
-            global dropbox_token
-            access_type = 'dropbox'
-            try :
-                from dropbox import client, rest, session
-                import webbrowser
-            except ImportError:
-            	print "Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python "
-                return False
-            try :
-                if ( 'dropbox_token' not in globals() and api_key!=None and api_secret!=None ):
-            	    sess = session.DropboxSession(api_key, api_secret, access_type)
-            	    request_token = sess.obtain_request_token()
-            	    url = sess.build_authorize_url(request_token)
-            	    webbrowser.open(url)
-            	    print "Please visit this website and press the 'Allow' button, then hit 'Enter' here."
-            	    raw_input()
-            	    access_token = sess.obtain_access_token(request_token)
-            	    dropbox_token = client.DropboxClient(sess)
-            	else :
-            	    if (dropbox_token) :
-            	        pass
-            	    else :
-            	        return None
-            except :
-            	print "The API Key and Secret Key are not valid"
-            	return False
-            if (self.filename) :	
-                try :
-                    f = open(self.filename)
-            	    dropbox_token.put_file('/SimpleCVImages/'+os.path.split(self.filename)[-1], f)
-                except :
-            	    print "Uploading Failed !"
-            	    return False
-            else :
-            	 tf = self.save(temp=True)
-                 f = open(tf)
-            	 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
-                 return True
-                 
+
     def scale(self, width, height = -1):
         """
         **SUMMARY**
@@ -9217,1064 +8980,6 @@ class Image:
         mask = self.floodFillToMask(points,tolerance,color=Color.WHITE,lower=lower,upper=upper,fixed_range=fixed_range)
         return self.findBlobsFromMask(mask,minsize,maxsize)
 
-    def _doDFT(self, grayscale=False):
-        """
-        **SUMMARY**
-
-        This private method peforms the discrete Fourier transform on an input image.
-        The transform can be applied to a single channel gray image or to each channel of the
-        image. Each channel generates a 64F 2 channel IPL image corresponding to the real 
-        and imaginary components of the DFT. A list of these IPL images are then cached 
-        in the private member variable _DFT. 
-
-        
-        **PARAMETERS**
-
-        * *grayscale* - If grayscale is True we first covert the image to grayscale, otherwise
-          we perform the operation on each channel. 
-        
-        **RETURNS**
-
-        nothing - but creates a locally cached list of IPL imgaes corresponding to the real
-        and imaginary components of each channel. 
-        
-        **EXAMPLE**
-
-        >>> img = Image('logo.png')
-        >>> img._doDFT()
-        >>> img._DFT[0] # get the b channel Re/Im components
-
-        **NOTES**
-
-        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
-        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
-
-        **TO DO**
-
-        This method really needs to convert the image to an optimal DFT size. 
-        http://opencv.itseez.com/modules/core/doc/operations_on_arrays.html#getoptimaldftsize
-
-        """
-        if( grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3)):
-            self._DFT = []
-            img = self._getGrayscaleBitmap()
-            width, height = cv.GetSize(img)
-            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-            dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            cv.ConvertScale(img,data,1.0)
-            cv.Zero(blank)
-            cv.Merge(data,blank,None,None,src)
-            cv.Merge(data,blank,None,None,dst)
-            cv.DFT(src, dst, cv.CV_DXT_FORWARD)
-            self._DFT.append(dst)
-        elif( not grayscale and (len(self._DFT) < 2 )):
-            self._DFT = []
-            r = self.getEmpty(1)
-            g = self.getEmpty(1)
-            b = self.getEmpty(1)
-            cv.Split(self.getBitmap(),b,g,r,None)
-            chans = [b,g,r]
-            width = self.width
-            height = self.height
-            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-            for c in chans:                
-                dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-                cv.ConvertScale(c,data,1.0)
-                cv.Zero(blank)
-                cv.Merge(data,blank,None,None,src)
-                cv.Merge(data,blank,None,None,dst)
-                cv.DFT(src, dst, cv.CV_DXT_FORWARD)
-                self._DFT.append(dst)
-
-    def _getDFTClone(self,grayscale=False):
-        """
-        **SUMMARY**
-        
-        This method works just like _doDFT but returns a deep copy
-        of the resulting array which can be used in destructive operations.
-
-        **PARAMETERS**
-
-        * *grayscale* - If grayscale is True we first covert the image to grayscale, otherwise
-          we perform the operation on each channel. 
-
-        **RETURNS**
-        
-        A deep copy of the cached DFT real/imaginary image list. 
-        
-        **EXAMPLE**
-        
-        >>> img = Image('logo.png')
-        >>> myDFT = img._getDFTClone()
-        >>> SomeCVFunc(myDFT[0])
-
-        **NOTES**
-
-        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
-        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
-
-        **SEE ALSO**
-
-        ImageClass._doDFT()
-
-        """
-        # this is needs to be switched to the optimal 
-        # DFT size for faster processing. 
-        self._doDFT(grayscale)
-        retVal = []
-        if(grayscale):
-            gs = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
-            cv.Copy(self._DFT[0],gs)
-            retVal.append(gs)
-        else:
-            for img in self._DFT:
-                temp = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_64F,2)
-                cv.Copy(img,temp)
-                retVal.append(temp)
-        return retVal
-
-    def rawDFTImage(self,grayscale=False):
-        """
-        **SUMMARY**
-        
-        This method returns the **RAW** DFT transform of an image as a list of IPL Images.
-        Each result image is a two channel 64f image where the first channel is the real
-        component and the second channel is teh imaginary component. If the operation 
-        is performed on an RGB image and grayscale is False the result is a list of 
-        these images of the form [b,g,r].
-
-        **PARAMETERS**
-
-        * *grayscale* - If grayscale is True we first covert the image to grayscale, otherwise
-          we perform the operation on each channel. 
-
-        **RETURNS**
-        
-        A list of the DFT images (see above). Note that this is a shallow copy operation.
-        
-        **EXAMPLE**
-
-        >>> img = Image('logo.png')
-        >>> myDFT = img.rawDFTImage()
-        >>> for c in myDFT:
-        >>>    #do some operation on the DFT
-
-        **NOTES**
-
-        http://en.wikipedia.org/wiki/Discrete_Fourier_transform
-        http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-        
-        """
-        self._doDFT(grayscale)
-        return self._DFT 
-
-    def getDFTLogMagnitude(self,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method returns the log value of the magnitude image of the DFT transform. This 
-        method is helpful for examining and comparing the results of DFT transforms. The log
-        component helps to "squish" the large floating point values into an image that can 
-        be rendered easily. 
-
-        In the image the low frequency components are in the corners of the image and the high 
-        frequency components are in the center of the image. 
-
-        **PARAMETERS**
-
-        * *grayscale* - if grayscale is True we perform the magnitude operation of the grayscale
-          image otherwise we perform the operation on each channel. 
-        
-        **RETURNS**
-  
-        Returns a SimpleCV image corresponding to the log magnitude of the input image.
-        
-        **EXAMPLE**
-        
-        >>> img = Image("RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.lowPassFilter(img.width/10.img.height/10)
-        >>> lpf.getDFTLogMagnitude().show()
-        
-        **NOTES**
-
-        * http://en.wikipedia.org/wiki/Discrete_Fourier_transform
-        * http://math.stackexchange.com/questions/1002/fourier-transform-for-dummies
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-
-        """
-        dft = self._getDFTClone(grayscale)
-        chans = []
-        if( grayscale ):
-            chans = [self.getEmpty(1)]
-        else:
-            chans = [self.getEmpty(1),self.getEmpty(1),self.getEmpty(1)]
-        data = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1)
-        blank = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1) 
-        
-        for i in range(0,len(chans)):
-            cv.Split(dft[i],data,blank,None,None)
-            cv.Pow( data, data, 2.0)
-            cv.Pow( blank, blank, 2.0)
-            cv.Add( data, blank, data, None)
-            cv.Pow( data, data, 0.5 )
-            cv.AddS( data, cv.ScalarAll(1.0), data, None ) # 1 + Mag
-            cv.Log( data, data ) # log(1 + Mag
-            min, max, pt1, pt2 = cv.MinMaxLoc(data)
-            cv.Scale(data, data, 1.0/(max-min), 1.0*(-min)/(max-min))
-            cv.Mul(data,data,data,255.0)
-            cv.Convert(data,chans[i])
-
-        retVal = None
-        if( grayscale ):
-            retVal = Image(chans[0])
-        else:
-            retVal = self.getEmpty()
-            cv.Merge(chans[0],chans[1],chans[2],None,retVal)
-            retVal = Image(retVal)
-        return retVal
-
-    def _boundsFromPercentage(self, floatVal, bound):
-        return np.clip(int(floatVal*bound),0,bound)
-
-    def applyDFTFilter(self,flt,grayscale=False):
-        """
-        **SUMMARY**
-
-        This function allows you to apply an arbitrary filter to the DFT of an image. 
-        This filter takes in a gray scale image, whiter values are kept and black values
-        are rejected. In the DFT image, the lower frequency values are in the corners
-        of the image, while the higher frequency components are in the center. For example,
-        a low pass filter has white squares in the corners and is black everywhere else. 
-
-        **PARAMETERS**
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create 
-          the result.
-        
-        * *flt* - A grayscale filter image. The size of the filter must match the size of
-          the image. 
-
-        **RETURNS**
-
-        A SimpleCV image after applying the filter. 
-
-        **EXAMPLE**
-
-        >>>  filter = Image("MyFilter.png")
-        >>>  myImage = Image("MyImage.png")
-        >>>  result = myImage.applyDFTFilter(filter)
-        >>>  result.show()
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        **TODO**
-
-        Make this function support a separate filter image for each channel.
-        """
-        if( flt.width != self.width and 
-            flt.height != self.height ):
-            logger.warning("Image.applyDFTFilter - Your filter must match the size of the image")
-        dft = []
-        if( grayscale ):
-            dft = self._getDFTClone(grayscale)
-            flt = flt._getGrayscaleBitmap()
-            flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-            cv.ConvertScale(flt,flt64f,1.0)
-            finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
-            cv.Merge(flt64f,flt64f,None,None,finalFilt)
-            for d in dft:
-                cv.MulSpectrums(d,finalFilt,d,0)
-        else: #break down the filter and then do each channel 
-            dft = self._getDFTClone(grayscale)
-            flt = flt.getBitmap()
-            b = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
-            g = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
-            r = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
-            cv.Split(flt,b,g,r,None)
-            chans = [b,g,r]
-            for c in range(0,len(chans)):
-                flt64f = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,1)
-                cv.ConvertScale(chans[c],flt64f,1.0)
-                finalFilt = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,2)
-                cv.Merge(flt64f,flt64f,None,None,finalFilt)
-                cv.MulSpectrums(dft[c],finalFilt,dft[c],0)
-
-        return self._inverseDFT(dft)
-
-    def _boundsFromPercentage(self, floatVal, bound):
-        return np.clip(int(floatVal*(bound/2.00)),0,(bound/2))
-
-    def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies a high pass DFT filter. This filter enhances 
-        the high frequencies and removes the low frequency signals. This has
-        the effect of enhancing edges. The frequencies are defined as going between
-        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
-        the highest possible frequencies. Each of the frequencies are defined 
-        with respect to the horizontal and vertical signal. This filter 
-        isn't perfect and has a harsh cutoff that causes ringing artifacts.
-
-        **PARAMETERS**
-
-        * *xCutoff* - The horizontal frequency at which we perform the cutoff. A separate 
-          frequency can be used for the b,g, and r signals by providing a 
-          list of values. The frequency is defined between zero to one, 
-          where zero is constant component and 1 is the highest possible 
-          frequency in the image. 
-
-        * *yCutoff* - The cutoff frequencies in the y direction. If none are provided
-          we use the same values as provided for x. 
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create 
-          the result.
-                 
-        **RETURNS**
-        
-        A SimpleCV Image after applying the filter. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.lowPassFilter([0.2,0.1,0.2])
-        >>> lpf.show()
-        >>> lpf.getDFTLogMagnitude().show()
-
-        **NOTES**
-
-        This filter is far from perfect and will generate a lot of ringing artifacts.
-        * See: http://en.wikipedia.org/wiki/Ringing_(signal)
-        * See: http://en.wikipedia.org/wiki/High-pass_filter#Image
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-        
-        """
-        if( isinstance(xCutoff,float) ):    
-            xCutoff = [xCutoff,xCutoff,xCutoff]
-        if( isinstance(yCutoff,float) ):
-            yCutoff = [yCutoff,yCutoff,yCutoff]   
-        if(yCutoff is None):
-            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
-
-        for i in range(0,len(xCutoff)):
-            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
-            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
-
-        filter = None
-        h  = self.height
-        w  = self.width
-
-        if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
-            cv.Zero(filter)
-            cv.AddS(filter,255,filter) # make everything white
-            #now make all of the corners black
-            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(0,0,0),thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),(0,0,0),thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),(0,0,0),thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),(0,0,0),thickness=-1) #BR       
-
-        else:
-            #I need to looking into CVMERGE/SPLIT... I would really need to know
-            # how much memory we're allocating here
-            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filterB)
-            cv.Zero(filterG)
-            cv.Zero(filterR)
-            cv.AddS(filterB,255,filterB) # make everything white
-            cv.AddS(filterG,255,filterG) # make everything whit
-            cv.AddS(filterR,255,filterR) # make everything white
-            #now make all of the corners black
-            temp = [filterB,filterG,filterR]
-            i = 0
-            for f in temp:
-                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),0,thickness=-1)
-                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),0,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),0,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),0,thickness=-1)         
-                i = i+1
-
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Merge(filterB,filterG,filterR,None,filter)
-
-        scvFilt = Image(filter)
-        retVal = self.applyDFTFilter(scvFilt,grayscale)
-        return retVal
-
-    def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies a low pass DFT filter. This filter enhances 
-        the low frequencies and removes the high frequency signals. This has
-        the effect of reducing noise. The frequencies are defined as going between
-        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
-        the highest possible frequencies. Each of the frequencies are defined 
-        with respect to the horizontal and vertical signal. This filter 
-        isn't perfect and has a harsh cutoff that causes ringing artifacts.
-
-        **PARAMETERS**
-
-        * *xCutoff* - The horizontal frequency at which we perform the cutoff. A separate 
-          frequency can be used for the b,g, and r signals by providing a 
-          list of values. The frequency is defined between zero to one, 
-          where zero is constant component and 1 is the highest possible 
-          frequency in the image. 
-
-        * *yCutoff* - The cutoff frequencies in the y direction. If none are provided
-          we use the same values as provided for x. 
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create 
-          the result.
-                 
-        **RETURNS**
-
-        A SimpleCV Image after applying the filter. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.highPassFilter([0.2,0.2,0.05])
-        >>> lpf.show()
-        >>> lpf.getDFTLogMagnitude().show()
-
-        **NOTES**
-        
-        This filter is far from perfect and will generate a lot of ringing artifacts.
-        See: http://en.wikipedia.org/wiki/Ringing_(signal)
-        See: http://en.wikipedia.org/wiki/Low-pass_filter
-        
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-        
-        """
-        if( isinstance(xCutoff,float) ):    
-            xCutoff = [xCutoff,xCutoff,xCutoff]
-        if( isinstance(yCutoff,float) ):
-            yCutoff = [yCutoff,yCutoff,yCutoff]   
-        if(yCutoff is None):
-            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]] 
-
-        for i in range(0,len(xCutoff)):
-            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
-            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
-
-        filter = None
-        h  = self.height
-        w  = self.width
-
-        if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
-            cv.Zero(filter)
-            #now make all of the corners black
-            
-            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),255,thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),255,thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),255,thickness=-1) #BR       
-
-        else:
-            #I need to looking into CVMERGE/SPLIT... I would really need to know
-            # how much memory we're allocating here
-            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filterB)
-            cv.Zero(filterG)
-            cv.Zero(filterR)
-            #now make all of the corners black
-            temp = [filterB,filterG,filterR]
-            i = 0
-            for f in temp:
-                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),255,thickness=-1)
-                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),255,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),255,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),255,thickness=-1)         
-                i = i+1
-
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Merge(filterB,filterG,filterR,None,filter)
-
-        scvFilt = Image(filter)
-        retVal = self.applyDFTFilter(scvFilt,grayscale)
-        return retVal
-
-
-    #FUCK! need to decide BGR or RGB 
-    # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
-    # or (x,y)
-    def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies a simple band pass DFT filter. This filter enhances 
-        the a range of frequencies and removes all of the other frequencies. This allows
-        a user to precisely select a set of signals to display . The frequencies are 
-        defined as going between
-        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
-        the highest possible frequencies. Each of the frequencies are defined 
-        with respect to the horizontal and vertical signal. This filter 
-        isn't perfect and has a harsh cutoff that causes ringing artifacts.
-
-        **PARAMETERS**
-
-        * *xCutoffLow*  - The horizontal frequency at which we perform the cutoff of the low 
-          frequency signals. A separate 
-          frequency can be used for the b,g, and r signals by providing a 
-          list of values. The frequency is defined between zero to one, 
-          where zero is constant component and 1 is the highest possible 
-          frequency in the image. 
-
-        * *xCutoffHigh* - The horizontal frequency at which we perform the cutoff of the high 
-          frequency signals. Our filter passes signals between xCutoffLow and 
-          xCutoffHigh. A separate frequency can be used for the b, g, and r 
-          channels by providing a 
-          list of values. The frequency is defined between zero to one, 
-          where zero is constant component and 1 is the highest possible 
-          frequency in the image. 
-
-        * *yCutoffLow* - The low frequency cutoff in the y direction. If none 
-          are provided we use the same values as provided for x. 
-
-        * *yCutoffHigh* - The high frequency cutoff in the y direction. If none 
-          are provided we use the same values as provided for x. 
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create 
-          the result.
-                 
-        **RETURNS**
-
-        A SimpleCV Image after applying the filter. 
-
-        **EXAMPLE**
-        
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
-        >>> lpf.show()
-        >>> lpf.getDFTLogMagnitude().show()
-
-        **NOTES**
-
-        This filter is far from perfect and will generate a lot of ringing artifacts.
-        
-        See: http://en.wikipedia.org/wiki/Ringing_(signal)
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-        
-        """
-
-        if( isinstance(xCutoffLow,float) ):    
-            xCutoffLow = [xCutoffLow,xCutoffLow,xCutoffLow]
-        if( isinstance(yCutoffLow,float) ):
-            yCutoffLow = [yCutoffLow,yCutoffLow,yCutoffLow]   
-        if( isinstance(xCutoffHigh,float) ):    
-            xCutoffHigh = [xCutoffHigh,xCutoffHigh,xCutoffHigh]
-        if( isinstance(yCutoffHigh,float) ):
-            yCutoffHigh = [yCutoffHigh,yCutoffHigh,yCutoffHigh]   
-
-        if(yCutoffLow is None):
-            yCutoffLow = [xCutoffLow[0],xCutoffLow[1],xCutoffLow[2]] 
-        if(yCutoffHigh is None):
-            yCutoffHigh = [xCutoffHigh[0],xCutoffHigh[1],xCutoffHigh[2]]
-
-        for i in range(0,len(xCutoffLow)):
-            xCutoffLow[i] = self._boundsFromPercentage(xCutoffLow[i],self.width)
-            xCutoffHigh[i] = self._boundsFromPercentage(xCutoffHigh[i],self.width)
-            yCutoffHigh[i] = self._boundsFromPercentage(yCutoffHigh[i],self.height)  
-            yCutoffLow[i] = self._boundsFromPercentage(yCutoffLow[i],self.height)
-  
-        filter = None
-        h  = self.height
-        w  = self.width
-        if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)            
-            cv.Zero(filter)
-            #now make all of the corners black
-            cv.Rectangle(filter,(0,0),(xCutoffHigh[0],yCutoffHigh[0]),255,thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoffHigh[0]),(xCutoffHigh[0],h),255,thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoffHigh[0],0),(w,yCutoffHigh[0]),255,thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoffHigh[0],h-yCutoffHigh[0]),(w,h),255,thickness=-1) #BR       
-            cv.Rectangle(filter,(0,0),(xCutoffLow[0],yCutoffLow[0]),0,thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoffLow[0]),(xCutoffLow[0],h),0,thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoffLow[0],0),(w,yCutoffLow[0]),0,thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoffLow[0],h-yCutoffLow[0]),(w,h),0,thickness=-1) #BR       
-
-
-        else:
-            #I need to looking into CVMERGE/SPLIT... I would really need to know
-            # how much memory we're allocating here
-            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filterB)
-            cv.Zero(filterG)
-            cv.Zero(filterR)
-            #now make all of the corners black
-            temp = [filterB,filterG,filterR]
-            i = 0
-            for f in temp:
-                cv.Rectangle(f,(0,0),(xCutoffHigh[i],yCutoffHigh[i]),255,thickness=-1) #TL
-                cv.Rectangle(f,(0,h-yCutoffHigh[i]),(xCutoffHigh[i],h),255,thickness=-1) #BL
-                cv.Rectangle(f,(w-xCutoffHigh[i],0),(w,yCutoffHigh[i]),255,thickness=-1) #TR
-                cv.Rectangle(f,(w-xCutoffHigh[i],h-yCutoffHigh[i]),(w,h),255,thickness=-1) #BR       
-                cv.Rectangle(f,(0,0),(xCutoffLow[i],yCutoffLow[i]),0,thickness=-1) #TL
-                cv.Rectangle(f,(0,h-yCutoffLow[i]),(xCutoffLow[i],h),0,thickness=-1) #BL
-                cv.Rectangle(f,(w-xCutoffLow[i],0),(w,yCutoffLow[i]),0,thickness=-1) #TR
-                cv.Rectangle(f,(w-xCutoffLow[i],h-yCutoffLow[i]),(w,h),0,thickness=-1) #BR       
-                i = i+1
-
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Merge(filterB,filterG,filterR,None,filter)
-
-        scvFilt = Image(filter)
-        retVal = self.applyDFTFilter(scvFilt,grayscale)
-        return retVal
-
-
-
-
-
-    def _inverseDFT(self,input):
-        """
-        **SUMMARY**
-        **PARAMETERS**
-        **RETURNS**
-        **EXAMPLE**
-        NOTES:
-        SEE ALSO:
-        """
-        # a destructive IDFT operation for internal calls
-        w = input[0].width
-        h = input[0].height
-        if( len(input) == 1 ):
-            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
-            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
-            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            cv.Split(input[0],data,blank,None,None)
-            min, max, pt1, pt2 = cv.MinMaxLoc(data)
-            denom = max-min
-            if(denom == 0):
-                denom = 1
-            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
-            cv.Mul(data,data,data,255.0)
-            cv.Convert(data,result)
-            retVal = Image(result)
-        else: # DO RGB separately
-            results = []
-            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            for i in range(0,len(input)):
-                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
-                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
-                cv.Split( input[i],data,blank,None,None)
-                min, max, pt1, pt2 = cv.MinMaxLoc(data)
-                denom = max-min
-                if(denom == 0):
-                    denom = 1
-                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
-                cv.Mul(data,data,data,255.0) # this may not be right
-                cv.Convert(data,result)
-                results.append(result)
-                      
-            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
-            cv.Merge(results[0],results[1],results[2],None,retVal)
-            retVal = Image(retVal)
-        del input
-        return retVal
-
-    def InverseDFT(self, raw_dft_image):
-        """
-        **SUMMARY**
-
-        This method provides a way of performing an inverse discrete Fourier transform 
-        on a real/imaginary image pair and obtaining the result as a SimpleCV image. This
-        method is helpful if you wish to perform custom filter development. 
-
-        **PARAMETERS**
-
-        * *raw_dft_image* - A list object with either one or three IPL images. Each image should 
-          have a 64f depth and contain two channels (the real and the imaginary).
-        
-        **RETURNS**
-
-        A simpleCV image.
-
-        **EXAMPLE**
-        
-        Note that this is an example, I don't recommend doing this unless you know what 
-        you are doing. 
-        
-        >>> raw = img.getRawDFT()
-        >>> cv.SomeOperation(raw)
-        >>> result = img.InverseDFT(raw)
-        >>> result.show()
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        """
-        input  = []
-        w = raw_dft_image[0].width
-        h = raw_dft_image[0].height
-        if(len(raw_dft_image) == 1):
-            gs = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
-            cv.Copy(self._DFT[0],gs)
-            input.append(gs)
-        else:
-            for img in raw_dft_image:
-                temp = cv.CreateImage((w,h),cv.IPL_DEPTH_64F,2)
-                cv.Copy(img,temp)
-                input.append(img)
-            
-        if( len(input) == 1 ):
-            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
-            result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
-            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            cv.Split(input[0],data,blank,None,None)
-            min, max, pt1, pt2 = cv.MinMaxLoc(data)
-            denom = max-min
-            if(denom == 0):
-                denom = 1
-            cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
-            cv.Mul(data,data,data,255.0)
-            cv.Convert(data,result)
-            retVal = Image(result)
-        else: # DO RGB separately
-            results = []
-            data = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w,h), cv.IPL_DEPTH_64F, 1)
-            for i in range(0,len(raw_dft_image)):
-                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
-                result = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
-                cv.Split( input[i],data,blank,None,None)
-                min, max, pt1, pt2 = cv.MinMaxLoc(data)
-                denom = max-min
-                if(denom == 0):
-                    denom = 1
-                cv.Scale(data, data, 1.0/(denom), 1.0*(-min)/(denom))
-                cv.Mul(data,data,data,255.0) # this may not be right
-                cv.Convert(data,result)
-                results.append(result)
-                      
-            retVal = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,3)
-            cv.Merge(results[0],results[1],results[2],None,retVal)
-            retVal = Image(retVal)
-
-        return retVal
-        
-    def applyButterworthFilter(self,dia=400,order=2,highpass=False,grayscale=False):
-        """
-        **SUMMARY**
-
-        Creates a butterworth filter of 64x64 pixels, resizes it to fit
-        image, applies DFT on image using the filter.
-        Returns image with DFT applied on it
-        
-        **PARAMETERS**
-
-        * *dia* - int Diameter of Butterworth low pass filter
-        * *order* - int Order of butterworth lowpass filter
-        * *highpass*: BOOL True: highpass filterm False: lowpass filter
-        * *grayscale*: BOOL
-    
-        **EXAMPLE**
-    
-        >>> im = Image("lenna")
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=False)
-       
-        Output image: http://i.imgur.com/5LS3e.png
-    
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=False)
-        
-        Output img: http://i.imgur.com/QlCAY.png
-    
-        >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=True,grayscale=True)
-        
-        Output img: http://i.imgur.com/BYYnp.png
-    
-        >>> img = applyButterworth(im, dia=400,order=2,highpass=False,grayscale=True)
-        
-        Output img: http://i.imgur.com/BYYnp.png
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-        
-        """
-        w,h = self.size()
-        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
-        dia = int(dia/((w/64.0+h/64.0)/2.0))
-        if highpass:
-            for i in range(64):
-                for j in range(64):
-                    d = sqrt((j-32)**2+(i-32)**2)
-                    flt[i,j] = 255-(255/(1+(d/dia)**(order*2)))
-        else:
-            for i in range(64):
-                for j in range(64):
-                    d = sqrt((j-32)**2+(i-32)**2)
-                    flt[i,j] = 255/(1+(d/dia)**(order*2))
-    
-        flt = Image(flt)
-        flt_re = flt.resize(w,h)
-        img = self.applyDFTFilter(flt_re,grayscale)
-        return img
-    
-    def applyGaussianFilter(self, dia=400, highpass=False, grayscale=False):
-        """
-        **SUMMARY**
-
-        Creates a gaussian filter of 64x64 pixels, resizes it to fit
-        image, applies DFT on image using the filter.
-        Returns image with DFT applied on it
-        
-        **PARAMETERS**
-
-        * *dia* -  int - diameter of Gaussian filter
-        * *highpass*: BOOL True: highpass filter False: lowpass filter
-        * *grayscale*: BOOL
-    
-        **EXAMPLE**
-    
-        >>> im = Image("lenna")
-        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=False)
-   
-        Output image: http://i.imgur.com/DttJv.png
-    
-        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=False)
-        
-        Output img: http://i.imgur.com/PWn4o.png
-    
-        >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyGaussianfilter(im, dia=400,highpass=True,grayscale=True)
-        
-        Output img: http://i.imgur.com/9hX5J.png
-    
-        >>> img = applyGaussianfilter(im, dia=400,highpass=False,grayscale=True)
-        
-        Output img: http://i.imgur.com/MXI5T.png
-        
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        """
-        w,h = self.size()
-        flt = cv.CreateImage((64,64),cv.IPL_DEPTH_8U,1)
-        dia = int(dia/((w/64.0+h/64.0)/2.0))
-        if highpass:
-            for i in range(64):
-                for j in range(64):
-                    d = sqrt((j-32)**2+(i-32)**2)
-                    val = 255-(255.0*math.exp(-(d**2)/((dia**2)*2)))
-                    flt[i,j]=val
-        else:
-            for i in range(64):
-                for j in range(64):
-                    d = sqrt((j-32)**2+(i-32)**2)
-                    val = 255.0*math.exp(-(d**2)/((dia**2)*2))
-                    flt[i,j]=val        
-                
-        flt = Image(flt)
-        flt_re = flt.resize(w,h)
-        img = self.applyDFTFilter(flt_re,grayscale)
-        return img
-        
-    def applyUnsharpMask(self,boost=1,dia=400,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies unsharp mask or highboost filtering
-        on image depending upon the boost value provided.
-        DFT is applied on image using gaussian lowpass filter.
-        A mask is created subtracting the DFT image from the original
-        iamge. And then mask is added in the image to sharpen it.
-        unsharp masking => image + mask
-        highboost filtering => image + (boost)*mask
-        
-        **PARAMETERS**
-    
-        * *boost* - int  boost = 1 => unsharp masking, boost > 1 => highboost filtering
-        * *dia* - int Diameter of Gaussian low pass filter
-        * *grayscale* - BOOL
-    
-        **EXAMPLE**
-
-        Gaussian Filters:
-        
-        >>> im = Image("lenna")
-        >>> img = applyUnsharpMask(im,2,grayscale=False) #highboost filtering
-        
-        output image: http://i.imgur.com/A1pZf.png
-        
-        >>> img = applyUnsharpMask(im,1,grayscale=False) #unsharp masking
-        
-        output image: http://i.imgur.com/smCdL.png
-        
-        >>> im = Image("grayscale_lenn.png") #take image from here: http://i.imgur.com/O0gZn.png
-        >>> img = applyUnsharpMask(im,2,grayscale=True) #highboost filtering
-        
-        output image: http://i.imgur.com/VtGzl.png
-        
-        >>> img = applyUnsharpMask(im,1,grayscale=True) #unsharp masking
-        
-        output image: http://i.imgur.com/bywny.png
-        
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        """
-        if boost < 0:
-            print "boost >= 1"
-            return None
-    
-        lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
-        im = Image(self.getBitmap())
-        mask = im - lpIm
-        img = im
-        for i in range(boost):
-            img = img + mask
-        return img
-
     def listHaarFeatures(self):
         '''
         This is used to list the built in features available for HaarCascade feature
@@ -11046,72 +9751,7 @@ class Image:
             term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
             new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
             ts.append(CAMShift(self, track_window, new_ellipse))
-            
-        if method.lower() == "lk":
-            img1 = self.crop(bb[0],bb[1],bb[2],bb[3])
-            g = img1.getGrayNumpyCv2()
-            pt = cv2.goodFeaturesToTrack(g, maxCorners = 4000, qualityLevel = 0.6,
-                                         minDistance = 2, blockSize = 2)
-            if type(pt) == type(None):
-                ts.append(LK(self, bb, pt))
-                return ts
-            for i in xrange(len(pt)):
-                pt[i][0][0] = pt[i][0][0]+bb[0]
-                pt[i][0][1] = pt[i][0][1]+bb[1]
-            p0 = np.float32(pt).reshape(-1, 1, 2)
-            oldg = img.getGrayNumpyCv2()
-            newg = self.getGrayNumpyCv2()
-            p1, st, err = cv2.calcOpticalFlowPyrLK(oldg, newg, p0, None, winSize  = (10, 10), 
-                                                   maxLevel = 10, 
-                                                   criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-            p0r, st, err = cv2.calcOpticalFlowPyrLK(newg, oldg, p1, None, winSize  = (10, 10), 
-                                                    maxLevel = 10, 
-                                                    criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-            
-            d = abs(p0-p0r).reshape(-1, 2).max(-1)
-            good = d < 1
-            new_pts=[]
-            for pts, val in itertools.izip(p1, good):
-                if val:
-                    new_pts.append([pts[0][0], pts[0][1]])
-            if ts[-1:]:
-                old_pts = ts[-1].pts
-                if type(old_pts) == type(None):
-                    old_pts = new_pts
-            else:
-                old_pts = new_pts
-            dx=[]
-            dy=[]
-            for p1, p2 in itertools.izip(old_pts, new_pts):
-                dx.append(p2[0]-p1[0])
-                dy.append(p2[1]-p1[1])
-            if not dx or not dy:
-                ts.append(LK(self, bb, new_pts))
-                return ts
-            cen_dx = round(sum(dx)/len(dx))/3
-            cen_dy = round(sum(dy)/len(dy))/3
-            bb1 = [bb[0]+cen_dx, bb[1]+cen_dy, bb[2], bb[3]]
-            if bb1[0] <= 0:
-                bb1[0] = 1
-            if bb1[0]+bb1[2] >= self.width:
-                bb1[0] = self.width - bb1[2] - 1
-            if bb1[1]+bb1[3] >= self.height:
-                bb1[1] = self.height - bb1[3] - 1
-            if bb1[1] <= 0:
-                bb1[1] = 1
-            ts.append(LK(self, bb1, new_pts))
-        return ts
-
-    def _to32F(self):
-        """
-        **SUMMARY**
-
-        Convert this image to a 32bit floating point image. 
-
-        """
-        retVal = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
-        cv.Convert(self.getBitmap(),retVal)
-        return retVal
+            return ts
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )

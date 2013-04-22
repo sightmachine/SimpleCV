@@ -7,7 +7,7 @@
 # http://code.google.com/p/jpegcam/
 import os, tempfile, webbrowser, urllib, cherrypy, socket
 from SimpleCV import *
-from images2gif import writeGif 
+from images2gif import writeGif
 import pdb
 
 
@@ -16,7 +16,7 @@ class CloudAnimator(object):
     giffile = None
     gifname = None
 
-  
+
     def index(self):
         f = urllib.urlopen("index.html") # load the default website
         s = f.read() # read the file
@@ -36,7 +36,7 @@ class CloudAnimator(object):
             tmpname = tmpfile.name.split("/")[-1] #grab the generated name
             filepath = os.getcwd() + "/" + tmpname
             self.giffile = filepath
-            self.gifname = tmpname    
+            self.gifname = tmpname
         tmpfile = tempfile.NamedTemporaryFile(suffix=".jpg") #Make a temporary gif file
         tmpname = tmpfile.name.split("/")[-1] #grab the generated name
         filepath = os.getcwd() + "/" + tmpname #get the filepath
@@ -65,7 +65,7 @@ class CloudAnimator(object):
             print "reset animation"
 
     reset.exposed = True
-    
+
     def process(self, filepath):
         img = Image(filepath) # load the image into SimpleCV
         #~ img = img.edges() # Get the edges
@@ -73,7 +73,7 @@ class CloudAnimator(object):
         self.imageset.append(img.getPIL())
         writeGif(self.giffile, self.imageset, 0.2, 9999)
         return
-        
+
     process.exposed = True
 
 
@@ -90,6 +90,5 @@ if __name__ == '__main__':
                 'server.socket_host' : '0.0.0.0'
                 }
             }
-    #webbrowser.open("http://localhost:8000")    
+    #webbrowser.open("http://localhost:8000")
     cherrypy.quickstart(CloudAnimator(), config=conf)
-

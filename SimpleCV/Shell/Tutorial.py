@@ -22,7 +22,7 @@ cropped = None
 #Command to clear the shell screen
 def shellclear():
     if platform.system() == "Windows":
-      return
+        return
     call("clear")
 
 def attempt(variable_name, desired_class):
@@ -40,7 +40,7 @@ def attempt(variable_name, desired_class):
 
         return True
 
-    return False 
+    return False
 
 def prompt_and_run():
 
@@ -99,7 +99,7 @@ def tutorial_image():
     print lb
     print "img = Image(URL_TO_MY_PICTURE) or img = Image(PATH_TO_MY_PICTURE)"
     print lb
-    cmd =  "Example: img = Image('http://simplecv.org/images/logo.gif')"
+    cmd =  "Example: img = Image('http://www.simplecv.org/sites/all/themes/simplecv/images/logo.png')"
 
     desired_tuple = ('img', Image)
     command_loop(cmd, desired_tuple)
@@ -335,11 +335,11 @@ def tutorial_slicing():
     print shouldbe
     print lb
     while (in_text != shouldbe):
-      in_text = raw_input("SimpleCV:>")
-      if(in_text != shouldbe):
-        print "sorry, that is incorrect"
-        print "please type:"
-        print shouldbe
+        in_text = raw_input("SimpleCV:>")
+        if(in_text != shouldbe):
+            print "sorry, that is incorrect"
+            print "please type:"
+            print shouldbe
     shellclear()
     print "Correct, you just returned a 5 pixel by 5 pixel image object"
     print lb
@@ -368,8 +368,8 @@ def tutorial_features():
     print "img = Image('lenna') (already done for you)"
     print lb
     print "Try it yourself:"
-    print lb 
-   
+    print lb
+
     cmd = "corners = img.findCorners()"
     desired_tuple = ('corners', FeatureSet)
     command_loop(cmd, desired_tuple)
@@ -379,7 +379,7 @@ def tutorial_features():
     print "feature objects.  These feature objects contain data from the"
     print "found corners"
     print lb
-    
+
     print "Tip: If your are unsure what parameters to pass, you can always use"
     print "the built in help support by typing help(Image.findCorners). Keep in"
     print "mind that this help works for all of the functions available in"
@@ -401,7 +401,7 @@ def tutorial_features():
     print lb
     print "blobs.draw()"
     print lb
-    
+
     while True:
         if prompt_and_run().endswith('.draw()'):
             break
@@ -438,7 +438,7 @@ def tutorial_features():
 def magic_tutorial(self,arg):
     tutorials_dict = {'image': tutorial_image, 'save': tutorial_save,
                      'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
-                     'copy': tutorial_copy, 'features': tutorial_features} 
+                     'copy': tutorial_copy, 'features': tutorial_features}
 
 
     if (arg == ""):

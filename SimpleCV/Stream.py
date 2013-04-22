@@ -6,7 +6,7 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
     """
     The JpegStreamHandler handles requests to the threaded HTTP server.
     Once initialized, any request to this port will receive a multipart/replace
-    jpeg.   
+    jpeg.
     """
 
 
@@ -32,7 +32,7 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
 </body>
 </html>
             """)
-            return 
+            return
 
 
         elif (self.path == "/stream"):
@@ -45,11 +45,11 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=--BOUNDARYSTRING")
             self.end_headers()
             (host, port) = self.server.socket.getsockname()[:2]
-     
-     
+
+
             count = 0
-            timeout = 0.75 
-            lasttimeserved = 0 
+            timeout = 0.75
+            lasttimeserved = 0
             while (1):
                 if (_jpegstreamers[port].refreshtime > lasttimeserved or time.time() - timeout > lasttimeserved):
                     try:
@@ -63,7 +63,7 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
                         return
                     except IOError, e:
                         return
-                    count = count + 1 
+                    count = count + 1
 
 
                 time.sleep(_jpegstreamers[port].sleeptime)
@@ -107,7 +107,7 @@ class JpegStreamer():
     host = ""
     port = ""
     sleeptime = ""
-    framebuffer = "" 
+    framebuffer = ""
     counter = 0
     refreshtime = 0
 
@@ -121,7 +121,7 @@ class JpegStreamer():
             (self.host, self.port) = hostandport.split(":")
             self.port = int(self.port)
         elif (type(hostandport) == tuple):
-            (self.host, self.port) = hostandport 
+            (self.host, self.port) = hostandport
 
 
         self.sleeptime = st
@@ -158,9 +158,9 @@ class VideoStream():
 
 
         vs = VideoStream("hello.avi")
-  
-  
-    You can also specify a framerate, and if you want to "fill" in missed frames. 
+
+
+    You can also specify a framerate, and if you want to "fill" in missed frames.
     So if you want to record a realtime video you may want to do this::
 
 
@@ -170,9 +170,9 @@ class VideoStream():
     Where if you want to do a stop-motion animation, you would want to turn fill off::
 
 
-        vs_animation = VideoStream("cartoon.avi", 15, False) 
-    
-    
+        vs_animation = VideoStream("cartoon.avi", 15, False)
+
+
     If you select a fill, the VideoStream will do its best to stay close to "real time" by duplicating frames or dropping frames when the clock doesn't sync up
     with the file writes.
 
@@ -184,7 +184,7 @@ class VideoStream():
     """
 
 
-    fps = 25 
+    fps = 25
     filename = ""
     writer = ""
     fourcc = ""
@@ -192,14 +192,14 @@ class VideoStream():
     videotime = 0.0
     starttime = 0.0
     framecount = 0
-  
-  
+
+
     def __init__(self, filename, fps = 25, framefill = True):
         (revextension, revname) = filename[::-1].split(".")
         extension = revextension[::-1]
         self.filename = filename
         self.fps = fps
-        self.framefill = framefill 
+        self.framefill = framefill
         #if extension == "mpg":
         self.fourcc = cv.CV_FOURCC('I', 'Y', 'U', 'V')
             #self.fourcc = 0
@@ -228,12 +228,12 @@ class VideoStream():
 
 
         frametime = 1.0 / float(self.fps)
-        targettime = self.starttime + frametime * self.framecount 
+        targettime = self.starttime + frametime * self.framecount
         realtime = time.time()
-        if self.framefill: 
+        if self.framefill:
             #see if we need to do anything to adjust to real time
             if (targettime > realtime + frametime):
-                #if we're more than one frame ahead 
+                #if we're more than one frame ahead
                 #save the lastframe, but don't write to videoout
                 self.lastframe = img
                 return
@@ -262,13 +262,6 @@ class VideoStream():
         else:
             cv.WriteFrame(self.writer, img.getBitmap())
             self.framecount += 1
-    
-    
+
+
         self.lastframe = img
-
-
-
-
-    
-    
-        
