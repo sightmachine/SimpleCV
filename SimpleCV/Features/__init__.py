@@ -12,3 +12,6 @@ from SimpleCV.Features.MorphologyFeatureExtractor import *
 from SimpleCV.Features.EdgeHistogramFeatureExtractor import *
 from SimpleCV.Features.HaarLikeFeatureExtractor import *
 from SimpleCV.Features.HaarLikeFeature import *
+from SimpleCV.Features.PlayingCards import *
+from SimpleCV.Features.FeatureUtils import *
+from SimpleCV.Features.FaceRecognizer import *

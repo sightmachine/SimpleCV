@@ -21,9 +21,9 @@ import logging
 import pygame as pg
 import scipy.ndimage as ndimage
 import scipy.stats.stats as sss  #for auto white balance
-import scipy.cluster.vq as scv    
+import scipy.cluster.vq as scv
 import scipy.linalg as nla  # for linear algebra / least squares
-import math # math... who does that 
+import math # math... who does that
 import copy # for deep copy
 import numpy as np
 import scipy.spatial.distance as spsd
@@ -33,6 +33,7 @@ import platform
 import copy
 import types
 import time
+import itertools #for track
 
 from numpy import linspace
 from scipy.interpolate import UnivariateSpline
@@ -62,14 +63,16 @@ except ImportError:
 #optional libraries
 PIL_ENABLED = True
 try:
-    import Image as pil
-    from Image.GifImagePlugin import getheader, getdata
+    from PIL import Image as pil
+    from PIL import ImageFont as pilImageFont
+    from PIL import ImageDraw as pilImageDraw
+    from PIL import GifImagePlugin
+    getheader = GifImagePlugin.getheader
+    getdata   = GifImagePlugin.getdata
 except ImportError:
     try:
-        import PIL.Image as pil
-        from PIL import ImageFont as pilImageFont
-        from PIL import ImageDraw as pilImageDraw
-        from PIL.GifImagePlugin import getheader, getdata
+        import Image as pil
+        from GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 
@@ -78,6 +81,12 @@ try:
     import freenect
 except ImportError:
     FREENECT_ENABLED = False
+
+ZXING_ENABLED = True
+try:
+    import zxing
+except ImportError:
+    ZXING_ENABLED = False
 
 OCR_ENABLED = True
 try:
@@ -91,7 +100,7 @@ try:
     import pyscreenshot
 except ImportError:
     PYSCREENSHOT_ENABLED = False
-    
+
 ORANGE_ENABLED = True
 try:
     import orange
@@ -281,7 +290,7 @@ def read_logging_level(log_level):
     }
 
     if isinstance(log_level,str):
-       log_level = log_level.lower()
+        log_level = log_level.lower()
 
     if log_level in levels_dict:
         return levels_dict[log_level]
@@ -320,14 +329,14 @@ def set_logging(log_level,myfilename = None):
     """
 
     if myfilename and ipython_version:
-         try:
-             if ipython_version.startswith("0.10"):
-                 __IPYTHON__.set_custom_exc((Exception,), ipython_exception_handler)
-             else:
-                 ip = get_ipython()
-                 ip.set_custom_exc((Exception,), ipython_exception_handler)
-         except NameError: #In case the interactive shell is not being used
-             sys.exc_clear()
+        try:
+            if ipython_version.startswith("0.10"):
+                __IPYTHON__.set_custom_exc((Exception,), ipython_exception_handler)
+            else:
+                ip = get_ipython()
+                ip.set_custom_exc((Exception,), ipython_exception_handler)
+        except NameError: #In case the interactive shell is not being used
+            sys.exc_clear()
 
 
     level = read_logging_level(log_level)
@@ -346,18 +355,25 @@ def set_logging(log_level,myfilename = None):
 
 def system():
     """
+    
     **SUMMARY**
+    
     Output of this function includes various informations related to system and library.
-    Main purpose :
-       1) While submiting a bug, report the output of this function
-       2) Checking the current version and later upgrading the library based on the output
-
+    
+    Main purpose:
+    - While submiting a bug, report the output of this function
+    - Checking the current version and later upgrading the library based on the output
+    
     **RETURNS**
+    
     None
 
     **EXAMPLE**
-    >>> import SimpleCV
-    >>> SimpleCV.system()
+      
+      >>> import SimpleCV
+      >>> SimpleCV.system()
+      
+      
     """
     try :
         import platform

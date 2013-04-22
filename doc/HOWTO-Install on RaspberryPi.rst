@@ -1,25 +1,10 @@
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Instructions on how to install SimpleCV on the RaspberryPi
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-======================================
-==      With SimpleCV Disk Img      ==
-======================================
-
-1) Download the image
-
-	user@machine:~$ wget http://url_to_sourceforge/
-
-2) Transfer image to disk (replace /dev/sdb with your card name):
-
-	user@machine:~$ zcat squeeze_simplecv_pi.image.gz | sudo dd bs=1M of=/dev/sdb
-
-======================================
-==    Without SimpleCV Disk Img     ==
-======================================
+Installing SimpleCV on the Raspberry Pi
+=======================================
 
 1) Power up the raspberry pi and log in. Connect the 
    board to ethernet.
+
+::
 
 	Username: pi
 	Password: raspberry
@@ -27,32 +12,34 @@ Instructions on how to install SimpleCV on the RaspberryPi
 2) Network should be up and running with dhcp, if not
    you must manually configure the network settings.
 
-3) There is a firmware update available for the pi, and
-   it is necessary for Camera use in SimpleCV.
+3) Run the following command to install the necessary dependancies
 
-	Follow instructions at:
-	http://blog.pixelami.com/2012/06/raspberry-pi-firmware-update-for-debian-squeeze/
+::
 
-4) We need to build python-pygame from source next. Download the dev tools for
-   Python 2.6.
+	sudo apt-get install ipython python-opencv python-scipy python-numpy python-setuptools python-pip
 
-	raspberry@pi:~$ sudo apt-get update
-	raspberry@pi:~$ sudo apt-get install libpython2.6 python-dev python2.6-dev build-essential
-	raspberry@pi:~$ wget http://www.pygame.org/ftp/pygame-1.8.1release.tar.gz
-	raspberry@pi:~$ tar -xvzf pygame-1.8.1release.tar.gz
-	raspberry@pi:~$ cd pygame-1.8.1release
-	raspberry@pi:~$ sudo python config.py
-	raspberry@pi:~$ sudo python setup.py install
-
-5) SimpleCV should now be ready to install. Download SimpleCV from github 
+4) SimpleCV should now be ready to install. Download SimpleCV from github 
    and install from the source.
 
-	raspberry@pi:~$ sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
-	raspberry@pi:~$ sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+::
+
+	sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
+
+Alternatively, you can install SimpleCV from source.
+
+::
+
+	mkdir ~/Code
+	cd ~/Code
+	git clone git://github.com/sightmachine/SimpleCV.git
+	cd SimpleCV
+	sudo python setup.py develop
 	
-6) After allowing those commands to run for a while (it is going to take a while, go
+5) After allowing those commands to run for a while (it is going to take a while, go
    grab a drink), SimpleCV should be all set up. Connect a compatible camera to the
    board's usb input and open up the simplecv shell
+
+::
 
 	raspberry@pi:~$ simplecv
 
@@ -70,4 +57,4 @@ Instructions on how to install SimpleCV on the RaspberryPi
 
 	SimpleCV:3> exit()
 
-8) Congratulations, your RaspberryPi is now running SimpleCV!
+6) Congratulations, your RaspberryPi is now running SimpleCV!

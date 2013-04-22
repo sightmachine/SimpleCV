@@ -12,7 +12,7 @@ import os, subprocess
 def after_install(options, home_dir):
     base_dir = os.path.dirname(home_dir)
     logger.notify('Installing SimpleCV into Virtual Environment')
-    
+
     os.chdir(home_dir)
     print 'Current Directory:', os.getcwd()
     print 'dir list:', os.listdir(os.getcwd())
@@ -41,7 +41,6 @@ f = open('simplecv-bootstrap.py', 'w').write(output)
 #~ source bin/activate
 #~ cd src/pygame
 #~ python setup.py -setuptools install
-#~ pip install https://github.com/ingenuitas/SimpleCV/zipball/masteriii
+#~ pip install https://github.com/sightmachine/SimpleCV/zipball/masteriii
 #    call_subprocess(['python','setup.py','-setuptools','install'], show_stdout=True)
 #call_subprocess([join(home_dir, 'bin', 'pip'),'install','-r','requirements.txt'], show_stdout=True)
-    

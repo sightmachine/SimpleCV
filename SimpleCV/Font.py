@@ -19,26 +19,26 @@ class Font:
     _fontface = "ubuntu"
     _fontsize = 16
     _font = None
-    
+
     # These fonts were downloaded from Google at:
     # http://www.http://www.google.com/webfonts
     _fonts = [
-					    "ubuntu",
-					    "astloch",
-					    "carter_one",
-					    "kranky",
-					    "la_belle_aurore",
-					    "monofett",
-					    "reenie_beanie",
-					    "shadows_Into_light",
-					    "special_elite",
-					    "unifrakturmaguntia",
-					    "vt323",
-					    "wallpoet",
-					    "wire_one"
-					    ]
-    
-    
+                                            "ubuntu",
+                                            "astloch",
+                                            "carter_one",
+                                            "kranky",
+                                            "la_belle_aurore",
+                                            "monofett",
+                                            "reenie_beanie",
+                                            "shadows_Into_light",
+                                            "special_elite",
+                                            "unifrakturmaguntia",
+                                            "vt323",
+                                            "wallpoet",
+                                            "wire_one"
+                                            ]
+
+
     def __init__(self, fontface = "ubuntu", fontsize = 16):
         """
         This creates a new font object, it uses ubuntu as the default font
@@ -47,16 +47,16 @@ class Font:
         """
         self.setSize(fontsize)
         self.setFont(fontface)
-        
-    
+
+
     def getFont(self):
         """
         Get the font from the object to be used in drawing
-        
+
         Returns: PIL Image Font
         """
         return self._font
-    
+
     def setFont(self, new_font = 'ubuntu'):
         """
         Set the name of the font listed in the font family
@@ -67,16 +67,16 @@ class Font:
         if isinstance(new_font, basestring):
             print "Please pass a string"
             return None
-	        
+
         if find(new_font, self._fonts):
             self._fontface = new_font
             font_to_use = self._fontpath + self._fontface + "/" + self._fontface + self._extension
         else:
             self._fontface = new_font
             font_to_use = new_font
-	        
+
         self._font = pilImageFont.truetype(font_to_use, self._fontsize)
-    
+
     def setSize(self, size):
         """
         Set the font point size. i.e. 16pt
@@ -86,28 +86,27 @@ class Font:
             self._fontsize = size
         else:
             print "please provide an integer"
-    
+
     def getSize(self):
         """
         Gets the size of the current font
-        
+
         Returns: Integer
         """
-        
+
         return self._fontsize
-    
+
     def getFonts(self):
         """
         This returns the list of fonts built into SimpleCV
         """
-        
+
         return self._fonts
-    
+
     def printFonts(self):
         """
         This prints a list of fonts built into SimpleCV
         """
-        
+
         for f in self._fonts:
             print f
-	    

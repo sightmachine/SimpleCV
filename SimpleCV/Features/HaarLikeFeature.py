@@ -5,17 +5,17 @@ from SimpleCV.ImageClass import Image
 class HaarLikeFeature():
     """
     Create a single Haar feature and optionally set the regions that define
-    the Haar feature and its name. The formal of the feature is 
+    the Haar feature and its name. The formal of the feature is
 
     The format is [[[TL],[BR],SIGN],[[TL],[BR],SIGN].....]
     Where TR and BL are the unit coorinates for the top right and bottom
     left coodinates.
-    
+
     For example
     [[[0,0],[0.5,0.5],1],[[0.5.0],[1.0,1.0],-1]]
-    
+
     Takes the right side of the image and subtracts from the left hand side
-    of the image. 
+    of the image.
     """
     mName = None
     mRegions = None
@@ -23,31 +23,31 @@ class HaarLikeFeature():
 
         self.mName = name;
         self.mRegions = regions;
-    
-    
+
+
     def setRegions(self,regions):
         """
         Set the list of regions. The regions are square coordinates on a unit
         sized image followed by the sign of a region.
-        
+
         The format is [[[TL],[BR],SIGN],[[TL],[BR],SIGN].....]
         Where TR and BL are the unit coorinates for the top right and bottom
         left coodinates.
-        
+
         For example
         [[[0,0],[0.5,0.5],1],[[0.5.0],[1.0,1.0],-1]]
-        
+
         Takes the right side of the image and subtracts from the left hand side
-        of the image. 
+        of the image.
         """
         self.mRegions = regions
-    
+
     def setName(self,name):
         """
         Set the name of this feature, the name must be unique.
         """
         self.mName = name
-    
+
     def apply(self, intImg ):
         """
         This method takes in an integral image and applies the haar-cascade
@@ -71,7 +71,7 @@ class HaarLikeFeature():
             s = self.mRegions[i][3] # s = bottom
             sign = self.mRegions[i][4] # t = sign
             xA = int(w*r)
-            yA = int(h*s) 
+            yA = int(h*s)
             xB = int(w*r)
             yB = int(h*q)
             xC = int(w*p)
@@ -80,7 +80,7 @@ class HaarLikeFeature():
             yD = int(h*q)
             accumulator += sign*(intImg[xA,yA]-intImg[xB,yB]-intImg[xC,yC]+intImg[xD,yD])
         return accumulator
-    
+
     def writeToFile(self,file):
         """
         Write the Haar cascade to a human readable file. file is an open file pointer.
