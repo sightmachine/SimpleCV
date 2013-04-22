@@ -91,7 +91,7 @@ ubuntu@omap:~$ ping www.google.com
 
 ubuntu@omap:~$ sudo apt-get update
              $ sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
-             $ sudo pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+             $ sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
 7) After allowing those commands to run for a while (it is going to take a while, go
    grab a drink), SimpleCV should be all set up. Connect a compatible camera to the
