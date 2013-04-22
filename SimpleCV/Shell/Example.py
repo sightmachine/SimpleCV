@@ -58,4 +58,4 @@ def magic_examples(self, arg):
 
 
     else:
-        print "Example: " + arg + " does not exist, or an error occured"
+        print "Example: " + arg + " does not exist, or an error occurred"

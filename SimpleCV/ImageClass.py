@@ -1037,7 +1037,7 @@ class Image:
                     try:
                         from webm import decode as webmDecode
                     except ImportError:
-                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/sightmachine/python-webm')
                         return
 
                     WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
@@ -2338,7 +2338,7 @@ class Image:
                     from webm import encode as webmEncode
                     from webm.handlers import BitmapHandler, WebPHandler
                 except:
-                    logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                    logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/sightmachine/python-webm')
                     return 0
 
                 #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
@@ -13599,6 +13599,42 @@ class Image:
             return None
 
         retVal = self.mergeChannels(r = r, g = g, b = b)
+        return retVal
+
+    def prewitt(self):
+        """
+        **SUMMARY**
+
+        Prewitt operator for edge detection
+
+        **PARAMETERS**
+
+        None
+
+        **RETURNS**
+
+        Image with prewitt opeartor applied on it
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> p = img.prewitt()
+        >>> p.show()
+
+        **NOTES**
+
+        Read more at: http://en.wikipedia.org/wiki/Prewitt_operator
+        
+        """
+        img = self.copy()
+        grayimg = img.grayscale()
+        gx = [[1,1,1],[0,0,0],[-1,-1,-1]]
+        gy = [[-1,0,1],[-1,0,1],[-1,0,1]]
+        grayx = grayimg.convolve(gx)
+        grayy = grayimg.convolve(gy)
+        grayxnp = np.uint64(grayx.getGrayNumpy())
+        grayynp = np.uint64(grayy.getGrayNumpy())
+        retVal = Image(np.sqrt(grayxnp**2+grayynp**2))
         return retVal
 
 
