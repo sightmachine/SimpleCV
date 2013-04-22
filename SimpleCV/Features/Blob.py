@@ -1362,3 +1362,234 @@ class Blob(Feature):
         # chunk of our points.
         tmean = sps.tmean(distances,(min,x+sd))
         return tmean
+
+
+    def offsetContourPoints(self,offset=0):
+        """
+        **SUMMARY**
+
+        This function returns the contour points offset
+        from original, as a list of x,y tuples.
+        In this function original Bresenham's line algorithm
+        is modified in a way such that points are populated
+        by using slope of the line and initial starting location.
+
+        See: http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+
+        **PARAMETERS**
+
+        * *offset* - Number of pixels by which original contour points
+        *            are to be offset. It can be negative or positive.
+
+        **RETURNS**
+
+        A list of x,y typles
+
+        **EXAMPLE**
+
+        >>> img = Image("color.png")
+        >>> blobs = img.findBlobs()
+        >>> img.drawPoints(blobs[3].offsetContourPoints(offset=-10),color=Color.BLUE)
+
+        """
+        blob_c = self.contour()
+        if( offset == 0 ):
+            return blob_c
+
+        blob_centroid = self.centroid()
+        xc = blob_centroid[0]
+        yc = blob_centroid[1]
+
+        new_contour = []
+        offPoint = []
+        
+        # loop through all contour points
+        for cpoint in blob_c:
+            # make line connecting
+            x0 = xc
+            y0 = yc
+            x1 = cpoint[0] # contour point x
+            y1 = cpoint[1] # contour point y
+            
+            dx_org = (x1 - x0)
+            dy_org = (y1 - y0)
+            
+            steep = 0
+            if( abs(y1 - y0) > abs(x1 - x0) ):
+                steep = 1
+                
+            if( steep == 1 ):
+                x0, y0 = y0, x0
+                x1, y1 = y1, x1
+                    
+            if( x0 > x1 ):
+                x0, x1 = x1, x0
+                y0, y1 = y1, y0
+                        
+            dx = floor(x1 - x0)
+            dy = floor(abs(y1 - y0))
+                        
+            dx_pres = (x1 - x0)
+            dy_pres = (y1 - y0)
+            
+            err = dx / 2
+                        
+            # Initializing point x,y
+            x = x1
+            y = y1
+            xstep = 1
+            ystep = 1
+            
+            # In the following code we decide on
+            # the values of stepping along x and
+            # along y i.e. xstep and ystep, depending
+            # on the relative location of contour
+            # point with repective blob centroid
+            if( (dx_org > 0) and (dy_org > 0) and (dx_pres > 0) \
+                    and (dy_pres > 0) and (steep == 1) ):
+                x = x1
+                y = y1
+                if( offset > 0 ):
+                    xstep = 1
+                    ystep = 1
+                elif( offset < 0 ):
+                    xstep = -1
+                    ystep = -1
+            elif( (dx_org > 0) and (dy_org > 0) and (dx_pres > 0) \
+                    and (dy_pres > 0) and (steep == 0) ):
+                x = x1
+                y = y1
+                if( offset > 0 ):
+                    xstep = 1
+                    ystep = 1
+                elif( offset < 0 ):
+                    xstep = -1
+                    ystep = -1
+            elif( (dx_org > 0) and (dy_org < 0) and (dx_pres > 0) \
+                    and (dy_pres < 0) and (steep == 0) ):
+                x = x1
+                y = y1
+                if( offset > 0 ):
+                    xstep = 1
+                    ystep = -1
+                elif( offset < 0 ):
+                    xstep = -1
+                    ystep = 1
+            elif( (dx_org > 0) and (dy_org < 0) and (dx_pres > 0) \
+                    and (dy_pres < 0) and (steep == 1) ):
+                x = x0
+                y = y0
+                if( offset > 0 ):
+                    xstep = -1
+                    ystep = 1
+                elif( offset < 0 ):
+                    xstep = 1
+                    ystep = -1
+            elif( (dx_org < 0) and (dy_org < 0) and (dx_pres > 0) \
+                    and (dy_pres > 0) and (steep == 1) ):
+                x = x0
+                y = y0
+                if( offset > 0 ):
+                    xstep = -1
+                    ystep = -1
+                elif( offset < 0 ):
+                    xstep = 1
+                    ystep = 1
+            elif( (dx_org < 0) and (dy_org < 0) and (dx_pres > 0) \
+                    and (dy_pres > 0) and (steep == 0) ):
+                x = x0
+                y = y0
+                if( offset > 0 ):
+                    xstep = -1
+                    ystep = -1
+                elif( offset < 0 ):
+                    xstep = 1
+                    ystep = 1
+            elif( (dx_org < 0) and (dy_org > 0) and (dx_pres > 0) \
+                    and (dy_pres < 0) and (steep == 0) ):
+                x = x0
+                y = y0
+                if( offset > 0 ):
+                    xstep = -1
+                    ystep = 1
+                elif( offset < 0 ):
+                    xstep = 1
+                    ystep = -1
+            elif( (dx_org < 0) and (dy_org > 0) and (dx_pres > 0) \
+                    and (dy_pres < 0) and (steep == 1) ):
+                x = x1
+                y = y1
+                if( offset > 0 ):
+                    xstep = 1
+                    ystep = -1
+                elif( offset < 0 ):
+                    xstep = -1
+                    ystep = 1
+            elif( (dx_org == 0) and (dy_org > 0) and (dx_pres > 0) \
+                    and (dy_pres == 0) and (steep == 1) ):
+                x = x1
+                y = y1
+                if( offset > 0 ):
+                    xstep = 0
+                    ystep = 1
+                elif( offset < 0 ):
+                    xstep = 0
+                    ystep = -1
+            elif( (dx_org > 0) and (dy_org == 0) and (dx_pres > 0) \
+                    and (dy_pres == 0) and (steep == 0) ):
+                x = x1
+                y = y1
+                if( offset > 0 ):
+                    xstep = 1
+                    ystep = 0
+                elif( offset < 0 ):
+                    xstep = -1
+                    ystep = 0
+            elif( (dx_org == 0) and (dy_org < 0) and (dx_pres > 0) \
+                    and (dy_pres == 0) and (steep == 1) ):
+                x = x0
+                y = y0
+                if( offset > 0 ):
+                    xstep = 0
+                    ystep = -1
+                elif( offset < 0 ):
+                    xstep = 0
+                    ystep = 1
+            elif( (dx_org < 0) and (dy_org == 0) and (dx_pres > 0) \
+                    and (dy_pres == 0) and (steep == 0) ):
+                x = x0
+                y = y0
+                if( offset > 0 ):
+                    xstep = -1
+                    ystep = 0
+                elif( offset < 0 ):
+                    xstep = 1
+                    ystep = 0
+                    
+            for i in range( 0,abs(offset) ):
+                if( i == 0 ):
+                    x += (xstep * i)
+                else:
+                    x += xstep
+                                
+                if( steep == 1 ):
+                    if( dx_org == 0 ):
+                        offPoint = [(x,y)]
+                    else:
+                        offPoint = [(y,x)]
+                else:
+                    offPoint = [(x,y)]
+
+                if( dx_org == 0 ):
+                    y += ystep
+                elif( dy_org == 0 ):
+                    y = y
+                else:
+                    err -= dy
+                    if( err < 0 ):
+                        y += ystep
+                        err += dx
+                        
+            new_contour.append(offPoint[0])
+
+        return new_contour
