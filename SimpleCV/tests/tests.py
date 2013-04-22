@@ -3691,3 +3691,11 @@ def test_channelMixer():
         pass
     else:
         assert False
+
+def test_prewitt():
+    i = Image('lenna')
+    p = i.prewitt()
+    if i != p :
+        pass
+    else:
+        assert False
