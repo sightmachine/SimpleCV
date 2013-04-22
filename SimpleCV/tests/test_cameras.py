@@ -6,7 +6,7 @@ from nose.tools import with_setup
 
 
 testoutput = "sampleimages/cam.jpg"
-video = "../sampleimages/ball.mov"
+
 
 def test_virtual_camera_constructor():
     mycam = VirtualCamera(testoutput, 'image')
