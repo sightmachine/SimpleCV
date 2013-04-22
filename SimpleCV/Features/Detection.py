@@ -459,9 +459,9 @@ class Line(Feature):
         for l in ls:
             if not self.isParallel(l):
                 ps = self.findIntersection(l)
-                ps = ( int(round(ps[0])), int(round(ps[1])) )
+                ps = (round(ps[0], 3), round(ps[1], 3))
                 if  0 <= ps[0] <= self.image.width and 0 <= ps[1] <= self.image.height:
-                        ep.append(ps)
+                        ep.append(( int(round(ps[0])), int(round(ps[1])) ))
              
         ep = list(set(ep))  # Remove duplicates of points if line crossed image at corners
         ep.sort()
