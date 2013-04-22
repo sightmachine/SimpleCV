@@ -411,13 +411,84 @@ class Line(Feature):
         d_y = self.end_points[b][1] - self.end_points[a][1]
         #our internal standard is degrees
         return float(360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
+    
+    def cropToImageEdges(self, extend=False):
+        """
+        **SUMMARY**
+        
+        Returns the line with endpoints inside image or on edges of image.
+
+        **PARAMETERS**
+
+        * *extend* - Extend line to image's edges if endpoints of line inside image.
+        
+        **RETURNS**
+
+        Returns a :py:class:`Line` object. If line does not cross the image's edges or cross at one point returns None.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = Line(img, ((-100, -50), (1000, 25))
+        >>> cr_l = l.cropToImageEdges(extend=True)
+
+        """
+        pt1, pt2 = self.end_points
+        
+        pt1, pt2 = min(pt1, pt2), max(pt1, pt2)
+        
+        # Four edges of image
+        p1 = (0, 0)
+        p2 = (self.image.width, 0)
+        l1 = Line(self.image, (p1, p2))
+        
+        p1 = (self.image.width, 0)
+        p2 = (self.image.width, self.image.height)
+        l2 = Line(self.image, (p1, p2))
+        
+        p1 = (0, self.image.height)
+        p2 = (self.image.width, self.image.height)
+        l3 = Line(self.image, (p1, p2))
+        
+        p1 = (0, 0)
+        p2 = (0, self.image.height)
+        l4 = Line(self.image, (p1, p2))
+        
+        ls = [l1, l2, l3, l4]
+        ep = []
+        for l in ls:
+            if not self.isParallel(l):
+                ps = self.findIntersection(l)
+                ps = (round(ps[0], 3), round(ps[1], 3))
+                if  0 <= ps[0] <= self.image.width and 0 <= ps[1] <= self.image.height:
+                        ep.append(( int(round(ps[0])), int(round(ps[1])) ))
+             
+        ep = list(set(ep))  # Remove duplicates of points if line crossed image at corners
+        ep.sort()
+                        
+        if len(ep) == 2:
+            if extend:
+                pt1, pt2 = ep
+            else:
+                if not 0 <= pt1[0] <= self.image.width or not 0 <= pt1[1] <= self.image.height:
+                    pt1 = ep[0]
+                if not 0 <= pt2[0] <= self.image.width or not 0 <= pt2[1] <= self.image.height:
+                    pt2 = ep[1]
+        elif len(ep) == 1:
+            logger.warning("Line cross the image only at one point")
+            return None
+        else:
+            logger.warning("Line does not cross the image")
+            return None
+        
+        return Line(self.image, (pt1, pt2))
+        
     def getVector(self):
         # this should be a lazy property
         if( self.vector is None):
             self.vector = [float(self.end_points[1][0]-self.end_points[0][0]),
                            float(self.end_points[1][1]-self.end_points[0][1])]
         return self.vector
-
 
     def dot(self,other):
         return np.dot(self.getVector(),other.getVector())

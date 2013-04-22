@@ -3148,6 +3148,18 @@ def test_line_perp():
         pass
     else:
         assert False
+        
+def test_line_cropToImageEdges():
+    img = Image((512, 512))
+    p1 = (10, 10)
+    p2 = (img.size()[0]+100, img.size()[1]+100)
+    l = Line(img, (p1, p2))
+    ch_l1 = ((10, 10), img.size())
+    ch_l2 = ((0, 0), img.size())
+    if l.cropToImageEdges().end_points == ch_l1 and l.cropToImageEdges(extend=True).end_points == ch_l2:
+        pass
+    else:
+        assert False
 
 def test_line_imgIntersection():
     img = Image((512, 512))
