@@ -3691,3 +3691,12 @@ def test_channelMixer():
         pass
     else:
         assert False
+
+def test_grayscalmatrix():
+    img = Image("lenna")
+    graymat = img.getGrayscaleMatrix()
+    newimg = Image(graymat, colorSpace=ColorSpace.GRAY)
+    from numpy import array_equal
+    if not array_equal(img.getGrayNumpy(), newimg.getGrayNumpy()):
+        assert False
+    pass
