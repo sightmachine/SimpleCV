@@ -40,7 +40,7 @@ tar zxvf pygame.tar.gz
 cd ..
 echo "Running setup for pygame"
 ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
-./bin/pip install https://github.com/ingenuitas/SimpleCV/zipball/master
+./bin/pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
 reset
 echo "SimpleCV should now be installed in the virtual environment"

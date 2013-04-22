@@ -59,7 +59,7 @@ install_ipython() {
 
 install_simplecv(){
 	echo "Installing SimpleCV"
-	sudo pip install -U https://github.com/ingenuitas/SimpleCV/zipball/master
+	sudo pip install -U https://github.com/sightmachine/SimpleCV/zipball/master
 	echo "SimpleCV Installation finished"
 }
 
