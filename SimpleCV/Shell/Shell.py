@@ -6,7 +6,7 @@
 #-----------------------------------------------------------------------
 # SimpleCV is an interface for Open Source machine
 # vision libraries in Python.
-# It provides a consise, readable interface for cameras,
+# It provides a concise, readable interface for cameras,
 # image manipulation, feature extraction, and format conversion.
 # Our mission is to give casual users a comprehensive interface
 # for basic machine vision functions and an
@@ -85,10 +85,10 @@ def magic_clear(self, arg):
     shellclear()
 
 def magic_forums(self, arg):
-    webbrowser.open('http://help.simplecv.org')
+    webbrowser.open('http://help.simplecv.org/questions/')
 
 def magic_walkthrough(self, arg):
-    webbrowser.open('http://examples.simplecv.org')
+    webbrowser.open('http://examples.simplecv.org/en/latest/')
 
 def magic_docs(self, arg):
     webbrowser.open('http://www.simplecv.org/doc/')
@@ -181,7 +181,7 @@ def run_notebook(mainArgs):
     sys.exit()
 
 def self_update():
-    URL = "https://github.com/ingenuitas/SimpleCV/zipball/master"
+    URL = "https://github.com/sightmachine/SimpleCV/zipball/master"
     command = "pip install -U %s" % URL
 
     if os.getuid() == 0:
