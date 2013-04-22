@@ -221,7 +221,7 @@ Test by running simplecv in the command line:
 
 If it starts (it should!) be sure to check out:
 
-     example
+     example()
 
 --------------------------------
 **Lion Take Two**
