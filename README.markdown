@@ -368,7 +368,7 @@ Video tutorials and demos can be found at:
 
 SimpleCV can in fact be used on a mobile device.  Although the processing requires a server to be setup that runs SimpleCV our 2012 Google Summer of Code
 student had built, we have forked the project and instructions on how to set it up and run it can be found at:
-<https://github.com/ingenuitas/simplecv-mobile-camera>
+<https://github.com/sightmachine/simplecv-mobile-camera>
 
 
 
