@@ -113,6 +113,20 @@ Install using clone of SimpleCV repository
     cd SimpleCV/
     sudo python setup.py install
 
+<a id="fedora"></a>
+### Fedora 18
+Install with pip
+
+    sudo yum -y install python-ipython opencv-python scipy numpy pygame python-setuptools python-pip
+    sudo python-pip install https://github.com/sightmachine/SimpleCV/zipball/develop
+
+Install using clone of SimpleCV repository
+
+    sudo yum -y install python-ipython opencv-python scipy numpy pygame python-setuptools python-pip git
+    git clone https://github.com/sightmachine/SimpleCV.git
+    cd SimpleCV/
+    sudo python setup.py install
+
 <a id="macos">
 ### Mac OS X (10.6 and above)
 </a>
