@@ -331,6 +331,37 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install pip
     pip install ipython
     pip install https://github.com/sightmachine/SimpleCV/zipball/1.3
+    
+###Windows 8
+*STEP 1
+ ------
+
+http://www.simplecv.org/download/index.html  => Go to this page and download SimpleCV latest stable version Superpack . It will start downloading a file named SimpleCV-(version).msi . 
+This file will be around 192mb .
+
+*STEP 2
+ ------
+    
+After Downloading run the file . It will start an installation window along with a command prompt window. Give yes permission and press next . First it will install python 2.7.3 . 
+Then it will install numpy,scipy,Pygame,openCV and now all the normal installation windows will be closed and still there will be command prompt running . Leave it as such it will 
+download some other file like cython and when it is finished commandpromt will display a success message "SimpleCV installed successfully" "press any button in 10sec or will close 
+automatically " . Now just press any button or wait for the count down .
+
+*STEP 3
+ ------
+ 
+ This is the final step and here we are confirming our SimpleCV installation. To do this open Python IDLE . Type in any of these two commands :
+  
+      >>from SimpleCV import *
+             or
+      >>import SimpleCV
+
+If this two commands works fine without any errors our installation was successfull. If some error occurs we should uninstall and restart or check 
+some forums.
+
+NOTE:- If this error is shown: "AttributeError: 'module' object has no attribute 'csgraph_to_masked'  " . Before this they will be showing list of paths of scipy library . 
+The solution for this is to install latest stable version of scipy for windows . www.scipy.org/Download  => we can download latest stable version of scipy for windows here.
+ 
 
 
 <a id="rasppi"></a>
