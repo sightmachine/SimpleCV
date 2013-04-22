@@ -974,13 +974,16 @@ class Image:
             source = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
             cv.Zero(source)
         if (type(source) == cv.cvmat):
-            self._matrix = source
+            self._matrix = cv.CreateMat(source.rows, source.cols, cv.CV_8UC3)
             if((source.step/source.cols)==3): #this is just a guess
+                cv.Copy(source, self._matrix, None)
                 self._colorSpace = ColorSpace.BGR
             elif((source.step/source.cols)==1):
-                self._colorSpace = ColorSpace.BGR
+                cv.Merge(source, source, source, None, self._matrix)
+                self._colorSpace = ColorSpace.GRAY
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
+                warnings.warn("Unable to process the provided cvmat")
 
 
         elif (type(source) == np.ndarray):  #handle a numpy array conversion
@@ -1016,11 +1019,12 @@ class Image:
 
         elif (type(source) == cv.iplimage):
             if (source.nChannels == 1):
-                self._bitmap = cv.CreateImage(cv.GetSize(source), cv.IPL_DEPTH_8U, 3)
+                self._bitmap = cv.CreateImage(cv.GetSize(source), source.depth, 3)
                 cv.Merge(source, source, source, None, self._bitmap)
-                self._colorSpace = ColorSpace.BGR
+                self._colorSpace = ColorSpace.GRAY
             else:
-                self._bitmap = source
+                self._bitmap = cv.CreateImage(cv.GetSize(source), source.depth, 3)
+                cv.Copy(source, self._bitmap, None)
                 self._colorSpace = ColorSpace.BGR
         elif (type(source) == type(str()) or source.__class__.__name__ == 'StringIO'):
             if source == '':
