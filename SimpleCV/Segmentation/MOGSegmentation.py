@@ -31,10 +31,13 @@ class MOGSegmentation(SegmentationBase):
     def __init__(self, history = 200, nMixtures = 5, backgroundRatio = 0.7, noiseSigma = 15, learningRate = 0.7):
         
         try:
-            import cv2
+            import cv2            
         except ImportError:
             raise ImportError("Cannot load OpenCV library which is required by SimpleCV")
-            return                
+            return    
+        if not hasattr(cv2, 'BackgroundSubtractorMOG'):
+            raise ImportError("A newer version of OpenCV is needed")
+            return            
         
         self.mError = False
         self.mReady = False        
@@ -47,6 +50,7 @@ class MOGSegmentation(SegmentationBase):
         self.backgroundRatio = backgroundRatio
         self.noiseSigma = noiseSigma
         self.learningRate = learningRate
+        
         self.mBSMOG = cv2.BackgroundSubtractorMOG(history, nMixtures, backgroundRatio, noiseSigma)
         
         
