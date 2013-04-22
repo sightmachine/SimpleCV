@@ -100,6 +100,7 @@ def magic_docs(self, arg):
 
 docs = make_magic(magic_docs)
 tutorial = make_magic(magic_tutorial)
+example = make_magic(magic_examples)
 
 banner = '+-----------------------------------------------------------+\n'
 banner += ' SimpleCV '
@@ -109,11 +110,11 @@ banner += '+-----------------------------------------------------------+\n'
 banner += '\n'
 banner += 'Commands: \n'
 banner += '\t"exit()" or press "Ctrl+ D" to exit the shell\n'
-banner += '\t"clear" to clear the shell screen\n'
-banner += '\t"tutorial" to begin the SimpleCV interactive tutorial\n'
-banner += '\t"example" gives a list of examples you can run\n'
-banner += '\t"forums" will launch a web browser for the help forums\n'
-banner += '\t"walkthrough" will launch a web browser with a walkthrough\n'
+banner += '\t"clear()" to clear the shell screen\n'
+banner += '\t"tutorial()" to begin the SimpleCV interactive tutorial\n'
+banner += '\t"example()" gives a list of examples you can run\n'
+banner += '\t"forums()" will launch a web browser for the help forums\n'
+banner += '\t"walkthrough()" will launch a web browser with a walkthrough\n'
 banner += '\n'
 banner += 'Usage:\n'
 banner += '\tdot complete works to show library\n'
@@ -122,7 +123,7 @@ banner += '\tjust by touching TAB after typing Image().\n'
 banner += '\n'
 banner += 'Documentation:\n'
 banner += '\thelp(Image), ?Image, Image?, or Image()? all do the same\n'
-banner += '\t"docs" will launch webbrowser showing documentation'
+banner += '\t"docs()" will launch webbrowser showing documentation'
 banner += '\n'
 exit_msg = '\n... [Exiting the SimpleCV interactive shell] ...\n'
 
