@@ -4848,7 +4848,7 @@ class Image:
 
     #this function contains two functions -- the basic edge detection algorithm
     #and then a function to break the lines down given a threshold parameter
-    def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
+    def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100, useStandard=False, nLines=-1):
         """
         **SUMMARY**
 
@@ -4864,6 +4864,8 @@ class Image:
         * *maxlinegap* - how much gap is allowed between line segments to consider them the same line .
         * *cannyth1* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
         * *cannyth2* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
+        * *useStandard* - use standard or probabilistic Hough transform.
+        * *nLines* - maximum number of lines for return.
 
         **RETURNS**
 
@@ -4883,18 +4885,69 @@ class Image:
 
         """
         em = self._getEdgeMap(cannyth1, cannyth2)
-
-
-        lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
-
-
+        
         linesFS = FeatureSet()
-        for l in lines:
-            linesFS.append(Line(self, l))
+        
+        if useStandard:
+            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            if nLines == -1:
+                nLines = len(lines)
+                
+            em = Image(em)
+            x,y = np.where(em.getGrayNumpy() > 128)
+            pts = zip(x,y)
+            
+            k = math.sqrt( self.size()[0]**2 + self.size()[1]**2 )
+            for rho, theta in lines[:nLines]:
+                a = math.cos(theta)
+                b = math.sin(theta)
+                x0 = a*rho
+                y0 = b*rho
+                pt1 = ( int(round(x0 + k*(-b))), int(round(y0 + k*a)) )
+                pt2 = ( int(round(x0 - k*(-b))), int(round(y0 - k*a)) )
+                brl = self.bresenham_line(pt1, pt2)
+                
+                ls = []
+                wh_p = list(set(pts) & set(brl))    # all white points that lies on bresenham's line
+                wh_p.sort()
+                if wh_p:
+                    line = 0
+                    last_wp = np.array(wh_p[0]) 
+                    start_lp = np.array(wh_p[0]) 
+                    for wp in wh_p:
+                        wp = np.array(wp) 
+                        dist = int(round( np.linalg.norm(wp-last_wp) ))
+                        if dist != 1:
+                            start_lp = np.array(wp)
+                            if line: 
+                                len_l = int(round( np.linalg.norm( line[1]-line[0] ) ))
+                                if len_l >= minlinelength:
+                                    if ls:
+                                        # if the gap between two lines is less than maxlinegap than merge this lines
+                                        l = ls[-1]
+                                        gap = int(round( np.linalg.norm( line[0]-l[1] ) ))
+                                        if gap <= maxlinegap:
+                                            ls.pop()
+                                            line = [list(l[0]), list(line[1])]
+                                    line = [list(line[0]), list(line[1])]
+                                    ls.append(line)
+                                    line = 0
+                        elif dist == 1:
+                            line = [start_lp, wp]
+                        last_wp = np.array(wp)
+    
+                for l in ls:
+                    linesFS.append(Line(self, l))
+        else:
+            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            if nLines == -1:
+                nLines = len(lines)
+
+            for l in lines[:nLines]:
+                linesFS.append(Line(self, l))
+        
         return linesFS
-
-
-
+        
 
     def findChessboard(self, dimensions = (8, 5), subpixel = True):
         """
