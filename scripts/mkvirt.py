@@ -41,6 +41,6 @@ f = open('simplecv-bootstrap.py', 'w').write(output)
 #~ source bin/activate
 #~ cd src/pygame
 #~ python setup.py -setuptools install
-#~ pip install https://github.com/ingenuitas/SimpleCV/zipball/masteriii
+#~ pip install https://github.com/sightmachine/SimpleCV/zipball/masteriii
 #    call_subprocess(['python','setup.py','-setuptools','install'], show_stdout=True)
 #call_subprocess([join(home_dir, 'bin', 'pip'),'install','-r','requirements.txt'], show_stdout=True)

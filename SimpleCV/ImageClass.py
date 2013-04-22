@@ -1037,7 +1037,7 @@ class Image:
                     try:
                         from webm import decode as webmDecode
                     except ImportError:
-                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/sightmachine/python-webm')
                         return
 
                     WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
@@ -2338,7 +2338,7 @@ class Image:
                     from webm import encode as webmEncode
                     from webm.handlers import BitmapHandler, WebPHandler
                 except:
-                    logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                    logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/sightmachine/python-webm')
                     return 0
 
                 #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
