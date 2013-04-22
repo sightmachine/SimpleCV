@@ -3848,7 +3848,7 @@ class Image:
 
         return (Image(red), Image(green), Image(blue))
 
-    def mergeChannels(self,r=None,b=None,g=None):
+    def mergeChannels(self,r=None,g=None,b=None):
         """
         **SUMMARY**
 
