@@ -95,7 +95,7 @@ walkthrough = make_magic(magic_walkthrough)
 
 
 def magic_docs(self, arg):
-    webbrowser.open('http://www.simplecv.org/doc/')
+    webbrowser.open('http://www.simplecv.org/docs/')
 
 
 docs = make_magic(magic_docs)
