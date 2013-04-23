@@ -494,16 +494,61 @@ class Line(Feature):
         return np.cross(self.getVector(),other.getVector())
 
     def extendToImageEdges(self):
-        x = np.array([self.end_points[1][0],self.end_points[0][0]])
-        y = np.array([self.end_points[1][1],self.end_points[0][1]])
+        """
+        **SUMMARY**
+        
+        Returns the line with endpoints on edges of image. 
 
-        xmax_idx = np.where(np.max(x)==x)
-        xmin_idx = np.where(np.min(x)==x)
-        m = (y[xmin_idx]-y[xmax_idx])/(np.min(x)-np.max(x))
-        b = self.end_points[0][1]-(m*self.end_points[0][0])
-        p0 = (0,b)
-        p1 = (self.image.width,(self.image.width)*m+b)
-        return Line(self.image,[p0,p1])
+        **RETURNS**
+
+        Returns a :py:class:`Line` object. If line does not lies entirely inside image then returns None.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = Line(img, ((50, 150), (2, 225))
+        >>> cr_l = l.extendToImageEdges()
+
+        """
+        pt1, pt2 = self.end_points
+        pt1, pt2 = min(pt1, pt2), max(pt1, pt2)
+        x1, y1 = pt1
+        x2, y2 = pt2
+        w, h = self.image.size()
+        slope = self.slope
+        
+        if not 0 <= x1 <= w or not 0 <= x2 <= w or not 0 <= y1 <= w or not 0 <= y2 <= w:
+            logger.warning("At first the line should be cropped")
+            return None
+               
+        ep = []
+        if slope == float('inf'):
+            if 0 <= x1 <= w and 0 <= x2 <= w:
+                return Line(self.image, ((x1, 0), (x2, h)))
+        elif slope == 0:
+            if 0 <= y1 <= w and 0 <= y2 <= w:
+                return Line(self.image, ((0, y1), (w, y2)))
+        else:
+            x = (slope*x1 - y1)/slope   # top edge y = 0
+            if 0 <= x <= w:
+                ep.append((int(round(x)), 0))
+
+            x = (slope*x1 + h - y1)/slope   # bottom edge y = h
+            if 0 <= x <= w:
+                ep.append((int(round(x)), h))
+            
+            y = -slope*x1 + y1  # left edge x = 0
+            if 0 <= y <= h:
+                ep.append( (0, (int(round(y)))) )
+            
+            y = slope*(w - x1) + y1 # right edge x = w
+            if 0 <= y <= h:
+                ep.append( (w, (int(round(y)))) )
+
+        ep = list(set(ep))  # remove duplicates of points if line cross image at corners
+        ep.sort()
+        
+        return Line(self.image, ep)
 
 ######################################################################
 class Barcode(Feature):
