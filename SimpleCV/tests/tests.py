@@ -3158,6 +3158,24 @@ def test_line_imgIntersection():
         pass
     else:
         assert False
+        
+def test_line_cropToEdges():
+    img = Image((512, 512))
+    l = Line(img, ((-10, -5), (400, 400)))
+    l_cr = l.cropToImageEdges()
+    if l_cr.end_points == ((0, 5), (400, 400)):
+        pass
+    else:
+        assert False
+    
+def test_line_extendToEdges():
+    img = Image((512, 512))
+    l = Line(img, ((10, 10), (30, 30)))
+    l_ext = l.extendToImageEdges()
+    if l_ext.end_points == ((0, 0), (512, 512)):
+        pass
+    else:
+        assert False
 
 def test_findGridLines():
     img = Image("simplecv")
