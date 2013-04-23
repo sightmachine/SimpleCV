@@ -99,7 +99,7 @@ def tutorial_image():
     print lb
     print "img = Image(URL_TO_MY_PICTURE) or img = Image(PATH_TO_MY_PICTURE)"
     print lb
-    cmd =  "Example: img = Image('http://www.simplecv.org/sites/all/themes/simplecv/images/logo.png')"
+    cmd =  "Example: img = Image('http://simplecv.org/logo.jpg')"
 
     desired_tuple = ('img', Image)
     command_loop(cmd, desired_tuple)
