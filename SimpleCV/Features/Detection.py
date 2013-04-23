@@ -411,13 +411,81 @@ class Line(Feature):
         d_y = self.end_points[b][1] - self.end_points[a][1]
         #our internal standard is degrees
         return float(360.00 * (atan2(d_y, d_x)/(2 * np.pi))) #formerly 0 was west
+
+    def cropToImageEdges(self):
+        """
+        **SUMMARY**
+        
+        Returns the line with endpoints on edges of image. If some endpoints lies inside image 
+        then those points remain the same without extension to the edges.
+
+        **RETURNS**
+
+        Returns a :py:class:`Line` object. If line does not cross the image's edges or cross at one point returns None.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = Line(img, ((-100, -50), (1000, 25))
+        >>> cr_l = l.cropToImageEdges()
+
+        """
+        pt1, pt2 = self.end_points
+        pt1, pt2 = min(pt1, pt2), max(pt1, pt2)
+        x1, y1 = pt1
+        x2, y2 = pt2
+        w, h = self.image.size()
+        slope = self.slope
+               
+        ep = []
+        if slope == float('inf'):
+            if 0 <= x1 <= w and 0 <= x2 <= w:
+                ep.append((x1, 0))
+                ep.append((x2, h))
+        elif slope == 0:
+            if 0 <= y1 <= w and 0 <= y2 <= w:
+                ep.append((0, y1))
+                ep.append((w, y2))
+        else:
+            x = (slope*x1 - y1)/slope   # top edge y = 0
+            if 0 <= x <= w:
+                ep.append((int(round(x)), 0))
+
+            x = (slope*x1 + h - y1)/slope   # bottom edge y = h
+            if 0 <= x <= w:
+                ep.append((int(round(x)), h))
+            
+            y = -slope*x1 + y1  # left edge x = 0
+            if 0 <= y <= h:
+                ep.append( (0, (int(round(y)))) )
+            
+            y = slope*(w - x1) + y1 # right edge x = w
+            if 0 <= y <= h:
+                ep.append( (w, (int(round(y)))) )
+
+        ep = list(set(ep))  # remove duplicates of points if line cross image at corners
+        ep.sort()
+        if len(ep) == 2:
+            # if points lies outside image then change them
+            if not (0 < x1 < w and 0 < y1 < h):
+                pt1 = ep[0]
+            if not (0 < x2 < w and 0 < y2 < h):
+                pt2 = ep[1]
+        elif len(ep) == 1:
+            logger.warning("Line cross the image only at one point")
+            return None
+        else:
+            logger.warning("Line does not cross the image")
+            return None
+        
+        return Line(self.image, (pt1, pt2))
+        
     def getVector(self):
         # this should be a lazy property
         if( self.vector is None):
             self.vector = [float(self.end_points[1][0]-self.end_points[0][0]),
                            float(self.end_points[1][1]-self.end_points[0][1])]
         return self.vector
-
 
     def dot(self,other):
         return np.dot(self.getVector(),other.getVector())
