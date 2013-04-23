@@ -3699,3 +3699,18 @@ def test_prewitt():
         pass
     else:
         assert False
+
+def test_edgeSnap():
+    img = Image('shapes.png',sample=True).edges()
+
+    list1 = [(129,32),(19,88),(124,135)]
+    list2 = [(484,294),(297,437)]
+    list3 = [(158,357),(339,82)]
+
+    for list_ in list1,list2,list3:
+        edgeLines = img.edgeSnap(list_)
+        edgeLines.draw(color = Color.YELLOW,width = 4)
+
+    name_stem = "test_edgeSnap"
+    result = [img]
+    perform_diff(result,name_stem,0.7)
