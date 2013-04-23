@@ -336,7 +336,7 @@ Exit the command line and reopen so it loads the updated python paths, then run:
  Step 1
  ------
 
-http://www.simplecv.org/download/index.html  => Go to this page and download SimpleCV latest stable version Superpack . It will start downloading a file named SimpleCV-(version).msi . 
+http://www.simplecv.org/download  => Go to this page and download SimpleCV latest stable version Superpack . It will start downloading a file named SimpleCV-(version).msi . 
 This file will be around 192mb .
 
 Step 2
@@ -413,7 +413,7 @@ Video tutorials and demos can be found at:
 
 SimpleCV can in fact be used on a mobile device.  Although the processing requires a server to be setup that runs SimpleCV our 2012 Google Summer of Code
 student had built, we have forked the project and instructions on how to set it up and run it can be found at:
-<https://github.com/ingenuitas/simplecv-mobile-camera>
+<https://github.com/sightmachine/simplecv-mobile-camera>
 
 
 
