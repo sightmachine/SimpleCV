@@ -13033,10 +13033,10 @@ class Image:
             val = np.max(self.getGrayNumpy())
             x,y = np.where(self.getGrayNumpy()==val)
             locs = zip(x.tolist(),y.tolist())
-            return val,locs
+            return int(val),locs
         else:
             val = np.max(self.getGrayNumpy())
-            return val
+            return int(val)
                 
     def minValue(self,locations=False):
         """
@@ -13067,10 +13067,10 @@ class Image:
             val = np.min(self.getGrayNumpy())
             x,y = np.where(self.getGrayNumpy()==val)
             locs = zip(x.tolist(),y.tolist())
-            return val,locs
+            return int(val),locs
         else:
             val = np.min(self.getGrayNumpy())
-            return val
+            return int(val)
 
     
     def findKeypointClusters(self, num_of_clusters = 5, order='dsc', flavor='surf'):
