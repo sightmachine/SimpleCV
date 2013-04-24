@@ -2880,7 +2880,9 @@ class AVTCamera(FrameSource):
             self.hasImage = False
             self.frame = None
 
-        
+    def __del__(self):
+      #This function should disconnect from the AVT Camera
+      pverr(self.dll.PvCameraClose(self.handle))
     
     def __init__(self, camera_id = -1, properties = {}, threaded = False):
         #~ super(AVTCamera, self).__init__()
@@ -2912,8 +2914,14 @@ class AVTCamera(FrameSource):
 
         camera_id = long(camera_id)
         self.handle = ct.c_uint()
-        self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle))
-        self.dll.PvCaptureStart(self.handle)
+        init_count = 0
+        while self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle)) != 0: #wait until camera is availble
+          if init_count > 4: # Try to connect 5 times before giving up
+            raise Exception('Could not connect to camera, please verify with SampleViewer you can connect')
+          init_count += 1
+          time.sleep(1) # sleep and retry to connect to camera in a second
+
+        pverr(self.dll.PvCaptureStart(self.handle))
         self.uniqueid = camera_id
 
         self.setProperty("AcquisitionMode","SingleFrame")
