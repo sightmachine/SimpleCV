@@ -3714,3 +3714,22 @@ def test_edgeSnap():
     name_stem = "test_edgeSnap"
     result = [img]
     perform_diff(result,name_stem,0.7)
+
+def test_motionBlur():
+    image = Image('lenna')
+    d = (-70, -45, -30, -10, 100, 150, 235, 420)
+    p = ( 10,20,30,40,50,60,70,80)
+    img = []
+
+    a = image.motionBlur(0)
+    for i in range(8):
+        img += [image.motionBlur(p[i],d[i])]
+    c = 0
+    for im in img:
+        if im is not i:
+            c += 1
+
+    if c == 8 and a is image:
+        pass
+    else:
+        assert False

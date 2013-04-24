@@ -13788,6 +13788,58 @@ class Image:
         finalList += [end]
         return finalList
 
+    def motionBlur(self,intensity=15, angle = 0):
+        """
+        **SUMMARY**
+
+        Performs the motion blur of an Image given the intensity and angle
+
+        see : https://en.wikipedia.org/wiki/Motion_blur
+
+        **Parameters**
+
+        * *intensity* - The intensity of the motion blur effect. Governs the 
+            size of the kernel used in convolution
+
+        * *angle* - Angle in degrees at which motion blur will occur. Positive
+            is Clockwise and negative is Anti-Clockwise. 0 blurs from left to 
+            right
+            
+
+        **RETURNS**
+
+        An image with the specified motion blur applied.
+
+        **EXAMPLE**
+        >>> img = Image ('lenna')
+        >>> blur = img.motionBlur(40,45)
+        >>> blur.show()
+        
+        """
+        
+        intensity = int(intensity)
+
+        if(intensity <= 1):
+            logger.warning('power less than 1 will result in no change')
+            return self
+        
+        kernel = np.zeros((intensity,intensity))
+        
+        rad = math.radians(angle)
+        x1,y1 = intensity/2,intensity/2
+        
+        x2 = int(x1-(intensity-1)/2*math.sin(rad))
+        y2 = int(y1 -(intensity-1)/2*math.cos(rad))
+        
+        line = self.bresenham_line((x1,y1),(x2,y2))
+        
+        x = [p[0] for p in line]
+        y = [p[1] for p in line]
+        
+        kernel[x,y] = 1
+        kernel = kernel/len(line)
+        return self.convolve(kernel = kernel)
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
