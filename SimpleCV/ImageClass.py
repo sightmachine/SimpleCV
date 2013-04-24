@@ -4674,7 +4674,7 @@ class Image:
         """
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.MaxS(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv.MaxS(self.getBitmap(), other, newbitmap)
         else:
             cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
