@@ -6811,7 +6811,7 @@ class Image:
                 if( scale ):
                     #scale the other image height to fit
                     resized = image.resize(h=self.height)
-                    nW = self.width + resized.height
+                    nW = self.width + resized.width
                     nH = self.height
                     newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
                     cv.SetZero(newCanvas)
