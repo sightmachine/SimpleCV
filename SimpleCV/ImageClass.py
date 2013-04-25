@@ -3547,7 +3547,7 @@ class Image:
 
     #this code is based on code that's based on code from
     #http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/
-    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(20,20)):
+    def findHaarFeatures(self, cascade, scale_factor=1.2, min_neighbors=2, use_canny=cv.CV_HAAR_DO_CANNY_PRUNING, min_size=(20,20), max_size=(1000,1000)):
         """
         **SUMMARY**
 
@@ -3587,6 +3587,9 @@ class Image:
         * *min_size* - Minimum window size. By default, it is set to the size
           of samples the classifier has been trained on ((20,20) for face detection)
 
+        * *max_size* - Maximum window size. By default, it is set to the size
+          of samples the classifier has been trained on ((1000,1000) for face detection)
+
         **RETURNS**
 
         A feature set of HaarFeatures
@@ -3617,19 +3620,31 @@ class Image:
 
 
         #lovely.  This segfaults if not present
+        from SimpleCV.Features.HaarCascade import HaarCascade
         if isinstance(cascade, basestring):
-            from SimpleCV.Features.HaarCascade import HaarCascade
             cascade = HaarCascade(cascade)
-            if not cascade.getCascade(): return None
-
+            if not cascade.getCascade(): 
+                return None
+        elif isinstance(cascade,HaarCascade):
+            pass
+        else:
+            logger.warning('Could not initialize HaarCascade. Enter Valid cascade value.')
 
         # added all of the arguments from the opencv docs arglist
-        objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
+        try:
+            import cv2
+            haarClassify = cv2.CascadeClassifier(cascade.getFHandle())
+            objects = haarClassify.detectMultiScale(self.getGrayNumpyCv2(),scaleFactor=scale_factor,minNeighbors=min_neighbors,minSize=min_size,flags=use_canny)
+            cv2 = True
+
+        except ImportError:
+            objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
                 cascade.getCascade(), storage, scale_factor, min_neighbors,
                 use_canny, min_size)
+            cv2 = False
 
-        if objects:
-            return FeatureSet([HaarFeature(self, o, cascade) for o in objects])
+        if objects is not None:
+            return FeatureSet([HaarFeature(self, o, cascade,cv2) for o in objects])
 
         return None
 

@@ -21,7 +21,7 @@ class HaarCascade():
         else:
             self._mName = name
 
-        #First checks the path given by the user, after that checks SimpleCV's default folder
+        #First checks the path given by the user, if not then checks SimpleCV's default folder
         if fname is not None:
             if os.path.exists(fname):
                 self._fhandle = os.path.abspath(fname)
@@ -35,7 +35,7 @@ class HaarCascade():
             self._mCascade = cv.Load(self._fhandle)
 
             if HaarCascade._cache.has_key(self._fhandle):
-                self._mCascade = HaarCascade._cache[fname]
+                self._mCascade = HaarCascade._cache[self._fhandle]
                 return
             HaarCascade._cache[self._fhandle] = self._mCascade
 
