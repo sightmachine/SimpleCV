@@ -3635,16 +3635,16 @@ class Image:
             import cv2
             haarClassify = cv2.CascadeClassifier(cascade.getFHandle())
             objects = haarClassify.detectMultiScale(self.getGrayNumpyCv2(),scaleFactor=scale_factor,minNeighbors=min_neighbors,minSize=min_size,flags=use_canny)
-            cv2 = True
+            cv2flag = True
 
         except ImportError:
             objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
                 cascade.getCascade(), storage, scale_factor, min_neighbors,
                 use_canny, min_size)
-            cv2 = False
+            cv2flag = False
 
         if objects is not None:
-            return FeatureSet([HaarFeature(self, o, cascade,cv2) for o in objects])
+            return FeatureSet([HaarFeature(self, o, cascade,cv2flag) for o in objects])
 
         return None
 
