@@ -29,7 +29,7 @@ easy_install PIL
 easy_install cython
 easy_install pip
 pip install ipython
-pip install https://github.com/ingenuitas/SimpleCV/zipball/1.3
+pip install https://github.com/sightmachine/SimpleCV/zipball/1.3
 echo "The Download path is:"
 %1
 mkdir C:\Python27\Lib\site-packages\freenect

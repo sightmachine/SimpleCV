@@ -1037,7 +1037,7 @@ class Image:
                     try:
                         from webm import decode as webmDecode
                     except ImportError:
-                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/ingenuitas/python-webm')
+                        logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/sightmachine/python-webm')
                         return
 
                     WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
@@ -2338,7 +2338,7 @@ class Image:
                     from webm import encode as webmEncode
                     from webm.handlers import BitmapHandler, WebPHandler
                 except:
-                    logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/ingenuitas/python-webm')
+                    logger.warning('You need the webm library to save to webp format. You can download from: https://github.com/sightmachine/python-webm')
                     return 0
 
                 #PNG_BITMAP_DATA = bytearray(Image.open(PNG_IMAGE_FILE).tostring())
@@ -3848,7 +3848,7 @@ class Image:
 
         return (Image(red), Image(green), Image(blue))
 
-    def mergeChannels(self,r=None,b=None,g=None):
+    def mergeChannels(self,r=None,g=None,b=None):
         """
         **SUMMARY**
 
@@ -3909,7 +3909,7 @@ class Image:
 
         retVal = self.getEmpty()
         cv.Merge(b,g,r,None,retVal)
-        return Image(retVal);
+        return Image(retVal)
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
         """
@@ -13547,6 +13547,298 @@ class Image:
             retVal.append([face, label])
         return retVal
 
+    def channelMixer(self, channel = 'r', weight = (100,100,100)):
+        """
+        **SUMMARY**
+
+        Mixes channel of an RGB image based on the weights provided. The output is given at the 
+        channel provided in the parameters. Basically alters the value of one channelg of an RGB
+        image based in the values of other channels and itself. If the image is not RGB then first
+        converts the image to RGB and then mixes channel
+
+        **PARAMETERS**
+
+        * *channel* - The output channel in which the values are to be replaced. 
+        It can have either 'r' or 'g' or 'b'
+
+        * *weight* - The weight of each channel in calculation of the mixed channel.
+        It is a tuple having 3 values mentioning the percentage of the value of the 
+        channels, from -200% to 200%
+
+        **RETURNS**
+
+        A SimpleCV RGB Image with the provided channel replaced with the mixed channel.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> img2 = img.channelMixer()
+        >>> Img3 = img.channelMixer(channel = 'g', weights = (3,2,1))
+
+        **NOTE**
+
+        Read more at http://docs.gimp.org/en/plug-in-colors-channel-mixer.html
+
+        """
+        r, g, b = self.splitChannels()
+        if weight[0] > 200 or weight[1] > 200 or weight[2] >= 200:
+            if weight[0] <-200 or weight[1] < -200 or weight[2] < -200:
+                warnings.warn('Value of weights can be from -200 to 200%')
+                return None
+
+        weight = map(float,weight)
+        channel = channel.lower()
+        if channel == 'r':
+            r = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
+        elif channel == 'g':
+            g = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
+        elif channel == 'b':
+            b = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
+        else:
+            warnings.warn('Please enter a valid channel(r/g/b)')
+            return None
+
+        retVal = self.mergeChannels(r = r, g = g, b = b)
+        return retVal
+
+    def prewitt(self):
+        """
+        **SUMMARY**
+
+        Prewitt operator for edge detection
+
+        **PARAMETERS**
+
+        None
+
+        **RETURNS**
+
+        Image with prewitt opeartor applied on it
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> p = img.prewitt()
+        >>> p.show()
+
+        **NOTES**
+
+        Read more at: http://en.wikipedia.org/wiki/Prewitt_operator
+        
+        """
+        img = self.copy()
+        grayimg = img.grayscale()
+        gx = [[1,1,1],[0,0,0],[-1,-1,-1]]
+        gy = [[-1,0,1],[-1,0,1],[-1,0,1]]
+        grayx = grayimg.convolve(gx)
+        grayy = grayimg.convolve(gy)
+        grayxnp = np.uint64(grayx.getGrayNumpy())
+        grayynp = np.uint64(grayy.getGrayNumpy())
+        retVal = Image(np.sqrt(grayxnp**2+grayynp**2))
+        return retVal
+
+    def edgeSnap(self,pointList,step = 1):
+        """
+        **SUMMARY**
+
+        Given a List of points finds edges closet to the line joining two 
+        successive points, edges are returned as a FeatureSet of
+        Lines.
+
+        Note : Image must be binary, it is assumed that prior conversion is done
+
+        **Parameters**
+
+       * *pointList* - List of points to be checked for nearby edges.
+
+        * *step* - Number of points to skip if no edge is found in vicinity.
+                   Keep this small if you want to sharply follow a curve
+
+        **RETURNS**
+
+        * FeatureSet * - A FeatureSet of Lines
+        
+        **EXAMPLE**
+
+        >>> image = Image("logo").edges()
+        >>> edgeLines = image.edgeSnap([(50,50),(230,200)])
+        >>> edgeLines.draw(color = Color.YELLOW,width = 3)
+        """
+
+        imgArray = self.getGrayNumpy()
+        c1 = np.count_nonzero(imgArray )
+        c2 = np.count_nonzero(imgArray - 255)
+        
+        #checking that all values are 0 and 255
+        if( c1 + c2 != imgArray.size):
+            raise ValueError,"Image must be binary"
+
+        if(len(pointList) < 2 ):
+            return None
+
+        finalList = [pointList[0]]
+        featureSet  = FeatureSet()
+        last = pointList[0]
+        for point in pointList[1:None]:
+            finalList += self._edgeSnap2(last,point,step)
+            last = point
+            
+        last = finalList[0]
+        for point in finalList:
+            featureSet.append(Line(self,(last,point)))
+            last = point
+        return featureSet
+
+    def _edgeSnap2(self,start,end,step):
+        """
+        **SUMMARY**
+
+        Given a two points returns a list of edge points closet to the line joining the points 
+        Point is a tuple of two numbers
+
+        Note : Image must be binary
+
+        **Parameters**
+
+        * *start* - First Point
+
+        * *end* - Second Point
+
+        * *step* - Number of points to skip if no edge is found in vicinity
+                   Keep this low to detect sharp curves
+
+        **RETURNS**
+
+        * List * - A list of tuples , each tuple contains (x,y) values
+        
+        """
+
+
+        edgeMap = self.getGrayNumpy()
+
+        #Size of the box around a point which is checked for edges.
+        box = step*4
+
+        xmin = min(start[0],end[0])
+        xmax = max(start[0],end[0])
+        ymin = min(start[1],end[1])
+        ymax = max(start[1],end[1])
+
+        line = self.bresenham_line(start,end)
+
+        #List of Edge Points.
+        finalList = []
+        i = 0
+        
+        #Closest any point has ever come to the end point
+        overallMinDist = None
+
+        while  i < len(line) :
+            
+            x,y = line[i]
+            
+            #Get the matrix of points fromx around current point.
+            region = edgeMap[x-box:x+box,y-box:y+box]
+
+            #Condition at the boundary of the image
+            if(region.shape[0] == 0 or region.shape[1] == 0):
+                i += step
+                continue
+
+            #Index of all Edge points
+            indexList = np.argwhere(region>0)
+            if (indexList.size > 0):
+                
+                #Center the coordinates around the point
+                indexList -= box
+                minDist = None
+
+                # Incase multiple edge points exist, choose the one closest
+                # to the end point
+                for ix,iy in indexList:
+                    dist = math.hypot(x+ix-end[0],iy+y-end[1])
+                    if(minDist ==None or dist < minDist ):
+                        dx,dy = ix,iy
+                        minDist = dist
+
+                # The distance of the new point is compared with the least 
+                # distance computed till now, the point is rejected if it's
+                # comparitively more. This is done so that edge points don't
+                # wrap around a curve instead of heading towards the end point
+                if(overallMinDist!= None and minDist > overallMinDist*1.1):
+                    i+=step
+                    continue
+
+                if( overallMinDist == None or minDist < overallMinDist ):
+                    overallMinDist = minDist
+
+                # Reset the points in the box so that they are not detected
+                # during the next iteration.
+                edgeMap[x-box:x+box,y-box:y+box] = 0
+
+                # Keep all the points in the bounding box
+                if( xmin <= x+dx <= xmax and ymin <= y+dx <=ymax):
+                    #Add the point to list and redefine the line
+                    line =[(x+dx,y+dy)] + self.bresenham_line((x+dx, y+dy), end)
+                    finalList += [(x+dx,y+dy)]
+                
+                    i = 0
+            
+            i += step 
+        finalList += [end]
+        return finalList
+
+    def motionBlur(self,intensity=15, angle = 0):
+        """
+        **SUMMARY**
+
+        Performs the motion blur of an Image given the intensity and angle
+
+        see : https://en.wikipedia.org/wiki/Motion_blur
+
+        **Parameters**
+
+        * *intensity* - The intensity of the motion blur effect. Governs the 
+            size of the kernel used in convolution
+
+        * *angle* - Angle in degrees at which motion blur will occur. Positive
+            is Clockwise and negative is Anti-Clockwise. 0 blurs from left to 
+            right
+            
+
+        **RETURNS**
+
+        An image with the specified motion blur applied.
+
+        **EXAMPLE**
+        >>> img = Image ('lenna')
+        >>> blur = img.motionBlur(40,45)
+        >>> blur.show()
+        
+        """
+        
+        intensity = int(intensity)
+
+        if(intensity <= 1):
+            logger.warning('power less than 1 will result in no change')
+            return self
+        
+        kernel = np.zeros((intensity,intensity))
+        
+        rad = math.radians(angle)
+        x1,y1 = intensity/2,intensity/2
+        
+        x2 = int(x1-(intensity-1)/2*math.sin(rad))
+        y2 = int(y1 -(intensity-1)/2*math.cos(rad))
+        
+        line = self.bresenham_line((x1,y1),(x2,y2))
+        
+        x = [p[0] for p in line]
+        y = [p[1] for p in line]
+        
+        kernel[x,y] = 1
+        kernel = kernel/len(line)
+        return self.convolve(kernel = kernel)
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack

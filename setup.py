@@ -3,9 +3,9 @@ import os, sys, glob, fnmatch
 
 setup(name="SimpleCV",
   version=1.3,
-  download_url='https://github.com/ingenuitas/SimpleCV/zipball/1.3',
+  download_url='https://github.com/sightmachine/SimpleCV/zipball/1.3',
   description="Make Computers See with SimpleCV, the Python Framework for Machine Vision",
-  long_description="""Framework for computer (machine) vision in Python, providing a unified, pythonic interface to image aquisition, conversion, manipulation, and feature extraction.""",
+  long_description="""Framework for computer (machine) vision in Python, providing a unified, pythonic interface to image acquisition, conversion, manipulation, and feature extraction.""",
   classifiers=[
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',

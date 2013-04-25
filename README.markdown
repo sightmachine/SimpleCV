@@ -113,6 +113,20 @@ Install using clone of SimpleCV repository
     cd SimpleCV/
     sudo python setup.py install
 
+<a id="fedora"></a>
+### Fedora 18
+Install with pip
+
+    sudo yum -y install python-ipython opencv-python scipy numpy pygame python-setuptools python-pip
+    sudo python-pip install https://github.com/sightmachine/SimpleCV/zipball/develop
+
+Install using clone of SimpleCV repository
+
+    sudo yum -y install python-ipython opencv-python scipy numpy pygame python-setuptools python-pip git
+    git clone https://github.com/sightmachine/SimpleCV.git
+    cd SimpleCV/
+    sudo python setup.py install
+
 <a id="macos">
 ### Mac OS X (10.6 and above)
 </a>
@@ -221,7 +235,7 @@ Test by running simplecv in the command line:
 
 If it starts (it should!) be sure to check out:
 
-     example
+     example()
 
 --------------------------------
 **Lion Take Two**
@@ -317,6 +331,37 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install pip
     pip install ipython
     pip install https://github.com/sightmachine/SimpleCV/zipball/1.3
+    
+###Windows 8
+ Step 1
+ ------
+
+http://www.simplecv.org/download  => Go to this page and download SimpleCV latest stable version Superpack . It will start downloading a file named SimpleCV-(version).msi . 
+This file will be around 192mb .
+
+Step 2
+ ------
+    
+After Downloading run the file . It will start an installation window along with a command prompt window. Give yes permission and press next . First it will install python 2.7.3 . 
+Then it will install numpy,scipy,Pygame,openCV and now all the normal installation windows will be closed and still there will be command prompt running . Leave it as such it will 
+download some other file like cython and when it is finished commandpromt will display a success message "SimpleCV installed successfully" "press any button in 10sec or will close 
+automatically " . Now just press any button or wait for the count down .
+
+ Step 3
+ ------
+ 
+ This is the final step and here we are confirming our SimpleCV installation. To do this open Python IDLE . Type in any of these two commands :
+  
+      >>from SimpleCV import *
+             or
+      >>import SimpleCV
+
+If this two commands works fine without any errors our installation was successfull. If some error occurs we should uninstall and restart or check 
+some forums.
+
+NOTE:- If this error is shown: "AttributeError: 'module' object has no attribute 'csgraph_to_masked'  " . Before this they will be showing list of paths of scipy library . 
+The solution for this is to install latest stable version of scipy for windows . www.scipy.org/Download  => we can download latest stable version of scipy for windows here.
+ 
 
 
 <a id="rasppi"></a>
@@ -368,7 +413,7 @@ Video tutorials and demos can be found at:
 
 SimpleCV can in fact be used on a mobile device.  Although the processing requires a server to be setup that runs SimpleCV our 2012 Google Summer of Code
 student had built, we have forked the project and instructions on how to set it up and run it can be found at:
-<https://github.com/ingenuitas/simplecv-mobile-camera>
+<https://github.com/sightmachine/simplecv-mobile-camera>
 
 
 

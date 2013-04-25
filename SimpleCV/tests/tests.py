@@ -1739,7 +1739,7 @@ def test_findKeypoints():
     img = Image(testimage2)
     if cv2.__version__.startswith('$Rev:'):
         flavors = ['SURF','STAR','SIFT'] # supported in 2.3.1
-    elif cv2.__version__ == '2.4.0' or cv2.__version__ = '2.4.1':
+    elif cv2.__version__ == '2.4.0' or cv2.__version__ == '2.4.1':
         flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','SIFT','Dense']
     else:
         flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','FREAK','SIFT','Dense']
@@ -3636,14 +3636,14 @@ def test_faceRecognize():
                        "../sampleimages/ff2.jpg",
                        "../sampleimages/ff3.jpg",
                        "../sampleimages/ff4.jpg",
-                       "../sampleimages/ff5.jpg"]
+                        "../sampleimages/ff5.jpg"]
             
             images2 = ["../sampleimages/fm1.jpg",
                        "../sampleimages/fm2.jpg",
                        "../sampleimages/fm3.jpg",
                        "../sampleimages/fm4.jpg",
                        "../sampleimages/fm5.jpg"]
-            
+
             images3 = ["../sampleimages/fi1.jpg",
                        "../sampleimages/fi2.jpg",
                        "../sampleimages/fi3.jpg",
@@ -3652,26 +3652,28 @@ def test_faceRecognize():
             imgset1 = []
             imgset2 = []
             imgset3 = []
+
             for img in images1:
                 imgset1.append(Image(img))
-            label1 = [0]*len(imgset1)
+            label1 = ["female"]*len(imgset1)
 
             for img in images2:
                 imgset2.append(Image(img))
-            label2 = [1]*len(imgset2)
+            label2 = ["male"]*len(imgset2)
 
             imgset = imgset1 + imgset2
             labels = label1 + label2
+            imgset[4] = imgset[4].resize(400,400)
             f.train(imgset, labels)
 
             for img in images3:
                 imgset3.append(Image(img))
-
+            imgset[2].resize(300, 300)
             label = []
             for img in imgset3:
                 label.append(f.predict(img))
             
-            if label == [1, 1, 0, 0]:
+            if label == ["male", "male", "female", "female"]:
                 pass
             else:
                 assert False
@@ -3679,3 +3681,55 @@ def test_faceRecognize():
             pass
     except ImportError:
         pass
+
+def test_channelMixer():
+    i = Image('lenna')
+    r = i.channelMixer()
+    g = i.channelMixer(channel='g', weight = (100,20,30))
+    b = i.channelMixer(channel='b', weight = (30,200,10))
+    if i != r and i != g and i != b:
+        pass
+    else:
+        assert False
+
+def test_prewitt():
+    i = Image('lenna')
+    p = i.prewitt()
+    if i != p :
+        pass
+    else:
+        assert False
+
+def test_edgeSnap():
+    img = Image('shapes.png',sample=True).edges()
+
+    list1 = [(129,32),(19,88),(124,135)]
+    list2 = [(484,294),(297,437)]
+    list3 = [(158,357),(339,82)]
+
+    for list_ in list1,list2,list3:
+        edgeLines = img.edgeSnap(list_)
+        edgeLines.draw(color = Color.YELLOW,width = 4)
+
+    name_stem = "test_edgeSnap"
+    result = [img]
+    perform_diff(result,name_stem,0.7)
+
+def test_motionBlur():
+    image = Image('lenna')
+    d = (-70, -45, -30, -10, 100, 150, 235, 420)
+    p = ( 10,20,30,40,50,60,70,80)
+    img = []
+
+    a = image.motionBlur(0)
+    for i in range(8):
+        img += [image.motionBlur(p[i],d[i])]
+    c = 0
+    for im in img:
+        if im is not i:
+            c += 1
+
+    if c == 8 and a is image:
+        pass
+    else:
+        assert False

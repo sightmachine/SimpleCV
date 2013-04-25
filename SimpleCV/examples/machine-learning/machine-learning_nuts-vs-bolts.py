@@ -7,7 +7,7 @@ This is a very crude example and could easily be built upon, but is just
 meant to give an introductory example for using machine learning
 
 The data set should auto download, if not you can get it from:
-https://github.com/downloads/ingenuitas/SimpleCV/nuts_bolts.zip
+https://github.com/downloads/sightmachine/SimpleCV/nuts_bolts.zip
 '''
 print __doc__
 from SimpleCV import *
@@ -16,7 +16,7 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 
 #Download the dataset
-machine_learning_data_set = 'https://github.com/downloads/ingenuitas/SimpleCV/nuts_bolts.zip'
+machine_learning_data_set = 'https://github.com/downloads/sightmachine/SimpleCV/nuts_bolts.zip'
 data_path = download_and_extract(machine_learning_data_set)
 print 'Test Images Downloaded at:', data_path
 
