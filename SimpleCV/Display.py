@@ -157,9 +157,10 @@ class Display:
         self.mouseRawY = 0 # versus the position on the image.
         self.resolution = resolution
         if not displaytype == 'notebook':
-            self.screen = pg.display.set_mode(resolution, flags)
-        scvLogo = SimpleCV.Image("simplecv").scale(32,32)
-        pg.display.set_icon(scvLogo.getPGSurface())
+            self.screen = pg.display.set_mode(resolution, flags)        
+        if os.path.isfile(os.path.join(LAUNCH_PATH, 'sampleimages','simplecv.png')): #checks if simplecv.png exists
+            scvLogo = SimpleCV.Image("simplecv").scale(32,32)
+            pg.display.set_icon(scvLogo.getPGSurface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
 
