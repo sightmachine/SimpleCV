@@ -22,12 +22,14 @@ googlecl to use your account.
 
 ffmpeg can be found here http://www.ffmpeg.org/
 see the ffmpeg website for installation instructions
+
+
 """
 fname = 'test.avi'
 outname = 'output.mp4'
 tags = 'SimpleCV, Computer Vision, Python'
-title = "Automatically compressing and uploading videos from SimpleCV"
-summary = "Look Ma! No hands!!!"
+title = "SimpleCV Output"
+summary = "See http://simplecv.org for more info."
 access = "public" # Options are "public" "private" "protected"
 # create the video stream for saving the video file
 vs = VideoStream(fps=20,filename=fname,framefill=False)
