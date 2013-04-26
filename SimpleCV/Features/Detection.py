@@ -596,9 +596,12 @@ class HaarFeature(Feature):
     neighbors = ''
     featureName = 'None'
 
-    def __init__(self, i, haarobject, haarclassifier = None):
+    def __init__(self, i, haarobject, haarclassifier = None, cv2flag=True):
         self.image = i
-        ((x, y, width, height), self.neighbors) = haarobject
+        if cv2flag == False:
+            ((x, y, width, height), self.neighbors) = haarobject
+        elif cv2flag == True:
+            (x, y, width, height) = haarobject
         at_x = x + width/2
         at_y = y + height/2 #set location of feature to middle of rectangle
         points = ((x, y), (x + width, y), (x + width, y + height), (x, y + height))
