@@ -113,6 +113,10 @@ Install using clone of SimpleCV repository
     cd SimpleCV/
     sudo python setup.py install
 
+Install development version using aur
+
+    yaourt -S simplecv-git
+
 <a id="fedora"></a>
 ### Fedora 18
 Install with pip
