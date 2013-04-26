@@ -199,7 +199,7 @@ class FaceRecognizer():
         retLabel = self.labels_dict_rev.get(label)
         if not retLabel:
             retLabel = label
-        return retLabel
+        return retLabel,confidence
 
     # def update():
     #     OpenCV 2.4.4 doens't support update yet. It asks to train.

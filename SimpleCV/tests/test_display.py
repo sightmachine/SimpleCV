@@ -566,8 +566,9 @@ def test_image_perspective():
         assert False
 
 def test_camera_undistort():
+    
     fakeCamera = FrameSource()
-    fakeCamera.loadCalibration("Default")
+    fakeCamera.loadCalibration("TestCalibrationDistorition.xml")
     img = Image("../sampleimages/CalibImage0.png")
     img2 = fakeCamera.undistort(img)
 
@@ -1294,7 +1295,7 @@ def test_keypoint_match():
         f.draw()
         f.getHomography()
         f.getMinRect()
-        f.meanColor()
+        #f.meanColor()
         f.crop()
         f.x
         f.y
