@@ -1693,7 +1693,8 @@ class KeypointMatch(Feature):
         axes aligned box masked to just include the image data of the minimum bounding
         rectangle.
         """
-        raw = self.image.crop(TL[0],TL[1],self.width(),self.height()) # crop the minbouding rect
+        tl = self.topLeftCorner()
+        raw = self.image.crop(tl[0],tl[1],self.width(),self.height()) # crop the minbouding rect
         return raw
 
 
