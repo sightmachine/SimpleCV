@@ -13714,7 +13714,7 @@ class Image:
         """
 
 
-        edgeMap = self.getGrayNumpy()
+        edgeMap = np.copy(self.getGrayNumpy())
 
         #Size of the box around a point which is checked for edges.
         box = step*4
