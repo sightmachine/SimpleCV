@@ -3005,9 +3005,9 @@ class Image:
             image_gauss = cv2.GaussianBlur(self.getNumpyCv2(), window, sigmaX, sigmaY=sigmaY)
 
             if grayscale:
-                return Image(img_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
+                return Image(image_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
             else:
-                return Image(img_gauss, colorSpace=self._colorSpace, cv2image=True)
+                return Image(image_gauss, colorSpace=self._colorSpace, cv2image=True)
 
     def invert(self):
         """
