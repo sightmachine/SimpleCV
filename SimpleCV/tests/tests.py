@@ -363,6 +363,17 @@ def test_detection_lines():
 
     if(lines == 0 or lines == None):
         assert False
+        
+def test_detection_lines_standard():
+    img = Image(testimage2)
+    lines = img.findLines(useStandard=True)
+    lines.draw()
+    result = [img]
+    name_stem = "test_detection_lines_standard"
+    perform_diff(result,name_stem)
+
+    if(lines == 0 or lines == None):
+        assert False
 
 def test_detection_feature_measures():
     img = Image(testimage2)
