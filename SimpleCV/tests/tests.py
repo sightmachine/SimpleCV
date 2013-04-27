@@ -3628,7 +3628,6 @@ def test_motionBlur():
         assert False
 
 def test_faceRecognize():
-    return # this was bombing for some reason.
     try:
         import cv2
         if hasattr(cv2, "createFisherFaceRecognizer"):
@@ -3672,7 +3671,8 @@ def test_faceRecognize():
             imgset[2].resize(300, 300)
             label = []
             for img in imgset3:
-                label.append(f.predict(img))
+                name, confidence = f.predict(img)
+                label.append(name)
             
             if label == ["male", "male", "female", "female"]:
                 pass
