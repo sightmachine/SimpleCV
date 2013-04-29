@@ -4867,7 +4867,7 @@ class Image:
 
     #this function contains two functions -- the basic edge detection algorithm
     #and then a function to break the lines down given a threshold parameter
-    def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100):
+    def findLines(self, threshold=80, minlinelength=30, maxlinegap=10, cannyth1=50, cannyth2=100, useStandard=False, nLines=-1, maxpixelgap=1):
         """
         **SUMMARY**
 
@@ -4883,6 +4883,9 @@ class Image:
         * *maxlinegap* - how much gap is allowed between line segments to consider them the same line .
         * *cannyth1* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
         * *cannyth2* - thresholds used in the edge detection step, refer to :py:meth:`_getEdgeMap` for details.
+        * *useStandard* - use standard or probabilistic Hough transform.
+        * *nLines* - maximum number of lines for return.
+        * *maxpixelgap* - how much distance between pixels is allowed to consider them the same line.
 
         **RETURNS**
 
@@ -4902,17 +4905,94 @@ class Image:
 
         """
         em = self._getEdgeMap(cannyth1, cannyth2)
-
-
-        lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
-
-
+        
         linesFS = FeatureSet()
-        for l in lines:
-            linesFS.append(Line(self, l))
+        if useStandard:
+            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            if nLines == -1:
+                nLines = len(lines)
+            # All white points in Canny edge image
+            em = Image(em)
+            x,y = np.where(em.getGrayNumpy() > 128)
+            pts = dict((p, 1) for p in zip(x, y))
+            
+            for rho, theta in lines[:nLines]:
+                ep = []
+                ls = []
+                a = math.cos(theta)
+                b = math.sin(theta)
+                # Find endpoints of line on the image's edges
+                if round(b, 4) == 0:    # slope of the line is infinity
+                    ep.append((int(round(abs(rho))), 0))
+                    ep.append((abs(rho), self.height))
+                elif round(a, 4) == 0:    # slope of the line is zero 
+                    ep.append((0, abs(rho)))
+                    ep.append((self.width, int(round(abs(rho)))))
+                else:
+                    # top edge
+                    x = rho/float(a)
+                    if 0 <= x <= self.width:
+                        ep.append((int(round(x)), 0))
+                    # bottom edge
+                    x = (rho - self.height*b)/float(a)
+                    if 0 <= x <= self.width:
+                        ep.append((int(round(x)), self.height))
+                    # left edge
+                    y = rho/float(b)
+                    if 0 <= y <= self.height:
+                        ep.append((0, int(round(y))))
+                    # right edge
+                    y = (rho - self.width*a)/float(b)
+                    if 0 <= y <= self.height:
+                        ep.append((self.width, int(round(y))))
+                
+                ep = list(set(ep)) 
+                ep.sort()
+                pt1, pt2 = ep
+                brl = self.bresenham_line(pt1, pt2)
+                
+                last_wp = 0
+                first = True
+                for p in brl:
+                    if p in pts:
+                        if first:    # found first white point
+                            last_wp = np.array(p)
+                            start_lp = np.array(p)
+                            line = [start_lp, start_lp]
+                            first = False
+                        else:
+                            wp = np.array(p)
+                            dist = int(round( np.linalg.norm(wp-last_wp) ))
+                            if dist > maxpixelgap:
+                                start_lp = wp
+                                len_l = int(round( np.linalg.norm( line[1]-line[0] ) ))
+                                if len_l >= minlinelength:
+                                    if ls:
+                                        # if the gap between two lines is less than maxlinegap than merge this lines
+                                        l = ls[-1]
+                                        gap = int(round( np.linalg.norm( line[0]-l[1] ) ))
+                                        if gap <= maxlinegap:
+                                            ls.pop()
+                                            line = [l[0], line[1]]
+                                    line = [list(line[0]), list(line[1])]
+                                    ls.append(line)
+                                line = [start_lp, start_lp]
+                            elif dist <= maxpixelgap:
+                                line = [start_lp, wp]
+                            last_wp = wp
+    
+                for l in ls:
+                    linesFS.append(Line(self, l))
+            linesFS = linesFS[:nLines]
+        else:
+            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            if nLines == -1:
+                nLines = len(lines)
+
+            for l in lines[:nLines]:
+                linesFS.append(Line(self, l))
+        
         return linesFS
-
-
 
 
     def findChessboard(self, dimensions = (8, 5), subpixel = True):
