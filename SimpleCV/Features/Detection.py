@@ -548,7 +548,8 @@ class Line(Feature):
         ep = list(set(ep))  # remove duplicates of points if line cross image at corners
         ep.sort()
         
-        return Line(self.image, tuple(ep))
+        return Line(self.image, ep)
+
 
 ######################################################################
 class Barcode(Feature):

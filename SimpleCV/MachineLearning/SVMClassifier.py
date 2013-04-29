@@ -197,7 +197,7 @@ class SVMClassifier(object):
         for i in range(nfiles):
             infile = files[i]
             if verbose:
-                print "Opening file: " + infile
+                print "Opening file: {0}".format(infile)
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -213,7 +213,7 @@ class SVMClassifier(object):
                 continue
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
-            text = 'Training: ' + className
+            text = 'Training: {0}'.format(className)
             self._WriteText(disp, img, text, Color.WHITE)
             count = count + 1
             del img
@@ -226,7 +226,7 @@ class SVMClassifier(object):
             imageset = imageset[0:subset]
         for img in imageset:
             if verbose:
-                print "Opening file: " + img.filename
+                print "Opening file: {0}".format(img.filename)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
@@ -241,7 +241,7 @@ class SVMClassifier(object):
 
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
-            text = 'Training: ' + className
+            text = 'Training: {0}'.format(className)
             self._WriteText(disp, img, text, Color.WHITE)
             count = count + 1
             del img
@@ -409,7 +409,7 @@ class SVMClassifier(object):
         for i in range(nfiles):
             infile = files[i]
             if verbose:
-                print "Opening file: " + infile
+                print "Opening file: {0}".format(infile)
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
