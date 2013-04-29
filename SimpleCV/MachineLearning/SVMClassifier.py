@@ -24,6 +24,21 @@ class SVMClassifier(object):
     This class encapsulates a Naive Bayes Classifier.
     See:
     http://en.wikipedia.org/wiki/Support_vector_machine
+
+    featureExtractors : iterable
+        Iterable sequence of featureExtractors inheriting
+        from FeatureExtractorBase.
+
+    properties : dict
+        Dict of SVM kernel properties.  Fields are shown
+        along with their default values:
+            'KernelType': 'RBF'
+            'SVMType': 'C'
+            'nu': None
+            'c': None
+            'degree': None  # Degree for polynomial kernels (default 3)
+            'coef': None    # Coefficient for poly/sigmoid kernels (default 0)
+            'gamma': None   # Kernel param for poly/rbf/sigma (default 1/n.samples)
     """
     mClassNames = []
     mDataSetRaw = []
@@ -39,7 +54,7 @@ class SVMClassifier(object):
 
     mSVMProperties = {
         'KernelType': 'RBF',  # default is a RBF Kernel
-        'SVMType': 'NU',      # default is C
+        'SVMType': 'C',      # default is C
         'nu': None,           # NU for SVM NU
         'c': None,            # C for SVM C - the slack variable
         'degree': None,       # degree for poly kernels - defaults to 3
@@ -432,7 +447,7 @@ class SVMClassifier(object):
             imageset = imageset[0:subset]
         for img in imageset:
             if verbose:
-                print "Opening file: " + img.filename
+                print "Opening file: {0}".format(img.filename)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
