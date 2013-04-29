@@ -55,6 +55,6 @@ while disp.isNotDone():
         fs = fs.sortArea()
         face = fs[-1].crop().resize(100,100)
         fs[-1].draw()
-        name = f.predict(face)
+        name, confidence = f.predict(face)
         img.drawText(name,30,30,fontsize=64)
     img.save(disp)

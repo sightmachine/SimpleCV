@@ -13539,7 +13539,7 @@ class Image:
         >>> recognizer = FaceRecognizer()
         >>> recognizer.load("training.xml")
         >>> feat = img.findAndRecognizeFaces(recognizer, "face.xml")
-        >>> for feature, label in feat:
+        >>> for feature, label, confidence in feat:
             ... i = feature.crop()
             ... i.drawText(str(label))
             ... i.show()
@@ -13558,8 +13558,7 @@ class Image:
             return None
 
         if not cascade:
-            from SimpleCV import __path__
-            cascade = "/".join([__path__[0],"/Features/HaarCascades/face.xml"])
+            cascade = "/".join([LAUNCH_PATH,"/Features/HaarCascades/face.xml"])
 
         faces = self.findHaarFeatures(cascade)
         if not faces:
@@ -13568,8 +13567,8 @@ class Image:
 
         retVal = []
         for face in faces:
-            label = face.crop().recognizeFace(recognizer)
-            retVal.append([face, label])
+            label, confidence = face.crop().recognizeFace(recognizer)
+            retVal.append([face, label, confidence])
         return retVal
 
     def channelMixer(self, channel = 'r', weight = (100,100,100)):
