@@ -8332,12 +8332,8 @@ class Image:
         pr = result.shape[0]/float(dist.shape[0])
 
         if( pr > minMatch and len(result)>4 ): # if more than minMatch % matches we go ahead and get the data
-            lhs = []
-            rhs = []
-            for i in range(0,len(idx)):
-                if( result[i] ):
-                    lhs.append((tkp[i].pt[1], tkp[i].pt[0]))
-                    rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
+            lhs = [(a.pt[1],a.pt[0]) for a,rs in zip(tkp,result) if(rs)]
+            rhs = [(skp[a].pt[0],skp[a].pt[1]) for a,rs in zip(idx,result) if(rs)]
             
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
@@ -8475,11 +8471,9 @@ class Image:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
         if( flavor in ["ORB", "SIFT", "SURF", "BRISK", "FREAK"]  and kp!=None and d !=None ):
-            for i in range(0,len(kp)):
-                fs.append(KeyPoint(self,kp[i],d[i],flavor))
+            fs = [KeyPoint(self,a,b,flavor) for a,b in zip(kp,d)]           
         elif(flavor in ["FAST", "STAR", "MSER", "Dense"] and kp!=None ):
-            for i in range(0,len(kp)):
-                fs.append(KeyPoint(self,kp[i],None,flavor))
+            fs = [Keypoints(self,a,None,flavor) for a in kp]
         else:
             logger.warning("ImageClass.Keypoints: I don't know the method you want to use")
             return None
