@@ -17,7 +17,7 @@ is as follows.
 7. Save the classifier.
 8. Deploy using the classify method.
 """
-class SVMClassifier:
+class SVMClassifier(object):
     """
     This class encapsulates a Naive Bayes Classifier.
     See:
