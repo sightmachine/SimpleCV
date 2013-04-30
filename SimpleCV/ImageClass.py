@@ -14126,7 +14126,7 @@ class Image:
             y = sum([line.end_points[0][1] + line.end_points[1][1] for line in binn[index]])/2/len(binn[index])
             point = [x,y]
 
-        #Determine whether to rotate the line to vertical or horizontal 
+        #Determine whether to rotate the lines to vertical or horizontal 
         if (-45 <= avg <= 45):
             return self.rotate(avg,fixed = fixed,point = point)
         elif (avg > 45):
