@@ -18,7 +18,9 @@ them. To sort the images you just push a key mapped to your class
 and the class tosses them into a directory and labels them.
 The class can optionally pickle your data for you to use later.
 """
-class TurkingModule:
+
+
+class TurkingModule(object):
 
     """
     **SUMMARY**
