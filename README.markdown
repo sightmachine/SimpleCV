@@ -9,18 +9,20 @@ Quick Links:
 
  * [About](#about)
  * [Installation](#installation)
-    * [Ubuntu](#ubuntu)
-    * [Arch Linux](#archlinux)
-    * [Windows](#windows)
-    * [MacOS](#macos)
-    * [Raspberry Pi](#rasppi)
- * [SimpleCV Shell](#shell)
- * [Videos & Tutorials](#videos)
- * [SimpleCV on Mobile - Android](#mobile)
- * [Help](#help)
- * [Troubleshooting Installation](#troubleshoot)
-    * [Required Libraries](#requirements)
-    * [Optional Libraries](#optional)
+    * [Ubuntu](#ubuntu-1204)
+    * [Virtual Environment](#virtualenv)
+    * [Arch Linux](#arch-linux)
+    * [Fedora](#fedora-18)
+    * [MacOS](#mac-os-x-106-and-above)
+    * [Windows](#windows-7vista)
+    * [Raspberry Pi](#raspberry-pi)
+ * [SimpleCV Shell](#simplecv-interactive-shell-or-how-to-run-simplecv)
+ * [Videos & Tutorials](#videos---tutorials-and-demos)
+ * [SimpleCV on Mobile - Android](#simplecv-on-mobile-android)
+ * [Help](#getting-help)
+ * [Troubleshooting Installation](#troubleshooting-installation-problems)
+    * [Required Libraries](#required-libraries)
+    * [Optional Libraries](#optional-libraries)
  
 
 <a id="about"></a>
@@ -54,7 +56,7 @@ For more code snippets, we recommend the [SimpleCV examples website](http://exam
 
 The easiest way to install SimpleCV is with the packages for your distribution (Windows, Mac, Linux) included on the website (http://www.simplecv.org).  Although it is tested on many platforms there maybe scenarios where it just won't work with the package installer. Below is instructions on how to install, if you have problems please see the troubleshooting section at the end of this README file.
 
-<a id="ubuntu"></a>
+<a id="ubuntu-1204"></a>
 ### Ubuntu 12.04
 Install with pip
 
