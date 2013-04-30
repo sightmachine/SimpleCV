@@ -142,7 +142,7 @@ class TurkingModule(object):
         img.drawText("space - skip", 10, spacing, fontsize=font_size, color=color)
         img.drawText("esc - exit", 10, 2 * spacing, fontsize=font_size, color=color)
         y = 3 * spacing
-        for k, klass in self.keyMap.items():
+        for k, klass in self.keyMap.iteritems():
             strn = '{0} - {1}'.format(k, klass)
             img.drawText(strn, 10, y, fontsize=font_size, color=color)
             y = y + spacing
