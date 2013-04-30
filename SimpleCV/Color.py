@@ -263,6 +263,79 @@ class Color:
         """
         return(tuple(reversed(self.hueToRGB(h))))
 
+    @classmethod
+    def getAverageRGB(self,rgb):
+        """
+        **SUMMARY**
+
+        Get the average of the R,G,B values
+
+        **PARAMETERS**
+
+        * *rgb* - a tuple of RGB values
+
+        **RETURNS**
+
+        Average value of RGB
+
+        **EXAMPLE**
+
+        >>> c = Color.getAverageRGB((22,35,230))
+
+        """
+        return int(((rgb[0]+rgb[1]+rgb[2])/3))
+
+    @classmethod
+    def getLightness(self,rgb):
+        """
+        **SUMMARY**
+
+        Calculates the grayscale value of R,G,B according to Lightness Method
+
+        **PARAMETERS**
+
+        * *rgb* - a tuple of RGB values
+
+        **RETURNS**
+
+        Grayscale value according to the Lightness Method
+
+        **EXAMPLE**
+
+        >>> c = Color.getLightness((22,35,230))
+
+        **NOTES**
+        
+        Lightness Method: value = (max(R,G,B)+min(R,G,B))/2
+
+        """
+        return int(((max(rgb)+min(rgb))/2))
+
+    @classmethod
+    def getLuminosity(self,rgb):
+        """
+        **SUMMARY**
+
+        Calculates the grayscale value of R,G,B according to Luminosity Method
+
+        **PARAMETERS**
+
+        * *rgb* - a tuple of RGB values
+
+        **RETURNS**
+
+        Grayscale value according to the Luminosity Method
+
+        **EXAMPLE**
+
+        >>> c = Color.getLuminosity((22,35,230))
+
+        **NOTES**
+        
+        Luminosity Method: value = 0.21*R + 0.71*G + 0.07*B
+
+        """
+        return int((0.21*rgb[0] + 0.71*rgb[1] + 0.07*rgb[2]))
 
 class ColorCurve:
     """
