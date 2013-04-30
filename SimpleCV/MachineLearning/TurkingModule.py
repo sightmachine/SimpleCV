@@ -72,8 +72,7 @@ class TurkingModule(object):
 
         assert len(classList) == len(key_bindings), "Must have a key for each class."
 
-        for key, klass in zip(key_bindings, classList):
-            self.keyMap[key] = klass
+        self.keyMap = dict(zip(key_bindings, classList))
         # this should work
 
         self.preProcess = preprocess or (lambda img: [img])
@@ -92,19 +91,20 @@ class TurkingModule(object):
 
         if not osp.exists(out_path):
             os.mkdir(out_path)
+
         for c in classList:
+            # set output path
             self.directoryMap[c] = osp.join(out_path, c)
             if not osp.exists(self.directoryMap[c]):
                 os.mkdir(self.directoryMap[c])
 
-        for c in classList:
+            # import images from input paths
             searchstr = osp.join(self.directoryMap[c], '*.png')
             self.countMap[c] = len(glob.glob(searchstr))
             self.classMap[c] = ImageSet(self.directoryMap[c])
 
     def _saveIt(self, img, classType):
         img.clearLayers()
-        path = self.out_path + classType + "/" + classType + str(self.countMap[classType]) + ".png"  # os.path.join?
         path = osp.join(self.outpath, classType,
                         "{0}{1}.png".format(classType, self.countMap[classType]))
         print "Saving: {0}".format(path)
@@ -143,7 +143,7 @@ class TurkingModule(object):
         img.drawText("esc - exit", 10, 2 * spacing, fontsize=font_size, color=color)
         y = 3 * spacing
         for k, klass in self.keyMap.items():
-            strn = k + " - " + klass
+            strn = '{0} - {1}'.format(k, klass)
             img.drawText(strn, 10, y, fontsize=font_size, color=color)
             y = y + spacing
         return img
@@ -227,7 +227,8 @@ class TurkingModule(object):
         * *fname* - the file fame.
         """
         saveThis = (self.classes, self.directoryMap, self.classMap, self.countMap)
-        pickle.dump(saveThis, open(fname, "wb"))  # TODO: use context manager
+        with open(fname, "wb") as f:
+            pickle.dump(saveThis, f)
 
     # todo: eventually we should allow the user to randomly
     # split up the data set and then save it.
