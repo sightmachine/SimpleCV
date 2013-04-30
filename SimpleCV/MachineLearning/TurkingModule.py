@@ -76,18 +76,8 @@ class TurkingModule(object):
             self.keyMap[key] = klass
         # this should work
 
-        if preprocess is None:
-            def fakeProcess(img):
-                return [img]
-            preprocess = fakeProcess
-        self.preProcess = preprocess
-
-        if postprocess is None:
-            def fakePostProcess(img):
-                return img
-            postprocess = fakePostProcess
-
-        self.postProcess = postprocess
+        self.preProcess = preprocess or (lambda img: [img])
+        self.postProcess = postprocess or (lambda img: img)
 
         self.srcImgs = ImageSet()
 
