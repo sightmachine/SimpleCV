@@ -69,9 +69,9 @@ class TurkingModule(object):
         self.directoryMap = {}
         self.out_path = out_path
         self.keyMap = {}
-        if len(classList) != len(key_bindings):
-            print "Must have a key for each class."
-            raise Exception("Must have a key for each class.")
+
+        assert len(classList) == len(key_bindings), "Must have a key for each class."
+
         for key, klass in zip(key_bindings, classList):
             self.keyMap[key] = klass
         # this should work
@@ -202,7 +202,7 @@ class TurkingModule(object):
         TODO: Make it so you can stop and start turking at any given spot in the process
         """
         disp = Display(disp_size)
-        bail = False
+        # bail = False
         for img in self.srcImgs:
             print img.filename
             samples = self.preProcess(img)
@@ -236,7 +236,7 @@ class TurkingModule(object):
 
         * *fname* - the file fame.
         """
-        saveThis = self.classes, self.directoryMap, self.classMap, self.countMap
+        saveThis = (self.classes, self.directoryMap, self.classMap, self.countMap)
         pickle.dump(saveThis, open(fname, "wb"))  # TODO: use context manager
 
     # todo: eventually we should allow the user to randomly
