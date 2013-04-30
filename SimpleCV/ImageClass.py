@@ -13944,6 +13944,111 @@ class Image:
         kernel = kernel/len(line)
         return self.convolve(kernel = kernel)
 
+    def getLightness(self):
+        """
+        **SUMMARY**
+
+        This method converts the given RGB image to grayscale using the
+        Lightness method.
+
+        **Parameters**
+        
+        None
+
+        **RETURNS**
+
+        A GrayScale image with values according to the Lightness method
+
+        **EXAMPLE**
+        >>> img = Image ('lenna')
+        >>> out = img.getLightness()
+        >>> out.show()
+        
+        **NOTES**
+
+        Algorithm used: value = (MAX(R,G,B) + MIN(R,G,B))/2
+
+        """
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            imgMat = np.array(self.getNumpyCv2(),dtype=np.int)
+            retVal = np.array((np.max(imgMat,2) + np.min(imgMat,2))/2,dtype=np.uint8)
+        else:
+            logger.warnings('Input a RGB image')
+            return None
+
+        return Image(retVal,cv2image=True)
+
+    def getLuminosity(self):
+        """
+        **SUMMARY**
+
+        This method converts the given RGB image to grayscale using the
+        Luminosity method.
+
+        **Parameters**
+        
+        None
+
+        **RETURNS**
+
+        A GrayScale image with values according to the Luminosity method
+
+        **EXAMPLE**
+        >>> img = Image ('lenna')
+        >>> out = img.getLuminosity()
+        >>> out.show()
+        
+        **NOTES**
+
+        Algorithm used: value =  0.21 R + 0.71 G + 0.07 B
+
+        """
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            imgMat = np.array(self.getNumpyCv2(),dtype=np.int)
+            retVal = np.array(np.average(imgMat,2,(0.07,0.71,0.21)),dtype=np.uint8)
+        else:
+            logger.warnings('Input a RGB image')
+            return None
+
+        return Image(retVal,cv2image=True)
+
+    def getAverage(self):
+        """
+        **SUMMARY**
+
+        This method converts the given RGB image to grayscale by averaging out
+        the R,G,B values.
+
+        **Parameters**
+        
+        None
+
+        **RETURNS**
+
+        A GrayScale image with values according to the Average method
+
+        **EXAMPLE**
+        >>> img = Image ('lenna')
+        >>> out = img.getAverage()
+        >>> out.show()
+        
+        **NOTES**
+
+        Algorithm used: value =  (R+G+B)/3
+
+        """
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            imgMat = np.array(self.getNumpyCv2(),dtype=np.int)
+            retVal = np.array(imgMat.mean(2),dtype=np.uint8)
+        else:
+            logger.warnings('Input a RGB image')
+            return None
+
+        return Image(retVal,cv2image=True)
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer

@@ -3778,4 +3778,29 @@ def test_grayscalmatrix():
     from numpy import array_equal
     if not array_equal(img.getGrayNumpy(), newimg.getGrayNumpy()):
         assert False
-    pass 
+    pass
+
+def test_getLightness():
+    img = Image('lenna')
+    i = img.getLightness()
+    if int(i[27,42][0]) == int((max(img[27,42])+min(img[27,42]))/2):
+        pass
+    else:
+        assert False
+
+def test_getLuminosity():
+    img = Image('lenna')
+    i = img.getLuminosity()
+    a = np.array(img[27,42],dtype=np.int)
+    if int(i[27,42][0]) == int(np.average(a,0,(0.21,0.71,0.07))):
+        pass
+    else:
+        assert False
+
+def test_getAverage():
+    img = Image('lenna')
+    i = img.getAverage()
+    if int(i[0,0][0]) == int((img[0,0][0]+img[0,0][1]+img[0,0][2])/3):
+        pass
+    else:
+        assert False
