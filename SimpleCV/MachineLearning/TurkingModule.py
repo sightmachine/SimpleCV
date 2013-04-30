@@ -72,8 +72,8 @@ class TurkingModule(object):
         if len(classList) != len(key_bindings):
             print "Must have a key for each class."
             raise Exception("Must have a key for each class.")
-        for key, cls in zip(key_bindings, classList):
-            self.keyMap[key] = cls
+        for key, klass in zip(key_bindings, classList):
+            self.keyMap[key] = klass
         # this should work
 
         if preprocess is None:
@@ -95,33 +95,33 @@ class TurkingModule(object):
             self.srcImgs = source_paths
         else:
             for sp in source_paths:
-                print "Loading " + sp
+                print "Loading {0}".format(sp)
                 imgSet = ImageSet(sp)
-                print "Loaded " + str(len(imgSet))
+                print "Loaded {0}".format(len(imgSet))
                 self.srcImgs += imgSet
 
         if not osp.exists(out_path):
             os.mkdir(out_path)
         for c in classList:
-            outdir = out_path + c + '/'  # replace with os.path.join?
-            self.directoryMap[c] = outdir
-            if not osp.exists(outdir):
-                os.mkdir(outdir)
+            self.directoryMap[c] = osp.join(out_path, c)
+            if not osp.exists(self.directoryMap[c]):
+                os.mkdir(self.directoryMap[c])
 
         for c in classList:
-            searchstr = self.directoryMap[c] + '*.png'
-            fc = glob.glob(searchstr)
-            self.countMap[c] = len(fc)
+            searchstr = osp.join(self.directoryMap[c], '*.png')
+            self.countMap[c] = len(glob.glob(searchstr))
             self.classMap[c] = ImageSet(self.directoryMap[c])
 
     def _saveIt(self, img, classType):
         img.clearLayers()
         path = self.out_path + classType + "/" + classType + str(self.countMap[classType]) + ".png"  # os.path.join?
-        print "Saving: " + path
+        path = osp.join(self.outpath, classType,
+                        "{0}{1}.png".format(classType, self.countMap[classType]))
+        print "Saving: {0}".format(path)
         img = self.postProcess(img)
         self.classMap[classType].append(img)
         img.save(path)
-        self.countMap[classType] = self.countMap[classType] + 1
+        self.countMap[classType] += 1
 
     def getClass(self, className):
         """
@@ -143,7 +143,7 @@ class TurkingModule(object):
         >>>> iset = turkModule.getClass('cats')
         >>>> iset.show()
         """
-        if(className in self.classMap):
+        if className in self.classMap:
             return self.classMap[className]
         else:
             return None
@@ -236,7 +236,7 @@ class TurkingModule(object):
 
         * *fname* - the file fame.
         """
-        saveThis = [self.classes, self.directoryMap, self.classMap, self.countMap]
+        saveThis = self.classes, self.directoryMap, self.classMap, self.countMap
         pickle.dump(saveThis, open(fname, "wb"))  # TODO: use context manager
 
     # todo: eventually we should allow the user to randomly
