@@ -92,7 +92,7 @@ class TurkingModule(object):
         self.srcImgs = ImageSet()
 
         if isinstance(source_paths, ImageSet):
-            self.srcImgs = source_path  # TODO:  bug. should be source_paths
+            self.srcImgs = source_paths
         else:
             for sp in source_paths:
                 print "Loading " + sp
@@ -158,7 +158,8 @@ class TurkingModule(object):
             y = y + spacing
         return img
 
-    def turk(self, saveOriginal=False, disp_size=(800, 600), showKeys=True, font_size=16, color=Color.RED, spacing=10):
+    def turk(self, saveOriginal=False, disp_size=(800, 600),
+             showKeys=True, font_size=16, color=Color.RED, spacing=10):
         """
         **SUMMARY**
 
