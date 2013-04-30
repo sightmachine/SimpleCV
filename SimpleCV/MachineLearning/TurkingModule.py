@@ -105,7 +105,7 @@ class TurkingModule(object):
 
     def _saveIt(self, img, classType):
         img.clearLayers()
-        path = osp.join(self.outpath, classType,
+        path = osp.join(self.out_path, classType,
                         "{0}{1}.png".format(classType, self.countMap[classType]))
         print "Saving: {0}".format(path)
         img = self.postProcess(img)
