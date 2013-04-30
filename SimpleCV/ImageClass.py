@@ -14098,7 +14098,8 @@ class Image:
         lines = self.findLines(cannyth1=150,cannyth2 = 200)
         
         if(len(lines) == 0):
-            logger.warning("No lines foubd in the image")
+            logger.warning("No lines found in the image")
+            return self
 
         # Initialize empty bins
         binn = [[] for i in range(bins)]
@@ -14120,7 +14121,7 @@ class Image:
         avg = sum([line.angle()*line.length() for line in binn[index]])/sum([line.length() for line in binn[index] ])
 
         #Mean of centers of all lines in selected bin
-        if(auto and len(lines) > 0):
+        if(auto ):
             x = sum([line.end_points[0][0] + line.end_points[1][0] for line in binn[index]])/2/len(binn[index])
             y = sum([line.end_points[0][1] + line.end_points[1][1] for line in binn[index]])/2/len(binn[index])
             point = [x,y]
@@ -14132,6 +14133,7 @@ class Image:
             return self.rotate(avg-90,fixed = fixed,point = point)
         else:
             return self.rotate(avg+90,fixed = fixed,point = point)
+        #Congratulations !! You did a smart thing
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
