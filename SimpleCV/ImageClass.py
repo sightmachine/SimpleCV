@@ -14137,6 +14137,72 @@ class Image:
             return self.rotate(avg+90,fixed = fixed,point = point)
         #Congratulations !! You did a smart thing
 
+    def normalize(self, newMin = 0, newMax = 255, minCut = 2, maxCut = 98):
+        """
+        **SUMMARY**
+
+        Performs image normalization and yeilds a linearly normalized gray image.
+        Also known as contrast strestching.
+
+        see : http://en.wikipedia.org/wiki/Normalization_(image_processing)
+
+        **Parameters**
+
+        * *newMin* - The minimum of the new range over which the image is normalized
+
+        * *newMax* - The maximum of the new range over which the image is normalized
+
+        * *minCut* - A number between 0 to 100. The threshold percentage for the 
+        current minimum value selection. This helps us to avoid the effect of outlying
+        pixel with either very low value
+
+        * *maxCut* - A number between 0 to 100. The threshold percentage for the 
+        current minimum value selection. This helps us to avoid the effect of outlying
+        pixel with either very low value          
+
+        **RETURNS**
+
+        A normalized grayscale image.
+
+        **EXAMPLE**
+        >>> img = Image ('lenna')
+        >>> norm = i.normalize()
+        >>> norm.show()
+
+        """
+        if newMin < 0 or newMax >255:
+            warnings.warn("newMin and newMax can vary from 0-255")
+            return None
+        if newMax < newMin:
+            warnings.warn("newMin should be less than newMax")
+            return None
+        if minCut > 100 or maxCut > 100:
+            warnings.warn("minCut and maxCut")
+            return None
+        #avoiding the effect of odd pixels
+        try:
+            hist = self.getGrayHistogramCounts()
+            freq, val = zip(*hist)
+            maxfreq = (freq[0]-freq[-1])* maxCut/100.0
+            minfreq = (freq[0]-freq[-1])* minCut/100.0
+            closestMatch = lambda a,l:min(l, key=lambda x:abs(x-a))
+            maxval = closestMatch(maxfreq, val)
+            minval = closestMatch(minfreq, val)
+            retVal = (self.grayscale()-minval)*((newMax-newMin)/float(maxval-minval))+ newMin
+        #catching zero division in case there are very less intensities present
+        #Normalizing based on absolute max and min intensities present
+        except ZeroDivisionError:
+            maxval = self.maxValue()
+            minval = self.minValue()
+            retVal = (self.grayscale()-minval)*((newMax-newMin)/float(maxval-minval))+ newMin
+        #catching the case where there is only one intensity throughout
+        except:
+            warnings.warn("All pixels of the image have only one intensity value")
+            return None
+        return retVal
+
+
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
 from SimpleCV.Stream import JpegStreamer
