@@ -12361,8 +12361,8 @@ class Image:
 
         This is just a helper method
         """
-        if (not 0 <= x <= self.width or not 0 <= y <= self.height or
-            not 0 <= x2 <= self.width or not 0 <= y2 <= self.height):
+        if (not 0 <= x <= self.width-1 or not 0 <= y <= self.height-1 or
+            not 0 <= x2 <= self.width-1 or not 0 <= y2 <= self.height-1):
             l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
             if l:
                 ep = list(l.end_points)
