@@ -14050,6 +14050,92 @@ class Image:
             return None
 
         return Image(retVal,cv2image=True)
+    
+    def smartRotate(self,bins=18,point = [-1,-1],auto = True,threshold=80,minLength=30,maxGap=10,t1=150,t2=200,fixed = True):
+        """
+        **SUMMARY**
+
+        Attempts to rotate the image so that the most significant lines are 
+        approximately parellel to horizontal or vertical edges.
+
+        **Parameters**
+        
+        
+        * *bins* - The number of bins the lines will be grouped into.
+        
+        * *point* - the point about which to rotate, refer :py:meth:`rotate`
+        
+        * *auto* - If true point will be computed to the mean of centers of all
+            the lines in the selected bin. If auto is True, value of point is
+            ignored
+            
+        * *threshold* - which determines the minimum "strength" of the line
+            refer :py:meth:`findLines` for details.
+            
+        * *minLength* - how many pixels long the line must be to be returned,
+            refer :py:meth:`findLines` for details.
+            
+        * *maxGap* - how much gap is allowed between line segments to consider 
+            them the same line .refer to :py:meth:`findLines` for details.
+            
+        * *t1* - thresholds used in the edge detection step, 
+            refer to :py:meth:`_getEdgeMap` for details.
+            
+        * *t2* - thresholds used in the edge detection step, 
+            refer to :py:meth:`_getEdgeMap` for details.
+            
+        * *fixed* - if fixed is true,keep the original image dimensions, 
+            otherwise scale the image to fit the rotation , refer to 
+            :py:meth:`rotate`
+
+        **RETURNS**
+
+        A rotated image
+
+        **EXAMPLE**
+        >>> i = Image ('image.jpg')
+        >>> i.smartRotate().show()
+
+        """
+        lines = self.findLines(threshold, minLength, maxGap, t1,t2)
+        
+        if(len(lines) == 0):
+            logger.warning("No lines found in the image")
+            return self
+
+        # Initialize empty bins
+        binn = [[] for i in range(bins)]
+        
+        #Convert angle to bin number
+        conv = lambda x:int(x+90)/bins
+
+        #Adding lines to bins
+        [ binn[conv(line.angle())].append(line) for line in lines ]
+
+        #computing histogram, value of each column is total length of all lines
+        #in the bin
+        hist = [ sum([line.length() for line in lines]) for lines in binn]
+        
+        #The maximum histogram
+        index = np.argmax(np.array(hist))
+        
+        #Good ol weighted mean, for the selected bin
+        avg = sum([line.angle()*line.length() for line in binn[index]])/sum([line.length() for line in binn[index] ])
+
+        #Mean of centers of all lines in selected bin
+        if(auto ):
+            x = sum([line.end_points[0][0] + line.end_points[1][0] for line in binn[index]])/2/len(binn[index])
+            y = sum([line.end_points[0][1] + line.end_points[1][1] for line in binn[index]])/2/len(binn[index])
+            point = [x,y]
+
+        #Determine whether to rotate the lines to vertical or horizontal 
+        if (-45 <= avg <= 45):
+            return self.rotate(avg,fixed = fixed,point = point)
+        elif (avg > 45):
+            return self.rotate(avg-90,fixed = fixed,point = point)
+        else:
+            return self.rotate(avg+90,fixed = fixed,point = point)
+        #Congratulations !! You did a smart thing
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
 from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
