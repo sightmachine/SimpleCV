@@ -4911,75 +4911,77 @@ class Image:
             lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
             if nLines == -1:
                 nLines = len(lines)
-            # All white points in Canny edge image
+            # All white points (edges) in Canny edge image
             em = Image(em)
             x,y = np.where(em.getGrayNumpy() > 128)
-            pts = dict((p, 1) for p in zip(x, y))
+            # Put points in dictionary for fast checkout if point is white
+            pts = dict((p, 1) for p in zip(x, y))   
             
+            w, h = self.width-1, self.height-1
             for rho, theta in lines[:nLines]:
                 ep = []
                 ls = []
                 a = math.cos(theta)
                 b = math.sin(theta)
                 # Find endpoints of line on the image's edges
-                if round(b, 4) == 0:    # slope of the line is infinity
-                    ep.append((int(round(abs(rho))), 0))
-                    ep.append((abs(rho), self.height))
-                elif round(a, 4) == 0:    # slope of the line is zero 
-                    ep.append((0, abs(rho)))
-                    ep.append((self.width, int(round(abs(rho)))))
+                if round(b, 4) == 0:        # slope of the line is infinity
+                    ep.append( (int(round(abs(rho))), 0) )
+                    ep.append( (int(round(abs(rho))), h) )
+                elif round(a, 4) == 0:        # slope of the line is zero 
+                    ep.append( (0, int(round(abs(rho)))) )
+                    ep.append( (w, int(round(abs(rho)))) )
                 else:
                     # top edge
                     x = rho/float(a)
-                    if 0 <= x <= self.width:
+                    if 0 <= x <= w:
                         ep.append((int(round(x)), 0))
                     # bottom edge
-                    x = (rho - self.height*b)/float(a)
-                    if 0 <= x <= self.width:
-                        ep.append((int(round(x)), self.height))
+                    x = (rho - h*b)/float(a)
+                    if 0 <= x <= w:
+                        ep.append((int(round(x)), h))
                     # left edge
                     y = rho/float(b)
-                    if 0 <= y <= self.height:
+                    if 0 <= y <= h:
                         ep.append((0, int(round(y))))
                     # right edge
-                    y = (rho - self.width*a)/float(b)
-                    if 0 <= y <= self.height:
-                        ep.append((self.width, int(round(y))))
-                
-                ep = list(set(ep)) 
+                    y = (rho - w*a)/float(b)
+                    if 0 <= y <= h:
+                        ep.append((w, int(round(y))))
+                ep = list(set(ep))        # remove duplicates if line crosses the image at corners
                 ep.sort()
-                pt1, pt2 = ep
-                brl = self.bresenham_line(pt1, pt2)
+                brl = self.bresenham_line(ep[0], ep[1])
                 
-                last_wp = 0
-                first = True
+                # Follow the points on Bresenham's line. Look for white points. 
+                # If the distance between two adjacent white points (dist) is less than or 
+                # equal maxpixelgap then consider them the same line. If dist is bigger 
+                # maxpixelgap then check if length of the line is bigger than minlinelength.
+                # If so then add line.
+                dist = float('inf')        # distance between two adjacent white points
+                len_l = float('-inf')        # length of the line
                 for p in brl:
                     if p in pts:
-                        if first:    # found first white point
-                            last_wp = np.array(p)
-                            start_lp = np.array(p)
-                            line = [start_lp, start_lp]
-                            first = False
+                        if dist > maxpixelgap:        # found the end of the previous line and the start of the new line
+                            if len_l >= minlinelength:
+                                if ls:
+                                    # If the gap between current line and previous  
+                                    # is less than maxlinegap then merge this lines
+                                    l = ls[-1]
+                                    gap = round(math.sqrt( (start_p[0]-l[1][0])**2 + (start_p[1]-l[1][1])**2 ))
+                                    if gap <= maxlinegap:
+                                        ls.pop()
+                                        start_p = l[0] 
+                                ls.append( (start_p, last_p) )
+                            # First white point of the new line found
+                            dist = 1
+                            len_l = 1
+                            start_p = p        # first endpoint of the line
                         else:
-                            wp = np.array(p)
-                            dist = int(round( np.linalg.norm(wp-last_wp) ))
-                            if dist > maxpixelgap:
-                                start_lp = wp
-                                len_l = int(round( np.linalg.norm( line[1]-line[0] ) ))
-                                if len_l >= minlinelength:
-                                    if ls:
-                                        # if the gap between two lines is less than maxlinegap than merge this lines
-                                        l = ls[-1]
-                                        gap = int(round( np.linalg.norm( line[0]-l[1] ) ))
-                                        if gap <= maxlinegap:
-                                            ls.pop()
-                                            line = [l[0], line[1]]
-                                    line = [list(line[0]), list(line[1])]
-                                    ls.append(line)
-                                line = [start_lp, start_lp]
-                            elif dist <= maxpixelgap:
-                                line = [start_lp, wp]
-                            last_wp = wp
+                            # dist is less than or equal maxpixelgap, so line doesn't end yet
+                            len_l += dist
+                            dist = 1
+                        last_p = p        # last white point
+                    else:
+                        dist += 1
     
                 for l in ls:
                     linesFS.append(Line(self, l))
