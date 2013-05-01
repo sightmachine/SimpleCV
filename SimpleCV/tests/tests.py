@@ -3804,3 +3804,17 @@ def test_getAverage():
         pass
     else:
         assert False
+
+def test_smartRotate():
+    import time
+    img = Image('kptest2.png',sample = True)
+    
+    st1 = img.smartRotate(auto = False,fixed = False).resize(500,500)
+    st2 = img.rotate(27,fixed = False).resize(500,500)
+    diff = np.average((st1-st2).getNumpy())
+    if (diff > 1.7):
+        print diff
+        assert False
+    else:
+        assert True
+    
