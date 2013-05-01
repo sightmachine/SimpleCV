@@ -3189,7 +3189,7 @@ def test_line_extendToEdges():
     img = Image((512, 512))
     l = Line(img, ((10, 10), (30, 30)))
     l_ext = l.extendToImageEdges()
-    if l_ext.end_points == [(0, 0), (512, 512)]:
+    if l_ext.end_points == [(0, 0), (511, 511)]:
         pass
     else:
         assert False

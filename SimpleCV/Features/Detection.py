@@ -434,7 +434,7 @@ class Line(Feature):
         pt1, pt2 = min(pt1, pt2), max(pt1, pt2)
         x1, y1 = pt1
         x2, y2 = pt2
-        w, h = self.image.size()
+        w, h = self.image.width-1, self.image.height-1
         slope = self.slope
                
         ep = []
@@ -514,7 +514,7 @@ class Line(Feature):
         pt1, pt2 = min(pt1, pt2), max(pt1, pt2)
         x1, y1 = pt1
         x2, y2 = pt2
-        w, h = self.image.size()
+        w, h = self.image.width-1, self.image.height-1
         slope = self.slope
         
         if not 0 <= x1 <= w or not 0 <= x2 <= w or not 0 <= y1 <= w or not 0 <= y2 <= w:
