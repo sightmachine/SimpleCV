@@ -14095,7 +14095,7 @@ class Image:
         >>> i.smartRotate().show()
 
         """
-        lines = self.findLines(t1,t2)
+        lines = self.findLines(threshold, minLength, maxGap, t1,t2)
         
         if(len(lines) == 0):
             logger.warning("No lines found in the image")
