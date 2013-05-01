@@ -3817,4 +3817,13 @@ def test_smartRotate():
         assert False
     else:
         assert True
+
+def test_normalize():
+    img = Image("lenna")
+    img1 = img.normalize()
+    img2 = img.normalize(minCut = 0,maxCut = 0)
+    result = [img1,img2]
+    name_stem = "test_image_normalize"
+    perform_diff(result,name_stem,5)
+    pass
     
