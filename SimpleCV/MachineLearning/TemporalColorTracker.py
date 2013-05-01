@@ -1,4 +1,4 @@
-from SimpleCV import Image, ImageSet, Camera, VirtualCamera, Features, ROI, Color
+from SimpleCV import Image, ImageSet, Camera, VirtualCamera, ROI, Color, LineScan
 import numpy as np
 import scipy.signal as sps
 class TemporalColorTracker:
@@ -74,7 +74,8 @@ class TemporalColorTracker:
 
     def _findPeaks(self):
         self.peaks = {}
+        self.valleys = {}
         for key in self.data.keys():
-            wndwSz = int(np.floor(0.05*len(self.data[key])))
-            idxs = sps.find_peaks_cwt(self.data[key],np.arange(1,wndwSz))
-            self.peaks[key] = [(i,self.data[key][i]) for i in idxs]
+            ls = LineScan(self.data[key])
+            self.peaks[key]=ls.findPeaks()
+            self.valleys[key]=ls.findValleys()

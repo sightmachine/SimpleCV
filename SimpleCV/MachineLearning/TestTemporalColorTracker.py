@@ -22,7 +22,10 @@ for key in tct.data.keys():
     plt.plot([0,l],[mu+3*s,mu+3*s],plotc[key]+'--')
     plt.plot([0,l],[mu-3*s,mu-3*s],plotc[key]+'--')
     for pt in tct.peaks[key]:
-        plt.plot(pt[0],pt[1],'r.')
+        plt.plot(pt[0],pt[1],'r*')
+    for pt in tct.valleys[key]:
+        plt.plot(pt[0],pt[1],'b*')
+
     plt.grid()
 plt.show()
 
