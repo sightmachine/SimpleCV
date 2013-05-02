@@ -3293,7 +3293,7 @@ class Image:
 
 
 
-    def meanColor(self, colorSpace = 'BGR'):
+    def meanColor(self, colorSpace = None):
         """
         **SUMMARY**
 
@@ -3318,8 +3318,11 @@ class Image:
         
          
         """
-        # I changed this to keep channel order - KAS
-        if colorSpace == 'BGR':
+        
+        if colorSpace == None:
+			return tuple(cv.Avg(self.getBitmap())[0:3]) 
+			
+        elif colorSpace == 'BGR':
             return tuple(cv.Avg(self.toBGR().getBitmap())[0:3])
         
         elif colorSpace == 'RGB':
