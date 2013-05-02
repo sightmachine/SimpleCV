@@ -1,19 +1,15 @@
 from SimpleCV import Image, ImageSet, Camera, VirtualCamera, ROI, Color, LineScan
 import numpy as np
 import scipy.signal as sps
+import time as time
 class TemporalColorTracker:
     def __init__(self):
         self._rtData = LineScan([]) # the deployed data
-        self._roi = None # the roi
         self._steadyState = None # mu/signal for the ss behavior
-        self._window = None # the window for local min
-        self._mode = "passfail"
-        self._searchMode = "minima" # either minima or maxima
-        self._channel = "I" # "R"/"G"/"B"/"I"/"H"
-        self._decisionBoundry = None # the threshold for picking values
-        
-    def train(self,src,roi,mode="passfail",maxFrames=1000,ssWndw=0.05,
-              pkWndw=30, pkDelta=3):
+        self._extractor = None
+        self._roi = None
+    def train(self,src,roi=None,extractor=None,maxFrames=1000,ssWndw=0.05,
+              pkWndw=30, pkDelta=3, verbose=True):
         """
         Use data = video/imageset/camera
         ROI should be ROI feature.
@@ -21,16 +17,36 @@ class TemporalColorTracker:
             passfail: ternary returns 'pass'/'fail'/None e.g. genetech
             counter: returns 'count'/None - e.g. zing
         """
-        self._extract(src,roi,maxFrames)
+        if( roi is None and extractor is None ):
+            warnings.warn('Need to provide an ROI or an extractor')
+        self._extractor = extractor #function that returns a RGB values
+        self._roi = roi
+        self._extract(src,maxFrames)
         self._findSteadyState(windowSzPrct=ssWndw)
         self._findPeaks(pkWndw,pkDelta)
         self._extractSignalInfo()
         self._buildSignalProfile()
-        self.roi = roi
-        
-    def _getDataFromImg(self,img,roi):
-        temp = roi.reassign(img)
-        mc = temp.meanColor()
+        if verbose:
+            for key in self.data.keys():
+                print 30*'-'
+                print "Channel: {0}".format(key)
+                print "Data Points: {0}".format(len(self.data[key]))
+                print "Steady State: {0}+/-{1}".format(self.steadyState[key][0],self.steadyState[key][1])
+                print "Peaks: {0}".format(self.peaks[key])
+                print "Valleys: {0}".format(self.valleys[key])
+                print "Use Peaks: {0}".format(self.doPeaks[key])
+            print 30*'-'
+            print "BEST SIGNAL: {0}".format(self.bestKey)
+            print "BEST WINDOW: {0}".format(self.window)
+            print "BEST CUTOFF: {0}".format(self.cutoff)
+                
+    def _getDataFromImg(self,img):
+        mc = None
+        if( self._extractor ):
+            mc = self._extractor(img)
+        else:
+            temp = self._roi.reassign(img)    
+            mc = temp.meanColor()
         self.data['r'].append(mc[0])
         self.data['g'].append(mc[1])
         self.data['b'].append(mc[2])
@@ -39,18 +55,19 @@ class TemporalColorTracker:
         self.data['h'].append(Color.getHueFromRGB(mc))
         #return [mc[0],mc[1],mc[2],gray,Color.rgbToHue(mc)]
 
-    def _extract(self,src,roi,maxFrames):
+    def _extract(self,src,maxFrames):
         self.data = {'r':[],'g':[],'b':[],'i':[],'h':[]}
         if( isinstance(src,ImageSet) ):
             src = VirtualCamera(src,st='imageset') # this could cause a bug
         if( isinstance(src,(VirtualCamera,Camera))):
             for i in range(0,maxFrames):
                 img = src.getImage()
-                print "Doing Frame {0}".format(i)
+                if( isinstance(src,Camera) ):
+                    time.sleep(0.05) # let the camera sleep
                 if( img is None ):
                     break
                 else:
-                    self._getDataFromImg(img,roi)
+                    self._getDataFromImg(img)
                 
         else:
             warnings.warn('Not a valid train source')
@@ -131,13 +148,17 @@ class TemporalColorTracker:
             p2p = np.array(peaks[1:])-np.array(peaks[:-1])
             p2pMean = np.mean(p2p)
             p2pS = np.std(p2p)
-            self.window = p2pMean/2
+            self.window = p2pMean
         
         #NEED TO ERROR OUT ON NOT ENOUGH POINTS
 
     def _getBestValue(self,img):
-        temp = self.roi.reassign(img)
-        mc = temp.meanColor()
+
+        if( self._extractor ):
+            mc = self._extractor(img)
+        else:
+            temp = self._roi.reassign(img)    
+            mc = temp.meanColor()
         if( self.bestKey == 'r' ):
             return mc[0]
         elif( self.bestKey == 'g' ):
@@ -157,13 +178,15 @@ class TemporalColorTracker:
         if( len(self._rtData) > self.window):
             self._rtData = self._rtData[1:]
             if( self.isPeak ):
-                lm = self._rtData.maxima()[0]
-                if( lm[0] == wndwCenter and lm[1] > self.cutoff ):
-                    retVal = "count"
+                lm = self._rtData.localMaxima()
+                for l in lm:
+                    if( l[0] == wndwCenter and l[1] > self.cutoff ):
+                        retVal = "count"
             else:
-                lm = self._rtData.minima()[0]
-                if( lm[0] == wndwCenter and lm[1] < self.cutoff ):
-                    retVal = "count"
+                lm = self._rtData.localMinima()
+                for l in lm:
+                    if( l[0] == wndwCenter and l[1] < self.cutoff ):
+                        retVal = "count"
         return retVal
         
     def recognize(self,img):
