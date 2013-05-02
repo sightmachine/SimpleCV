@@ -3293,11 +3293,12 @@ class Image:
 
 
 
-    def meanColor(self):
+    def meanColor(self, colorSpace = None):
         """
         **SUMMARY**
 
-        This method finds the average color of all the pixels in the image.
+        This method finds the average color of all the pixels in the image and displays tuple in the colorspace specfied by the user.
+        If no colorspace is specified , (B,G,R) colorspace is taken as default.
 
         **RETURNS**
 
@@ -3306,11 +3307,47 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> colors = img.meanColor()
-
+        >>> colors = img.meanColor()        # returns default result in (B,G,R) format.
+        >>> colors = img.meanColor('BGR')   # returns tuple in (B,G,R) format.
+        >>> colors = img.meanColor('RGB')   # returns tuple in (R,G,B) format.
+        >>> colors = img.meanColor('HSV')   # returns tuple in (H,S,V) format.
+        >>> colors = img.meanColor('XYZ')   # returns tuple in (X,Y,Z) format.
+        >>> colors = img.meanColor('Gray')  # returns tuple in (B,G,R) format.
+        >>> colors = img.meanColor('YCrCb') # returns tuple in (Y,Cr,Cb) format.
+        >>> colors = img.meanColor('HLS')   # returns tuple in (H,L,S) format.
+        
+         
         """
-        # I changed this to keep channel order - KAS
-        return tuple(cv.Avg(self.getBitmap())[0:3])
+        
+        if colorSpace == None:
+			return tuple(cv.Avg(self.getBitmap())[0:3]) 
+			
+        elif colorSpace == 'BGR':
+            return tuple(cv.Avg(self.toBGR().getBitmap())[0:3])
+        
+        elif colorSpace == 'RGB':
+            return tuple(cv.Avg(self.toRGB().getBitmap())[0:3])
+        
+        elif colorSpace == 'HSV':
+            return tuple(cv.Avg(self.toHSV().getBitmap())[0:3])
+
+        elif colorSpace == 'XYZ':
+            return tuple(cv.Avg(self.toXYZ().getBitmap())[0:3])
+
+        elif colorSpace == 'Gray':
+            return tuple(cv.Avg(self.toGray().getBitmap())[0:3])
+
+        elif colorSpace == 'YCrCb':
+            return tuple(cv.Avg(self.toYCrCb().getBitmap())[0:3])
+
+        elif colorSpace == 'HLS':
+            return tuple(cv.Avg(self.toHLS().getBitmap())[0:3])
+
+        else:
+            logger.warning("Image.meanColor: There is no supported conversion to the specified colorspace. Use one of these as argument: 'BGR' , 'RGB' , 'HSV' , 'Gray' , 'XYZ' , 'YCrCb' , 'HLS' .")
+            return None
+			
+        
 
     def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
         """

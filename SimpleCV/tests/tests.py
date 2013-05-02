@@ -225,14 +225,58 @@ def test_detection_findCorners():
 
 
 def test_color_meancolor():
+    r = []
+    b = []
+    g = []
     img = Image(testimage2)
     roi = img[1:50,1:50]
 
-    r, g, b = roi.meanColor()
-
-    if (r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255):
-        pass
-
+    r1, g1 , b1 = roi.meanColor()
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+	
+    r1, g1 , b1 = roi.meanColor('RGB')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+    
+    r1, g1 , b1 = roi.meanColor('XYZ')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+	
+    r1, g1 , b1 = roi.meanColor('YCrCb')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+	
+    r1, g1 , b1 = roi.meanColor('Gray')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+	
+    r1, g1 , b1 = roi.meanColor('HSV')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+    
+    r1, g1 , b1 = roi.meanColor('HLS')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+    	
+    r1, g1 , b1 = roi.meanColor('BGR')
+    r.append(r1)
+    b.append(b1)
+    g.append(g1)
+	
+    for i in range(len(r)):
+         if (r[i] < 0 or r[i] > 255 or g[i] < 0 or g[i] > 255 or b[i] < 0 or b[i] > 255):
+              assert False
+    
+    pass
+       
 def test_image_smooth():
     img = Image(testimage2)
     result = []
