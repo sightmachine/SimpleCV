@@ -225,58 +225,44 @@ def test_detection_findCorners():
 
 
 def test_color_meancolor():
-    r = []
-    b = []
-    g = []
-    img = Image(testimage2)
-    roi = img[1:50,1:50]
+    a = np.arange(0, 256)
+    b = a[::-1]
+    c = np.copy(a)/2
+    a = a.reshape(16, 16)
+    b = b.reshape(16, 16)
+    c = c.reshape(16, 16)
+    imgarr = np.dstack((a, b, c))
+    img = Image(imgarr)
 
-    r1, g1 , b1 = roi.meanColor()
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-	
-    r1, g1 , b1 = roi.meanColor('RGB')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-    
-    r1, g1 , b1 = roi.meanColor('XYZ')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-	
-    r1, g1 , b1 = roi.meanColor('YCrCb')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-	
-    r1, g1 , b1 = roi.meanColor('Gray')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-	
-    r1, g1 , b1 = roi.meanColor('HSV')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-    
-    r1, g1 , b1 = roi.meanColor('HLS')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-    	
-    r1, g1 , b1 = roi.meanColor('BGR')
-    r.append(r1)
-    b.append(b1)
-    g.append(g1)
-	
-    for i in range(len(r)):
-         if (r[i] < 0 or r[i] > 255 or g[i] < 0 or g[i] > 255 or b[i] < 0 or b[i] > 255):
-              assert False
-    
+    b, g, r = img.meanColor('BGR')
+    if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
+        assert False
+
+    r, g, b = img.meanColor('RGB')
+    if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
+        assert False
+
+    h, s, v = img.meanColor('HSV')
+    if not (83 < h < 84 and 191 < s < 192 and 191 < v < 192):
+        assert False
+
+    x, y, z = img.meanColor('XYZ')
+    if not (109 < x < 110 and 122 < y < 123 and 77 < z < 79):
+        assert False
+
+    gray = img.meanColor('Gray')
+    if not (120 < gray < 121):
+        assert False
+
+    y, cr, cb = img.meanColor('YCrCb')
+    if not (120 < y < 121 and 133 < cr < 134 and 96 < cb < 97):
+        assert False
+
+    h, l, s = img.meanColor('HLS')
+    if not (84 < h < 85 and 117 < l < 118 and 160 < s < 161):
+        assert False
     pass
-       
+
 def test_image_smooth():
     img = Image(testimage2)
     result = []
