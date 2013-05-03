@@ -3307,12 +3307,12 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> colors = img.meanColor()        # returns default result in (B,G,R) format.
+        >>> colors = img.meanColor()        # returns tuple in Image's colorspace format.
         >>> colors = img.meanColor('BGR')   # returns tuple in (B,G,R) format.
         >>> colors = img.meanColor('RGB')   # returns tuple in (R,G,B) format.
         >>> colors = img.meanColor('HSV')   # returns tuple in (H,S,V) format.
         >>> colors = img.meanColor('XYZ')   # returns tuple in (X,Y,Z) format.
-        >>> colors = img.meanColor('Gray')  # returns tuple in (B,G,R) format.
+        >>> colors = img.meanColor('Gray')  # returns float of mean intensity.
         >>> colors = img.meanColor('YCrCb') # returns tuple in (Y,Cr,Cb) format.
         >>> colors = img.meanColor('HLS')   # returns tuple in (H,L,S) format.
         
@@ -3335,7 +3335,7 @@ class Image:
             return tuple(cv.Avg(self.toXYZ().getBitmap())[0:3])
 
         elif colorSpace == 'Gray':
-            return tuple(cv.Avg(self.toGray().getBitmap())[0:3])
+            return (cv.Avg(self._getGrayscaleBitmap())[0])
 
         elif colorSpace == 'YCrCb':
             return tuple(cv.Avg(self.toYCrCb().getBitmap())[0:3])
