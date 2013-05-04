@@ -40,7 +40,6 @@ def magic_examples(self, arg):
     elif isinstance(iarg, int):
         print "running example:", files[iarg]
         try:
-            print sys.executable
             call([sys.executable, files[iarg]])
         except:
             print "Couldn't run example:", files[iarg]
