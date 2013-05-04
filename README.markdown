@@ -175,6 +175,7 @@ followed by
 
 Install OpenCV via homebrew by running:
 
+    brew tap homebrew/science
     brew install opencv
 
 Be sure to add the requested line to you ~/.bash_profile:
@@ -261,7 +262,8 @@ Commands (for Lion)::
     mkdir ~/Code
     cd ~/Code
     /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
-    brew install opencv
+    brew tap homebrew/science
+	brew install opencv
     brew install git
     brew tap homebrew/headonly
     brew install --HEAD smpeg
@@ -282,7 +284,8 @@ Commands (for Snow Leopard)::
     mkdir ~/Code
     cd ~/Code
     ruby <(curl -fsSkL raw.github.com/mxcl/homebrew/go)
-    brew install opencv
+    brew tap homebrew/science
+	brew install opencv
     brew install git
     brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi 
     ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
