@@ -76,31 +76,14 @@ def hist(arg):
 def magic_clear(self, arg):
     shellclear()
 
-
-clear = make_magic(magic_clear)
-
-
 def magic_forums(self, arg):
     webbrowser.open('http://help.simplecv.org/questions/')
-
-
-forums = make_magic(magic_forums)
-
 
 def magic_walkthrough(self, arg):
     webbrowser.open('http://examples.simplecv.org/en/latest/')
 
-
-walkthrough = make_magic(magic_walkthrough)
-
-
 def magic_docs(self, arg):
     webbrowser.open('http://www.simplecv.org/docs/')
-
-
-docs = make_magic(magic_docs)
-tutorial = make_magic(magic_tutorial)
-example = make_magic(magic_examples)
 
 banner = '+-----------------------------------------------------------+\n'
 banner += ' SimpleCV '
@@ -141,6 +124,7 @@ def setup_ipython():
         #~ cfg.InteractiveShellEmbed.prompt_out="SimpleCV:\\#: "
         scvShell = InteractiveShellEmbed(config=cfg, banner1=banner,
                                          exit_msg=exit_msg)
+        print scvShell.automagic #= True
         scvShell.define_magic("tutorial", magic_tutorial)
         scvShell.define_magic("clear", magic_clear)
         scvShell.define_magic("example", magic_examples)
@@ -170,8 +154,15 @@ def setup_ipython():
 
 def setup_bpython():
     import bpython
-
-    return bpython.embed(locals_=globals(), banner=banner)
+    example = make_magic(magic_examples)
+    clear = make_magic(magic_clear)
+    docs = make_magic(magic_docs)
+    tutorial = make_magic(magic_tutorial)
+    walkthrough = make_magic(magic_walkthrough)
+    forums = make_magic(magic_forums)
+    temp = locals().copy()
+    temp.update(globals())
+    return bpython.embed(locals_=temp, banner=banner)
 
 
 def setup_plain():

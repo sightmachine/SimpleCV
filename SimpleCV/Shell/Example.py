@@ -3,6 +3,7 @@ import os
 import glob
 from subprocess import call
 from SimpleCV import *
+import sys
 
 
 def listFiles(directory):
@@ -39,7 +40,8 @@ def magic_examples(self, arg):
     elif isinstance(iarg, int):
         print "running example:", files[iarg]
         try:
-            call(["python", files[iarg]])
+            print sys.executable
+            call([sys.executable, files[iarg]])
         except:
             print "Couldn't run example:", files[iarg]
 
