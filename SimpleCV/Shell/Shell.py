@@ -124,7 +124,6 @@ def setup_ipython():
         #~ cfg.InteractiveShellEmbed.prompt_out="SimpleCV:\\#: "
         scvShell = InteractiveShellEmbed(config=cfg, banner1=banner,
                                          exit_msg=exit_msg)
-        print scvShell.automagic #= True
         scvShell.define_magic("tutorial", magic_tutorial)
         scvShell.define_magic("clear", magic_clear)
         scvShell.define_magic("example", magic_examples)
