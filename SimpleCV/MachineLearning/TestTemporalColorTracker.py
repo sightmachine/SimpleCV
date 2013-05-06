@@ -1,34 +1,37 @@
 from SimpleCV import Image, ROI, VirtualCamera, TemporalColorTracker, Color, Display, VideoStream, Camera
 import matplotlib.pyplot as plt
 import pickle
+from subprocess import call # to run command line programs
+outTemp = 'test.avi'
+outname = 'output.mp4'
+tags = 'SimpleCV, Computer Vision, Python'
+title = "SimpleCV Output"
+summary = "See http://simplecv.org for more info."
+access = "private" # Options are "public" "private" "protected"
 
-def testFunc(img):
-    w = img.width
-    h = img.height
-    x1 = int(w*0.5)
-    x2 = int(w*0.5)
-    y1 = int(h*0.45)
-    y2 = int(h*0.55)
-    lsb = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=0)
-    lsg = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=1)
-    lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
-    return [lsr.mean(),lsg.mean(),lsb.mean()]
+# def testFunc(img):
+#     w = img.width
+#     h = img.height
+#     x1 = int(w*0.5)
+#     x2 = int(w*0.5)
+#     y1 = int(h*0.45)
+#     y2 = int(h*0.55)
+#     lsb = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=0)
+#     lsg = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=1)
+#     lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
+#     return [lsr.mean(),lsg.mean(),lsb.mean()]
         
-fname = 'vials0.MP4'
+fname = 'MONEY.flv' #vials0.MP4'
 cam = VirtualCamera(s=fname,st='video')
 img = cam.getImage()
 w = img.width
 h = img.height
 data = []
-#roi = ROI(w*0.45,h*0.45,w*0.1,h*0.1,img)
-roi = ROI(w*0.45,h*0.45,w*0.05,h*0.1,img)
+roi = ROI(w*0.2,h*0.7,w*0.05,h*0.1,img)
 disp = Display((1024,768))
-# buffer the camera
-#while disp.isNotDone():
-#    cam.getImage().save(disp)
     
 tct = TemporalColorTracker()
-tct.train(cam,extractor=testFunc,maxFrames=5000,pkWndw=5,ssWndw=0.01)
+tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1)
 plotc = {'r':'r','g':'g','b':'b','i':'m','h':'y'}
 l = len(tct.data['r'])
 pickle.dump(tct,open('tct.pkl','wb'))
@@ -48,7 +51,7 @@ for key in tct.data.keys():
 plt.show()
 #cam = None
 cam = VirtualCamera(s=fname,st='video')
-vs = VideoStream(fps=60,filename="test.avi",framefill=False)
+vs = VideoStream(fps=30,filename=outTemp,framefill=False)
 count = 0
 frame = 0
 show = True
@@ -56,26 +59,30 @@ disp.done = False
 while disp.isNotDone():
     img = cam.getImage()
     if( img is None ):
-        break
-    roi = ROI(w*0.45,h*0.45,w*0.05,h*0.1,img)
-    result = tct.recognize(img)
-    if( result ):
-        count = count + 1
-        print count
+        if( count < 1000 ):
+            cam.rewind()
+        else:
+            break
+    else:
+        roi = ROI(w*0.2,h*0.7,w*0.05,h*0.1,img)
+        result = tct.recognize(img)
+        if( result ):
+            count = count + 1
 
-    if( show ):
-        myStr = "Count: {0} Frame: {1}".format(count,frame)
-        frame = frame + 1
-        # plt.plot(tct._rtData,'m-')
-        # plt.grid()
-        # plt.ylim([0,255])
-        # plt.savefig('temp.png')
-        # plotImg = Image('temp.png')
-        # plt.clf()
-        # plotImg = plotImg.scale(0.5)
-        # img = img.blit(plotImg,pos=(0,img.height-plotImg.height))
-        img.drawText(myStr,30,30,color=Color.RED,fontsize=64)
-        roi.draw(width=5)
-        img = img.applyLayers()
-        img.save(disp)
-        vs.writeFrame(img)
+        if( show ):
+            myStr = "${0}".format(count*1000)
+            frame = frame + 1
+            img.drawText(myStr,30,30,color=Color.GREEN,fontsize=90)
+            roi.draw(width=2)
+            img = img.applyLayers()
+            img.save(disp)
+            vs.writeFrame(img)
+# construct the encoding arguments
+params = " -i {0} {1}".format(outTemp,outname)
+# run ffmpeg to compress your video.
+call('ffmpeg'+params,shell=True)
+# construct the command line arguments for google command line
+params = "{0} --title \"{1}\" --tags \"{2}\" --category \"Education\" --summary \"{3}\" --access \"{4}\" ".format(outname,title,tags,summary,access)
+print params
+# call the command line
+call('google youtube post '+params,shell=True)

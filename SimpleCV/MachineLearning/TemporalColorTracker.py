@@ -8,6 +8,7 @@ class TemporalColorTracker:
         self._steadyState = None # mu/signal for the ss behavior
         self._extractor = None
         self._roi = None
+
     def train(self,src,roi=None,extractor=None,maxFrames=1000,ssWndw=0.05,
               pkWndw=30, pkDelta=3, verbose=True):
         """
@@ -114,10 +115,18 @@ class TemporalColorTracker:
         for key in self.data.keys():
             #Look at which signal has a bigger distance from
             #the steady state behavior
-            peakMean = np.mean(np.array(self.peaks[key])[:,1])
-            self.pD[key] =  np.abs(self.steadyState[key][0]-peakMean)
-            valleyMean = np.mean(np.array(self.valleys[key])[:,1])
-            self.vD[key] =  np.abs(self.steadyState[key][0]-valleyMean)
+            if( len(self.peaks[key]) > 0 ):
+                peakMean = np.mean(np.array(self.peaks[key])[:,1])
+                self.pD[key] =  np.abs(self.steadyState[key][0]-peakMean)
+            else:
+                self.pD[key] = 0.00
+
+            if( len(self.valleys[key]) > 0 ):
+                valleyMean = np.mean(np.array(self.valleys[key])[:,1])
+                self.vD[key] =  np.abs(self.steadyState[key][0]-valleyMean)
+            else:
+                self.vD[key] = 0.00
+                
             self.doPeaks[key]=False
             best = self.vD[key]
             if( self.pD[key] > self.vD[key] ):
@@ -129,7 +138,7 @@ class TemporalColorTracker:
                 bestKey = key
         # Now we know which signal has the most spread
         # and what direction we are looking for.
-        self.bestKey = key
+        self.bestKey = bestKey
         print "Using key " + key
         
     def _buildSignalProfile(self):
