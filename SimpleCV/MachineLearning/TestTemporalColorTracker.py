@@ -21,13 +21,13 @@ access = "private" # Options are "public" "private" "protected"
 #     lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
 #     return [lsr.mean(),lsg.mean(),lsb.mean()]
         
-fname = 'MONEY.flv' #vials0.MP4'
+fname = 'bottles.flv' #vials0.MP4'
 cam = VirtualCamera(s=fname,st='video')
 img = cam.getImage()
 w = img.width
 h = img.height
 data = []
-roi = ROI(w*0.25,h*0.6,w*0.05,h*0.1,img)
+roi = ROI(w*0.25,h*0.3,w*0.05,h*0.1,img)
 disp = Display((1024,768))
     
 tct = TemporalColorTracker()
@@ -35,11 +35,9 @@ tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1,doCorr=True)
 plotc = {'r':'r','g':'g','b':'b','i':'m','h':'y'}
 l = len(tct.data['r'])
 pickle.dump(tct,open('tct.pkl','wb'))
-print l
-print tct.steadyState
 for key in tct.data.keys():
     plt.plot(tct.data[key],plotc[key])
-    mu,s = tct.steadyState[key]
+    mu,s = tct._steadyState[key]
     plt.plot([0,l],[mu+3*s,mu+3*s],plotc[key]+'--')
     plt.plot([0,l],[mu-3*s,mu-3*s],plotc[key]+'--')
     for pt in tct.peaks[key]:
@@ -51,7 +49,7 @@ plt.show()
 
 for sig in tct.corrTemplates:
     plt.plot(sig,'b--')
-plt.plot(tct.template, 'r-')
+plt.plot(tct._template, 'r-')
 plt.grid()
 plt.show()
 
@@ -70,7 +68,7 @@ while disp.isNotDone():
         else:
             break
     else:
-        roi = ROI(w*0.25,h*0.6,w*0.05,h*0.1,img)
+        roi = ROI(w*0.25,h*0.3,w*0.05,h*0.1,img)
         result = tct.recognize(img)
         if( result ):
             count = count + 1

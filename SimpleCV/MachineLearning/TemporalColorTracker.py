@@ -9,6 +9,15 @@ class TemporalColorTracker:
         self._steadyState = None # mu/signal for the ss behavior
         self._extractor = None
         self._roi = None
+        self._window = None
+        self._template = None
+        self._cutoff = None
+        self._bestKey = None
+        self._isPeak = False
+        self.corrTemplates = None
+        self.peaks = {}
+        self.valleys = {}
+        self.doPeaks = {}
 
     def train(self,src,roi=None, extractor=None, doCorr=False, maxFrames=1000,
               ssWndw=0.05, pkWndw=30, pkDelta=3, forceChannel=None, verbose=True):
@@ -35,14 +44,14 @@ class TemporalColorTracker:
                 print 30*'-'
                 print "Channel: {0}".format(key)
                 print "Data Points: {0}".format(len(self.data[key]))
-                print "Steady State: {0}+/-{1}".format(self.steadyState[key][0],self.steadyState[key][1])
+                print "Steady State: {0}+/-{1}".format(self._steadyState[key][0],self._steadyState[key][1])
                 print "Peaks: {0}".format(self.peaks[key])
                 print "Valleys: {0}".format(self.valleys[key])
                 print "Use Peaks: {0}".format(self.doPeaks[key])
             print 30*'-'
-            print "BEST SIGNAL: {0}".format(self.bestKey)
-            print "BEST WINDOW: {0}".format(self.window)
-            print "BEST CUTOFF: {0}".format(self.cutoff)
+            print "BEST SIGNAL: {0}".format(self._bestKey)
+            print "BEST WINDOW: {0}".format(self._window)
+            print "BEST CUTOFF: {0}".format(self._cutoff)
                 
     def _getDataFromImg(self,img):
         mc = None
@@ -84,7 +93,7 @@ class TemporalColorTracker:
         # assembly line has nothing moving)
         # save the mean and sd of this value
         # as a tuple in the steadyStateDict
-        self.steadyState = {}
+        self._steadyState = {}
         for key in self.data.keys():
             wndwSz = int(np.floor(windowSzPrct*len(self.data[key])))
             signal = self.data[key]
@@ -94,7 +103,7 @@ class TemporalColorTracker:
             index = np.where(data==np.min(data))[0][0]
             # find the mean for the window
             mean = np.mean(signal[index:index+wndwSz])
-            self.steadyState[key]=(mean,data[index])
+            self._steadyState[key]=(mean,data[index])
 
 
     def _findPeaks(self,pkWndw,pkDelta):
@@ -120,13 +129,13 @@ class TemporalColorTracker:
             #the steady state behavior
             if( len(self.peaks[key]) > 0 ):
                 peakMean = np.mean(np.array(self.peaks[key])[:,1])
-                self.pD[key] =  np.abs(self.steadyState[key][0]-peakMean)
+                self.pD[key] =  np.abs(self._steadyState[key][0]-peakMean)
             else:
                 self.pD[key] = 0.00
 
             if( len(self.valleys[key]) > 0 ):
                 valleyMean = np.mean(np.array(self.valleys[key])[:,1])
-                self.vD[key] =  np.abs(self.steadyState[key][0]-valleyMean)
+                self.vD[key] =  np.abs(self._steadyState[key][0]-valleyMean)
             else:
                 self.vD[key] = 0.00
                 
@@ -141,22 +150,22 @@ class TemporalColorTracker:
                 bestKey = key
         # Now we know which signal has the most spread
         # and what direction we are looking for.
-        self.bestKey = bestKey
+        self._bestKey = bestKey
 
         
     def _buildSignalProfile(self):
-        key = self.bestKey
-        self.window = None
+        key = self._bestKey
+        self._window = None
         peaks = None
         if( self.doPeaks[key] ):
-            self.isPeak = True
+            self._isPeak = True
             peaks = self.peaks[key]
             # We're just going to do halfway
-            self.cutoff = self.steadyState[key][0]+(self.pD[key]/2.0)            
+            self._cutoff = self._steadyState[key][0]+(self.pD[key]/2.0)            
         else:
-            self.isPeak = False
+            self._isPeak = False
             peaks = self.valleys[key]
-            self.cutoff = self.steadyState[key][0]-(self.vD[key]/2.0)
+            self._cutoff = self._steadyState[key][0]-(self.vD[key]/2.0)
         if( len(peaks) > 1 ):
             p2p = np.array(peaks[1:])-np.array(peaks[:-1])
             p2pMean = int(np.mean(p2p))
@@ -165,23 +174,23 @@ class TemporalColorTracker:
             # constrain it to be an od window
             if int(p2pMean) % 2 == 1:
                 p2pMean = p2pMean+1 
-            self.window = p2pMean
+            self._window = p2pMean
         else:
             raise Exception("Can't find enough peaks")
-        if( self.doCorr and self.window is not None ):
+        if( self.doCorr and self._window is not None ):
             self._doCorr()
 
         #NEED TO ERROR OUT ON NOT ENOUGH POINTS
 
     def _doCorr(self):
-        key = self.bestKey
+        key = self._bestKey
         # build an average signal for the peaks and valleys
         # centered at the peak. The go and find the correlation
         # value of each peak/valley with the average signal
         self.corrTemplates = []
-        halfWndw = self.window/2
+        halfWndw = self._window/2
         pList = None 
-        if( self.isPeak ):
+        if( self._isPeak ):
             pList = self.peaks[key]
         else:
             pList = self.valleys[key]
@@ -199,8 +208,8 @@ class TemporalColorTracker:
         sig = np.copy(self.corrTemplates[0]) # little np gotcha
         for peak in self.corrTemplates[1:]:
             sig += peak
-        self.template = sig / len(self.corrTemplates)
-        corrVals = [np.correlate(peak,self.template) for peak in self.corrTemplates] 
+        self._template = sig / len(self.corrTemplates)
+        corrVals = [np.correlate(peak,self._template) for peak in self.corrTemplates] 
         self.corrThresh = np.mean(corrVals)-(3.0*np.std(corrVals))
         
     def _getBestValue(self,img):
@@ -210,30 +219,30 @@ class TemporalColorTracker:
         else:
             temp = self._roi.reassign(img)    
             mc = temp.meanColor()
-        if( self.bestKey == 'r' ):
+        if( self._bestKey == 'r' ):
             return mc[0]
-        elif( self.bestKey == 'g' ):
+        elif( self._bestKey == 'g' ):
             return mc[1]
-        elif( self.bestKey == 'b' ):
+        elif( self._bestKey == 'b' ):
             return mc[2]
-        elif( self.bestKey == 'i' ):
+        elif( self._bestKey == 'i' ):
             return Color.getLightness(mc)
-        elif( self.bestKey == 'h' ):
+        elif( self._bestKey == 'h' ):
             return Color.getHueFromRGB(mc)
         
     def _updateBuffer(self,v):
         retVal = None
         self._rtData.append(v)
-        wndwCenter = int(np.floor(self.window/2.0))
+        wndwCenter = int(np.floor(self._window/2.0))
         # pop the end of the buffer
-        if( len(self._rtData) > self.window):
+        if( len(self._rtData) > self._window):
             self._rtData = self._rtData[1:]
-            if( self.isPeak ):
+            if( self._isPeak ):
                 lm = self._rtData.localMaxima()
                 for l in lm:
-                    if( l[0] == wndwCenter and l[1] > self.cutoff ):
+                    if( l[0] == wndwCenter and l[1] > self._cutoff ):
                         if( self.doCorr ):
-                            corrVal = np.correlate(self._rtData,self.template)
+                            corrVal = np.correlate(self._rtData,self._template)
                             if( corrVal[0] > self.corrThresh ):
                                 retVal = "count"
                         else:
@@ -241,9 +250,9 @@ class TemporalColorTracker:
             else:
                 lm = self._rtData.localMinima()
                 for l in lm:
-                    if( l[0] == wndwCenter and l[1] < self.cutoff ):
+                    if( l[0] == wndwCenter and l[1] < self._cutoff ):
                         if( self.doCorr ):
-                            corrVal = np.correlate(self._rtData,self.template)
+                            corrVal = np.correlate(self._rtData,self._template)
                             if( corrVal[0] > self.corrThresh ):
                                 retVal = "count"
                         else:
@@ -251,7 +260,7 @@ class TemporalColorTracker:
         return retVal
         
     def recognize(self,img):
-        if( self.bestKey is None ):
+        if( self._bestKey is None ):
             raise Exception('The TemporalColorTracker has not been trained.')
         v = self._getBestValue(img)
         return self._updateBuffer(v)
