@@ -1387,8 +1387,11 @@ class Blob(Feature):
         try:
             import cv2
             hull = [self.mContour.index(x) for x in self.mConvexHull]
-            hull = np.array(hull).reshape(len(hull), 1)    
+            hull = np.array(hull).reshape(len(hull), 1)
             defects = cv2.convexityDefects(np.array(self.mContour), hull)
+            if isinstance(defects, type(None)):
+                warnings.warn("Unable to find defects. Returning None")
+                return None
             features = FeatureSet([Line(self.image, (self.mContour[defect[0][0]], self.mContour[defect[0][1]])) for defect in defects])
 
         except ImportError:
