@@ -1,6 +1,7 @@
 from SimpleCV import Image, ImageSet, Camera, VirtualCamera, ROI, Color, LineScan
 import numpy as np
 import scipy.signal as sps
+import warnings
 import time as time
 class TemporalColorTracker:
     def __init__(self):
@@ -20,7 +21,7 @@ class TemporalColorTracker:
             counter: returns 'count'/None - e.g. zing
         """
         if( roi is None and extractor is None ):
-            warnings.warn('Need to provide an ROI or an extractor')
+            raise Exception('Need to provide an ROI or an extractor')
         self.doCorr = doCorr
         self._extractor = extractor #function that returns a RGB values
         self._roi = roi
@@ -62,7 +63,7 @@ class TemporalColorTracker:
         self.data = {'r':[],'g':[],'b':[],'i':[],'h':[]}
         if( isinstance(src,ImageSet) ):
             src = VirtualCamera(src,st='imageset') # this could cause a bug
-        if( isinstance(src,(VirtualCamera,Camera))):
+        elif( isinstance(src,(VirtualCamera,Camera))):
             for i in range(0,maxFrames):
                 img = src.getImage()
                 if( isinstance(src,Camera) ):
@@ -73,7 +74,7 @@ class TemporalColorTracker:
                     self._getDataFromImg(img)
                 
         else:
-            warnings.warn('Not a valid train source')
+            raise Exception('Not a valid training source')
             return None
     
     def _findSteadyState(self,windowSzPrct=0.05):
@@ -141,10 +142,11 @@ class TemporalColorTracker:
         # Now we know which signal has the most spread
         # and what direction we are looking for.
         self.bestKey = bestKey
-        print "Using key " + key
+
         
     def _buildSignalProfile(self):
         key = self.bestKey
+        self.window = None
         peaks = None
         if( self.doPeaks[key] ):
             self.isPeak = True
@@ -164,8 +166,9 @@ class TemporalColorTracker:
             if int(p2pMean) % 2 == 1:
                 p2pMean = p2pMean+1 
             self.window = p2pMean
-
-        if( self.doCorr ):
+        else:
+            raise Exception("Can't find enough peaks")
+        if( self.doCorr and self.window is not None ):
             self._doCorr()
 
         #NEED TO ERROR OUT ON NOT ENOUGH POINTS
@@ -190,8 +193,9 @@ class TemporalColorTracker:
             # ignore signals that fall of the end of the data
             if( lb > 0 and ub < len(self.data[key]) ):
                 self.corrTemplates.append(np.array(self.data[key][lb:ub]))
-        #if( len(self.corrTemplates) == 0 ):
-        #    warnings.warn('this shouldnt happen')
+        if( len(self.corrTemplates) < 1 ):
+            raise Exception('Could not find a coherrent signal for correlation.')
+        
         sig = np.copy(self.corrTemplates[0]) # little np gotcha
         for peak in self.corrTemplates[1:]:
             sig += peak
@@ -247,5 +251,7 @@ class TemporalColorTracker:
         return retVal
         
     def recognize(self,img):
+        if( self.bestKey is None ):
+            raise Exception('The TemporalColorTracker has not been trained.')
         v = self._getBestValue(img)
         return self._updateBuffer(v)

@@ -21,13 +21,13 @@ access = "private" # Options are "public" "private" "protected"
 #     lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
 #     return [lsr.mean(),lsg.mean(),lsb.mean()]
         
-fname = 'bottles.flv' #vials0.MP4'
+fname = 'MONEY.flv' #vials0.MP4'
 cam = VirtualCamera(s=fname,st='video')
 img = cam.getImage()
 w = img.width
 h = img.height
 data = []
-roi = ROI(w*0.5,h*0.35,w*0.05,h*0.1,img)
+roi = ROI(w*0.25,h*0.6,w*0.05,h*0.1,img)
 disp = Display((1024,768))
     
 tct = TemporalColorTracker()
@@ -70,7 +70,7 @@ while disp.isNotDone():
         else:
             break
     else:
-        roi = ROI(w*0.5,h*0.35,w*0.05,h*0.1,img)
+        roi = ROI(w*0.25,h*0.6,w*0.05,h*0.1,img)
         result = tct.recognize(img)
         if( result ):
             count = count + 1
