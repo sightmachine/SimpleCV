@@ -145,7 +145,6 @@ class BlobMaker:
             return None
 
         retVal = Blob()
-        # retVal._seq = seq
         retVal.image = color
         retVal.mArea = area
 
