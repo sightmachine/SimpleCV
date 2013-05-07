@@ -37,7 +37,7 @@ class TemporalColorTracker:
         self._extract(src,maxFrames)
         self._findSteadyState(windowSzPrct=ssWndw)
         self._findPeaks(pkWndw,pkDelta)
-        self._extractSignalInfo()
+        self._extractSignalInfo(forceChannel)
         self._buildSignalProfile()
         if verbose:
             for key in self.data.keys():
@@ -117,7 +117,7 @@ class TemporalColorTracker:
             self.peaks[key]=ls.findPeaks(pkWndw,pkDelta)
             self.valleys[key]=ls.findValleys(pkWndw,pkDelta)
 
-    def _extractSignalInfo(self):
+    def _extractSignalInfo(self,forceChannel):
         self.pD = {}
         self.vD = {}
         self.doPeaks = {}
@@ -150,7 +150,13 @@ class TemporalColorTracker:
                 bestKey = key
         # Now we know which signal has the most spread
         # and what direction we are looking for.
-        self._bestKey = bestKey
+        if( forceChannel is not None ):
+            if(self.data.has_key(forceChannel)):
+                self._bestKey = forceChannel
+            else:
+                raise Exception('That is not a valid data channel')
+        else:
+            self._bestKey = bestKey
 
         
     def _buildSignalProfile(self):

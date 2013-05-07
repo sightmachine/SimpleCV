@@ -16,7 +16,7 @@ access = "private" # Options are "public" "private" "protected"
 #     x2 = int(w*0.5)
 #     y1 = int(h*0.45)
 #     y2 = int(h*0.55)
-#     lsb = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=0)
+#     lsb = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),cnhannel=0)
 #     lsg = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=1)
 #     lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
 #     return [lsr.mean(),lsg.mean(),lsb.mean()]
@@ -31,7 +31,7 @@ roi = ROI(w*0.25,h*0.3,w*0.05,h*0.1,img)
 disp = Display((1024,768))
     
 tct = TemporalColorTracker()
-tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1,doCorr=True)
+tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1,doCorr=True,forceChannel='g')
 plotc = {'r':'r','g':'g','b':'b','i':'m','h':'y'}
 l = len(tct.data['r'])
 pickle.dump(tct,open('tct.pkl','wb'))
