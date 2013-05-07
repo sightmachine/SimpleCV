@@ -21,17 +21,17 @@ access = "private" # Options are "public" "private" "protected"
 #     lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
 #     return [lsr.mean(),lsg.mean(),lsb.mean()]
         
-fname = 'MONEY.flv' #vials0.MP4'
+fname = 'bottles.flv' #vials0.MP4'
 cam = VirtualCamera(s=fname,st='video')
 img = cam.getImage()
 w = img.width
 h = img.height
 data = []
-roi = ROI(w*0.2,h*0.7,w*0.05,h*0.1,img)
+roi = ROI(w*0.5,h*0.35,w*0.05,h*0.1,img)
 disp = Display((1024,768))
     
 tct = TemporalColorTracker()
-tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1)
+tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1,doCorr=True)
 plotc = {'r':'r','g':'g','b':'b','i':'m','h':'y'}
 l = len(tct.data['r'])
 pickle.dump(tct,open('tct.pkl','wb'))
@@ -46,9 +46,15 @@ for key in tct.data.keys():
         plt.plot(pt[0],pt[1],'r*')
     for pt in tct.valleys[key]:
         plt.plot(pt[0],pt[1],'b*')
-
     plt.grid()
 plt.show()
+
+for sig in tct.corrTemplates:
+    plt.plot(sig,'b--')
+plt.plot(tct.template, 'r-')
+plt.grid()
+plt.show()
+
 #cam = None
 cam = VirtualCamera(s=fname,st='video')
 vs = VideoStream(fps=30,filename=outTemp,framefill=False)
@@ -64,15 +70,15 @@ while disp.isNotDone():
         else:
             break
     else:
-        roi = ROI(w*0.2,h*0.7,w*0.05,h*0.1,img)
+        roi = ROI(w*0.5,h*0.35,w*0.05,h*0.1,img)
         result = tct.recognize(img)
         if( result ):
             count = count + 1
 
         if( show ):
-            myStr = "${0}".format(count*1000)
+            myStr = "{0}".format(count)
             frame = frame + 1
-            img.drawText(myStr,30,30,color=Color.GREEN,fontsize=90)
+            img.drawText(myStr,100,30,color=Color.RED,fontsize=90)
             roi.draw(width=2)
             img = img.applyLayers()
             img.save(disp)
@@ -85,4 +91,4 @@ call('ffmpeg'+params,shell=True)
 params = "{0} --title \"{1}\" --tags \"{2}\" --category \"Education\" --summary \"{3}\" --access \"{4}\" ".format(outname,title,tags,summary,access)
 print params
 # call the command line
-call('google youtube post '+params,shell=True)
+#call('google youtube post '+params,shell=True)

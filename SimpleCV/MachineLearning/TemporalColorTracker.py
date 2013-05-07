@@ -9,17 +9,19 @@ class TemporalColorTracker:
         self._extractor = None
         self._roi = None
 
-    def train(self,src,roi=None,extractor=None,maxFrames=1000,ssWndw=0.05,
-              pkWndw=30, pkDelta=3, verbose=True):
+    def train(self,src,roi=None, extractor=None, doCorr=False, maxFrames=1000,
+              ssWndw=0.05, pkWndw=30, pkDelta=3, forceChannel=None, verbose=True):
         """
         Use data = video/imageset/camera
         ROI should be ROI feature.
+        forceChannel => use specific channel
         two modes:
             passfail: ternary returns 'pass'/'fail'/None e.g. genetech
             counter: returns 'count'/None - e.g. zing
         """
         if( roi is None and extractor is None ):
             warnings.warn('Need to provide an ROI or an extractor')
+        self.doCorr = doCorr
         self._extractor = extractor #function that returns a RGB values
         self._roi = roi
         self._extract(src,maxFrames)
@@ -155,12 +157,48 @@ class TemporalColorTracker:
             self.cutoff = self.steadyState[key][0]-(self.vD[key]/2.0)
         if( len(peaks) > 1 ):
             p2p = np.array(peaks[1:])-np.array(peaks[:-1])
-            p2pMean = np.mean(p2p)
-            p2pS = np.std(p2p)
+            p2pMean = int(np.mean(p2p))
+            p2pS = int(np.std(p2p))
+            p2pMean = p2pMean + 2*p2pS
+            # constrain it to be an od window
+            if int(p2pMean) % 2 == 1:
+                p2pMean = p2pMean+1 
             self.window = p2pMean
-        
+
+        if( self.doCorr ):
+            self._doCorr()
+
         #NEED TO ERROR OUT ON NOT ENOUGH POINTS
 
+    def _doCorr(self):
+        key = self.bestKey
+        # build an average signal for the peaks and valleys
+        # centered at the peak. The go and find the correlation
+        # value of each peak/valley with the average signal
+        self.corrTemplates = []
+        halfWndw = self.window/2
+        pList = None 
+        if( self.isPeak ):
+            pList = self.peaks[key]
+        else:
+            pList = self.valleys[key]
+
+        for peak in pList:
+            center = peak[0]
+            lb = center-halfWndw
+            ub = center+halfWndw
+            # ignore signals that fall of the end of the data
+            if( lb > 0 and ub < len(self.data[key]) ):
+                self.corrTemplates.append(np.array(self.data[key][lb:ub]))
+        #if( len(self.corrTemplates) == 0 ):
+        #    warnings.warn('this shouldnt happen')
+        sig = np.copy(self.corrTemplates[0]) # little np gotcha
+        for peak in self.corrTemplates[1:]:
+            sig += peak
+        self.template = sig / len(self.corrTemplates)
+        corrVals = [np.correlate(peak,self.template) for peak in self.corrTemplates] 
+        self.corrThresh = np.mean(corrVals)-(3.0*np.std(corrVals))
+        
     def _getBestValue(self,img):
 
         if( self._extractor ):
@@ -190,12 +228,22 @@ class TemporalColorTracker:
                 lm = self._rtData.localMaxima()
                 for l in lm:
                     if( l[0] == wndwCenter and l[1] > self.cutoff ):
-                        retVal = "count"
+                        if( self.doCorr ):
+                            corrVal = np.correlate(self._rtData,self.template)
+                            if( corrVal[0] > self.corrThresh ):
+                                retVal = "count"
+                        else:
+                            retVal = "count"
             else:
                 lm = self._rtData.localMinima()
                 for l in lm:
                     if( l[0] == wndwCenter and l[1] < self.cutoff ):
-                        retVal = "count"
+                        if( self.doCorr ):
+                            corrVal = np.correlate(self._rtData,self.template)
+                            if( corrVal[0] > self.corrThresh ):
+                                retVal = "count"
+                        else:
+                            retVal = "count"
         return retVal
         
     def recognize(self,img):
