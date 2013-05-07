@@ -1,6 +1,7 @@
 from SimpleCV import Image, ROI, VirtualCamera, TemporalColorTracker, Color, Display, VideoStream, Camera
 import matplotlib.pyplot as plt
 import pickle
+import numpy as np
 from subprocess import call # to run command line programs
 outTemp = 'test.avi'
 outname = 'output.mp4'
@@ -21,7 +22,7 @@ access = "private" # Options are "public" "private" "protected"
 #     lsr = img.getLineScan(pt1=(x1,y1),pt2=(x2,y2),channel=2)
 #     return [lsr.mean(),lsg.mean(),lsb.mean()]
         
-fname = 'bottles.flv' #vials0.MP4'
+fname = 'cookies.flv' #vials0.MP4'
 cam = VirtualCamera(s=fname,st='video')
 img = cam.getImage()
 w = img.width
@@ -31,7 +32,7 @@ roi = ROI(w*0.25,h*0.3,w*0.05,h*0.1,img)
 disp = Display((1024,768))
     
 tct = TemporalColorTracker()
-tct.train(cam,roi=roi,maxFrames=5000,pkWndw=10,ssWndw=0.1,doCorr=True,forceChannel='g')
+tct.train(cam,roi=roi,maxFrames=5000,pkWndw=50,ssWndw=0.05,doCorr=True,forceChannel='g')
 plotc = {'r':'r','g':'g','b':'b','i':'m','h':'y'}
 l = len(tct.data['r'])
 pickle.dump(tct,open('tct.pkl','wb'))
@@ -48,11 +49,11 @@ for key in tct.data.keys():
 plt.show()
 
 for sig in tct.corrTemplates:
-    plt.plot(sig,'b--')
+    plt.plot(sig/np.max(sig),'b--')
 plt.plot(tct._template, 'r-')
 plt.grid()
 plt.show()
-
+tct.corrStdMult = 0
 #cam = None
 cam = VirtualCamera(s=fname,st='video')
 vs = VideoStream(fps=30,filename=outTemp,framefill=False)
@@ -74,8 +75,17 @@ while disp.isNotDone():
             count = count + 1
 
         if( show ):
+            plt.plot(tct._rtData.normalize(),'r-')
+            plt.plot(tct._template,'b--')
+            plt.grid()
+            plt.savefig('temp.png')
+            plt.clf()
+            plotImg = Image('temp.png')    
+            
             myStr = "{0}".format(count)
             frame = frame + 1
+            plotImg = plotImg.resize(h=img.height)
+            img = img.blit(plotImg, pos=(0,0),alpha=0.5)
             img.drawText(myStr,100,30,color=Color.RED,fontsize=90)
             roi.draw(width=2)
             img = img.applyLayers()

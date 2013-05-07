@@ -18,9 +18,10 @@ class TemporalColorTracker:
         self.peaks = {}
         self.valleys = {}
         self.doPeaks = {}
+        self.corrStdMult = 3.0
 
     def train(self,src,roi=None, extractor=None, doCorr=False, maxFrames=1000,
-              ssWndw=0.05, pkWndw=30, pkDelta=3, forceChannel=None, verbose=True):
+              ssWndw=0.05, pkWndw=30, pkDelta=3, corrStdMult=2.0, forceChannel=None, verbose=True):
         """
         Use data = video/imageset/camera
         ROI should be ROI feature.
@@ -32,6 +33,7 @@ class TemporalColorTracker:
         if( roi is None and extractor is None ):
             raise Exception('Need to provide an ROI or an extractor')
         self.doCorr = doCorr
+        self.corrStdMult = corrStdMult
         self._extractor = extractor #function that returns a RGB values
         self._roi = roi
         self._extract(src,maxFrames)
@@ -215,8 +217,10 @@ class TemporalColorTracker:
         for peak in self.corrTemplates[1:]:
             sig += peak
         self._template = sig / len(self.corrTemplates)
-        corrVals = [np.correlate(peak,self._template) for peak in self.corrTemplates] 
-        self.corrThresh = np.mean(corrVals)-(3.0*np.std(corrVals))
+        self._template /= np.max(self._template)
+        corrVals = [np.correlate(peak/np.max(peak),self._template) for peak in self.corrTemplates] 
+        print corrVals
+        self.corrThresh = (np.mean(corrVals),np.std(corrVals))
         
     def _getBestValue(self,img):
 
@@ -244,22 +248,24 @@ class TemporalColorTracker:
         if( len(self._rtData) > self._window):
             self._rtData = self._rtData[1:]
             if( self._isPeak ):
-                lm = self._rtData.localMaxima()
+                lm = self._rtData.findPeaks()
                 for l in lm:
                     if( l[0] == wndwCenter and l[1] > self._cutoff ):
                         if( self.doCorr ):
-                            corrVal = np.correlate(self._rtData,self._template)
-                            if( corrVal[0] > self.corrThresh ):
+                            corrVal = np.correlate(self._rtData.normalize(),self._template)
+                            thresh = self.corrThresh[0]-self.corrStdMult*self.corrThresh[1]
+                            if( corrVal[0] > thresh ):
                                 retVal = "count"
                         else:
                             retVal = "count"
             else:
-                lm = self._rtData.localMinima()
+                lm = self._rtData.findValleys()
                 for l in lm:
                     if( l[0] == wndwCenter and l[1] < self._cutoff ):
                         if( self.doCorr ):
-                            corrVal = np.correlate(self._rtData,self._template)
-                            if( corrVal[0] > self.corrThresh ):
+                            corrVal = np.correlate(self._rtData.normalize(),self._template)
+                            thresh = self.corrThresh[0]-self.corrStdMult*self.corrThresh[1]
+                            if( corrVal[0] > thresh ):
                                 retVal = "count"
                         else:
                             retVal = "count"
