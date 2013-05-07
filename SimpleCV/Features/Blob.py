@@ -1393,8 +1393,8 @@ class Blob(Feature):
 
         except ImportError:
             # fallback on cv
-            chull = cv.ConvexHull2(self._seq,cv.CreateMemStorage(),return_points=False)
-            defects = cv.ConvexityDefects(self._seq, chull, cv.CreateMemStorage())
+            chull = cv.ConvexHull2(self.mContour, cv.CreateMemStorage(), return_points=False)
+            defects = cv.ConvexityDefects(self.mContour, chull, cv.CreateMemStorage())
             features = FeatureSet([Line(blob.image, (defect[0], defect[1])) for defect in defects])
         
         return features
