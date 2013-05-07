@@ -1362,3 +1362,42 @@ class Blob(Feature):
         # chunk of our points.
         tmean = sps.tmean(distances,(min,x+sd))
         return tmean
+
+    def getConvexityDefects(self):
+        """
+        **SUMMARY**
+
+        Get Convexity Defects of the contour.
+
+        **PARAMETERS**
+
+        **RETURNS**
+
+        FeatureSet - A FeatureSet of Line objects.
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> blobs = img.findBlobs()
+        >>> blob = blobs[-1]
+        >>> feat = blob.getConvexityDefects()
+        >>> feat.draw()
+        >>> img.show()
+        """
+        try:
+            import cv2
+            hull = [self.mContour.index(x) for x in self.mConvexHull]
+            hull = np.array(hull).reshape(len(hull), 1)    
+            defects = cv2.convexityDefects(np.array(self.mContour), hull)
+            features = FeatureSet([Line(self.image, (self.mContour[defect[0][0]], self.mContour[defect[0][1]])) for defect in defects])
+
+        except ImportError:
+            # fallback on cv
+            chull = cv.ConvexHull2(self._seq,cv.CreateMemStorage(),return_points=False)
+            defects = cv.ConvexityDefects(self._seq, chull, cv.CreateMemStorage())
+            features = FeatureSet([Line(blob.image, (defect[0], defect[1])) for defect in defects])
+        
+        return features
+
+
+from SimpleCV.Features import Line
