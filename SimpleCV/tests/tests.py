@@ -501,7 +501,8 @@ def test_detection_blobs_convexity_defects():
     blobs = img.findBlobs()
     b = blobs[-1]
     feat = b.getConvexityDefects()
-    if len(feat) <= 0:
+    points = b.getConvexityDefects(returnPoints=True)
+    if len(feat) <= 0 or len(points) <= 0:
         assert False
     pass
 
