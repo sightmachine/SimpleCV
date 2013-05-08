@@ -1,6 +1,8 @@
-import cv2
-import numpy as np
-import itertools
+from SimpleCV.base import np, itertools
+try:
+    import cv2
+except ImportError:
+    pass
 
 def lkTracker(img, bb, ts, oldimg, **kwargs):
     """
@@ -153,7 +155,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
     if bb1[1] <= 0:
         bb1[1] = 1
 
-    track = LK(img, bb1, new_pts)    
+    track = LKTrack(img, bb1, new_pts)    
     return track
 
-from SimpleCV.Features import LK
+from SimpleCV.Tracking import LKTrack
