@@ -4,6 +4,16 @@ import scipy.signal as sps
 import warnings
 import time as time
 class TemporalColorTracker:
+    """
+    **SUMMARY**
+
+    The temporal color tracker attempts to find and periodic color
+    signal in an roi or arbitrary function. Once the temporal tracker is
+    trained it will return a count object every time the signal is detected.
+    This class is usefull for counting periodically occuring events, for example,
+    waves on a beach or the second hand on a clock.
+    
+    """
     def __init__(self):
         self._rtData = LineScan([]) # the deployed data
         self._steadyState = None # mu/signal for the ss behavior
@@ -19,16 +29,72 @@ class TemporalColorTracker:
         self.valleys = {}
         self.doPeaks = {}
         self.corrStdMult = 3.0
+        self.count = 0
 
     def train(self,src,roi=None, extractor=None, doCorr=False, maxFrames=1000,
               ssWndw=0.05, pkWndw=30, pkDelta=3, corrStdMult=2.0, forceChannel=None, verbose=True):
         """
-        Use data = video/imageset/camera
-        ROI should be ROI feature.
-        forceChannel => use specific channel
-        two modes:
-            passfail: ternary returns 'pass'/'fail'/None e.g. genetech
-            counter: returns 'count'/None - e.g. zing
+        **SUMMARY**
+
+        To train the TemporalColorTracker you provide it with a video, camera, or ImageSet and either
+        an region of interest (ROI) or a function of the form:
+
+        (R,G,B) = MyFunction(Image)
+
+        This function takes in an image and returns a tuple of RGB balues for the frame.
+        The TemoralColroTracker will then attempt to find the maximum peaks in the data
+        and create a model for the peaks.
+
+        **PARAMETERS**
+
+        * *src* - An image source, either a camera, a virtual camera (like a video) or
+          an ImageSet.
+        * *roi* - An ROI object that tells the tracker where to look in the frame.
+        * *extractor* - A function with the following signature:
+          (R,G,B) = Extract(Image)
+        * *doCorr* - Do correlation use correlation to confirm that the signal is present.
+        * *maxFrames* - The maximum number of frames to use for training.
+        * *ssWndw* - SteadyState window, this is the size of the window to look for a steady
+          state, i.e a region where the signal is not changing.
+        * *pkWndw* - The window size to look for peaks/valleys in the signal. This is roughly
+          the period of the signal.
+        * *pkDelta* - The minimum difference between the steady state to look for peaks.
+        * *corrStdMult* - The maximum correlation standard deviation of the training set
+          to use when looking for a signal. This is the knob to dial in when using correlation
+          to confirm the event happened.
+        * *forceChannel* - A string that is the channel to use. Options are:
+           * 'r' - Red Channel
+           * 'g' - Green Channel
+           * 'b' - Blue Channel 
+           * 'h' - Hue Channel
+           * 'i' - Intensity Channel
+          By default this module will look at the signal with the highest peak/valley swings.
+          You can manually overide this behavior.
+        * *verbose* - Print debug info after training. 
+        
+        **RETURNS**
+
+        Nothing, will raise an exception if no signal is found.
+
+        **EXAMPLE**
+
+        A really simple example
+
+        >>>> cam = Camera(1)
+        >>>> tct = TemporalColorTracker()
+        >>>> img = cam.getImage()
+        >>>> roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
+        >>>> tct.train(cam,roi=roi,maxFrames=250)
+        >>>> disp = Display((800,600))
+        >>>> while disp.isNotDone():
+        >>>>     img = cam.getImage()
+        >>>>     result = tct.recognize(img)
+        >>>>     roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
+        >>>>     roi.draw(width=3)
+        >>>>     img.drawText(str(result),20,20,color=Color.RED,fontsize=32)
+        >>>>     img = img.applyLayers()
+        >>>>     img.save(disp)
+
         """
         if( roi is None and extractor is None ):
             raise Exception('Need to provide an ROI or an extractor')
@@ -36,7 +102,7 @@ class TemporalColorTracker:
         self.corrStdMult = corrStdMult
         self._extractor = extractor #function that returns a RGB values
         self._roi = roi
-        self._extract(src,maxFrames)
+        self._extract(src,maxFrames,verbose)
         self._findSteadyState(windowSzPrct=ssWndw)
         self._findPeaks(pkWndw,pkDelta)
         self._extractSignalInfo(forceChannel)
@@ -56,6 +122,9 @@ class TemporalColorTracker:
             print "BEST CUTOFF: {0}".format(self._cutoff)
                 
     def _getDataFromImg(self,img):
+        """
+        Get the data from the image 
+        """
         mc = None
         if( self._extractor ):
             mc = self._extractor(img)
@@ -70,13 +139,18 @@ class TemporalColorTracker:
         self.data['h'].append(Color.getHueFromRGB(mc))
         #return [mc[0],mc[1],mc[2],gray,Color.rgbToHue(mc)]
 
-    def _extract(self,src,maxFrames):
+    def _extract(self,src,maxFrames,verbose):
+        # get the full dataset and append it to the data vector dictionary.
         self.data = {'r':[],'g':[],'b':[],'i':[],'h':[]}
         if( isinstance(src,ImageSet) ):
             src = VirtualCamera(src,st='imageset') # this could cause a bug
         elif( isinstance(src,(VirtualCamera,Camera))):
+            count = 0
             for i in range(0,maxFrames):
                 img = src.getImage()
+                count = count + 1
+                if( verbose ):
+                    print "Got Frame {0}".format(count)
                 if( isinstance(src,Camera) ):
                     time.sleep(0.05) # let the camera sleep
                 if( img is None ):
@@ -109,6 +183,9 @@ class TemporalColorTracker:
 
 
     def _findPeaks(self,pkWndw,pkDelta):
+        """
+        Find the peaks and valleys in the data
+        """
         self.peaks = {}
         self.valleys = {}
         for key in self.data.keys():
@@ -120,6 +197,9 @@ class TemporalColorTracker:
             self.valleys[key]=ls.findValleys(pkWndw,pkDelta)
 
     def _extractSignalInfo(self,forceChannel):
+        """
+        Find the difference between the peaks and valleys
+        """
         self.pD = {}
         self.vD = {}
         self.doPeaks = {}
@@ -223,7 +303,9 @@ class TemporalColorTracker:
         self.corrThresh = (np.mean(corrVals),np.std(corrVals))
         
     def _getBestValue(self,img):
-
+        """
+        Extract the data from the live signal
+        """
         if( self._extractor ):
             mc = self._extractor(img)
         else:
@@ -241,7 +323,10 @@ class TemporalColorTracker:
             return Color.getHueFromRGB(mc)
         
     def _updateBuffer(self,v):
-        retVal = None
+        """
+        Keep a buffer of the running data and process it to determine if there is
+        a peak. 
+        """
         self._rtData.append(v)
         wndwCenter = int(np.floor(self._window/2.0))
         # pop the end of the buffer
@@ -255,9 +340,9 @@ class TemporalColorTracker:
                             corrVal = np.correlate(self._rtData.normalize(),self._template)
                             thresh = self.corrThresh[0]-self.corrStdMult*self.corrThresh[1]
                             if( corrVal[0] > thresh ):
-                                retVal = "count"
+                                self.count += 1
                         else:
-                            retVal = "count"
+                            self.count += 1
             else:
                 lm = self._rtData.findValleys()
                 for l in lm:
@@ -266,12 +351,49 @@ class TemporalColorTracker:
                             corrVal = np.correlate(self._rtData.normalize(),self._template)
                             thresh = self.corrThresh[0]-self.corrStdMult*self.corrThresh[1]
                             if( corrVal[0] > thresh ):
-                                retVal = "count"
+                                self.count += 1
                         else:
-                            retVal = "count"
-        return retVal
+                            self.count += 1
+        return self.count
         
     def recognize(self,img):
+        """
+
+        **SUMMARY***
+
+        This method is used to do the real time signal analysis. Pass the method
+        an image from the stream and it will return the event count. Note that
+        due to buffering the signal may lag the actual video by up to a few seconds.
+
+        **PARAMETERS**
+
+        * *img* - The image in the stream to test. 
+
+        **RETURNS**
+
+        Returns an int that is the count of the number of times the event has occurred.
+
+        **EXAMPLE**
+
+        >>>> cam = Camera(1)
+        >>>> tct = TemporalColorTracker()
+        >>>> img = cam.getImage()
+        >>>> roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
+        >>>> tct.train(cam,roi=roi,maxFrames=250)
+        >>>> disp = Display((800,600))
+        >>>> while disp.isNotDone():
+        >>>>     img = cam.getImage()
+        >>>>     result = tct.recognize(img)
+        >>>>     roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
+        >>>>     roi.draw(width=3)
+        >>>>     img.drawText(str(result),20,20,color=Color.RED,fontsize=32)
+        >>>>     img = img.applyLayers()
+        >>>>     img.save(disp)
+
+        **TODO**
+
+        Return True/False if the event occurs.
+        """
         if( self._bestKey is None ):
             raise Exception('The TemporalColorTracker has not been trained.')
         v = self._getBestValue(img)
