@@ -28,7 +28,7 @@ class Track(Feature):
 
         **RETURNS**
 
-        SimpleCV.Features.Tracking.Track object
+        SimpleCV.Tracking.TrackClass.Track object
 
         **EXAMPLE**
 
@@ -494,11 +494,11 @@ class CAMShiftTrack(Track):
 
         **RETURNS**
 
-        SimpleCV.Features.Track.CAMShift object
+        SimpleCV.Tracking.TrackClass.CAMShiftTrack object
 
         **EXAMPLE**
 
-        >>> track = CAMShift(image, bb, ellipse)
+        >>> track = CAMShiftTrack(image, bb, ellipse)
         """
         self = Track.__init__(self, img, bb)
         self.ellipse = ellipse
@@ -515,7 +515,7 @@ class CAMShiftTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = CAMShift(image, bb, ellipse)
+        >>> track = CAMShiftTrack(image, bb, ellipse)
         >>> e = track.getEllipse()
         """
         return self.ellipse
@@ -545,11 +545,11 @@ class LKTrack(Track):
 
         **RETURNS**
 
-        SimpleCV.Features.Track.LK object
+        SimpleCV.Tracking.TrackClass.LKTrack object
 
         **EXAMPLE**
 
-        >>> track = LK(image, bb, pts)
+        >>> track = LKTrack(image, bb, pts)
         """
 
         self = Track.__init__(self, img, bb)
@@ -567,7 +567,7 @@ class LKTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = LK(image, bb, pts)
+        >>> track = LKTrack(image, bb, pts)
         >>> pts = track.getTrackedPoints()
         """
         return self.pts
@@ -589,7 +589,7 @@ class LKTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = LK(image, bb, pts)
+        >>> track = LKTrack(image, bb, pts)
         >>> track.drawTrackerPoints()
         """
         if type(self.pts) is not type(None):
@@ -630,7 +630,7 @@ class SURFTrack(Track):
 
         **RETURNS**
 
-        SimpleCV.Features.Track.SURFTracker object
+        SimpleCV.Tracking.TrackClass.SURFTrack object
 
         **EXAMPLE**
         >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
@@ -697,7 +697,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> pts = track.getTrackedPoints()
         """
         return self.pts
@@ -719,7 +719,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> track.drawTrackerPoints()
         """
         if type(self.pts) is not type(None):
@@ -738,7 +738,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> detector = track.getDetector()
         """
         return self.detector
@@ -755,7 +755,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> descriptor= track.getDescriptor()
         """
         return self.descriptor
@@ -772,7 +772,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> skp = track.getImageKeyPoints()
         """
         return self.skp
@@ -789,7 +789,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> sd = track.getImageDescriptor()
         """
         return self.sd
@@ -806,7 +806,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> tkp = track.getTemplateKeyPoints()
         """
         return self.tkp
@@ -823,7 +823,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> td = track.getTemplateDescriptor()
         """
         return self.td
@@ -840,7 +840,7 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         >>> templateImg = track.getTemplateImage()
         """
         return self.templateImg
@@ -875,11 +875,11 @@ class MFTrack(Track):
 
         **RETURNS**
 
-        SimpleCV.Features.Track.MFTracker object
+        SimpleCV.Tracking.TrackClass.MFTrack object
 
         **EXAMPLE**
 
-        >>> track = MFTracker(image, bb, shift)
+        >>> track = MFTrack(image, bb, shift)
         """
         self = Track.__init__(self, img, bb)
         self.shift = shift
@@ -896,7 +896,7 @@ class MFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = MFTracker(image, bb, pts)
+        >>> track = MFTrack(image, bb, pts)
         >>> pts = track.getShift()
         """
         return self.shift
