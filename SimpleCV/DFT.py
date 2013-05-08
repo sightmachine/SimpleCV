@@ -55,3 +55,12 @@ class DFT:
         img = Image(flt)
         retVal = DFT(width=sz_x, height=sz_y, numpyarray=flt, image=img, dia=dia, type="Butterworth")
         return retVal
+
+    def applyFilter(self, image):
+        if self.width == 0 or self.height == 0:
+            warnings.warn("Empty Filter. Returning the image.")
+            return image
+        w, h = image.size()
+        fltImg = self._image.resize(w, h)
+        filteredImage = image.applyDFTFilter(fltImg)
+        return filteredImage
