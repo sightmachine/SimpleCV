@@ -496,6 +496,12 @@ def test_detection_blobs_adaptive():
     if blobs == None:
         assert False
 
+def test_detection_blobs_smallimages():
+    # Check if segfault occurs or not
+    img = Image("../sampleimages/blobsegfaultimage.png")
+    blobs = img.findBlobs()
+    # if no segfault, pass
+    pass
 
 def test_detection_barcode():
     try:

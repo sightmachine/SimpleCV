@@ -90,6 +90,9 @@ class BlobMaker:
             return retVal
 
         seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+        if not list(seq):
+            warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
+            return FeatureSet([])
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
