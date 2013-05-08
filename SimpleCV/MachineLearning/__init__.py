@@ -5,3 +5,4 @@ from SimpleCV.MachineLearning.NaiveBayesClassifier import *
 from SimpleCV.MachineLearning.ShapeContextClassifier import *
 from SimpleCV.MachineLearning.ConfusionMatrix import *
 from SimpleCV.MachineLearning.TurkingModule import *
+from SimpleCV.MachineLearning.TemporalColorTracker import *

@@ -1180,6 +1180,51 @@ class LineScan(list):
                 maximum = -np.Inf
         return peaks
 
+    def findValleys(self,window = 30, delta = 3 ):
+        """
+        **SUMMARY**
+
+        Finds the valleys in a LineScan.
+
+        **PARAMETERS**
+
+        * *window* - the size of the window in which the valley
+         should have the highest value to be considered as a valley.
+         By default this is 15 as it gives appropriate results.
+         The lower this value the more the valleys are returned
+
+        * *delta* - the minimum difference between the valley and 
+        all elements in the window
+
+        **RETURNS**
+
+        A list of (peak position, peak value) tuples.
+
+        **EXAMPLE**
+
+        >>> ls = img.getLineScan(x=10)
+        >>> valleys = ls.findValleys()
+        >>> print valleys
+        >>> valleys10 = ls.findValleys(window=10)
+        >>> print valleys10
+        
+        """
+        minimum = np.Inf
+        width = int(window/2.0)
+        peaks = []
+
+        for index,val in enumerate(self):
+            #peak found
+            if val < minimum:
+                minimum = val
+                minpos = index
+            #checking whether peak satisfies window and delta conditions
+            if min( self[max(0, index-width):index+width])-delta > minimum:
+                peaks.append((minpos, minimum))
+                minimum = np.Inf
+        return peaks
+        
+
     def fitSpline(self,degree=2):
         """
         **SUMMARY**
@@ -1206,7 +1251,6 @@ class LineScan(list):
         >>> plt.plot(spline)
         >>> plt.show()
         
-<<<<<<< HEAD
         **NOTES**
 
         Implementation taken from http://www.scipy.org/Cookbook/Interpolation  
