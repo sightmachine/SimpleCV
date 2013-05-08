@@ -496,6 +496,14 @@ def test_detection_blobs_adaptive():
     if blobs == None:
         assert False
 
+def test_detection_blobs_convexity_defects():
+    img = Image('lenna')
+    blobs = img.findBlobs()
+    b = blobs[-1]
+    feat = b.getConvexityDefects()
+    if len(feat) <= 0:
+        assert False
+    pass
 
 def test_detection_barcode():
     try:

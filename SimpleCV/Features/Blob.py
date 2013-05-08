@@ -1362,3 +1362,50 @@ class Blob(Feature):
         # chunk of our points.
         tmean = sps.tmean(distances,(min,x+sd))
         return tmean
+
+    def getConvexityDefects(self):
+        """
+        **SUMMARY**
+
+        Get Convexity Defects of the contour.
+
+        **PARAMETERS**
+
+        **RETURNS**
+
+        FeatureSet - A FeatureSet of Line objects.
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> blobs = img.findBlobs()
+        >>> blob = blobs[-1]
+        >>> feat = blob.getConvexityDefects()
+        >>> feat.draw()
+        >>> img.show()
+        """
+        def cvFallback():
+            chull = cv.ConvexHull2(self.mContour, cv.CreateMemStorage(), return_points=False)
+            defects = cv.ConvexityDefects(self.mContour, chull, cv.CreateMemStorage())
+            features = FeatureSet([Line(self.image, (defect[0], defect[1])) for defect in defects])
+            return features
+
+        try:
+            import cv2
+            if hasattr(cv2, "convexityDefects"):
+                hull = [self.mContour.index(x) for x in self.mConvexHull]
+                hull = np.array(hull).reshape(len(hull), 1)
+                defects = cv2.convexityDefects(np.array(self.mContour), hull)
+                if isinstance(defects, type(None)):
+                    warnings.warn("Unable to find defects. Returning Empty FeatureSet.")
+                    defects = []
+                features = FeatureSet([Line(self.image, (self.mContour[defect[0][0]], self.mContour[defect[0][1]])) for defect in defects])
+            else:
+                features = cvFallback()
+        except ImportError:
+            features = cvFallback()
+        
+        return features
+
+
+from SimpleCV.Features import Line
