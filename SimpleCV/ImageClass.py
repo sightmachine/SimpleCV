@@ -14241,6 +14241,33 @@ class Image:
 
     def getNormalizedHueHistogram(self,roi=None):
         """
+        **SUMMARY**
+
+        This method generates a normalized hue histogram for the image
+        or the ROI within the image. The hue histogram is a 2D hue/saturation
+        numpy array histogram with a shape of 180x256. This histogram can
+        be used for histogram back projection. 
+
+        **PARAMETERS**
+
+        * *roi* - Anything that can be cajoled into being an ROI feature
+          including a tuple of (x,y,w,h), a list of points, or another feature.
+
+        **RETURNS**
+
+        A normalized 180x256 numpy array that is the hue histogram.
+
+        **EXAMPLE**
+
+        >>> img = Image('lenna')
+        >>> roi = (0,0,100,100)
+        >>> hist = img.getNormalizedHueHistogram(roi)
+
+        **SEE ALSO**
+
+        ImageClass.backProjectHueHistogram()
+        ImageClass.findBlobsFromHueHistogram()
+        
         """
         try:
             import cv2
@@ -14260,6 +14287,44 @@ class Image:
 
     def backProjectHueHistogram(self,model,smooth=True,fullColor=False,threshold=None):
         """
+        **SUMMARY**
+
+        This method performs hue histogram back projection on the image. This is a very
+        quick and easy way of matching objects based on color. Given a hue histogram
+        taken from another image or an roi within the image we attempt to find all
+        pixels that are similar to the colors inside the histogram. The result can
+        either be a grayscale image that shows the matches or a color image.
+
+
+        **PARAMETERS**
+
+        * *model* - The histogram to use for pack projection. This can either be
+          a histogram, anything that can be converted into an ROI for the image (like
+          an x,y,w,h tuple or a feature, or another image.
+        * *smooth* - A bool, True means apply a smoothing operation after doing the
+          back project to improve the results.
+        * *fullColor* - return the results as a color image where pixels included
+          in the back projection are rendered as their source colro.
+        * *threshold* - If this value is not None, we apply a threshold to the
+          result of back projection to yield a binary image. Valid values are from
+          1 to 255.
+
+        **RETURNS**
+
+        A SimpleCV Image rendered according to the parameters provided.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> hist = img.getNormalizedHueHistogram((0,0,50,50)) # generate a hist
+        >>>> a = img.backProjectHueHistogram(hist)
+        >>>> b = img.backProjectHueHistogram((0,0,50,50) # same result
+        >>>> c = img.backProjectHueHistogram(Image('lyle'))
+
+        **SEE ALSO**
+        ImageClass.getNormalizedHueHistogram()
+        ImageClass.findBlobsFromHueHistogram()
+        
         """
         try:
             import cv2
@@ -14271,6 +14336,8 @@ class Image:
             warnings.warn('Backproject requires a model')
             return None
         # this is the easier test, try to cajole model into ROI
+        if( isinstance(model,Image) ):
+            model = model.getNormalizedHueHistogram()
         if(not isinstance(model,np.ndarray) or  model.shape != (180,256) ):
             model = self.getNormalizedHueHistogram(model)
         if( isinstance(model,np.ndarray) and model.shape == (180,256) ):
@@ -14294,6 +14361,44 @@ class Image:
         
     def findBlobsFromHueHistogram(self,model,threshold=1,smooth=True,minsize=10,maxsize=None):
         """
+        **SUMMARY**
+
+        This method performs hue histogram back projection on the image and uses
+        the results to generate a FeatureSet of blob objects. This is a very
+        quick and easy way of matching objects based on color. Given a hue histogram
+        taken from another image or an roi within the image we attempt to find all
+        pixels that are similar to the colors inside the histogram. 
+
+
+        **PARAMETERS**
+
+        * *model* - The histogram to use for pack projection. This can either be
+          a histogram, anything that can be converted into an ROI for the image (like
+          an x,y,w,h tuple or a feature, or another image.
+        * *smooth* - A bool, True means apply a smoothing operation after doing the
+          back project to improve the results.
+        * *threshold* - If this value is not None, we apply a threshold to the
+          result of back projection to yield a binary image. Valid values are from
+          1 to 255.
+        * *minsize* - the minimum blob size in pixels.
+        * *maxsize* - the maximum blob size in pixels.
+
+        **RETURNS**
+
+        A FeatureSet of blob objects or None if no blobs are found.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+        >>>> hist = img.getNormalizedHueHistogram((0,0,50,50)) # generate a hist
+        >>>> blobs = img.findBlobsFromHueHistogram(hist)
+        >>>> blobs.show()
+
+        **SEE ALSO**
+        
+        ImageClass.getNormalizedHueHistogram()
+        ImageClass.backProjectHueHistogram()
+        
         """
         newMask = self.backProjectHueHistogram(model,smooth,fullColor=False,threshold=threshold)
         return self.findBlobsFromMask(newMask,minsize=minsize,maxsize=maxsize)        

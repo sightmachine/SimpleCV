@@ -3872,11 +3872,34 @@ def test_normalize():
     perform_diff(result,name_stem,5)
     pass
     
-def test_getNormalizedHueHistogram(self):
-    pass
+def test_getNormalizedHueHistogram():
+    img = Image('lenna')
+    a = img.getNormalizedHueHistogram((0,0,100,100))
+    b = img.getNormalizedHueHistogram()
+    blobs = img.findBlobs()
+    c = img.getNormalizedHueHistogram(blobs[-1])
+    if( a.shape == (180,256) and b.shape == (180,256)
+        and c.shape == (180,256) ):
+        pass
+    else:
+        assert False
 
-def test_backProjecHueHistogram(self):
-    pass
+def test_backProjecHueHistogram():
+    img = Image('lenna')
+    img2 = Image('lyle')
+    a = img2.getNormalizedHueHistogram()
+    imgA = img.backProjectHueHistogram(a)
+    imgB = img.backProjectHueHistogram((10,10,50,50),smooth=False,fullColor=True)
+    imgC = img.backProjectHueHistogram(img2,threshold=1)
+    result = [imgA,imgB,imgC]
+    name_stem = "test_image_histBackProj"
+    perform_diff(result,name_stem,5)
 
-def test_findBlobsFromHueHistogram(self):
+def test_findBlobsFromHueHistogram():
+    img = Image('lenna')
+    img2 = Image('lyle')
+    a = img2.getNormalizedHueHistogram()
+    A = img.findBlobsFromHueHistogram(a)
+    B = img.findBlobsFromHueHistogram((10,10,50,50),smooth=False)
+    C = img.findBlobsFromHueHistogram(img2,threshold=1)
     pass
