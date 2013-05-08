@@ -1387,7 +1387,7 @@ class Blob(Feature):
         def cvFallback():
             chull = cv.ConvexHull2(self.mContour, cv.CreateMemStorage(), return_points=False)
             defects = cv.ConvexityDefects(self.mContour, chull, cv.CreateMemStorage())
-            features = FeatureSet([Line(blob.image, (defect[0], defect[1])) for defect in defects])
+            features = FeatureSet([Line(self.image, (defect[0], defect[1])) for defect in defects])
             return features
 
         try:
