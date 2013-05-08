@@ -6,12 +6,12 @@ try:
 except ImportError:
     pass
 
-class Tracking(Feature):
+class Track(Feature):
     """
     **SUMMARY**
 
-    Tracking class is the base of tracking. All different tracking algorithm
-    return different classes but they all belong to Tracking class. All the
+    Track class is the base of tracking. All different tracking algorithm
+    return different classes but they all belong to Track class. All the
     common attributes are kept in this class
 
     """
@@ -28,11 +28,11 @@ class Tracking(Feature):
 
         **RETURNS**
 
-        SimpleCV.Features.Tracking.Tracking object
+        SimpleCV.Features.Tracking.Track object
 
         **EXAMPLE**
 
-        >>> track = Tracking(image, bb)
+        >>> track = Track(image, bb)
         """
         self.bb = bb
         self.image = img
@@ -58,7 +58,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> cen = track.getCenter()
         """
         return (self.bb_x+self.w/2,self.bb_y+self.h/2)
@@ -75,7 +75,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> area = track.getArea()
         """
         return self.w*self.h
@@ -92,7 +92,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> i = track.getImage()
         """
         return self.image
@@ -109,7 +109,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> print track.getBB()
         """
         return self.bb
@@ -132,7 +132,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.draw()
         >>> img.show()
         """
@@ -156,7 +156,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.drawBB()
         >>> img.show()
         """
@@ -180,7 +180,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.showCoordinates()
         >>> img.show()
         """
@@ -333,7 +333,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.getPredictedCoordinates()
         """
         return self.predict_pt
@@ -356,7 +356,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.drawPredicted()
         >>> img.show()
         """
@@ -380,7 +380,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.showPredictedCoordinates()
         >>> img.show()
         """
@@ -409,7 +409,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.getCorrectedCoordinates()
         """
         return self.state_pt
@@ -431,7 +431,7 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.showCorrectedCoordinates()
         >>> img.show()
         """
@@ -463,22 +463,22 @@ class Tracking(Feature):
 
         **EXAMPLE**
 
-        >>> track = Tracking(img, bb)
+        >>> track = Track(img, bb)
         >>> track.drawCorrected()
         >>> img.show()
         """
         f = self
         f.image.drawCircle(f.state_pt, rad, color, thickness)
 
-class CAMShiftTrack(Tracking):
+class CAMShiftTrack(Track):
     """
     **SUMMARY**
 
     CAMShift Class is returned by track when CAMShift tracking is required.
-    This class is a superset of Tracking Class. And all of Tracking class'
+    This class is a superset of Track Class. And all of Track class'
     attributes can be accessed.
 
-    CAMShift class has "ellipse" attribute which is not present in Tracking
+    CAMShift class has "ellipse" attribute which is not present in Track
     """
     def __init__(self, img, bb, ellipse):
         """
@@ -494,13 +494,13 @@ class CAMShiftTrack(Tracking):
 
         **RETURNS**
 
-        SimpleCV.Features.Tracking.CAMShift object
+        SimpleCV.Features.Track.CAMShift object
 
         **EXAMPLE**
 
         >>> track = CAMShift(image, bb, ellipse)
         """
-        self = Tracking.__init__(self, img, bb)
+        self = Track.__init__(self, img, bb)
         self.ellipse = ellipse
 
     def getEllipse(self):
@@ -520,12 +520,12 @@ class CAMShiftTrack(Tracking):
         """
         return self.ellipse
 
-class LKTrack(Tracking):
+class LKTrack(Track):
     """
     **SUMMARY**
 
-    LK Tracking class is used for Lucas-Kanade Tracking algorithm. It's
-    derived from Tracking Class. Apart from all the properties of Tracking class,
+    LK Tracking class is used for Lucas-Kanade Track algorithm. It's
+    derived from Track Class. Apart from all the properties of Track class,
     LK has few other properties. Since in LK tracking method, we obtain tracking
     points, we have functionalities to draw those points on the image.
 
@@ -545,14 +545,14 @@ class LKTrack(Tracking):
 
         **RETURNS**
 
-        SimpleCV.Features.Tracking.LK object
+        SimpleCV.Features.Track.LK object
 
         **EXAMPLE**
 
         >>> track = LK(image, bb, pts)
         """
 
-        self = Tracking.__init__(self, img, bb)
+        self = Track.__init__(self, img, bb)
         self.pts = pts
 
     def getTrackedPoints(self):
@@ -596,12 +596,12 @@ class LKTrack(Tracking):
             for pt in self.pts:
                 self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
 
-class SURFTrack(Tracking):
+class SURFTrack(Track):
     """
     **SUMMARY**
 
     SURFTracker class is used for SURF Based keypoints matching tracking algorithm.
-    It's derived from Tracking Class. Apart from all the properties of Tracking class SURFTracker
+    It's derived from Track Class. Apart from all the properties of Track class SURFTracker
     has few other properties.
 
     Matches keypoints from the template image and the current frame.
@@ -630,18 +630,18 @@ class SURFTrack(Tracking):
 
         **RETURNS**
 
-        SimpleCV.Features.Tracking.SURFTracker object
+        SimpleCV.Features.Track.SURFTracker object
 
         **EXAMPLE**
         >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
         """
         if td is None:
             bb = (1, 1, 1, 1)
-            self = Tracking.__init__(self, img, bb)
+            self = Track.__init__(self, img, bb)
             return
         if len(new_pts) < 1:
             bb = (1, 1, 1, 1)
-            self = Tracking.__init__(self, img, bb)
+            self = Track.__init__(self, img, bb)
             self.pts = None
             self.templateImg = templateImg
             self.skp = skp
@@ -653,7 +653,7 @@ class SURFTrack(Tracking):
             return
         if sd is None:
             bb = (1, 1, 1, 1)
-            self = Tracking.__init__(self, img, bb)
+            self = Track.__init__(self, img, bb)
             self.pts = None
             self.templateImg = templateImg
             self.skp = skp
@@ -675,7 +675,7 @@ class SURFTrack(Tracking):
 
         bb =  (min_x-5, min_y-5, max_x-min_x+5, max_y-min_y+5)
 
-        self = Tracking.__init__(self, img, bb)
+        self = Track.__init__(self, img, bb)
         self.templateImg = templateImg
         self.skp = skp
         self.sd = sd
@@ -845,12 +845,12 @@ class SURFTrack(Tracking):
         """
         return self.templateImg
 
-class MFTrack(Tracking):
+class MFTrack(Track):
     """
     **SUMMARY**
 
     MFTracker class is used for Median Flow Tracking algorithm. It's
-    derived from Tracking Class. Apart from all the properties of Tracking class,
+    derived from Track Class. Apart from all the properties of Track class,
     MFTracker has few other properties.
 
     Media Flow Tracker is the base tracker that is used in OpenTLD. It is based on
@@ -875,13 +875,13 @@ class MFTrack(Tracking):
 
         **RETURNS**
 
-        SimpleCV.Features.Tracking.MFTracker object
+        SimpleCV.Features.Track.MFTracker object
 
         **EXAMPLE**
 
         >>> track = MFTracker(image, bb, shift)
         """
-        self = Tracking.__init__(self, img, bb)
+        self = Track.__init__(self, img, bb)
         self.shift = shift
 
     def getShift(self):

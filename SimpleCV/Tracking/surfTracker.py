@@ -1,6 +1,8 @@
-import cv2
-import numpy as np
-import itertools
+from SimpleCV.base import np, itertools
+try:
+    import cv2
+except ImportError:
+    pass
 
 def surfTracker(img, bb, ts, **kwargs):
     """
@@ -144,8 +146,8 @@ def surfTracker(img, bb, ts, **kwargs):
         if label==0:
             skp_final_labelled.append(skp_final[i])
 
-    track = SURFTracker(img, skp_final_labelled, detector, descriptor, templateImg, skp, sd, tkp, td)
+    track = SURFTrack(img, skp_final_labelled, detector, descriptor, templateImg, skp, sd, tkp, td)
 
     return track
 
-from SimpleCV.Features import SURFTracker
+from SimpleCV.Tracking import SURFTrack

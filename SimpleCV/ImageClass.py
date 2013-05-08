@@ -11779,7 +11779,7 @@ class Image:
             ts.trimList(50)
 
         if method.lower() == "camshift":
-            track = CAMShiftTracker(self, bb, ts, **kwargs)
+            track = camshiftTracker(self, bb, ts, **kwargs)
             ts.append(track)
 
         elif method.lower() == "lk":
@@ -11793,15 +11793,14 @@ class Image:
             except ImportError:
                 logger.warning("sklearn required")
                 return None
-            versions = ["2.4.2","2.4.3", "2.4.4"]
-            if cv2.__version__ not in versions:
-                logger.warning("OpenCV >= 2.4.3 required")
+            if not hasattr(cv2, "FeatureDetector_create"):
+                warnings.warn("OpenCV >= 2.4.3 required. Returning None.")
                 return None
             track = surfTracker(self, bb, ts, **kwargs)
             ts.append(track)
 
         elif method.lower() == "mftrack":
-            track = MFTrack(self, bb, ts, img, **kwargs)
+            track = mfTracker(self, bb, ts, img, **kwargs)
             ts.append(track)
 
         return ts
@@ -14240,8 +14239,8 @@ class Image:
 
 
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, CAMShift, TrackSet, LK, SURFTracker, FaceRecognizer
-from SimpleCV.Tracking import CAMShiftTracker, lkTracker, surfTracker, MFTrack
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer
+from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
