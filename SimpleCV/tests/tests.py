@@ -225,13 +225,43 @@ def test_detection_findCorners():
 
 
 def test_color_meancolor():
-    img = Image(testimage2)
-    roi = img[1:50,1:50]
+    a = np.arange(0, 256)
+    b = a[::-1]
+    c = np.copy(a)/2
+    a = a.reshape(16, 16)
+    b = b.reshape(16, 16)
+    c = c.reshape(16, 16)
+    imgarr = np.dstack((a, b, c))
+    img = Image(imgarr)
 
-    r, g, b = roi.meanColor()
+    b, g, r = img.meanColor('BGR')
+    if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
+        assert False
 
-    if (r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255):
-        pass
+    r, g, b = img.meanColor('RGB')
+    if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
+        assert False
+
+    h, s, v = img.meanColor('HSV')
+    if not (83 < h < 84 and 191 < s < 192 and 191 < v < 192):
+        assert False
+
+    x, y, z = img.meanColor('XYZ')
+    if not (109 < x < 110 and 122 < y < 123 and 77 < z < 79):
+        assert False
+
+    gray = img.meanColor('Gray')
+    if not (120 < gray < 121):
+        assert False
+
+    y, cr, cb = img.meanColor('YCrCb')
+    if not (120 < y < 121 and 133 < cr < 134 and 96 < cb < 97):
+        assert False
+
+    h, l, s = img.meanColor('HLS')
+    if not (84 < h < 85 and 117 < l < 118 and 160 < s < 161):
+        assert False
+    pass
 
 def test_image_smooth():
     img = Image(testimage2)
@@ -3817,4 +3847,13 @@ def test_smartRotate():
         assert False
     else:
         assert True
+
+def test_normalize():
+    img = Image("lenna")
+    img1 = img.normalize()
+    img2 = img.normalize(minCut = 0,maxCut = 0)
+    result = [img1,img2]
+    name_stem = "test_image_normalize"
+    perform_diff(result,name_stem,5)
+    pass
     

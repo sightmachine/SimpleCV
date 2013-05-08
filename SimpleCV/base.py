@@ -103,7 +103,11 @@ except ImportError:
 
 ORANGE_ENABLED = True
 try:
-    import orange
+    try:
+        import orange
+    except ImportError:
+        import Orange; import orange
+
     import orngTest #for cross validation
     import orngStat
     import orngEnsemble # for bagging / boosting

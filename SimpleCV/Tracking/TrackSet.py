@@ -1,9 +1,8 @@
-from SimpleCV.base import *
-from SimpleCV.Color import *
+from SimpleCV.Color import Color
+from SimpleCV.base import time, cv, np
 from SimpleCV.Features.Features import Feature, FeatureSet
-import cv2.cv as cv
-import cv2
-import time
+from SimpleCV.ImageClass import Image
+
 
 class TrackSet(FeatureSet):
     """
@@ -25,7 +24,11 @@ class TrackSet(FeatureSet):
     >>> ts.draw()
     >>> ts.x()
     """
-
+    try:
+        import cv2
+    except ImportError:
+        warnings.warn("OpenCV >= 2.3.1 required.")
+    
     def __init__(self):
         self.kalman = None
         self.predict_pt = (0,0)
@@ -409,7 +412,7 @@ class TrackSet(FeatureSet):
         Nada. Nothing. Zilch.
 
         **EXAMPLE**
-http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
+
         >>> while True:
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
@@ -542,7 +545,6 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
             ... img = img1
         >>> ts.getBackground().show()
         """
-        from SimpleCV import Image
         imgs = self.trackImages(cv2_numpy=True)
         f = imgs[0]
         avg = np.float32(f)
@@ -551,7 +553,6 @@ http://www.jayrambhia.com/blog/2012/02/15/multithreading-in-pygtkgtk/
             cv2.accumulateWeighted(f,avg,0.01)
             res = cv2.convertScaleAbs(avg)
         return Image(res, cv2image=True)
-
 
     def __kalman(self):
         self.kalman = cv.CreateKalman(4, 2, 0)

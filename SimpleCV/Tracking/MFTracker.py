@@ -1,13 +1,11 @@
+from SimpleCV.base import np, cv, math, time, spsd
 from copy import copy
-import numpy as np
-import cv2
-import cv2.cv as cv
-import math
-import time
-import numpy as np
-import scipy.spatial.distance as spsd
+try:
+    import cv2
+except ImportError:
+    pass
 
-def MFTrack(img, bb, ts, oldimg, **kwargs):
+def mfTracker(img, bb, ts, oldimg, **kwargs):
     """
     **DESCRIPTION**
     
@@ -95,7 +93,7 @@ def MFTrack(img, bb, ts, oldimg, **kwargs):
     bb = [bb[0], bb[1], bb[0]+bb[2], bb[1]+bb[3]]
     bb, shift = fbtrack(oldg, newg, bb, numM, numN, margin, winsize_ncc, winsize_lk)
     bb = [bb[0], bb[1], bb[2]-bb[0], bb[3]-bb[1]]
-    track = MFTracker(img, bb, shift)
+    track = MFTrack(img, bb, shift)
     return track
 
 def fbtrack(imgI, imgJ, bb, numM=10, numN=10,margin=5,winsize_ncc=10, winsize_lk=4):
@@ -490,4 +488,4 @@ def normCrossCorrelation(img1, img2, pt0, pt1, status, winsize, method=cv2.cv.CV
         match[i] = cv2.matchTemplate(patch1,patch2,method)
     return match
 
-from SimpleCV.Features import MFTracker
+from SimpleCV.Tracking import MFTrack

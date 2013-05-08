@@ -1,6 +1,10 @@
-import cv2
-import numpy as np
-def CAMShiftTracker(img, bb, ts, **kwargs):
+from SimpleCV.base import np
+try:
+    import cv2
+except ImportError:
+    pass
+
+def camshiftTracker(img, bb, ts, **kwargs):
     """
     **DESCRIPTION**
     
@@ -107,8 +111,8 @@ def CAMShiftTracker(img, bb, ts, **kwargs):
     new_ellipse, track_window = cv2.CamShift(prob, bb, term_crit)
     if track_window[2] == 0 or track_window[3] == 0:
         track_window = bb
-    track = CAMShift(img, track_window, new_ellipse)
+    track = CAMShiftTrack(img, track_window, new_ellipse)
 
     return track
 
-from SimpleCV.Features import CAMShift
+from SimpleCV.Tracking import CAMShiftTrack
