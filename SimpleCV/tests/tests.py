@@ -3872,3 +3872,11 @@ def test_normalize():
     perform_diff(result,name_stem,5)
     pass
     
+def test_getNormalizedHueHistogram(self):
+    pass
+
+def test_backProjecHueHistogram(self):
+    pass
+
+def test_findBlobsFromHueHistogram(self):
+    pass

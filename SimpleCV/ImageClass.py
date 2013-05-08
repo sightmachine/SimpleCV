@@ -3,6 +3,7 @@ from SimpleCV.base import *
 from SimpleCV.Color import *
 from SimpleCV.LineScan import *
 
+
 from numpy import int32
 from numpy import uint8
 
@@ -9997,6 +9998,7 @@ class Image:
         :py:meth:`rawDFTImage`
         :py:meth:`getDFTLogMagnitude`
         :py:meth:`applyDFTFilter`
+
         :py:meth:`highPassFilter`
         :py:meth:`lowPassFilter`
         :py:meth:`bandPassFilter`
@@ -14237,8 +14239,66 @@ class Image:
             return None
         return retVal
 
+    def getNormalizedHueHistogram(self,roi=None):
+        """
+        """
+        try:
+            import cv2
+        except ImportError:
+            warnings.warn("OpenCV >= 2.3 required to use this.")
+            return None
 
+        from SimpleCV.Features import ROI
+        if( roi ): # roi is anything that can be taken to be an roi
+            roi = ROI(roi,self)
+            hsv = roi.crop().toHSV().getNumpyCv2()
+        else: 
+            hsv = self.toHSV().getNumpyCv2()
+        hist = cv2.calcHist([hsv],[0,1],None,[180,256],[0,180,0,256])
+        cv2.normalize(hist,hist,0,255,cv2.NORM_MINMAX)
+        return hist
 
+    def backProjectHueHistogram(self,model,smooth=True,fullColor=False,threshold=None):
+        """
+        """
+        try:
+            import cv2
+        except ImportError:
+            warnings.warn("OpenCV >= 2.3 required to use this.")
+            return None
+        
+        if( model is None ):
+            warnings.warn('Backproject requires a model')
+            return None
+        # this is the easier test, try to cajole model into ROI
+        if(not isinstance(model,np.ndarray) or  model.shape != (180,256) ):
+            model = self.getNormalizedHueHistogram(model)
+        if( isinstance(model,np.ndarray) and model.shape == (180,256) ):
+            hsv = self.toHSV().getNumpyCv2()
+            dst = cv2.calcBackProject([hsv],[0,1],model,[0,180,0,256],1)
+            if smooth:
+                disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+                cv2.filter2D(dst,-1,disc,dst)
+            result = Image(dst,cv2image=True)
+            result = result.toBGR()
+            if( threshold ):
+                result = result.threshold(threshold)
+            if( fullColor ):
+                temp = Image((self.width,self.height))
+                result = temp.blit(self,alphaMask=result)
+            return result
+        else:
+            warnings.warn('Backproject model does not appear to be valid')
+            return None
+
+        
+    def findBlobsFromHueHistogram(self,model,threshold=1,smooth=True,minsize=10,maxsize=None):
+        """
+        """
+        newMask = self.backProjectHueHistogram(model,smooth,fullColor=False,threshold=threshold)
+        return self.findBlobsFromMask(newMask,minsize=minsize,maxsize=maxsize)        
+
+    
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
 from SimpleCV.Stream import JpegStreamer
