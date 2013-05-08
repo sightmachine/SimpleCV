@@ -501,6 +501,15 @@ def test_detection_blobs_smallimages():
     img = Image("../sampleimages/blobsegfaultimage.png")
     blobs = img.findBlobs()
     # if no segfault, pass
+
+def test_detection_blobs_convexity_defects():
+    img = Image('lenna')
+    blobs = img.findBlobs()
+    b = blobs[-1]
+    feat = b.getConvexityDefects()
+    points = b.getConvexityDefects(returnPoints=True)
+    if len(feat) <= 0 or len(points) <= 0:
+        assert False
     pass
 
 def test_detection_barcode():
