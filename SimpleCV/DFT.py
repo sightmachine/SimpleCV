@@ -14,7 +14,7 @@ class DFT:
     _xCutoffLow = 0
     _yCutoffLow = 0
     _xCutoffHigh = 0
-    _xCutoffHigh = 0
+    _yCutoffHigh = 0
 
     def __init__(self, **kwargs):
         for key in kwargs:
@@ -62,12 +62,27 @@ class DFT:
         retVal = DFT(numpyarray=flt_numpy, image=flt_image, size=flt_image.size())
         return retVal
 
+    def __invert__(self, flt):
+        return self.invert()
+
+    def _updateParams(self, flt):
+        self.channels = flt.channels
+        self._dia = flt._dia
+        self._type = flt._type
+        self._order = flt._order
+        self._freqpass = flt._freqpass
+        self._xCutoffLow = flt._xCutoffLow
+        self._yCutoffLow = flt._yCutoffLow
+        self._xCutoffHigh = flt._xCutoffHigh
+        self._yCutoffHigh = flt._yCutoffHigh
+
     def invert(self):
         flt = self._numpy
         flt = 255 - flt
         img = Image(flt)
         invertedfilter = DFT(numpyarray=flt, image=img,
                              size=self.size(), type=self._type)
+        invertedfilter._updateParams(self)
         return invertedfilter
 
     def createGaussianFilter(self, dia=400, size=(64, 64), highpass=False):
@@ -214,10 +229,43 @@ class DFT:
                              numpyarray=bandpassnumpy, type="bandpass",
                              xCutoffLow=xCutoffLow, yCutoffLow=yCutoffLow,
                              xCutoffHigh=xCutoffHigh, yCutoffHigh=yCutoffHigh,
-                             frequency="bandpass")
+                             frequency="bandpass", channels=lowpass.channels)
         return bandpassFilter
 
     def createNotchFilter(self, dia1, dia2=None, cen=None, size=(64, 64), type="lowpass"):
+        if isinstance(dia1, list):
+            if len(dia1) != 3 and len(dia1) != 1:
+                warnings.warn("diameter list must be of size 1 or 3")
+                return None
+
+            if isinstance(dia2, list):
+                if len(dia2) != 3 and len(dia2) != 1:
+                    warnings.warn("diameter list must be of size 3 or 1")
+                    return None
+                if len(dia2) == 1:
+                    dia2 = [dia2[0]]*len(dia1)
+            else:
+                dia2 = [dia2]*len(dia1)
+
+            if isinstance(cen, list):
+                if len(cen) != 3 and len(cen) != 1:
+                    warnings.warn("center list must be of size 3 or 1")
+                    return None
+                if len(cen) == 1:
+                    cen = [cen[0]]*len(dia1)
+            else:
+                cen = [cen]*len(dia1)
+
+            stackedfilter = DFT()
+            for d1, d2, c in zip(dia1, dia2, cen):
+                stackedfilter = stackedfilter._stackFilters(self.createNotchFilter(d1, d2, c, size, type))
+            image = Image(stackedfilter._numpy)
+            retVal = DFT(numpyarray=stackedfilter._numpy, image=image,
+                         dia=dia1+dia2, channels = len(dia1), size=size,
+                         type=stackedfilter._type,
+                         frequency=stackedfilter._freqpass)
+            return retVal
+
         w, h = size
         if cen is None:
             cen = (w/2, h/2)
