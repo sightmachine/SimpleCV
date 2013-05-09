@@ -2292,6 +2292,64 @@ def test_lowPassFilter():
 
     pass
 
+def test_DFT_gaussian():
+    img = Image("../sampleimages/RedDog2.jpg")
+    flt = DFT.createGaussianFilter(dia=300, size=(300, 300), highpass=False)
+    fltimg = img.filter(flt)
+    fltimggray = img.filter(flt, grayscale=True)
+    flt = DFT.createGaussianFilter(dia=300, size=(300, 300), highpass=True)
+    fltimg1 = img.filter(flt)
+    fltimggray1 = img.filter(flt, grayscale=True)
+    results = [fltimg, fltimggray, fltimg1, fltimggray1]
+    name_stem = "test_DFT_gaussian"
+    perform_diff(results, name_stem)
+    pass
+
+def test_DFT_butterworth():
+    img = Image("../sampleimages/RedDog2.jpg")
+    flt = DFT.createButterworthFilter(dia=300, size=(300, 300), order=3, highpass=False)
+    fltimg = img.filter(flt)
+    fltimggray = img.filter(flt, grayscale=True)
+    flt = DFT.createButterworthFilter(dia=100, size=(300, 300), order=3, highpass=True)
+    fltimg1 = img.filter(flt)
+    fltimggray1 = img.filter(flt, grayscale=True)
+    results = [fltimg, fltimggray, fltimg1, fltimggray1]
+    name_stem = "test_DFT_butterworth"
+    perform_diff(results, name_stem)
+    pass
+
+def test_DFT_lowpass():
+    img = Image("../sampleimages/RedDog2.jpg")
+    flt = DFT.createLowpassFilter(xCutoff=150, size=(600, 600))
+    fltimg = img.filter(flt)
+    fltimggray = img.filter(flt, grayscale=True)
+    results = [fltimg, fltimggray]
+    name_stem = "test_DFT_lowpass"
+    perform_diff(results, name_stem, 20)
+    pass
+
+def test_DFT_highpass():
+    img = Image("../sampleimages/RedDog2.jpg")
+    flt = DFT.createLowpassFilter(xCutoff=10, size=(600, 600))
+    fltimg = img.filter(flt)
+    fltimggray = img.filter(flt, grayscale=True)
+    results = [fltimg, fltimggray]
+    name_stem = "test_DFT_highpass"
+    perform_diff(results, name_stem, 20)
+    pass
+
+def test_DFT_notch():
+    img = Image("../sampleimages/RedDog2.jpg")
+    flt = DFT.createNotchFilter(dia1=500, size=(512, 512), type="lowpass")
+    fltimg = img.filter(flt)
+    fltimggray = img.filter(flt, grayscale=True)
+    flt = DFT.createNotchFilter(dia1=300, size=(512, 512), type="highpass")
+    fltimg1 = img.filter(flt)
+    fltimggray1 = img.filter(flt, grayscale=True)
+    results = [fltimg, fltimggray, fltimg1, fltimggray1]
+    name_stem = "test_DFT_notch"
+    perform_diff(results, name_stem, 20)
+
 def test_findHaarFeatures():
     img = Image("../sampleimages/orson_welles.jpg")
     face = HaarCascade("face.xml") #old HaarCascade
