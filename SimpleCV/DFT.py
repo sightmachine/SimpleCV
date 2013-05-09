@@ -23,6 +23,8 @@ class DFT:
                 self.width = kwargs[key]
             elif key == 'height':
                 self.height = kwargs[key]
+            elif key == 'size':
+                self.width, self.height = kwargs[key]
             elif key == 'numpyarray':
                 self._numpy = kwargs[key]
             elif key == 'image':
@@ -61,7 +63,7 @@ class DFT:
         if not isinstance(flt, type(self)):
             warnings.warn("Provide SimpleCV.DFT object")
             return None
-        if self.getSize() != flt.getSize():
+        if self.size() != flt.size():
             warnings.warn("Both SimpleCV.DFT object must have the same size")
             return None
         flt_numpy = self._numpy + flt._numpy
@@ -69,6 +71,13 @@ class DFT:
         w, h = flt_image.size()
         retVal = DFT(numpyarray=flt_numpy, image=flt_image, width=w, height=h)
         return retVal
+
+    def invert(self):
+        flt = self._numpy
+        flt = 255 - flt
+        img = Image(flt)
+        invertedfilter = DFT(numpyarray=flt, image=img, size=self.size(), type=self._type)
+        return invertedfilter
 
     def createGaussianFilter(self, dia=400, size=(64, 64), highpass=False):
         sz_x, sz_y = size
@@ -115,7 +124,7 @@ class DFT:
 
     def createHighpassFilter(self, xCutoff, yCutoff=None, size=(64, 64)):
         lowpass = self.createLowpassFilter(xCutoff, yCutoff, size)
-        w, h = lowpass.getSize()
+        w, h = lowpass.size()
         flt = lowpass._numpy
         flt = 255 - flt
         img = Image(flt)
@@ -138,6 +147,33 @@ class DFT:
                              xCutoffHigh=xCutoffHigh, yCutoffHigh=yCutoffHigh)
         return bandpassFilter
 
+    def createNotchFilter(self, dia1, dia2=None, cen=None, size=(64, 64), type="lowpass"):
+        w, h = size
+        if cen is None:
+            cen = (w/2, h/2)
+        a, b = cen
+        y, x = np.ogrid[-a:w-a, -b:h-b]
+        r = dia1/2
+        mask = x*x + y*y <= r*r
+        flt = np.ones((w, h))
+        flt[mask] = 255
+        if type == "highpass":
+            flt = 255-flt
+        if dia2 is not None:
+            a, b = cen
+            y, x = np.ogrid[-a:w-a, -b:h-b]
+            r = dia2/2
+            mask = x*x + y*y <= r*r
+            flt1 = np.ones((w, h))
+            flt1[mask] = 255
+            flt1 = 255 - flt1
+            flt = flt + flt1
+            np.clip(flt, 0, 255)
+            type = "bandpass"
+        img = Image(flt)
+        notchfilter = DFT(width=w, height=h, numpyarray=flt, image=img, dia=dia1, type=type)
+        return notchfilter
+
     def applyFilter(self, image):
         if self.width == 0 or self.height == 0:
             warnings.warn("Empty Filter. Returning the image.")
@@ -145,7 +181,7 @@ class DFT:
         w, h = image.size()
         fltImg = self._image
         if fltImg.size() != image.size():
-            fltImg.resize(w, h)
+            fltImg = fltImg.resize(w, h)
         filteredImage = image.applyDFTFilter(fltImg)
         return filteredImage
 
@@ -166,7 +202,7 @@ class DFT:
     def getOrder(self):
         return self._order
 
-    def getSize(self):
+    def size(self):
         return (self.width, self.height)
 
     def getDia(self):
