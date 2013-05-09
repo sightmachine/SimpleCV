@@ -79,15 +79,15 @@ class DFT:
 
     def createLowpassFilter(self, xCutoff, yCutoff=None, size=(64, 64)):
         w, h = size
-        xCutoff = np.clip(int(xCutoff*w/2), 0, w/2)
+        xCutoff = np.clip(int(xCutoff), 0, w/2)
         if yCutoff is None:
             yCutoff = xCutoff
-        yCutoff = np.clip(int(yCutoff*h/2), 0, h/2)
+        yCutoff = np.clip(int(yCutoff), 0, h/2)
         flt = np.zeros((w, h))
         flt[0:xCutoff, 0:yCutoff] = 255
-        flt[0:xCutoff, yCutoff-h:h] = 255
-        flt[w-xCutoff:xCutoff, 0:yCutoff] = 255
+        flt[0:xCutoff, h-yCutoff:h] = 255
         flt[w-xCutoff:w, 0:yCutoff] = 255
+        flt[w-xCutoff:w, h-yCutoff:h] = 255
         img = Image(flt)
         lowpassFilter = DFT(width=w, height=h, numpyarray=flt, image=img, type="Lowpass", xCutoffLow=xCutoff, yCutoffLow=yCutoff)
         return lowpassFilter
@@ -106,7 +106,9 @@ class DFT:
             warnings.warn("Empty Filter. Returning the image.")
             return image
         w, h = image.size()
-        fltImg = self._image.resize(w, h)
+        fltImg = self._image
+        if fltImg.size() != image.size():
+            fltImg.resize(w, h)
         filteredImage = image.applyDFTFilter(fltImg)
         return filteredImage
 
