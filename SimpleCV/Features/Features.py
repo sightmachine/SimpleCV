@@ -2330,9 +2330,14 @@ class Feature(object):
     def _pointInsidePolygon(self,point,polygon):
         """
         returns true if tuple point (x,y) is inside polygon of the form ((a,b),(c,d),...,(a,b)) the polygon should be closed
-        Adapted for python from:
-        Http://paulbourke.net/geometry/insidepoly/
+
         """
+        try:
+            import cv2
+        except:
+            logger.warning("Unable to import cv2")
+            return False
+
         if( len(polygon) < 3 ):
             logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
             return False
@@ -2341,29 +2346,16 @@ class Feature(object):
             logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
             return False
 
-        counter = 0
-        retVal = True
-        p1 = None
-        #print "point: " + str(point)
-        poly = copy.deepcopy(polygon)
-        poly.append(polygon[0])
-        #for p2 in poly:
-        N = len(poly)
-        p1 = poly[0]
-        for i in range(1,N+1):
-            p2 = poly[i%N]
-            if( point[1] > np.min((p1[1],p2[1])) ):
-                if( point[1] <= np.max((p1[1],p2[1])) ):
-                    if( point[0] <= np.max((p1[0],p2[0])) ):
-                        if( p1[1] != p2[1] ):
-                            test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
-                            if( p1[0] == p2[0] or point[0] <= test ):
-                                counter = counter + 1
-            p1 = p2
+        if( not isinstance(point,tuple) ):
+            if( len(point) == 2 ):
+                point = tuple(point)
+            else:
+                logger.warning("feature._pointInsidePolygon - this is not a valid point")
+                return False
 
-        if( counter % 2 == 0 ):
-            retVal = False
-        return retVal
+        result = cv2.pointPolygonTest(np.array(polygon,dtype='float32'),point,0)
+        
+        return result > 0 
 
     def boundingCircle(self):
         """
