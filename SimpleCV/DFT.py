@@ -47,9 +47,28 @@ class DFT:
                 self._xCutoffHigh = kwargs[key]
             elif key == 'yCutoffHigh':
                 self._yCutoffHigh = kwargs[key]
+            elif key == 'highpass':
+                self._highpass = kwargs[key]
+            elif key == 'lowhpass':
+                self._lowpass = kwargs[key]
+            elif key == 'bandpass':
+                self._bandpass = kwargs[key]
 
     def __repr__(self):
         return "<SimpleCV.DFT Object Filter type: %s, size:(%d, %d)>" %(self._type, self.width, self.height)
+
+    def __add__(self, flt):
+        if not isinstance(flt, type(self)):
+            warnings.warn("Provide SimpleCV.DFT object")
+            return None
+        if self.getSize() != flt.getSize():
+            warnings.warn("Both SimpleCV.DFT object must have the same size")
+            return None
+        flt_numpy = self._numpy + flt._numpy
+        flt_image = Image(flt_numpy)
+        w, h = flt_image.size()
+        retVal = DFT(numpyarray=flt_numpy, image=flt_image, width=w, height=h)
+        return retVal
 
     def createGaussianFilter(self, dia=400, size=(64, 64), highpass=False):
         sz_x, sz_y = size
@@ -89,7 +108,9 @@ class DFT:
         flt[w-xCutoff:w, 0:yCutoff] = 255
         flt[w-xCutoff:w, h-yCutoff:h] = 255
         img = Image(flt)
-        lowpassFilter = DFT(width=w, height=h, numpyarray=flt, image=img, type="Lowpass", xCutoffLow=xCutoff, yCutoffLow=yCutoff)
+        lowpassFilter = DFT(width=w, height=h, numpyarray=flt, image=img,
+                            type="Lowpass", xCutoffLow=xCutoff,
+                            yCutoffLow=yCutoff)
         return lowpassFilter
 
     def createHighpassFilter(self, xCutoff, yCutoff=None, size=(64, 64)):
@@ -98,8 +119,24 @@ class DFT:
         flt = lowpass._numpy
         flt = 255 - flt
         img = Image(flt)
-        highpassFilter = DFT(width=w, height=h, numpyarray=flt, image=img, type="Highpass", xCutoffHigh=xCutoff, yCutoffHigh=yCutoff)
+        highpassFilter = DFT(width=w, height=h, numpyarray=flt, image=img,
+                             type="Highpass", xCutoffHigh=xCutoff,
+                             yCutoffHigh=yCutoff)
         return highpassFilter
+
+    def createBandpassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None, size=(64, 64)):
+        lowpass = self.createLowpassFilter(xCutoffLow, yCutoffLow, size)
+        highpass = self.createHighpassFilter(xCutoffHigh, yCutoffHigh, size)
+        lowpassnumpy = lowpass._numpy
+        highpassnumpy = highpass._numpy
+        bandpassnumpy = lowpassnumpy + highpassnumpy
+        bandpassnumpy = np.clip(bandpassnumpy, 0, 255)
+        img = Image(bandpassnumpy)
+        bandpassFilter = DFT(width=size[0], height=size[1], image=img,
+                             numpyarray=bandpassnumpy, type="bandpass",
+                             xCutoffLow=xCutoffLow, yCutoffLow=yCutoffLow,
+                             xCutoffHigh=xCutoffHigh, yCutoffHigh=yCutoffHigh)
+        return bandpassFilter
 
     def applyFilter(self, image):
         if self.width == 0 or self.height == 0:
