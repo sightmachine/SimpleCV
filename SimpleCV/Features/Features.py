@@ -2352,10 +2352,33 @@ class Feature(object):
             else:
                 logger.warning("feature._pointInsidePolygon - this is not a valid point")
                 return False
+        if( cv2.__version__ == '$Rev:4557'):
+            counter = 0
+            retVal = True
+            p1 = None
+            #print "point: " + str(point)
+            poly = copy.deepcopy(polygon)
+            poly.append(polygon[0])
+            #for p2 in poly:
+            N = len(poly)
+            p1 = poly[0]
+            for i in range(1,N+1):
+                p2 = poly[i%N]
+                if( point[1] > np.min((p1[1],p2[1])) ):
+                    if( point[1] <= np.max((p1[1],p2[1])) ):
+                        if( point[0] <= np.max((p1[0],p2[0])) ):
+                            if( p1[1] != p2[1] ):
+                                test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
+                                if( p1[0] == p2[0] or point[0] <= test ):
+                                    counter = counter + 1
+                p1 = p2
 
-        result = cv2.pointPolygonTest(np.array(polygon,dtype='float32'),point,0)
-        
-        return result > 0 
+            if( counter % 2 == 0 ):
+                retVal = False
+            return retVal
+        else:
+            result = cv2.pointPolygonTest(np.array(polygon,dtype='float32'),point,0)
+            return result > 0 
 
     def boundingCircle(self):
         """
