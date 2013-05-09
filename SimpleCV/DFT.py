@@ -584,7 +584,7 @@ class DFT:
                           type="Notch", frequency=type)
         return notchfilter
 
-    def applyFilter(self, image):
+    def applyFilter(self, image, grayscale=False):
         """
         **SUMMARY**
 
@@ -592,7 +592,12 @@ class DFT:
 
         **PARAMETERS**
 
-        * *image*  - SimpleCV.Image image
+        * *image*     - SimpleCV.Image image
+        * *grayscale* - if this value is True we perfrom the operation on the 
+                        DFT of the gray version of the image and the result is
+                        gray image. If grayscale is true we perform the 
+                        operation on each channel and the recombine them to
+                        create the result.
 
         **RETURNS**
 
@@ -610,6 +615,8 @@ class DFT:
             warnings.warn("Empty Filter. Returning the image.")
             return image
         w, h = image.size()
+        if grayscale:
+            image = image.toGray()
         fltImg = self._image
         if fltImg.size() != image.size():
             fltImg = fltImg.resize(w, h)
