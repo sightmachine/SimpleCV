@@ -13,6 +13,7 @@ haarcascade = HaarCascade("face")
 # Loop forever
 while True:
     image = cam.getImage().flipHorizontal().scale(0.5)# get image, flip it so it looks mirrored, scale to speed things up
+    print image.listHaarFeatures()
     faces = image.findHaarFeatures(haarcascade) # load in trained face file
     if faces:
         bb = faces[-1].boundingBox()

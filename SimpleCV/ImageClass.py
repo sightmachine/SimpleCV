@@ -12778,7 +12778,7 @@ class Image:
         except ImportError:
             logger.warning("OpenCV >= 2.4.3 required")
             return None
-        if not "2.4.3" in cv2.__version__:
+        if not "2.4." in cv2.__version__:
             # I don't know; they might roll out 2.4.3.2
             logger.warning("OpenCV >= 2.4.3 required")
             return None
@@ -12877,7 +12877,10 @@ class Image:
             tkp = tfs[i]
             pt_a = (int(tkp.y), int(tkp.x)+hdif)
             pt_b = (int(skp.y)+template.width, int(skp.x))
-            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
+            col = Color()
+            r = random.randint(1, (len(col.colorlist) - 1))
+            randColor = col.colorlist[r]
+            resultImg.drawLine(pt_a, pt_b, color=randColor,thickness=width)
         return resultImg
 
     def stegaEncode(self,message):
