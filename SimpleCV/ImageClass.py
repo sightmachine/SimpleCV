@@ -12774,11 +12774,10 @@ class Image:
         try:
             import cv2
         except ImportError:
-            logger.warning("OpenCV >= 2.4.3 required")
+            warnings.warn("OpenCV >= 2.4.3 required")
             return None
-        if not "2.4.3" in cv2.__version__:
-            # I don't know; they might roll out 2.4.3.2
-            logger.warning("OpenCV >= 2.4.3 required")
+        if not hasattr(cv2, "FeatureDetector_create"):
+            warnings.warn("OpenCV >= 2.4.3 required")
             return None
         if template == None:
             return None    
