@@ -3212,7 +3212,7 @@ class AVTCamera(FrameSource):
         if self.pixelformat == 'Mono8':
             self.imgformat = 'L'
 
-    def _getFrame(self, timeout = 5000):
+    def _getFrame(self, timeout = 2000):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
         try:
@@ -3221,12 +3221,11 @@ class AVTCamera(FrameSource):
           try:
             pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
           except Exception, e:
-            #~ print "Excepted:", e
+            print "Excepted:", e
             return None
             
         except Exception, e:
-          #~ print "Exception:", e
-          #~ import ipdb;ipdb.set_trace()
+          print "Exception:", e
           return None
           
         return frame
