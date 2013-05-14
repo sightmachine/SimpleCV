@@ -2330,9 +2330,14 @@ class Feature(object):
     def _pointInsidePolygon(self,point,polygon):
         """
         returns true if tuple point (x,y) is inside polygon of the form ((a,b),(c,d),...,(a,b)) the polygon should be closed
-        Adapted for python from:
-        Http://paulbourke.net/geometry/insidepoly/
+
         """
+        # try:
+        #     import cv2
+        # except:
+        #     logger.warning("Unable to import cv2")
+        #     return False
+
         if( len(polygon) < 3 ):
             logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
             return False
@@ -2341,6 +2346,13 @@ class Feature(object):
             logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
             return False
 
+        #if( not isinstance(point,tuple) ):
+            #if( len(point) == 2 ):
+            #    point = tuple(point)
+            #else:
+            #    logger.warning("feature._pointInsidePolygon - this is not a valid point")
+            #    return False
+        #if( cv2.__version__ == '$Rev:4557'):
         counter = 0
         retVal = True
         p1 = None
@@ -2363,7 +2375,10 @@ class Feature(object):
 
         if( counter % 2 == 0 ):
             retVal = False
-        return retVal
+            return retVal
+        #else:
+        #    result = cv2.pointPolygonTest(np.array(polygon,dtype='float32'),point,0)
+        #    return result > 0 
 
     def boundingCircle(self):
         """

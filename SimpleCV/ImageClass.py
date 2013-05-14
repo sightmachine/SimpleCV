@@ -2,8 +2,6 @@
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from SimpleCV.LineScan import *
-
-
 from numpy import int32
 from numpy import uint8
 
@@ -10093,6 +10091,10 @@ class Image:
 
         Make this function support a separate filter image for each channel.
         """
+        if isinstance(flt, DFT):
+            filteredimage = flt.applyFilter(self, grayscale)
+            return filteredimage
+
         if( flt.width != self.width and
             flt.height != self.height ):
             logger.warning("Image.applyDFTFilter - Your filter must match the size of the image")
@@ -14403,9 +14405,42 @@ class Image:
         newMask = self.backProjectHueHistogram(model,smooth,fullColor=False,threshold=threshold)
         return self.findBlobsFromMask(newMask,minsize=minsize,maxsize=maxsize)        
 
-    
+    def filter(self, flt, grayscale=False):
+        """
+        **SUMMARY**
+
+        This function allows you to apply an arbitrary filter to the DFT of an image.
+        This filter takes in a gray scale image, whiter values are kept and black values
+        are rejected. In the DFT image, the lower frequency values are in the corners
+        of the image, while the higher frequency components are in the center. For example,
+        a low pass filter has white squares in the corners and is black everywhere else.
+
+        **PARAMETERS**
+
+        * *flt* - A DFT filter
+
+        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
+          version of the image and the result is gray image. If grayscale is true
+          we perform the operation on each channel and the recombine them to create
+          the result.
+
+        **RETURNS**
+
+        A SimpleCV image after applying the filter.
+
+        **EXAMPLE**
+
+        >>>  filter = DFT.createGaussianFilter()
+        >>>  myImage = Image("MyImage.png")
+        >>>  result = myImage.filter(filter)
+        >>>  result.show()
+        """
+        filteredimage = flt.applyFilter(self, grayscale)
+        return filteredimage
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
 from SimpleCV.DrawingLayer import *
+from SimpleCV.DFT import DFT
