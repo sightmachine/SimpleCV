@@ -495,7 +495,9 @@ class Camera(FrameSource):
 
             try:
                 self.capture.start()
-            except:
+            except Exception as exc:
+                msg = "caught exception: %r" % exc
+                logger.warning(msg)
                 logger.warning("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
                 return
             time.sleep(0)
