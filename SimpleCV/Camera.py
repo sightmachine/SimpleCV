@@ -1987,7 +1987,7 @@ class StereoImage:
                 if minDisparity is not None:
                     sbm.minDisparity = minDisparity
                 if numberOfDisparities is not None:
-                    sbm.numberOfDisparities = nDisparity
+                    sbm.numberOfDisparities = numberOfDisparities
                 if uniquenessRatio is not None:
                     sbm.uniquenessRatio = uniquenessRatio
                 if speckleRange is not None:
@@ -2038,7 +2038,7 @@ class StereoImage:
                 if minDisparity is not None:
                     sbm.minDisparity = minDisparity
                 if numberOfDisparities is not None:
-                    sbm.numberOfDisparities = nDisparity
+                    sbm.numberOfDisparities = numberOfDisparities
                 if P1 is not None:
                     sbm.P1 = P1
                 if P2 is not None:
