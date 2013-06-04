@@ -346,6 +346,10 @@ class ColorCurve:
     least 4 point pairs.  Either of these must map in a 255x255 space.  The curve
     can then be used in the applyRGBCurve, applyHSVCurve, and
     applyInstensityCurve functions.
+    
+    Note:
+    The points should be in strictly increasing order of their first elements
+    (X-coordinates)
 
     **EXAMPLE**
 
