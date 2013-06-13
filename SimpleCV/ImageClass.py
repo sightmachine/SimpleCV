@@ -7011,7 +7011,7 @@ class Image:
 
         **PARAMETERS**
 
-        * *size* - width and heigt tuple of the new canvas.
+        * *size* - width and heigt tuple of the new canvas or give a single vaule in which to scale the image size, for instance size=2 would make the image canvas twice the size
 
         * *color* - the color of the canvas
 
@@ -7029,6 +7029,10 @@ class Image:
         >>> img.show()
 
         """
+
+        if not isinstance(size, tuple) and size > 1:
+          size = (self.width * size, self.height * size)
+        
 
         if( size == None or size[0] < self.width or size[1] < self.height ):
             logger.warning("image.embiggenCanvas: the size provided is invalid")
