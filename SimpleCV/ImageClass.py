@@ -1034,7 +1034,7 @@ class Image:
 
         elif (type(source) == pg.Surface):
             self._pgsurface = source
-            self._numpy = pg.surfarray.array2d(self._pgsurface)
+            self._numpy = pg.surfarray.array3d(self._pgsurface)
             self._colorSpace = ColorSpace.BGR
 
         elif (PIL_ENABLED and (
@@ -3059,15 +3059,10 @@ class Image:
 
         """
         #initialize buffer frames
-        eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
-        temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
-
-
-        corner_coordinates = cv.GoodFeaturesToTrack(self._getGrayscaleBitmap(), eig_image, temp_image, maxnum, minquality, mindistance, None)
-
-
+        corner_coordinates = cv2.goodFeaturesToTrack(self.getGrayNumpy(), maxnum, minquality, mindistance)
         corner_features = []
-        for (x, y) in corner_coordinates:
+        for cornerPoints in corner_coordinates:
+            x, y = cornerPoints[0]
             corner_features.append(Corner(self, x, y))
 
 
@@ -3320,7 +3315,7 @@ class Image:
         - http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
 
         """
-        storage = cv.CreateMemStorage(0)
+
 
 
         #lovely.  This segfaults if not present
@@ -3335,21 +3330,10 @@ class Image:
             logger.warning('Could not initialize HaarCascade. Enter Valid cascade value.')
 
         # added all of the arguments from the opencv docs arglist
-        try:
-            import cv2
-            haarClassify = cv2.CascadeClassifier(cascade.getFHandle())
-            objects = haarClassify.detectMultiScale(self.getGrayNumpyCv2(),scaleFactor=scale_factor,minNeighbors=min_neighbors,minSize=min_size,flags=use_canny)
-            cv2flag = True
-
-        except ImportError:
-            objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
-                cascade.getCascade(), storage, scale_factor, min_neighbors,
-                use_canny, min_size)
-            cv2flag = False
-
+        haarClassify = cv2.CascadeClassifier(cascade.getFHandle())
+        objects = haarClassify.detectMultiScale(self.getGrayNumpyCv2(),scaleFactor=scale_factor,minNeighbors=min_neighbors,minSize=min_size,flags=use_canny)
         if objects is not None:
-            return FeatureSet([HaarFeature(self, o, cascade,cv2flag) for o in objects])
-
+            return FeatureSet([HaarFeature(self, o, cascade, True) for o in objects]) # True for cv2flag
         return None
 
 
@@ -3634,19 +3618,11 @@ class Image:
         #TODO CHECK CURVE SIZE
         #TODO CHECK COLORSPACE
         #TODO CHECK CURVE SIZE
-        temp  = cv.CreateImage(self.size(), 8, 3)
-        #Move to HLS space
-        cv.CvtColor(self._bitmap, temp, cv.CV_RGB2HLS)
-        tempMat = cv.GetMat(temp) #convert the bitmap to a matrix
-        #now apply the color curve correction
-        tempMat = np.array(self.getMatrix()).copy()
+        tempMat = self.toHLS().getNumpy()
         tempMat[:, :, 0] = np.take(hCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(sCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(lCurve.mCurve, tempMat[:, :, 2])
-        #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
-        cv.CvtColor(image, image, cv.CV_HLS2RGB)
+        image = cv2.cvtColor(tempMat, cv.CV_HLS2BGR)
         return Image(image, colorSpace=self._colorSpace)
 
 
@@ -3681,15 +3657,11 @@ class Image:
         :py:meth:`applyHLSCurve`
 
         """
-        tempMat = np.array(self.getMatrix()).copy()
+        tempMat = np.copy(self.getNumpy())
         tempMat[:, :, 0] = np.take(bCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(gCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(rCurve.mCurve, tempMat[:, :, 2])
-        #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
-        return Image(image, colorSpace=self._colorSpace)
-
+        return Image(tempMat, colorSpace=self._colorSpace)
 
     def applyIntensityCurve(self, curve):
         """
@@ -3869,9 +3841,8 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-        retVal = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.Erode(self.getBitmap(), retVal, kern, iterations)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        retVal = cv2.erode(self.getNumpy(), kern, iterations=iterations)
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -3917,9 +3888,8 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-        retVal = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.Dilate(self.getBitmap(), retVal, kern, iterations)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        retVal = cv2.dilate(self.getNumpy(), kern, iterations=iterations)
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -3960,17 +3930,9 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-        retVal = self.getEmpty()
-        temp = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        try:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
-        except:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
-            #OPENCV 2.2 vs 2.3 compatability
-
-        return( Image(retVal) )
-
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        retVal = cv2.morphologyEx(self.getNumpy(), cv2.MORPH_OPEN, kern, 1)
+        return Image(retVal, colorSpace=self._colorSpace)
 
     def morphClose(self):
         """
@@ -4010,15 +3972,8 @@ class Image:
 
         """
 
-        retVal = self.getEmpty()
-        temp = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        try:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
-        except:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_CLOSE, 1)
-            #OPENCV 2.2 vs 2.3 compatability
-
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        retVal = cv2.morphologyEx(self.getNumpy(), cv2.MORPH_CLOSE, kern, 1)
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -4097,10 +4052,7 @@ class Image:
         :py:meth:`hueHistogram`
 
         """
-        gray = self._getGrayscaleBitmap()
-
-
-        (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
+        (hist, bin_edges) = np.histogram(self.getGrayNumpy(), bins=numbins)
         return hist.tolist()
 
     def hueHistogram(self, bins = 179):
@@ -4250,15 +4202,7 @@ class Image:
 
 
     def __getitem__(self, coord):
-        ret = self.getMatrix()[tuple(reversed(coord))]
-        if (type(ret) == cv.cvmat):
-            (width, height) = cv.GetSize(ret)
-            newmat = cv.CreateMat(height, width, ret.type)
-            cv.Copy(ret, newmat) #this seems to be a bug in opencv
-            #if you don't copy the matrix slice, when you convert to bmp you get
-            #a slice-sized hunk starting at 0, 0
-            return Image(newmat)
-
+        ret = self.getNumpy()[tuple(reversed(coord))]
         if self.isBGR():
             return tuple(reversed(ret))
         else:
@@ -4267,78 +4211,39 @@ class Image:
 
     def __setitem__(self, coord, value):
         value = tuple(reversed(value))  #RGB -> BGR
-
-        if(isinstance(coord[0],slice)):
-            cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
-            self._clearBuffers("_matrix")
-        else:
-            self.getMatrix()[tuple(reversed(coord))] = value
-            self._clearBuffers("_matrix")
-
-
+        self._numpy[tuple(reversed(coord))] = value
 
     def __sub__(self, other):
-        newbitmap = self.getEmpty()
-        if is_number(other):
-            cv.SubS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
-        else:
-            cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newnpimg = self.getNumpy() - other.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __add__(self, other):
-        newbitmap = self.getEmpty()
-        if is_number(other):
-            cv.AddS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
-        else:
-            cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newnpimg = self.getNumpy() + other.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __and__(self, other):
-        newbitmap = self.getEmpty()
-        if is_number(other):
-            cv.AndS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
-        else:
-            cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newbitmap = self.getNumpy() & other.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __or__(self, other):
-        newbitmap = self.getEmpty()
-        if is_number(other):
-            cv.OrS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
-        else:
-            cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newbitmap = self.getNumpy() | other.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __div__(self, other):
-        newbitmap = self.getEmpty()
-        if (not is_number(other)):
-            cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
-        else:
-            cv.ConvertScale(self.getBitmap(), newbitmap, 1.0/float(other))
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newbitmap = self.getNumpy() / other.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __mul__(self, other):
-        newbitmap = self.getEmpty()
-        if (not is_number(other)):
-            cv.Mul(self.getBitmap(), other.getBitmap(), newbitmap)
-        else:
-            cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
-        return Image(newbitmap, colorSpace=self._colorSpace)
+        newbitmap = self.getNumpy() * other.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __pow__(self, other):
-        newbitmap = self.getEmpty()
-        cv.Pow(self.getBitmap(), newbitmap, other)
-        return Image(newbitmap, colorSpace=self._colorSpace)
+        newnpimg = cv2.pow(self.getNumpy(), other)
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __neg__(self):
-        newbitmap = self.getEmpty()
-        cv.Not(self.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
+        newnpimg = ~ self.getNumpy()
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __invert__(self):
         return self.invert()
@@ -4352,24 +4257,15 @@ class Image:
 
         **PARAMETERS**
 
-        * *other* - Image of the same size or a number.
+        * *other* - Image or a number.
 
         **RETURNS**
 
         A SimpelCV image.
 
         """
-
-        newbitmap = self.getEmpty()
-        if is_number(other):
-            cv.MaxS(self.getBitmap(), other, newbitmap)
-        else:
-            if self.size() != other.size():
-                warnings.warn("Both images should have same sizes. Returning None.")
-                return None
-            cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newnpimg = cv2.max(self.getNumpy(), other)
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def min(self, other):
         """
@@ -4380,23 +4276,14 @@ class Image:
 
         **Parameter**
 
-        * *other* - Image of the same size or number
+        * *other* - Image
 
         **Returns**
 
         IMAGE
         """
-
-        newbitmap = self.getEmpty()
-        if is_number(other):
-            cv.MinS(self.getBitmap(), other, newbitmap)
-        else:
-            if self.size() != other.size():
-                warnings.warn("Both images should have same sizes. Returning None.")
-                return None
-            cv.Min(self.getBitmap(), other.getBitmap(), newbitmap)
-        return Image(newbitmap, colorSpace=self._colorSpace)
-
+        newnpimg = cv2.min(self.getNumpy(), other)
+        return Image(newnpimg, colorSpace=self._colorSpace)
 
     def _clearBuffers(self, clearexcept = "_bitmap"):
         for k, v in self._initialized_buffers.items():
