@@ -31,8 +31,8 @@ class FrameBufferThread(threading.Thread):
             for cam in _cameras:
                 if cam.pygame_camera:
                     cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
-                else:
-                    cv.GrabFrame(cam.capture)
+                #else:
+                    val, img = cam.capture.read()
                 cam._threadcapturetime = time.time()
             time.sleep(0.04)    #max 25 fps, if you're lucky
 
@@ -474,12 +474,13 @@ class Camera(FrameSource):
                 camera_index = 1100
                 _index.append(camera_index)
 
-        self.capture = cv.CaptureFromCAM(camera_index) #This fixes bug with opencv not being able to grab frames from webcams on linux
+        #self.capture = cv.CaptureFromCAM(camera_index) #This fixes bug with opencv not being able to grab frames from webcams on linux
+        self.capture = cv2.VideoCapture(camera_index)
         self.index = camera_index
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
-        if platform.system() == "Linux" and (prop_set.has_key("height") or cv.GrabFrame(self.capture) == False):
+        if platform.system() == "Linux" and (prop_set.has_key("height") or not self.capture.isOpened()):
             import pygame.camera
             pygame.camera.init()
             threaded = True  #pygame must be threaded
@@ -616,10 +617,15 @@ class Camera(FrameSource):
         else:
             self.capturetime = self._threadcapturetime
 
-        frame = cv.RetrieveFrame(self.capture)
-        newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
-        cv.Copy(frame, newimg)
-        return Image(newimg, self)
+        val, frame = self.capture.read()
+        if not val:
+            warnings.warn("Unable to grab Image from camera")
+            width = self.capture.get(CV_CAP_PROP_FRAME_WIDTH)
+            height = self.capture.get(CV_CAP_PROP_FRAME_HEIGHT)
+            frame = Image((height, width)) #
+        cv2.imshow("window", frame)
+        cv2.waitKey(0)
+        return Image(frame, self)
 
 
 class VirtualCamera(FrameSource):

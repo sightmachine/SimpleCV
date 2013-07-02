@@ -981,6 +981,8 @@ class Image:
             """
 
         elif type(source) == np.ndarray:  #handle a numpy array conversion
+            print "numpy array"
+            print source.shape
             if len(source.shape) == 3:
                 self._numpy = source
                 self._colorSpace = colorSpace
@@ -2116,6 +2118,8 @@ class Image:
 
 
     def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
+        print "save",
+        print filehandle_or_filename
         """
         **SUMMARY**
 
@@ -6089,7 +6093,7 @@ class Image:
         :py:class:`Display`
 
         """
-
+        import traceback
         if(type == 'browser'):
             import webbrowser
             js = JpegStreamer(8080)
@@ -6103,6 +6107,7 @@ class Image:
             else:
                 d = Display(self.size())
             self.save(d)
+            print traceback.print_stack()
             return d
         else:
             print "Unknown type to show"
