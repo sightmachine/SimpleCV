@@ -516,7 +516,7 @@ class Camera(FrameSource):
             #set any properties in the constructor
             for p in prop_set.keys():
                 if p in self.prop_map:
-                    cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
+                    self.capture.set(self.prop_map[p], prop_set[p])
 
         if (threaded):
             self.threaded = True
@@ -564,7 +564,7 @@ class Camera(FrameSource):
                 return False
 
         if prop in self.prop_map:
-            return cv.GetCaptureProperty(self.capture, self.prop_map[prop])
+            return self.capture.get(self.prop_map[prop])
         return False
 
     def getAllProperties(self):
@@ -612,7 +612,7 @@ class Camera(FrameSource):
             return Image(self.pygame_buffer.copy())
 
         if (not self.threaded):
-            cv.GrabFrame(self.capture)
+            val, frame = self.capture.read()
             self.capturetime = time.time()
         else:
             self.capturetime = self._threadcapturetime
@@ -622,10 +622,10 @@ class Camera(FrameSource):
             warnings.warn("Unable to grab Image from camera")
             width = self.capture.get(CV_CAP_PROP_FRAME_WIDTH)
             height = self.capture.get(CV_CAP_PROP_FRAME_HEIGHT)
-            frame = Image((height, width)) #
-        cv2.imshow("window", frame)
-        cv2.waitKey(0)
-        return Image(frame, self)
+            frame = Image((height, width))
+        # copy here probably
+        newimg = np.copy(frame)
+        return Image(newimg, self)
 
 
 class VirtualCamera(FrameSource):

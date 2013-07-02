@@ -2260,6 +2260,7 @@ class Image:
                     Idisplay.display(IPImage(filename=loc))
                     return
                 else:
+                    print "I am here"
                     #self.filename = ""
                     self.filehandle = fh
                     fh.writeFrame(saveimg)
@@ -3749,7 +3750,8 @@ class Image:
 
         """
         if self.width and self.height:
-            return self._numpy.shape[:2]
+            height, width = self._numpy.shape[:2]
+            return (width, height)
         else:
             return (0, 0)
 
@@ -6093,7 +6095,6 @@ class Image:
         :py:class:`Display`
 
         """
-        import traceback
         if(type == 'browser'):
             import webbrowser
             js = JpegStreamer(8080)
@@ -6107,7 +6108,6 @@ class Image:
             else:
                 d = Display(self.size())
             self.save(d)
-            print traceback.print_stack()
             return d
         else:
             print "Unknown type to show"
