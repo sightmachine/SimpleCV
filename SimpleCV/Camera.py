@@ -710,9 +710,8 @@ class VirtualCamera(FrameSource):
             
 
         elif (self.sourcetype == 'video'):
-         
-            self.capture = cv.CaptureFromFile(self.source)
-            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
+            self.capture = cv2.VideoCapture(self.source)
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
 
         elif (self.sourcetype == 'directory'):
             pass
@@ -746,10 +745,9 @@ class VirtualCamera(FrameSource):
 
         elif (self.sourcetype == 'video'):
             # cv.QueryFrame returns None if the video is finished
-            frame = cv.QueryFrame(self.capture)
-            if frame:
-                img = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
-                cv.Copy(frame, img)
+            val, frame = self.capture.read()
+            if val:
+                img = np.copy(frame)
                 return Image(img, self)
             else:
                 return None
@@ -789,12 +787,11 @@ class VirtualCamera(FrameSource):
         """
         if (self.sourcetype == 'video'):
             if not start:
-                cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
+                self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, self.start-1)
             else:
                 if start==0:
                     start=1
-                cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, start-1)
-
+                self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, start-1)
         else:
             self.counter = 0
 
@@ -820,10 +817,10 @@ class VirtualCamera(FrameSource):
 
         """
         if (self.sourcetype == 'video'):
-            number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
-            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, frame-1)
+            number_frame = int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, frame-1)
             img = self.getImage()
-            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame)
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, number_frame)
             return img
         elif (self.sourcetype == 'imageset'):
             img = None
@@ -832,7 +829,6 @@ class VirtualCamera(FrameSource):
             return img
         else:
             return None
-
 
     def skipFrames(self, n):
         """
@@ -861,8 +857,8 @@ class VirtualCamera(FrameSource):
 
         """
         if (self.sourcetype == 'video'):
-            number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
-            cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES, number_frame + n - 1)
+            number_frame = self.capture.get(cv.CV_CAP_PROP_POS_FRAMES)
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, number_frame + n - 1)
         elif (self.sourcetype == 'imageset'):
             self.counter = (self.counter + n) % len(self.source)
         else:
@@ -891,7 +887,7 @@ class VirtualCamera(FrameSource):
 
         """
         if (self.sourcetype == 'video'):
-            number_frame = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_FRAMES))
+            number_frame = self.capture.get(cv.CV_CAP_PROP_POS_FRAMES)
             return number_frame
         else:
             return self.counter
