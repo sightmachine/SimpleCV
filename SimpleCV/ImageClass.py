@@ -816,7 +816,7 @@ class Image:
 
 
     #these are buffer frames for various operations on the image
-    _equalizedgraybitmap = "" #the above bitmap, normalized
+    _equalizedgrayNumpy = "" #the above bitmap, normalized
     _blobLabel = ""  #the label image for blobbing
     _edgeMap = "" #holding reference for edge map
     _cannyparam = (0, 0) #parameters that created _edgeMap
@@ -840,7 +840,7 @@ class Image:
 
     #when we empty the buffers, populate with this:
     _initialized_buffers = {
-        "_equalizedgraybitmap": "",
+        "_equalizedgrayNumpy": "",
         "_blobLabel": "",
         "_edgeMap": "",
         "_cannyparam": (0, 0),
@@ -1382,8 +1382,6 @@ class Image:
         :py:meth:`isRGB`
 
         """
-
-        retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
             retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2RGB)
@@ -1425,20 +1423,19 @@ class Image:
         :py:meth:`isBGR`
 
         """
-        retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.RGB or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2BGR)
         elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
         elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
         elif( self._colorSpace == ColorSpace.BGR ):
-            retVal = self.getBitmap()
+            retVal = np.copy(self.getNumpy())
         else:
             logger.warning("Image.toBGR: There is no supported conversion to BGR colorspace")
             return None
@@ -1605,27 +1602,25 @@ class Image:
         :py:meth:`binarize`
 
         """
-
-        retVal = self.getEmpty(1)
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.RGB):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2RGB)
+            retVal = cv2.cvtColor(retVal, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2RGB)
+            retVal = cv2.cvtColor(retVal, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2RGB)
+            retVal = cv2.cvtColor(retVal, cv.CV_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.GRAY ):
-            retVal = self.getBitmap()
+            retVal = self.getNumpy()
         else:
             logger.warning("Image.toGray: There is no supported conversion to gray colorspace")
             return None
@@ -1710,113 +1705,36 @@ class Image:
         :py:meth:`getGrayscaleMatrix`
 
         """
-        bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
-        cv.SetZero(bitmap)
-        return bitmap
+        npimg = Image(np.zeros((self.height, self.width, channels)))
+        return npimg
 
-
-    def getBitmap(self):
+    def getFPNumpy(self):
         """
         **SUMMARY**
 
-        Retrieve the bitmap (iplImage) of the Image.  This is useful if you want
-        to use functions from OpenCV with SimpleCV's image class
-
-        **RETURNS**
-
-        Returns black OpenCV IplImage from this image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.getBitmap()
-        >>> rawOut  = img.getEmpty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
-
-        **SEE ALSO**
-
-        :py:meth:`getEmpty`
-        :py:meth:`getFPMatrix`
-        :py:meth:`getPIL`
-        :py:meth:`getNumpy`
-        :py:meth:`getGrayNumpy`
-        :py:meth:`getGrayscaleMatrix`
-
-        """
-        if (self._bitmap):
-            return self._bitmap
-        elif (self._matrix):
-            self._bitmap = cv.GetImage(self._matrix)
-        return self._bitmap
-
-
-    def getMatrix(self):
-        """
-        **SUMMARY**
-
-        Get the matrix (cvMat) version of the image, required for some OpenCV algorithms.
-
-        **RETURNS**
-
-        Returns the OpenCV CvMat version of this image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.getMatrix()
-        >>> rawOut  = img.getEmpty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
-
-        **SEE ALSO**
-
-        :py:meth:`getEmpty`
-        :py:meth:`getBitmap`
-        :py:meth:`getFPMatrix`
-        :py:meth:`getPIL`
-        :py:meth:`getNumpy`
-        :py:meth:`getGrayNumpy`
-        :py:meth:`getGrayscaleMatrix`
-
-        """
-        if (self._matrix):
-            return self._matrix
-        else:
-            self._matrix = cv.GetMat(self.getBitmap()) #convert the bitmap to a matrix
-            return self._matrix
-
-
-    def getFPMatrix(self):
-        """
-        **SUMMARY**
-
-        Converts the standard int bitmap to a floating point bitmap.
+        Converts the standard int numpy array to a floating point array.
         This is handy for some OpenCV functions.
 
 
         **RETURNS**
 
-        Returns the floating point OpenCV CvMat version of this image.
+        Returns the floating point numpy array of this image.
 
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> rawImg  = img.getFPMatrix()
+        >>> rawImg  = img.getFPNumpy()
         >>> rawOut  = img.getEmpty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
 
         **SEE ALSO**
 
         :py:meth:`getEmpty`
-        :py:meth:`getBitmap`
-        :py:meth:`getMatrix`
         :py:meth:`getPIL`
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
-        :py:meth:`getGrayscaleMatrix`
-
         """
-        retVal =  cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
-        cv.Convert(self.getBitmap(),retVal)
+        retVal = self.getNumpy.astype(np.float64)
         return retVal
 
     def getPIL(self):
@@ -1851,11 +1769,9 @@ class Image:
         if (not PIL_ENABLED):
             return None
         if (not self._pil):
-            rgbbitmap = self.getEmpty()
-            cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
+            rgbnpimg = self.toRGB().getNumpy()
             self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
         return self._pil
-
 
     def getGrayNumpy(self):
         """
@@ -1886,8 +1802,7 @@ class Image:
         if( self._grayNumpy != "" ):
             return self._grayNumpy
         else:
-            self._grayNumpy = uint8(np.array(cv.GetMat(self._getGrayscaleBitmap())).transpose())
-
+            self._grayNumpy = self.toGray().getNumpy()[:,:,0]
         return self._grayNumpy
 
     def getNumpy(self):
@@ -1915,12 +1830,6 @@ class Image:
         :py:meth:`getGrayscaleMatrix`
 
         """
-
-        if self._numpy != "":
-            return self._numpy
-
-
-        self._numpy = np.array(self.getMatrix())[:, :, ::-1].transpose([1, 0, 2])
         return self._numpy
 
     def getNumpyCv2(self):
@@ -1941,19 +1850,11 @@ class Image:
         **SEE ALSO**
 
         :py:meth:`getEmpty`
-        :py:meth:`getBitmap`
-        :py:meth:`getMatrix`
         :py:meth:`getPIL`
         :py:meth:`getGrayNumpy`
-        :py:meth:`getGrayscaleMatrix`
         :py:meth:`getNumpy`
-        :py:meth:`getGrayNumpyCv2`
-
         """
-
-        if type(self._cv2Numpy) is not np.ndarray:
-            self._cv2Numpy = np.array(self.getMatrix())
-        return self._cv2Numpy
+        return self.getNumpy()
 
     def getGrayNumpyCv2(self):
         """
@@ -1973,94 +1874,16 @@ class Image:
         **SEE ALSO**
 
         :py:meth:`getEmpty`
-        :py:meth:`getBitmap`
-        :py:meth:`getMatrix`
         :py:meth:`getPIL`
         :py:meth:`getGrayNumpy`
-        :py:meth:`getGrayscaleMatrix`
         :py:meth:`getNumpy`
-        :py:meth:`getGrayNumpyCv2`
-
         """
-        if type(self._cv2GrayNumpy) is not np.ndarray:
-            self._cv2GrayNumpy = np.array(self.getGrayscaleMatrix())
-        return self._cv2GrayNumpy
+        return self.getGrayNumpy()
 
-    def _getGrayscaleBitmap(self):
-        if (self._graybitmap):
-            return self._graybitmap
-
-
-        self._graybitmap = self.getEmpty(1)
-        temp = self.getEmpty(3)
-        if( self._colorSpace == ColorSpace.BGR or
-                self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_BGR2GRAY)
-        elif( self._colorSpace == ColorSpace.RGB):
-            cv.CvtColor(self.getBitmap(), self._graybitmap, cv.CV_RGB2GRAY)
-        elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), temp, cv.CV_HLS2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
-        elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), temp, cv.CV_HSV2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
-        elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
-        elif( self._colorSpace == ColorSpace.GRAY):
-            cv.Split(self.getBitmap(), self._graybitmap, self._graybitmap, self._graybitmap, None)
-        else:
-            logger.warning("Image._getGrayscaleBitmap: There is no supported conversion to gray colorspace")
-            return None
-        return self._graybitmap
-
-
-    def getGrayscaleMatrix(self):
-        """
-        **SUMMARY**
-
-        Get the grayscale matrix (cvMat) version of the image, required for some OpenCV algorithms.
-
-        **RETURNS**
-
-        Returns the OpenCV CvMat version of this image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.getGrayscaleMatrix()
-        >>> rawOut  = img.getEmpty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
-
-        **SEE ALSO**
-
-        :py:meth:`getEmpty`
-        :py:meth:`getBitmap`
-        :py:meth:`getFPMatrix`
-        :py:meth:`getPIL`
-        :py:meth:`getNumpy`
-        :py:meth:`getGrayNumpy`
-        :py:meth:`getMatrix`
-
-        """
-        if (self._grayMatrix):
-            return self._grayMatrix
-        else:
-            self._grayMatrix = cv.GetMat(self._getGrayscaleBitmap()) #convert the bitmap to a matrix
-            return self._grayMatrix
-
-
-    def _getEqualizedGrayscaleBitmap(self):
-        if (self._equalizedgraybitmap):
-            return self._equalizedgraybitmap
-
-
-        self._equalizedgraybitmap = self.getEmpty(1)
-        cv.EqualizeHist(self._getGrayscaleBitmap(), self._equalizedgraybitmap)
-
-
-        return self._equalizedgraybitmap
-
+    def _getEqualizedGrayscaleNumpy(self):
+        if not isinstance(self._equalizedgrayNumpy, np.ndarray):
+            self._equalizedgrayNumpy = cv2.equalizeHist(self.getGrayNumpy())
+        return self._equalizedgrayNumpy
 
     def equalize(self):
         """
@@ -2076,10 +1899,8 @@ class Image:
 
         >>> img = Image("lenna")
         >>> img = img.equalize()
-
-
         """
-        return Image(self._getEqualizedGrayscaleBitmap())
+        return Image(self._getEqualizedGrayscaleNumpy())
 
     def getPGSurface(self):
         """
@@ -2097,7 +1918,7 @@ class Image:
             return self._pgsurface
         else:
             if self.isGray():
-                self._pgsurface = pg.image.fromstring(self.getBitmap().tostring(), self.size(), "RGB")
+                self._pgsurface = pg.image.fromstring(self.getNumpy().tostring(), self.size(), "RGB")
             else:
                 self._pgsurface = pg.image.fromstring(self.toRGB().getNumpy().tostring(), self.size(), "RGB")
             return self._pgsurface
@@ -2114,8 +1935,7 @@ class Image:
         The image, converted to rgb, then converted to a string.
 
         """
-        return self.toRGB().getBitmap().tostring()
-
+        return self.toRGB().getNumpy().tostring()
 
     def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
         print "save",
@@ -2366,8 +2186,7 @@ class Image:
         >>> img2 = img.copy()
 
         """
-        newimg = self.getEmpty()
-        cv.Copy(self.getBitmap(), newimg)
+        newimg = np.copy(self.getNumpy())
         return Image(newimg, colorSpace=self._colorSpace)
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
@@ -2622,9 +2441,8 @@ class Image:
         if( w > MAX_DIMENSION or h > MAX_DIMENSION ):
             logger.warning("Image.resize Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
             return retVal
-        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap)
-        return Image(scaled_bitmap, colorSpace=self._colorSpace)
+        scaled_npimg = cv2.resize(self.getNumpy(), (w, h))
+        return Image(scaled_npimg, colorSpace=self._colorSpace)
 
 
     def smooth(self, algorithm_name='gaussian', aperture=(3,3), sigma=0, spatial_sigma=0, grayscale=False, aperature=None):
@@ -2668,8 +2486,6 @@ class Image:
 
         * *grayscale* - Return just the grayscale image.
 
-
-
         **RETURNS**
 
         The smoothed image.
@@ -2687,6 +2503,7 @@ class Image:
         :py:meth:`blur`
 
         """
+        # diff shit man! cv2.Gaussian etc...
         # see comment on argument documentation (spelling error)
         aperture = aperature if aperature else aperture
 
@@ -3842,26 +3659,9 @@ class Image:
 
         :py:meth:`mergeChannels`
         """
-        r = self.getEmpty(1)
-        g = self.getEmpty(1)
-        b = self.getEmpty(1)
-        cv.Split(self.getBitmap(), b, g, r, None)
-
-
-        red = self.getEmpty()
-        green = self.getEmpty()
-        blue = self.getEmpty()
-
-
-        if (grayscale):
-            cv.Merge(r, r, r, None, red)
-            cv.Merge(g, g, g, None, green)
-            cv.Merge(b, b, b, None, blue)
-        else:
-            cv.Merge(None, None, r, None, red)
-            cv.Merge(None, g, None, None, green)
-            cv.Merge(b, None, None, None, blue)
-
+        blue = np.copy(self.getNumpy()[:,:,0])
+        green = np.copy(self.getNumpy()[:,:,1])
+        red = np.copy(self.getNumpy()[:,:,2])
 
         return (Image(red), Image(green), Image(blue))
 
@@ -3904,28 +3704,12 @@ class Image:
             return None
         if( r is None ):
             r = self.getEmpty(1)
-            cv.Zero(r);
-        else:
-            rt = r.getEmpty(1)
-            cv.Split(r.getBitmap(),rt,rt,rt,None)
-            r = rt
         if( g is None ):
             g = self.getEmpty(1)
-            cv.Zero(g);
-        else:
-            gt = g.getEmpty(1)
-            cv.Split(g.getBitmap(),gt,gt,gt,None)
-            g = gt
         if( b is None ):
             b = self.getEmpty(1)
-            cv.Zero(b);
-        else:
-            bt = b.getEmpty(1)
-            cv.Split(b.getBitmap(),bt,bt,bt,None)
-            b = bt
-
-        retVal = self.getEmpty()
-        cv.Merge(b,g,r,None,retVal)
+        retVal = np.dstack((b._grayNumpy, g._grayNumpy, r._grayNumpy))
+        print retVal.shape
         return Image(retVal)
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
