@@ -1384,6 +1384,7 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
+            print self.getNumpy().shape, self.getNumpy().dtype
             retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2RGB)
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2RGB)
@@ -1399,7 +1400,6 @@ class Image:
             logger.warning("Image.toRGB: There is no supported conversion to RGB colorspace")
             return None
         return Image(retVal, colorSpace=ColorSpace.RGB )
-
 
     def toBGR(self):
         """
@@ -1441,7 +1441,6 @@ class Image:
             return None
         return Image(retVal, colorSpace = ColorSpace.BGR )
 
-
     def toHLS(self):
         """
         **SUMMARY**
@@ -1464,29 +1463,26 @@ class Image:
         :py:meth:`isHLS`
 
         """
-
-        retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2HLS)
         elif( self._colorSpace == ColorSpace.RGB):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2HLS)
         elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HLS)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HLS)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HLS)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = self.getBitmap()
+            retVal = np.copy(self.getNumpy())
         else:
             logger.warning("Image.toHSL: There is no supported conversion to HSL colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.HLS )
-
 
     def toHSV(self):
         """
@@ -1510,28 +1506,26 @@ class Image:
         :py:meth:`isHSV`
 
         """
-        retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2HSV)
         elif( self._colorSpace == ColorSpace.RGB):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2HSV)
         elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HSV)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HSV)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HSV)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = self.getBitmap()
+            retVal = np.copy(self.getNumpy())
         else:
             logger.warning("Image.toHSV: There is no supported conversion to HSV colorspace")
             return None
         return Image(retVal, colorSpace = ColorSpace.HSV )
-
 
     def toXYZ(self):
         """
@@ -1555,29 +1549,26 @@ class Image:
         :py:meth:`isXYZ`
 
         """
-
-        retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.RGB):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2XYZ)
         elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = self.getBitmap()
+            retVal = np.copy(self.getNumpy())
         else:
             logger.warning("Image.toXYZ: There is no supported conversion to XYZ colorspace")
             return None
         return Image(retVal, colorSpace=ColorSpace.XYZ )
-
 
     def toGray(self):
         """
@@ -2519,35 +2510,13 @@ class Image:
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
         if algorithm_name == "blur":
-            algorithm = cv.CV_BLUR
+            return self.blur(window, grayscale)
         elif algorithm_name == "bilateral":
-            algorithm = cv.CV_BILATERAL
-            win_y = win_x #aperture must be square
+            return self.bilateralFilter(diameter=win_x, grayscale=grayscale)
         elif algorithm_name == "median":
-            algorithm = cv.CV_MEDIAN
-            win_y = win_x #aperture must be square
+            return self.medianFilter(window, grayscale)
         else:
-            algorithm = cv.CV_GAUSSIAN #default algorithm is gaussian
-
-        if grayscale:
-            newimg = self.getEmpty(1)
-            cv.Smooth(self._getGrayscaleBitmap(), newimg, algorithm, win_x, win_y, sigma, spatial_sigma)
-        else:
-            newimg = self.getEmpty(3)
-            r = self.getEmpty(1)
-            g = self.getEmpty(1)
-            b = self.getEmpty(1)
-            ro = self.getEmpty(1)
-            go = self.getEmpty(1)
-            bo = self.getEmpty(1)
-            cv.Split(self.getBitmap(), b, g, r, None)
-            cv.Smooth(r, ro, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Smooth(g, go, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Smooth(b, bo, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Merge(bo,go,ro, None, newimg)
-
-        return Image(newimg, colorSpace=self._colorSpace)
-
+            return self.gaussianBlur((win_x, win_y), sigma, spatial_sigma, grayscale)
 
     def medianFilter(self, window='',grayscale=False):
         """
@@ -2572,14 +2541,6 @@ class Image:
         cv2.medianBlur function is called.
         
         """
-        try:
-            import cv2
-            new_version = True
-        except :
-            new_version = False
-            pass
-
-
         if is_tuple(window):
             win_x, win_y = window
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
@@ -2593,18 +2554,12 @@ class Image:
             win_x = window
         else :
             win_x = 3 #set the default aperture window size (3x3)
-
-        if ( not new_version ) :
-            grayscale_ = grayscale
-            return self.smooth(algorithm_name='median', aperture=(win_x,win_y),grayscale=grayscale_)
+        if (grayscale) :
+            img_medianBlur = cv2.medianBlur(self.getGrayNumpy(),win_x)
+            return Image(img_medianBlur, colorSpace=ColorSpace.GRAY)
         else :
-            if (grayscale) :
-                img_medianBlur = cv2.medianBlur(self.getGrayNumpy(),win_x)
-                return Image(img_medianBlur, colorSpace=ColorSpace.GRAY)
-            else :
-                img_medianBlur = cv2.medianBlur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),win_x)
-                img_medianBlur = img_medianBlur[:,:, ::-1].transpose([1,0,2])
-                return Image(img_medianBlur, colorSpace=self._colorSpace)
+            img_medianBlur = cv2.medianBlur(self.getNumpy(),win_x)
+            return Image(img_medianBlur, colorSpace=self._colorSpace)
 
 
     def bilateralFilter(self, diameter=5,sigmaColor=10, sigmaSpace=10,grayscale=False):
@@ -2639,13 +2594,6 @@ class Image:
         -- If the sigmaColor and sigmaSpace values are small (< 10), the filter will not have much effect, whereas if they are large (> 150), they will have a very strong effect, making the image look 'cartoonish'
         -- It is recommended to use diamter=5 for real time applications, and perhaps diameter=9 for offile applications that needs heavy noise filtering.
         """
-        try:
-            import cv2
-            new_version = True
-        except :
-            new_version = False
-            pass
-
         if is_tuple(diameter):
             win_x, win_y = diameter
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
@@ -2662,19 +2610,12 @@ class Image:
             win_x = 3 #set the default aperture window size (3x3)
             diameter = (win_x,win_x)
 
-        if ( not new_version ) :
-            grayscale_ = grayscale
-            if( is_number(diameter) ) :
-                diameter = (diameter,diameter)
-            return self.smooth(algorithm_name='bilateral', aperture=diameter,grayscale=grayscale_)
+        if (grayscale):
+            img_bilateral = cv2.bilateralFilter(self.getGrayNumpy(),diameter,sigmaColor, sigmaSpace)
+            return Image(img_bilateral, colorSpace=ColorSpace.GRAY)
         else :
-            if (grayscale) :
-                img_bilateral = cv2.bilateralFilter(self.getGrayNumpy(),diameter,sigmaColor, sigmaSpace)
-                return Image(img_bilateral, colorSpace=ColorSpace.GRAY)
-            else :
-                img_bilateral = cv2.bilateralFilter(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),diameter,sigmaColor, sigmaSpace)
-                img_bilateral = img_bilateral[:,:, ::-1].transpose([1,0,2])
-                return Image(img_bilateral,colorSpace=self._colorSpace)
+            img_bilateral = cv2.bilateralFilter(self.getNumpy(),diameter,sigmaColor, sigmaSpace)
+            return Image(img_bilateral,colorSpace=self._colorSpace)
 
     def blur(self, window = '', grayscale=False):
         """
@@ -2697,13 +2638,6 @@ class Image:
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
         -- cv.blur function is called
         """
-        try:
-            import cv2
-            new_version = True
-        except :
-            new_version = False
-            pass
-
         if is_tuple(window):
             win_x, win_y = window
             if ( win_x<=0 or win_y<=0 ) :
@@ -2713,18 +2647,13 @@ class Image:
             window = (window,window)
         else :
             window = (3,3)
-
-        if ( not new_version ) :
-            grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
+        if grayscale:
+            img_blur = cv2.blur(self.getGrayNumpy(),window)
+            return Image(img_blur,colorSpace=ColorSpace.GRAY)
         else :
-            if grayscale:
-                img_blur = cv2.blur(self.getGrayNumpy(),window)
-                return Image(img_blur,colorSpace=ColorSpace.GRAY)
-            else :
-                img_blur = cv2.blur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window)
-                img_blur = img_blur[:,:, ::-1].transpose([1,0,2])
-                return Image(img_blur,colorSpace=self._colorSpace)
+            img_blur = cv2.blur(self.getNumpy()[:,:, ::-1].transpose([1,0,2]),window)
+            img_blur = img_blur[:,:, ::-1].transpose([1,0,2])
+            return Image(img_blur,colorSpace=self._colorSpace)
 
     def gaussianBlur(self, window = '', sigmaX=0 , sigmaY=0 ,grayscale=False):
         """
@@ -2753,18 +2682,6 @@ class Image:
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
         -- cv.GaussianBlur function is called
         """
-        try:
-            import cv2
-            ver = cv2.__version__
-            new_version = False
-            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $"
-            if not ver.startswith('$Rev:'):
-                if int(ver.replace('.','0'))>=20300 :
-                    new_version = True
-        except :
-            new_version = False
-            pass
-
         if is_tuple(window):
             win_x, win_y = window
             if ( win_x>=0 and win_y>=0 and win_x%2==1 and win_y%2==1 ) :
@@ -2779,16 +2696,12 @@ class Image:
         else:
             window = (3,3) #set the default aperture window size (3x3)
 
-        if (not new_version):
-            grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperture=window, grayscale=grayscale_)
-        else:
-            image_gauss = cv2.GaussianBlur(self.getNumpyCv2(), window, sigmaX, sigmaY=sigmaY)
+        image_gauss = cv2.GaussianBlur(self.getNumpyCv2(), window, sigmaX, sigmaY=sigmaY)
 
-            if grayscale:
-                return Image(image_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
-            else:
-                return Image(image_gauss, colorSpace=self._colorSpace, cv2image=True)
+        if grayscale:
+            return Image(image_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
+        else:
+            return Image(image_gauss, colorSpace=self._colorSpace, cv2image=True)
 
     def invert(self):
         """
@@ -2813,7 +2726,6 @@ class Image:
         """
         return -self
 
-
     def grayscale(self):
         """
         **SUMMARY**
@@ -2833,8 +2745,7 @@ class Image:
 
         :py:meth:`binarize`
         """
-        return Image(self._getGrayscaleBitmap(), colorSpace = ColorSpace.GRAY)
-
+        return Image(self.getGrayNumpy(), colorSpace = ColorSpace.GRAY)
 
     def flipHorizontal(self):
         """
@@ -2862,8 +2773,7 @@ class Image:
         :py:meth:`rotate`
 
         """
-        newimg = self.getEmpty()
-        cv.Flip(self.getBitmap(), newimg, 1)
+        newimg = cv2.flip(self.getNumpy(), 1)
         return Image(newimg, colorSpace=self._colorSpace)
 
     def flipVertical(self):
@@ -2892,9 +2802,7 @@ class Image:
         :py:meth:`flipHorizontal`
 
         """
-
-        newimg = self.getEmpty()
-        cv.Flip(self.getBitmap(), newimg, 0)
+        newimg = cv2.flip(self.getNumpy(), 0)
         return Image(newimg, colorSpace=self._colorSpace)
 
 
@@ -2924,7 +2832,7 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("orson_welles.jpg")
-        >>> img2 = img.stretch(56.200)
+        >>> img2 = img.stretch(56,200)
         >>> img2.show()
 
         **NOTES**
@@ -2938,12 +2846,8 @@ class Image:
 
         """
         try:
-            newimg = self.getEmpty(1)
-            cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, 255, cv.CV_THRESH_TOZERO)
-            cv.Not(newimg, newimg)
-            cv.Threshold(newimg, newimg, 255 - thresh_high, 255, cv.CV_THRESH_TOZERO)
-            cv.Not(newimg, newimg)
-            return Image(newimg)
+            newimg = cv2.inRange(self.getGrayNumpy(), thresh_low, thresh_high)
+            return Image(newimg, colorSpace=ColorSpace.GRAY)
         except:
             return None
 
@@ -2976,6 +2880,7 @@ class Image:
         scale = 255.0
         src = self.getNumpy()
         dst = (((1.0/scale)*src)**gamma)*scale
+        dst = dst.astype(np.uint8)
         return Image(dst)
 
     def binarize(self, thresh = -1, maxv = 255, blocksize = 0, p = 5):
@@ -3035,40 +2940,32 @@ class Image:
 
         """
         if is_tuple(thresh):
-            r = self.getEmpty(1)
-            g = self.getEmpty(1)
-            b = self.getEmpty(1)
-            cv.Split(self.getBitmap(), b, g, r, None)
+            npimg = self.getNumpy()
+            b = npimg[:, :, 0]
+            g = npimg[:, :, 1]
+            r = npimg[:, :, 2]
 
-
-            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
-            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
-            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
-
-
-            cv.Add(r, g, r)
-            cv.Add(r, b, r)
-
-
-            return Image(r, colorSpace=self._colorSpace)
-
+            _, r = cv2.threshold(r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            _, g = cv2.threshold(g, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            _, b = cv2.threshold(b, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            img = r + g  + b
+            return Image(img, colorSpace=self._colorSpace)
 
         elif thresh == -1:
             newbitmap = self.getEmpty(1)
             if blocksize:
-                cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
-                    cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize, p)
+                newimg = cv2.adaptiveThreshold(self.getGrayNumpy(), maxv, 
+                        cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV,
+                        blocksize, p)
             else:
-                cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
-            return Image(newbitmap, colorSpace=self._colorSpace)
+                _, newimg = cv2.threshold(self.getGrayNumpy(), thresh, float(maxv),
+                                cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
+            return Image(newimg, colorSpace=self._colorSpace)
         else:
-            newbitmap = self.getEmpty(1)
             #desaturate the image, and apply the new threshold
-            cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV)
-            return Image(newbitmap, colorSpace=self._colorSpace)
-
-
-
+            _, newimg = cv2.threshold(self.getGrayNumpy(), thresh, float(maxv),
+                                   cv.CV_THRESH_BINARY_INV)
+            return Image(newimg, colorSpace=self._colorSpace)
 
     def meanColor(self, colorSpace = None):
         """
@@ -3091,40 +2988,29 @@ class Image:
         >>> colors = img.meanColor('XYZ')   # returns tuple in (X,Y,Z) format.
         >>> colors = img.meanColor('Gray')  # returns float of mean intensity.
         >>> colors = img.meanColor('YCrCb') # returns tuple in (Y,Cr,Cb) format.
-        >>> colors = img.meanColor('HLS')   # returns tuple in (H,L,S) format.
-        
-         
+        >>> colors = img.meanColor('HLS')   # returns tuple in (H,L,S) format.         
         """
-        
         if colorSpace == None:
-			return tuple(cv.Avg(self.getBitmap())[0:3]) 
-			
+            npimg = self.getNumpy()
         elif colorSpace == 'BGR':
-            return tuple(cv.Avg(self.toBGR().getBitmap())[0:3])
-        
+            npimg = self.toBGR().getNumpy()
         elif colorSpace == 'RGB':
-            return tuple(cv.Avg(self.toRGB().getBitmap())[0:3])
-        
+            npimg = self.toRGB().getNumpy()
         elif colorSpace == 'HSV':
-            return tuple(cv.Avg(self.toHSV().getBitmap())[0:3])
-
+            npimg = self.toHSV().getNumpy()
         elif colorSpace == 'XYZ':
-            return tuple(cv.Avg(self.toXYZ().getBitmap())[0:3])
-
+            npimg = self.toXYZ().getNumpy()
         elif colorSpace == 'Gray':
-            return (cv.Avg(self._getGrayscaleBitmap())[0])
-
+            npimg = self.toGray().getGrayNumpy()
+            return np.average(npimg)
         elif colorSpace == 'YCrCb':
-            return tuple(cv.Avg(self.toYCrCb().getBitmap())[0:3])
-
+            npimg = self.toYCrCb().getNumpy()
         elif colorSpace == 'HLS':
-            return tuple(cv.Avg(self.toHLS().getBitmap())[0:3])
-
+            npimg = self.toHLS().getNumpy()
         else:
             logger.warning("Image.meanColor: There is no supported conversion to the specified colorspace. Use one of these as argument: 'BGR' , 'RGB' , 'HSV' , 'Gray' , 'XYZ' , 'YCrCb' , 'HLS' .")
             return None
-			
-        
+        return (np.average(npimg[:,:,0]), np.average(npimg[:,:,1]), np.average(npimg[:,:,2]))
 
     def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
         """
