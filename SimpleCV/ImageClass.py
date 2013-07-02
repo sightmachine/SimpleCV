@@ -816,10 +816,6 @@ class Image:
 
 
     #these are buffer frames for various operations on the image
-    _bitmap = ""  #the bitmap (iplimage)  representation of the image
-    _matrix = ""  #the matrix (cvmat) representation
-    _grayMatrix = "" #the gray scale (cvmat) representation -KAS
-    _graybitmap = ""  #a reusable 8-bit grayscale bitmap
     _equalizedgraybitmap = "" #the above bitmap, normalized
     _blobLabel = ""  #the label image for blobbing
     _edgeMap = "" #holding reference for edge map
@@ -829,8 +825,6 @@ class Image:
     _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
     _pgsurface = ""
-    _cv2Numpy = None #numpy array for OpenCV >= 2.3
-    _cv2GrayNumpy = None #grayscale numpy array for OpenCV >= 2.3
     _gridLayer = [None,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
 
     #For DFT Caching
@@ -846,10 +840,6 @@ class Image:
 
     #when we empty the buffers, populate with this:
     _initialized_buffers = {
-        "_bitmap": "",
-        "_matrix": "",
-        "_grayMatrix": "",
-        "_graybitmap": "",
         "_equalizedgraybitmap": "",
         "_blobLabel": "",
         "_edgeMap": "",
@@ -857,9 +847,8 @@ class Image:
         "_pil": "",
         "_numpy": "",
         "_grayNumpy":"",
-        "_pgsurface": "",
-        "_cv2GrayNumpy": "",
-        "_cv2Numpy":""}
+        "_pgsurface": ""
+        }
 
     #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
     _uncroppedX = 0
@@ -876,7 +865,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.UNKNOWN,verbose=True, sample=False, cv2image=False, webp=False):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.BGR, verbose=True, sample=False, webp=False):
         """
         **SUMMARY**
 
@@ -974,10 +963,10 @@ class Image:
                 source = imgpth
 
         if (type(source) == tuple):
-            w = int(source[0])
-            h = int(source[1])
-            source = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 3)
-            cv.Zero(source)
+            width = int(source[0])
+            height = int(source[1])
+            source = np.zeros((height, width, 3))
+            """
         if (type(source) == cv.cvmat):
             self._matrix = cv.CreateMat(source.rows, source.cols, cv.CV_8UC3)
             if((source.step/source.cols)==3): #this is just a guess
@@ -989,39 +978,18 @@ class Image:
             else:
                 self._colorSpace = ColorSpace.UNKNOWN
                 warnings.warn("Unable to process the provided cvmat") 
+            """
 
-
-        elif (type(source) == np.ndarray):  #handle a numpy array conversion
-            if (type(source[0, 0]) == np.ndarray): #we have a 3 channel array
-                #convert to an iplimage bitmap
-                source = source.astype(np.uint8)
+        elif type(source) == np.ndarray:  #handle a numpy array conversion
+            if len(source.shape) == 3:
                 self._numpy = source
-                if not cv2image:
-                    invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
-                else:
-                    # If the numpy array is from cv2, then it must not be transposed.
-                    invertedsource = source
-
-                #invertedsource = source[:, :, ::-1].transpose([1, 0, 2]) # do not un-comment. breaks cv2 image support
-                self._bitmap = cv.CreateImageHeader((invertedsource.shape[1], invertedsource.shape[0]), cv.IPL_DEPTH_8U, 3)
-                cv.SetData(self._bitmap, invertedsource.tostring(),
-                    invertedsource.dtype.itemsize * 3 * invertedsource.shape[1])
-                self._colorSpace = ColorSpace.BGR #this is an educated guess
+                self._colorSpace = colorSpace
             else:
-                #we have a single channel array, convert to an RGB iplimage
-
-                source = source.astype(np.uint8)
-                if not cv2image:
-                    source = source.transpose([1,0]) #we expect width/height but use col/row
-                self._bitmap = cv.CreateImage((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 3)
-                channel = cv.CreateImageHeader((source.shape[1], source.shape[0]), cv.IPL_DEPTH_8U, 1)
-                #initialize an empty channel bitmap
-                cv.SetData(channel, source.tostring(),
-                    source.dtype.itemsize * source.shape[1])
-                cv.Merge(channel, channel, channel, None, self._bitmap)
-                self._colorSpace = ColorSpace.BGR
-
-
+                #we have a single channel array
+                self._grayNumpy = np.copy(source)
+                self._numpy = np.dstack((source, source, source))
+                self._colorSpace = ColorSpace.GRAY
+            """
         elif (type(source) == cv.iplimage):
             if (source.nChannels == 1):
                 self._bitmap = cv.CreateImage(cv.GetSize(source), source.depth, 3)
@@ -1031,17 +999,17 @@ class Image:
                 self._bitmap = cv.CreateImage(cv.GetSize(source), source.depth, 3)
                 cv.Copy(source, self._bitmap, None) 
                 self._colorSpace = ColorSpace.BGR
+            """
         elif (type(source) == type(str()) or source.__class__.__name__ == 'StringIO'):
             if source == '':
                 raise IOError("No filename provided to Image constructor")
-
         
             elif webp or source.split('.')[-1] == 'webp':
                 try:
                     if source.__class__.__name__ == 'StringIO':
-                      source.seek(0) # set the stringIO to the begining
-                    self._pil = pil.open(source)
-                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
+                        source.seek(0) # set the stringIO to the begining
+                    npimg = np.asarray(bytearray(source.read()), dtype=np.uint8)
+                    self._numpy = cv2.imdecode(npimg, 0)
                 except:
                     try:
                         from webm import decode as webmDecode
@@ -1049,39 +1017,23 @@ class Image:
                         logger.warning('The webm module or latest PIL / PILLOW module needs to be installed to load webp files: https://github.com/sightmachine/python-webm')
                         return
 
-                    WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
-                    result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
-                    webpImage = pil.frombuffer(
-                        "RGB", (result.width, result.height), str(result.bitmap),
-                        "raw", "RGB", 0, 1
-                    )
-                    self._pil = webpImage.convert("RGB")
-                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-                    self.filename = source
-                cv.SetData(self._bitmap, self._pil.tostring())
-                cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-
+                    npimg = np.asarray(bytearray(file(source, "rb").read()), dtype=np.uint8)
+                    self._numpy = cv2.imdecode(npimg, 0)
             else:
                 self.filename = source
                 try:
-                    self._bitmap = cv.LoadImage(self.filename, iscolor=cv.CV_LOAD_IMAGE_COLOR)
+                    self._numpy = cv2.imread(self.filename)
                 except:
-                    self._pil = pil.open(self.filename).convert("RGB")
-                    self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-                    cv.SetData(self._bitmap, self._pil.tostring())
-                    cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-
+                    print e
+                    self._pil = pil.open(self.filename).convert("BGR")
+                    self._numpy = np.asarray(self._pil, dtype=np.uint8)
                 #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
 
-
         elif (type(source) == pg.Surface):
             self._pgsurface = source
-            self._bitmap = cv.CreateImageHeader(self._pgsurface.get_size(), cv.IPL_DEPTH_8U, 3)
-            cv.SetData(self._bitmap, pg.image.tostring(self._pgsurface, "RGB"))
-            cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+            self._numpy = pg.surfarray.array2d(self._pgsurface)
             self._colorSpace = ColorSpace.BGR
-
 
         elif (PIL_ENABLED and (
                 (len(source.__class__.__bases__) and source.__class__.__bases__[0].__name__ == "ImageFile")
@@ -1109,11 +1061,10 @@ class Image:
             self._colorSpace = colorSpace
 
 
-        bm = self.getBitmap()
-        self.width = bm.width
-        self.height = bm.height
-        self.depth = bm.depth
-
+        bm = self.getNumpy()
+        self.width = bm.shape[1]
+        self.height = bm.shape[0]
+        self.depth = bm.shape[2]
 
     def __del__(self):
         """
@@ -1433,17 +1384,17 @@ class Image:
         retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2RGB)
         elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2RGB)
         elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2RGB)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2RGB)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_YCrCb2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2RGB)
         elif( self._colorSpace == ColorSpace.RGB ):
-            retVal = self.getBitmap()
+            retVal = np.copy(self.getNumpy())
         else:
             logger.warning("Image.toRGB: There is no supported conversion to RGB colorspace")
             return None
@@ -2146,7 +2097,7 @@ class Image:
             if self.isGray():
                 self._pgsurface = pg.image.fromstring(self.getBitmap().tostring(), self.size(), "RGB")
             else:
-                self._pgsurface = pg.image.fromstring(self.toRGB().getBitmap().tostring(), self.size(), "RGB")
+                self._pgsurface = pg.image.fromstring(self.toRGB().getNumpy().tostring(), self.size(), "RGB")
             return self._pgsurface
 
     def toString(self):
@@ -2621,10 +2572,9 @@ class Image:
                 logger.warning("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
                 return self
 
-
-        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap, interpolation)
-        return Image(scaled_bitmap, colorSpace=self._colorSpace)
+        print interpolation
+        scaled_np = cv2.resize(self._numpy, (h, w))
+        return Image(scaled_np, colorSpace=self._colorSpace)
 
 
     def resize(self, w=None,h=None):
@@ -3795,7 +3745,7 @@ class Image:
 
         """
         if self.width and self.height:
-            return cv.GetSize(self.getBitmap())
+            return self._numpy.shape[:2]
         else:
             return (0, 0)
 
