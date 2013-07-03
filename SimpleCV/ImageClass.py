@@ -865,7 +865,7 @@ class Image:
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
-    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.BGR, verbose=True, sample=False, webp=False):
+    def __init__(self, source = None, camera = None, colorSpace = ColorSpace.BGR, verbose=True, sample=False, webp=False, cv2image=False):
         """
         **SUMMARY**
 
@@ -4655,14 +4655,10 @@ class Image:
         if (self._edgeMap and self._cannyparam[0] == t1 and self._cannyparam[1] == t2):
             return self._edgeMap
 
-
-        self._edgeMap = self.getEmpty(1)
-        cv.Canny(self._getGrayscaleBitmap(), self._edgeMap, t1, t2)
+        self._edgeMap = cv2.Canny(self.getGrayNumpy(), t1, t2)
         self._cannyparam = (t1, t2)
 
-
         return self._edgeMap
-
 
     def rotate(self, angle, fixed=True, point=[-1, -1], scale = 1.0):
         """
@@ -4705,22 +4701,14 @@ class Image:
             point[0] = (self.width-1)/2
             point[1] = (self.height-1)/2
 
-
         if (fixed):
-            retVal = self.getEmpty()
-            cv.Zero(retVal)
-            rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
-            cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
-            cv.WarpAffine(self.getBitmap(), retVal, rotMat)
+            rotMat = cv2.getRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale))
+            retVal = cv2.warpAffine(self.getNumpy(), rotMat, self.size())
             return Image(retVal, colorSpace=self._colorSpace)
 
-
-
-
         #otherwise, we're expanding the matrix to fit the image at original size
-        rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
         # first we create what we thing the rotation matrix should be
-        cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
+        rotMat = cv2.getRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale))
         A = np.array([0, 0, 1])
         B = np.array([self.width, 0, 1])
         C = np.array([self.width, self.height, 1])
@@ -4758,22 +4746,15 @@ class Image:
 
         #now we construct an affine map that will the rotation and scaling we want with the
         #the corners all lined up nicely with the output image.
-        src = ((A[0], A[1]), (B[0], B[1]), (C[0], C[1]))
-        dst = ((a[0]+tX, a[1]+tY), (b[0]+tX, b[1]+tY), (c[0]+tX, c[1]+tY))
-
-
-        cv.GetAffineTransform(src, dst, rotMat)
-
-
+        src = np.array(((A[0], A[1]), (B[0], B[1]), (C[0], C[1]))).astype(np.float32)
+        dst = np.array(((a[0]+tX, a[1]+tY), (b[0]+tX, b[1]+tY), (c[0]+tX, c[1]+tY))).astype(np.float32)
+        rotMat = cv2.getAffineTransform(src, dst)
+        print src.shape, src.dtype
         #calculate the translation of the corners to center the image
         #use these new corner positions as the input to cvGetAffineTransform
-        retVal = cv.CreateImage((int(newWidth), int(newHeight)), 8, int(3))
-        cv.Zero(retVal)
-
-        cv.WarpAffine(self.getBitmap(), retVal, rotMat)
+        retVal = cv2.warpAffine(self.getNumpy(), rotMat, (int(newWidth), int(newHeight)))
         #cv.AddS(retVal,(0,255,0),retVal)
         return Image(retVal, colorSpace=self._colorSpace)
-
 
     def transpose(self):
         """
@@ -4802,10 +4783,8 @@ class Image:
 
 
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.getBitmap(), retVal)
+        retVal = cv2.transpose(self.getNumpy())
         return(Image(retVal, colorSpace=self._colorSpace))
-
 
     def shear(self, cornerpoints):
         """
@@ -4817,7 +4796,7 @@ class Image:
 
         **PARAMETERS**
 
-        * *cornerpoints* - a 2x4 tuple of points. The order is (top_left, top_right, bottom_left, bottom_right)
+        * *cornerpoints* - a 2x3 tuple of points. The order is (top_left, top_right, bottom_left, bottom_right)
 
         **RETURNS**
 
@@ -4826,7 +4805,7 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> points = ((50,0),(img.width+50,0),(img.width,img.height),(0,img.height))
+        >>> points = ((50,0),(img.width+50,0),(img.width,img.height))
         >>> img.shear(points).show()
 
         **SEE ALSO**
@@ -4838,12 +4817,11 @@ class Image:
         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
-        src =  ((0, 0), (self.width-1, 0), (self.width-1, self.height-1))
-        #set the original points
-        aWarp = cv.CreateMat(2, 3, cv.CV_32FC1)
-        #create the empty warp matrix
-        cv.GetAffineTransform(src, cornerpoints, aWarp)
-
+        src =  np.array(((0, 0), (self.width-1, 0), (self.width-1, self.height-1))).astype(np.float32)
+        cornerpoints = np.array(cornerpoints).astype(np.float32)
+        print src, src.dtype, src.shape
+        print cornerpoints, cornerpoints.dtype, cornerpoints.shape
+        aWarp = cv2.getAffineTransform(src, cornerpoints)
 
         return self.transformAffine(aWarp)
 
@@ -4884,10 +4862,7 @@ class Image:
         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
-        retVal = self.getEmpty()
-        if(type(rotMatrix) == np.ndarray ):
-            rotMatrix = npArray2cvMat(rotMatrix)
-        cv.WarpAffine(self.getBitmap(), retVal, rotMatrix)
+        retVal = cv2.warpAffine(self.getNumpy(), rotMatrix, self.size())
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -4926,11 +4901,9 @@ class Image:
 
         """
         #original coordinates
-        src = ((0, 0), (self.width-1, 0), (self.width-1, self.height-1), (0, self.height-1))
-        pWarp = cv.CreateMat(3, 3, cv.CV_32FC1) #create an empty 3x3 matrix
-        cv.GetPerspectiveTransform(src, cornerpoints, pWarp) #figure out the warp matrix
-
-
+        src = np.array(((0, 0), (self.width-1, 0), (self.width-1, self.height-1), (0, self.height-1))).astype(np.float32)
+        cornerpoints = np.array(cornerpoints).astype(np.float32)
+        pWarp = cv2.getPerspectiveTransform(src, cornerpoints) #figure out the warp matrix
         return self.transformPerspective(pWarp)
 
 
@@ -4969,18 +4942,8 @@ class Image:
         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
-        try:
-            import cv2
-            if( type(rotMatrix) !=  np.ndarray ):
-                rotMatrix = np.array(rotMatrix)
-            retVal = cv2.warpPerspective(src=np.array(self.getMatrix()), dsize=(self.width,self.height),M=rotMatrix,flags = cv2.INTER_CUBIC)
-            return Image(retVal, colorSpace=self._colorSpace, cv2image=True)
-        except:            
-            retVal = self.getEmpty()
-            if(type(rotMatrix) == np.ndarray ):
-                rotMatrix = npArray2cvMat(rotMatrix)
-            cv.WarpPerspective(self.getBitmap(), retVal, rotMatrix)
-            return Image(retVal, colorSpace=self._colorSpace)
+        retVal = cv2.warpPerspective(src=self.getNumpy(), dsize=(self.width,self.height),M=rotMatrix,flags = cv2.INTER_CUBIC)
+        return Image(retVal, colorSpace=self._colorSpace)
             
     def getPixel(self, x, y):
         """
@@ -5010,21 +4973,8 @@ class Image:
           We suggest that this method be used sparingly. For repeated pixel access use python array notation. I.e. img[x][y].
 
         """
-        c = None
-        retVal = None
-        if( x < 0 or x >= self.width ):
-            logger.warning("getRGBPixel: X value is not valid.")
-        elif( y < 0 or y >= self.height ):
-            logger.warning("getRGBPixel: Y value is not valid.")
-        else:
-            c = cv.Get2D(self.getBitmap(), y, x)
-            if( self._colorSpace == ColorSpace.BGR ):
-                retVal = (c[2],c[1],c[0])
-            else:
-                retVal = (c[0],c[1],c[2])
-
+        retVal = self[x, y]
         return retVal
-
 
     def getGrayPixel(self, x, y):
         """
@@ -5061,10 +5011,8 @@ class Image:
         elif( y < 0 or y >= self.height ):
             logger.warning("getGrayPixel: Y value is not valid.")
         else:
-            retVal = cv.Get2D(self._getGrayscaleBitmap(), y, x)
-            retVal = retVal[0]
+            retVal = self.getGrayNumpy()[x, y]
         return retVal
-
 
     def getVertScanline(self, column):
         """
@@ -5103,11 +5051,8 @@ class Image:
         if( column < 0 or column >= self.width ):
             logger.warning("getVertRGBScanline: column value is not valid.")
         else:
-            retVal = cv.GetCol(self.getBitmap(), column)
-            retVal = np.array(retVal)
-            retVal = retVal[:, 0, :]
+            retVal = self.getNumpy()[:, column, :]
         return retVal
-
 
     def getHorzScanline(self, row):
         """
@@ -5145,11 +5090,8 @@ class Image:
         if( row < 0 or row >= self.height ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = cv.GetRow(self.getBitmap(), row)
-            retVal = np.array(retVal)
-            retVal = retVal[0, :, :]
+            retVal = self.getNumpy()[row, :, :]
         return retVal
-
 
     def getVertScanlineGray(self, column):
         """
@@ -5187,11 +5129,8 @@ class Image:
         if( column < 0 or column >= self.width ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = cv.GetCol(self._getGrayscaleBitmap(), column )
-            retVal = np.array(retVal)
-            #retVal = retVal.transpose()
+            retVal = self.getGrayNumpy()[:, col]
         return retVal
-
 
     def getHorzScanlineGray(self, row):
         """
@@ -5230,11 +5169,9 @@ class Image:
         if( row < 0 or row >= self.height ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = cv.GetRow(self._getGrayscaleBitmap(), row )
-            retVal = np.array(retVal)
+            retVal = self.getGrayNumpy()[row, :]
             retVal = retVal.transpose()
         return retVal
-
 
     def crop(self, x , y = None, w = None, h = None, centered=False, smart=False):
         """
@@ -5440,13 +5377,9 @@ class Image:
             logger.warning("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
             return None
 
-        retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
-
-        cv.SetImageROI(self.getBitmap(), bottomROI)
-        cv.Copy(self.getBitmap(), retVal)
-        cv.ResetImageROI(self.getBitmap())
-        img = Image(retVal, colorSpace=self._colorSpace)
-
+        x, y, w, h = bottomROI
+        img = self.getNumpy()[x:w+x, y:w+h]
+        img = Image(img, colorSpace=self._colorSpace)
         #Buffering the top left point (x, y) in a image.
         img._uncroppedX = self._uncroppedX + int(x)
         img._uncroppedY = self._uncroppedY + int(y)
@@ -5486,7 +5419,6 @@ class Image:
         w = abs(x1-x2)
         h = abs(y1-y2)
 
-
         retVal = None
         if( w <= 0 or h <= 0 or w > self.width or h > self.height ):
             logger.warning("regionSelect: the given values will not fit in the image or are too small.")
@@ -5499,9 +5431,7 @@ class Image:
                 yf = y1
             retVal = self.crop(xf, yf, w, h)
 
-
         return retVal
-
 
     def clear(self):
         """
@@ -5515,13 +5445,8 @@ class Image:
           Do not use this method unless you have a particularly compelling reason.
 
         """
-        cv.SetZero(self._bitmap)
+        self._numpy = np.zeros(self.size())
         self._clearBuffers()
-
-
-
-
-
 
     def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
         """
@@ -6666,7 +6591,7 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255)
+        >>> mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255))
         >>> mask.show()
 
         **SEE ALSO**
@@ -6691,66 +6616,22 @@ class Image:
             logger.warning("One of the tuple values falls outside of the range of 0 to 255")
             return None
 
-        r = self.getEmpty(1)
-        g = self.getEmpty(1)
-        b = self.getEmpty(1)
-
-        rl = self.getEmpty(1)
-        gl = self.getEmpty(1)
-        bl = self.getEmpty(1)
-
-        rh = self.getEmpty(1)
-        gh = self.getEmpty(1)
-        bh = self.getEmpty(1)
-
-        cv.Split(self.getBitmap(),b,g,r,None);
-        #the difference == 255 case is where open CV
-        #kinda screws up, this should just be a white image
-        if( abs(color1[0]-color2[0]) == 255 ):
-            cv.Zero(rl)
-            cv.AddS(rl,255,rl)
-        #there is a corner case here where difference == 0
-        #right now we throw an error on this case.
-        #also we use the triplets directly as OpenCV is
-        # SUPER FINICKY about the type of the threshold.
-        elif( color1[0] < color2[0] ):
-            cv.Threshold(r,rl,color1[0],255,cv.CV_THRESH_BINARY)
-            cv.Threshold(r,rh,color2[0],255,cv.CV_THRESH_BINARY)
-            cv.Sub(rl,rh,rl)
+        if( color1[0] < color2[0] ):
+            b = cv2.inRange(self.getNumpy()[:,:,0], color1[0], color2[0])
         else:
-            cv.Threshold(r,rl,color2[0],255,cv.CV_THRESH_BINARY)
-            cv.Threshold(r,rh,color1[0],255,cv.CV_THRESH_BINARY)
-            cv.Sub(rl,rh,rl)
+            b = cv2.inRange(self.getNumpy()[:,:,0], color2[0], color1[0])
 
-
-        if( abs(color1[1]-color2[1]) == 255 ):
-            cv.Zero(gl)
-            cv.AddS(gl,255,gl)
-        elif( color1[1] < color2[1] ):
-            cv.Threshold(g,gl,color1[1],255,cv.CV_THRESH_BINARY)
-            cv.Threshold(g,gh,color2[1],255,cv.CV_THRESH_BINARY)
-            cv.Sub(gl,gh,gl)
+        if( color1[1] < color2[1] ):
+            g = cv2.inRange(self.getNumpy()[:,:,0], color1[1], color2[1])
         else:
-            cv.Threshold(g,gl,color2[1],255,cv.CV_THRESH_BINARY)
-            cv.Threshold(g,gh,color1[1],255,cv.CV_THRESH_BINARY)
-            cv.Sub(gl,gh,gl)
+            g = cv2.inRange(self.getNumpy()[:,:,0], color2[1], color1[1])
 
-        if( abs(color1[2]-color2[2]) == 255 ):
-            cv.Zero(bl)
-            cv.AddS(bl,255,bl)
-        elif( color1[2] < color2[2] ):
-            cv.Threshold(b,bl,color1[2],255,cv.CV_THRESH_BINARY)
-            cv.Threshold(b,bh,color2[2],255,cv.CV_THRESH_BINARY)
-            cv.Sub(bl,bh,bl)
+        if( color1[2] < color2[2] ):
+            r = cv2.inRange(self.getNumpy()[:,:,0], color1[2], color2[2])
         else:
-            cv.Threshold(b,bl,color2[2],255,cv.CV_THRESH_BINARY)
-            cv.Threshold(b,bh,color1[2],255,cv.CV_THRESH_BINARY)
-            cv.Sub(bl,bh,bl)
-
-
-        cv.And(rl,gl,rl)
-        cv.And(rl,bl,rl)
-        return Image(rl)
+            r = cv2.inRange(self.getNumpy()[:,:,0], color2[2], color1[2])
+        retVal = np.dstack((b, g, r))
+        return Image(retVal)
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
         """
@@ -6785,15 +6666,7 @@ class Image:
         :py:meth:`threshold`
 
         """
-        newCanvas = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_8U, 3)
-        cv.SetZero(newCanvas)
-        newBG = cv.RGB(bg_color[0],bg_color[1],bg_color[2])
-        cv.AddS(newCanvas,newBG,newCanvas)
-        if( mask.width != self.width or mask.height != self.height ):
-            logger.warning("Image.applyBinaryMask: your mask and image don't match sizes, if the mask doesn't fit, you can't apply it! Try using the scale function. ")
-            return None
-        cv.Copy(self.getBitmap(),newCanvas,mask.getBitmap());
-        return Image(newCanvas,colorSpace=self._colorSpace);
+        return self.logicalAND(mask)
 
     def createAlphaMask(self, hue=60, hue_lb=None,hue_ub=None):
         """
@@ -6846,14 +6719,19 @@ class Image:
         s = hsv.getEmpty(1)
         retVal = hsv.getEmpty(1)
         mask = hsv.getEmpty(1)
-        cv.Split(hsv.getBitmap(),h,None,s,None)
+        npimg = hsv.getNumpy()
+        h = npimg[:, :, 0]
+        s = npimg[:, :, 1]
         hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation
         if(hue_lb is not None and hue_ub is not None):
             hlut[hue_lb:hue_ub]=255
         else:
             hlut[hue] = 255
-        cv.LUT(h,mask,cv.fromarray(hlut))
-        cv.Copy(s,retVal,mask) #we'll save memory using hue
+        mask = cv2.LUT(h, hlut)
+        retVal = np.copy(s)
+        retVal[mask]=s
+        #retVal[mask]=+s
+        #cv.Copy(s,retVal,mask) #we'll save memory using hue
         return Image(retVal)
 
 
