@@ -1026,6 +1026,9 @@ class Image:
                 self.filename = source
                 try:
                     self._numpy = cv2.imread(self.filename)
+                    if isinstance(self._numpy, type(None)):
+                        warnings.warn("Unable to load the image")
+                        return
                 except:
                     print e
                     self._pil = pil.open(self.filename).convert("BGR")
@@ -1035,8 +1038,9 @@ class Image:
 
         elif (type(source) == pg.Surface):
             self._pgsurface = source
-            self._numpy = pg.surfarray.array3d(self._pgsurface)
-            self._colorSpace = ColorSpace.BGR
+            npimg = pg.surfarray.array3d(self._pgsurface)
+            self._numpy = cv2.transpose(npimg)
+            self._colorSpace = ColorSpace.RGB
 
         elif (PIL_ENABLED and (
                 (len(source.__class__.__bases__) and source.__class__.__bases__[0].__name__ == "ImageFile")
@@ -1049,11 +1053,10 @@ class Image:
             self._pil = source
             #from the opencv cookbook
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
-            self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-            cv.SetData(self._bitmap, self._pil.tostring())
+            #not anymore
+            npimg = np.fromstring(self._pil.tostring(), dtype=np.uint8)
             self._colorSpace = ColorSpace.BGR
-            cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-            #self._bitmap = cv.iplimage(self._bitmap)
+            self._numpy = cv2.cvtColor(npimg, cv2.cv.CV_RGB2BGR)
 
 
         else:
@@ -1930,8 +1933,6 @@ class Image:
         return self.toRGB().getNumpy().tostring()
 
     def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
-        print "save",
-        print filehandle_or_filename
         """
         **SUMMARY**
 
@@ -2076,7 +2077,6 @@ class Image:
                     #self.filename = ""
                     self.filehandle = fh
                     fh.writeFrame(saveimg)
-
 
             else:
                 if (not mode):
@@ -6009,7 +6009,6 @@ class Image:
         """
         if not len(self._mLayers):
             return self
-
         if(indicies==-1 and len(self._mLayers) > 0 ):
             final = self.mergedLayers()
             imgSurf = self.getPGSurface().copy()
@@ -7312,7 +7311,6 @@ class Image:
         cv.Merge(b,g,r,None,temp)
         return Image(temp)
 
-
     def _getRawKeypoints(self,thresh=500.00,flavor="SURF", highQuality=1, forceReset=False):
         """
         .. _getRawKeypoints:
@@ -7425,16 +7423,17 @@ class Image:
 
         if self._mKeyPoints != None and self._mKPFlavor == flavor:
             return (self._mKeyPoints, self._mKPDescriptors)
-
+        # fuck. I don't want transpose. This is a descriptor problem. shit.
+        npimg = self.transpose().getGrayNumpy()
         if hasattr(cv2, flavor):
 
             if flavor == "SURF":
                 # cv2.SURF(hessianThreshold, nOctaves, nOctaveLayers, extended, upright)
                 detector = cv2.SURF(thresh, 4, 2, highQuality, 1)
                 if new_version == 0:
-                    self._mKeyPoints, self._mKPDescriptors = detector.detect(self.getGrayNumpy(), None, False)
+                    self._mKeyPoints, self._mKPDescriptors = detector.detect(npimg, None, False)
                 else:
-                    self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
+                    self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(npimg, None, False)
                 if len(self._mKeyPoints) == 0:
                     return (None, None)
                 if highQuality == 1:
@@ -7444,20 +7443,20 @@ class Image:
 
             elif flavor in _descriptors:
                 detector = getattr(cv2,  flavor)()
-                self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(self.getGrayNumpy(), None, False)
+                self._mKeyPoints, self._mKPDescriptors = detector.detectAndCompute(npimg, None, False)
             elif flavor == "MSER":
                 if hasattr(cv2, "FeatureDetector_create"):
                     detector = cv2.FeatureDetector_create("MSER")
-                    self._mKeyPoints = detector.detect(self.getGrayNumpy())
+                    self._mKeyPoints = detector.detect(npimg)
         elif flavor == "STAR":
             detector = cv2.StarDetector()
-            self._mKeyPoints = detector.detect(self.getGrayNumpy())
+            self._mKeyPoints = detector.detect(npimg)
         elif flavor == "FAST":
             if not hasattr(cv2, "FastFeatureDetector"):
                 warnings.warn("You need OpenCV >= 2.4.0 to support FAST")
                 return None, None
             detector = cv2.FastFeatureDetector(int(thresh), True)
-            self._mKeyPoints = detector.detect(self.getGrayNumpy(), None)
+            self._mKeyPoints = detector.detect(npimg, None)
         elif hasattr(cv2, "FeatureDetector_create"):
             if flavor in _descriptors:
                 extractor = cv2.DescriptorExtractor_create(flavor)
@@ -7466,11 +7465,11 @@ class Image:
                         warnings.warn("You need OpenCV >= 2.4.3 to support FAST")
                     flavor = "SIFT"
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.getGrayNumpy())
-                self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpy(), self._mKeyPoints)
+                self._mKeyPoints = detector.detect(npimg)
+                self._mKeyPoints, self._mKPDescriptors = extractor.compute(npimg, self._mKeyPoints)
             else:
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.getGrayNumpy())
+                self._mKeyPoints = detector.detect(npimg)
         else:
             warnings.warn("SimpleCV can't seem to find appropriate function with your OpenCV version.")
             return (None, None)
@@ -7670,12 +7669,6 @@ class Image:
         :py:meth:`findKeypoints`
 
         """
-        try:
-            import cv2
-        except:
-            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
-            return
-            
         if template == None:
           return None
         fs = FeatureSet()

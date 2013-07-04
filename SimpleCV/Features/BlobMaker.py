@@ -11,8 +11,7 @@ class BlobMaker:
     """
     mMemStorage = None
     def __init__(self):
-        self.mMemStorage = cv.CreateMemStorage()
-        return None
+        pass
 
     def extractUsingModel(self, img, colormodel,minsize=10, maxsize=0):
         """
@@ -88,9 +87,9 @@ class BlobMaker:
         ptest = (4*255.0)/(binaryImg.width*binaryImg.height) # val if two pixels are white
         if( test[0]<=ptest and test[1]<=ptest and test[2]<=ptest):
             return retVal
-
-        seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
-        if not list(seq):
+        contours, hierarchy = cv2.findContours(np.copy(binaryImg.getGrayNumpy()), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+        if not contours:
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
         try:

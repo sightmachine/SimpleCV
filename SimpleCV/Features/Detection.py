@@ -112,7 +112,9 @@ class Line(Feature):
 
 
         """
+        print self.image.size(), 'before drawing'
         self.image.drawLine(self.end_points[0], self.end_points[1], color,width)
+        print self.image.size(), 'after drawing'
 
     def length(self):
         """

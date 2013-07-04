@@ -561,8 +561,6 @@ class Display:
             self.screen.blit(s,(targetx,targety))
             pg.display.flip()
 
-
-
     def _setButtonState(self, state, button):
         if button == 1:
             self.mouseLeft = state
