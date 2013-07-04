@@ -196,13 +196,12 @@ class Blob(Feature):
 
         """
         #print self.mBoundingBox
-        hack = (self.mBoundingBox[0],self.mBoundingBox[1],self.mBoundingBox[2],self.mBoundingBox[3])
-        cv.SetImageROI(self.image.getBitmap(),hack)
-        #may need the offset paramete
-        avg = cv.Avg(self.image.getBitmap(),self.mMask._getGrayscaleBitmap())
-        cv.ResetImageROI(self.image.getBitmap())
-
-        return tuple(reversed(avg[0:3]))
+        x, y, w, h = self.mBoundingBox
+        npimg = self.image.getNumpy()[x:w+x, y:y+h]
+        b = np.average(npimg[:, :, 0])  
+        g = np.average(npimg[:, :, 1])
+        r = np.average(npimg[:, :, 2])
+        return (b, g, r)
 
     def area(self):
         """
@@ -572,19 +571,12 @@ class Blob(Feature):
             layer = self.image.dl()
 
         if width == -1:
+            npimg = self.mMask.getGrayNumpy()
+            b = cv2.convertScaleAbs(npimg, color[0]/255.0)
+            g = cv2.convertScaleAbs(npimg, color[1]/255.0)
+            r = cv2.convertScaleAbs(npimg, color[2]/255.0)
             #copy the mask into 3 channels and multiply by the appropriate color
-            maskred = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
-            maskgrn = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
-            maskblu = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 1)
-
-            maskbit = cv.CreateImage(cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U, 3)
-
-            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskred, color[0] / 255.0)
-            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskgrn, color[1] / 255.0)
-            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskblu, color[2] / 255.0)
-
-            cv.Merge(maskblu, maskgrn, maskred, None, maskbit)
-
+            maskbit = np.dstack((b, g, r))
             masksurface = Image(maskbit).getPGSurface()
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
@@ -635,10 +627,9 @@ class Blob(Feature):
         else:
             lastp = self.mContour[0] #this may work better.... than the other
             for nextp in self.mContour[1::]:
-                layer.line(lastp,nextp,color,width=width,alpha=alpha,antialias = False)
+                layer.line(lastp[0],nextp[0],color,width=width,alpha=alpha,antialias = False)
                 lastp = nextp
-            layer.line(self.mContour[0],self.mContour[-1],color,width=width,alpha=alpha, antialias = False)
-
+            layer.line(self.mContour[0][0],self.mContour[-1][0],color,width=width,alpha=alpha, antialias = False)
 
     def drawHoles(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
@@ -930,14 +921,12 @@ class Blob(Feature):
         #Alas - OpenCV does not provide an offset in the fillpoly method for
         #the cv bindings (only cv2 -- which I am trying to avoid). Have to
         #manually do the offset for the ROI shift.
-
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,1)
-        cv.Zero(retVal)
+        retVal = np.zeros((self.height(), self.width()))
         l,t = self.topLeftCorner()
 
         # construct the exterior contour - these are tuples
 
-        cv.FillPoly(retVal,[[(p[0] - l, p[1] - t) for p in self.mContour]],(255,255,255),8)
+        cv2.fillPoly(retVal,np.array([[(p[0][0] - l, p[0][1] - t) for p in self.mContour]]),(255,255,255),8)
 
         #construct the hole contoursb
         holes = []
