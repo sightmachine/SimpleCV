@@ -966,6 +966,7 @@ class Image:
             width = int(source[0])
             height = int(source[1])
             source = np.zeros((height, width, 3))
+            self._numpy = source
             """
         if (type(source) == cv.cvmat):
             self._matrix = cv.CreateMat(source.rows, source.cols, cv.CV_8UC3)
@@ -4471,12 +4472,14 @@ class Image:
         
         linesFS = FeatureSet()
         if useStandard:
-            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            lines = cv2.HoughLines(em, 1.0, cv.CV_PI/180.0, threshold,
+                                    srn=minlinelength,
+                                    stn=maxlinegap)
             if nLines == -1:
                 nLines = len(lines)
             # All white points (edges) in Canny edge image
-            em = Image(em)
-            x,y = np.where(em.getGrayNumpy() > 128)
+            #em = Image(em)
+            x,y = np.where(em > 128)
             # Put points in dictionary for fast checkout if point is white
             pts = dict((p, 1) for p in zip(x, y))   
             
@@ -4550,12 +4553,16 @@ class Image:
                     linesFS.append(Line(self, l))
             linesFS = linesFS[:nLines]
         else:
-            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            lines = cv2.HoughLinesP(em, 1.0, cv.CV_PI/180.0, threshold,
+                                    minLineLength=minlinelength,
+                                    maxLineGap=maxlinegap)
+            lines = lines[0]
             if nLines == -1:
                 nLines = len(lines)
 
             for l in lines[:nLines]:
-                linesFS.append(Line(self, l))
+                x1, y1, x2, y2 = l
+                linesFS.append(Line(self, ((x1, y1), (x2, y2))))
         
         return linesFS
 
@@ -4591,16 +4598,18 @@ class Image:
         :py:class:`Chessboard`
 
         """
-        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
+        corners = cv2.findChessboardCorners(self._getEqualizedGrayscaleNumpy(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
-                spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                spCorners = np.zeros(1)
+                cv2.cornerSubPix(self.getGrayNumpy(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                spCorners = corners[1]
             else:
                 spCorners = corners[1]
-            return FeatureSet([ Chessboard(self, dimensions, spCorners) ])
+            return FeatureSet([ Chessboard(self, dimensions,
+                        spCorners.reshape(spCorners.shape[0], spCorners.shape[2]))])
         else:
             return None
-
 
     def edges(self, t1=50, t2=100):
         """
@@ -4651,8 +4660,7 @@ class Image:
         http://opencv.willowgarage.com/documentation/python/imgproc_feature_detection.html?highlight=canny#Canny
         """
 
-
-        if (self._edgeMap and self._cannyparam[0] == t1 and self._cannyparam[1] == t2):
+        if isinstance(self._edgeMap, np.ndarray) and self._cannyparam[0] == t1 and self._cannyparam[1] == t2:
             return self._edgeMap
 
         self._edgeMap = cv2.Canny(self.getGrayNumpy(), t1, t2)
@@ -4865,7 +4873,6 @@ class Image:
         retVal = cv2.warpAffine(self.getNumpy(), rotMatrix, self.size())
         return Image(retVal, colorSpace=self._colorSpace)
 
-
     def warp(self, cornerpoints):
         """
         **SUMMARY**
@@ -4905,7 +4912,6 @@ class Image:
         cornerpoints = np.array(cornerpoints).astype(np.float32)
         pWarp = cv2.getPerspectiveTransform(src, cornerpoints) #figure out the warp matrix
         return self.transformPerspective(pWarp)
-
 
     def transformPerspective(self, rotMatrix):
         """
@@ -6204,9 +6210,9 @@ class Image:
         :py:meth:`createAlphaMask`
 
         """
-        retVal = Image(self.getEmpty())
-        cv.Copy(self.getBitmap(),retVal.getBitmap())
-
+        #retVal = Image(self.getEmpty())
+        #cv.Copy(self.getBitmap(),retVal.getBitmap())
+        #blit TODO
         w = img.width
         h = img.height
 
@@ -6216,14 +6222,20 @@ class Image:
         (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
 
         if( alpha is not None ):
-            cv.SetImageROI(img.getBitmap(),topROI);
-            cv.SetImageROI(retVal.getBitmap(),bottomROI);
+            print topROI, bottomROI
+            xROI, yROI, wROI, hROI = topROI
+            topROI = np.copy(img.getNumpy())[xROI:wROI+xROI, yROI:hROI+yROI]
+            xROI, yROI, wROI, hROI = bottomROI
+            bottomROI = np.copy(self.getNumpy())[xROI:wROI+xROI, yROI:hROI+yROI]
+            #cv.SetImageROI(img.getBitmap(),topROI);
+            #cv.SetImageROI(retVal.getBitmap(),bottomROI);
             a = float(alpha)
             b = float(1.00-a)
             g = float(0.00)
-            cv.AddWeighted(img.getBitmap(),a,retVal.getBitmap(),b,g,retVal.getBitmap())
-            cv.ResetImageROI(img.getBitmap());
-            cv.ResetImageROI(retVal.getBitmap());
+            retVal = cv2.addWeighted(topROI, a, bottomROI, b, g)
+            #cv.AddWeighted(img.getBitmap(),a,retVal.getBitmap(),b,g,retVal.getBitmap())
+            #cv.ResetImageROI(img.getBitmap());
+            #cv.ResetImageROI(retVal.getBitmap());
         elif( alphaMask is not None ):
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
                 logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
@@ -6297,7 +6309,7 @@ class Image:
             cv.ResetImageROI(img.getBitmap())
             cv.ResetImageROI(retVal.getBitmap())
 
-        return retVal
+        return Image(retVal)
 
     def sideBySide(self, image, side="right", scale=True ):
         """
@@ -6330,10 +6342,10 @@ class Image:
 
         """
         #there is probably a cleaner way to do this, but I know I hit every case when they are enumerated
-        retVal = None
+        print side
         if( side == "top" ):
             #clever
-            retVal = image.sideBySide(self,"bottom",scale)
+            return image.sideBySide(self,"bottom",scale)
         elif( side == "bottom" ):
             if( self.width > image.width ):
                 if( scale ):
@@ -6341,59 +6353,27 @@ class Image:
                     resized = image.resize(w=self.width)
                     nW = self.width
                     nH = self.height + resized.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,0,nW,self.height))
-                    cv.Copy(self.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,self.height,resized.width,resized.height))
-                    cv.Copy(resized.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
                 else:
                     nW = self.width
                     nH = self.height + image.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,0,nW,self.height))
-                    cv.Copy(self.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    xc = (self.width-image.width)/2
-                    cv.SetImageROI(newCanvas,(xc,self.height,image.width,image.height))
-                    cv.Copy(image.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                    resized = image
             else: #our width is smaller than the other image
                 if( scale ):
                     #scale the other image width to fit
-                    resized = self.resize(w=image.width)
+                    selfresized = self.resize(w=image.width)
                     nW = image.width
-                    nH = resized.height + image.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,0,resized.width,resized.height))
-                    cv.Copy(resized.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,resized.height,nW,image.height))
-                    cv.Copy(image.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                    nH = selfresized.height + image.height
+                    resized = image
                 else:
                     nW = image.width
                     nH = self.height + image.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    xc = (image.width - self.width)/2
-                    cv.SetImageROI(newCanvas,(xc,0,self.width,self.height))
-                    cv.Copy(self.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,self.height,image.width,image.height))
-                    cv.Copy(image.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
-
+                    resized = image
+            newCanvas = np.zeros((nH, nW, 3), dtype=np.uint8)
+            newCanvas[:self.height, :self.width] = self.getNumpy()
+            newCanvas[nH-resized.height:, :resized.width] = resized.getNumpy()
+            
         elif( side == "right" ):
-            retVal = image.sideBySide(self,"left",scale)
+            return image.sideBySide(self,"left",scale)
         else: #default to left
             if( self.height > image.height ):
                 if( scale ):
@@ -6401,58 +6381,25 @@ class Image:
                     resized = image.resize(h=self.height)
                     nW = self.width + resized.width
                     nH = self.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,0,resized.width,resized.height))
-                    cv.Copy(resized.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    cv.SetImageROI(newCanvas,(resized.width,0,self.width,self.height))
-                    cv.Copy(self.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
                 else:
                     nW = self.width+image.width
                     nH = self.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    yc = (self.height-image.height)/2
-                    cv.SetImageROI(newCanvas,(0,yc,image.width,image.height))
-                    cv.Copy(image.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    cv.SetImageROI(newCanvas,(image.width,0,self.width,self.height))
-                    cv.Copy(self.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                    resized = image
             else: #our height is smaller than the other image
                 if( scale ):
                     #scale our height to fit
                     resized = self.resize(h=image.height)
                     nW = image.width + resized.width
                     nH = image.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,0,image.width,image.height))
-                    cv.Copy(image.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    cv.SetImageROI(newCanvas,(image.width,0,resized.width,resized.height))
-                    cv.Copy(resized.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
                 else:
                     nW = image.width + self.width
                     nH = image.height
-                    newCanvas = cv.CreateImage((nW,nH), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(newCanvas)
-                    cv.SetImageROI(newCanvas,(0,0,image.width,image.height))
-                    cv.Copy(image.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    yc = (image.height-self.height)/2
-                    cv.SetImageROI(newCanvas,(image.width,yc,self.width,self.height))
-                    cv.Copy(self.getBitmap(),newCanvas)
-                    cv.ResetImageROI(newCanvas)
-                    retVal = Image(newCanvas,colorSpace=self._colorSpace)
+                    resized = image
+            newCanvas = np.zeros((nH, nW, 3), dtype=np.uint8)
+            newCanvas[:self.height, :self.width] = self.getNumpy()
+            newCanvas[:resized.height:, nW-resized.width:] = resized.getNumpy()
+        retVal = Image(newCanvas,colorSpace=self._colorSpace)
         return retVal
-
 
     def embiggen(self, size=None, color=Color.BLACK, pos=None):
         """
@@ -6489,12 +6436,11 @@ class Image:
             logger.warning("image.embiggenCanvas: the size provided is invalid")
             return None
 
-        newCanvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        cv.SetZero(newCanvas)
-        newColor = cv.RGB(color[0],color[1],color[2])
-        cv.AddS(newCanvas,newColor,newCanvas)
-        topROI = None
-        bottomROI = None
+        newCanvas = np.zeros((size[0], size[1], 3)).astype(np.uint8)
+        r, g, b = color # BGR ? RGB stuff
+        newCanvas[:, :, 0] = b
+        newCanvas[:, :, 1] = g
+        newCanvas[:, :, 2] = r
         if( pos is None ):
             pos = (((size[0]-self.width)/2),((size[1]-self.height)/2))
 
@@ -6502,15 +6448,9 @@ class Image:
         if( topROI is None or bottomROI is None):
             logger.warning("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
             return None
-
-        cv.SetImageROI(newCanvas, bottomROI)
-        cv.SetImageROI(self.getBitmap(),topROI)
-        cv.Copy(self.getBitmap(),newCanvas)
-        cv.ResetImageROI(newCanvas)
-        cv.ResetImageROI(self.getBitmap())
+        x, y, w, h = bottomROI
+        newCanvas[x:w+x, y:y+h] = self.getNumpy()
         return Image(newCanvas)
-
-
 
     def _rectOverlapROIs(self,top, bottom, pos):
         """
@@ -6805,7 +6745,6 @@ class Image:
             cv.Integral(self._getGrayscaleBitmap(),img2)
         return np.array(cv.GetMat(img2))
 
-
     def convolve(self,kernel = [[1,0,0],[0,1,0],[0,0,1]],center=None):
         """
         **SUMMARY**
@@ -6835,22 +6774,13 @@ class Image:
         """
         if(isinstance(kernel, list)):
             kernel = np.array(kernel)
-
-        if(type(kernel)==np.ndarray):
-            sz = kernel.shape
-            kernel = kernel.astype(np.float32)
-            myKernel = cv.CreateMat(sz[0], sz[1], cv.CV_32FC1)
-            cv.SetData(myKernel, kernel.tostring(), kernel.dtype.itemsize * kernel.shape[1])
-        elif(type(kernel)==cv.mat):
-            myKernel = kernel
         else:
             logger.warning("Convolution uses numpy arrays or cv.mat type.")
             return None
-        retVal = self.getEmpty(3)
         if(center is None):
-            cv.Filter2D(self.getBitmap(),retVal,myKernel)
+            retVal = cv2.filter2D(self.getNumpy(), -1, kernel)
         else:
-            cv.Filter2D(self.getBitmap(),retVal,myKernel,center)
+            retVal = cv2.filter2D(self.getNumpy(), -1, kernel, center)
         return Image(retVal)
 
     def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM", grayscale=True):

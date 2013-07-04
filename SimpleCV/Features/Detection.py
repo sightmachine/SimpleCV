@@ -825,7 +825,8 @@ class Chessboard(Feature):
         super(Chessboard, self).__init__(i, at_x, at_y, points)
 
 
-    def draw(self, no_needed_color = None):
+    def draw(self, color=None, width=None):
+        # useless parametes, just make it compatible with Features.draw
         """
         **SUMMARY**
 
@@ -842,7 +843,7 @@ class Chessboard(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer.
 
         """
-        cv.DrawChessboardCorners(self.image.getBitmap(), self.dimensions, self.spCorners, 1)
+        cv2.drawChessboardCorners(self.image.getNumpy(), self.dimensions, self.spCorners, 1)
 
     def area(self):
         """
