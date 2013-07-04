@@ -2376,6 +2376,7 @@ class Feature(object):
         if( counter % 2 == 0 ):
             retVal = False
             return retVal
+        return retVal
         #else:
         #    result = cv2.pointPolygonTest(np.array(polygon,dtype='float32'),point,0)
         #    return result > 0 
