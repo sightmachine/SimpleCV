@@ -6867,15 +6867,11 @@ class Image:
             logger.warning("ooops.. I don't know what template matching method you are looking for.")
             return None
         #create new image for template matching computation
-        matches = cv.CreateMat( (self.height - template_image.height + 1),
-                                (self.width - template_image.width + 1),
-                                cv.CV_32FC1)
-
         #choose template matching method to be used
         if grayscale:
-            cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+            matches = cv2.matchTemplate(self.getGrayNumpy(), template_image.getGrayNumpy(), method)
         else:
-            cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, method )
+            matches = cv2.matchTemplate(self.getNumpy(), template_image.getNumpy(), method)
         mean = np.mean(matches)
         sd = np.std(matches)
         if(check > 0):
@@ -6981,15 +6977,11 @@ class Image:
             logger.warning("ooops.. I don't know what template matching method you are looking for.")
             return None
         #create new image for template matching computation
-        matches = cv.CreateMat( (self.height - template_image.height + 1),
-                                (self.width - template_image.width + 1),
-                                cv.CV_32FC1)
-
         #choose template matching method to be used
         if grayscale:
-            cv.MatchTemplate( self._getGrayscaleBitmap(), template_image._getGrayscaleBitmap(), matches, method )
+            matches = cv2.matchTemplate(self.getGrayNumpy(), template_image.getGrayNumpy(), method )
         else:
-            cv.MatchTemplate( self.getBitmap(), template_image.getBitmap(), matches, method )
+            matches = cv2.matchTemplate(self.getNumpy(), template_image.getNumpy(), method)
         mean = np.mean(matches)
         sd = np.std(matches)
         if(check > 0):
@@ -7008,7 +7000,6 @@ class Image:
             fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
 
         return fs
-
 
     def readText(self):
         """
@@ -7094,14 +7085,12 @@ class Image:
         #a distnace metric for how apart our circles should be - this is sa good bench mark
         if(distance < 0 ):
             distance = 1 + max(self.width,self.height)/50
-        cv.HoughCircles(self._getGrayscaleBitmap(),storage, cv.CV_HOUGH_GRADIENT, 2, distance,canny,thresh)
-        if storage.rows == 0:
+        circs = cv2.HoughCircles(self.getGrayNumpy(), cv.CV_HOUGH_GRADIENT, 2, distance, param1=canny, param2=thresh)
+        if isinstance(circs, type(None)):
             return None
-        circs = np.asarray(storage)
-        sz = circs.shape
         circleFS = FeatureSet()
-        for i in range(sz[0]):
-            circleFS.append(Circle(self,int(circs[i][0][0]),int(circs[i][0][1]),int(circs[i][0][2])))
+        for circ in circs[0]:
+            circleFS.append(Circle(self,int(circ[0]),int(circ[1]),int(circ[2])))
         return circleFS
 
     def whiteBalance(self,method="Simple"):
