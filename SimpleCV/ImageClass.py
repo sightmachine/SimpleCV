@@ -965,7 +965,7 @@ class Image:
         if (type(source) == tuple):
             width = int(source[0])
             height = int(source[1])
-            source = np.zeros((height, width, 3))
+            source = np.zeros((height, width, 3)).astype(np.uint8)
             self._numpy = source
             """
         if (type(source) == cv.cvmat):
@@ -1643,24 +1643,22 @@ class Image:
         :py:meth:`isYCrCb`
 
         """
-
-        retVal = self.getEmpty()
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2YCrCb)
         elif( self._colorSpace == ColorSpace.RGB ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_RGB2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2YCrCb)
         elif( self._colorSpace == ColorSpace.HSV ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HSV2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2YCrCb)
         elif( self._colorSpace == ColorSpace.HLS ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_HLS2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR2)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2YCrCb)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            cv.CvtColor(self.getBitmap(), retVal, cv.CV_XYZ2RGB)
-            cv.CvtColor(retVal, retVal, cv.CV_RGB2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR2)
+            retVal = cv2.cvtColor(retVal, cv.CV_BGR2YCrCb)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = self.getBitmap()
+            retVal = self.getNumpy()
         else:
             logger.warning("Image.toYCrCb: There is no supported conversion to YCrCb colorspace")
             return None
@@ -3220,9 +3218,9 @@ class Image:
 
         """
         if( self._colorSpace != ColorSpace.YCrCb ):
-            YCrCb = self.toYCrCb()
+            YCrCbimg = self.toYCrCb()
         else:
-            YCrCb = self
+            YCrCbimg = self
 
         Y =  np.ones((256,1),dtype=uint8)*0
         Y[5:] = 255
@@ -3230,16 +3228,17 @@ class Image:
         Cr[140:180] = 255
         Cb =  np.ones((256,1),dtype=uint8)*0
         Cb[77:135] = 255
-        Y_img = YCrCb.getEmpty(1)
-        Cr_img = YCrCb.getEmpty(1)
-        Cb_img = YCrCb.getEmpty(1)
-        cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
-        cv.LUT(Y_img,Y_img,cv.fromarray(Y))
-        cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
-        cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
-        temp = self.getEmpty()
-        cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
-        mask=Image(temp,colorSpace = ColorSpace.YCrCb)
+        YCrCbnp = YCrCbimg.getNumpy()
+        Y_img = YCrCbnp[:, :, 0]
+        Cr_img = YCrCbnp[:, :, 1]
+        Cb_img = YCrCbnp[:, :, 2]
+        
+        Y_img = cv2.LUT(Y_img, Y)
+        Cr_img = cv2.LUT(Cr_img, Cr)
+        Cb_img = cv2.LUT(Cb_img, Cb)
+        
+        temp = np.dstack((Y_img, Cr_img, Cb_img))
+        mask = Image(temp,colorSpace = ColorSpace.YCrCb)
         mask = mask.binarize((128,128,128))
         mask = mask.toRGB().binarize()
         mask.dilate(dilate_iter)
@@ -5551,9 +5550,8 @@ class Image:
 
         **KAT FIX THIS**
         """
-
+        print "They stopped this. bummer"
         cv.EllipseBox(self.getBitmap(),box=boundingbox,color=color,thicness=width)
-
 
     def show(self, type = 'window'):
         """
@@ -6734,7 +6732,7 @@ class Image:
 
         http://en.wikipedia.org/wiki/Summed_area_table
         """
-
+        print "todo cv2"
         if(tilted):
             img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
             img3 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
@@ -7080,7 +7078,6 @@ class Image:
 
 
         """
-        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
         #a distnace metric for how apart our circles should be - this is sa good bench mark
         if(distance < 0 ):
             distance = 1 + max(self.width,self.height)/50
@@ -7297,19 +7294,18 @@ class Image:
         This method seems to error on the LUT map for some versions of OpenCV.
         I am trying to figure out why. -KAS
         """
-        r = self.getEmpty(1)
-        g = self.getEmpty(1)
-        b = self.getEmpty(1)
-        cv.Split(self.getBitmap(),b,g,r,None);
-        if(rLUT is not None):
-            cv.LUT(r,r,cv.fromarray(rLUT))
-        if(gLUT is not None):
-            cv.LUT(g,g,cv.fromarray(gLUT))
-        if(bLUT is not None):
-            cv.LUT(b,b,cv.fromarray(bLUT))
-        temp = self.getEmpty()
-        cv.Merge(b,g,r,None,temp)
-        return Image(temp)
+        npimg = self.getNumpy()
+        b = npimg[:, :, 0]
+        g = npimg[:, :, 1]
+        r = npimg[:, :, 2]
+        if isinstance(rLUT, np.ndarray):
+            r = cv2.LUT(r, rLUT)
+        if isinstance(gLUT, np.ndarray):
+            g = cv2.LUT(g, gLUT)
+        if isinstance(bLUT, np.ndarray):
+            b = cv2.LUT(b, bLUT)
+        retVal = np.dstack((b, g, r))
+        return Image(retVal)
 
     def _getRawKeypoints(self,thresh=500.00,flavor="SURF", highQuality=1, forceReset=False):
         """
@@ -8555,7 +8551,7 @@ class Image:
         http://alexbw.posterous.com/
 
         """
-        img = self.toGray().getNumpy()[:,:,0]
+        img = self.getGrayNumpy()
         distance_img = ndimage.distance_transform_edt(img)
         morph_laplace_img = ndimage.morphological_laplace(distance_img, (radius, radius))
         skeleton = morph_laplace_img < morph_laplace_img.min()/2
@@ -8623,47 +8619,43 @@ class Image:
             return
         retVal = []
         if( mask is not None ):
-            bmp = mask._getGrayscaleBitmap()
+            graynp = mask.getGrayNumpy()
+            #bmp = mask._getGrayscaleBitmap()
             # translate the human readable images to something opencv wants using a lut
             LUT = np.zeros((256,1),dtype=uint8)
             LUT[255]=1
             LUT[64]=2
             LUT[192]=3
-            cv.LUT(bmp,bmp,cv.fromarray(LUT))
-            mask_in = np.array(cv.GetMat(bmp))
+            graynp = cv2.LUT(graynp, LUT)
+            mask_in = np.copy(graynp)
             # get our image in a flavor grab cut likes
-            npimg = np.array(cv.GetMat(self.getBitmap()))
+            npimg = self.getNumpy()
             # require by opencv
             tmp1 = np.zeros((1, 13 * 5))
             tmp2 = np.zeros((1, 13 * 5))
             # do the algorithm
             cv2.grabCut(npimg,mask_in,None,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_MASK)
-            # generate the output image
-            output = cv.CreateImageHeader((mask_in.shape[1],mask_in.shape[0]),cv.IPL_DEPTH_8U,1)
-            cv.SetData(output,mask_in.tostring(),mask_in.dtype.itemsize*mask_in.shape[1])
             # remap the color space
             LUT = np.zeros((256,1),dtype=uint8)
             LUT[1]=255
             LUT[2]=64
             LUT[3]=192
-            cv.LUT(output,output,cv.fromarray(LUT))
+            output = cv2.LUT(mask_in, LUT)
             # and create the return value
-            mask._graybitmap = None # don't ask me why... but this gets corrupted
+            #mask._graybitmap = None # don't ask me why... but this gets corrupted
             retVal = Image(output)
 
         elif ( rect is not None ):
-            npimg = np.array(cv.GetMat(self.getBitmap()))
+            npimg = self.getNumpy()
             tmp1 = np.zeros((1, 13 * 5))
             tmp2 = np.zeros((1, 13 * 5))
             mask = np.zeros((self.height,self.width),dtype='uint8')
             cv2.grabCut(npimg,mask,rect,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_RECT)
-            bmp = cv.CreateImageHeader((mask.shape[1],mask.shape[0]),cv.IPL_DEPTH_8U,1)
-            cv.SetData(bmp,mask.tostring(),mask.dtype.itemsize*mask.shape[1])
             LUT = np.zeros((256,1),dtype=uint8)
             LUT[1]=255
             LUT[2]=64
             LUT[3]=192
-            cv.LUT(bmp,bmp,cv.fromarray(LUT))
+            output = cv2.LUT(maks,LUT)
             retVal = Image(bmp)
         else:
             logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
@@ -8774,12 +8766,9 @@ class Image:
         :py:meth:`binarize`
 
         """
-        gray = self._getGrayscaleBitmap()
-        result = self.getEmpty(1)
-        cv.Threshold(gray, result, value, 255, cv.CV_THRESH_BINARY)
+        val, result = cv2.threshold(self.getGrayNumpy(), value, 255, cv.CV_THRESH_BINARY)
         retVal = Image(result)
         return retVal
-
 
     def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True):
         """
@@ -8827,6 +8816,7 @@ class Image:
         :py:meth:`findFloodFillBlobs`
 
         """
+        print "doesn't seem to work"
         if( isinstance(color,np.ndarray) ):
             color = color.tolist()
         elif( isinstance(color,dict) ):
@@ -8863,17 +8853,18 @@ class Image:
         if( fixed_range ):
             flags = flags+cv.CV_FLOODFILL_FIXED_RANGE
 
-        bmp = self.getEmpty()
-        cv.Copy(self.getBitmap(),bmp)
+        npimg = np.copy(self.getNumpy())
+        #mask = self.edges().getGrayNumpy()
+        mask = np.zeros((self.height, self.width)).astype(np.uint8)
+        mask = cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_REPLICATE)
 
         if( len(points.shape) != 1 ):
             for p in points:
-                cv.FloodFill(bmp,tuple(p),color,lower,upper,flags)
+                print p
+                rect, val = cv2.floodFill(npimg, mask, tuple(p), color, lower, upper, flags)
         else:
-            cv.FloodFill(bmp,tuple(points),color,lower,upper,flags)
-
-        retVal = Image(bmp)
-
+            rect, val = cv2.floodFill(npimg, mask, tuple(points), color, lower, upper, flags)
+        retVal = Image(npimg)
         return retVal
 
     def floodFillToMask(self, points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True,mask=None):
