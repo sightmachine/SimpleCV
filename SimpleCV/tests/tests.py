@@ -3961,6 +3961,3 @@ def test_findBlobsFromHueHistogram():
     B = img.findBlobsFromHueHistogram((10,10,50,50),smooth=False)
     C = img.findBlobsFromHueHistogram(img2,threshold=1)
     pass
-    
-def test_adaptiveScale():
-    img = Image('lenna')
