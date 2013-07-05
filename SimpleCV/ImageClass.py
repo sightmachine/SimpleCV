@@ -941,6 +941,12 @@ class Image:
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
+            
+        #Check if loaded from base64 URI
+        if isinstance(source, basestring) and (source.lower().startswith("data:image/png;base64,")):
+            img = message[22:].decode("base64")
+            im = StringIO(img)
+            source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images
         if isinstance(source, basestring):
