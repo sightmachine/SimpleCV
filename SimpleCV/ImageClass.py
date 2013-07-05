@@ -8770,7 +8770,7 @@ class Image:
         retVal = Image(result)
         return retVal
 
-    def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True):
+    def floodFill(self,points,tolerance=None,color=Color.WHITE,lower=None,upper=None,fixed_range=True, mask=None):
         """
         **SUMMARY**
 
@@ -8816,7 +8816,7 @@ class Image:
         :py:meth:`findFloodFillBlobs`
 
         """
-        print "doesn't seem to work"
+        print "mask is necessary"
         if( isinstance(color,np.ndarray) ):
             color = color.tolist()
         elif( isinstance(color,dict) ):
@@ -8854,9 +8854,13 @@ class Image:
             flags = flags+cv.CV_FLOODFILL_FIXED_RANGE
 
         npimg = np.copy(self.getNumpy())
-        #mask = self.edges().getGrayNumpy()
-        mask = np.zeros((self.height, self.width)).astype(np.uint8)
-        mask = cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_REPLICATE)
+        if isinstance(mask, type(None)):
+            mask = self.edges().getGrayNumpy()
+            mask = cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_REPLICATE)
+        else:
+            if mask.height != self.height + 2 or mask.width != self.width + 2:
+                mask = mask.resize(self.width, self.height)
+                mask = cv2.copyMakeBorder(mask.getGrayNumpy(), 1, 1, 1, 1, cv2.BORDER_REPLICATE)
 
         if( len(points.shape) != 1 ):
             for p in points:
@@ -8922,6 +8926,9 @@ class Image:
         :py:meth:`findFloodFillBlobs`
 
         """
+        return self.floodFill(points, tolerance, color, lower, upper, fixed_range, mask)
+
+        """
         mask_flag = 255 # flag weirdness
 
         if( isinstance(color,np.ndarray) ):
@@ -8980,6 +8987,7 @@ class Image:
         retVal = Image(localMask)
         retVal = retVal.crop(1,1,self.width,self.height)
         return retVal
+        """
 
     def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0,appx_level=3 ):
         """
