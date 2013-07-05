@@ -346,6 +346,10 @@ class ColorCurve:
     least 4 point pairs.  Either of these must map in a 255x255 space.  The curve
     can then be used in the applyRGBCurve, applyHSVCurve, and
     applyInstensityCurve functions.
+    
+    Note:
+    The points should be in strictly increasing order of their first elements
+    (X-coordinates)
 
     **EXAMPLE**
 
@@ -363,7 +367,8 @@ class ColorCurve:
         else:
             curve_vals = np.array(curve_vals)
             aSpline = UnivariateSpline(curve_vals[:, 0], curve_vals[:, 1], s=1)
-            self.mCurve = aSpline(inBins)
+            #nothing above 255, nothing below 0
+            self.mCurve = np.maximum(np.minimum(aSpline(inBins),255),0) 
 
 
 class ColorMap:
