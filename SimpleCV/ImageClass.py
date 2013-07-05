@@ -4,6 +4,7 @@ from SimpleCV.Color import *
 from SimpleCV.LineScan import *
 from numpy import int32
 from numpy import uint8
+import cv2
 
 from EXIF import *
 
@@ -2579,7 +2580,7 @@ class Image:
                 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
                 return True
 
-    def scale(self, width, height = -1, interpolation=cv.CV_INTER_LINEAR):
+    def scale(self, width, height = -1, interpolation=cv2.INTER_LINEAR):
         """
         **SUMMARY**
 
@@ -2621,10 +2622,9 @@ class Image:
                 logger.warning("Holy Heck! You tried to make an image really big or impossibly small. I can't scale that")
                 return self
 
-
-        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.getBitmap(), scaled_bitmap, interpolation)
-        return Image(scaled_bitmap, colorSpace=self._colorSpace)
+        scaledArray = np.zeros((w,h,3),dtype='uint8')
+        retVal = cv2.resize(self.getNumpyCv2(), (w,h), interpolation = interpolation)
+        return Image(retVal, colorSpace=self._colorSpace,cv2image = True)
 
 
     def resize(self, w=None,h=None):
@@ -5927,12 +5927,11 @@ class Image:
             logger.warning("Hi, your crop rectangle doesn't even overlap your image. I have no choice but to return None.")
             return None
 
-        retVal = cv.CreateImage((bottomROI[2],bottomROI[3]), cv.IPL_DEPTH_8U, 3)
+        retVal = np.zeros((bottomROI[3],bottomROI[2],3),dtype='uint8')
 
-        cv.SetImageROI(self.getBitmap(), bottomROI)
-        cv.Copy(self.getBitmap(), retVal)
-        cv.ResetImageROI(self.getBitmap())
-        img = Image(retVal, colorSpace=self._colorSpace)
+        retVal= self.getNumpyCv2()[bottomROI[1]:bottomROI[1] + bottomROI[3],bottomROI[0]:bottomROI[0] + bottomROI[2],:] 
+        
+        img = Image(retVal, colorSpace=self._colorSpace,cv2image = True)
 
         #Buffering the top left point (x, y) in a image.
         img._uncroppedX = self._uncroppedX + int(x)
@@ -6624,12 +6623,11 @@ class Image:
         targeth = resolution[1]
         if( self.size() == resolution): # we have to resize
             retVal = self
-        elif( imgAR == wndwAR ):
+        elif( imgAR == wndwAR and fit):
             retVal = img.scale(resolution[0],resolution[1])
         elif(fit):
             #scale factors
-            retVal = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 3)
-            cv.Zero(retVal)
+            retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
             wscale = (float(self.width)/float(resolution[0]))
             hscale = (float(self.height)/float(resolution[1]))
             if(wscale>1): #we're shrinking what is the percent reduction
@@ -6680,17 +6678,17 @@ class Image:
                     targetx = (resolution[0]-targetw)/2
                     targety = 0
                 img = img.scale(targetw,targeth)
-            cv.SetImageROI(retVal,(targetx,targety,targetw,targeth))
-            cv.Copy(img.getBitmap(),retVal)
-            cv.ResetImageROI(retVal)
-            retVal = Image(retVal)
+
+
         else: # we're going to crop instead
-            retVal = cv.CreateImage(resolution, cv.IPL_DEPTH_8U, 3)
-            cv.Zero(retVal)
+            retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
+
             if(self.width <= resolution[0] and self.height <= resolution[1] ): # center a too small image
                 #we're too small just center the thing
                 targetx = (resolution[0]/2)-(self.width/2)
                 targety = (resolution[1]/2)-(self.height/2)
+                targeth = self.height
+                targetw = self.width
             elif(self.width > resolution[0] and self.height > resolution[1]): #crop too big on both axes
                 targetw = resolution[0]
                 targeth = resolution[1]
@@ -6708,6 +6706,7 @@ class Image:
                 x = 0
                 y = (self.height-resolution[1])/2
                 img = img.crop(x,y,targetw,targeth)
+
             elif( self.width > resolution[0] and self.height <= resolution[1]): #width too big
                 #crop along the y dimension and center along the x dimension
                 targetw = resolution[0]
@@ -6718,10 +6717,9 @@ class Image:
                 y = 0
                 img = img.crop(x,y,targetw,targeth)
 
-            cv.SetImageROI(retVal,(x,y,targetw,targeth))
-            cv.Copy(img.getBitmap(),retVal)
-            cv.ResetImageROI(retVal)
-            retval = Image(retVal)
+
+        retVal[targety:targety + targeth,targetx:targetx + targetw,:] = img.getNumpyCv2()
+        retVal = Image(retVal,cv2image = True)
         return(retVal)
 
 
