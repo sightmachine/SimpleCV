@@ -4720,17 +4720,21 @@ class Image:
 
         **PARAMETERS**
 
-        * *other* - Image or a number.
+        * *other* - Image of the same size or a number.
 
         **RETURNS**
 
         A SimpelCV image.
 
         """
+
         newbitmap = self.getEmpty()
         if is_number(other):
             cv.MaxS(self.getBitmap(), other, newbitmap)
         else:
+            if self.size() != other.size():
+                warnings.warn("Both images should have same sizes. Returning None.")
+                return None
             cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
@@ -4744,17 +4748,21 @@ class Image:
 
         **Parameter**
 
-        * *other* - Image
+        * *other* - Image of the same size or number
 
         **Returns**
 
         IMAGE
         """
+
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.MaxS(self.getBitmap(), other, newbitmap)
+            cv.MinS(self.getBitmap(), other, newbitmap)
         else:
-            cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
+            if self.size() != other.size():
+                warnings.warn("Both images should have same sizes. Returning None.")
+                return None
+            cv.Min(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
