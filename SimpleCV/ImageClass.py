@@ -6625,6 +6625,7 @@ class Image:
             retVal = self
         elif( imgAR == wndwAR and fit):
             retVal = img.scale(resolution[0],resolution[1])
+            return retVal
         elif(fit):
             #scale factors
             retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
@@ -6678,13 +6679,11 @@ class Image:
                     targetx = (resolution[0]-targetw)/2
                     targety = 0
                 img = img.scale(targetw,targeth)
-
-
+        
         else: # we're going to crop instead
-            retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
-
             if(self.width <= resolution[0] and self.height <= resolution[1] ): # center a too small image
                 #we're too small just center the thing
+                retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
                 targetx = (resolution[0]/2)-(self.width/2)
                 targety = (resolution[1]/2)-(self.height/2)
                 targeth = self.height
@@ -6697,8 +6696,10 @@ class Image:
                 x = (self.width-resolution[0])/2
                 y = (self.height-resolution[1])/2
                 img = img.crop(x,y,targetw,targeth)
+                return img
             elif( self.width <= resolution[0] and self.height > resolution[1]): #height too big
                 #crop along the y dimension and center along the x dimension
+                retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
                 targetw = self.width
                 targeth = resolution[1]
                 targetx = (resolution[0]-self.width)/2
@@ -6709,6 +6710,7 @@ class Image:
 
             elif( self.width > resolution[0] and self.height <= resolution[1]): #width too big
                 #crop along the y dimension and center along the x dimension
+                retVal = np.zeros((resolution[1],resolution[0],3),dtype='uint8')
                 targetw = resolution[0]
                 targeth = self.height
                 targetx = 0
@@ -6716,8 +6718,7 @@ class Image:
                 x = (self.width-resolution[0])/2
                 y = 0
                 img = img.crop(x,y,targetw,targeth)
-
-
+        
         retVal[targety:targety + targeth,targetx:targetx + targetw,:] = img.getNumpyCv2()
         retVal = Image(retVal,cv2image = True)
         return(retVal)
