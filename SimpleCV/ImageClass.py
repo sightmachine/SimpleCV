@@ -1847,6 +1847,9 @@ class Image:
         """
         return self.getNumpy()
 
+    def getNumpyT(self):
+        return self.getNumpy()[:, :, ::-1].transpose([1, 0, 2])
+
     def getGrayNumpyCv2(self):
         """
         **SUMMARY**
@@ -9406,406 +9409,26 @@ class Image:
         dft = []
         if( grayscale ):
             dft = self._getDFTClone(grayscale)
-            flt = flt._getGrayscaleBitmap()
-            flt64f = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,1)
-            cv.ConvertScale(flt,flt64f,1.0)
-            finalFilt = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_64F,2)
-            cv.Merge(flt64f,flt64f,None,None,finalFilt)
+            flt64f = flt.getGrayNumpy().astype(np.float64)
+            finalFilt = np.dstack((flt64f, flt64f))
             for d in dft:
-                cv.MulSpectrums(d,finalFilt,d,0)
+                d = cv2.mulSpectrums(d, finalFilt, 0)
         else: #break down the filter and then do each channel
             dft = self._getDFTClone(grayscale)
-            flt = flt.getBitmap()
-            b = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
-            g = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
-            r = cv.CreateImage((flt.width,flt.height),cv.IPL_DEPTH_8U,1)
-            cv.Split(flt,b,g,r,None)
+            fltnp = flt.getNumpy()
+            b = fltnp[:, :, 0]
+            g = fltnp[:, :, 1]
+            r = fltnp[:, :, 2]
             chans = [b,g,r]
             for c in range(0,len(chans)):
-                flt64f = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,1)
-                cv.ConvertScale(chans[c],flt64f,1.0)
-                finalFilt = cv.CreateImage((chans[c].width,chans[c].height),cv.IPL_DEPTH_64F,2)
-                cv.Merge(flt64f,flt64f,None,None,finalFilt)
-                cv.MulSpectrums(dft[c],finalFilt,dft[c],0)
-
+                flt64f = np.copy(chans[c])
+                finalFilt = np.dstack((flt64f, flt64f))
+                dft[c] = cv2.mulSpectrums(dft[c], finalFilt, 0)
         return self._inverseDFT(dft)
 
     def _boundsFromPercentage(self, floatVal, bound):
         return np.clip(int(floatVal*(bound/2.00)),0,(bound/2))
-
-    def highPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies a high pass DFT filter. This filter enhances
-        the high frequencies and removes the low frequency signals. This has
-        the effect of enhancing edges. The frequencies are defined as going between
-        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
-        the highest possible frequencies. Each of the frequencies are defined
-        with respect to the horizontal and vertical signal. This filter
-        isn't perfect and has a harsh cutoff that causes ringing artifacts.
-
-        **PARAMETERS**
-
-        * *xCutoff* - The horizontal frequency at which we perform the cutoff. A separate
-          frequency can be used for the b,g, and r signals by providing a
-          list of values. The frequency is defined between zero to one,
-          where zero is constant component and 1 is the highest possible
-          frequency in the image.
-
-        * *yCutoff* - The cutoff frequencies in the y direction. If none are provided
-          we use the same values as provided for x.
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create
-          the result.
-
-        **RETURNS**
-
-        A SimpleCV Image after applying the filter.
-
-        **EXAMPLE**
-
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> hpf = img.highPassFilter([0.2,0.1,0.2])
-        >>> hpf.show()
-        >>> hpf.getDFTLogMagnitude().show()
-
-        **NOTES**
-
-        This filter is far from perfect and will generate a lot of ringing artifacts.
-        * See: http://en.wikipedia.org/wiki/Ringing_(signal)
-        * See: http://en.wikipedia.org/wiki/High-pass_filter#Image
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        """
-        if( isinstance(xCutoff,float) ):
-            xCutoff = [xCutoff,xCutoff,xCutoff]
-        if( isinstance(yCutoff,float) ):
-            yCutoff = [yCutoff,yCutoff,yCutoff]
-        if(yCutoff is None):
-            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]]
-
-        for i in range(0,len(xCutoff)):
-            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
-            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
-
-        filter = None
-        h  = self.height
-        w  = self.width
-
-        if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filter)
-            cv.AddS(filter,255,filter) # make everything white
-            #now make all of the corners black
-            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),(0,0,0),thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),(0,0,0),thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),(0,0,0),thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),(0,0,0),thickness=-1) #BR
-
-        else:
-            #I need to looking into CVMERGE/SPLIT... I would really need to know
-            # how much memory we're allocating here
-            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filterB)
-            cv.Zero(filterG)
-            cv.Zero(filterR)
-            cv.AddS(filterB,255,filterB) # make everything white
-            cv.AddS(filterG,255,filterG) # make everything whit
-            cv.AddS(filterR,255,filterR) # make everything white
-            #now make all of the corners black
-            temp = [filterB,filterG,filterR]
-            i = 0
-            for f in temp:
-                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),0,thickness=-1)
-                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),0,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),0,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),0,thickness=-1)
-                i = i+1
-
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Merge(filterB,filterG,filterR,None,filter)
-
-        scvFilt = Image(filter)
-        retVal = self.applyDFTFilter(scvFilt,grayscale)
-        return retVal
-
-    def lowPassFilter(self, xCutoff,yCutoff=None,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies a low pass DFT filter. This filter enhances
-        the low frequencies and removes the high frequency signals. This has
-        the effect of reducing noise. The frequencies are defined as going between
-        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
-        the highest possible frequencies. Each of the frequencies are defined
-        with respect to the horizontal and vertical signal. This filter
-        isn't perfect and has a harsh cutoff that causes ringing artifacts.
-
-        **PARAMETERS**
-
-        * *xCutoff* - The horizontal frequency at which we perform the cutoff. A separate
-          frequency can be used for the b,g, and r signals by providing a
-          list of values. The frequency is defined between zero to one,
-          where zero is constant component and 1 is the highest possible
-          frequency in the image.
-
-        * *yCutoff* - The cutoff frequencies in the y direction. If none are provided
-          we use the same values as provided for x.
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create
-          the result.
-
-        **RETURNS**
-
-        A SimpleCV Image after applying the filter.
-
-        **EXAMPLE**
-
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.lowPassFilter([0.2,0.2,0.05])
-        >>> lpf.show()
-        >>> lpf.getDFTLogMagnitude().show()
-
-        **NOTES**
-
-        This filter is far from perfect and will generate a lot of ringing artifacts.
-        See: http://en.wikipedia.org/wiki/Ringing_(signal)
-        See: http://en.wikipedia.org/wiki/Low-pass_filter
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        """
-        if( isinstance(xCutoff,float) ):
-            xCutoff = [xCutoff,xCutoff,xCutoff]
-        if( isinstance(yCutoff,float) ):
-            yCutoff = [yCutoff,yCutoff,yCutoff]
-        if(yCutoff is None):
-            yCutoff = [xCutoff[0],xCutoff[1],xCutoff[2]]
-
-        for i in range(0,len(xCutoff)):
-            xCutoff[i] = self._boundsFromPercentage(xCutoff[i],self.width)
-            yCutoff[i] = self._boundsFromPercentage(yCutoff[i],self.height)
-
-        filter = None
-        h  = self.height
-        w  = self.width
-
-        if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filter)
-            #now make all of the corners black
-
-            cv.Rectangle(filter,(0,0),(xCutoff[0],yCutoff[0]),255,thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoff[0]),(xCutoff[0],h),255,thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoff[0],0),(w,yCutoff[0]),255,thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoff[0],h-yCutoff[0]),(w,h),255,thickness=-1) #BR
-
-        else:
-            #I need to looking into CVMERGE/SPLIT... I would really need to know
-            # how much memory we're allocating here
-            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filterB)
-            cv.Zero(filterG)
-            cv.Zero(filterR)
-            #now make all of the corners black
-            temp = [filterB,filterG,filterR]
-            i = 0
-            for f in temp:
-                cv.Rectangle(f,(0,0),(xCutoff[i],yCutoff[i]),255,thickness=-1)
-                cv.Rectangle(f,(0,h-yCutoff[i]),(xCutoff[i],h),255,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],0),(w,yCutoff[i]),255,thickness=-1)
-                cv.Rectangle(f,(w-xCutoff[i],h-yCutoff[i]),(w,h),255,thickness=-1)
-                i = i+1
-
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Merge(filterB,filterG,filterR,None,filter)
-
-        scvFilt = Image(filter)
-        retVal = self.applyDFTFilter(scvFilt,grayscale)
-        return retVal
-
-
-    #FUCK! need to decide BGR or RGB
-    # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
-    # or (x,y)
-    def bandPassFilter(self, xCutoffLow, xCutoffHigh, yCutoffLow=None, yCutoffHigh=None,grayscale=False):
-        """
-        **SUMMARY**
-
-        This method applies a simple band pass DFT filter. This filter enhances
-        the a range of frequencies and removes all of the other frequencies. This allows
-        a user to precisely select a set of signals to display . The frequencies are
-        defined as going between
-        0.00 and 1.00 and where 0 is the lowest frequency in the image and 1.0 is
-        the highest possible frequencies. Each of the frequencies are defined
-        with respect to the horizontal and vertical signal. This filter
-        isn't perfect and has a harsh cutoff that causes ringing artifacts.
-
-        **PARAMETERS**
-
-        * *xCutoffLow*  - The horizontal frequency at which we perform the cutoff of the low
-          frequency signals. A separate
-          frequency can be used for the b,g, and r signals by providing a
-          list of values. The frequency is defined between zero to one,
-          where zero is constant component and 1 is the highest possible
-          frequency in the image.
-
-        * *xCutoffHigh* - The horizontal frequency at which we perform the cutoff of the high
-          frequency signals. Our filter passes signals between xCutoffLow and
-          xCutoffHigh. A separate frequency can be used for the b, g, and r
-          channels by providing a
-          list of values. The frequency is defined between zero to one,
-          where zero is constant component and 1 is the highest possible
-          frequency in the image.
-
-        * *yCutoffLow* - The low frequency cutoff in the y direction. If none
-          are provided we use the same values as provided for x.
-
-        * *yCutoffHigh* - The high frequency cutoff in the y direction. If none
-          are provided we use the same values as provided for x.
-
-        * *grayscale* - if this value is True we perfrom the operation on the DFT of the gray
-          version of the image and the result is gray image. If grayscale is true
-          we perform the operation on each channel and the recombine them to create
-          the result.
-
-        **RETURNS**
-
-        A SimpleCV Image after applying the filter.
-
-        **EXAMPLE**
-
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
-        >>> img.getDFTLogMagnitude().show()
-        >>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
-        >>> lpf.show()
-        >>> lpf.getDFTLogMagnitude().show()
-
-        **NOTES**
-
-        This filter is far from perfect and will generate a lot of ringing artifacts.
-
-        See: http://en.wikipedia.org/wiki/Ringing_(signal)
-
-        **SEE ALSO**
-
-        :py:meth:`rawDFTImage`
-        :py:meth:`getDFTLogMagnitude`
-        :py:meth:`applyDFTFilter`
-        :py:meth:`highPassFilter`
-        :py:meth:`lowPassFilter`
-        :py:meth:`bandPassFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyButterworthFilter`
-        :py:meth:`InverseDFT`
-        :py:meth:`applyGaussianFilter`
-        :py:meth:`applyUnsharpMask`
-
-        """
-
-        if( isinstance(xCutoffLow,float) ):
-            xCutoffLow = [xCutoffLow,xCutoffLow,xCutoffLow]
-        if( isinstance(yCutoffLow,float) ):
-            yCutoffLow = [yCutoffLow,yCutoffLow,yCutoffLow]
-        if( isinstance(xCutoffHigh,float) ):
-            xCutoffHigh = [xCutoffHigh,xCutoffHigh,xCutoffHigh]
-        if( isinstance(yCutoffHigh,float) ):
-            yCutoffHigh = [yCutoffHigh,yCutoffHigh,yCutoffHigh]
-
-        if(yCutoffLow is None):
-            yCutoffLow = [xCutoffLow[0],xCutoffLow[1],xCutoffLow[2]]
-        if(yCutoffHigh is None):
-            yCutoffHigh = [xCutoffHigh[0],xCutoffHigh[1],xCutoffHigh[2]]
-
-        for i in range(0,len(xCutoffLow)):
-            xCutoffLow[i] = self._boundsFromPercentage(xCutoffLow[i],self.width)
-            xCutoffHigh[i] = self._boundsFromPercentage(xCutoffHigh[i],self.width)
-            yCutoffHigh[i] = self._boundsFromPercentage(yCutoffHigh[i],self.height)
-            yCutoffLow[i] = self._boundsFromPercentage(yCutoffLow[i],self.height)
-
-        filter = None
-        h  = self.height
-        w  = self.width
-        if( grayscale ):
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filter)
-            #now make all of the corners black
-            cv.Rectangle(filter,(0,0),(xCutoffHigh[0],yCutoffHigh[0]),255,thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoffHigh[0]),(xCutoffHigh[0],h),255,thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoffHigh[0],0),(w,yCutoffHigh[0]),255,thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoffHigh[0],h-yCutoffHigh[0]),(w,h),255,thickness=-1) #BR
-            cv.Rectangle(filter,(0,0),(xCutoffLow[0],yCutoffLow[0]),0,thickness=-1) #TL
-            cv.Rectangle(filter,(0,h-yCutoffLow[0]),(xCutoffLow[0],h),0,thickness=-1) #BL
-            cv.Rectangle(filter,(w-xCutoffLow[0],0),(w,yCutoffLow[0]),0,thickness=-1) #TR
-            cv.Rectangle(filter,(w-xCutoffLow[0],h-yCutoffLow[0]),(w,h),0,thickness=-1) #BR
-
-
-        else:
-            #I need to looking into CVMERGE/SPLIT... I would really need to know
-            # how much memory we're allocating here
-            filterB = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterG = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            filterR = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,1)
-            cv.Zero(filterB)
-            cv.Zero(filterG)
-            cv.Zero(filterR)
-            #now make all of the corners black
-            temp = [filterB,filterG,filterR]
-            i = 0
-            for f in temp:
-                cv.Rectangle(f,(0,0),(xCutoffHigh[i],yCutoffHigh[i]),255,thickness=-1) #TL
-                cv.Rectangle(f,(0,h-yCutoffHigh[i]),(xCutoffHigh[i],h),255,thickness=-1) #BL
-                cv.Rectangle(f,(w-xCutoffHigh[i],0),(w,yCutoffHigh[i]),255,thickness=-1) #TR
-                cv.Rectangle(f,(w-xCutoffHigh[i],h-yCutoffHigh[i]),(w,h),255,thickness=-1) #BR
-                cv.Rectangle(f,(0,0),(xCutoffLow[i],yCutoffLow[i]),0,thickness=-1) #TL
-                cv.Rectangle(f,(0,h-yCutoffLow[i]),(xCutoffLow[i],h),0,thickness=-1) #BL
-                cv.Rectangle(f,(w-xCutoffLow[i],0),(w,yCutoffLow[i]),0,thickness=-1) #TR
-                cv.Rectangle(f,(w-xCutoffLow[i],h-yCutoffLow[i]),(w,h),0,thickness=-1) #BR
-                i = i+1
-
-            filter = cv.CreateImage((self.width,self.height),cv.IPL_DEPTH_8U,3)
-            cv.Merge(filterB,filterG,filterR,None,filter)
-
-        scvFilt = Image(filter)
-        retVal = self.applyDFTFilter(scvFilt,grayscale)
-        return retVal
-
+    
     def _inverseDFT(self,inputnp):
         """
         **SUMMARY**
@@ -10154,7 +9777,7 @@ class Image:
         Take the value in an ROI, calculate the average / peak hue
         and then set the output image roi to the value.
         '''
-
+        print "do this later"
         if( mode ): # get the peak hue for an area
             h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
             myHue = np.argmax(h)
@@ -10748,11 +10371,6 @@ class Image:
         """
         aperture = aperature if aperature else aperture
         retVal = None
-        try:
-            import cv2
-        except:
-            logger.warning("Can't do Sobel without OpenCV >= 2.3.0")
-            return None
 
         if( aperture != 1 and aperture != 3 and aperture != 5 and aperture != 7 ):
             logger.warning("Bad Sobel Aperture, values are [1,3,5,7].")
@@ -11099,16 +10717,14 @@ class Image:
         Convert this image to a 32bit floating point image.
 
         """
-        retVal = cv.CreateImage((self.width,self.height), cv.IPL_DEPTH_32F, 3)
-        cv.Convert(self.getBitmap(),retVal)
+        retVal = self.getNumpy().astype(np.float32)
         return retVal
 
     def __getstate__(self):
         return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
 
     def __setstate__(self, mydict):
-        self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
-        cv.SetData(self._bitmap, mydict['image'])
+        self._numpy = mydict['image']
         self._colorSpace = mydict['colorspace']
         self.width = mydict['size'][0]
         self.height = mydict['size'][1]
@@ -11145,9 +10761,8 @@ class Image:
         >>>> img.rotate270().show()
 
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Flip(self.getBitmap(), retVal, 0) # vertical
-        cv.Transpose(retVal, retVal)
+        retVal = cv2.flip(self.getNumpy(), 0) # vertical
+        retVal = cv2.transpose(retVal)
         return(Image(retVal, colorSpace=self._colorSpace))
 
     def rotate90(self):
@@ -11167,10 +10782,8 @@ class Image:
         >>>> img.rotate90().show()
 
         """
-
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.getBitmap(), retVal)
-        cv.Flip(retVal, retVal, 0) # vertical
+        retVal = cv2.transpose(self.getNumpy())
+        retVal = cv2.flip(retVal, 0) # vertical
         return(Image(retVal, colorSpace=self._colorSpace))
 
     def rotateLeft(self): # same as 90
@@ -11190,11 +10803,7 @@ class Image:
         >>>> img.rotateLeft().show()
 
         """
-
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.getBitmap(), retVal)
-        cv.Flip(retVal, retVal, 0) # vertical
-        return(Image(retVal, colorSpace=self._colorSpace))
+        return self.rotate90()
 
     def rotateRight(self): # same as 270
         """
@@ -11213,11 +10822,7 @@ class Image:
         >>>> img.rotateRight().show()
 
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Flip(self.getBitmap(), retVal, 0) # vertical
-        cv.Transpose(retVal, retVal)
-        return(Image(retVal, colorSpace=self._colorSpace))
-
+        return self.rotate270()
 
     def rotate180(self):
         """
@@ -11235,9 +10840,8 @@ class Image:
         >>>> img = Image('lenna')
         >>>> img.rotate180().show()
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Flip(self.getBitmap(), retVal, 0) #vertical
-        cv.Flip(retVal, retVal, 1)#horizontal
+        retVal = cv2.flip(self.getNumpy(), 0) #vertical
+        retVal = cv2.flip(retVal, 1)#horizontal
         return(Image(retVal, colorSpace=self._colorSpace))
 
     def verticalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
@@ -11900,10 +11504,6 @@ class Image:
         if not self.size() == img.size():
             print "Both images must have same sizes"
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -11936,10 +11536,6 @@ class Image:
         if not self.size() == img.size():
             print "Both images must have same sizes"
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -11973,10 +11569,6 @@ class Image:
         if not self.size() == img.size():
             print "Both images must have same sizes"
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
             retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -12009,10 +11601,6 @@ class Image:
         if not self.size() == img.size():
             print "Both images must have same sizes"
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
             retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -12056,11 +11644,6 @@ class Image:
         :py:meth:`findKeypoints`
 
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV >= 2.4.3 required")
-            return None
         if not hasattr(cv2, "FeatureDetector_create"):
             warnings.warn("OpenCV >= 2.4.3 required")
             return None
@@ -12068,8 +11651,8 @@ class Image:
             return None    
         detector = cv2.FeatureDetector_create("SIFT")
         descriptor = cv2.DescriptorExtractor_create("SIFT")
-        img = self.getNumpyCv2()
-        template_img = template.getNumpyCv2()
+        img = self.transpose().getGrayNumpy()
+        template_img = template.transpose().getGrayNumpy()
 
         skp = detector.detect(img)
         skp, sd = descriptor.compute(img, skp)
@@ -12148,7 +11731,7 @@ class Image:
         """
         if template == None:
             return
-        resultImg = template.sideBySide(self,scale=False)
+        resultImg = self.sideBySide(template,scale=False)
         hdif = (self.height-template.height)/2
         sfs, tfs = self.matchSIFTKeyPoints(template, distance)
         maxlen = min(len(sfs), len(tfs))
@@ -12157,9 +11740,9 @@ class Image:
         for i in range(num):
             skp = sfs[i]
             tkp = tfs[i]
-            pt_a = (int(tkp.y), int(tkp.x)+hdif)
-            pt_b = (int(skp.y)+template.width, int(skp.x))
-            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
+            pt_a = (int(tkp.x), int(tkp.y)+hdif)
+            pt_b = (int(skp.x)+template.width, int(skp.y))
+            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(),thickness=width)
         return resultImg
 
     def stegaEncode(self,message):
@@ -12286,12 +11869,7 @@ class Image:
         :py:meth:`findKeypointMatch`
 
         """
-        try:
-            import cv2
-        except ImportError:
-            logger.warning("OpenCV >= 2.3.0 required")
-            return None
-        img = self.getGrayNumpyCv2()
+        img = self.getGrayNumpy()
         blur = cv2.GaussianBlur(img, (3, 3), 0)
 
         Ix = cv2.Sobel(blur, cv2.CV_32F, 1, 0)
@@ -12383,11 +11961,11 @@ class Image:
             newmask = (newmask-mask.dilate(dilate)+mask.erode(erode))
         else:
             newmask = mask            
-        m = np.int32(newmask.getGrayNumpyCv2())
-        cv2.watershed(self.getNumpyCv2(),m)
+        m = np.int32(newmask.getGrayNumpy())
+        cv2.watershed(self.getNumpy(),m)
         m = cv2.convertScaleAbs(m)
         ret,thresh = cv2.threshold(m,0,255,cv2.cv.CV_THRESH_OTSU)
-        retVal = Image(thresh,cv2image=True)
+        retVal = Image(thresh)
         return retVal
 
     def findBlobsFromWatershed(self,mask=None,erode=2,dilate=2,useMyMask=False,invert=False,minsize=20,maxsize=None):
@@ -12609,8 +12187,8 @@ class Image:
             return None
         detector = cv2.FeatureDetector_create(flavor)
         extractor = cv2.DescriptorExtractor_create("FREAK")
-        self._mKeyPoints = detector.detect(self.getGrayNumpyCv2())
-        self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpyCv2(), 
+        self._mKeyPoints = detector.detect(self.getGrayNumpy())
+        self._mKeyPoints, self._mKPDescriptors = extractor.compute(self.getGrayNumpy(), 
                                                                    self._mKeyPoints)
         fs = FeatureSet()
         for i in range(len(self._mKeyPoints)):
