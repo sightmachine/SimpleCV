@@ -8856,8 +8856,7 @@ class Image:
 
         npimg = np.copy(self.getNumpy())
         if isinstance(mask, type(None)):
-            mask = self.edges().getGrayNumpy()
-            mask = cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_REPLICATE)
+            mask = np.zeros((self.height+2, self.width+2), np.uint8)
         else:
             if mask.height != self.height + 2 or mask.width != self.width + 2:
                 mask = mask.resize(self.width, self.height)
@@ -8865,7 +8864,6 @@ class Image:
 
         if( len(points.shape) != 1 ):
             for p in points:
-                print p
                 rect, val = cv2.floodFill(npimg, mask, tuple(p), color, lower, upper, flags)
         else:
             rect, val = cv2.floodFill(npimg, mask, tuple(points), color, lower, upper, flags)
@@ -8929,67 +8927,6 @@ class Image:
         """
         return self.floodFill(points, tolerance, color, lower, upper, fixed_range, mask)
 
-        """
-        mask_flag = 255 # flag weirdness
-
-        if( isinstance(color,np.ndarray) ):
-            color = color.tolist()
-        elif( isinstance(color,dict) ):
-            color = (color['R'],color['G'],color['B'])
-        
-        if( isinstance(points,tuple) ):
-            points = np.array(points)
-
-        # first we guess what the user wants to do
-        # if we get and int/float convert it to a tuple
-        if( upper is None and lower is None and tolerance is None ):
-            upper = (0,0,0)
-            lower = (0,0,0)
-
-        if( tolerance is not None and
-            (isinstance(tolerance,float) or isinstance(tolerance,int))):
-            tolerance = (int(tolerance),int(tolerance),int(tolerance))
-
-        if( lower is not None and
-            (isinstance(lower,float) or isinstance(lower, int)) ):
-            lower = (int(lower),int(lower),int(lower))
-        elif( lower is None ):
-            lower = tolerance
-
-        if( upper is not None and
-            (isinstance(upper,float) or isinstance(upper, int)) ):
-            upper = (int(upper),int(upper),int(upper))
-        elif( upper is None ):
-            upper = tolerance
-
-        if( isinstance(points,tuple) ):
-            points = np.array(points)
-
-        flags = (mask_flag << 8 )+8
-        if( fixed_range ):
-            flags = flags + cv.CV_FLOODFILL_FIXED_RANGE
-
-        localMask = None
-        #opencv wants a mask that is slightly larger
-        if( mask is None ):
-            localMask  = cv.CreateImage((self.width+2,self.height+2), cv.IPL_DEPTH_8U, 1)
-            cv.Zero(localMask)
-        else:
-            localMask = mask.embiggen(size=(self.width+2,self.height+2))._getGrayscaleBitmap()
-
-        bmp = self.getEmpty()
-        cv.Copy(self.getBitmap(),bmp)
-        if( len(points.shape) != 1 ):
-            for p in points:
-                cv.FloodFill(bmp,tuple(p),color,lower,upper,flags,localMask)
-        else:
-            cv.FloodFill(bmp,tuple(points),color,lower,upper,flags,localMask)
-
-        retVal = Image(localMask)
-        retVal = retVal.crop(1,1,self.width,self.height)
-        return retVal
-        """
-
     def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0,appx_level=3 ):
         """
         **SUMMARY**
@@ -9040,9 +8977,6 @@ class Image:
 
         blobmaker = BlobMaker()
         gray = mask.getGrayNumpy()
-
-        gray = mask._getGrayscaleBitmap()
-        result = mask.getEmpty(1)
         val, result = cv2.threshold(gray, threshold, 255, cv.CV_THRESH_BINARY)
         blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
 
@@ -9440,7 +9374,6 @@ class Image:
         """
         # a destructive IDFT operation for internal calls
         h, w = inputnp[0].shape[:2]
-        print len(inputnp)
         if( len(inputnp) == 1 ):
             dftimg = cv2.dft(inputnp[0], flags=cv2.DFT_INVERSE)
             data = dftimg[:, :, 0]

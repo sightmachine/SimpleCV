@@ -31,7 +31,7 @@ class FrameBufferThread(threading.Thread):
             for cam in _cameras:
                 if cam.pygame_camera:
                     cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
-                #else:
+                else:
                     val, img = cam.capture.read()
                 cam._threadcapturetime = time.time()
             time.sleep(0.04)    #max 25 fps, if you're lucky
