@@ -116,8 +116,10 @@ class Blob(Feature):
         #once we get all the metadata loaded, go for the bitmaps
         for k in iplkeys:
             realkey = k[:-len("__string")]
-            self.__dict__[realkey] = cv.CreateImageHeader((self.width(), self.height()), cv.IPL_DEPTH_8U, 1)
-            cv.SetData(self.__dict__[realkey], mydict[k])
+            self.__dict__[realkey] = np.zeros((self.height(), self.width()))
+            #self.__dict__[realkey] = cv.CreateImageHeader((self.width(), self.height()), cv.IPL_DEPTH_8U, 1)
+            self.__dict__[realkey] = mydict[k]
+            #cv.SetData(self.__dict__[realkey], mydict[k])
 
     def perimeter(self):
         """
@@ -670,9 +672,9 @@ class Blob(Feature):
             for h in self.mHoleContour:
                 lastp = h[0] #this may work better.... than the other
                 for nextp in h[1::]:
-                    layer.line((int(lastp[0]),int(lastp[1])),(int(nextp[0]),int(nextp[1])),color,width=width,alpha=alpha,antialias = False)
+                    layer.line((int(lastp[0][0]),int(lastp[0][1])),(int(nextp[0][0]),int(nextp[0][1])),color,width=width,alpha=alpha,antialias = False)
                     lastp = nextp
-                layer.line(h[0],h[-1],color,width=width,alpha=alpha, antialias = False)
+                layer.line(h[0][0],h[-1][0],color,width=width,alpha=alpha, antialias = False)
 
     def drawHull(self, color=Color.GREEN, alpha=-1, width=-1, layer=None ):
         """
@@ -706,14 +708,14 @@ class Blob(Feature):
 
         if( width < 0 ):
             #blit the blob in
+            #convexHull = list(tuple(pt[0]) for pt in self.mConvexHull)
             layer.polygon(self.mConvexHull,color,filled=True,alpha=alpha)
         else:
             lastp = self.mConvexHull[0] #this may work better.... than the other
             for nextp in self.mConvexHull[1::]:
                 layer.line(lastp,nextp,color,width=width,alpha=alpha,antialias = False)
                 lastp = nextp
-            layer.line(self.mConvexHull[0],self.mConvexHull[-1],color,width=width,alpha=alpha, antialias = False)
-
+            layer.line(self.mConvexHull[0], self.mConvexHull[-1],color,width=width,alpha=alpha, antialias = False)
 
     #draw the actual pixels inside the contour to the layer
     def drawMaskToLayer(self, layer = None, offset=(0,0)):
@@ -904,11 +906,14 @@ class Blob(Feature):
     @LazyProperty
     def mImg(self):
         #NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND WITH A LAKE STUFF
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mMask.getBitmap()
+        #retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
+        #cv.Zero(retVal)
+        #bmp = self.image.getBitmap()
+        #mask = self.mMask.getBitmap()
+        bmp = self.image.getNumpy()
+        mask = self.mMask.getNumpy()
         tl = self.topLeftCorner()
+        # Kat, help!
         cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
         cv.Copy(bmp,retVal,mask)
         cv.ResetImageROI(bmp)
@@ -916,6 +921,7 @@ class Blob(Feature):
 
     @LazyProperty
     def mMask(self):
+        print "do this"
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
         #Alas - OpenCV does not provide an offset in the fillpoly method for
@@ -940,6 +946,7 @@ class Blob(Feature):
 
     @LazyProperty
     def mHullImg(self):
+        print "do this"
         retVal = cv.CreateImage((self.width(),self .height()),cv.IPL_DEPTH_8U,3)
         cv.Zero(retVal)
         bmp = self.image.getBitmap()

@@ -9,7 +9,8 @@ class BlobMaker:
     would use for blob extraction. Later implementations may include tracking and
     other features.
     """
-    mMemStorage = None
+    contours = None
+    hierarchy = None
     def __init__(self):
         pass
 
@@ -72,7 +73,7 @@ class BlobMaker:
         #v_next() moves to the next internal contour
         if (maxsize <= 0):
             maxsize = colorImg.width * colorImg.height
-        binaryImg.show()
+        #binaryImg.show()
         retVal = []
         test = binaryImg.meanColor()
         if( test[0]==0.00 and test[1]==0.00 and test[2]==0.00):
@@ -87,22 +88,23 @@ class BlobMaker:
         ptest = (4*255.0)/(binaryImg.width*binaryImg.height) # val if two pixels are white
         if( test[0]<=ptest and test[1]<=ptest and test[2]<=ptest):
             return retVal
-        contourImage = binaryImg.edges().getGrayNumpy()
-        print contourImage.shape, contourImage.dtype
-        contours, hierarchy = cv2.findContours(contourImage, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #seq = cv.FindContours( binaryImg._getGrayscaleBitmap(), self.mMemStorage, cv.CV_RETR_TREE, cv.CV_CHAIN_APPROX_SIMPLE)
+        contourImage = binaryImg.toGray().getGrayNumpy()
+        #print contourImage.shape, contourImage.dtype
+        contours, hierarchy = cv2.findContours(contourImage, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        self.contours = copy(contours)
+        self.hierarchy = copy(hierarchy)
         if not contours:
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
         try:
             # note to self
             # http://code.activestate.com/recipes/474088-tail-call-optimization-decorator/
-            retVal = self._extractFromBinary(contours,False,colorImg,minsize,maxsize,appx_level)
+            retVal = self._extractFromBinary(contours, hierarchy, colorImg, minsize,maxsize,appx_level)
         except RuntimeError,e:
             logger.warning("You exceeded the recursion limit. This means you probably have too many blobs in your image. We suggest you do some morphological operations (erode/dilate) to reduce the number of blobs in your image. This function was designed to max out at about 5000 blobs per image.")
         return FeatureSet(retVal)
 
-    def _extractFromBinary(self, contours, isaHole, colorImg,minsize,maxsize,appx_level):
+    def _extractFromBinary(self, contours, hierarchy, colorImg,minsize,maxsize,appx_level):
         """
         The recursive entry point for the blob extraction. The blobs and holes are presented
         as a tree and we traverse up and across the tree.
@@ -111,13 +113,15 @@ class BlobMaker:
 
         if(not contours):
             return retVal
-        for contour in contours:
-            temp = self._extractData(contour, colorImg, minsize, maxsize, appx_level)
-            if temp is not None:
-                retVal.append(temp)
+        for i, contour in enumerate(contours):
+            if hierarchy[0][i][-1] == -1:
+                # not a hole
+                blobFeature = self._extractData(contour, hierarchy, i, colorImg, minsize, maxsize, appx_level)
+                if blobFeature is not None:
+                    retVal.append(blobFeature)
         return retVal
 
-    def _extractData(self, contour, color, minsize, maxsize, appx_level):
+    def _extractData(self, contour, hierarchy, contourNum, color, minsize, maxsize, appx_level):
         """
         Extract the bulk of the data from a give blob. If the blob's are is too large
         or too small the method returns none.
@@ -140,8 +144,6 @@ class BlobMaker:
         retVal.mContour = contour
         if( retVal.mContour is not None):
             retVal.mContourAppx = []
-            print len(retVal.mContour)
-            print np.array([retVal.mContour])
             appx = cv2.approxPolyDP(np.array(retVal.mContour,'float32'),appx_level,True)
             for p in appx:
                 retVal.mContourAppx.append((int(p[0][0]),int(p[0][1])))
@@ -160,7 +162,7 @@ class BlobMaker:
         retVal.points = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
         retVal._updateExtents()
         chull = cv2.convexHull(contour, returnPoints=1)
-        retVal.mConvexHull = list(chull)
+        retVal.mConvexHull = list(tuple(pt[0]) for pt in list(chull))
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #hullMask = self._getHullMask(chull,bb)
 
@@ -192,26 +194,25 @@ class BlobMaker:
         #retVal.mMask = Image(mask)
 
         retVal.mAvgColor = self._getAvg(color.getNumpy(),bb,mask)
-        print retVal.mAvgColor
         retVal.mAvgColor = retVal.mAvgColor[0:2]
-        #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,mask)
-        #retVal.mAvgColor = retVal.mAvgColor[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
 
-        retVal.mHoleContour = self._getHoles(contour)
+        retVal.mHoleContour = self._getHoles(contourNum)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0]/retVal.mMinRectangle[1][1]
 
         return retVal
 
-    def _getHoles(self, contours):
+    def _getHoles(self, contourNum):
         """
         This method returns the holes associated with a blob as a list of tuples.
         """
-        retVal = None
-        for contour in contours:
-            if( len(contour) >= 3 ): #exclude single pixel holes
+        retVal = []
+        for i, contour in enumerate(self.contours):
+            if self.hierarchy[0][i][-1] == contourNum:
+                # hole in contourNum contour
+                if( len(contour) >= 3 ): #exclude single pixel holes
                     retVal.append(contour)
         return retVal
 
@@ -222,8 +223,8 @@ class BlobMaker:
         """
         #bb = cv.BoundingRect(seq)
         bb = cv2.boundingRect(contour)
-        mask = np.zeros((bb[3], bb[2]))
-        cv2.drawContours(mask, [contour], 0, (0), thickness=-1, offset=(-1*bb[0],-1*bb[1]))
+        mask = np.zeros((bb[3], bb[2]), dtype=np.uint8)
+        cv2.drawContours(mask, [contour], 0, (255), thickness=-1, offset=(-1*bb[0],-1*bb[1]))
         # I don't think there's ever going to be v_next()
         """
         holes = seq.v_next()
@@ -249,21 +250,24 @@ class BlobMaker:
         """
         Calculate the average color of a blob given the mask.
         """
-        print "need to do avg with mask"
-        img = colornp[bb[0]:bb[0]+bb[2], bb[1]:bb[1]+bb[3]]
-        color = (np.average(img[:,:,0]), np.average(img[:,:,1]), np.average(img[:,:,2]))
+        img = colornp[bb[1]:bb[1]+bb[3], bb[0]:bb[0]+bb[2]]
+        #cropMask = mask[bb[0]:bb[0]+bb[2], bb[1]:bb[1]+bb[3]]
+        color = cv2.mean(img, mask)
         return color
 
     def _getBlobAsImage(self, colornp, bb, mask):
         """
         Return an image that contains just pixels defined by the blob sequence.
         """
-        print "need to do mask and copy too. sigh."
+        print "need to do mask and copy too. sigh. check"
         img = colornp[bb[0]:bb[0]+bb[2], bb[1]:bb[1]+bb[3]]
-        return(Image(img))
-
+        bitwisenp = cv2.bitwise_and(img, mask)
+        colornpcopy = np.copy(colornp)
+        colornpcopy[img] = retVal
+        return(Image(colornpcopy))
 
 
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features.Features import FeatureSet
 from SimpleCV.Features.Blob import Blob
+from SimpleCV.base import copy

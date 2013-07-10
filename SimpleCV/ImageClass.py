@@ -2142,11 +2142,11 @@ class Image:
             return 1
 
         if (filename):
-            cv.SaveImage(filename, saveimg.getBitmap())
+            cv2.imwrite(filename, saveimg.toRGB().getNumpy())
             self.filename = filename #set the filename for future save operations
             self.filehandle = ""
         elif (self.filename):
-            cv.SaveImage(self.filename, saveimg.getBitmap())
+            cv2.imwrite(self.filename, saveimg.toRGB().getNumpy())
         else:
             return 0
 
