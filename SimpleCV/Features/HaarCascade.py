@@ -10,7 +10,7 @@ class HaarCascade():
     _mName = None
     _cache = {}
     _fhandle = None
-
+    _classifier = None
 
     def __init__(self, fname=None, name=None):
         #if fname.isalpha():
@@ -32,7 +32,8 @@ class HaarCascade():
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")
                     return None
             
-            self._mCascade = cv.Load(self._fhandle)
+            self._classifier = cv2.CascadeClassifier(fname)
+            self._mCascade = self._fhandle
 
             if HaarCascade._cache.has_key(self._fhandle):
                 self._mCascade = HaarCascade._cache[self._fhandle]
@@ -55,7 +56,7 @@ class HaarCascade():
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")
                     return None
             
-            self._mCascade = cv.Load(self._fhandle)
+            self._mCascade = cv2.CascadeClassifier().load(self._fhandle)
 
             if HaarCascade._cache.has_key(self._fhandle):
                 self._mCascade = HaarCascade._cache[fname]
@@ -75,3 +76,6 @@ class HaarCascade():
 
     def getFHandle(self):
         return self._fhandle
+
+    def getClassifier(self):
+        return self._classifier

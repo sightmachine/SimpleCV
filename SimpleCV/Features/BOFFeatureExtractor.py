@@ -118,9 +118,7 @@ class BOFFeatureExtractor(object):
         spacersz = the number of pixels between patches
         """
         img = img.toHLS()
-        lmat = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
-        patch = cv.CreateImage(patchsize,cv.IPL_DEPTH_8U,1)
-        cv.Split(img.getBitmap(),None,lmat,None,None)
+        lmat = img.getNumpy()[:, :, 1]
         w = patchsize[0]
         h = patchsize[1]
         length = w*h
@@ -129,14 +127,10 @@ class BOFFeatureExtractor(object):
             for hidx in range(patch_arrangement[1]):
                 x = (widx*patchsize[0])+((widx+1)*spacersz)
                 y = (hidx*patchsize[1])+((hidx+1)*spacersz)
-                cv.SetImageROI(lmat,(x,y,w,h))
-                cv.Copy(lmat,patch)
-                cv.ResetImageROI(lmat)
+                patch = lmat[y:y+h, x:x+w]
                 retVal = np.vstack((retVal,np.array(patch[:,:]).reshape(length)))
         retVal = retVal[1:,:]
         return retVal
-
-
 
     def _codebook2Img(self, cb, patchsize, count, patch_arrangement, spacersz):
         """
@@ -148,8 +142,7 @@ class BOFFeatureExtractor(object):
         """
         w = (patchsize[0]*patch_arrangement[0])+((patch_arrangement[0]+1)*spacersz)
         h = (patchsize[1]*patch_arrangement[1])+((patch_arrangement[1]+1)*spacersz)
-        bm = cv.CreateImage((w,h), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(bm)
+        bm = np.zeros((h, w), np.uint8)
         img = Image(bm)
         count = 0
         for widx in range(patch_arrangement[0]):
@@ -166,9 +159,7 @@ class BOFFeatureExtractor(object):
         if( sz is None ):
             sz = self.mPatchSize
         img2 = img.toHLS()
-        lmat = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
-        patch = cv.CreateImage(self.mPatchSize,cv.IPL_DEPTH_8U,1)
-        cv.Split(img2.getBitmap(),None,lmat,None,None)
+        lmat = img2.getNumpy()[:, :, 1]
         wsteps = img2.width/sz[0]
         hsteps = img2.height/sz[1]
         w=sz[0]
@@ -179,17 +170,11 @@ class BOFFeatureExtractor(object):
             for hidx in range(hsteps):
                 x = (widx*sz[0])
                 y = (hidx*sz[1])
-                cv.SetImageROI(lmat,(x,y,w,h))
-                cv.EqualizeHist(lmat,patch)
-                #cv.Copy(lmat,patch)
-                cv.ResetImageROI(lmat)
-
+                patch = cv2.equalizeHist(lmat[y:y+h, x:x+w])
                 retVal = np.vstack((retVal,np.array(patch[:,:]).reshape(length)))
                 #retVal.append()
         retVal = retVal[1:,:] # pop the fake value we put on top of the stack
         return retVal
-
-
 
     def load(self,datafile):
         """
@@ -273,7 +258,7 @@ class BOFFeatureExtractor(object):
         The method takes in an image, extracts each codebook code, and replaces
         the image at the position with the code.
         """
-        retVal = cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_8U, 1)
+        retVal = np.zeros((img.height, img.width), np.uint8)
         data = self._getPatches(img)
         p = spsd.cdist(data,self.mCodebook)
         foo = p.shape[0]

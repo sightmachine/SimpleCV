@@ -1094,10 +1094,9 @@ class Circle(Feature):
         """
         #generate the mask
         if( self.avgColor is None):
-            mask = self.image.getEmpty(1)
-            cv.Zero(mask)
-            cv.Circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
-            temp = cv.Avg(self.image.getBitmap(),mask)
+            mask = self.image.getEmpty(3)
+            cv2.circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
+            temp = cv2.mean(self.image.getNumpy(),mask)
             self.avgColor = (temp[0],temp[1],temp[2])
         return self.avgColor
 
@@ -1186,13 +1185,10 @@ class Circle(Feature):
         if( noMask ):
             return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
         else:
-            mask = self.image.getEmpty(1)
-            result = self.image.getEmpty()
-            cv.Zero(mask)
-            cv.Zero(result)
+            mask = self.image.getEmpty(3)
             #if you want to shave a bit of time we go do the crop before the blit
-            cv.Circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
-            cv.Copy(self.image.getBitmap(),result,mask)
+            cv2.circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
+            result = cv2.bitwise_and(self.image.getNumpy(), mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
             return retVal
@@ -1372,10 +1368,9 @@ class KeyPoint(Feature):
         """
         #generate the mask
         if( self._avgColor is None):
-            mask = self.image.getEmpty(1)
-            cv.Zero(mask)
-            cv.Circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
-            temp = cv.Avg(self.image.getBitmap(),mask)
+            mask = self.image.getEmpty(3)
+            cv2.circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
+            temp = cv2.mean(self.image.getNumpy(),mask)
             self._avgColor = (temp[0],temp[1],temp[2])
         return self._avgColor
 
@@ -1447,13 +1442,10 @@ class KeyPoint(Feature):
         if( noMask ):
             return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
         else:
-            mask = self.image.getEmpty(1)
-            result = self.image.getEmpty()
-            cv.Zero(mask)
-            cv.Zero(result)
+            mask = self.image.getEmpty(3)
             #if you want to shave a bit of time we go do the crop before the blit
-            cv.Circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
-            cv.Copy(self.image.getBitmap(),result,mask)
+            cv2.circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
+            result = cv2.bitwise_and(self.image.getNumpy(), mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)
             return retVal
@@ -1725,12 +1717,9 @@ class KeypointMatch(Feature):
             mask = Image((self.width(),self.height()))
             mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
             mask = mask.applyLayers()
-            retVal = cv.Avg(raw.getBitmap(),mask._getGrayscaleBitmap())
+            retVal = cv2.mean(raw.getNumpy(),mask.getGrayNumpy())
             self._avgColor = retVal
-        else:
-            retVal = self._avgColor
-        return retVal
-
+        return self._avgColor
 
     def getMinRect(self):
         """

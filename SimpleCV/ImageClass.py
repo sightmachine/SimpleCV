@@ -1696,7 +1696,7 @@ class Image:
         :py:meth:`getGrayscaleMatrix`
 
         """
-        npimg = Image(np.zeros((self.height, self.width, channels)))
+        npimg = np.zeros((self.height, self.width, channels), np.uint8)
         return npimg
 
     def getFPNumpy(self):
@@ -3331,8 +3331,8 @@ class Image:
             logger.warning('Could not initialize HaarCascade. Enter Valid cascade value.')
 
         # added all of the arguments from the opencv docs arglist
-        haarClassify = cv2.CascadeClassifier(cascade.getFHandle())
-        objects = haarClassify.detectMultiScale(self.getGrayNumpyCv2(),scaleFactor=scale_factor,minNeighbors=min_neighbors,minSize=min_size,flags=use_canny)
+        haarClassify = cascade.getClassifier()
+        objects = haarClassify.detectMultiScale(self.getGrayNumpy(),scaleFactor=scale_factor,minNeighbors=min_neighbors,minSize=min_size,flags=use_canny)
         if objects is not None:
             return FeatureSet([HaarFeature(self, o, cascade, True) for o in objects]) # True for cv2flag
         return None

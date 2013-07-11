@@ -22,9 +22,7 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
         histogram of the pixel counts of each hue.
         """
         img = img.toHLS()
-        h = img.getEmpty(1)
-        cv.Split(img.getBitmap(),h,None,None,None)
-        npa = np.array(h[:,:])
+        h = img.getNumpy()[:, :, 0]
         npa = npa.reshape(1,npa.shape[0]*npa.shape[1])
         hist = np.histogram(npa,self.mNBins,normed=True,range=(0,255))
         return hist[0].tolist()
