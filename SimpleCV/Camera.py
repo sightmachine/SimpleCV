@@ -620,8 +620,8 @@ class Camera(FrameSource):
         val, frame = self.capture.read()
         if not val:
             warnings.warn("Unable to grab Image from camera")
-            width = self.capture.get(CV_CAP_PROP_FRAME_WIDTH)
-            height = self.capture.get(CV_CAP_PROP_FRAME_HEIGHT)
+            width = self.capture.get(cv.CV_CAP_PROP_FRAME_WIDTH)
+            height = self.capture.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
             frame = Image((height, width))
         # copy here probably
         newimg = np.copy(frame)

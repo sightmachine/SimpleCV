@@ -4205,7 +4205,7 @@ class Image:
     def __getitem__(self, coord):
         ret = self.getNumpy()[tuple(reversed(coord))]
         if self.isBGR():
-            return tuple(reversed(ret))
+            return tuple(reversed(ret.astype(np.int64)))
         else:
             return tuple(ret)
 
@@ -5384,7 +5384,7 @@ class Image:
             return None
 
         x, y, w, h = bottomROI
-        img = self.getNumpy()[x:w+x, y:w+h]
+        img = self.getNumpy()[y:h+y, x:w+x]
         img = Image(img, colorSpace=self._colorSpace)
         #Buffering the top left point (x, y) in a image.
         img._uncroppedX = self._uncroppedX + int(x)
@@ -9985,11 +9985,10 @@ class Image:
         p0p = np.array([(pt0[0]-x,pt0[1]-y)])
         p1p = np.array([(pt1[0]-x,pt1[1]-y)])
         edges = self.crop(x,y,w,h)._getEdgeMap(canny1, canny2)
-        line = cv.CreateImage((w,h),cv.IPL_DEPTH_8U,1)
-        cv.Zero(line)
-        cv.Line(line,((pt0[0]-x),(pt0[1]-y)),((pt1[0]-x),(pt1[1]-y)),cv.Scalar(255.00),width,8)
-        cv.Mul(line,edges,line)
-        intersections = uint8(np.array(cv.GetMat(line)).transpose())
+        lineImg = np.zeros((h, w), np.uint8)
+        cv2.line(lineImg,((pt0[0]-x),(pt0[1]-y)),((pt1[0]-x),(pt1[1]-y)),cv.Scalar(255.00),width,8)
+        lineImg = cv2.multiply(lineImg,edges)
+        intersections = lineImg.transpose()
         (xs,ys) = np.where(intersections==255)
         points = zip(xs,ys)
         if(len(points)==0):
@@ -10867,7 +10866,7 @@ class Image:
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> plt.bar(img.horizontalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
-        >>>> plt.show())
+        >>>> plt.show()
 
         **NOTES**
 
@@ -10938,7 +10937,7 @@ class Image:
         retVal = None
         if( x is not None and y is None and pt1 is None and pt2 is None):
             if( x >= 0 and x < self.width):
-                retVal = LineScan(img[x,:])
+                retVal = LineScan(img[:,x])
                 retVal.image = self
                 retVal.pt1 = (x,0)
                 retVal.pt2 = (x,self.height)
@@ -10953,7 +10952,7 @@ class Image:
 
         elif( x is None and y is not None and pt1 is None and pt2 is None):
             if( y >= 0 and y < self.height):
-                retVal = LineScan(img[:,y])
+                retVal = LineScan(img[y,:])
                 retVal.image = self
                 retVal.pt1 = (0,y)
                 retVal.pt2 = (self.width,y)
@@ -10974,7 +10973,7 @@ class Image:
               x is None and y is None):
 
             pts = self.bresenham_line(pt1,pt2)
-            retVal = LineScan([img[p[0],p[1]] for p in pts])
+            retVal = LineScan([img[p[1],p[0]] for p in pts])
             retVal.pointLoc = pts
             retVal.image = self
             retVal.pt1 = pt1
@@ -11053,7 +11052,7 @@ class Image:
                     linescan = linescan.resample(self.height)
                 #check for number of points
                 #linescan = np.array(linescan)
-                img[x,:] = np.clip(linescan[:], 0, 255)
+                img[:,x] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
                 return None
@@ -11063,7 +11062,7 @@ class Image:
                     linescan = linescan.resample(self.width)
                 #check for number of points
                 #linescan = np.array(linescan)
-                img[:,y] = np.clip(linescan[:], 0, 255)
+                img[y,:] = np.clip(linescan[:], 0, 255)
             else:
                 warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
                 return None
@@ -11079,7 +11078,7 @@ class Image:
             linescan = np.clip(linescan[:], 0, 255)
             idx = 0
             for pt in pts:
-                img[pt[0],pt[1]]=linescan[idx]
+                img[pt[1],pt[0]]=linescan[idx]
                 idx = idx+1
         else:
             warnings.warn("ImageClass.setLineScan: No coordinates to re-insert linescan.")
@@ -11145,7 +11144,7 @@ class Image:
             if linescan.row is not None:
                 if len(linescan) == self.width:
                     ls = np.clip(linescan, 0, 255)
-                    img[:,linescan.row] = ls[:]
+                    img[linescan.row, :] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
@@ -11153,7 +11152,7 @@ class Image:
             elif linescan.col is not None:
                 if len(linescan) == self.height:
                     ls = np.clip(linescan, 0, 255)
-                    img[linescan.col,:] = ls[:]
+                    img[:, linescan.col] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
@@ -11164,7 +11163,7 @@ class Image:
                 ls = np.clip(linescan[:], 0, 255)
                 idx = 0
                 for pt in pts:
-                    img[pt[0],pt[1]]=ls[idx]
+                    img[pt[1],pt[0]]=ls[idx]
                     idx = idx+1
             
             if linescan.channel == -1:
@@ -11438,10 +11437,10 @@ class Image:
             print "Both images must have same sizes"
             return None
         if grayscale:
-            retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+            retval = cv2.bitwise_and(self.getGrayNumpy(), img.getGrayNumpy())
         else:
-            retval = cv2.bitwise_and(self.getNumpyCv2(), img.getNumpyCv2())
-        return Image(retval, cv2image=True)
+            retval = cv2.bitwise_and(self.getNumpy(), img.getNumpy())
+        return Image(retval)
 
     def logicalNAND(self, img, grayscale=True):
         """
@@ -11470,11 +11469,11 @@ class Image:
             print "Both images must have same sizes"
             return None
         if grayscale:
-            retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+            retval = cv2.bitwise_and(self.getGrayNumpy(), img.getGrayNumpy())
         else:
-            retval = cv2.bitwise_and(self.getNumpyCv2(), img.getNumpyCv2())
+            retval = cv2.bitwise_and(self.getNumpy(), img.getNumpy())
         retval = cv2.bitwise_not(retval)
-        return Image(retval, cv2image=True)
+        return Image(retval)
 
     def logicalOR(self, img, grayscale=True):
         """
@@ -11503,10 +11502,10 @@ class Image:
             print "Both images must have same sizes"
             return None
         if grayscale:
-            retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+            retval = cv2.bitwise_or(self.getGrayNumpy(), img.getGrayNumpy())
         else:
-            retval = cv2.bitwise_or(self.getNumpyCv2(), img.getNumpyCv2())
-        return Image(retval, cv2image=True)
+            retval = cv2.bitwise_or(self.getNumpy(), img.getNumpy())
+        return Image(retval)
 
     def logicalXOR(self, img, grayscale=True):
         """
@@ -11535,10 +11534,10 @@ class Image:
             print "Both images must have same sizes"
             return None
         if grayscale:
-            retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
+            retval = cv2.bitwise_xor(self.getGrayNumpy(), img.getGrayNumpy())
         else:
-            retval = cv2.bitwise_xor(self.getNumpyCv2(), img.getNumpyCv2())
-        return Image(retval, cv2image=True)
+            retval = cv2.bitwise_xor(self.getNumpy(), img.getNumpy())
+        return Image(retval)
 
     def matchSIFTKeyPoints(self, template, quality=200):
         """
@@ -12573,7 +12572,7 @@ class Image:
         grayy = grayimg.convolve(gy)
         grayxnp = np.uint64(grayx.getGrayNumpy())
         grayynp = np.uint64(grayy.getGrayNumpy())
-        retVal = Image(np.sqrt(grayxnp**2+grayynp**2))
+        retVal = Image(np.sqrt(grayxnp**2+grayynp**2).astype(np.uint8))
         return retVal
 
     def edgeSnap(self,pointList,step = 1):
@@ -12677,7 +12676,7 @@ class Image:
             x,y = line[i]
             
             #Get the matrix of points fromx around current point.
-            region = edgeMap[x-box:x+box,y-box:y+box]
+            region = edgeMap[y-box:y+box,x-box:x+box]
 
             #Condition at the boundary of the image
             if(region.shape[0] == 0 or region.shape[1] == 0):
@@ -12713,7 +12712,7 @@ class Image:
 
                 # Reset the points in the box so that they are not detected
                 # during the next iteration.
-                edgeMap[x-box:x+box,y-box:y+box] = 0
+                edgeMap[y-box:y+box,x-box:x+box] = 0
 
                 # Keep all the points in the bounding box
                 if( xmin <= x+dx <= xmax and ymin <= y+dx <=ymax):
@@ -12806,13 +12805,13 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            imgMat = np.array(self.getNumpyCv2(),dtype=np.int)
+            npimg = self.getNumpy().astype(np.int64)
             retVal = np.array((np.max(imgMat,2) + np.min(imgMat,2))/2,dtype=np.uint8)
         else:
             logger.warnings('Input a RGB image')
             return None
 
-        return Image(retVal,cv2image=True)
+        return Image(retVal)
 
     def getLuminosity(self):
         """
@@ -12841,13 +12840,13 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            imgMat = np.array(self.getNumpyCv2(),dtype=np.int)
-            retVal = np.array(np.average(imgMat,2,(0.07,0.71,0.21)),dtype=np.uint8)
+            retVal = np.array(np.average(self.getNumpy().astype(np.int64),
+                              2, (0.07,0.71,0.21)) ,dtype=np.uint8)
         else:
             logger.warnings('Input a RGB image')
             return None
 
-        return Image(retVal,cv2image=True)
+        return Image(retVal)
 
     def getAverage(self):
         """
@@ -12876,13 +12875,12 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            imgMat = np.array(self.getNumpyCv2(),dtype=np.int)
-            retVal = np.array(imgMat.mean(2),dtype=np.uint8)
+            retVal = self.getNumpy().mean(2).astype(np.uint8)
         else:
             logger.warnings('Input a RGB image')
             return None
 
-        return Image(retVal,cv2image=True)
+        return Image(retVal)
     
     def smartRotate(self,bins=18,point = [-1,-1],auto = True,threshold=80,minLength=30,maxGap=10,t1=150,t2=200,fixed = True):
         """
@@ -13064,12 +13062,6 @@ class Image:
         ImageClass.findBlobsFromHueHistogram()
         
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV >= 2.3 required to use this.")
-            return None
-
         from SimpleCV.Features import ROI
         if( roi ): # roi is anything that can be taken to be an roi
             roi = ROI(roi,self)
@@ -13121,12 +13113,6 @@ class Image:
         ImageClass.findBlobsFromHueHistogram()
         
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV >= 2.3 required to use this.")
-            return None
-        
         if( model is None ):
             warnings.warn('Backproject requires a model')
             return None
@@ -13136,12 +13122,12 @@ class Image:
         if(not isinstance(model,np.ndarray) or  model.shape != (180,256) ):
             model = self.getNormalizedHueHistogram(model)
         if( isinstance(model,np.ndarray) and model.shape == (180,256) ):
-            hsv = self.toHSV().getNumpyCv2()
+            hsv = self.toHSV().getNumpy()
             dst = cv2.calcBackProject([hsv],[0,1],model,[0,180,0,256],1)
             if smooth:
                 disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
                 cv2.filter2D(dst,-1,disc,dst)
-            result = Image(dst,cv2image=True)
+            result = Image(dst)
             result = result.toBGR()
             if( threshold ):
                 result = result.threshold(threshold)
