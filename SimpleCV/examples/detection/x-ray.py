@@ -1,39 +1,50 @@
-#!/usr/bin/python
-'''
-This program basically overlays an edge detector window that gives
-the illusion of X-ray vision.  It is mearly meant to show how to perform
-a basic image operation and overlay back onto the original image
-'''
+#!/usr/bin/env python
+# 
+# Released under the BSD license. See LICENSE file for details.
+"""
+This program basically overlays an edge detector window that gives the
+illusion of X-ray vision.  It is mearly meant to show how to perform a
+basic image operation and overlay back onto the original image.
+"""
 print __doc__
 
-import time
-from SimpleCV import *
+from SimpleCV import Camera, Display
 
+# Initialize the camera
+cam = Camera() 
+
+# Set the default size of the output window
 display_width = 640
 display_height = 480
-display = Display(resolution = (display_width, display_height)) #create a new display to draw images on
-cam = Camera() #initialize the camera
+# Create a new display to draw images on
+display = Display(resolution = (display_width, display_height)) 
 
-# Loop until not needed
+# Set the width and the height of the crop window
+crop_width = 200
+crop_height = 200
+
+# Loop forever
 while display.isNotDone():
-    image = cam.getImage().flipHorizontal()
-    crop_width = 200 #set the width of the crop window
-    crop_height = 200 #set the height of the crop window
-    crop_x = display.mouseX * image.width / display_width #set the x location to scale
-    crop_y = display.mouseY * image.height / display_height #set the y location to scale
-
-    if(display.mouseX <= 1): #mouse outside the left of the screen
+    # Grab image from camera and flip it
+    img = cam.getImage().flipHorizontal()
+    # Set the x and the y location to scale
+    crop_x = display.mouseX * img.width / display_width 
+    crop_y = display.mouseY * img.height / display_height
+    # Mouse outside the left or the top of the screen
+    if(display.mouseX <= 1): 
         crop_x = 1
-    if(display.mouseY <= 1): #mouse outside the top of the screen
+    if(display.mouseY <= 1):
         crop_y = 1
-    if(display.mouseX + crop_width >= display_width): #region outside the right side of the screen
+    # Region outside the right side or below the bottom of the screen
+    if(display.mouseX + crop_width >= display_width):
         crop_x = (display_width - crop_width)
-    if(display.mouseY + crop_height >= display_height): #region below the bottom of the screen
+    if(display.mouseY + crop_height >= display_height):
         crop_y = (display_height - crop_height)
-
-    cropped_image = image.crop(crop_x, crop_y, crop_width, crop_height) #crop out the section of image we want
-    xray_image = cropped_image.edges().smooth() #get the edges of cropped region
-    image.getDrawingLayer().blit(xray_image, (crop_x, crop_y)) #draw the cropped image onto the current image
-
-    image.save(display)
-
+    # Crop out the section of image we want
+    cropped_img = img.crop(crop_x, crop_y, crop_width, crop_height)
+    # Get the edges of cropped region 
+    xray_img = cropped_img.edges().smooth()
+    # Draw the cropped image onto the current image
+    img.getDrawingLayer().blit(xray_img, (crop_x, crop_y))
+    # Display the image
+    img.save(display)
