@@ -201,9 +201,9 @@ EXIF_TAGS = {
              {1: 'Centered',
               2: 'Co-sited'}),
     0x0214: ('ReferenceBlackWhite', ),
-    
+
     0x4746: ('Rating', ),
-    
+
     0x828D: ('CFARepeatPatternDim', ),
     0x828E: ('CFAPattern', ),
     0x828F: ('BatteryLevel', ),
@@ -292,7 +292,7 @@ EXIF_TAGS = {
     0x9290: ('SubSecTime', ),
     0x9291: ('SubSecTimeOriginal', ),
     0x9292: ('SubSecTimeDigitized', ),
-    
+
     # used by Windows Explorer
     0x9C9B: ('XPTitle', ),
     0x9C9C: ('XPComment', ),
@@ -322,7 +322,7 @@ EXIF_TAGS = {
               4: 'Three-chip color area',
               5: 'Color sequential area',
               7: 'Trilinear',
-              8: 'Color sequential linear'}),             
+              8: 'Color sequential linear'}),
     0xA300: ('FileSource',
              {1: 'Film Scanner',
               2: 'Reflection Print Scanner',
@@ -369,7 +369,7 @@ EXIF_TAGS = {
     0xA40C: ('SubjectDistanceRange', ),
     0xA500: ('Gamma', ),
     0xC4A5: ('PrintIM', ),
-    0xEA1C:	('Padding', ),
+    0xEA1C:     ('Padding', ),
     }
 
 # interoperability tags
@@ -453,7 +453,7 @@ def nikon_ev_bias(seq):
         ret_str = "-"
     else:
         ret_str = "+"
-    b = seq[2]	# Assume third value means the step size
+    b = seq[2]  # Assume third value means the step size
     whole = a / b
     a = a % b
     if whole != 0:
@@ -467,7 +467,7 @@ def nikon_ev_bias(seq):
 
 # Nikon E99x MakerNote Tags
 MAKERNOTE_NIKON_NEWER_TAGS={
-    0x0001: ('MakernoteVersion', make_string),	# Sometimes binary
+    0x0001: ('MakernoteVersion', make_string),  # Sometimes binary
     0x0002: ('ISOSetting', make_string),
     0x0003: ('ColorMode', ),
     0x0004: ('Quality', ),
@@ -491,7 +491,7 @@ MAKERNOTE_NIKON_NEWER_TAGS={
     0x0019: ('AEBracketCompensationApplied', ),
     0x001A: ('ImageProcessing', ),
     0x001B: ('CropHiSpeed', ),
-    0x001D: ('SerialNumber', ),	# Conflict with 0x00A0 ?
+    0x001D: ('SerialNumber', ), # Conflict with 0x00A0 ?
     0x001E: ('ColorSpace', ),
     0x001F: ('VRInfo', ),
     0x0020: ('ImageAuthentication', ),
@@ -530,11 +530,11 @@ MAKERNOTE_NIKON_NEWER_TAGS={
               0x42: 'Timer, white balance bracketing'}),
     0x008A: ('AutoBracketRelease', ),
     0x008B: ('LensFStops', ),
-    0x008C: ('NEFCurve1', ),	# ExifTool calls this 'ContrastCurve'
+    0x008C: ('NEFCurve1', ),    # ExifTool calls this 'ContrastCurve'
     0x008D: ('ColorMode', ),
     0x008F: ('SceneMode', ),
     0x0090: ('LightingType', ),
-    0x0091: ('ShotInfo', ),	# First 4 bytes are a version number in ASCII
+    0x0091: ('ShotInfo', ),     # First 4 bytes are a version number in ASCII
     0x0092: ('HueAdjustment', ),
     # ExifTool calls this 'NEFCompression', should be 1-4
     0x0093: ('Compression', ),
@@ -546,9 +546,9 @@ MAKERNOTE_NIKON_NEWER_TAGS={
               1: '1',
               2: '2'}),
     0x0095: ('NoiseReduction', ),
-    0x0096: ('NEFCurve2', ),	# ExifTool calls this 'LinearizationTable'
-    0x0097: ('ColorBalance', ),	# First 4 bytes are a version number in ASCII
-    0x0098: ('LensData', ),	# First 4 bytes are a version number in ASCII
+    0x0096: ('NEFCurve2', ),    # ExifTool calls this 'LinearizationTable'
+    0x0097: ('ColorBalance', ), # First 4 bytes are a version number in ASCII
+    0x0098: ('LensData', ),     # First 4 bytes are a version number in ASCII
     0x0099: ('RawImageCenter', ),
     0x009A: ('SensorPixelSize', ),
     0x009C: ('Scene Assist', ),
@@ -567,7 +567,7 @@ MAKERNOTE_NIKON_NEWER_TAGS={
     0x00AA: ('Saturation', ),
     0x00AB: ('DigitalVariProgram', ),
     0x00AC: ('ImageStabilization', ),
-    0x00AD: ('Responsive AF', ),	# 'AFResponse'
+    0x00AD: ('Responsive AF', ),        # 'AFResponse'
     0x00B0: ('MultiExposure', ),
     0x00B1: ('HighISONoiseReduction', ),
     0x00B7: ('AFInfo', ),
@@ -609,7 +609,7 @@ MAKERNOTE_NIKON_NEWER_TAGS={
     0x0202: ('PreviewImageLength', ),
     0x0213: ('PreviewYCbCrPositioning',
              {1: 'Centered',
-              2: 'Co-sited'}), 
+              2: 'Co-sited'}),
     0x0010: ('DataDump', ),
     }
 
@@ -715,7 +715,7 @@ MAKERNOTE_OLYMPUS_TAGS={
         1: 'Yes'}),
     0x1027: ('ExternalFlashZoom', ),
     0x1028: ('ExternalFlashMode', ),
-    0x1029: ('Contrast 	int16u',
+    0x1029: ('Contrast  int16u',
        {0: 'High',
         1: 'Normal',
         2: 'Low'}),
@@ -1312,7 +1312,7 @@ class EXIF_header:
             # ignore certain tags for faster processing
             if not (not detailed and tag in IGNORE_TAGS):
                 field_type = self.s2n(entry + 2, 2)
-                
+
                 # unknown field type
                 if not 0 < field_type < len(FIELD_TYPES):
                     if not self.strict:
@@ -1359,7 +1359,7 @@ class EXIF_header:
                 else:
                     values = []
                     signed = (field_type in [6, 8, 9, 10])
-                    
+
                     # XXX investigate
                     # some entries get too big to handle could be malformed
                     # file or problem with self.s2n
@@ -1373,7 +1373,7 @@ class EXIF_header:
                                 value = self.s2n(offset, typelen, signed)
                             values.append(value)
                             offset = offset + typelen
-                    # The test above causes problems with tags that are 
+                    # The test above causes problems with tags that are
                     # supposed to have long values!  Fix up one important case.
                     elif tag_name == 'MakerNote' :
                         for dummy in range(count):
@@ -1382,7 +1382,7 @@ class EXIF_header:
                             offset = offset + typelen
                     #else :
                     #    print "Warning: dropping large tag:", tag, tag_name
-                
+
                 # now 'values' is either a string or an array
                 if count == 1 and field_type != 2:
                     printable=str(values[0])
@@ -1492,7 +1492,7 @@ class EXIF_header:
     # or from the header at the start of the makernote.)
     def decode_maker_note(self):
         note = self.tags['EXIF MakerNote']
-        
+
         # Some apps use MakerNote tags but do not use a format for which we
         # have a description, so just do a raw dump for these.
         #if self.tags.has_key('Image Make'):
@@ -1764,4 +1764,3 @@ if __name__ == '__main__':
         if 'JPEGThumbnail' in data:
             print 'File has JPEG thumbnail'
         print
-

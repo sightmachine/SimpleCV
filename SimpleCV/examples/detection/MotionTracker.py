@@ -42,7 +42,6 @@ while True:
         newImg.drawText(message_text, 5,5)
         print message_text
 
-    
+
     lastImg = newImg # update the image
     newImg.show()
-

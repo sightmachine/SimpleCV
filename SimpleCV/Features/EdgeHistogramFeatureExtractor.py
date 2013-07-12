@@ -6,10 +6,10 @@ from SimpleCV.Features.FeatureExtractorBase import *
 class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
     """
     Create a 1D edge length histogram and 1D edge angle histogram.
-    
+
     This method takes in an image, applies an edge detector, and calculates
     the length and direction of lines in the image.
-    
+
     bins = the number of bins
     """
     mNBins = 10
@@ -21,7 +21,7 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         """
         Extract the line orientation and and length histogram.
         """
-        #I am not sure this is the best normalization constant. 
+        #I am not sure this is the best normalization constant.
         retVal = []
         p = max(img.width,img.height)/2
         minLine = 0.01*p
@@ -36,10 +36,10 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         return retVal
 
 
-    
+
     def getFieldNames(self):
         """
-        Return the names of all of the length and angle fields. 
+        Return the names of all of the length and angle fields.
         """
         retVal = []
         for i in range(self.mNBins):
@@ -48,7 +48,7 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         for i in range(self.mNBins):
             name = "Angle"+str(i)
             retVal.append(name)
-                        
+
         return retVal
         """
         This method gives the names of each field in the feature vector in the

@@ -1,8 +1,6 @@
 from SimpleCV.Features.HaarCascade import *
 from SimpleCV.Features.Features import *
 from SimpleCV.Features.Detection import *
-from SimpleCV.Features.Tracking import *
-from SimpleCV.Features.TrackSet import *
 from SimpleCV.Features.BlobMaker import *
 from SimpleCV.Features.Blob import *
 from SimpleCV.Features.BOFFeatureExtractor import *
@@ -12,3 +10,6 @@ from SimpleCV.Features.MorphologyFeatureExtractor import *
 from SimpleCV.Features.EdgeHistogramFeatureExtractor import *
 from SimpleCV.Features.HaarLikeFeatureExtractor import *
 from SimpleCV.Features.HaarLikeFeature import *
+from SimpleCV.Features.PlayingCards import *
+from SimpleCV.Features.FeatureUtils import *
+from SimpleCV.Features.FaceRecognizer import *

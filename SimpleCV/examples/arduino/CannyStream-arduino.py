@@ -46,8 +46,6 @@ while True:
 
     if not t2:  # Set a default if no value read
         t2 = 100 
-    else:
-        t2 *= multiplier
 
     print "t1 " + str(t1) + ", t2 " + str(t2) + ", b13 " + str(b13)
     img = cam.getImage().flipHorizontal()

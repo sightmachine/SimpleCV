@@ -31,13 +31,13 @@ class CloudCam(object):
         print "socket:" + socket.gethostbyname(socket.gethostname())
         #~ return "http://localhost:8000/" + tmpname #return the image path via ajax request
         return tmpname
-    
+
     def process(self, filepath):
         img = Image(filepath) # load the image into SimpleCV
         img = img.edges() # Get the edges
         img.save(filepath) # save the temporary image
         return
-        
+
     upload.exposed = True
 
 
@@ -54,6 +54,5 @@ if __name__ == '__main__':
                 'server.socket_host' : '0.0.0.0'
                 }
             }
-    webbrowser.open("http://localhost:8000")    
+    webbrowser.open("http://localhost:8000")
     cherrypy.quickstart(CloudCam(), config=conf)
-

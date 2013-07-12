@@ -23,9 +23,9 @@ while display.isNotDone():
     if(threshold >= 20):
         threshold = max_threshold
         if(example >= 4):
-		        example = 1
+            example = 1
         else:
-		        example = example + 1
+            example = example + 1
     else:
         threshold = threshold + threshold_step
 
@@ -33,24 +33,22 @@ while display.isNotDone():
     if(example == 1):
         image = image.erode(threshold)
         text = "Erode Morphology Example: img.erode(" + str(threshold) + ")"
-		    
+
     elif(example == 2):
         image = image.dilate(threshold)
         text = "Dilate Morphology Example: img.dilate(" + str(threshold) + ")"
-		    
+
     elif(example == 3):
         image = image.morphOpen()
         text = "Open Morphology Example: img.morphOpen()"
-    
+
     elif(example == 4):
         image = image.morphClose()
         text = "Close Morphology Example: img.morphClose()"
-    
+
     elif(example == 5):
         image = image.morphGradient()
         text = "Gradient Morphology Example: img.morphGradient()"
 
-    image.drawText(text, 10, 10, color=Color.RED, fontsize=30)	
+    image.drawText(text, 10, 10, color=Color.RED, fontsize=30)
     image.show()
-
-

@@ -26,7 +26,7 @@ def draw_glasses(image, (dx, dy, right_eye), glasses):
     try:
         new_glasses = glasses.scale(int(2.75*dx), right_eye.height())
         mask = new_glasses.invert()
-        
+
         new_glasses = new_glasses.rotate(rotation, fixed = False)
         mask = mask.rotate(rotation, fixed=False)
 
@@ -49,7 +49,7 @@ def main():
         eyes = image.findHaarFeatures("eye")
 
         if check_eyes(eyes):
-            new_position = process_eyes(image, eyes) 
+            new_position = process_eyes(image, eyes)
             if new_position[0]:
                 found = True
                 position = new_position

@@ -20,7 +20,6 @@ while not d.isDone():
     time.sleep(0.01)
     ticks = ticks + 1
     if (int(time.time()) > t):
-      print str(ticks) + " fps"
-      ticks = 0
-      t = int(time.time())
-    
+        print str(ticks) + " fps"
+        ticks = 0
+        t = int(time.time())
