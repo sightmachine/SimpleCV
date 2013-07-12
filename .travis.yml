@@ -1,0 +1,17 @@
+language: python
+python:
+  - "2.7"
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install python-numpy python-nose python-imaging python-scipy python-pygame
+  - sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv libcv-dev libcvaux-dev libhighgui-dev
+
+install: "pip install -r requirements.txt --use-mirrors"
+
+virtualenv:
+  system_site_packages: true
+
+script:
+- cd SimpleCV/tests/
+- nosetests -v tests.py

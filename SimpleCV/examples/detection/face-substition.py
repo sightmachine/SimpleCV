@@ -20,4 +20,3 @@ while True:
         image = image.blit(troll, face.topLeftCorner(),alphaMask=mymask) #super impose the new face on the existing face
     image.show() #display the image
     time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
-

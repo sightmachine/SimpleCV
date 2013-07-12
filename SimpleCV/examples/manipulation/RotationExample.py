@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 '''
 This example shows how to perform various rotations and warps on images
 and put back into a display.
@@ -17,17 +17,17 @@ while True:
     image.drawText("Original Size", 10,10, color=draw_color, fontsize=font_size)
     image.show()
     time.sleep(sleep_for)
-    
+
     rot = image.rotate(45)
     rot.drawText("Rotated 45 degrees", 10,10, color=draw_color, fontsize=font_size)
     rot.show()
     time.sleep(sleep_for)
-    
+
     rot = image.rotate(45, scale=0.5)
     rot.drawText("Rotated 45 degrees and scaled", 10,10, color=draw_color, fontsize=font_size)
     rot.show()
     time.sleep(sleep_for)
-    
+
     rot = image.rotate(45,scale=0.5, point = (0,0) )
     rot.drawText("Rotated 45 degrees and scaled around a point", 10,10, color=draw_color, fontsize=font_size)
     rot.show()
@@ -37,7 +37,7 @@ while True:
     rot.drawText("Rotated 45 degrees and full", 10,10, color=draw_color, fontsize=font_size)
     rot.show()
     time.sleep(sleep_for)
-    
+
     atrans = image.shear([(image.width/2,0),(image.width-1,image.height/2),(image.width/2,image.height-1)])
     atrans.drawText("Affine Transformation", 10,10, color=draw_color, fontsize=font_size)
     atrans.show()
@@ -47,5 +47,3 @@ while True:
     ptrans.drawText("Perspective Transformation", 10,10, color=draw_color, fontsize=font_size)
     ptrans.show()
     time.sleep(sleep_for)
-    
-

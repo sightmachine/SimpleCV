@@ -16,12 +16,10 @@ lastImg = cam.getImage();
 lastImg.drawText("Move around to get the party started!", 5,5, fontsize=12)
 lastImg.show()
 while True:
-  newImg = cam.getImage()
-  trackImg = newImg - lastImg # difference the images
-  blobs =  trackImg.findBlobs(-1, threshblocksize=99) #use adapative blob detection
-  if blobs:
-      blobs.draw(autocolor=True)
-      trackImg.show()
-  lastImg = newImg # update the image
-
-
+    newImg = cam.getImage()
+    trackImg = newImg - lastImg # difference the images
+    blobs =  trackImg.findBlobs(-1, threshblocksize=99) #use adapative blob detection
+    if blobs:
+        blobs.draw(autocolor=True)
+        trackImg.show()
+    lastImg = newImg # update the image

@@ -11,7 +11,7 @@ class FeatureExtractorBase(object):
     lengths. This feature vectors can then be composed together and used within
     a machine learning algorithm to descriminate between different classes of objects.
     """
-    
+
     __metaclass__ = abc.ABCMeta
     def load(cls, fname):
         """
@@ -20,15 +20,15 @@ class FeatureExtractorBase(object):
         return pickle.load(file(fname))
     load = classmethod(load)
 
-    
+
     def save(self, fname):
         """
         Save segmentation settings to file.
         """
         output = open(fname, 'wb')
-        pickle.dump(self,output,2) # use two otherwise it borks the system 
+        pickle.dump(self,output,2) # use two otherwise it borks the system
         output.close()
-        
+
     @abc.abstractmethod
     def extract(self, img):
         """
@@ -36,8 +36,8 @@ class FeatureExtractorBase(object):
         object of all of the features. These features can be of any interal type
         (string, float, integer) but must contain no sub lists.
         """
-    
-    @abc.abstractmethod    
+
+    @abc.abstractmethod
     def getFieldNames(self):
         """
         This method gives the names of each field in the feature vector in the

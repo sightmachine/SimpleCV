@@ -1,0 +1,275 @@
+{#
+    sightmachine/layout.html
+    ~~~~~~~~~~~~~~~~~
+
+    Sphinx layout template for the sightmachine theme, originally written
+    by Brooks Ryba.
+
+    :copyright: Copyright 2007-2011 by the SightMachine team, see AUTHORS.
+    :license: BSD, see LICENSE for details.
+#}
+{%- block doctype -%}
+<!doctype html>
+{%- endblock %}
+{%- set reldelim1 = reldelim1 is not defined and ' &raquo;' or reldelim1 %}
+{%- set reldelim2 = reldelim2 is not defined and ' |' or reldelim2 %}
+{%- set render_sidebar = (not embedded) and (not theme_nosidebar|tobool) and
+                         (sidebars != []) %}
+{%- set url_root = pathto('', 1) %}
+{# XXX necessary? #}
+{%- if url_root == '#' %}{% set url_root = '' %}{% endif %}
+{%- if not embedded and docstitle %}
+  {%- set titlesuffix = " &mdash; "|safe + docstitle|e %}
+{%- else %}<link rel="stylesheet" href="http://simplecv.org/sites/all/themes/simplecv/css/style.css" />
+  {%- set titlesuffix = "" %}
+{%- endif %}
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+  {%- block htmltitle %}
+  <title>SimpleCV: {{ title|striptags|e }}{{ titlesuffix }}</title>
+  {%- endblock %}
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="description" content="SimpleCV is an open source framework for building computer vision applications.">
+  <meta name="viewport" content="width=device-width">
+  <meta name="robots" content="index, follow">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="stylesheet" href="http://simplecv.org/sites/all/themes/kalypso/css/style.css" />
+  <script src="http://simplecv.org/sites/all/themes/simplecv/js/libs/modernizr-2.5.0.min.js"></script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="shortcut icon" href="http://simplecv.org/sites/all/themes/kalypso/images/favicon.ico" type="image/vnd.microsoft.icon" />
+  <link rel="alternate" type="application/rss+xml" title="SimpleCV RSS" href="http://simplecv.org/rss.xml" />
+  <meta name="Generator" content="Drupal 7 (http://drupal.org)" />
+  <link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css" />
+  <link href="http://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css" />
+  <link href="http://simplecv.org/sites/all/themes/kalypso/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+  <link href="http://simplecv.org/sites/all/themes/kalypso/bootstrap/css/bootstrap-responsive.css" rel="stylesheet" type="text/css" media="screen" />
+  <link href="http://simplecv.org/sites/all/themes/kalypso/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+  <link href="http://simplecv.org/sites/all/themes/kalypso/css/colors/light-blue.css" rel="stylesheet" type="text/css" media="screen" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <style type='text/css'>body {font-family:Arial, Helvetica, sans-serif !important;}</style> <style type='text/css'>h1 {font-size:36px;} h2 {font-size:30px;} h3 {font-size:24px;} h4 {font-size:18px;} h5 {font-size:14px;} h6 {font-size:12px;}</style> <title>SimpleCV</title>
+  <style type="text/css" media="all">@import url("http://simplecv.org/modules/system/system.base.css?mld338");
+  @import url("http://simplecv.org/modules/system/system.menus.css?mld338");
+  @import url("http://simplecv.org/modules/system/system.messages.css?mld338");
+  @import url("http://simplecv.org/modules/system/system.theme.css?mld338");</style>
+  <style type="text/css" media="all">@import url("http://simplecv.org/modules/comment/comment.css?mld338");
+  @import url("http://simplecv.org/modules/field/theme/field.css?mld338");
+  @import url("http://simplecv.org/modules/node/node.css?mld338");
+  @import url("http://simplecv.org/modules/search/search.css?mld338");
+  @import url("http://simplecv.org/modules/user/user.css?mld338");
+  @import url("http://simplecv.org/sites/all/modules/views/css/views.css?mld338");</style>
+  <style type="text/css" media="all">@import url("http://simplecv.org/sites/all/modules/ctools/css/ctools.css?mld338");</style>
+  <style type="text/css" media="all">@import url("http://simplecv.org/sites/all/themes/kalypso//css/sliders/elastic-image.css?mld338");
+  @import url("http://simplecv.org/sites/all/themes/kalypso//css/sliders/nivo.css?mld338");
+  @import url("http://simplecv.org/sites/all/themes/kalypso/css/ie.css?mld338");</style>
+  <script type="text/javascript" src="http://simplecv.org/misc/jquery.js?v=1.4.4"></script>
+  <script type="text/javascript" src="http://simplecv.org/misc/jquery.once.js?v=1.2"></script>
+  <script type="text/javascript" src="http://simplecv.org/misc/drupal.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/jquery.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/bootstrap/js/bootstrap.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/superfish.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/hoverIntent.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/jquery.eislideshow.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/jquery.nivo.slider.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/jquery.quote_rotator.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/jquery.tweet.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/mobile-map.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/mobile-menu.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/dynamik.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/jquery.ui.totop.js?mld338"></script>
+  <script type="text/javascript" src="http://simplecv.org/sites/all/themes/kalypso/js/easing.js?mld338"></script>
+  <style>
+  #subnav {
+  width: 100%;
+  background: #444;
+  border-radius: 3px;
+  padding: 5px 8px;
+  font-size: 13px;
+  color: #ddd;
+  box-sizing: border-box;
+  border: 1px solid #333;
+}
+
+#subnav ul li a, #subnav a {
+  color: white;
+}
+
+#subnav ul li {
+  display: inline;
+  margin: 0px;
+  padding: 0px;
+}
+
+#subnav ul {
+  margin: 0px;
+  padding: 0px;
+  display: inline;
+}</style>
+  <script type="text/javascript">
+  <!--//--><![CDATA[//><!--
+  jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"","ajaxPageState":{"theme":"kalypso","theme_token":"7xm3dmkijFgQtC_Yd3H_BSYItYf7FpuQnhlXkEoRaac","js":{"misc\/jquery.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"sites\/all\/themes\/kalypso\/js\/jquery.js":1,"sites\/all\/themes\/kalypso\/bootstrap\/js\/bootstrap.js":1,"sites\/all\/themes\/kalypso\/js\/superfish.js":1,"sites\/all\/themes\/kalypso\/js\/hoverIntent.js":1,"sites\/all\/themes\/kalypso\/js\/jquery.eislideshow.js":1,"sites\/all\/themes\/kalypso\/js\/jquery.nivo.slider.js":1,"sites\/all\/themes\/kalypso\/js\/jquery.quote_rotator.js":1,"sites\/all\/themes\/kalypso\/js\/jquery.tweet.js":1,"sites\/all\/themes\/kalypso\/js\/mobile-map.js":1,"sites\/all\/themes\/kalypso\/js\/mobile-menu.js":1,"sites\/all\/themes\/kalypso\/js\/dynamik.js":1,"sites\/all\/themes\/kalypso\/js\/jquery.ui.totop.js":1,"sites\/all\/themes\/kalypso\/js\/easing.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"modules\/comment\/comment.css":1,"modules\/field\/theme\/field.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"sites\/all\/modules\/views\/css\/views.css":1,"sites\/all\/modules\/ctools\/css\/ctools.css":1,"sites\/all\/themes\/kalypso\/\/css\/sliders\/elastic-image.css":1,"sites\/all\/themes\/kalypso\/\/css\/sliders\/nivo.css":1,"sites\/all\/themes\/kalypso\/css\/ie.css":1}}});
+  //--><!]]>
+  </script>
+    <!-- IE Fix for HTML5 Tags -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700' rel='stylesheet' type='text/css'>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="_static/js/libs/jquery-ui-1.8.21.custom.min.js"></script>
+    <script src="_static/js/plugins.js"></script>
+    <script src="_static/js/masonry.min.js"></script>
+    <script src="_static/js/underscore-min.js"></script>
+    <script src="_static/js/backbone-min.js"></script>
+    <style type="text/css">.body { display: none; }</style>
+</head>
+<body itemscope itemtype="http://schema.org/WebPage" class="html front not-logged-in one-sidebar sidebar-first page-node">
+  <!-- BEGIN Header -->
+<div class="container">
+  <div class="row">
+    <div class="span2">
+      <div id="vert_nav">
+          <header>
+              <div id="main_title">
+                <a href="http://simplecv.org/"><img src="http://simplecv.org/sites/all/themes/kalypso/images/SM_logo_color.png" /></a>
+              </div>
+              <!-- begin menu -->
+                <div id="menu" class="row">
+                    <div id="main-menu" class="navigation">
+                        <div id="menu_wrap">
+                              <div id="main-menu-links">
+                                <ul class="menu">
+                                    <li class="first leaf"><a href="http://simplecv.org/download" title="">Install</a></li>
+                                    <li class="leaf"><a href="http://tutorial.simplecv.org" title="">Learn</a></li>
+                                    <li class="leaf"><a href="http://simplecv.org/contribute" title="">Contribute</a></li>
+                                    <li class="leaf"><a href="http://simplecv.org/docs" title="">API Docs</a></li>
+                                    <li class="leaf"><a href="http://help.simplecv.org/questions/" title="">Help Forum</a></li>
+                                    <li class="leaf"><a href="http://simplecv.org/news" title="">Blog</a></li>
+                                    <li class="last leaf"><a href="http://simplecv.org/book">The Book</a></li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                <!-- end menu -->
+
+        </header>
+      </div>
+    </div>
+    <!-- end main span2 -->
+
+      <!-- main span10 -->
+      <div class="span10">
+
+                <div class="row">
+        </div>
+
+      <div class="row">
+          <div id="panels">
+            <div class="main-content">
+
+    <!-- BEGIN Content -->
+    <div id="Content" role="Main" itemprop="mainContentOfPage">
+      <div id="LeftColumnWide">
+        <div id="PageBody">
+          {%- block content %}
+            <div id="" class="document">
+            {%- block document %}
+                <div class="documentwrapper">
+                {%- if render_sidebar %}
+                  <div class="bodywrapper">
+                {%- endif %}
+            <div id="doc_body"></div>
+                    <div class="body">
+                      {% block body %} {% endblock %}
+                    </div>
+                {%- if render_sidebar %}
+                  </div>
+                {%- endif %}
+                </div>
+            {%- endblock %}
+            </div>
+          {%- endblock %}
+        </div>
+      </div>
+    </div>
+    <!-- END Content -->
+
+            </div>
+          </div>
+      </div>
+
+      <hr />
+
+
+      </div>
+    </div>
+  </div>
+  <!-- end main body container -->
+
+
+<!-- begin footer -->
+    <div id="footer">
+      <div class="container">
+          <div class="content">
+            <div class="links">
+              <ul>
+                <li>
+                  <a href="https://plus.google.com/115199279159361214026/posts" target="_blank">Google+</a>
+                </li>
+                <li>
+                  <a href="http://www.facebook.com/pages/SimpleCV/150136128401869" target="_blank">Facebook</a>
+                </li>
+                <li>
+                  <a href="http://twitter.com/Simple_CV" target="_blank">Twitter</a>
+                </li>
+                <li>
+                  <a href="https://github.com/sightmachine/simplecv" target="_blank">Github</a>
+                </li>
+                <li>
+                  <a href="http://help.simplecv.org/" target="_blank">Help</a>
+                </li>
+              </ul>
+            </div>
+            <div class="copyright">
+              Copyright <a href="http://sightmachine.com">Sight Machine</a>, Inc, SimpleCV is a trademark of Sight Machine, Inc.
+            </div>
+            <div class="footer-logo">
+              <a href="http://sightmachine.com"><img src="http://simplecv.org/sites/all/themes/kalypso/images/smlogo.png"/></a>
+            </div>
+          </div>
+
+      </div>
+    </div>
+    <!-- end footer -->
+
+    <!-- BEGIN Scripts -->
+    <style type="text/css">
+      .section dl ul li {
+        text-decoration: underline;
+        list-style-type: none;
+        color: #39C;
+        padding: 0px;
+        background: none;
+        cursor: pointer;
+        font: 11px verdana, geneva, arial, sans-serif;
+      }
+    </style>
+    <script src="_static/js/script.js"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-23517471-3']);
+    _gaq.push(['_setDomainName', 'simplecv.org']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+    <!-- END Scripts -->
+    <!--testy--->
+</body>
+</html>
