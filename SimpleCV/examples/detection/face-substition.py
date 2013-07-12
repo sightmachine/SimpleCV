@@ -1,23 +1,38 @@
-#!/usr/bin/python
-# All this example does is find a face and replace it with another image.
-# the image should auto scale to match the size of the face.
+#!/usr/bin/env python
+# 
+# Released under the BSD license. See LICENSE file for details.
+"""
+All this example does is find a face and replace it with another image. The
+image should auto scale to match the size of the face.
+"""
+print __doc__
 
+from SimpleCV import Camera, Display, HaarCascade, Image
 
-import time
-from SimpleCV import *
+#initialize the camera
+cam = Camera()
+# Create the display to show the image
+display = Display()
 
-cam = Camera() #initialize the camera
+# Load the new face image
 troll_face = Image('troll_face.png', sample=True)
+
+# Haar Cascade face detection, only faces
+haarcascade = HaarCascade("face")
+
 # Loop forever
-while True:
-    image = cam.getImage().flipHorizontal().scale(320, 240) # get image, flip it so it looks mirrored, scale to speed things up
-    faces = image.findHaarFeatures("face") # load in trained face file
-    #if there were faces found do something
+while display.isNotDone():
+    # Get image, flip it so it looks mirrored, scale to speed things up
+    img = cam.getImage().flipHorizontal().scale(0.5)
+    # load in trained face file
+    faces = img.findHaarFeatures(haarcascade)
+    # If there were faces found do something
     if faces:
         face = faces[-1]
-        troll = troll_face.scale(face.height(), face.width()) #load the image to super impose and scale it correctly
+        # Load the image to super impose and scale it correctly
+        troll = troll_face.scale(face.height(), face.width()) 
         mymask = troll.invert()
-        image = image.blit(troll, face.topLeftCorner(),alphaMask=mymask) #super impose the new face on the existing face
-    image.show() #display the image
-    time.sleep(0.01) # Let the program sleep for 1 millisecond so the computer can do other things
-
+        # Super impose the new face on the existing face
+        img = img.blit(troll, face.topLeftCorner(), alphaMask=mymask)
+    # Display the image
+    img.save(display)
