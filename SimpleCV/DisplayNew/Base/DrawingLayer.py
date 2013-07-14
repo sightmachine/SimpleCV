@@ -1,7 +1,7 @@
 from abc import ABCMeta,abstractmethod
 
 
-class DrawingLayer:
+class DrawingLayerBase:
     
     __metaclass__ = ABCMeta
     """

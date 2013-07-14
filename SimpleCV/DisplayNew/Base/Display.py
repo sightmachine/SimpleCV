@@ -7,7 +7,7 @@ class DisplayNotFoundException(Exception):
         return "Holy heck !! The display at %d was closed, choose a different one" % id(self.display)
 
 
-class Display:
+class DisplayBase:
     
     __metaclass__ = ABCMeta
     
