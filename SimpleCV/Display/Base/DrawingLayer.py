@@ -20,17 +20,21 @@ class DrawingLayer:
 
     #TODO
     #include buffers for alpha related stuff
-    #look into antialiasing in gtk                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-
-    @abstractmethod
+    #look into anti aliasing in gtk
     def __repr__(self):
-        return "<SimpleCV.DrawingLayer Object size (%d, %d)>" % (self.width, self.height)
+        return "<SimpleCV %s resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.name(),self.size, self.imgSize[0], self.imgSize[1], hex(id(self)))
 
     @abstractmethod
     def __init__(self, (width,height)) :
         """
         Sets all buffers
         """
+        selg.imgSize = (width,height)
+
+    @abstractmethod
+    def name(self):
+        pass
+        
 
     @abstractproperty
     def getDefaultAlpha(self):
@@ -68,7 +72,7 @@ class DrawingLayer:
 
         width - The line width in pixels.
 
-        ->antialias - Draw an antialiased object of width one.
+        antialias - Draw an antialiased object of width one.
 
         """
 
@@ -88,65 +92,73 @@ class DrawingLayer:
 
         width - The line width in pixels.
 
-        ->antialias - Draw an antialiased object of width one.
+        antialias - Draw an antialiased object of width one.
 
         """
 
     @abstractmethod
-    def rectangle(self, topLeft, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+    def rectangle(self, topLeft, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1 ):
         """
         Draw a rectangle given the topLeft the (x,y) coordinate of the top left
         corner and dimensions (w,h) tge width and height
 
         color - Color object or Color Tuple
 
+       antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
+
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent.
 
-        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        width -     The line width in pixels. This does not work if antialiasing is enabled.
 
         filled -The rectangle is filled in
         """
 
     @abstractmethod
-    def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+    def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1 ):
         """
         Draw a rectangle given two (x,y) points
 
         color - Color object or Color Tuple
 
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
+
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent.
 
-        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        width -     The line width in pixels. This does not work if antialiasing is enabled.
 
         filled -The rectangle is filled in
         """
 
     @abstractmethod
-    def centeredRectangle(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+    def centeredRectangle(self, center, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1 ):
         """
         Draw a rectangle given the center (x,y) of the rectangle and dimensions (width, height)
 
         color - Color object or Color Tuple
 
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
+
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
                 means transparent.
 
-        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        width -     The line width in pixels. This does not work if antialiasing is enabled.
 
         filled -The rectangle is filled in
         """
 
     @abstractmethod
-    def polygon(self, points, color = Color.DEFAULT, width = 1, filled = False, antialias = True, alpha = -1):
+    def polygon(self, points, color = Color.DEFAULT, antialias = True width = 1, filled = False, alpha = -1):
         """
         Draw a polygon from a list of (x,y)
 
         color - Color object or Color Tuple 
+
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
 
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
@@ -156,15 +168,17 @@ class DrawingLayer:
 
         filled -The object is filled in
 
-        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
+
         """
 
     @abstractmethod
-    def circle(self, center, radius, color = Color.DEFAULT, width = 1, filled = False, alpha = -1, antialias = True):
+    def circle(self, center, radius, color = Color.DEFAULT, antialias = True, width = 1, filled = False, alpha = -1):
         """
         Draw a circle given a location and a radius.
 
         color - Color object or Color Tuple
+
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
 
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
@@ -173,14 +187,17 @@ class DrawingLayer:
         width - The line width in pixels. This does not work if antialiasing is enabled.
 
         filled -The object is filled in
+
         """
 
     @abstractmethod
-    def ellipse(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1):
+    def ellipse(self, center, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1):
         """
         Draw an ellipse given a location and a dimensions.
 
         color - Color object or Color Tuple
+
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
 
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
@@ -194,11 +211,13 @@ class DrawingLayer:
        
 
     @abstractmethod
-    def bezier(self, points, steps, color = Color.DEFAULT, alpha = -1):
+    def bezier(self, points, steps, color = Color.DEFAULT,antialias = True, alpha = -1):
         """
-        Draw a bezier curve based on a control point and the a number of stapes
+        Draw a bezier curve based on a control point and the a number of steps
 
         color - Color object or Color Tuple
+
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
 
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
