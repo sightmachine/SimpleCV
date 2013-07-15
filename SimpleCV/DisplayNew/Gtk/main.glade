@@ -8,6 +8,7 @@
   </object>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
+    <signal name="destroy" handler="handle_close" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box1">
         <property name="visible">True</property>
@@ -40,7 +41,7 @@
                         <property name="use_underline">True</property>
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
-                        <signal name="activate" handler="destroy" swapped="no"/>
+                        <signal name="activate" handler="handle_close" swapped="no"/>
                       </object>
                     </child>
                   </object>

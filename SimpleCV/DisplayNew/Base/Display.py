@@ -4,7 +4,7 @@ class DisplayNotFoundException(Exception):
     def __init__(self,display):
         self.display = display
     def __str__(self):
-        return "Holy heck !! The display at %d was closed, choose a different one" % id(self.display)
+        return "I'm Sorry to say this but uhhhh' !! The display at %d was closed, choose a different one" % id(self.display)
 
 
 class DisplayBase:
@@ -60,7 +60,7 @@ class DisplayBase:
         pass
     
     @abstractmethod
-    def __init__(self,size = (640,480),type_ = DEFAULT,title = "SimpleCV",fit = RESIZE):
+    def __init__(self,size ,type_ ,title ,fit):
         """
         **SUMMARY**
         
@@ -98,14 +98,14 @@ class DisplayBase:
         return "<SimpleCV %s resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.name(),self.size, self.imgSize[0], self.imgSize[1], hex(id(self)))
     
     
-    @abstractproperty
+    #@abstractproperty
     def mousePosition(self):
         """
         Reutrns the mouse pointer potion as a tuple of (x,y), with respect to
         the image coordinates
         """
         
-    @abstractproperty
+    #@abstractproperty
     def mousePositionRaw(self):
         """
         Reutrns the mouse pointer potion as a tuple of (x,y), with respect to
@@ -113,14 +113,14 @@ class DisplayBase:
         """
         
         
-    @abstractproperty
+    #@abstractproperty
     def mousePositionRaw(self):
         """
         Reutrns the mouse pointer potion as a tuple of (x,y), with respect to
         the display coordinates
         """
     
-    @abstractmethod
+    #@abstractmethod
     def leftDown(self):
         """
         **SUMMARY**
@@ -134,7 +134,7 @@ class DisplayBase:
         
         """
 
-    @abstractmethod
+    #@abstractmethod
     def leftUp(self):
         """
         **SUMMARY**
@@ -148,7 +148,7 @@ class DisplayBase:
         
         """
 
-    @abstractmethod
+    #@abstractmethod
     def rightDown(self):
         """
         **SUMMARY**
@@ -162,7 +162,7 @@ class DisplayBase:
         
         """
         
-    @abstractmethod
+    #@abstractmethod
     def rightUp(self):
         """
         **SUMMARY**
@@ -176,7 +176,7 @@ class DisplayBase:
         
         """
         
-    @abstractmethod
+    #@abstractmethod
     def middleDown(self):
         """
         **SUMMARY**
@@ -190,7 +190,7 @@ class DisplayBase:
         
         """
         
-    @abstractmethod
+    #@abstractmethod
     def middleUp(self):
         """
         **SUMMARY**
