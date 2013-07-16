@@ -19,16 +19,18 @@ class GtkDisplay(DisplayBase):
         
         self.type_ = type_
         self.fit = fit
+        self.imageWidgetSize = None
         
         #Initializing a Worker, A process to handle one display
         self.worker = GtkWorker(childConnnection,size,type_,title,fit)
         self.connection = parentConnection
         self.worker.start()
         self.workerAlive= True
+        self.imageWidgetSize = self.getImageWidgetSize()
         
         
     def close(self):
-        pass
+        self.worker.terminate()
         
     def _checkIfWorkerDead(self):
         if(self.connection.poll()):
@@ -39,7 +41,17 @@ class GtkDisplay(DisplayBase):
                 self.worker.terminate()
                 self.workerAlive = False
                 
-
+    def getImageWidgetSize(self,data=None):        
+        self._checkIfWorkerDead()
+        
+        if(self.workerAlive):
+            dic = {}
+            dic['function'] = 'getImageWidgetSize'
+            self.connection.send(dic)
+            return self.connection.recv()
+        else:
+            raise DisplayNotFoundException(self)
+    
     def showImage(self,img):
         self._checkIfWorkerDead()
         
@@ -52,6 +64,16 @@ class GtkDisplay(DisplayBase):
                 #TODO raise an exception here maybe, cause many other functions
                 #may get a value they are not expecting
                 pass
+        elif(self.type_ == DisplayBase.FULLSCREEN):
+            if(self.fit == DisplayBase.RESIZE):
+                img = img.adaptiveScale(self.imageWidgetSize,True)
+            elif(self.fit == DisplayBase.CROP):
+                img = img.adaptiveScale(self.imageWidgetSize,False)
+            else:
+                #TODO raise an exception here maybe, cause many other functions
+                #may get a value they are not expecting
+                pass
+            
         
         if(self.workerAlive):
             dic = {}

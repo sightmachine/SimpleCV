@@ -55,10 +55,13 @@ class GtkWorker(Process):
         
         #calls pollMsg when gtk is idle
         gobject.idle_add(self.pollMsg,None)
+
+        
         gtk.main()
-        
+
     def pollMsg(self,data=None):
-        
+
+  
         #check if there is any data to be read, wait for 100ms
         #Is used because select.select/poll and gobject.idle_add dont work on windows
         dataThere = self.connection.poll(.10)
@@ -82,13 +85,16 @@ class GtkWorker(Process):
     def handle_showImage(self,data):
         #show image from string
         pix =  self.gtk.gdk.pixbuf_new_from_data(data['data'], self.gtk.gdk.COLORSPACE_RGB, False, data['depth'], data['width'], data['height'], data['width']*3)
+
+
         self.image.set_from_pixbuf(pix)
         
-        #
-        #if(self.type_ == DisplayBase.DEFAULT):
-        self.image.set_size_request(data['width'],data['height'])
-        #elif(self.type_ == DisplayBase.FIXED):
-            #pass
+        if(self.type_ == DisplayBase.DEFAULT):
+            self.image.set_size_request(data['width'],data['height'])
+        elif(self.type_ == DisplayBase.FIXED):
+            pass
+        #self.image.set_size_request(10000,10000)
+        
         
         #print self.image.size_request()
         
@@ -104,5 +110,7 @@ class GtkWorker(Process):
         #might be sending and the parent knows exactly when the display is 
         #closed
         
+    def handle_getImageWidgetSize(self,data):
+        self.connection.send((self.image.get_allocation().width,self.image.get_allocation().height))
         
         

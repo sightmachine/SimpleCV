@@ -70,7 +70,7 @@
             <property name="stock">gtk-missing-image</property>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
