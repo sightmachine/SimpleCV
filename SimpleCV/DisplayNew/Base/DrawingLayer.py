@@ -1,4 +1,5 @@
 from abc import ABCMeta,abstractmethod
+from shapes import *
 
 
 class DrawingLayerBase:
@@ -17,6 +18,7 @@ class DrawingLayerBase:
     _defaultAlpha = 255
     width = 0
     height = 0
+    _shapes = []
 
     #TODO
     #include buffers for alpha related stuff
@@ -75,6 +77,8 @@ class DrawingLayerBase:
         antialias - Draw an antialiased object of width one.
 
         """
+        _shapes.append(Line(start,stop,color,width,antialias,alpha))
+
 
     @abstractmethod
     def lines(self, points, color = Color.DEFAULT, antialias = True, alpha = -1, width = 1 ):
@@ -95,6 +99,8 @@ class DrawingLayerBase:
         antialias - Draw an antialiased object of width one.
 
         """
+        for i in range(len(points)-1):
+        	line(points[i],points[i+1],color,width,antialias,alpha)
 
     @abstractmethod
     def rectangle(self, topLeft, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1 ):
@@ -104,7 +110,7 @@ class DrawingLayerBase:
 
         color - Color object or Color Tuple
 
-       antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
+        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
 
         alpha - The alpha blending for the object. If this value is -1 then the
                 layer default value is used. A value of 255 means opaque, while 0
@@ -114,6 +120,9 @@ class DrawingLayerBase:
 
         filled -The rectangle is filled in
         """
+        p0 = topLeft
+        p1 = (topLeft[0]+dimensions[0],topLeft[1]+dimensions[1])
+        rectangle2pts(p0,p1,color,antialias,width,filled,alpha)
 
     @abstractmethod
     def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1 ):
@@ -132,6 +141,7 @@ class DrawingLayerBase:
 
         filled -The rectangle is filled in
         """
+        _shapes.append(Rectangle(pt1,pt2,color,width,filled,antialias,alpha))
 
     @abstractmethod
     def centeredRectangle(self, center, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1 ):
@@ -150,9 +160,12 @@ class DrawingLayerBase:
 
         filled -The rectangle is filled in
         """
+        p0 = (center[0]-dimensions[0]/2.0,center[1]-dimensions[1]/2.0)
+        p1 = (center[0]+dimensions[0]/2.0,center[1]+dimensions[1]/2.0)
+        rectangle2pts(p0,p1,color,antialias,width,filled,alpha)
 
     @abstractmethod
-    def polygon(self, points, color = Color.DEFAULT, antialias = True width = 1, filled = False, alpha = -1):
+    def polygon(self, points, color = Color.DEFAULT, antialias = True, width = 1, filled = False, alpha = -1):
         """
         Draw a polygon from a list of (x,y)
 
@@ -170,6 +183,7 @@ class DrawingLayerBase:
 
 
         """
+        _shapes.append(Polygon(points,color,width,filled,antialias,alpha)))
 
     @abstractmethod
     def circle(self, center, radius, color = Color.DEFAULT, antialias = True, width = 1, filled = False, alpha = -1):
@@ -189,6 +203,7 @@ class DrawingLayerBase:
         filled -The object is filled in
 
         """
+        _shapes.append(Circle(center,radius,color,width,filled,antialias,alpha))
 
     @abstractmethod
     def ellipse(self, center, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1):
@@ -208,6 +223,7 @@ class DrawingLayerBase:
         filled -The object is filled in
 
         """
+        _shapes.append(Ellipse(center,dimensions,color,width,filled,antialias,alpha))
        
 
     @abstractmethod
@@ -224,6 +240,7 @@ class DrawingLayerBase:
                 means transparent
 
         """
+        _shapes.append(Bezier(points,steps,color,width,antialias,alpha))
     
     @abstractmethod
     def text(self, text, location, color = Color.DEFAULT, alpha = -1):

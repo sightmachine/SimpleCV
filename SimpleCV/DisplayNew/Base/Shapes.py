@@ -8,7 +8,7 @@ thse also store color, alpha anf other displaying parameters
 
 
 class Line:
-    def __init__(self,start,stop,color,width,antialias,alpha):
+    def __init__(self,start,stop,color = Color.DEFAULT,width,antialias,alpha):
         self.start = start
         self.stop = stop
         self.color = color
@@ -17,7 +17,7 @@ class Line:
         self.alpha = aplha
 
 class Rectangle:
-    def __init__(self,pt1,pt2,width,filled,antialias,alpha):
+    def __init__(self,pt1,pt2,color = Color.DEFAULT,width,filled,antialias,alpha):
         self.pt1 = pt1
         self.pt2 = pt2
         self.color = color
@@ -26,7 +26,7 @@ class Rectangle:
         self.alpha = aplha
 
 class Polygon:
-    def __init__(self,points,width,filled,antialias,alpha):
+    def __init__(self,points,color = Color.DEFAULT,width,filled,antialias,alpha):
         self.points = points
         self.color = color
         self.width = width
@@ -34,7 +34,7 @@ class Polygon:
         self.alpha = aplha
 
 class Circle:
-    def __init__(self, center, radius, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1, ):
+    def __init__(self, center, radius, color = Color.DEFAULT, width = 1, filled = False, antialias = True, alpha = -1):
         self.conter = center
         self.radius = radius
         self.color = color
@@ -43,7 +43,7 @@ class Circle:
         self.alpha = aplha
 
 class Ellipse:
-    def __init__(self, center, dimensions, color = Color.DEFAULT,antialias = True, width = 1, filled = False, alpha = -1):
+    def __init__(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, antialias = True, alpha = -1):
         
         self.center = center
         self.dimensions = dimensions
