@@ -73,7 +73,7 @@ class DisplayBase:
             DEFAULT ( by default ).
         * *title* - the title bar on the display, if there exists onw.
         * *fit* - How to display the image if the type_ is FIXED. Either CROP or
-            RESIZE
+            RESIZE. Done with the help of adaptiveScale
         
         
         **EXAMPLE**
@@ -83,6 +83,7 @@ class DisplayBase:
         >>> img.save(disp)
         
         """
+        #TODO Add proper reference in above doc string for adaptiveScale
         
         screen = self
         self.size = size

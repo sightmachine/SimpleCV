@@ -1,5 +1,6 @@
 from multiprocessing import Process,Pipe
 import os
+from ..Base import DisplayBase
 
 
 
@@ -17,8 +18,12 @@ class GtkWorker(Process):
     
     """
     _gladeFile = "main.glade"
-    def __init__(self,connection):
+    def __init__(self,connection,size,type_,title,fit):
         self.connection = connection
+        self.size = size
+        self.fit = fit
+        self.title = title
+        self.type_ = type_
         Process.__init__(self)
    
     def run(self):
@@ -38,6 +43,14 @@ class GtkWorker(Process):
         
         self.window = builder.get_object("window")
         self.image = builder.get_object("image")
+        
+        if(self.type_ == DisplayBase.FULLSCREEN):
+            self.window.fullscreen()
+        else:
+            self.image.set_size_request(*self.size)
+            self.window.set_resizable(False)
+
+        self.window.set_title(self.title)
         self.window.show_all()
         
         #calls pollMsg when gtk is idle
@@ -71,6 +84,13 @@ class GtkWorker(Process):
         pix =  self.gtk.gdk.pixbuf_new_from_data(data['data'], self.gtk.gdk.COLORSPACE_RGB, False, data['depth'], data['width'], data['height'], data['width']*3)
         self.image.set_from_pixbuf(pix)
         
+        #
+        #if(self.type_ == DisplayBase.DEFAULT):
+        self.image.set_size_request(data['width'],data['height'])
+        #elif(self.type_ == DisplayBase.FIXED):
+            #pass
+        
+        #print self.image.size_request()
         
     def handle_close(self,widget,data=None):
         self.connection.send('Kill Me')
