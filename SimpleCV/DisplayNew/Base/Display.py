@@ -205,33 +205,6 @@ class DisplayBase:
         """
         
     @abstractmethod
-    def setFitMethod(self,method = RESIZE):
-        """
-        **SUMMARY**
-        
-        Changes how the display accomodates larger images, if it's size is kept 
-        fixed.
-        
-        **PARAMETERS**
-        
-        * *method* - the method used to accomodate images. 
-            Options are as follows:
-
-          * CROP - Crop the image to fit.
-          * RESIZE - Resize the image to fit.
-          
-          
-        **Note**
-        Will only take effect is display type is FIXED
-        
-          
-        **RETURNS**
-        
-        Nothing.
-        
-        """
-        
-    @abstractmethod
     def showImage(self, image):
         """
         **SUMMARY**
