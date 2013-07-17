@@ -4711,6 +4711,7 @@ class Image:
 
         if (fixed):
             rotMat = cv2.getRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale))
+            print rotMat
             retVal = cv2.warpAffine(self.getNumpy(), rotMat, self.size())
             return Image(retVal, colorSpace=self._colorSpace)
 
@@ -9341,7 +9342,9 @@ class Image:
             flt.height != self.height ):
             logger.warning("Image.applyDFTFilter - Your filter must match the size of the image")
         dft = []
-        if( grayscale ):
+        if self.isGray():
+            grayscale = True
+        if grayscale:
             dft = self._getDFTClone(grayscale)
             flt64f = flt.getGrayNumpy().astype(np.float64)
             finalFilt = np.dstack((flt64f, flt64f))
@@ -9357,6 +9360,8 @@ class Image:
             for c in range(0,len(chans)):
                 flt64f = np.copy(chans[c])
                 finalFilt = np.dstack((flt64f, flt64f))
+                print dft[c].shape, dft[c].dtype
+                print finalFilt.shape, finalFilt.dtype
                 dft[c] = cv2.mulSpectrums(dft[c], finalFilt, 0)
         return self._inverseDFT(dft)
 

@@ -66,8 +66,8 @@ class DFT:
                 self.width, self.height = kwargs[key]
             elif key == 'numpyarray':
                 self._numpy = kwargs[key]
-            elif key == 'image':
-                self._image = kwargs[key]
+            #elif key == 'image':
+            #    self._image = kwargs[key]
             elif key == 'dia':
                 self._dia = kwargs[key]
             elif key == 'type':
@@ -617,10 +617,10 @@ class DFT:
         w, h = image.size()
         if grayscale:
             image = image.toGray()
-        fltImg = self._image
+        fltImg = Image(self._numpy)
         if fltImg.size() != image.size():
             fltImg = fltImg.resize(w, h)
-        filteredImage = image.applyDFTFilter(fltImg)
+        filteredImage = image.applyDFTFilter(fltImg, grayscale)
         return filteredImage
 
     def getImage(self):
@@ -639,10 +639,11 @@ class DFT:
                                           size=(512, 512), type="highpass")
         >>> notch.getImage().show()
         """
+        print self._image
         if isinstance(self._image, type(None)):
             if isinstance(self._numpy, type(None)):
                 warnings.warn("Filter doesn't contain any image")
-            self._image = Image(self._numpy)
+            self._image = Image(self._numpy.astype(np.uint8))
         return self._image
 
     def getNumpy(self):
