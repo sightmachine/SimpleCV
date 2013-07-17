@@ -88,10 +88,20 @@ class GtkDisplay(DisplayBase):
 
     @property
     def mouseX(self):
-    	if(self.workerAlive):
+        if(self.workerAlive):
             dic = {}
             dic['function'] = 'mouseX'
             self.connection.send(dic)
             return self.connection.recv()[0]
+
+    @property
+    def mouseY(self):
+        if(self.workerAlive):
+            dic = {}
+            dic['function'] = 'mouseY'
+            self.connection.send(dic)
+            return self.connection.recv()[0]
+        
+    
             
 

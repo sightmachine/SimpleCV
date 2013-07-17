@@ -130,3 +130,10 @@ class GtkWorker(Process):
             self._mouseX = self.image.get_allocation().width
         self.connection.send((self._mouseX,))
 
+    def handle_mouseY(self,data):
+    	self._mouseY = self.image.get_pointer() [1]
+        if self._mouseY < 0:
+            self._mouseY = 0
+        if self._mouseY > self.image.get_allocation().height:
+            self._mouseY = self.image.get_allocation().height
+        self.connection.send((self._mouseY,))
