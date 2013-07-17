@@ -85,5 +85,13 @@ class GtkDisplay(DisplayBase):
             self.connection.send(dic)
         else:
             raise DisplayNotFoundException(self)
-        
+
+    @property
+    def mouseX(self):
+    	if(self.workerAlive):
+            dic = {}
+            dic['function'] = 'mouseX'
+            self.connection.send(dic)
+            return self.connection.recv()[0]
+            
 
