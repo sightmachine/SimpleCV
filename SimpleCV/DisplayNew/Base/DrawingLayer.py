@@ -183,7 +183,7 @@ class DrawingLayerBase:
 
 
         """
-        _shapes.append(Polygon(points,color,width,filled,antialias,alpha)))
+        _shapes.append(Polygon(points,color,width,filled,antialias,alpha))
 
     @abstractmethod
     def circle(self, center, radius, color = Color.DEFAULT, antialias = True, width = 1, filled = False, alpha = -1):
