@@ -66,9 +66,9 @@ class GtkDisplay(DisplayBase):
                 pass
         elif(self.type_ == DisplayBase.FULLSCREEN):
             if(self.fit == DisplayBase.RESIZE):
-                img = img.adaptiveScale(self.imageWidgetSize,True)
+                img = img.adaptiveScale(self.getImageWidgetSize(),True)
             elif(self.fit == DisplayBase.CROP):
-                img = img.adaptiveScale(self.imageWidgetSize,False)
+                img = img.adaptiveScale(self.getImageWidgetSize(),False)
             else:
                 #TODO raise an exception here maybe, cause many other functions
                 #may get a value they are not expecting
