@@ -6042,6 +6042,8 @@ class Image:
                 cfeatures = deepcopy(features)
                 cfeatures.image = self
                 cfeatures.draw(color, width)
+        else:
+            warnings.warn("You need to pass drawable features.")
         return None
 
     def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
