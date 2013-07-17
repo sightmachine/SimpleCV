@@ -52,6 +52,11 @@ class GtkWorker(Process):
 
         self.window.set_title(self.title)
         self.window.show_all()
+
+
+        self._winWidth, self._winHeight = self.window.get_size()
+        self._mouseX = None
+        self._mouseY = None
         
         #calls pollMsg when gtk is idle
         gobject.idle_add(self.pollMsg,None)
@@ -112,5 +117,23 @@ class GtkWorker(Process):
         
     def handle_getImageWidgetSize(self,data):
         self.connection.send((self.image.get_allocation().width,self.image.get_allocation().height))
-        
-        
+
+    def handle_configure_event(self,widget,event):
+        self._winWidth = event.width
+        self._winHeight = event.height
+
+    def handle_mouseX(self,data):
+        self._mouseX = self.image.get_pointer() [0]
+        if self._mouseX < 0:
+            self._mouseX = 0
+        if self._mouseX > self.image.get_allocation().width:
+            self._mouseX = self.image.get_allocation().width
+        self.connection.send((self._mouseX,))
+
+    def handle_mouseY(self,data):
+    	self._mouseY = self.image.get_pointer() [1]
+        if self._mouseY < 0:
+            self._mouseY = 0
+        if self._mouseY > self.image.get_allocation().height:
+            self._mouseY = self.image.get_allocation().height
+        self.connection.send((self._mouseY,))
