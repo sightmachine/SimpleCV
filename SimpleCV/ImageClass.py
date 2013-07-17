@@ -6005,10 +6005,44 @@ class Image:
         cv.SetZero(self._bitmap)
         self._clearBuffers()
 
+    def draw(self, features, color=Color.GREEN, width=1, autocolor=False):
+        """
+        **SUMMARY**
 
+        This is a method to draw Features on any given image.
 
+        **PARAMETERS**
 
+        * *features* - FeatureSet or any Feature (eg. Line, Circle, Corner, etc)
+        * *color*    - Color of the Feature to be drawn
+        * *width*    - width of the Feature to be drawn
+        * *autocolor*- If true a color is randomly selected for each feature
 
+        **RETURNS**
+        None
+
+        **EXAMPLE**
+
+        img = Image("lenna")
+        lines = img.equalize().findLines()
+        img.draw(lines)
+        img.show()
+        """
+        if type(features) == type(self):
+            warnings.warn("You need to pass drawable features.")
+            return None
+        if hasattr(features, 'draw'):
+            if isinstance(features, FeatureSet):
+                from copy import deepcopy
+                cfeatures = deepcopy(features)
+                for cfeat in cfeatures:
+                    cfeat.image = self
+                cfeatures.draw(color, width, autocolor)
+            else:
+                cfeatures = copy(features)
+                cfeatures.image = self
+                cfeatures.draw(color, width)
+        return None
 
     def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
         """
