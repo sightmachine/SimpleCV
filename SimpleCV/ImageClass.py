@@ -6032,14 +6032,14 @@ class Image:
             warnings.warn("You need to pass drawable features.")
             return None
         if hasattr(features, 'draw'):
+            from copy import deepcopy
             if isinstance(features, FeatureSet):
-                from copy import deepcopy
                 cfeatures = deepcopy(features)
                 for cfeat in cfeatures:
                     cfeat.image = self
                 cfeatures.draw(color, width, autocolor)
             else:
-                cfeatures = copy(features)
+                cfeatures = deepcopy(features)
                 cfeatures.image = self
                 cfeatures.draw(color, width)
         return None
