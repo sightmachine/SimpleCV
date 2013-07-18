@@ -8050,7 +8050,11 @@ class Image:
             percentages = []
             result = None
             if( not hue ):
-                pixels = np.array(self.getNumpy()).reshape(-1, 3)   #reshape our matrix to 1xN
+                if self.isRGB():
+                    npimg = self.getNumpy()
+                else:
+                    npimg = self.toRGB().getNumpy()
+                pixels = npimg.reshape(-1, 3)   #reshape our matrix to 1xN
                 if( centroids == None ):
                     result = scv.kmeans(pixels,bins)
                 else:
@@ -8085,6 +8089,7 @@ class Image:
 
             self._mDoHuePalette = hue
             self._mPaletteBins = bins
+            print result
             self._mPalette = np.array(result[0],dtype='uint8')
             self._mPalettePercentages = percentages
 
@@ -9705,24 +9710,23 @@ class Image:
         and then set the output image roi to the value.
         '''
         if( mode ): # get the peak hue for an area
-            #h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
-            hnp = src.getNumpy()[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
+            hnp = src.getNumpy()[roi[1]:roi[1]+roi[3],roi[0]:roi[0]+roi[2]]
             h = Image(hnp).hueHistogram()
             myHue = np.argmax(h)
             C = (float(myHue),float(255),float(255))
             dstroi = dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
             dstroi += C
-            dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]] = dstroi
+            dst[roi[1]:roi[1]+roi[3],roi[0]:roi[0]+roi[2]] = dstroi
 
         else: # get the average value for an area optionally set levels
-            srcroi = src.getNumpy()[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
-            dstroi = dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
+            srcroi = src.getNumpy()[roi[1]:roi[1]+roi[3],roi[0]:roi[0]+roi[2]]
+            dstroi = dst[roi[1]:roi[1]+roi[3],roi[0]:roi[0]+roi[2]]
             avg = cv2.mean(srcroi)
             avg = (float(avg[0]),float(avg[1]),float(avg[2]))
             if(levels is not None):
                 avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f)
             dstroi += avg
-            dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]] = dstroi
+            dst[roi[1]:roi[1]+roi[3],roi[0]:roi[0]+roi[2]] = dstroi
 
     def pixelize(self, block_size = 10, region = None, levels=None, doHue=False):
         """
@@ -9766,11 +9770,6 @@ class Image:
         if( region is not None ):
             retVal = self.getNumpy()
             retVal[region[1]:region[1]+region[3], region[0]:region[2]+region[0]] = 0
-            #roiimg = self.getEmpty()[region[1]:region[1]+region[3], region[0]:region[2]+region[0]]
-            #cv.Copy(self.getBitmap(), retVal)
-            #cv.SetImageROI(retVal,region)
-            #cv.Zero(retVal)
-            #cv.ResetImageROI(retVal)
             xs = region[0]
             ys = region[1]
             w = region[2]
@@ -9801,7 +9800,6 @@ class Image:
                 yt = y_0+(block_size[1]*j)
                 roi = (xt,yt,block_size[0],block_size[1])
                 self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
-
 
         if( x_lhs > 0 ): # add a left strip
             xt = xs
@@ -9899,8 +9897,8 @@ class Image:
         regions = []
 
         if features is None:
-            regions.append(self.findHaarFeatures("face"))
-            regions.append(self.findHaarFeatures("profile"))
+            regions.append(self.findHaarFeatures("face.xml"))
+            regions.append(self.findHaarFeatures("profile.xml"))
         else:
             for feature in features:
                 regions.append(self.findHaarFeatures(feature))

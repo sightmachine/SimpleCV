@@ -32,7 +32,7 @@ class HaarCascade():
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")
                     return None
             
-            self._classifier = cv2.CascadeClassifier(fname)
+            self._classifier = cv2.CascadeClassifier(self._fhandle)
             self._mCascade = self._fhandle
 
             if HaarCascade._cache.has_key(self._fhandle):
