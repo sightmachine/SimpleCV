@@ -124,8 +124,8 @@ def test_image_numpy_constructor():
     img = Image(testimage)
     grayimg = img.grayscale()
 
-    chan3_array = np.array(img.getMatrix())
-    chan1_array = np.array(img.getGrayscaleMatrix())
+    chan3_array = img.getNumpy()
+    chan1_array = grayimg.getGrayNumpy()
 
     img2 = Image(chan3_array)
     grayimg2 = Image(chan1_array)
@@ -134,14 +134,6 @@ def test_image_numpy_constructor():
         pass
     else:
         assert False
-
-def test_image_bitmap():
-    img1 = Image("lenna")
-    img2 = Image("lenna")
-    img2 = img2.smooth()
-    result = [img1,img2]
-    name_stem = "test_image_bitmap"
-    perform_diff(result,name_stem)
 
 # # Image Class Test
 
@@ -152,7 +144,7 @@ def test_image_scale():
         assert False
     result = [thumb]
     name_stem = "test_image_scale"
-    perform_diff(result,name_stem)
+    perform_diff(result,name_stem, 10)
 
 def test_image_copy():
     img = Image(testimage2)
@@ -186,7 +178,7 @@ def test_image_getslice():
 def test_image_setitem():
     img = Image(testimage)
     img[1,1] = (0, 0, 0)
-    newimg = Image(img.getBitmap())
+    newimg = Image(img.getNumpy())
     colors = newimg[1,1]
     if (colors[0] == 0 and colors[1] == 0 and colors[2] == 0):
         pass
@@ -201,7 +193,7 @@ def test_image_setitem():
 def test_image_setslice():
     img = Image(testimage)
     img[1:10,1:10] = (0,0,0) #make a black box
-    newimg = Image(img.getBitmap())
+    newimg = Image(img.getNumpy())
     section = newimg[1:10,1:10]
     for i in range(5):
         colors = section[i,0]

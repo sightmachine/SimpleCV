@@ -1023,6 +1023,7 @@ class Image:
             else:
                 self.filename = source
                 try:
+                    print "cv2 read"
                     self._numpy = cv2.imread(self.filename)
                     if isinstance(self._numpy, type(None)):
                         warnings.warn("Unable to load the image")
@@ -2142,11 +2143,12 @@ class Image:
             return 1
 
         if (filename):
-            cv2.imwrite(filename, saveimg.toRGB().getNumpy())
+            print "cv2 save"
+            cv2.imwrite(filename, saveimg.toBGR().getNumpy())
             self.filename = filename #set the filename for future save operations
             self.filehandle = ""
         elif (self.filename):
-            cv2.imwrite(self.filename, saveimg.toRGB().getNumpy())
+            cv2.imwrite(self.filename, saveimg.toBGR().getNumpy())
         else:
             return 0
 
@@ -2177,7 +2179,7 @@ class Image:
         >>> img2 = img.copy()
 
         """
-        newimg = np.copy(self.getNumpy())
+        newimg = self.getNumpy()
         return Image(newimg, colorSpace=self._colorSpace)
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
@@ -2696,12 +2698,12 @@ class Image:
         else:
             window = (3,3) #set the default aperture window size (3x3)
 
-        image_gauss = cv2.GaussianBlur(self.getNumpyCv2(), window, sigmaX, sigmaY=sigmaY)
+        image_gauss = cv2.GaussianBlur(self.getNumpy(), window, sigmaX, sigmaY=sigmaY)
 
         if grayscale:
-            return Image(image_gauss, colorSpace=ColorSpace.GRAY, cv2image=True)
+            return Image(image_gauss, colorSpace=ColorSpace.GRAY)
         else:
-            return Image(image_gauss, colorSpace=self._colorSpace, cv2image=True)
+            return Image(image_gauss, colorSpace=self._colorSpace)
 
     def invert(self):
         """
