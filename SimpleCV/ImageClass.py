@@ -1791,10 +1791,10 @@ class Image:
 
         """
         if( self._grayNumpy != "" ):
-            return self._grayNumpy
+            return np.copy(self._grayNumpy)
         else:
             self._grayNumpy = self.toGray().getNumpy()[:,:,0]
-        return self._grayNumpy
+        return np.copy(self._grayNumpy)
 
     def getNumpy(self):
         """
@@ -1821,7 +1821,7 @@ class Image:
         :py:meth:`getGrayscaleMatrix`
 
         """
-        return self._numpy
+        return np.copy(self._numpy)
 
     def getNumpyCv2(self):
         """
@@ -8640,13 +8640,14 @@ class Image:
             tmp1 = np.zeros((1, 13 * 5))
             tmp2 = np.zeros((1, 13 * 5))
             mask = np.zeros((self.height,self.width),dtype='uint8')
+            rect = tuple(rect)
             cv2.grabCut(npimg,mask,rect,tmp1,tmp2,10,mode=cv2.GC_INIT_WITH_RECT)
             LUT = np.zeros((256,1),dtype=uint8)
             LUT[1]=255
             LUT[2]=64
             LUT[3]=192
-            output = cv2.LUT(maks,LUT)
-            retVal = Image(bmp)
+            output = cv2.LUT(mask,LUT)
+            retVal = Image(output)
         else:
             logger.warning( "ImageClass.findBlobsSmart requires either a mask or a selection rectangle. Failure to provide one of these causes your bytes to splinter and bit shrapnel to hit your pipeline making it asplode in a ball of fire. Okay... not really")
         return retVal
@@ -9703,24 +9704,25 @@ class Image:
         Take the value in an ROI, calculate the average / peak hue
         and then set the output image roi to the value.
         '''
-        print "do this later"
         if( mode ): # get the peak hue for an area
-            h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
+            #h = src[roi[0]:roi[0]+roi[2],roi[1]:roi[1]+roi[3]].hueHistogram()
+            hnp = src.getNumpy()[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
+            h = Image(hnp).hueHistogram()
             myHue = np.argmax(h)
-            C = (float(myHue),float(255),float(255),float(0))
-            cv.SetImageROI(dst,roi)
-            cv.AddS(dst,c,dst)
-            cv.ResetImageROI(dst)
+            C = (float(myHue),float(255),float(255))
+            dstroi = dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
+            dstroi += C
+            dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]] = dstroi
+
         else: # get the average value for an area optionally set levels
-            cv.SetImageROI(src.getBitmap(),roi)
-            cv.SetImageROI(dst,roi)
-            avg = cv.Avg(src.getBitmap())
-            avg = (float(avg[0]),float(avg[1]),float(avg[2]),0)
+            srcroi = src.getNumpy()[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
+            dstroi = dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]]
+            avg = cv2.mean(srcroi)
+            avg = (float(avg[0]),float(avg[1]),float(avg[2]))
             if(levels is not None):
-                avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f,0)
-            cv.AddS(dst,avg,dst)
-            cv.ResetImageROI(src.getBitmap())
-            cv.ResetImageROI(dst)
+                avg = (int(avg[0]/levels)*levels_f,int(avg[1]/levels)*levels_f,int(avg[2]/levels)*levels_f)
+            dstroi += avg
+            dst[roi[1]:roi[3]+roi[3],roi[0]:roi[0]+roi[2]] = dstroi
 
     def pixelize(self, block_size = 10, region = None, levels=None, doHue=False):
         """
@@ -9744,7 +9746,7 @@ class Image:
 
         >>> img = Image("lenna")
         >>> result = img.pixelize( 16, (200,180,250,250), levels=4)
-        >>> img.show()
+        >>> result.show()
 
         """
 
@@ -9754,7 +9756,6 @@ class Image:
 
         retVal = self.getEmpty()
 
-
         levels_f = 0.00
         if( levels is not None ):
             levels = 255/int(levels)
@@ -9763,10 +9764,13 @@ class Image:
             levels_f = float(levels)
 
         if( region is not None ):
-            cv.Copy(self.getBitmap(), retVal)
-            cv.SetImageROI(retVal,region)
-            cv.Zero(retVal)
-            cv.ResetImageROI(retVal)
+            retVal = self.getNumpy()
+            retVal[region[1]:region[1]+region[3], region[0]:region[2]+region[0]] = 0
+            #roiimg = self.getEmpty()[region[1]:region[1]+region[3], region[0]:region[2]+region[0]]
+            #cv.Copy(self.getBitmap(), retVal)
+            #cv.SetImageROI(retVal,region)
+            #cv.Zero(retVal)
+            #cv.ResetImageROI(retVal)
             xs = region[0]
             ys = region[1]
             w = region[2]
@@ -9854,8 +9858,7 @@ class Image:
             self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(doHue):
-            cv.CvtColor(retVal,retVal,cv.CV_HSV2BGR)
-
+            cv2.cvtColor(retVal,retVal,cv2.cv.CV_HSV2BGR)
 
         return Image(retVal)
 
