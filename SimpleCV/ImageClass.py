@@ -8065,10 +8065,8 @@ class Image:
                 if( self._colorSpace != ColorSpace.HSV ):
                     hsv = self.toHSV()
 
-                h = hsv.getEmpty(1)
-                cv.Split(hsv.getBitmap(),None,None,h,None)
-                mat =  cv.GetMat(h)
-                pixels = np.array(mat).reshape(-1,1)
+                h = hsv.getNumpy()[:, :, 0]
+                pixels = h.reshape(-1,1)
 
                 if( centroids == None ):
                     result = scv.kmeans(pixels,bins)
@@ -8079,7 +8077,6 @@ class Image:
                     result = scv.kmeans(pixels,centroids)
 
                 self._mPaletteMembers = scv.vq(pixels,result[0])[0]
-
 
             for i in range(0,bins):
                 count = np.where(self._mPaletteMembers==i)
@@ -8137,7 +8134,6 @@ class Image:
         self._generatePalette(bins,hue,centroids)
         return self._mPalette
 
-
     def rePalette(self,palette,hue=False):
         """
         **SUMMARY**
@@ -8179,14 +8175,11 @@ class Image:
             if( self._colorSpace != ColorSpace.HSV ):
                 hsv = self.toHSV()
 
-            h = hsv.getEmpty(1)
-            cv.Split(hsv.getBitmap(),None,None,h,None)
-            mat =  cv.GetMat(h)
-            pixels = np.array(mat).reshape(-1,1)
+            h = hsv.getNumpy()[:, :, 0]
+            pixels = h.reshape(-1,1)
             result = scv.vq(pixels,palette)
             derp = palette[result[0]]
-            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
-            retVal = retVal.rotate(-90,fixed=False)
+            retVal = Image(derp[::-1].reshape(self.height,self.width)).rotate180()
             retVal._mDoHuePalette = True
             retVal._mPaletteBins = len(palette)
             retVal._mPalette = palette
@@ -8269,64 +8262,60 @@ class Image:
             if( horizontal ):
                 if( size[0] == -1 or size[1] == -1 ):
                     size = (int(self.width),int(self.height*.1))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0], 3), np.uint8)
                 idxL = 0
                 idxH = 0
-                for i in range(0,bins):
-                    idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
+                for i in range(0,min(bins, self._mPalette.shape[0])):
+                    idxH = np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
                     roi = (int(idxL),0,int(idxH-idxL),size[1])
-                    cv.SetImageROI(pal,roi)
+                    roiimage = pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
                     color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
-                    cv.AddS(pal,color,pal)
-                    cv.ResetImageROI(pal)
+                    roiimage = roiimage + color
+                    pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]] = roiimage
                     idxL = idxH
                 retVal = Image(pal)
             else:
                 if( size[0] == -1 or size[1] == -1 ):
                     size = (int(self.width*.1),int(self.height))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0], 3), np.uint8)
                 idxL = 0
                 idxH = 0
-                for i in range(0,bins):
+                for i in range(0,min(bins, self._mPalette.shape[0])):
                     idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
                     roi = (0,int(idxL),size[0],int(idxH-idxL))
-                    cv.SetImageROI(pal,roi)
+                    roiimage = pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
                     color = np.array((float(self._mPalette[i][2]),float(self._mPalette[i][1]),float(self._mPalette[i][0])))
-                    cv.AddS(pal,color,pal)
-                    cv.ResetImageROI(pal)
+                    roiimage = roiimage + color
+                    pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]] = roiimage
                     idxL = idxH
                 retVal = Image(pal)
         else: # do hue
             if( horizontal ):
                 if( size[0] == -1 or size[1] == -1 ):
                     size = (int(self.width),int(self.height*.1))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0]), np.uint8)
                 idxL = 0
                 idxH = 0
-                for i in range(0,bins):
+                for i in range(0,min(bins, self._mPalette.shape[0])):
                     idxH =np.clip(idxH+(self._mPalettePercentages[i]*float(size[0])),0,size[0]-1)
                     roi = (int(idxL),0,int(idxH-idxL),size[1])
-                    cv.SetImageROI(pal,roi)
-                    cv.AddS(pal,float(self._mPalette[i]),pal)
-                    cv.ResetImageROI(pal)
+                    roiimage = pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
+                    roiimage += self._mPalette[i]
+                    pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]] = roiimage
                     idxL = idxH
                 retVal = Image(pal)
             else:
                 if( size[0] == -1 or size[1] == -1 ):
                     size = (int(self.width*.1),int(self.height))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0]), np.uint8)
                 idxL = 0
                 idxH = 0
-                for i in range(0,bins):
+                for i in range(0,min(bins, self._mPalette.shape[0])):
                     idxH =np.clip(idxH+self._mPalettePercentages[i]*size[1],0,size[1]-1)
                     roi = (0,int(idxL),size[0],int(idxH-idxL))
-                    cv.SetImageROI(pal,roi)
-                    cv.AddS(pal,float(self._mPalette[i]),pal)
-                    cv.ResetImageROI(pal)
+                    roiimage = pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
+                    roiimage += self._mPalette[i]
+                    pal[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]] = roiimage
                     idxL = idxH
                 retVal = Image(pal)
 
@@ -8502,7 +8491,6 @@ class Image:
                 npimg = np.where(npimg != p,npimg,white)
 
             npimg = np.where(npimg != white,black,white)
-            retVal = Image(npimg)
         else:
             npimg = img.getNumpy()[:,:,1]
             white = np.array([255])
@@ -8512,8 +8500,8 @@ class Image:
                 npimg = np.where(npimg != p,npimg,white)
 
             npimg = np.where(npimg != white,black,white)
-            retVal = Image(npimg)
 
+        retVal = Image(npimg.astype(np.uint8))
         return retVal
 
     def skeletonize(self, radius = 5):
