@@ -1092,7 +1092,7 @@ class Circle(Feature):
         """
         #generate the mask
         if( self.avgColor is None):
-            mask = self.image.getEmpty(3)
+            mask = self.image.getEmpty(1)
             cv2.circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
             temp = cv2.mean(self.image.getNumpy(),mask)
             self.avgColor = (temp[0],temp[1],temp[2])
@@ -1366,7 +1366,7 @@ class KeyPoint(Feature):
         """
         #generate the mask
         if( self._avgColor is None):
-            mask = self.image.getEmpty(3)
+            mask = self.image.getEmpty(1)
             cv2.circle(mask,(int(self.x),int(self.y)),int(self._r),color=(255,255,255),thickness=-1)
             temp = cv2.mean(self.image.getNumpy(),mask)
             self._avgColor = (temp[0],temp[1],temp[2])
@@ -1442,7 +1442,7 @@ class KeyPoint(Feature):
         else:
             mask = self.image.getEmpty(3)
             #if you want to shave a bit of time we go do the crop before the blit
-            cv2.circle(mask,(self.x,self.y),self.r,color=(255,255,255),thickness=-1)
+            cv2.circle(mask,(int(self.x),int(self.y)),int(self.r),color=(255,255,255),thickness=-1)
             result = cv2.bitwise_and(self.image.getNumpy(), mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(), centered = True)

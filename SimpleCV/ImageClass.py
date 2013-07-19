@@ -1726,7 +1726,7 @@ class Image:
         :py:meth:`getNumpy`
         :py:meth:`getGrayNumpy`
         """
-        retVal = self.getNumpy.astype(np.float64)
+        retVal = self.getNumpy().astype(np.float64)/255.0
         return retVal
 
     def getPIL(self):
@@ -1762,7 +1762,7 @@ class Image:
             return None
         if (not self._pil):
             rgbnpimg = self.toRGB().getNumpy()
-            self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
+            self._pil = pil.fromstring("RGB", self.size(), rgbnpimg.tostring())
         return self._pil
 
     def getGrayNumpy(self):
@@ -1794,7 +1794,14 @@ class Image:
         if( self._grayNumpy != "" ):
             return np.copy(self._grayNumpy)
         else:
-            self._grayNumpy = self.toGray().getNumpy()[:,:,0]
+            npimg = self.getNumpy()
+            if npimg.dtype == np.float64:
+                npimg = npimg.astype(np.float32)
+                ret = Image(npimg, self._colorSpace)
+                gray = ret.toGray().getNumpy()[:, :, 0]
+                self._grayNumpy = gray.astype(np.float64)
+            else:
+                self._grayNumpy = self.toGray().getNumpy()[:,:,0]
         return np.copy(self._grayNumpy)
 
     def getNumpy(self):
@@ -4218,7 +4225,7 @@ class Image:
         self._numpy[tuple(reversed(coord))] = value
 
     def __sub__(self, other):
-        newnpimg = self.getNumpy() - other.getNumpy()
+        newnpimg = cv2.subtract(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __add__(self, other):
@@ -4226,19 +4233,19 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __and__(self, other):
-        newbitmap = self.getNumpy() & other.getNumpy()
+        newnpimg = self.getNumpy() & other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __or__(self, other):
-        newbitmap = self.getNumpy() | other.getNumpy()
+        newnpimg = self.getNumpy() | other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __div__(self, other):
-        newbitmap = self.getNumpy() / other.getNumpy()
+        newnpimg = cv2.divide(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __mul__(self, other):
-        newbitmap = self.getNumpy() * other.getNumpy()
+        newnpimg = cv2.multiply(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __pow__(self, other):
@@ -5139,7 +5146,7 @@ class Image:
         if( column < 0 or column >= self.width ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = self.getGrayNumpy()[:, col]
+            retVal = self.getGrayNumpy()[:, column]
         return retVal
 
     def getHorzScanlineGray(self, row):
@@ -6439,7 +6446,7 @@ class Image:
             logger.warning("image.embiggenCanvas: the size provided is invalid")
             return None
 
-        newCanvas = np.zeros((size[0], size[1], 3)).astype(np.uint8)
+        newCanvas = np.zeros((size[1], size[0], 3)).astype(np.uint8)
         r, g, b = color # BGR ? RGB stuff
         newCanvas[:, :, 0] = b
         newCanvas[:, :, 1] = g
@@ -6452,7 +6459,8 @@ class Image:
             logger.warning("image.embiggenCanvas: the position of the old image doesn't make sense, there is no overlap")
             return None
         x, y, w, h = bottomROI
-        newCanvas[x:w+x, y:y+h] = self.getNumpy()
+        xt, yt, wt, ht = topROI
+        newCanvas[y:y+h, x:x+w] = self.getNumpy()[yt:yt+ht, xt:xt+wt]
         return Image(newCanvas)
 
     def _rectOverlapROIs(self,top, bottom, pos):
@@ -6558,22 +6566,25 @@ class Image:
             color2[2] > 255 or color2[2] < 0 ):
             logger.warning("One of the tuple values falls outside of the range of 0 to 255")
             return None
-
+        print "reversing tuple for BGR"
+        color1 = tuple(reversed(color1))
+        color2 = tuple(reversed(color2))
         if( color1[0] < color2[0] ):
             b = cv2.inRange(self.getNumpy()[:,:,0], color1[0], color2[0])
         else:
             b = cv2.inRange(self.getNumpy()[:,:,0], color2[0], color1[0])
 
         if( color1[1] < color2[1] ):
-            g = cv2.inRange(self.getNumpy()[:,:,0], color1[1], color2[1])
+            g = cv2.inRange(self.getNumpy()[:,:,1], color1[1], color2[1])
         else:
-            g = cv2.inRange(self.getNumpy()[:,:,0], color2[1], color1[1])
+            g = cv2.inRange(self.getNumpy()[:,:,1], color2[1], color1[1])
 
         if( color1[2] < color2[2] ):
-            r = cv2.inRange(self.getNumpy()[:,:,0], color1[2], color2[2])
+            r = cv2.inRange(self.getNumpy()[:,:,2], color1[2], color2[2])
         else:
-            r = cv2.inRange(self.getNumpy()[:,:,0], color2[2], color1[2])
-        retVal = np.dstack((b, g, r))
+            r = cv2.inRange(self.getNumpy()[:,:,2], color2[2], color1[2])
+        r = cv2.bitwise_and(r, g)
+        retVal = cv2.bitwise_and(r, b)
         return Image(retVal)
 
     def applyBinaryMask(self, mask,bg_color=Color.BLACK):
@@ -6658,23 +6669,18 @@ class Image:
             hsv = self.toHSV()
         else:
             hsv = self
-        h = hsv.getEmpty(1)
-        s = hsv.getEmpty(1)
-        retVal = hsv.getEmpty(1)
-        mask = hsv.getEmpty(1)
+
         npimg = hsv.getNumpy()
         h = npimg[:, :, 0]
         s = npimg[:, :, 1]
-        hlut = np.zeros((256,1),dtype=uint8) #thankfully we're not doing a LUT on saturation
+        hlut = np.zeros(256,dtype=uint8) #thankfully we're not doing a LUT on saturation
         if(hue_lb is not None and hue_ub is not None):
             hlut[hue_lb:hue_ub]=255
         else:
             hlut[hue] = 255
         mask = cv2.LUT(h, hlut)
-        retVal = np.copy(s)
-        retVal[mask]=s
-        #retVal[mask]=+s
-        #cv.Copy(s,retVal,mask) #we'll save memory using hue
+        retVal = cv2.bitwise_and(s, s, mask=mask)
+
         return Image(retVal)
 
 
@@ -6777,8 +6783,9 @@ class Image:
         """
         if(isinstance(kernel, list)):
             kernel = np.array(kernel)
-        else:
-            logger.warning("Convolution uses numpy arrays or cv.mat type.")
+            
+        if not isinstance(kernel, np.ndarray):
+            warning.warn("Numpy kernel required.")
             return None
         if(center is None):
             retVal = cv2.filter2D(self.getNumpy(), -1, kernel)
@@ -9345,6 +9352,7 @@ class Image:
         if grayscale:
             dft = self._getDFTClone(grayscale)
             flt64f = flt.getGrayNumpy().astype(np.float64)
+            print flt64f
             finalFilt = np.dstack((flt64f, flt64f))
             for d in dft:
                 d = cv2.mulSpectrums(d, finalFilt, 0)
@@ -9358,8 +9366,8 @@ class Image:
             for c in range(0,len(chans)):
                 flt64f = np.copy(chans[c])
                 finalFilt = np.dstack((flt64f, flt64f))
-                print dft[c].shape, dft[c].dtype
-                print finalFilt.shape, finalFilt.dtype
+                if dft[c].dtype != finalFilt.dtype:
+                    finalFilt = finalFilt.astype(dft[c].dtype)
                 dft[c] = cv2.mulSpectrums(dft[c], finalFilt, 0)
         return self._inverseDFT(dft)
 

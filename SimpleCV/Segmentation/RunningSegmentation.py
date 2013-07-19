@@ -47,13 +47,19 @@ class RunningSegmentation(SegmentationBase):
 
         self.mColorImg = img
         if( self.mModelImg == None ):
-            self.mModelImg = Image(cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_32F, 3))
-            self.mDiffImg = Image(cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_32F, 3))
+            self.mModelImg = Image(np.zeros((img.height, img.width, 3)).astype(np.float32))
+            self.mDiffImg = Image(np.zeros((img.height, img.width, 3)).astype(np.float32))
+
         else:
             # do the difference
-            cv.AbsDiff(self.mModelImg.getBitmap(),img.getFPMatrix(),self.mDiffImg.getBitmap())
+            self.mDiffImg = Image(cv2.absdiff(self.mModelImg.getNumpy(), self.mDiffImg.getNumpy()))
             #update the model
-            cv.RunningAvg(img.getFPMatrix(),self.mModelImg.getBitmap(),self.mAlpha)
+            npimg = np.zeros((img.height, img.width, 3)).astype(np.float32)
+            npimg = self.mModelImg.getFPNumpy()
+            cv2.accumulateWeighted(img.getFPNumpy(), npimg, self.mAlpha)
+            print npimg
+            self.mModelImg = Image(npimg)
+            #cv.RunningAvg(img.getFPMatrix(),self.mModelImg.getBitmap(),self.mAlpha)
             self.mReady = True
         return
 
@@ -120,12 +126,15 @@ class RunningSegmentation(SegmentationBase):
         return retVal
 
 
-    def _floatToInt(self,input):
+    def _floatToInt(self,inputimg):
         """
         convert a 32bit floating point cv array to an int array
         """
-        temp = cv.CreateImage((input.width,input.height), cv.IPL_DEPTH_8U, 3)
-        cv.Convert(input.getBitmap(),temp)
+        temp = inputimg.getNumpy()
+        temp = temp * 255.0
+        temp = temp.astype(np.uint8)
+        #temp = cv.CreateImage((input.width,input.height), cv.IPL_DEPTH_8U, 3)
+        #cv.Convert(input.getBitmap(),temp)
 
         return Image(temp)
 

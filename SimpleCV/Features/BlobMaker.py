@@ -193,7 +193,7 @@ class BlobMaker:
         #retVal.mMask = Image(mask)
 
         retVal.mAvgColor = self._getAvg(color.getNumpy(),bb,mask)
-        retVal.mAvgColor = retVal.mAvgColor[0:2]
+        retVal.mAvgColor = retVal.mAvgColor[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)

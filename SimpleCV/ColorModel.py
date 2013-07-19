@@ -171,7 +171,7 @@ class ColorModel:
         rs = np.right_shift(img.getNumpy(), self.mBits).reshape(-1, 3) #bitshift down and reshape to Nx3
         mapped = np.array(map(self.mData.has_key, map(np.ndarray.tostring, rs))) #map to True/False based on the model
         thresh = np.where(mapped, a, b) #replace True and False with fg and bg
-        return Image(thresh.reshape(img.width, img.height))
+        return Image(thresh.reshape(img.width, img.height).astype(np.uint8))
 
     def contains(self, c):
         """

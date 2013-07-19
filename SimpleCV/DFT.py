@@ -617,6 +617,7 @@ class DFT:
         w, h = image.size()
         if grayscale:
             image = image.toGray()
+            print self._numpy.dtype, "gray"
         fltImg = Image(self._numpy)
         if fltImg.size() != image.size():
             fltImg = fltImg.resize(w, h)

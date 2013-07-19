@@ -68,9 +68,7 @@ class DiffSegmentation(SegmentationBase):
                 self.mColorImg = img
                 self.mCurrImg = img
 
-
-            cv.AbsDiff(self.mCurrImg.getBitmap(),self.mLastImg.getBitmap(),self.mDiffImg.getBitmap())
-
+            self.mDiffImg = Image(cv2.absdiff(self.mCurrImg.getNumpy(), self.mLastImg.getNumpy()))
         return
 
 
