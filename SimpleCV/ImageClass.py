@@ -2511,6 +2511,7 @@ class Image:
 
         #gauss and blur can work in-place, others need a buffer frame
         #use a string to ID rather than the openCV constant
+        window = (win_x, win_y)
         if algorithm_name == "blur":
             return self.blur(window, grayscale)
         elif algorithm_name == "bilateral":
@@ -2518,7 +2519,7 @@ class Image:
         elif algorithm_name == "median":
             return self.medianFilter(window, grayscale)
         else:
-            return self.gaussianBlur((win_x, win_y), sigma, spatial_sigma, grayscale)
+            return self.gaussianBlur(window, sigma, spatial_sigma, grayscale)
 
     def medianFilter(self, window='',grayscale=False):
         """

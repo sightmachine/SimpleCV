@@ -65,7 +65,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
     count = len(test_imgs)
     for idx in range(0,count):
         lhs = test_imgs[idx].applyLayers() # this catches drawing methods
-        fname = standard_path+name_stem+str(idx)+".jpg"
+        fname = standard_path+name_stem+str(idx)+".png"
         rhs = Image(fname)
         if( lhs.width == rhs.width and lhs.height == rhs.height ):
             diff = (lhs-rhs)
@@ -196,7 +196,7 @@ def test_image_setslice():
     newimg = Image(img.getNumpy())
     section = newimg[1:10,1:10]
     for i in range(5):
-        colors = section[i,0]
+        colors = section[i][0]
         if (colors[0] != 0 or colors[1] != 0 or colors[2] != 0):
             assert False
     pass
@@ -217,13 +217,13 @@ def test_detection_findCorners():
 
 
 def test_color_meancolor():
-    a = np.arange(0, 256)
+    a = np.arange(0, 256).astype(np.uint8)
     b = a[::-1]
     c = np.copy(a)/2
     a = a.reshape(16, 16)
     b = b.reshape(16, 16)
     c = c.reshape(16, 16)
-    imgarr = np.dstack((a, b, c))
+    imgarr = np.dstack((c, b, a))
     img = Image(imgarr)
 
     b, g, r = img.meanColor('BGR')
