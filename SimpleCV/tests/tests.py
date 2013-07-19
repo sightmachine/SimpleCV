@@ -72,6 +72,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
             val = np.average(diff.getNumpy())
             if( val > tolerance ):
                 print val
+                print fname
                 return True
     return False
 
@@ -359,8 +360,7 @@ def test_image_drawing():
 def test_image_splitchannels():
     img = Image(testimageclr)
     (r, g, b) = img.splitChannels(True)
-    (red, green, blue) = img.splitChannels()
-    result = [r,g,b,red,green,blue]
+    result = [r,g,b]
     name_stem = "test_image_splitchannels"
     perform_diff(result,name_stem)
     pass

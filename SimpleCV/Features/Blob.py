@@ -573,10 +573,11 @@ class Blob(Feature):
             layer = self.image.dl()
 
         if width == -1:
+            print color
             npimg = self.mMask.getGrayNumpy()
-            b = cv2.convertScaleAbs(npimg, color[0]/255.0)
+            b = cv2.convertScaleAbs(npimg, color[2]/255.0)
             g = cv2.convertScaleAbs(npimg, color[1]/255.0)
-            r = cv2.convertScaleAbs(npimg, color[2]/255.0)
+            r = cv2.convertScaleAbs(npimg, color[0]/255.0)
             #copy the mask into 3 channels and multiply by the appropriate color
             maskbit = np.dstack((b, g, r))
             masksurface = Image(maskbit).getPGSurface()
