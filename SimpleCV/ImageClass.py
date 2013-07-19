@@ -2143,12 +2143,17 @@ class Image:
             return 1
 
         if (filename):
-            print "cv2 save"
-            cv2.imwrite(filename, saveimg.toBGR().getNumpy())
+            if self.isGray():
+                cv2.imwrite(filename, saveimg.getGrayNumpy())
+            else:
+                cv2.imwrite(filename, saveimg.toBGR().getNumpy())
             self.filename = filename #set the filename for future save operations
             self.filehandle = ""
         elif (self.filename):
-            cv2.imwrite(self.filename, saveimg.toBGR().getNumpy())
+            if self.isGray():
+                cv2.imwrite(filename, saveimg.getGrayNumpy())
+            else:
+                cv2.imwrite(filename, saveimg.toBGR().getNumpy())
         else:
             return 0
 
@@ -2699,11 +2704,11 @@ class Image:
         else:
             window = (3,3) #set the default aperture window size (3x3)
 
-        image_gauss = cv2.GaussianBlur(self.getNumpy(), window, sigmaX, sigmaY=sigmaY)
-
         if grayscale:
+            image_gauss = cv2.GaussianBlur(self.getGrayNumpy(), window, sigmaX, sigmaY=sigmaY)
             return Image(image_gauss, colorSpace=ColorSpace.GRAY)
         else:
+            image_gauss = cv2.GaussianBlur(self.getNumpy(), window, sigmaX, sigmaY=sigmaY)
             return Image(image_gauss, colorSpace=self._colorSpace)
 
     def invert(self):
@@ -2948,8 +2953,8 @@ class Image:
             g = npimg[:, :, 1]
             r = npimg[:, :, 2]
 
-            _, r = cv2.threshold(r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
-            _, g = cv2.threshold(g, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            _, r = cv2.threshold(r, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
+            _, g = cv2.threshold(g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
             _, b = cv2.threshold(b, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
             img = r + g  + b
             return Image(img, colorSpace=self._colorSpace)
@@ -3533,11 +3538,13 @@ class Image:
 
         :py:meth:`mergeChannels`
         """
-        blue = np.copy(self.getNumpy()[:,:,0])
-        green = np.copy(self.getNumpy()[:,:,1])
-        red = np.copy(self.getNumpy()[:,:,2])
+        blue = self.getNumpy()[:,:,0]
+        green = self.getNumpy()[:,:,1]
+        red = self.getNumpy()[:,:,2]
 
-        return (Image(red), Image(green), Image(blue))
+        return (Image(red, colorSpace=ColorSpace.GRAY), 
+                Image(green, colorSpace=ColorSpace.GRAY), 
+                Image(blue, colorSpace=ColorSpace.GRAY))
 
     def mergeChannels(self,r=None,g=None,b=None):
         """
@@ -4479,7 +4486,7 @@ class Image:
                                     srn=minlinelength,
                                     stn=maxlinegap)
             if nLines == -1:
-                nLines = len(lines)
+                nLines = lines.shape[1]
             # All white points (edges) in Canny edge image
             #em = Image(em)
             x,y = np.where(em > 128)
@@ -4487,7 +4494,7 @@ class Image:
             pts = dict((p, 1) for p in zip(x, y))   
             
             w, h = self.width-1, self.height-1
-            for rho, theta in lines[:nLines]:
+            for rho, theta in lines[0][:nLines]:
                 ep = []
                 ls = []
                 a = math.cos(theta)
@@ -6016,7 +6023,8 @@ class Image:
             final = self.mergedLayers()
             imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
-            return Image(imgSurf)
+            retVal = Image(imgSurf, colorSpace=ColorSpace.RGB)
+            return retVal
         else:
             final = DrawingLayer((self.width, self.height))
             retVal = self
@@ -6026,7 +6034,7 @@ class Image:
             imgSurf = self.getPGSurface().copy()
             imgSurf.blit(final._mSurface, (0, 0))
             indicies.reverse()
-            return Image(imgSurf)
+            return Image(imgSurf, colorSpace=ColorSpace.RGB)
 
     def adaptiveScale(self, resolution,fit=True):
         """
@@ -10650,7 +10658,7 @@ class Image:
         return retVal
 
     def __getstate__(self):
-        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getBitmap().tostring() )
+        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getNumpy().tostring() )
 
     def __setstate__(self, mydict):
         self._numpy = mydict['image']
