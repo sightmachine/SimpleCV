@@ -1405,13 +1405,17 @@ class Blob(Feature):
         try:
             import cv2
             if hasattr(cv2, "convexityDefects"):
-                hull = [self.mContour.index(x) for x in self.mConvexHull]
-                hull = np.array(hull).reshape(len(hull), 1)
-                defects = cv2.convexityDefects(np.array(self.mContour), hull)
+                #hull = [self.mContour.index(x) for x in self.mConvexHull]
+                #hull = np.array(hull).reshape(len(hull), 1)
+                #defects = cv2.convexityDefects(np.array(self.mContour), hull)
+                hull = cv2.convexHull(self.mContour, returnPoints=False)
+                defects = cv2.convexityDefects(self.mContour, hull)
                 if isinstance(defects, type(None)):
                     warnings.warn("Unable to find defects. Returning Empty FeatureSet.")
                     defects = []
-                points = [(self.mContour[defect[0][0]], self.mContour[defect[0][1]], self.mContour[defect[0][2]]) for defect in defects]
+                points = [(tuple(self.mContour[defect[0][0]][0]), 
+                          tuple(self.mContour[defect[0][1]][0]), 
+                          tuple(self.mContour[defect[0][2]][0])) for defect in defects]
             else:
                 points = cvFallback()
         except ImportError:

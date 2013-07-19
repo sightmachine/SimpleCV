@@ -162,6 +162,7 @@ class BlobMaker:
         retVal.points = [(xx,yy),(xx+ww,yy),(xx+ww,yy+hh),(xx,yy+hh)]
         retVal._updateExtents()
         chull = cv2.convexHull(contour, returnPoints=1)
+        retVal._mConvexHullnp = chull
         retVal.mConvexHull = list(tuple(pt[0]) for pt in list(chull))
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #hullMask = self._getHullMask(chull,bb)
@@ -171,8 +172,6 @@ class BlobMaker:
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #retVal.mHullMask = Image(hullMask)
-
-        del chull
 
         moments = cv2.moments(contour)
 

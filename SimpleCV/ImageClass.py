@@ -3631,8 +3631,8 @@ class Image:
         #TODO CHECK CURVE SIZE
         tempMat = self.toHLS().getNumpy()
         tempMat[:, :, 0] = np.take(hCurve.mCurve, tempMat[:, :, 0])
-        tempMat[:, :, 1] = np.take(sCurve.mCurve, tempMat[:, :, 1])
-        tempMat[:, :, 2] = np.take(lCurve.mCurve, tempMat[:, :, 2])
+        tempMat[:, :, 1] = np.take(lCurve.mCurve, tempMat[:, :, 1])
+        tempMat[:, :, 2] = np.take(sCurve.mCurve, tempMat[:, :, 2])
         image = cv2.cvtColor(tempMat, cv.CV_HLS2BGR)
         return Image(image, colorSpace=self._colorSpace)
 
@@ -4026,16 +4026,9 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-
-        retVal = self.getEmpty()
-        temp = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        try:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
-        except:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_GRADIENT, 1)
-        return Image(retVal, colorSpace=self._colorSpace )
-
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        retVal = cv2.morphologyEx(self.getNumpy(), cv2.MORPH_GRADIENT, kern)
+        return Image(retVal, colorSpace=self._colorSpace)
 
     def histogram(self, numbins = 50):
         """

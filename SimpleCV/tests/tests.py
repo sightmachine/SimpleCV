@@ -448,7 +448,7 @@ def test_detection_blobs():
     result = [img]
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs"
-    perform_diff(result,name_stem,5.00)
+    perform_diff(result,name_stem,8.00)
 
     if blobs == None:
         assert False
@@ -703,7 +703,7 @@ def test_image_erode():
         assert False;
 
 def test_image_morph_open():
-    img = Image(barcode);
+    img = Image(barcode)
     erode= img.erode()
     dilate = erode.dilate()
     result = img.morphOpen()
@@ -760,13 +760,6 @@ def test_image_rotate_fixed():
     results = [img2,img3,img4,img5,img6]
     name_stem = "test_image_rotate_fixed"
     perform_diff(results,name_stem)
-
-    test = img4-img2
-    c=test.meanColor()
-    print(c)
-    if( c[0] > 5 or c[1] > 5 or c[2] > 5 ):
-        assert False
-
 
 def test_image_rotate_full():
     img = Image(testimage2)
