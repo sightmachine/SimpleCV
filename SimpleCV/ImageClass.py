@@ -6227,7 +6227,6 @@ class Image:
         (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
 
         if( alpha is not None ):
-            print topROI, bottomROI
             xROI, yROI, wROI, hROI = topROI
             topROI = img.getNumpy()[xROI:wROI+xROI, yROI:hROI+yROI]
             xROI, yROI, wROI, hROI = bottomROI
@@ -6248,43 +6247,21 @@ class Image:
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             retValC = retVal.crop(bottomROI[0],bottomROI[1],bottomROI[2],bottomROI[3])
-            #xROI, yROI, wROI, hROI = bottomROI
-            #retValC = retVal[yROI: yROI+hROI, xROI:xROI+wROI]
-            cImg.show()
             npimg = cImg.getNumpy()
-            print cImg.getNumpy()
+
             r = npimg[:, :, 2]
             g = npimg[:, :, 1]
             b = npimg[:, :, 0]
-            print r
+
             rf = r.astype(np.float32)/255.0
             gf = g.astype(np.float32)/255.0
             bf = b.astype(np.float32)/255.0
             af = cMask.getGrayNumpy().astype(np.float32)/255.0
-            """
-            rf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
-            gf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
-            bf=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
-            af=cv.CreateImage((cImg.width,cImg.height),cv.IPL_DEPTH_32F,1)
-            cv.ConvertScale(r,rf)
-            cv.ConvertScale(g,gf)
-            cv.ConvertScale(b,bf)
-            cv.ConvertScale(cMask._getGrayscaleBitmap(),af)
-            cv.ConvertScale(af,af,scale=(1.0/255.0))
-            """
+
             rf = cv2.multiply(rf, af)
             gf = cv2.multiply(gf, af)
             bf = cv2.multiply(bf, af)
-            """
-            cv.Mul(rf,af,rf)
-            cv.Mul(gf,af,gf)
-            cv.Mul(bf,af,bf)
-            """
-            """
-            dr = retValC.getEmpty(1)
-            dg = retValC.getEmpty(1)
-            db = retValC.getEmpty(1)
-            """
+
             retValCnp = retValC.getNumpy()
             dr = retValCnp[:, :, 2]
             dg = retValCnp[:, :, 1]
@@ -6294,42 +6271,19 @@ class Image:
             dgf = gf.astype(np.float32)/255.0
             dbf = bf.astype(np.float32)/255.0
             daf = retValC.getGrayNumpy().astype(np.float32)/255.0
-            #cv.Split(retValC.getBitmap(), db, dg, dr, None)
-            """
-            drf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
-            dgf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
-            dbf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
-            daf=cv.CreateImage((retValC.width,retValC.height),cv.IPL_DEPTH_32F,1)
-            cv.ConvertScale(dr,drf)
-            cv.ConvertScale(dg,dgf)
-            cv.ConvertScale(db,dbf)
-            cv.ConvertScale(cMask.invert()._getGrayscaleBitmap(),daf)
-            cv.ConvertScale(daf,daf,scale=(1.0/255.0))
-            """
+
             drf = cv2.multiply(drf, daf)
             dgf = cv2.multiply(dgf, daf)
             dbf = cv2.multiply(dbf, daf)
-            """
-            cv.Mul(drf,daf,drf)
-            cv.Mul(dgf,daf,dgf)
-            cv.Mul(dbf,daf,dbf)
-            """
+
             rf = cv2.add(rf, drf)
             gf = cv2.add(gf, dgf)
             bf = cv2.add(bf, dbf)
-            """
-            cv.Add(rf,drf,rf)
-            cv.Add(gf,dgf,gf)
-            cv.Add(bf,dbf,bf)
-            """
+
             r = (255.0*rf).astype(np.uint8)
             g = (255.0*gf).astype(np.uint8)
             b = (255.0*bf).astype(np.uint8)
-            """
-            cv.ConvertScaleAbs(rf,r)
-            cv.ConvertScaleAbs(gf,g)
-            cv.ConvertScaleAbs(bf,b)
-            """
+
             retValCnp[:, :, 2] = r
             retValCnp[:, :, 1] = g
             retValCnp[:, :, 0] = b
@@ -6342,13 +6296,17 @@ class Image:
             if( mask is not None and (mask.width != img.width or mask.height != img.height ) ):
                 logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function. ")
                 return None
-            cv.SetImageROI(img.getBitmap(),topROI)
-            cv.SetImageROI(mask.getBitmap(),topROI)
-            cv.SetImageROI(retVal.getBitmap(),bottomROI)
-            cv.Copy(img.getBitmap(),retVal.getBitmap(),mask.getBitmap())
-            cv.ResetImageROI(img.getBitmap())
-            cv.ResetImageROI(mask.getBitmap())
-            cv.ResetImageROI(retVal.getBitmap())
+            retVal = img.getNumpy()
+            xROI, yROI, wROI, hROI = topROI
+            npimgCrop = img.getNumpy()[yROI: yROI+hROI, xROI:xROI+wROI]
+            maskCrop = mask.getGrayNumpy()[yROI: yROI+hROI, xROI:xROI+wROI]
+
+            xROI, yROI, wROI, hROI = bottomROI
+            retValCrop = retVal[yROI: yROI+hROI, xROI:xROI+wROI]
+
+            retValCrop = cv2.bitwise_and(npimgCrop, npimgCrop, mask=maskCrop) #copy with mask
+            retVal[yROI: yROI+hROI, xROI:xROI+wROI] = retValCrop
+
         else:  #vanilla blit
             cv.SetImageROI(img.getBitmap(),topROI)
             cv.SetImageROI(retVal.getBitmap(),bottomROI)
