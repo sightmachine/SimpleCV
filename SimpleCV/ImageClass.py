@@ -6224,6 +6224,7 @@ class Image:
         (topROI, bottomROI) = self._rectOverlapROIs((img.width,img.height),(self.width,self.height),pos)
 
         if( alpha is not None ):
+            retVal = self.getNumpy()
             xROI, yROI, wROI, hROI = topROI
             topROI = img.getNumpy()[xROI:wROI+xROI, yROI:hROI+yROI]
             xROI, yROI, wROI, hROI = bottomROI
@@ -7176,11 +7177,14 @@ class Image:
         """
         img = self
         if(method=="GrayWorld"):
-            avg = cv.Avg(img.getBitmap());
+            npimg = img.getNumpy()
+            avg = cv2.mean(npimg)
+
             bf = float(avg[0])
             gf = float(avg[1])
             rf = float(avg[2])
             af = (bf+gf+rf)/3.0
+
             if( bf == 0.00 ):
                 b_factor = 1.00
             else:
@@ -7196,33 +7200,38 @@ class Image:
             else:
                 r_factor = af/rf
 
-            b = img.getEmpty(1)
-            g = img.getEmpty(1)
-            r = img.getEmpty(1)
-            cv.Split(self.getBitmap(), b, g, r, None)
+            b = npimg[:, :, 0]
+            g = npimg[:, :, 1]
+            r = npimg[:, :, 2]
+
+            bfloat = b.astype(np.float32)/b_factor
+            gfloat = g.astype(np.float32)/g_factor
+            rfloat = r.astype(np.float32)/r_factor
+            """
             bfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1)
             gfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1)
             rfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1)
+            """
+            (minB,maxB,minBLoc,maxBLoc) = cv2.minMaxLoc(bfloat)
+            (minG,maxG,minGLoc,maxGLoc) = cv2.minMaxLoc(gfloat)
+            (minR,maxR,minRLoc,maxRLoc) = cv2.minMaxLoc(rfloat)
 
-            cv.ConvertScale(b,bfloat,b_factor)
-            cv.ConvertScale(g,gfloat,g_factor)
-            cv.ConvertScale(r,rfloat,r_factor)
-
-            (minB,maxB,minBLoc,maxBLoc) = cv.MinMaxLoc(bfloat)
-            (minG,maxG,minGLoc,maxGLoc) = cv.MinMaxLoc(gfloat)
-            (minR,maxR,minRLoc,maxRLoc) = cv.MinMaxLoc(rfloat)
             scale = max([maxR,maxG,maxB])
             sfactor = 1.00
             if(scale > 255 ):
                 sfactor = 255.00/float(scale)
-
+            b = cv2.convertScaleAbs(bfloat, sfactor)
+            g = cv2.convertScaleAbs(gfloat, sfactor)
+            r = cv2.convertScaleAbs(rfloat, sfactor)
+            """
             cv.ConvertScale(bfloat,b,sfactor);
             cv.ConvertScale(gfloat,g,sfactor);
             cv.ConvertScale(rfloat,r,sfactor);
-
-            retVal = img.getEmpty()
-            cv.Merge(b,g,r,None,retVal);
+            """
+            retVal = np.dstack((b, g, r))
             retVal = Image(retVal)
+            #cv.Merge(b,g,r,None,retVal);
+            #retVal = Image(retVal)
         elif( method == "Simple" ):
             thresh = 0.003
             sz = img.width*img.height
