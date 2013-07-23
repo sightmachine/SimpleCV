@@ -3,6 +3,8 @@
 This example shows how to display a SimpleCV image in a QT window
 the code was taken from the forum post here:
 http://help.simplecv.org/question/1866/any-simple-pyqt-sample-regarding-ui-or-display/
+
+Author: Rodrigo gomes 
 '''
 
 import os
