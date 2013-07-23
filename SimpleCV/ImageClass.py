@@ -982,7 +982,7 @@ class Image:
             """
 
         elif type(source) == np.ndarray:  #handle a numpy array conversion
-            if len(source.shape) == 3:
+            if source.shape[-1] == 3:
                 self._numpy = source
                 self._colorSpace = colorSpace
             else:
@@ -4225,30 +4225,51 @@ class Image:
         self._numpy[tuple(reversed(coord))] = value
 
     def __sub__(self, other):
+        if type(other) != type(self):
+            newnpimg = self.getNumpy() - other
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = cv2.subtract(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __add__(self, other):
+        if type(other) != type(self):
+            newnpimg = self.getNumpy() + other
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = self.getNumpy() + other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __and__(self, other):
+        if type(other) != type(self):
+            newnpimg = self.getNumpy() & other
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = self.getNumpy() & other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __or__(self, other):
+        if type(other) != type(self):
+            newnpimg = self.getNumpy() | other
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = self.getNumpy() | other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __div__(self, other):
+        if type(other) != type(self):
+            newnpimg = self.getNumpy()/other
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = cv2.divide(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __mul__(self, other):
+        if type(other) != type(self):
+            newnpimg = other*self.getNumpy()
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = cv2.multiply(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __pow__(self, other):
+        if type(other) != type(self):
+            newnpimg = self.getNumpy() ** other
+            return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = cv2.pow(self.getNumpy(), other)
         return Image(newnpimg, colorSpace=self._colorSpace)
 
@@ -6240,21 +6261,20 @@ class Image:
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
                 logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
-
-            retVal = img.copy()
+            print "not working"
+            retVal = self.copy()
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             retValC = retVal.crop(bottomROI[0],bottomROI[1],bottomROI[2],bottomROI[3])
 
-            cImg.show()
             npimg = cImg.getNumpy()
             r = npimg[:, :, 2]
             g = npimg[:, :, 1]
             b = npimg[:, :, 0]
 
-            rf = r.astype(np.float32)/255.0
-            gf = g.astype(np.float32)/255.0
-            bf = b.astype(np.float32)/255.0
+            rf = r.astype(np.float32)
+            gf = g.astype(np.float32)
+            bf = b.astype(np.float32)
             af = cMask.getGrayNumpy().astype(np.float32)/255.0
 
             rf = cv2.multiply(rf, af)
@@ -6266,26 +6286,35 @@ class Image:
             dg = retValCnp[:, :, 1]
             db = retValCnp[:, :, 0]
 
-            drf = rf.astype(np.float32)/255.0
-            dgf = gf.astype(np.float32)/255.0
-            dbf = bf.astype(np.float32)/255.0
-            daf = retValC.getGrayNumpy().astype(np.float32)/255.0
+            drf = rf.astype(np.float32)
+            dgf = gf.astype(np.float32)
+            dbf = bf.astype(np.float32)
+            daf = cMask.invert().getGrayNumpy().astype(np.float32)/255.0
+
+            print daf
+            #daf = retValC.getGrayNumpy().astype(np.float32)/255.0
 
             drf = cv2.multiply(drf, daf)
             dgf = cv2.multiply(dgf, daf)
             dbf = cv2.multiply(dbf, daf)
 
+            print drf
+
             rf = cv2.add(rf, drf)
             gf = cv2.add(gf, dgf)
             bf = cv2.add(bf, dbf)
 
-            r = (255.0*rf).astype(np.uint8)
-            g = (255.0*gf).astype(np.uint8)
-            b = (255.0*bf).astype(np.uint8)
+            r = rf.astype(np.uint8)
+            g = gf.astype(np.uint8)
+            b = bf.astype(np.uint8)
 
+            Image(r).show()
+            print r
             retValCnp[:, :, 2] = r
             retValCnp[:, :, 1] = g
             retValCnp[:, :, 0] = b
+
+            Image(retValCnp).show()
 
             xROI, yROI, wROI, hROI = bottomROI
             retVal = retVal.getNumpy()
@@ -6422,29 +6451,29 @@ class Image:
                     resized = image.resize(h=self.height)
                 else:
                     resized = image
-                leftimage = self
-                nH = leftimage.height
+                rightimage = self
+                nH = rightimage.height
                     
             else: #our height is smaller than the other image
                 if( scale ):
                     #scale our height to fit
-                    leftimage = self.resize(h=image.height)
+                    rightimage = self.resize(h=image.height)
                 else:
-                    leftimage = self
+                    rightimage = self
                 nH = image.height
                 resized = image
 
-            nW = leftimage.width + resized.width
-            yc = (leftimage.height - resized.width)/2
+            nW = rightimage.width + resized.width
+            yc = (rightimage.height - resized.height)/2
 
             newCanvas = np.zeros((nH, nW, 3), dtype=np.uint8)
 
             if yc > 0:
-                newCanvas[:leftimage.height, :leftimage.width] = leftimage.getNumpy()
-                newCanvas[yc:yc+resized.height:, nW-resized.width:] = resized.getNumpy()
+                newCanvas[:rightimage.height, nW-rightimage.width:] = rightimage.getNumpy()
+                newCanvas[yc:yc+resized.height:, :resized.width] = resized.getNumpy()
             else:
-                newCanvas[abs(yc):abs(yc)+leftimage.height, :leftimage.width] = leftimage.getNumpy()
-                newCanvas[:resized.height:, nW-resized.width:] = resized.getNumpy()
+                newCanvas[abs(yc):abs(yc)+rightimage.height, nW - rightimage.width:] = rightimage.getNumpy()
+                newCanvas[:resized.height:, :resized.width] = resized.getNumpy()
 
         retVal = Image(newCanvas,colorSpace=self._colorSpace)
         return retVal
@@ -6710,17 +6739,19 @@ class Image:
 
         npimg = hsv.getNumpy()
         h = npimg[:, :, 0]
-        s = npimg[:, :, 1]
+        s = npimg[:, :, 2]
+
         hlut = np.zeros(256,dtype=uint8) #thankfully we're not doing a LUT on saturation
         if(hue_lb is not None and hue_ub is not None):
             hlut[hue_lb:hue_ub]=255
         else:
             hlut[hue] = 255
         mask = cv2.LUT(h, hlut)
-        retVal = cv2.bitwise_and(s, s, mask=mask)
 
-        return Image(retVal)
+        retVal = hsv.getEmpty(1)
+        Image._copyNpwithMask(s, retVal, mask)
 
+        return Image(retVal, colorSpace=ColorSpace.GRAY)
 
     def applyPixelFunction(self, theFunc):
         """
@@ -7152,6 +7183,10 @@ class Image:
         http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
         http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/JasonSu/simplestcb.html
 
+        Notes: Gray Wolrd Method implemented in 1.3 might be incorrect.
+        Check http://www.cambridgeincolour.com/tutorials/white-balance.htm
+
+        Need to check if Simple AWB is correct or not
 
 
         **PARAMETERS**
@@ -7204,14 +7239,10 @@ class Image:
             g = npimg[:, :, 1]
             r = npimg[:, :, 2]
 
-            bfloat = b.astype(np.float32)/b_factor
-            gfloat = g.astype(np.float32)/g_factor
-            rfloat = r.astype(np.float32)/r_factor
-            """
-            bfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1)
-            gfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1)
-            rfloat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 1)
-            """
+            bfloat = cv2.convertScaleAbs(b.astype(np.float32), alpha=b_factor)
+            gfloat = cv2.convertScaleAbs(g.astype(np.float32), alpha=r_factor)
+            rfloat = cv2.convertScaleAbs(r.astype(np.float32), alpha=g_factor)
+
             (minB,maxB,minBLoc,maxBLoc) = cv2.minMaxLoc(bfloat)
             (minG,maxG,minGLoc,maxGLoc) = cv2.minMaxLoc(gfloat)
             (minR,maxR,minRLoc,maxRLoc) = cv2.minMaxLoc(rfloat)
@@ -7220,23 +7251,18 @@ class Image:
             sfactor = 1.00
             if(scale > 255 ):
                 sfactor = 255.00/float(scale)
-            b = cv2.convertScaleAbs(bfloat, sfactor)
-            g = cv2.convertScaleAbs(gfloat, sfactor)
-            r = cv2.convertScaleAbs(rfloat, sfactor)
-            """
-            cv.ConvertScale(bfloat,b,sfactor);
-            cv.ConvertScale(gfloat,g,sfactor);
-            cv.ConvertScale(rfloat,r,sfactor);
-            """
+            b = cv2.convertScaleAbs(bfloat, alpha=sfactor)
+            g = cv2.convertScaleAbs(gfloat, alpha=sfactor)
+            r = cv2.convertScaleAbs(rfloat, alpha=sfactor)
+
             retVal = np.dstack((b, g, r))
             retVal = Image(retVal)
-            #cv.Merge(b,g,r,None,retVal);
-            #retVal = Image(retVal)
+
         elif( method == "Simple" ):
             thresh = 0.003
             sz = img.width*img.height
-            tempMat = img.getNumpy()
-            bcf = sss.cumfreq(tempMat[:,:,0], numbins=256)
+            npimg = img.getNumpy()
+            bcf = sss.cumfreq(npimg[:,:,0], numbins=256)
             bcf = bcf[0] # get our cumulative histogram of values for this color
 
             blb = -1 #our upper bound
@@ -7252,7 +7278,7 @@ class Image:
                 upper_thresh = (sz-bcf[bub])/sz
 
 
-            gcf = sss.cumfreq(tempMat[:,:,1], numbins=256)
+            gcf = sss.cumfreq(npimg[:,:,1], numbins=256)
             gcf = gcf[0]
             glb = -1 #our upper bound
             gub = 256 # our lower bound
@@ -7267,7 +7293,7 @@ class Image:
                 upper_thresh = (sz-gcf[gub])/sz
 
 
-            rcf = sss.cumfreq(tempMat[:,:,2], numbins=256)
+            rcf = sss.cumfreq(npimg[:,:,2], numbins=256)
             rcf = rcf[0]
             rlb = -1 #our upper bound
             rub = 256 # our lower bound
@@ -7291,6 +7317,7 @@ class Image:
             rLUT = np.ones((256,1),dtype=uint8)
             gLUT = np.ones((256,1),dtype=uint8)
             bLUT = np.ones((256,1),dtype=uint8)
+
             for i in range(256):
                 if(i <= rlb):
                     rLUT[i][0] = 0
@@ -7313,10 +7340,11 @@ class Image:
                 else:
                     bf = ((float(i)-blbf)*255.00/(bubf-blbf))
                     bLUT[i][0] = int(bf)
-            retVal = img.applyLUT(bLUT,rLUT,gLUT)
+
+            retVal = img.applyLUT(bLUT,gLUT,rLUT)
         return retVal
 
-    def applyLUT(self,rLUT=None,bLUT=None,gLUT=None):
+    def applyLUT(self,bLUT=None,gLUT=None,rLUT=None):
         """
         **SUMMARY**
 
@@ -8609,7 +8637,10 @@ class Image:
         skeleton = morph_laplace_img < morph_laplace_img.min()/2
         retVal = np.zeros([self.width,self.height])
         retVal[skeleton] = 255
-        return Image(retVal)
+        retVal = retVal.astype(np.uint8)
+        Image(retVal).show()
+        print retVal
+        return Image(retVal.astype(np.uint8))
 
     def smartThreshold(self, mask=None, rect=None):
         """
