@@ -495,7 +495,9 @@ class Camera(FrameSource):
 
             try:
                 self.capture.start()
-            except:
+            except Exception as exc:
+                msg = "caught exception: %r" % exc
+                logger.warning(msg)
                 logger.warning("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
                 return
             time.sleep(0)
@@ -1987,7 +1989,7 @@ class StereoImage:
                 if minDisparity is not None:
                     sbm.minDisparity = minDisparity
                 if numberOfDisparities is not None:
-                    sbm.numberOfDisparities = nDisparity
+                    sbm.numberOfDisparities = numberOfDisparities
                 if uniquenessRatio is not None:
                     sbm.uniquenessRatio = uniquenessRatio
                 if speckleRange is not None:
@@ -2038,7 +2040,7 @@ class StereoImage:
                 if minDisparity is not None:
                     sbm.minDisparity = minDisparity
                 if numberOfDisparities is not None:
-                    sbm.numberOfDisparities = nDisparity
+                    sbm.numberOfDisparities = numberOfDisparities
                 if P1 is not None:
                     sbm.P1 = P1
                 if P2 is not None:

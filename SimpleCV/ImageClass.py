@@ -941,6 +941,12 @@ class Image:
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
+            
+        #Check if loaded from base64 URI
+        if isinstance(source, basestring) and (source.lower().startswith("data:image/png;base64,")):
+            img = message[22:].decode("base64")
+            im = StringIO(img)
+            source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images
         if isinstance(source, basestring):
@@ -4720,17 +4726,21 @@ class Image:
 
         **PARAMETERS**
 
-        * *other* - Image or a number.
+        * *other* - Image of the same size or a number.
 
         **RETURNS**
 
         A SimpelCV image.
 
         """
+
         newbitmap = self.getEmpty()
         if is_number(other):
             cv.MaxS(self.getBitmap(), other, newbitmap)
         else:
+            if self.size() != other.size():
+                warnings.warn("Both images should have same sizes. Returning None.")
+                return None
             cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
@@ -4744,17 +4754,21 @@ class Image:
 
         **Parameter**
 
-        * *other* - Image
+        * *other* - Image of the same size or number
 
         **Returns**
 
         IMAGE
         """
+
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.MaxS(self.getBitmap(), other, newbitmap)
+            cv.MinS(self.getBitmap(), other, newbitmap)
         else:
-            cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
+            if self.size() != other.size():
+                warnings.warn("Both images should have same sizes. Returning None.")
+                return None
+            cv.Min(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
@@ -12780,11 +12794,10 @@ class Image:
         try:
             import cv2
         except ImportError:
-            logger.warning("OpenCV >= 2.4.3 required")
+            warnings.warn("OpenCV >= 2.4.3 required")
             return None
-        if not "2.4.3" in cv2.__version__:
-            # I don't know; they might roll out 2.4.3.2
-            logger.warning("OpenCV >= 2.4.3 required")
+        if not hasattr(cv2, "FeatureDetector_create"):
+            warnings.warn("OpenCV >= 2.4.3 required")
             return None
         if template == None:
             return None    

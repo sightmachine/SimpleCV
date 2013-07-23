@@ -94,8 +94,8 @@ def introMessage():
   - a room with good lighting and plenty of space for moving around
   - a few minutes to begin calibration
 
-  To begin, please put your Chessboard close to the camera so the long side is
-  horizontal and it fill most of the screen.  Keep it parellel to the camera so it
+  To begin, please put your chessboard close to the camera so the long side is
+  horizontal and it fill most of the screen.  Keep it parallel to the camera so it
   appears within the rectangle.
     """
 
@@ -181,9 +181,9 @@ def findHorizTilted(cb, i, calibration_set, dims):
         return
 
     if relativeSize(cb, i) < 0.4:
-        showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring the Chessboard closer")
+        showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring it closer")
     elif horizontalTilt(cb) > 0.9:
-        showText(i,  "Tip the right or left side of the Chessboard towards the camera")
+        showText(i,  "Tip the right or left side of the chessboard towards the camera")
     else:
         saveCalibrationImage(i, calibration_set, dims)
 
@@ -197,9 +197,9 @@ def findVertTilted(cb, i, calibration_set, dims):
         return
 
     if relativeSize(cb, i) < 0.4:
-        showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring the Chessboard closer")
+        showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring it closer")
     elif verticalTilt(cb) > 0.9:
-        showText(i,  "Tip the top or bottom of the Chessboard towards the camera")
+        showText(i,  "Tip the top or bottom of the chessboard towards the camera")
     else:
         saveCalibrationImage(i, calibration_set, dims)
 
@@ -213,9 +213,9 @@ def findCornerTilted(cb, i, calibration_set, dims):
         return
 
     if relativeSize(cb, i) < 0.4:
-        showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring the Chessboard closer")
+        showText(i,  "Chessboard is " + relPercent(cb, i) + " / 40%, bring it closer")
     elif verticalTilt(cb) > 0.9 or horizontalTilt(cb) > 0.9:
-        showText(i,  "Tip the corner of the Chessboard more towards the camera")
+        showText(i,  "Tip the corner of the chessboard more towards the camera")
     else:
         saveCalibrationImage(i, calibration_set, dims)
 
@@ -272,7 +272,7 @@ def findPlane(cb, i, calibration_set, dims):
 
 
 
-def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = False, gridsize = 0.029, calibrationFile = "default"):
+def main(camindex = 0, capture_width = 800, capture_height = 600, chessboard_width = 8, chessboard_height = 5, planemode = False, gridsize = 0.029, calibrationFile = "default"):
     global save_location
 
     if planemode:
@@ -280,13 +280,10 @@ def main(camindex = 0, chessboard_width = 8, chessboard_height = 5, planemode = 
     else:
         mode = 0
 
-    dims = (chessboard_width, chessboard_height)  #change this if you are using something besides our
-    gridsize = 0.029  #default calibration to mm
-    calibrationFile = "default"
+    dims = (chessboard_width, chessboard_height)
 
-    cam = Camera(camindex)
-    d = Display((800, 600))
-
+    cam = Camera(camindex, prop_set = { "width": capture_width, "height": capture_height })
+    d = Display((capture_width, capture_height))
 
     save_location = "" #change this if you want to save your calibration images
 
@@ -347,9 +344,10 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description = "Create calibration files for your camera")
-    #args
 
     parser.add_argument("--camera", type=int, help="id of the camera", default = 0)
+    parser.add_argument("--capturewidth",  type=int, help="width of image to capture", default = 800)
+    parser.add_argument("--captureheight",  type=int, help="height of image to capture", default = 600)
     parser.add_argument("--width",  type=int, help="number of chessboard squares wide", default = 8)
     parser.add_argument("--height",  type=int, help="number of chessboard squares high", default = 5)
     parser.add_argument("--planemode", action="store_true", help="calibrate on a single 2D plane", default = False)
@@ -357,4 +355,4 @@ if __name__ == '__main__':
     parser.add_argument("--calibrationfile", type=str, help="filename to output calibration", default = "default")
 
     args = parser.parse_args()
-    main(args.camera, args.width, args.height, args.planemode, args.gridsize, args.calibrationfile)
+    main(args.camera, args.capturewidth, args.captureheight, args.width, args.height, args.planemode, args.gridsize, args.calibrationfile)
