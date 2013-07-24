@@ -258,12 +258,11 @@ class BlobMaker:
         """
         Return an image that contains just pixels defined by the blob sequence.
         """
-        print "need to do mask and copy too. sigh. check"
+        #print "need to do mask and copy too. sigh. check"
         img = colornp[bb[0]:bb[0]+bb[2], bb[1]:bb[1]+bb[3]]
-        bitwisenp = cv2.bitwise_and(img, mask)
-        colornpcopy = np.copy(colornp)
-        colornpcopy[img] = retVal
-        return(Image(colornpcopy))
+        retVal = np.zeros((bb[3], bb[2], 3), np.uint8)
+        Image._copyNpWithMask(img, retVal, mask)
+        return(Image(retVal))
 
 
 from SimpleCV.ImageClass import Image

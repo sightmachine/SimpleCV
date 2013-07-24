@@ -907,68 +907,54 @@ class Blob(Feature):
     @LazyProperty
     def mImg(self):
         #NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND WITH A LAKE STUFF
-        #retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
-        #cv.Zero(retVal)
-        #bmp = self.image.getBitmap()
-        #mask = self.mMask.getBitmap()
-        bmp = self.image.getNumpy()
-        mask = self.mMask.getNumpy()
+        retVal = np.zeros((self.height(), self.width(), 3), np.uint8)
         tl = self.topLeftCorner()
-        # Kat, help!
-        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
-        cv.Copy(bmp,retVal,mask)
-        cv.ResetImageROI(bmp)
+
+        npimg = self.image.getNumpy()[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()]
+        mask = self.mMask.getGrayNumpy()
+        Image._copyNpwithMask(npimg, retVal, mask)
+
         return Image(retVal)
 
     @LazyProperty
     def mMask(self):
-        print "do this"
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
         #Alas - OpenCV does not provide an offset in the fillpoly method for
         #the cv bindings (only cv2 -- which I am trying to avoid). Have to
         #manually do the offset for the ROI shift.
-        retVal = np.zeros((self.height(), self.width()))
+        retVal = np.zeros((self.height(), self.width()), np.uint8)
         l,t = self.topLeftCorner()
 
         # construct the exterior contour - these are tuples
 
         cv2.fillPoly(retVal,np.array([[(p[0][0] - l, p[0][1] - t) for p in self.mContour]]),(255,255,255),8)
-
+        
         #construct the hole contoursb
-        holes = []
+        
         if self.mHoleContour is not None:
-            for h in self.mHoleContour: # -- these are lists
-                holes.append([(h2[0]-l,h2[1]-t) for h2 in h])
-
-            cv.FillPoly(retVal,holes,(0,0,0),8)
+            holes = [h - (l, t) for h in self.mHoleContour]
+            cv2.fillPoly(retVal,np.array(holes),(0,0,0),8)
+        
         return Image(retVal)
-
 
     @LazyProperty
     def mHullImg(self):
-        print "do this"
-        retVal = cv.CreateImage((self.width(),self .height()),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mHullMask.getBitmap()
         tl = self.topLeftCorner()
-        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
-        cv.Copy(bmp,retVal,mask)
-        cv.ResetImageROI(bmp)
+        retVal = np.zeros((self.height(), self.width(), 3), np.uint8)
+        npimg = self.image.getNumpy()[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()]
+        mask = self.mHullMask.getGrayNumpy()
+        Image._copyNpwithMask(npimg, retVal, mask)
         return Image(retVal)
 
 
     @LazyProperty
     def mHullMask(self):
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        #Alas - OpenCV does not provide an offset in the fillpoly method for
-        #the cv bindings (only cv2 -- which I am trying to avoid). Have to
-        #manually do the offset for the ROI shift.
-        thull = []
+
+        retVal = np.zeros((self.height(), self.width()), np.uint8)
         l,t = self.topLeftCorner()
-        cv.FillPoly(retVal,[[(p[0] - l, p[1] - t) for p in self.mConvexHull]],(255,255,255),8)
+        cv2.fillPoly(retVal,np.array([[(p[0][0] - l, p[0][1] - t) for p in self.mContour]]),(255,255,255),8)
+
         return Image(retVal)
 
 
@@ -1103,92 +1089,84 @@ class Blob(Feature):
         """
         Get the full size image with the masked to the blob
         """
-        retVal = cv.CreateImage((self.image.width,self.image.height),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mMask.getBitmap()
+        retVal = np.zeros((self.image.height, self.image.width, 3), np.uint8)
+        mask = self.mMask.getGrayNumpy()
+
         tl = self.topLeftCorner()
-        cv.SetImageROI(retVal,(tl[0],tl[1], self.width(),self.height()))
-        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
-        cv.Copy(bmp,retVal,mask)
-        cv.ResetImageROI(bmp)
-        cv.ResetImageROI(retVal)
+        npimgcrop = self.image.getNumpy()[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()]
+        retValcrop = retVal[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()]
+
+        Image._copyNpwithMask(npimgcrop, retValcrop, mask)
+
+        retVal[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()] = retValcrop
+
         return Image(retVal)
 
     def getFullHullMaskedImage(self):
         """
         Get the full size image with the masked to the blob
         """
-        retVal = cv.CreateImage((self.image.width,self.image.height),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mHullMask.getBitmap()
         tl = self.topLeftCorner()
-        cv.SetImageROI(retVal,(tl[0],tl[1], self.width(),self.height()))
-        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
-        cv.Copy(bmp,retVal,mask)
-        cv.ResetImageROI(bmp)
-        cv.ResetImageROI(retVal)
+        retVal = np.zeros((self.image.height, self.image.width, 3), np.uint8)
+        npimgcrop = self.image.getNumpy()[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()]
+        mask = self.mHullMask.getGrayNumpy()
+        retValcrop = retVal[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()]
+
+        Image._copyNpwithMask(npimgcrop, retValcrop, mask)
+
+        retVal[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()] = retValcrop
+
         return Image(retVal)
 
     def getFullMask(self):
         """
         Get the full sized image mask
         """
-        retVal = cv.CreateImage((self.image.width,self.image.height),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        mask = self.mMask.getBitmap()
         tl = self.topLeftCorner()
-        cv.SetImageROI(retVal,(tl[0],tl[1], self.width(),self.height()))
-        cv.Copy(mask,retVal)
-        cv.ResetImageROI(retVal)
+        retVal = np.zeros((self.image.height, self.image.width), np.uint8)
+        mask = self.mMask.getGrayNumpy()
+        retVal[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()] = mask
+
         return Image(retVal)
 
     def getFullHullMask(self):
         """
         Get the full sized image hull mask
         """
-        retVal = cv.CreateImage((self.image.width,self.image.height),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        mask = self.mHullMask.getBitmap()
         tl = self.topLeftCorner()
-        cv.SetImageROI(retVal,(tl[0],tl[1], self.width(),self.height()))
-        cv.Copy(mask,retVal)
-        cv.ResetImageROI(retVal)
+        retVal = np.zeros((self.image.height, self.image.width), np.uint8)
+        mask = self.mHullMask.getGrayNumpy()
+        retVal[tl[1]:tl[1]+self.height(), tl[0]:tl[0]+self.width()] = mask
         return Image(retVal)
 
     def getHullEdgeImage(self):
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        tl = self.topLeftCorner()
-        translate = [(cs[0]-tl[0],cs[1]-tl[1]) for cs in self.mConvexHull]
-        cv.PolyLine(retVal,[translate],1,(255,255,255))
+        retVal = np.zeros((self.height(), self.width(),3), np.uint8)
+        l, t = self.topLeftCorner()
+        translate = [h - (l, t) for h in self.mHoleContour]
+        cv2.polylines(retVal, np.array(translate), 1, (255,255,255))
         return Image(retVal)
 
     def getFullHullEdgeImage(self):
-        retVal = cv.CreateImage((self.image.width,self.image.height),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        cv.PolyLine(retVal,[self.mConvexHull],1,(255,255,255))
+        retVal = np.zeros((self.image.height, self.image.height, 3), np.uint8)
+        cv.PolyLine(retVal,self.mConvexHull,1,(255,255,255))
         return Image(retVal)
 
     def getEdgeImage(self):
         """
         Get the edge image for the outer contour (no inner holes)
         """
-        retVal = cv.CreateImage((self.width(),self.height()),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        tl = self.topLeftCorner()
-        translate = [(cs[0]-tl[0],cs[1]-tl[1]) for cs in self.mContour]
-        cv.PolyLine(retVal,[translate],1,(255,255,255))
+        retVal = np.zeros((self.height(), self.width(),3), np.uint8)
+        l, t = self.topLeftCorner()
+        translate = [cs - (l, t) for cs in self.mContour]
+        cv2.polylines(retVal, np.array(translate), 1, (255,255,255))
         return Image(retVal)
 
     def getFullEdgeImage(self):
         """
         Get the edge image within the full size image.
         """
-        retVal = cv.CreateImage((self.image.width,self.image.height),cv.IPL_DEPTH_8U,3)
-        cv.Zero(retVal)
-        cv.PolyLine(retVal,[self.mContour],1,(255,255,255))
+        retVal = np.zeros((self.image.height, self.image.width, 3), np.uint8)
+        cv2.polylines(retVal, self.mContour, 1, (255,255,255))
         return Image(retVal)
 
     def __repr__(self):
