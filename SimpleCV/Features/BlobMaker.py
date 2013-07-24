@@ -191,7 +191,6 @@ class BlobMaker:
         # KAS -- FLAG FOR REPLACE 6/6/2012
         mask = self._getMask(contour, bb)
         #retVal.mMask = Image(mask)
-
         retVal.mAvgColor = self._getAvg(color.getNumpy(),bb,mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
 

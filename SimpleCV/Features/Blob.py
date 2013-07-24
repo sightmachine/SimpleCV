@@ -512,8 +512,8 @@ class Blob(Feature):
         self.mHullMask = self.mHullMask.rotate(angle,mode,point)
 
         self.mContour = map(lambda x:
-                            (x[0]*np.cos(theta)-x[1]*np.sin(theta),
-                             x[0]*np.sin(theta)+x[1]*np.cos(theta)),
+                            (x[0][0]*np.cos(theta)-x[0][1]*np.sin(theta),
+                             x[0][0]*np.sin(theta)+x[0][1]*np.cos(theta)),
                              self.mContour)
         self.mConvexHull = map(lambda x:
                                (x[0]*np.cos(theta)-x[1]*np.sin(theta),
@@ -523,10 +523,9 @@ class Blob(Feature):
         if( self.mHoleContour is not None):
             for h in self.mHoleContour:
                 h = map(lambda x:
-                    (x[0]*np.cos(theta)-x[1]*np.sin(theta),
-                     x[0]*np.sin(theta)+x[1]*np.cos(theta)),
+                    (x[0][0]*np.cos(theta)-x[0][1]*np.sin(theta),
+                     x[0][0]*np.sin(theta)+x[0][1]*np.cos(theta)),
                      h)
-
 
     def drawAppx(self, color = Color.HOTPINK,width=-1,alpha=-1,layer=None):
         if( self.mContourAppx is None or len(self.mContourAppx)==0 ):
@@ -573,13 +572,13 @@ class Blob(Feature):
             layer = self.image.dl()
 
         if width == -1:
-            print color
             npimg = self.mMask.getGrayNumpy()
-            b = cv2.convertScaleAbs(npimg, color[2]/255.0)
-            g = cv2.convertScaleAbs(npimg, color[1]/255.0)
-            r = cv2.convertScaleAbs(npimg, color[0]/255.0)
             #copy the mask into 3 channels and multiply by the appropriate color
-            maskbit = np.dstack((b, g, r))
+            b = npimg/255.0*color[2]
+            g = npimg/255.0*color[1]
+            r = npimg/255.0*color[0]
+            
+            maskbit = np.dstack((b, g, r)).astype(np.uint8)
             masksurface = Image(maskbit).getPGSurface()
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
@@ -1148,7 +1147,7 @@ class Blob(Feature):
 
     def getFullHullEdgeImage(self):
         retVal = np.zeros((self.image.height, self.image.height, 3), np.uint8)
-        cv.PolyLine(retVal,self.mConvexHull,1,(255,255,255))
+        cv2.polylines(retVal, self._mConvexHullnp,1,(255,255,255))
         return Image(retVal)
 
     def getEdgeImage(self):

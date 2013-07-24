@@ -734,12 +734,11 @@ class ImageSet(list):
         else:
             resized = self
         # Now do the average calculation
-        accumulator = cv.CreateImage((fw,fh), cv.IPL_DEPTH_8U,3)
-        cv.Zero(accumulator)
+        accumulator = np.zeros((fh, fw, 3), np.uint8)
         alpha = float(1.0/len(resized))
         beta = float((len(resized)-1.0)/len(resized))
         for i in resized:
-            cv.AddWeighted(i.getBitmap(),alpha,accumulator,beta,0,accumulator)
+            accumulator = cv2.addWeighted(i.getNumpy(), alpha, accumulator, beta, 0)
         retVal =  Image(accumulator)
         return retVal
 
@@ -2861,7 +2860,10 @@ class Image:
 
         """
         try:
-            newimg = cv2.inRange(self.getGrayNumpy(), thresh_low, thresh_high)
+            thresh, newimg = cv2.threshold(self.getGrayNumpy(), thresh_low, 255, cv2.THRESH_TOZERO)
+            newimg = cv2.bitwise_not(newimg)
+            thresh, newimg = cv2.threshold(newimg, 255 - thresh_high, 255, cv2.THRESH_TOZERO)
+            newimg = cv2.bitwise_not(newimg)
             return Image(newimg, colorSpace=ColorSpace.GRAY)
         except:
             return None
@@ -3596,8 +3598,10 @@ class Image:
             g = self.getEmpty(1)
         if( b is None ):
             b = self.getEmpty(1)
-        retVal = np.dstack((b._grayNumpy, g._grayNumpy, r._grayNumpy))
-        print retVal.shape
+
+        retVal = np.dstack((b.getGrayNumpy().astype(np.uint8), 
+                            g.getGrayNumpy().astype(np.uint8), 
+                            r.getGrayNumpy().astype(np.uint8)))
         return Image(retVal)
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
@@ -8459,10 +8463,10 @@ class Image:
         self._generatePalette(bins,hue,centroids)
         if( hue ):
             derp = self._mPalette[self._mPaletteMembers]
-            retVal = Image(derp[::-1].reshape(self.height,self.width)[::-1])
+            retVal = Image(derp[::-1].reshape(self.width,self.height)[::-1])
             retVal = retVal.rotate(-90,fixed=False)
         else:
-            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.width,self.height,3))
+            retVal = Image(self._mPalette[self._mPaletteMembers].reshape(self.height, self.width, 3))
         return retVal
 
 
@@ -8513,6 +8517,7 @@ class Image:
         #we get the palette from find palete
         #ASSUME: GET PALLETE WAS CALLED!
         bwimg = self.binarizeFromPalette(palette_selection)
+        print bwimg.size()
         if( dilate > 0 ):
             bwimg =bwimg.dilate(dilate)
 
@@ -8639,7 +8644,6 @@ class Image:
         retVal[skeleton] = 255
         retVal = retVal.astype(np.uint8)
         Image(retVal).show()
-        print retVal
         return Image(retVal.astype(np.uint8))
 
     def smartThreshold(self, mask=None, rect=None):
@@ -12889,7 +12893,7 @@ class Image:
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
             npimg = self.getNumpy().astype(np.int64)
-            retVal = np.array((np.max(imgMat,2) + np.min(imgMat,2))/2,dtype=np.uint8)
+            retVal = np.array((np.max(npimg,2) + np.min(npimg,2))/2,dtype=np.uint8)
         else:
             logger.warnings('Input a RGB image')
             return None
@@ -13102,18 +13106,23 @@ class Image:
             closestMatch = lambda a,l:min(l, key=lambda x:abs(x-a))
             maxval = closestMatch(maxfreq, val)
             minval = closestMatch(minfreq, val)
-            retVal = (self.grayscale()-minval)*((newMax-newMin)/float(maxval-minval))+ newMin
+            retVal = self.getGrayNumpy()
+            retVal = cv2.subtract(retVal, minval*np.ones(retVal.shape, np.uint8))
+            retVal = cv2.multiply(retVal, ((newMax-newMin)/float(maxval - minval))*np.ones(retVal.shape, np.float64), dtype=cv2.CV_8U)
+            retVal = cv2.add(retVal, newMin*np.ones(retVal.shape, np.uint8))
         #catching zero division in case there are very less intensities present
         #Normalizing based on absolute max and min intensities present
         except ZeroDivisionError:
             maxval = self.maxValue()
             minval = self.minValue()
-            retVal = (self.grayscale()-minval)*((newMax-newMin)/float(maxval-minval))+ newMin
+            retVal = cv2.subtract(retVal, minval*np.ones(retVal.shape, np.uint8))
+            retVal = cv2.multiply(retVal, ((newMax-newMin)/float(maxval - minval))*np.ones(retVal.shape, np.float64), dtype=cv2.CV_8U)
+            retVal = cv2.add(retVal, newMin*np.ones(retVal.shape, np.uint8))
         #catching the case where there is only one intensity throughout
         except:
             warnings.warn("All pixels of the image have only one intensity value")
             return None
-        return retVal
+        return Image(retVal.astype(np.uint8), colorSpace=ColorSpace.GRAY)
 
     def getNormalizedHueHistogram(self,roi=None):
         """
