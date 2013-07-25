@@ -6375,10 +6375,8 @@ class Image:
         if len(mask.shape) != 2:
             warnings.warn("mask should be 2D np image with 1 channel")
             return None
-        x, y = np.where(mask != 0)
-        pts = zip(x, y)
-        for pt in pts:
-            dst[pt] = src[pt]
+        idx = (mask != 0)
+        dst[idx] = src[idx]
         return None
 
     def sideBySide(self, image, side="right", scale=True ):
