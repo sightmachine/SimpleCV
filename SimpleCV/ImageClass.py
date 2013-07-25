@@ -6251,21 +6251,21 @@ class Image:
         if( alpha is not None ):
             retVal = self.getNumpy()
             xROI, yROI, wROI, hROI = topROI
-            topROI = img.getNumpy()[xROI:wROI+xROI, yROI:hROI+yROI]
+            topROI = img.getNumpy()[yROI:hROI+yROI, xROI:wROI+xROI]
             xROI, yROI, wROI, hROI = bottomROI
-            bottomROI = retVal[xROI:wROI+xROI, yROI:hROI+yROI]
+            bottomROI = retVal[yROI:hROI+yROI, xROI:wROI+xROI]
 
             a = float(alpha)
             b = float(1.00-a)
             g = float(0.00)
             bottomROI = cv2.addWeighted(topROI, a, bottomROI, b, g)
-            retVal[xROI:wROI+xROI, yROI:hROI+yROI] = bottomROI
+            retVal[yROI:hROI+yROI, xROI:wROI+xROI] = bottomROI
 
         elif( alphaMask is not None ):
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
                 logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
-            print "not working"
+            #print "not working"
             retVal = self.copy()
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
@@ -6294,15 +6294,11 @@ class Image:
             dgf = gf.astype(np.float32)
             dbf = bf.astype(np.float32)
             daf = cMask.invert().getGrayNumpy().astype(np.float32)/255.0
-
-            print daf
             #daf = retValC.getGrayNumpy().astype(np.float32)/255.0
 
             drf = cv2.multiply(drf, daf)
             dgf = cv2.multiply(dgf, daf)
             dbf = cv2.multiply(dbf, daf)
-
-            print drf
 
             rf = cv2.add(rf, drf)
             gf = cv2.add(gf, dgf)
@@ -6312,13 +6308,9 @@ class Image:
             g = gf.astype(np.uint8)
             b = bf.astype(np.uint8)
 
-            Image(r).show()
-            print r
             retValCnp[:, :, 2] = r
             retValCnp[:, :, 1] = g
             retValCnp[:, :, 0] = b
-
-            Image(retValCnp).show()
 
             xROI, yROI, wROI, hROI = bottomROI
             retVal = retVal.getNumpy()
@@ -6689,7 +6681,15 @@ class Image:
         :py:meth:`threshold`
 
         """
-        return self.logicalAND(mask)
+        if mask.size() != self.size():
+            warnings.warn("Image.applyBinaryMask: your mask and image don't match sizes")
+            return None
+        newCanvas = np.zeros((self.height, self.width, 3), np.uint8)
+        print "reversing the color tuple"
+        newCanvas = newCanvas + tuple(reversed(bg_color))
+        newCanvas = newCanvas.astype(np.uint8)
+        Image._copyNpwithMask(self.getNumpy(), newCanvas, mask.getGrayNumpy())
+        return Image(newCanvas)
 
     def createAlphaMask(self, hue=60, hue_lb=None,hue_ub=None):
         """
