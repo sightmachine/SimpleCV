@@ -2,6 +2,7 @@
 
 import sys
 import os
+import svgwrite
 #from SimpleCV.base import *
 from SimpleCV.Color import *
 
@@ -34,6 +35,7 @@ class DrawingLayer:
     _mFontSize = 0
     _mDefaultAlpha = 255
     _mAlphaDelta = 1 #This is used to track the changed value in alpha
+    _mSVG = ""
     width = 0
     height = 0
 
@@ -41,6 +43,8 @@ class DrawingLayer:
         #pg.init()
         if( not pg.font.get_init() ):
             pg.font.init()
+
+        self._mSVG = svgwrite.Drawing(size=(width, height))
 
         self.width = width
         self.height = height
@@ -53,6 +57,9 @@ class DrawingLayer:
 
         self._mFontSize = 18
         self._mFontName = None
+        self._mFontBold = False
+        self._mFontItalic = False
+        self._mFontUnderline = False
         self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
 
     def __repr__(self):
@@ -73,7 +80,6 @@ class DrawingLayer:
         Returns the default alpha value.
         """
         return self._mDefaultAlpha
-
     def setLayerAlpha(self, alpha):
         """
         This method sets the alpha value of the entire layer in a single
@@ -93,6 +99,9 @@ class DrawingLayer:
 
         del pixels_alpha
         return None
+
+    def getSVG(self):
+        return(self._mSVG.tostring())
 
     def _getSurface(self):
         return(self._mSurface)
@@ -144,6 +153,11 @@ class DrawingLayer:
             pg.draw.aaline(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
         else:
             pg.draw.line(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
+
+        startInt = tuple(int(x) for x in start)
+        stopInt = tuple(int(x) for x in stop)
+        self._mSVG.add(self._mSVG.line(start=startInt, end=stopInt))
+
         return None
 
     def lines(self, points, color = Color.DEFAULT, antialias = True, alpha = -1, width = 1 ):
@@ -176,6 +190,16 @@ class DrawingLayer:
             pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
         else:
             pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
+
+
+
+        lastPoint = points[0]
+        for point in points[1:]:
+            lInt = tuple(int(x) for x in lastPoint)
+            pInt = tuple(int(x) for x in point)
+            self._mSVG.add(self._mSVG.line(start=lastPoint, end=point))
+            lastPoint = point
+
         return None
 
     #need two points(TR,BL), center+W+H, and TR+W+H
@@ -199,6 +223,11 @@ class DrawingLayer:
             width = 0
         r = pg.Rect((topLeft[0], topLeft[1]), (dimensions[0], dimensions[1]))
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+
+        tlInt = tuple(int(x) for x in topLeft)
+        dimInt = tuple(int(x) for x in dimensions)
+        self._mSVG.add(self._mSVG.rect(insert=tlInt, size=dimInt))
+
         return None
 
     def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
@@ -236,6 +265,9 @@ class DrawingLayer:
             width = 0
         r = pg.Rect((x,y),(w,h))
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+
+        self._mSVG.add(self._mSVG.rect(insert=(int(x),int(y)), size=(int(w),int(h))))
+
         return None
 
     def centeredRectangle(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
@@ -254,7 +286,7 @@ class DrawingLayer:
         filled -The rectangle is filled in
 
 
-     rameters:
+        parameters:
             center - Tuple
             dimenions - Tuple
             color - Color object or Color Tuple
@@ -269,6 +301,10 @@ class DrawingLayer:
         ytl = center[1] - (dimensions[1] / 2)
         r = pg.Rect(xtl, ytl, dimensions[0], dimensions[1])
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+
+        dimInt = tuple(int(x) for x in dimensions)
+        self._mSVG.add(self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dimInt))
+
         return None
 
 
@@ -331,6 +367,10 @@ class DrawingLayer:
             pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, int(radius), int(width))
         else:
             pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]), int(radius), self._csvRGB2pgColor(color, alpha))
+
+        cenInt = tuple(int(x) for x in center)
+        self._mSVG.add(self._mSVG.circle(center=cenInt, r=radius))
+
         return None
 
     def ellipse(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1):
@@ -360,6 +400,11 @@ class DrawingLayer:
             width = 0
         r = pg.Rect(center[0] - (dimensions[0] / 2), center[1] - (dimensions[1] / 2), dimensions[0], dimensions[1])
         pg.draw.ellipse(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+
+        cenInt = tuple(int(x) for x in center)
+        dimInt = tuple(int(x) for x in dimensions)
+        self._mSVG.add(self._mSVG.ellipse(center=centInt, r=dimInt))
+
         return None
 
     def bezier(self, points, steps, color = Color.DEFAULT, alpha = -1):
@@ -388,6 +433,7 @@ class DrawingLayer:
         """
         This method sets and unsets the current font to be bold.
         """
+        self._mFontBold = doBold
         self._mFont.set_bold(doBold)
         return None
 
@@ -395,6 +441,7 @@ class DrawingLayer:
         """
         This method sets and unsets the current font to be italic.
         """
+        self._mFontItalic = doItalic
         self._mFont.set_italic(doItalic)
         return None
 
@@ -402,6 +449,7 @@ class DrawingLayer:
         """
         This method sets and unsets the current font to be underlined
         """
+        self._mFontUnderline = doUnderline
         self._mFont.set_underline(doUnderline)
         return None
 
@@ -473,6 +521,19 @@ class DrawingLayer:
         # Unlock the surface.
         del pixels_alpha
         self._mSurface.blit(tsurface, location)
+
+        fontStyle = "font-size: {}px;".format(self._mFontSize - 7) # Adjust for web
+        if self._mFontBold:
+            fontStyle += "font-weight: bold;"
+        if self._mFontItalic:
+            fontStyle += "font-style: italic;"
+        if self._mFontUnderline:
+            fontStyle += "text-decoration: underline;"
+        if self._mFontName:
+            fontStyle += "font-family: \"{}\";".format(self._mFontName)
+        alteredLocation = (location[0], location[1] + self.textDimensions(text)[1])
+        altInt = tuple(int(x) for x in alteredLocation)
+        self._mSVG.add(self._mSVG.text(text, insert=altInt, style=fontStyle))
         return None
 
     def textDimensions(self, text):
