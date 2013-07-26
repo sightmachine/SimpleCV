@@ -1623,7 +1623,7 @@ def test_blit_alpha_mask():
     bottom = Image(bottomImg)
     aMask = Image(alphaMaskImg)
     results = []
-
+    aMask.show()
     results.append(bottom.blit(top,alphaMask=aMask))
     results.append(bottom.blit(top,alphaMask=aMask,pos=(-10,-10)))
     results.append(bottom.blit(top,alphaMask=aMask,pos=(-10,10)))

@@ -6285,6 +6285,8 @@ class Image:
             gf = cv2.multiply(gf, af)
             bf = cv2.multiply(bf, af)
 
+            print rf
+
             retValCnp = retValC.getNumpy()
             dr = retValCnp[:, :, 2]
             dg = retValCnp[:, :, 1]
@@ -6299,15 +6301,15 @@ class Image:
             drf = cv2.multiply(drf, daf)
             dgf = cv2.multiply(dgf, daf)
             dbf = cv2.multiply(dbf, daf)
-
+            print drf
             rf = cv2.add(rf, drf)
             gf = cv2.add(gf, dgf)
             bf = cv2.add(bf, dbf)
-
-            r = rf.astype(np.uint8)
-            g = gf.astype(np.uint8)
-            b = bf.astype(np.uint8)
-
+            print rf
+            r = (255.0*rf).astype(np.uint8)
+            g = (255.0*gf).astype(np.uint8)
+            b = (255.0*bf).astype(np.uint8)
+            print r
             retValCnp[:, :, 2] = r
             retValCnp[:, :, 1] = g
             retValCnp[:, :, 0] = b
