@@ -12929,7 +12929,7 @@ class Image:
             tkp = tfs[i]
             pt_a = (int(tkp.y), int(tkp.x)+hdif)
             pt_b = (int(skp.y)+template.width, int(skp.x))
-            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(Color()),thickness=width)
+            resultImg.drawLine(pt_a, pt_b, color=Color.getRandom(),thickness=width)
         return resultImg
 
     def stegaEncode(self,message):
