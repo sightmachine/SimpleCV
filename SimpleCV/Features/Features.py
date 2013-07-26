@@ -1188,7 +1188,7 @@ class Feature(object):
         self.y = at_y
         self.image = i
         self.points = points
-        self._updateExtents()
+        self._updateExtents(new_feature=True)
 
     def reassign(self, img):
         """
@@ -1605,38 +1605,61 @@ class Feature(object):
         return "%s.%s at (%d,%d)" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y)
 
 
-    def _updateExtents(self):
+    def _updateExtents(self, new_feature=False):
 #    mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
 #    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
 #    points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
 
-        if( self._mMaxX is None or self._mMaxY is None or
-            self._mMinX is None or self._mMinY is None or
-            self._mWidth is None or self._mHeight is None or
-            self.mExtents is None or self.mBoundingBox is None
-            ):
-            self._mMaxX = float("-infinity")
-            self._mMaxY = float("-infinity")
-            self._mMinX = float("infinity")
-            self._mMinY = float("infinity")
+        max_x = self._mMaxX
+        min_x = self._mMinX
+        max_y = self._mMaxY
+        min_y = self._mMinY
+        width = self._mWidth
+        height = self._mHeight
+        extents = self.mExtents
+        bounding_box = self.mBoundingBox
+
+        #if new_feature or None in [self._mMaxX, self._mMinX, self._mMaxY, self._mMinY,
+        #            self._mWidth, self._mHeight, self.mExtents, self.mBoundingBox]:
+
+        if new_feature or None in [max_x, min_x, max_y, min_y, width, height, extents, bounding_box]:
+
+            max_x = max_y = float("-infinity")
+            min_x = min_y = float("infinity")
+
             for p in self.points:
-                if( p[0] > self._mMaxX):
-                    self._mMaxX = p[0]
-                if( p[0] < self._mMinX):
-                    self._mMinX = p[0]
-                if( p[1] > self._mMaxY):
-                    self._mMaxY = p[1]
-                if( p[1] < self._mMinY):
-                    self._mMinY = p[1]
-            self._mWidth = self._mMaxX-self._mMinX
-            self._mHeight = self._mMaxY-self._mMinY
-            if( self._mWidth <= 0 ):
-                self._mWidth = 1
-            if( self._mHeight <= 0 ):
-                self._mHeight = 1
-            self.mBoundingBox = [self._mMinX,self._mMinY,self._mWidth,self._mHeight]
-            self.mExtents = [self._mMaxX,self._mMinX,self._mMaxY,self._mMinY]
-            self.mAspectRatio = float(np.max([self._mWidth,self._mHeight]))/float(np.min([self._mWidth,self._mHeight]))
+                if (p[0] > max_x):
+                    max_x = p[0]
+                if (p[0] < min_x):
+                    min_x = p[0]
+                if (p[1] > max_y):
+                    max_y = p[1]
+                if (p[1] < min_y):
+                    min_y = p[1]
+
+            width = max_x - min_x
+            height = max_y - min_y
+
+            if (width <= 0):
+                width = 1
+
+            if (height <= 0):
+                height = 1
+
+            self.mBoundingBox = [min_x, min_y, width, height]
+            self.mExtents = [max_x, min_x, max_y, min_y]
+
+            if width > height:
+                self.mAspectRatio = float(width/height)
+            else:
+                self.mAspectRatio = float(height/width)
+
+            self._mMaxX = max_x
+            self._mMinX = min_x
+            self._mMaxY = max_y
+            self._mMinY = min_y
+            self._mWidth = width
+            self._mHeight = height
 
     def boundingBox(self):
         """
