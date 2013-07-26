@@ -363,6 +363,16 @@ def test_image_drawing():
     name_stem = "test_image_drawing"
     perform_diff(result,name_stem)
 
+def test_image_draw():
+    img = Image("lenna")
+    newimg = Image("simplecv")
+    lines = img.findLines()
+    newimg.draw(lines)
+    lines.draw()
+    result = [newimg, img]
+    name_stem = "test_image_draw"
+    perform_diff(result, name_stem, 5)
+
 
 def test_image_splitchannels():
     img = Image(testimageclr)
