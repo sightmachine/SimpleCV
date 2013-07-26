@@ -393,7 +393,7 @@ def test_detection_lines():
 
     if(lines == 0 or lines == None):
         assert False
-        
+
 def test_detection_lines_standard():
     img = Image(testimage2)
     lines = img.findLines(useStandard=True)
@@ -951,16 +951,16 @@ def test_image_crop():
     tests.append(img.crop([50,50],[10,10])) # 3
     tests.append(img.crop([10,10],[50,50])) # 4
 
-    roi = np.array([10,10,40,40]) 
-    pts1 = np.array([[50,50],[10,10]]) 
-    pts2 = np.array([[10,10],[50,50]]) 
-    pt1 = np.array([10,10]) 
+    roi = np.array([10,10,40,40])
+    pts1 = np.array([[50,50],[10,10]])
+    pts2 = np.array([[10,10],[50,50]])
+    pt1 = np.array([10,10])
     pt2 = np.array([50,50])
 
     tests.append(img.crop(roi)) # 5
     tests.append(img.crop(pts1)) # 6
-    tests.append(img.crop(pts2)) # 7 
-    tests.append(img.crop(pt1,pt2)) # 8 
+    tests.append(img.crop(pts2)) # 7
+    tests.append(img.crop(pt1,pt2)) # 8
     tests.append(img.crop(pt2,pt1)) # 9
 
     xs = [10,10,10,20,20,20,30,30,40,40,40,50,50,50]
@@ -1403,15 +1403,15 @@ def test_template_match_once():
     fs = source.findTemplateOnce(template,threshold=t)
     if( len(fs) ==  0 ):
         assert False
-        
+
     fs = source.findTemplateOnce(template,threshold=t,grayscale=False)
     if( len(fs) ==  0 ):
         assert False
-        
+
     fs = source.findTemplateOnce(template,method='CCORR_NORM')
     if( len(fs) ==  0 ):
         assert False
-        
+
     pass
 
 def test_template_match_RGB():
@@ -1806,7 +1806,7 @@ def test_findKeypoints():
         except:
             continue
         if( kp is not None ):
-            print "Found: " + str(len(kp)) 
+            print "Found: " + str(len(kp))
             for k in kp:
                 k.getObject()
                 k.descriptor()
@@ -1823,7 +1823,7 @@ def test_findKeypoints():
                 k.width()
                 k.height()
                 k.radius()
-                k.crop()    
+                k.crop()
             kp.draw()
         else:
             print "Found None."
@@ -1905,9 +1905,9 @@ def test_keypoint_extraction():
     kp1.draw()
     kp2.draw()
     kp3.draw()
-    
 
-    
+
+
     #TODO: Fix FAST binding
     #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
     if( len(kp1)==190 and
@@ -3278,7 +3278,7 @@ def test_line_imgIntersection():
         pass
     else:
         assert False
-        
+
 def test_line_cropToEdges():
     img = Image((512, 512))
     l = Line(img, ((-10, -5), (400, 400)))
@@ -3287,7 +3287,7 @@ def test_line_cropToEdges():
         pass
     else:
         assert False
-    
+
 def test_line_extendToEdges():
     img = Image((512, 512))
     l = Line(img, ((10, 10), (30, 30)))
@@ -3457,7 +3457,7 @@ def testROIFeature():
     # test the basics
     def toXYWH( roi ):
         return roi.toXYWH()
-        
+
     if( subtest(roiList,toXYWH) ):
         assert False
     broi.translate(10,10)
@@ -3728,7 +3728,7 @@ def test_LineScan_div():
         assert False
 
 def test_tvDenoising():
-    return # this is way too slow. 
+    return # this is way too slow.
     try:
         from skimage.filter import denoise_tv_chambolle
         img = Image('lenna')
@@ -3776,7 +3776,7 @@ def test_faceRecognize():
                        "../sampleimages/ff3.jpg",
                        "../sampleimages/ff4.jpg",
                         "../sampleimages/ff5.jpg"]
-            
+
             images2 = ["../sampleimages/fm1.jpg",
                        "../sampleimages/fm2.jpg",
                        "../sampleimages/fm3.jpg",
@@ -3787,7 +3787,7 @@ def test_faceRecognize():
                        "../sampleimages/fi2.jpg",
                        "../sampleimages/fi3.jpg",
                        "../sampleimages/fi4.jpg"]
-            
+
             imgset1 = []
             imgset2 = []
             imgset3 = []
@@ -3812,7 +3812,7 @@ def test_faceRecognize():
             for img in imgset3:
                 name, confidence = f.predict(img)
                 label.append(name)
-            
+
             if label == ["male", "male", "female", "female"]:
                 pass
             else:
@@ -3911,7 +3911,7 @@ def test_getAverage():
 def test_smartRotate():
     import time
     img = Image('kptest2.png',sample = True)
-    
+
     st1 = img.smartRotate(auto = False,fixed = False).resize(500,500)
     st2 = img.rotate(27,fixed = False).resize(500,500)
     diff = np.average((st1-st2).getNumpy())
@@ -3929,7 +3929,7 @@ def test_normalize():
     name_stem = "test_image_normalize"
     perform_diff(result,name_stem,5)
     pass
-    
+
 def test_getNormalizedHueHistogram():
     img = Image('lenna')
     a = img.getNormalizedHueHistogram((0,0,100,100))
@@ -3961,3 +3961,13 @@ def test_findBlobsFromHueHistogram():
     B = img.findBlobsFromHueHistogram((10,10,50,50),smooth=False)
     C = img.findBlobsFromHueHistogram(img2,threshold=1)
     pass
+
+def test_drawingLayerToSVG():
+    img = Image('lenna')
+    dl = img.dl()
+    dl.line((0, 0), (100, 100))
+    svg = dl.getSVG()
+    if svg == '<svg baseProfile="full" height="512" version="1.1" width="512" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs /><line x1="0" x2="100" y1="0" y2="100" /></svg>':
+        pass
+    else:
+        assert False

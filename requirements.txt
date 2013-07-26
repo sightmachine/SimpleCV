@@ -2,4 +2,4 @@ numpy
 scipy
 PIL
 ipython
-
+svgwrite
