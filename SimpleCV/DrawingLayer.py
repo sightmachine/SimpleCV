@@ -100,7 +100,7 @@ class DrawingLayer:
         del pixels_alpha
         return None
 
-    def _getSVG(self):
+    def getSVG(self):
         return(self._mSVG.tostring())
 
     def _getSurface(self):
