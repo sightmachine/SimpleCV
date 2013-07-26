@@ -154,7 +154,9 @@ class DrawingLayer:
         else:
             pg.draw.line(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
 
-        self._mSVG.add(self._mSVG.line(start=start, end=stop))
+        startInt = tuple(int(x) for x in start)
+        stopInt = tuple(int(x) for x in stop)
+        self._mSVG.add(self._mSVG.line(start=startInt, end=stopInt))
 
         return None
 
@@ -189,8 +191,12 @@ class DrawingLayer:
         else:
             pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
 
+
+
         lastPoint = points[0]
         for point in points[1:]:
+            lInt = tuple(int(x) for x in lastPoint)
+            pInt = tuple(int(x) for x in point)
             self._mSVG.add(self._mSVG.line(start=lastPoint, end=point))
             lastPoint = point
 
@@ -218,7 +224,9 @@ class DrawingLayer:
         r = pg.Rect((topLeft[0], topLeft[1]), (dimensions[0], dimensions[1]))
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
 
-        self._mSVG.add(self._mSVG.rect(insert=topLeft, size=dimensions))
+        tlInt = tuple(int(x) for x in topLeft)
+        dimInt = tuple(int(x) for x in dimensions)
+        self._mSVG.add(self._mSVG.rect(insert=tlInt, size=dimInt))
 
         return None
 
@@ -258,7 +266,7 @@ class DrawingLayer:
         r = pg.Rect((x,y),(w,h))
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
 
-        self._mSVG.add(self._mSVG.rect(insert=(x,y), size=(w,h)))
+        self._mSVG.add(self._mSVG.rect(insert=(int(x),int(y)), size=(int(w),int(h))))
 
         return None
 
@@ -294,7 +302,8 @@ class DrawingLayer:
         r = pg.Rect(xtl, ytl, dimensions[0], dimensions[1])
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
 
-        self._mSVG.add(self._mSVG.rect(insert=(xtl, ytl), size=dimensions))
+        dimInt = tuple(int(x) for x in dimensions)
+        self._mSVG.add(self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dimInt))
 
         return None
 
@@ -359,7 +368,8 @@ class DrawingLayer:
         else:
             pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]), int(radius), self._csvRGB2pgColor(color, alpha))
 
-        self._mSVG.add(self._mSVG.circle(center=center, r=radius))
+        cenInt = tuple(int(x) for x in center)
+        self._mSVG.add(self._mSVG.circle(center=cenInt, r=radius))
 
         return None
 
@@ -391,7 +401,9 @@ class DrawingLayer:
         r = pg.Rect(center[0] - (dimensions[0] / 2), center[1] - (dimensions[1] / 2), dimensions[0], dimensions[1])
         pg.draw.ellipse(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
 
-        self._mSVG.add(self._mSVG.ellipse(center=center, r=dimensions))
+        cenInt = tuple(int(x) for x in center)
+        dimInt = tuple(int(x) for x in dimensions)
+        self._mSVG.add(self._mSVG.ellipse(center=centInt, r=dimInt))
 
         return None
 
@@ -520,7 +532,8 @@ class DrawingLayer:
         if self._mFontName:
             fontStyle += "font-family: \"{}\";".format(self._mFontName)
         alteredLocation = (location[0], location[1] + self.textDimensions(text)[1])
-        self._mSVG.add(self._mSVG.text(text, insert=alteredLocation, style=fontStyle))
+        altInt = tuple(int(x) for x in alteredLocation)
+        self._mSVG.add(self._mSVG.text(text, insert=altInt, style=fontStyle))
         return None
 
     def textDimensions(self, text):
