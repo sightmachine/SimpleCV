@@ -1645,12 +1645,6 @@ class StereoImage:
         p = dist.squeeze()
         result = p * magic_ratio < minDist
 
-        try:
-            import cv2
-        except:
-            logger.warning("Can't use fundamental matrix without OpenCV >= 2.3.0")
-            return None
-
         pts1 = np.array([kpt.pt for kpt in kpts1])
         pts2 = np.array([kpt.pt for kpt in kpts2])
 
@@ -1715,12 +1709,6 @@ class StereoImage:
         p = dist.squeeze()
         result = p * magic_ratio < minDist
 
-        try:
-            import cv2
-        except:
-            logger.warning("Can't use homography without OpenCV >= 2.3.0")
-            return None
-
         pts1 = np.array([kpt.pt for kpt in kpts1])
         pts2 = np.array([kpt.pt for kpt in kpts2])
 
@@ -1738,7 +1726,7 @@ class StereoImage:
         matched_pts2 = matched_pts2[:, ::-1.00]
         return (H, matched_pts1, matched_pts2)
 
-    def findDisparityMap( self, nDisparity=16 ,method='BM'):
+    def findDisparityMap( self, nDisparity=128 ,method='SGBM'):
         """
         The method generates disparity map from set of stereo images.
 
@@ -1763,77 +1751,63 @@ class StereoImage:
         >>> stereoImg = StereoImage(img1,img2)
         >>> disp = stereoImg.findDisparityMap(method="BM")
         """
-        gray_left = self.ImageLeft.getGrayscaleMatrix()
-        gray_right = self.ImageRight.getGrayscaleMatrix()
+        gray_left = self.ImageLeft.getGrayNumpy()
+        gray_right = self.ImageRight.getGrayNumpy()
         (r, c) = self.size
         scale = int(self.ImageLeft.depth)
         if nDisparity % 16 !=0 :
             if nDisparity < 16 :
                 nDisparity = 16
             nDisparity = (nDisparity/16)*16
-        try :
-            if method == 'BM':
-                disparity = cv.CreateMat(c, r, cv.CV_32F)
-                state = cv.CreateStereoBMState()
-                state.SADWindowSize = 41
-                state.preFilterType = 1
-                state.preFilterSize = 41
-                state.preFilterCap = 31
-                state.minDisparity = -8
-                state.numberOfDisparities = nDisparity
-                state.textureThreshold = 10
-                #state.speckleRange = 32
-                #state.speckleWindowSize = 100
-                state.uniquenessRatio=15
-                cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, state)
-                disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
-                cv.Normalize( disparity, disparity_visual, 0, 256, cv.CV_MINMAX )
-                disparity_visual = Image(disparity_visual)
-                return Image(disparity_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
+        if method == 'BM':
+            #disparity = cv.CreateMat(c, r, cv.CV_32F)
+            sbm = cv2.StereoBM(preset=31, ndisparities=nDisparity, SADWindowSize=7)
+            #state = cv.CreateStereoBMState()
+            """
+            sbm.SADWindowSize = 41
+            sbm.preFilterType = 1
+            sbm.preFilterSize = 41
+            sbm.preFilterCap = 31
+            sbm.minDisparity = -8
+            sbm.numberOfDisparities = nDisparity
+            sbm.textureThreshold = 10
+            #sbm.speckleRange = 32
+            #sbm.speckleWindowSize = 100
+            sbm.uniquenessRatio=15
+            """
+            disp = sbm.compute(gray_left, gray_right)
+            disparity_visual = cv2.normalize(disp,  alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+            return Image(disparity_visual,colorSpace=ColorSpace.GRAY)
+            """
+        elif method == 'GC':
+            disparity_left = cv.CreateMat(c, r, cv.CV_32F)
+            disparity_right = cv.CreateMat(c, r, cv.CV_32F)
+            state = cv.CreateStereoGCState(nDisparity, 8)
+            state.minDisparity = -8
+            cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
+            disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
+            cv.Normalize( disparity_left, disparity_left_visual, 0, 256, cv.CV_MINMAX )
+            #cv.Scale(disparity_left, disparity_left_visual, -scale)
+            disparity_left_visual = Image(disparity_left_visual)
+            return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
+            """
+        elif method == 'SGBM':
+            state = cv2.StereoSGBM()
+            state.SADWindowSize = 7
+            state.preFilterCap = 4
+            state.minDisparity = -39
+            state.numberOfDisparities = nDisparity
+            state.disp12MaxDiff = 2
+            state.fullDP=False
+            state.P1 = 600
+            state.P2 = 2400
+            state.uniquenessRatio=9
+            disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
+            disparity = cv2.normalize(disparity,  alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+            return Image(disparity, colorSpace=ColorSpace.GRAY)
 
-            elif method == 'GC':
-                disparity_left = cv.CreateMat(c, r, cv.CV_32F)
-                disparity_right = cv.CreateMat(c, r, cv.CV_32F)
-                state = cv.CreateStereoGCState(nDisparity, 8)
-                state.minDisparity = -8
-                cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
-                disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
-                cv.Normalize( disparity_left, disparity_left_visual, 0, 256, cv.CV_MINMAX )
-                #cv.Scale(disparity_left, disparity_left_visual, -scale)
-                disparity_left_visual = Image(disparity_left_visual)
-                return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
-
-            elif method == 'SGBM':
-                try:
-                    import cv2
-                    ver = cv2.__version__
-                    if ver.startswith("$Rev :"):
-                        logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
-                        return None
-                except:
-                    logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
-                    return None
-                state = cv2.StereoSGBM()
-                state.SADWindowSize = 41
-                state.preFilterCap = 31
-                state.minDisparity = 0
-                state.numberOfDisparities = nDisparity
-                #state.speckleRange = 32
-                #state.speckleWindowSize = 100
-                state.disp12MaxDiff = 1
-                state.fullDP=False
-                state.P1 = 8 * 1 * 41 * 41
-                state.P2 = 32 * 1 * 41 * 41
-                state.uniquenessRatio=15
-                disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
-                return Image(disparity)
-
-            else :
-                logger.warning("Unknown method. Choose one method amoung BM or SGBM or GC !")
-                return None
-
-        except :
-            logger.warning("Error in computing the Disparity Map, may be due to the Images are stereo in nature.")
+        else :
+            logger.warning("Unknown method. Choose one method amoung BM or SGBM or GC !")
             return None
 
     def Eline (self, point, F, whichImage):
@@ -1961,16 +1935,10 @@ class StereoImage:
         """
         imgLeft = self.ImageLeft
         imgRight = self.ImageRight
-        cv2flag = True
-        try:
-            import cv2
-        except ImportError:
-            cv2flag = False
-        import cv2.cv as cv
+        
         (r, c) = self.size
         if method == "BM":
-            sbm = cv.CreateStereoBMState()
-            disparity = cv.CreateMat(c, r, cv.CV_32F)
+            sbm = cv2.StereoBM()
             if state:
                 SADWindowSize = state.get("SADWindowSize")
                 preFilterCap = state.get("preFilterCap")
@@ -2014,10 +1982,11 @@ class StereoImage:
                 sbm.speckleRange = 8
                 sbm.speckleWindowSize = 0
 
-            gray_left = imgLeft.getGrayscaleMatrix()
-            gray_right = imgRight.getGrayscaleMatrix()
-            cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, sbm)
-            disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
+            gray_left = imgLeft.getGrayNumpy()
+            gray_right = imgRight.getGrayNumpy()
+            disparity = sbm.compute(gray_left, gray_right)
+            #cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, sbm)
+            #disparity_visual = cv.CreateMat(c, r, cv.CV_8U)
 
         elif method == "SGBM":
             if not cv2flag:
@@ -2066,26 +2035,19 @@ class StereoImage:
                 sbm.disp12MaxDiff = 1;
                 sbm.fullDP = False;
 
-            disparity = sbm.compute(imgLeft.getGrayNumpyCv2(), imgRight.getGrayNumpyCv2())
+            disparity = sbm.compute(imgLeft.getGrayNumpy(), imgRight.getGrayNumpy())
             
         else:
             warnings.warn("Unknown method. Returning None")
             return None
 
-        if cv2flag:
-            if not isinstance(Q, np.ndarray):
-                Q = np.array(Q)
-            if not isinstance(disparity, np.ndarray):
-                disparity = np.array(disparity)
-            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
-            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
-            retVal = Image(Image3D_normalize, cv2image=True)
-        else:
-            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_32FC3)
-            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_8UC3)
-            cv.ReprojectImageTo3D(disparity, Image3D, Q)
-            cv.Normalize(Image3D, Image3D_normalize, 0, 255, cv.CV_MINMAX, CV_8UC3)
-            retVal = Image(Image3D_normalize)
+        if not isinstance(Q, np.ndarray):
+            Q = np.array(Q)
+        if not isinstance(disparity, np.ndarray):
+            disparity = np.array(disparity)
+        Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
+        Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+        retVal = Image(Image3D_normalize, cv2image=True)
         self.Image3D = Image3D
         return retVal
 
@@ -2113,27 +2075,13 @@ class StereoImage:
         >>> disp = stereo.findDisparityMap()
         >>> stereo.get3DImageFromDisparity(disp, Q)
         """
-        cv2flag = True
-        try:
-            import cv2
-        except ImportError:
-            cv2flag = False
-            import cv2.cv as cv
-
-        if cv2flag:
-            if not isinstance(Q, np.ndarray):
-                Q = np.array(Q)
-            disparity = disparity.getNumpyCv2()    
-            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
-            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
-            retVal = Image(Image3D_normalize, cv2image=True)
-        else:
-            disparity = disparity.getMatrix()
-            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_32FC3)
-            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_8UC3)
-            cv.ReprojectImageTo3D(disparity, Image3D, Q)
-            cv.Normalize(Image3D, Image3D_normalize, 0, 255, cv.CV_MINMAX, CV_8UC3)
-            retVal = Image(Image3D_normalize)
+        if not isinstance(Q, np.ndarray):
+            Q = np.array(Q)
+        disparity = disparity.getNumpyCv2()    
+        Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
+        Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+        retVal = Image(Image3D_normalize, cv2image=True)
+        
         self.Image3D = Image3D
         return retVal
         
