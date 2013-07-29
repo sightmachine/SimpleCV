@@ -873,7 +873,7 @@ def test_camera_calibration():
     fakeCamera.calibrate(imgs)
     #we're just going to check that the function doesn't puke
     mat = fakeCamera.getCameraMatrix()
-    if( type(mat) != cv.cvmat ):
+    if( type(mat) != np.ndarray ):
         assert False
     #we're also going to test load in save in the same pass
     matname = "TestCalibration"

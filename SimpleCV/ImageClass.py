@@ -6817,15 +6817,11 @@ class Image:
 
         http://en.wikipedia.org/wiki/Summed_area_table
         """
-        print "todo cv2"
         if(tilted):
-            img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
-            img3 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
-            cv.Integral(self._getGrayscaleBitmap(),img3,None,img2)
+            img1, img2, retVal = cv2.integral3(self.getGrayNumpy())
         else:
-            img2 = cv.CreateImage((self.width+1, self.height+1), cv.IPL_DEPTH_32F, 1)
-            cv.Integral(self._getGrayscaleBitmap(),img2)
-        return np.array(cv.GetMat(img2))
+            retVal = cv2.integral(self.getGrayNumpy())
+        return retVal
 
     def convolve(self,kernel = [[1,0,0],[0,1,0],[0,0,1]],center=None):
         """

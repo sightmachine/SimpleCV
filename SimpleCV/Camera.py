@@ -104,15 +104,15 @@ class FrameSource:
         n_boards = int(len(imageList))
         board_n = board_w * board_h             # no of total corners
         board_sz = (board_w, board_h)   #size of board
+        pattern_size = board_sz
+        pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
+        pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
+        pattern_points *= grid_sz
+
+        img_points = []
+        obj_points = []
         if( n_boards < warn_thresh ):
             logger.warning("FrameSource.calibrate: We suggest using 20 or more images to perform camera calibration!" )
-
-        #  creation of memory storages
-        image_points = cv.CreateMat(n_boards * board_n, 2, cv.CV_32FC1)
-        object_points = cv.CreateMat(n_boards * board_n, 3, cv.CV_32FC1)
-        point_counts = cv.CreateMat(n_boards, 1, cv.CV_32SC1)
-        intrinsic_matrix = cv.CreateMat(3, 3, cv.CV_32FC1)
-        distortion_coefficient = cv.CreateMat(5, 1, cv.CV_32FC1)
 
         #       capture frames of specified properties and modification of matrix values
         i = 0
@@ -123,58 +123,38 @@ class FrameSource:
         while(successes < n_boards):
             found = 0
             img = imageList[imgIdx]
-            (found, corners) = cv.FindChessboardCorners(img.getGrayscaleMatrix(), board_sz,
-                                                     cv.CV_CALIB_CB_ADAPTIVE_THRESH |
-                                                     cv.CV_CALIB_CB_FILTER_QUADS)
-            corners = cv.FindCornerSubPix(img.getGrayscaleMatrix(), corners,(11, 11),(-1, -1),
-                                        (cv.CV_TERMCRIT_EPS + cv.CV_TERMCRIT_ITER, 30, 0.1))
+            grayimg = img.getGrayNumpy()
+            (found, corners) = cv2.findChessboardCorners(grayimg, board_sz,
+                                                     flags = (cv2.CALIB_CB_ADAPTIVE_THRESH |
+                                                     cv2.CALIB_CB_FILTER_QUADS))
+            print corners
+            cv2.cornerSubPix(grayimg, corners, (11, 11), (-1, -1),
+                            (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+            print corners
+            #corners = cv.FindCornerSubPix(img.getGrayscaleMatrix(), corners,(11, 11),(-1, -1),
+                                        #(cv.CV_TERMCRIT_EPS + cv.CV_TERMCRIT_ITER, 30, 0.1))
             # if got a good image,draw chess board
             if found == 1:
+                img_points.append(corners.reshape(-1, 2))
+                obj_points.append(pattern_points)
                 corner_count = len(corners)
                 z = z + 1
-
-            # if got a good image, add to matrix
-            if len(corners) == board_n:
-                step = successes * board_n
-                k = step
-                for j in range(board_n):
-                    cv.Set2D(image_points, k, 0, corners[j][0])
-                    cv.Set2D(image_points, k, 1, corners[j][1])
-                    cv.Set2D(object_points, k, 0, grid_sz*(float(j)/float(board_w)))
-                    cv.Set2D(object_points, k, 1, grid_sz*(float(j)%float(board_w)))
-                    cv.Set2D(object_points, k, 2, 0.0)
-                    k = k + 1
-                cv.Set2D(point_counts, successes, 0, board_n)
                 successes = successes + 1
 
         # now assigning new matrices according to view_count
         if( successes < warn_thresh ):
             logger.warning("FrameSource.calibrate: You have %s good images for calibration we recommend at least %s" % (successes, warn_thresh))
 
-        object_points2 = cv.CreateMat(successes * board_n, 3, cv.CV_32FC1)
-        image_points2 = cv.CreateMat(successes * board_n, 2, cv.CV_32FC1)
-        point_counts2 = cv.CreateMat(successes, 1, cv.CV_32SC1)
+        ret, camMat, distcoeffs, rcv, tcv = cv2.calibrateCamera(obj_points,
+                                                                img_points,
+                                                                (img.width, img.height))
 
-        for i in range(successes * board_n):
-            cv.Set2D(image_points2, i, 0, cv.Get2D(image_points, i, 0))
-            cv.Set2D(image_points2, i, 1, cv.Get2D(image_points, i, 1))
-            cv.Set2D(object_points2, i, 0, cv.Get2D(object_points, i, 0))
-            cv.Set2D(object_points2, i, 1, cv.Get2D(object_points, i, 1))
-            cv.Set2D(object_points2, i, 2, cv.Get2D(object_points, i, 2))
-        for i in range(successes):
-            cv.Set2D(point_counts2, i, 0, cv.Get2D(point_counts, i, 0))
-
-        cv.Set2D(intrinsic_matrix, 0, 0, 1.0)
-        cv.Set2D(intrinsic_matrix, 1, 1, 1.0)
-        rcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
-        tcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
-        # camera calibration
-        cv.CalibrateCamera2(object_points2, image_points2, point_counts2,
-                            (img.width, img.height), intrinsic_matrix,distortion_coefficient,
-                            rcv, tcv, 0)
-        self._calibMat = intrinsic_matrix
-        self._distCoeff = distortion_coefficient
-        return intrinsic_matrix
+        #cv.CalibrateCamera2(object_points2, image_points2, point_counts2,
+                            #(img.width, img.height), intrinsic_matrix,distortion_coefficient,
+                            #rcv, tcv, 0)
+        self._calibMat = camMat
+        self._distCoeff = distcoeffs
+        return camMat
 
     def getCameraMatrix(self):
         """
@@ -211,18 +191,20 @@ class FrameSource:
 
 
         """
-        if(type(self._calibMat) != cv.cvmat or type(self._distCoeff) != cv.cvmat ):
+        if(type(self._calibMat) != np.ndarray or type(self._distCoeff) != np.ndarray ):
             logger.warning("FrameSource.undistort: This operation requires calibration, please load the calibration matrix")
             return None
 
         if (type(image_or_2darray) == InstanceType and image_or_2darray.__class__ == Image):
             inImg = image_or_2darray # we have an image
-            retVal = inImg.getEmpty()
-            cv.Undistort2(inImg.getBitmap(), retVal, self._calibMat, self._distCoeff)
+            retVal = cv2.undistort(inImg.getNumpy(), self._calibMat, self._distCoeff)
+            #retVal = inImg.getEmpty()
+            #cv.Undistort2(inImg.getBitmap(), retVal, self._calibMat, self._distCoeff)
             return Image(retVal)
+        """
         else:
             mat = ''
-            if (type(image_or_2darray) == cv.cvmat):
+            if (type(image_or_2darray) == np.ndarray):
                 mat = image_or_2darray
             else:
                 arr = cv.fromarray(np.array(image_or_2darray))
@@ -237,7 +219,7 @@ class FrameSource:
             return (np.array(upoints[:, 0]) *\
                 [self.getCameraMatrix()[0, 0], self.getCameraMatrix()[1, 1]] +\
                 [self.getCameraMatrix()[0, 2], self.getCameraMatrix()[1, 2]])[:, 0]
-
+        """
     def getImageUndistort(self):
         """
         **SUMMARY**
@@ -283,17 +265,17 @@ class FrameSource:
 
 
         """
-        if( type(self._calibMat) != cv.cvmat ):
+        if( type(self._calibMat) != np.ndarray ):
             logger.warning("FrameSource.saveCalibration: No calibration matrix present, can't save.")
         else:
-            intrFName = filename + "Intrinsic.xml"
-            cv.Save(intrFName, self._calibMat)
+            intrFName = filename + "Intrinsic"
+            np.save(intrFName, self._calibMat)
 
-        if( type(self._distCoeff) != cv.cvmat ):
+        if( type(self._distCoeff) != np.ndarray ):
             logger.warning("FrameSource.saveCalibration: No calibration distortion present, can't save.")
         else:
-            distFName = filename + "Distortion.xml"
-            cv.Save(distFName, self._distCoeff)
+            distFName = filename + "Distortion"
+            np.save(distFName, self._distCoeff)
 
         return None
 
@@ -320,12 +302,12 @@ class FrameSource:
 
         """
         retVal = False
-        intrFName = filename + "Intrinsic.xml"
-        self._calibMat = cv.Load(intrFName)
-        distFName = filename + "Distortion.xml"
-        self._distCoeff = cv.Load(distFName)
-        if( type(self._distCoeff) == cv.cvmat
-            and type(self._calibMat) == cv.cvmat):
+        intrFName = filename + "Intrinsic.npy"
+        self._calibMat = np.load(intrFName)
+        distFName = filename + "Distortion.npy"
+        self._distCoeff = np.load(distFName)
+        if( type(self._distCoeff) == np.ndarray
+            and type(self._calibMat) == np.ndarray):
             retVal = True
 
         return retVal
