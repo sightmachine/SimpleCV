@@ -1116,7 +1116,11 @@ class FeatureSet(list):
             X.append(featureVector)
 
         if method == "kmeans":
-            if (float(__version__) > 0.11):
+            
+            # Ignore minor version numbers.
+            sklearn_version = re.search(r'\d+\.\d+', __version__).group()
+            
+            if (float(sklearn_version) > 0.11):
                 k_means = KMeans(init='random', n_clusters=k, n_init=10).fit(X)
             else:
                 k_means = KMeans(init='random', k=k, n_init=10).fit(X)
