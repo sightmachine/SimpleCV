@@ -1054,7 +1054,7 @@ class Image:
             #not anymore
             npimg = np.fromstring(self._pil.tostring(), dtype=np.uint8)
             self._colorSpace = ColorSpace.BGR
-            self._numpy = cv2.cvtColor(npimg, cv2.cv.CV_RGB2BGR)
+            self._numpy = cv2.cvtColor(npimg, cv2.COLOR_RGB2BGR)
 
 
         else:
@@ -1387,15 +1387,15 @@ class Image:
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
             print self.getNumpy().shape, self.getNumpy().dtype
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2RGB)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2RGB)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2RGB)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2RGB)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2RGB)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2RGB)
         elif( self._colorSpace == ColorSpace.RGB ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1427,15 +1427,15 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.RGB or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2BGR)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
         elif( self._colorSpace == ColorSpace.BGR ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1467,18 +1467,18 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2HLS)
         elif( self._colorSpace == ColorSpace.RGB):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2HLS)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HLS)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HLS)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HLS)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HLS)
         elif( self._colorSpace == ColorSpace.HLS ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1510,18 +1510,18 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2HSV)
         elif( self._colorSpace == ColorSpace.RGB):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2HSV)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HSV)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HSV)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2HSV)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HSV)
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1553,18 +1553,18 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.RGB):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2XYZ)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2XYZ)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1597,21 +1597,21 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.RGB):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2RGB)
-            retVal = cv2.cvtColor(retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2RGB)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2RGB)
-            retVal = cv2.cvtColor(retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2RGB)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.YCrCb ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_YCrCb2RGB)
-            retVal = cv2.cvtColor(retVal, cv.CV_RGB2GRAY)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2RGB)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_RGB2GRAY)
         elif( self._colorSpace == ColorSpace.GRAY ):
             retVal = self.getNumpy()
         else:
@@ -1643,18 +1643,18 @@ class Image:
         """
         if( self._colorSpace == ColorSpace.BGR or
                 self._colorSpace == ColorSpace.UNKNOWN ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_BGR2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.RGB ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_RGB2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2YCR_CB)
         elif( self._colorSpace == ColorSpace.HSV ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HSV2BGR)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_HLS2BGR2)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR2)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv.CV_XYZ2BGR2)
-            retVal = cv2.cvtColor(retVal, cv.CV_BGR2YCrCb)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR2)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = self.getNumpy()
         else:
@@ -2358,7 +2358,7 @@ class Image:
                 dropbox_token.put_file('/SimpleCVImages/'+'Image', f)
                 return True
 
-    def scale(self, width, height = -1, interpolation=cv.CV_INTER_LINEAR):
+    def scale(self, width, height = -1, interpolation=cv2.INTER_LINEAR):
         """
         **SUMMARY**
 
@@ -2962,9 +2962,9 @@ class Image:
             g = npimg[:, :, 1]
             r = npimg[:, :, 2]
 
-            _, r = cv2.threshold(r, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
-            _, g = cv2.threshold(g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
-            _, b = cv2.threshold(b, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
+            _, r = cv2.threshold(r, thresh[2], maxv, cv2.THRESH_BINARY_INV)
+            _, g = cv2.threshold(g, thresh[1], maxv, cv2.THRESH_BINARY_INV)
+            _, b = cv2.threshold(b, thresh[0], maxv, cv2.THRESH_BINARY_INV)
             img = r + g  + b
             return Image(img, colorSpace=self._colorSpace)
 
@@ -2972,16 +2972,16 @@ class Image:
             newbitmap = self.getEmpty(1)
             if blocksize:
                 newimg = cv2.adaptiveThreshold(self.getGrayNumpy(), maxv, 
-                        cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV,
+                        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,
                         blocksize, p)
             else:
                 _, newimg = cv2.threshold(self.getGrayNumpy(), thresh, float(maxv),
-                                cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
+                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
             return Image(newimg, colorSpace=self._colorSpace)
         else:
             #desaturate the image, and apply the new threshold
             _, newimg = cv2.threshold(self.getGrayNumpy(), thresh, float(maxv),
-                                   cv.CV_THRESH_BINARY_INV)
+                                   cv2.THRESH_BINARY_INV)
             return Image(newimg, colorSpace=self._colorSpace)
 
     def meanColor(self, colorSpace = None):
@@ -3644,7 +3644,7 @@ class Image:
         tempMat[:, :, 0] = np.take(hCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(lCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(sCurve.mCurve, tempMat[:, :, 2])
-        image = cv2.cvtColor(tempMat, cv.CV_HLS2BGR)
+        image = cv2.cvtColor(tempMat, cv2.COLOR_HLS2BGR)
         return Image(image, colorSpace=self._colorSpace)
 
 
@@ -4633,11 +4633,11 @@ class Image:
         :py:class:`Chessboard`
 
         """
-        corners = cv2.findChessboardCorners(self._getEqualizedGrayscaleNumpy(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
+        corners = cv2.findChessboardCorners(self._getEqualizedGrayscaleNumpy(), dimensions, cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
                 spCorners = np.zeros(1)
-                cv2.cornerSubPix(self.getGrayNumpy(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                cv2.cornerSubPix(self.getGrayNumpy(), corners[1], (11, 11), (-1, -1), (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 10, 0.01))
                 spCorners = corners[1]
             else:
                 spCorners = corners[1]
@@ -6929,19 +6929,19 @@ class Image:
 
         check = 0; # if check = 0 we want maximal value, otherwise minimal
         if(method is None or method == "" or method == "SQR_DIFF_NORM"):#minimal
-            method = cv.CV_TM_SQDIFF_NORMED
+            method = cv2.TM_SQDIFF_NORMED
             check = 1;
         elif(method == "SQR_DIFF"): #minimal
-            method = cv.CV_TM_SQDIFF
+            method = cv2.TM_SQDIFF
             check = 1
         elif(method == "CCOEFF"): #maximal
-            method = cv.CV_TM_CCOEFF
+            method = cv2.TM_CCOEFF
         elif(method == "CCOEFF_NORM"): #maximal
-            method = cv.CV_TM_CCOEFF_NORMED
+            method = cv2.TM_CCOEFF_NORMED
         elif(method == "CCORR"): #maximal
-            method = cv.CV_TM_CCORR
+            method = cv2.TM_CCORR
         elif(method == "CCORR_NORM"): #maximal
-            method = cv.CV_TM_CCORR_NORMED
+            method = cv2.TM_CCORR_NORMED
         else:
             logger.warning("ooops.. I don't know what template matching method you are looking for.")
             return None
@@ -7039,19 +7039,19 @@ class Image:
 
         check = 0; # if check = 0 we want maximal value, otherwise minimal
         if(method is None or method == "" or method == "SQR_DIFF_NORM"):#minimal
-            method = cv.CV_TM_SQDIFF_NORMED
+            method = cv2.TM_SQDIFF_NORMED
             check = 1;
         elif(method == "SQR_DIFF"): #minimal
-            method = cv.CV_TM_SQDIFF
+            method = cv2.TM_SQDIFF
             check = 1
         elif(method == "CCOEFF"): #maximal
-            method = cv.CV_TM_CCOEFF
+            method = cv2.TM_CCOEFF
         elif(method == "CCOEFF_NORM"): #maximal
-            method = cv.CV_TM_CCOEFF_NORMED
+            method = cv2.TM_CCOEFF_NORMED
         elif(method == "CCORR"): #maximal
-            method = cv.CV_TM_CCORR
+            method = cv2.TM_CCORR
         elif(method == "CCORR_NORM"): #maximal
-            method = cv.CV_TM_CCORR_NORMED
+            method = cv2.TM_CCORR_NORMED
         else:
             logger.warning("ooops.. I don't know what template matching method you are looking for.")
             return None
@@ -8003,7 +8003,7 @@ class Image:
             if( method == "LK" ):
                 cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
             else:
-                cv.CalcOpticalFlowHS(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),0,xf,yf,1.0,(cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                cv.CalcOpticalFlowHS(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),0,xf,yf,1.0,(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 10, 0.01))
 
             w = math.floor((float(window))/2.0)
             cx = ((self.width-window)/window)+1 #our sample rate
@@ -8935,7 +8935,7 @@ class Image:
 
         flags = 8
         if( fixed_range ):
-            flags = flags+cv.CV_FLOODFILL_FIXED_RANGE
+            flags = flags+cv2.FLOODFILL_FIXED_RANGE
 
         npimg = np.copy(self.getNumpy())
         if isinstance(mask, type(None)):
@@ -9060,7 +9060,7 @@ class Image:
 
         blobmaker = BlobMaker()
         gray = mask.getGrayNumpy()
-        val, result = cv2.threshold(gray, threshold, 255, cv.CV_THRESH_BINARY)
+        val, result = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
         blobs = blobmaker.extractFromBinary(Image(result), self, minsize = minsize, maxsize = maxsize,appx_level=appx_level)
 
         if not len(blobs):
@@ -9945,7 +9945,7 @@ class Image:
             self._CopyAvg(self,retVal,roi,levels,levels_f,doHue)
 
         if(doHue):
-            cv2.cvtColor(retVal,retVal,cv2.cv.CV_HSV2BGR)
+            cv2.cvtColor(retVal,retVal,cv2.COLOR_HSV2BGR)
 
         return Image(retVal)
 
@@ -10152,7 +10152,7 @@ class Image:
         if( window[1]%2 == 0 ):
             window = (window[0],window[1]+1)
             logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an odd window size. I fixed it for you, but you may want to take a look at your code.")
-        raw = cv.SnakeImage(self._getGrayscaleBitmap(),initial_curve,alpha,beta,gamma,window,(cv.CV_TERMCRIT_ITER,10,0.01))
+        raw = cv.SnakeImage(self._getGrayscaleBitmap(),initial_curve,alpha,beta,gamma,window,(cv2.TERM_CRITERIA_MAX_ITER,10,0.01))
         if( doAppx ):
             try:
                 import cv2
@@ -10392,7 +10392,7 @@ class Image:
             return None
 
         if( doGray ):
-            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
+            dst = cv2.Sobel(self.getGrayNumpy(),cv2.CV_32F,xorder,yorder,ksize=aperture)
             minv = np.min(dst)
             maxv = np.max(dst)
             cscale = 255/(maxv-minv)
@@ -10406,7 +10406,7 @@ class Image:
             layers = self.splitChannels(grayscale=False)
             sobel_layers = []
             for layer in layers:
-                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
+                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.CV_32F,xorder,yorder,ksize=aperture)
 
                 minv = np.min(dst)
                 maxv = np.max(dst)
@@ -11979,7 +11979,7 @@ class Image:
         m = np.int32(newmask.getGrayNumpy())
         cv2.watershed(self.getNumpy(),m)
         m = cv2.convertScaleAbs(m)
-        ret,thresh = cv2.threshold(m,0,255,cv2.cv.CV_THRESH_OTSU)
+        ret,thresh = cv2.threshold(m,0,255,cv2.THRESH_OTSU)
         retVal = Image(thresh)
         return retVal
 
