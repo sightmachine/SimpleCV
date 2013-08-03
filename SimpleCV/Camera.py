@@ -1698,7 +1698,7 @@ class StereoImage:
         matched_pts2 = pts2[result]
 
         (H, mask) = cv2.findHomography(matched_pts1, matched_pts2,
-                method=cv.CV_LMEDS)
+                method=cv2.LMEDS)
 
         inlier_ind = mask.nonzero()[0]
         matched_pts1 = matched_pts1[inlier_ind, :]
@@ -2129,98 +2129,106 @@ class StereoCamera :
         n1="Left"
         n2="Right"
         try :
-            captureLeft = cv.CaptureFromCAM(camLeft)
-            cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
-            cv.SetCaptureProperty(captureLeft, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
-            frameLeft = cv.QueryFrame(captureLeft)
-            cv.FindChessboardCorners(frameLeft, (chessboard))
+            captureLeft = cv2.VideoCapture(camLeft)
+            captureLeft.set(cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
+            captureLeft.set(cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
+            _, frameLeft = captureLeft.read()
+            (lfound, lcorners) = cv2.findChessboardCorners(frameLeft, (chessboard))
 
-            captureRight = cv.CaptureFromCAM(camRight)
-            cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
-            cv.SetCaptureProperty(captureRight, cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
-            frameRight = cv.QueryFrame(captureRight)
-            cv.FindChessboardCorners(frameRight, (chessboard))
+            captureRight = cv2.VideoCapture(camLeft)
+            captureRight.set(cv.CV_CAP_PROP_FRAME_WIDTH, WinSize[0])
+            captureRight.set(cv.CV_CAP_PROP_FRAME_HEIGHT, WinSize[1])
+            _, frameRight = captureRight.read()
+            (rfound, rcorners) = cv2.findChessboardCorners(frameLeft, (chessboard))
+            
         except :
             print "Error Initialising the Left and Right camera"
             return None
 
-        imagePoints1 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
-        imagePoints2 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
+        imagePoints1 = []
+        imagePoints2 = []
 
-        objectPoints = cv.CreateMat(1, chessboard[0] * chessboard[1] * nboards, cv.CV_64FC3)
-        nPoints = cv.CreateMat(1, nboards, cv.CV_32S)
+        objectPoints = []
+        nPoints = []
 
+        pattern_size = chessboard
+        pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
+        pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
+        pattern_points *= grid_sz
         # the intrinsic camera matrices
-        CM1 = cv.CreateMat(3, 3, cv.CV_64F)
-        CM2 = cv.CreateMat(3, 3, cv.CV_64F)
+        #CM1 = cv.CreateMat(3, 3, cv.CV_64F)
+        #CM2 = cv.CreateMat(3, 3, cv.CV_64F)
 
         # the distortion coefficients of both cameras
-        D1 = cv.CreateMat(1, 5, cv.CV_64F)
-        D2 = cv.CreateMat(1, 5, cv.CV_64F)
+        #D1 = cv.CreateMat(1, 5, cv.CV_64F)
+        #D2 = cv.CreateMat(1, 5, cv.CV_64F)
 
         # matrices governing the rotation and translation from camera 1 to camera 2
-        R = cv.CreateMat(3, 3, cv.CV_64F)
-        T = cv.CreateMat(3, 1, cv.CV_64F)
+        #R = cv.CreateMat(3, 3, cv.CV_64F)
+        #T = cv.CreateMat(3, 1, cv.CV_64F)
 
         # the essential and fundamental matrices
-        E = cv.CreateMat(3, 3, cv.CV_64F)
-        F = cv.CreateMat(3, 3, cv.CV_64F)
+        #E = cv.CreateMat(3, 3, cv.CV_64F)
+        #F = cv.CreateMat(3, 3, cv.CV_64F)
 
         while True:
-            frameLeft = cv.QueryFrame(captureLeft)
-            cv.Flip(frameLeft, frameLeft, 1)
-            frameRight = cv.QueryFrame(captureRight)
-            cv.Flip(frameRight, frameRight, 1)
-            k = cv.WaitKey(3)
+            _, frameLeft = captureLeft.read()
+            #cv.Flip(frameLeft, frameLeft, 1)
+            _, frameRight = captureRight.read()
+            #cv.Flip(frameRight, frameRight, 1)
+            k = cv2.waitKey(3)
 
-            cor1 = cv.FindChessboardCorners(frameLeft, (chessboard))
-            if cor1[0] :
-                cv.DrawChessboardCorners(frameLeft, (chessboard), cor1[1], cor1[0])
-                cv.ShowImage(n1, frameLeft)
+            f1, cor1 = cv2.findChessboardCorners(frameLeft, (chessboard))
+            if f1 :
+                cv2.drawChessboardCorners(frameLeft, (chessboard), cor1[1], cor1[0])
+                cv2.imshow(n1, frameLeft)
 
-            cor2 = cv.FindChessboardCorners(frameRight, (chessboard))
-            if cor2[0]:
-                cv.DrawChessboardCorners(frameRight, (chessboard), cor2[1], cor2[0])
-                cv.ShowImage(n2, frameRight)
+            f2, cor2 = cv2.findChessboardCorners(frameRight, (chessboard))
+            if f2:
+                cv2.drawChessboardCorners(frameRight, (chessboard), cor2[1], cor2[0])
+                cv2.imshow(n2, frameRight)
 
-            if cor1[0] and cor2[0] and k==0x20:
+            if f1 and f2 and k==0x20:
                 print count
-                for i in range(0, len(cor1[1])):
-                    cv.Set1D(imagePoints1, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor1[1][i][0], cor1[1][i][1]))
-                    cv.Set1D(imagePoints2, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor2[1][i][0], cor2[1][i][1]))
+                #for i in range(0, len(cor1[1])):
+                imagePoints1.append(cor1.reshape(-1, 2))
+                imagePoints2.append(cor2.reshape(-1, 2))
+                obj_points.append(pattern_points)
+                    #cv.Set1D(imagePoints1, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor1[1][i][0], cor1[1][i][1]))
+                    #cv.Set1D(imagePoints2, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor2[1][i][0], cor2[1][i][1]))
 
                 count += 1
 
                 if count == nboards:
-                    cv.DestroyAllWindows()
-                    for i in range(nboards):
-                        for j in range(chessboard[1]):
-                            for k in range(chessboard[0]):
-                                cv.Set1D(objectPoints, i * chessboard[1] * chessboard[0] + j * chessboard[0] + k, (k * gridsize, j * gridsize, 0))
+                    cv2.destroyAllWindows()
+                    #for i in range(nboards):
+                        #for j in range(chessboard[1]):
+                            #for k in range(chessboard[0]):
+                                #cv.Set1D(objectPoints, i * chessboard[1] * chessboard[0] + j * chessboard[0] + k, (k * gridsize, j * gridsize, 0))
 
-                    for i in range(nboards):
-                        cv.Set1D(nPoints, i, chessboard[0] * chessboard[1])
+                    #for i in range(nboards):
+                        #cv.Set1D(nPoints, i, chessboard[0] * chessboard[1])
 
 
-                    cv.SetIdentity(CM1)
-                    cv.SetIdentity(CM2)
-                    cv.Zero(D1)
-                    cv.Zero(D2)
+                    #cv.SetIdentity(CM1)
+                    #cv.SetIdentity(CM2)
+                    #cv.Zero(D1)
+                    #cv.Zero(D2)
 
                     print "Running stereo calibration..."
                     del(camLeft)
                     del(camRight)
-                    cv.StereoCalibrate(objectPoints, imagePoints1, imagePoints2, nPoints, CM1, D1, CM2, D2, WinSize, R, T, E, F,
-                                      flags=cv.CV_CALIB_SAME_FOCAL_LENGTH | cv.CV_CALIB_ZERO_TANGENT_DIST)
+                    retval, CM1, CM2, D1, D2, R, T, E, F = cv2.stereoCalibrate(objectPoints, imagePoints1, imagePoints2, WinSize,
+                                      flags=cv2.CALIB_SAME_FOCAL_LENGTH | cv2.CALIB_ZERO_TANGENT_DIST)
 
                     print "Done."
                     return (CM1, CM2, D1, D2, R, T, E, F)
 
-            cv.ShowImage(n1, frameLeft)
-            cv.ShowImage(n2, frameRight)
+            cv2.imshow(n1, frameLeft)
+            cv2.imshow(n2, frameRight)
             if k == 0x1b:
                 print "ESC pressed. Exiting. WARNING: NOT ENOUGH CHESSBOARDS FOUND YET"
-                cv.DestroyAllWindows()
+                cv2.destroyAllWindows()
                 break
 
     def saveCalibration(self,calibration=None, fname="Stereo",cdir="."):
@@ -2363,15 +2371,10 @@ class StereoCamera :
         
         """
         (CM1, CM2, D1, D2, R, T, E, F) = calib
-        R1 = cv.CreateMat(3, 3, cv.CV_64F)
-        R2 = cv.CreateMat(3, 3, cv.CV_64F)
-        P1 = cv.CreateMat(3, 4, cv.CV_64F)
-        P2 = cv.CreateMat(3, 4, cv.CV_64F)
-        Q = cv.CreateMat(4, 4, cv.CV_64F)
         
         print "Running stereo rectification..."
         
-        (leftroi, rightroi) = cv.StereoRectify(CM1, CM2, D1, D2, WinSize, R, T, R1, R2, P1, P2, Q)
+        R1, R2, P1, P2, Q, leftroi, rightroi = cv2.stereoRectify(CM1, D1, CM2, D2, WinSize, R, T)
         roi = []
         roi.append(max(leftroi[0], rightroi[0]))
         roi.append(max(leftroi[1], rightroi[1]))
@@ -2400,24 +2403,16 @@ class StereoCamera :
         >>> imgRight = camRight.getImage()
         >>> rectLeft,rectRight = StereoCam.getImagesUndistort(imgLeft,imgRight,calibration,rectification)
         """
-        imgLeft = imgLeft.getMatrix()
-        imgRight = imgRight.getMatrix()
+        imgLeft = imgLeft.getNumpy()
+        imgRight = imgRight.getNumpy()
         (CM1, CM2, D1, D2, R, T, E, F) = calibration
         (R1, R2, P1, P2, Q, roi) = rectification
 
-        dst1 = cv.CloneMat(imgLeft)
-        dst2 = cv.CloneMat(imgRight)
-        map1x = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
-        map2x = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
-        map1y = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
-        map2y = cv.CreateMat(WinSize[1], WinSize[0], cv.CV_32FC1)
+        map1x, map1y = cv2.initUndistortRectifyMap(CM1, D1, R1, P1, WinSize, cv2.CV_32F)
+        map2x, map2y = cv2.initUndistortRectifyMap(CM2, D2, R2, P2, WinSize, cv2.CV_32F)
 
-        #print "Rectifying images..."
-        cv.InitUndistortRectifyMap(CM1, D1, R1, P1, map1x, map1y)
-        cv.InitUndistortRectifyMap(CM2, D2, R2, P2, map2x, map2y)
-
-        cv.Remap(imgLeft, dst1, map1x, map1y)
-        cv.Remap(imgRight, dst2, map2x, map2y)
+        dst1 = cv2.remap(imgLeft, map1x, map1y, cv2.INTER_LINEAR)
+        dst2 = cv2.remap(imgRight, map2x, map2y, cv2.INTER_LINEAR)
         return Image(dst1), Image(dst2)
 
     def get3DImage(self, leftIndex, rightIndex, Q, method="BM", state=None):
@@ -2467,43 +2462,21 @@ class StereoCamera :
         >>> stereo.get3DImage(1, 2, Q, "BM", state).show()
         >>> stereo.get3DImage(1, 2, Q, "SGBM", state).show()
         """
-        cv2flag = True
-        try:
-            import cv2
-        except ImportError:
-            cv2flag = False
-            import cv2.cv as cv
-        if cv2flag:
-            camLeft = cv2.VideoCapture(leftIndex)
-            camRight = cv2.VideoCapture(rightIndex)
-            if camLeft.isOpened():
-                _, imgLeft = camLeft.read()
-            else:
-                warnings.warn("Unable to open left camera")
-                return None
-            if camRight.isOpened():
-                _, imgRight = camRight.read()
-            else:
-                warnings.warn("Unable to open right camera")
-                return None
-            imgLeft = Image(imgLeft, cv2image=True)
-            imgRight = Image(imgRight, cv2image=True)
+        camLeft = cv2.VideoCapture(leftIndex)
+        camRight = cv2.VideoCapture(rightIndex)
+        if camLeft.isOpened():
+            _, imgLeft = camLeft.read()
         else:
-            camLeft = cv.CaptureFromCAM(leftIndex)
-            camRight = cv.CaptureFromCAM(rightIndex)
-            imgLeft = cv.QueryFrame(camLeft)
-            if imgLeft is None:
-                warnings.warn("Unable to open left camera")
-                return None
-
-            imgRight = cv.QueryFrame(camRight)
-            if imgRight is None:
-                warnings.warn("Unable to open right camera")
-                return None
-
-            imgLeft = Image(imgLeft, cv2image=True)
-            imgRight = Image(imgRight, cv2image=True)
-
+            warnings.warn("Unable to open left camera")
+            return None
+        if camRight.isOpened():
+            _, imgRight = camRight.read()
+        else:
+            warnings.warn("Unable to open right camera")
+            return None
+        imgLeft = Image(imgLeft, cv2image=True)
+        imgRight = Image(imgRight, cv2image=True)
+        
         del camLeft
         del camRight
 
