@@ -426,8 +426,11 @@ class LazyProperty(object):
         result = obj.__dict__[self.__name__] = self._func(obj)
         return result
 
-#supported image formats regular expression
-IMAGE_FORMATS = ('*.bmp','*.gif','*.jpg','*.jpe','*.jpeg','*.png','*.pbm','*.pgm','*.ppm','*.tif','*.tiff','*.webp')
+#supported image formats regular expression ignoring case
+IMAGE_FORMATS = ('*.[bB][mM][Pp]','*.[Gg][Ii][Ff]','*.[Jj][Pp][Gg]','*.[jJ][pP][eE]',
+'*.[jJ][Pp][Ee][Gg]','*.[pP][nN][gG]','*.[pP][bB][mM]','*.[pP][gG][mM]','*.[pP][pP][mM]',
+'*.[tT][iI][fF]','*.[tT][iI][fF][fF]','*.[wW][eE][bB][pP]')
+
 #maximum image size -
 MAX_DIMENSION = 2*6000 # about twice the size of a full 35mm images - if you hit this, you got a lot data.
 LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__)))
