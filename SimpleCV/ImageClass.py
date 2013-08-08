@@ -6284,7 +6284,7 @@ class Image:
             rf = cv2.multiply(rf, af)
             gf = cv2.multiply(gf, af)
             bf = cv2.multiply(bf, af)
-
+            Image(np.dstack((bf, gf, rf)).astype(np.uint8)).show()
             print rf
 
             retValCnp = retValC.getNumpy()
@@ -6296,25 +6296,30 @@ class Image:
             dgf = gf.astype(np.float32)
             dbf = bf.astype(np.float32)
             daf = cMask.invert().getGrayNumpy().astype(np.float32)/255.0
+
             #daf = retValC.getGrayNumpy().astype(np.float32)/255.0
 
             drf = cv2.multiply(drf, daf)
             dgf = cv2.multiply(dgf, daf)
             dbf = cv2.multiply(dbf, daf)
-            print drf
+            #Image(np.dstack((dbf, dgf, drf)).astype(np.uint8)).show()
+            print drf, "drf"
+            print rf, "rf"
             rf = cv2.add(rf, drf)
             gf = cv2.add(gf, dgf)
             bf = cv2.add(bf, dbf)
-            print rf
-            r = (255.0*rf).astype(np.uint8)
-            g = (255.0*gf).astype(np.uint8)
-            b = (255.0*bf).astype(np.uint8)
+            #Image(np.dstack((bf, gf, rf)).astype(np.uint8)).show()
+            print rf, "add rf"
+            r = (rf).astype(np.uint8)
+            g = (gf).astype(np.uint8)
+            b = (bf).astype(np.uint8)
             print r
             retValCnp[:, :, 2] = r
             retValCnp[:, :, 1] = g
             retValCnp[:, :, 0] = b
 
             xROI, yROI, wROI, hROI = bottomROI
+            #Image(retValCnp).show()
             retVal = retVal.getNumpy()
             retVal[yROI: yROI+hROI, xROI:xROI+wROI] = retValCnp
 
