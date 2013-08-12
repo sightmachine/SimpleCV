@@ -890,6 +890,34 @@ class VirtualCamera(FrameSource):
         else:
             return self.counter
 
+    def getCurrentPlayTime(self):
+        """
+        **SUMMARY**
+
+        Get the current play time in milliseconds of the video source.
+        Available for only video sources.
+
+        **RETURNS**
+
+        * *int* - milliseconds of time from beginning of file.
+
+        **EXAMPLES**
+
+        >>> cam = VirtualCamera("filename.avi", "video", 120)
+        >>> i=0
+        >>> while i<60:
+            ... cam.getImage().show()
+            ... i+=1
+        >>> cam.skipFrames(100)
+        >>> cam.getCurrentPlayTime()
+
+        """
+        if (self.sourcetype == 'video'):
+            milliseconds = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_POS_MSEC))
+            return milliseconds
+        else:
+            raise ValueError('sources other than video do not have play time property')
+
     def findLastestImage(self, directory='.', extension='png'):
         """
         **SUMMARY**
