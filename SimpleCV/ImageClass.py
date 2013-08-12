@@ -582,8 +582,11 @@ class ImageSet(list):
 
 
         if extension:
-            extension = "*." + extension
-            formats = [os.path.join(directory, extension)]
+            #regexes to ignore case
+            regexList = [ '[' + letter + letter.upper() + ']' for letter in extension]
+            regex = ''.join(regexList)
+            regex = "*." + regex
+            formats = [os.path.join(directory, regex)]
 
         else:
             formats = [os.path.join(directory, x) for x in IMAGE_FORMATS]
