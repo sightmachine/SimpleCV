@@ -440,8 +440,15 @@ class GtkWorker(Process):
         self.imageData = data
         self.imgRealSize = (data['width'],data['height'])
         
+        
         #convert the string to a pixbuf
-        self.pixbuf =  self.gtk.gdk.pixbuf_new_from_data(data['data'], self.gtk.gdk.COLORSPACE_RGB, False, data['depth'], data['width'], data['height'], data['width']*3)
+        #self.pixbuf =  self.gtk.gdk.pixbuf_new_from_data(data['data'], self.gtk.gdk.COLORSPACE_RGB, False, data['depth'], data['width'], data['height'], data['width']*3)
+        
+        #img = Image('lenna')
+        
+        #array = img.toRGB().getNumpy()
+        
+        self.pixbuf = self.gtk.gdk.pixbuf_new_from_array(data['data'],self.gtk.gdk.COLORSPACE_RGB, 8)
         
         # tell gtk to draw again
         self.drawingArea.queue_draw()

@@ -115,7 +115,7 @@ class GtkDisplay(Display.DisplayBase):
             
             dic = {}
             dic['function'] = 'showImage'
-            dic['data'] = img.toString()
+            dic['data'] = img.toRGB().getNumpy()
             dic['depth'] = img.depth
             dic['width'] = img.width
             dic['height'] = img.height

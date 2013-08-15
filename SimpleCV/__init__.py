@@ -9,7 +9,7 @@ from SimpleCV.ImageClass import *
 from SimpleCV.Stream import *
 from SimpleCV.Font import *
 from SimpleCV.ColorModel import *
-from SimpleCV.DrawingLayer import *
+from Display.Base.DrawingLayer import DrawingLayer
 from SimpleCV.Segmentation import *
 from SimpleCV.MachineLearning import *
 from SimpleCV.LineScan import *

@@ -13316,5 +13316,5 @@ from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature,
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *
-from SimpleCV.DrawingLayer import *
+from Display.Base.DrawingLayer import DrawingLayer
 from SimpleCV.DFT import DFT
