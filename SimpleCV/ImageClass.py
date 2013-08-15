@@ -1919,7 +1919,7 @@ class Image:
         """
         if self.isGray():
             return self.getBitmap().tostring()
-        return self.toRGB().getBitmap().tostring()
+        return self.toRGB().getNumpy().tostring()
 
     def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
         """
