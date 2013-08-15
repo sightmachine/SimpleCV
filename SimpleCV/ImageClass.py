@@ -12788,7 +12788,7 @@ class Image:
                     if(minDist ==None or dist < minDist ):
                         dx,dy = ix,iy
                         minDist = dist
-                print "dx,dy", dx,dy
+
                 # The distance of the new point is compared with the least 
                 # distance computed till now, the point is rejected if it's
                 # comparitively more. This is done so that edge points don't
