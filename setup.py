@@ -27,7 +27,8 @@ setup(name="SimpleCV",
   zip_safe = False,
   requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil'],
   package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
-            'SimpleCV': ['sampleimages/*',
+            'SimpleCV': ['Display/Gtk/main.glade',
+                        'sampleimages/*',
                         'Features/HaarCascades/*',
                         'Features/FaceRecognizerData/*'
                         'examples/arduino/*',
