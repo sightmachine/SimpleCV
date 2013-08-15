@@ -45,7 +45,7 @@ class GtkDisplay(Display.DisplayBase):
         
     def close(self):
         __doc__ = DisplayBase.close.__doc__
-        
+        Display.DisplayBase.close(self)
         #terminate the worker process
         self.worker.terminate()
         
@@ -62,7 +62,7 @@ class GtkDisplay(Display.DisplayBase):
             if(self.connection.recv() == 'Kill Me' ):
                 # " Hasta La Vista , Baby "
                 # http://www.youtube.com/watch?v=DMGh82QHVcQ
-                self.worker.terminate()
+                self.close()
                 self.workerAlive = False
                 
     def getImageWidgetSize(self):

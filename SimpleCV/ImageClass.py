@@ -5618,22 +5618,21 @@ class Image:
         :py:class:`Display`
 
         """
-        if(type == 'browser'):
-            import webbrowser
-            js = JpegStreamer(8080)
-            self.save(js)
-            webbrowser.open("http://localhost:8080", 2)
-            return js
-        elif (type == 'window'):
-            from SimpleCV.Display import Display
-            if init_options_handler.on_notebook:
-                d = Display(displaytype='notebook')
-            else:
-                d = Display(self.size())
-            self.save(d)
-            return d
+        from Display.Base.Display import DisplayBase
+        from Display.Base.Display import DisplayNotFoundException
+        from SimpleCV import Display
+        screen = DisplayBase.screen
+        
+        if(not screen):
+            d = Display()
+            d.showImage(self)
         else:
-            print "Unknown type to show"
+            try:
+                screen.showImage(self)
+            except DisplayNotFoundException:
+                screen.close()
+                self.show()
+            
 
     def _surface2Image(self,surface):
         imgarray = pg.surfarray.array3d(surface)

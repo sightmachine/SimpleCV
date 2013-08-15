@@ -92,7 +92,7 @@ class DisplayBase:
         
         """
         
-        screen = self
+        DisplayBase.screen = self
         self.size = size
         self.type_ = type_
         self.fit = fit
@@ -263,6 +263,6 @@ class DisplayBase:
         >>> disp.showImage(img)
         >>> disp.close()
         """
-        if(screen == self):
-            screen = None
+        if(DisplayBase.screen == self):
+            DisplayBase.screen = None
 
