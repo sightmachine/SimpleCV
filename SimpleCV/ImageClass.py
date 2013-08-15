@@ -823,7 +823,7 @@ class Image:
     _numpy = "" #numpy form buffer
     _grayNumpy = "" # grayscale numpy for keypoint stuff
     _colorSpace = ColorSpace.UNKNOWN #Colorspace Object
-    _pgsurface = ""
+    #_pgsurface = ""
     _gridLayer = [None,[0,0]]#to store grid details | Format -> [gridIndex , gridDimensions]
 
     #For DFT Caching
@@ -845,8 +845,8 @@ class Image:
         "_cannyparam": (0, 0),
         "_pil": "",
         "_numpy": "",
-        "_grayNumpy":"",
-        "_pgsurface": ""
+        "_grayNumpy":""
+        #,"_pgsurface": ""
         }
 
     #The variables _uncroppedX and _uncroppedY are used to buffer the points when we crop the image.
@@ -1034,11 +1034,13 @@ class Image:
                 #TODO, on IOError fail back to PIL
                 self._colorSpace = ColorSpace.BGR
 
+            """
         elif (type(source) == pg.Surface):
             self._pgsurface = source
             npimg = pg.surfarray.array3d(self._pgsurface)
             self._numpy = cv2.transpose(npimg)
             self._colorSpace = ColorSpace.RGB
+            """
 
         elif (PIL_ENABLED and (
                 (len(source.__class__.__bases__) and source.__class__.__bases__[0].__name__ == "ImageFile")
@@ -1903,27 +1905,6 @@ class Image:
         """
         return Image(self._getEqualizedGrayscaleNumpy())
 
-    def getPGSurface(self):
-        """
-        **SUMMARY**
-
-        Returns the image as a pygame surface.  This is used for rendering the display
-
-        **RETURNS**
-
-        A pygame surface object used for rendering.
-
-
-        """
-        if (self._pgsurface):
-            return self._pgsurface
-        else:
-            if self.isGray():
-                self._pgsurface = pg.image.fromstring(self.getNumpy().tostring(), self.size(), "RGB")
-            else:
-                self._pgsurface = pg.image.fromstring(self.toRGB().getNumpy().tostring(), self.size(), "RGB")
-            return self._pgsurface
-
     def toString(self):
         """
         **SUMMARY**
@@ -1936,7 +1917,9 @@ class Image:
         The image, converted to rgb, then converted to a string.
 
         """
-        return self.toRGB().getNumpy().tostring()
+        if self.isGray():
+            return self.getBitmap().tostring()
+        return self.toRGB().getBitmap().tostring()
 
     def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
         """
@@ -2078,11 +2061,11 @@ class Image:
                     self.save(loc)
                     Idisplay.display(IPImage(filename=loc))
                     return
-                else:
+            elif (fh.__class__.__name__ == "GtkDisplay"):
                     print "I am here"
                     #self.filename = ""
                     self.filehandle = fh
-                    fh.writeFrame(saveimg)
+                    fh.showImage(saveimg)
 
             else:
                 if (not mode):
