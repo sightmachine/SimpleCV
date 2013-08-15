@@ -914,8 +914,11 @@ class GtkWorker(Process):
         
         if(self.image == None):
             array = np.fromstring(self.imageData['data'],dtype='uint8')
-            array = array.reshape(self.imageData['width'],self.imageData['height'],3)
-            array = np.swapaxes(array,0,1)
+            array = array.reshape(self.imageData['height'],self.imageData['width'],3)
+            temp = np.copy(array)
+            array[:,:,0] = temp[:,:,2]
+            array[:,:,2] = temp[:,:,0]
+            #array = np.swapaxes(array,0,1)
             self.image = Image(array)
         return self.image
             
@@ -1080,7 +1083,7 @@ class GtkWorker(Process):
         self.imgRealSize = (img.width,img.height)
         
         #convert the string to a pixbuf
-        self.pixbuf =  self.gtk.gdk.pixbuf_new_from_data(dic['data'], self.gtk.gdk.COLORSPACE_RGB, False, dic['depth'], dic['width'], dic['height'], dic['width']*3)
+        self.pixbuf = self.gtk.gdk.pixbuf_new_from_array(img.toRGB().getNumpy(),self.gtk.gdk.COLORSPACE_RGB, 8)
         
         # tell gtk to draw again
         self.drawingArea.queue_draw()
@@ -1100,6 +1103,7 @@ class GtkWorker(Process):
             filter_ =  model[index][0]
             self.applyListStore.append((filter_,))
             
+        self.getImage().save('image2.png')
         self.applyListStore.foreach(self.applyFilter,None)
             
     def removeFilter(self,data=None):
@@ -1132,5 +1136,5 @@ class GtkWorker(Process):
         img = self.getImage()
         function = getattr(img,filter_)
         newImg = function()
-        self.putImage(newImg)
+        self.putImage(newImg.toRGB())
 
