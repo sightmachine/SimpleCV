@@ -14,6 +14,10 @@ from SimpleCV.Segmentation import *
 from SimpleCV.MachineLearning import *
 from SimpleCV.LineScan import *
 from SimpleCV.DFT import DFT
+from Display.Gtk.Display import GtkDisplay
+from Display.Base.Display import *
+
+Display = GtkDisplay
 
 if (__name__ == '__main__'):
     from SimpleCV.Shell import *
