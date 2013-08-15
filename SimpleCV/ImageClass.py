@@ -12766,6 +12766,7 @@ class Image:
             #Get the matrix of points fromx around current point.
             region = edgeMap[y-box:y+box,x-box:x+box]
 
+
             #Condition at the boundary of the image
             if(region.shape[0] == 0 or region.shape[1] == 0):
                 i += step
@@ -12775,18 +12776,19 @@ class Image:
             indexList = np.argwhere(region>0)
             if (indexList.size > 0):
                 
+                        #print region
                 #Center the coordinates around the point
                 indexList -= box
                 minDist = None
 
                 # Incase multiple edge points exist, choose the one closest
                 # to the end point
-                for ix,iy in indexList:
+                for iy,ix in indexList:
                     dist = math.hypot(x+ix-end[0],iy+y-end[1])
                     if(minDist ==None or dist < minDist ):
                         dx,dy = ix,iy
                         minDist = dist
-
+                print "dx,dy", dx,dy
                 # The distance of the new point is compared with the least 
                 # distance computed till now, the point is rejected if it's
                 # comparitively more. This is done so that edge points don't
