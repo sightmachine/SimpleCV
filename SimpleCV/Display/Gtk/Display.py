@@ -115,7 +115,10 @@ class GtkDisplay(Display.DisplayBase):
             
             dic = {}
             dic['function'] = 'showImage'
-            dic['data'] = img.toRGB().getNumpy()
+            try:
+                dic['data'] = img.toRGB().getNumpy()
+            except:
+                dic['data'] = img.getNumpy()
             dic['depth'] = img.depth
             dic['width'] = img.width
             dic['height'] = img.height
