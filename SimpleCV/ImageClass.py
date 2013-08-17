@@ -3445,7 +3445,7 @@ class Image:
         start = (int(start[0]), int(start[1]))
         stop = (int(stop[0]), int(stop[1]))
         self.getDrawingLayer().line(start,stop,color,width,antialias,alpha)
-        
+
     def size(self):
         """
         **SUMMARY**
@@ -5540,7 +5540,7 @@ class Image:
         self.getDrawingLayer().text(text, (x, y), color)
 
 
-    def drawRectangle(self,x,y,w,h,color=Color.RED,width=1,alpha=255):
+    def drawRectangle(self, x, y, w, h, color=(0,0,0), width=1, filled = False, antialias = True, alpha=255):
         """
         **SUMMARY**
 
@@ -5576,10 +5576,8 @@ class Image:
         :py:class:`DrawingLayer`
 
         """
-        if( width < 1 ):
-            self.getDrawingLayer().rectangle((x,y),(w,h),color,filled=True,alpha=alpha)
-        else:
-            self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
+        self.getDrawingLayer().rectangle((x,y),(w,h),color,width,filled,antialias,alpha)
+        
 
     def drawRotatedRectangle(self,boundingbox,color=Color.RED,width=1):
         """
