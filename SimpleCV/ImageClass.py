@@ -5544,7 +5544,7 @@ class Image:
         self._numpy = np.zeros(self.size())
         self._clearBuffers()
 
-    def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
+    def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16,font ="", bold=False, italic=False, underline=False, alpha=255):
         """
         **SUMMARY**
 
@@ -5573,22 +5573,13 @@ class Image:
         >>> img.drawText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontsize=48)
         >>> img.show()
 
-        **SEE ALSO**
-
-        :py:meth:`dl`
-        :py:meth:`drawCircle`
-        :py:meth:`drawRectangle`
-
         """
         if(x == None):
             x = (self.width / 2)
         if(y == None):
             y = (self.height / 2)
 
-
-        self.getDrawingLayer().setFontSize(fontsize)
-        self.getDrawingLayer().text(text, (x, y), color)
-
+        self.getDrawingLayer().text(text,(x,y),color,fontsize,font,bold,italic,underline,alpha)
 
     def drawRectangle(self, x, y, w, h, color=(0,0,0), width=1, filled = False, antialias = True, alpha=255):
         """
