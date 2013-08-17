@@ -3404,9 +3404,7 @@ class Image:
         """
         self.getDrawingLayer().polygon(points,color, width, filled, antialias, alpha)
 
-
-
-    def drawLine(self, pt1, pt2, color = (0, 0, 0), thickness = 1):
+    def drawLine(self, start, stop, color=(0,0,0) ,width =1, antialias = True,alpha = 255):
         """
         **SUMMARY**
         Draw a line on the image.
@@ -3444,10 +3442,10 @@ class Image:
         :py:meth:`drawRectangle`
 
         """
-        pt1 = (int(pt1[0]), int(pt1[1]))
-        pt2 = (int(pt2[0]), int(pt2[1]))
-        self.getDrawingLayer().line(pt1, pt2, color, thickness)
-
+        start = (int(start[0]), int(start[1]))
+        stop = (int(stop[0]), int(stop[1]))
+        self.getDrawingLayer().line(start,stop,color,width,antialias,alpha)
+        
     def size(self):
         """
         **SUMMARY**
