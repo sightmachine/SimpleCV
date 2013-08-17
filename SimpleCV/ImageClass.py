@@ -3380,6 +3380,34 @@ class Image:
         
         self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, width, filled, antialias, alpha)
 
+    def drawEllipse(self, center, dimensions, color = (0,0,0), width = 1, filled = False, antialias = True, alpha = 255):
+        """
+        **SUMMARY**
+
+        Draw an ellipse given a location and a dimensions.
+        
+        **PARAMETERS**
+        
+        * *center* - The coordinates of the center.
+        
+        * *dimensions* - The length of axes along horizontal and vertical
+
+        * *color* - Color object or Color Tuple.
+        
+        * *width* -  The width of the edges of the rectangle.
+
+        * *filled* - Whether or not the rectangle is filled
+
+        * *antialias* - Whether of not the edges are antialiased
+
+        * *alpha* - The alpha blending for the object. A value of 255 means opaque, 
+                while 0 means transparent.
+                
+        """
+
+        self.getDrawingLayer().ellipse(center, dimensions, color, width, filled, antialias, alpha)
+
+
     def drawPolygon(self,points,color = (0,0,0), width = 1, filled = False, antialias = True, alpha = 255):
         """
         **SUMMARY**
