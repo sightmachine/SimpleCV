@@ -3380,6 +3380,28 @@ class Image:
         
         self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, width, filled, antialias, alpha)
 
+    def drawBezier(self,points,color = (0,0,0), width = 1, antialias = True, alpha = 255):
+        """
+        **SUMMARY**
+
+        Draw a bezier curve based on the control points
+
+        **PARAMETERS**
+        
+        * *points* - Control points . You must specify more than 2 control points        
+
+        * *color* - Color object or Color Tuple.
+        
+        * *width* -  The width of the edges of the rectangle.
+
+        * *antialias* - Whether of not the edges are antialiased
+
+        * *alpha* - The alpha blending for the object. A value of 255 means opaque, 
+                while 0 means transparent.
+
+        """
+        self.getDrawingLayer().bezier(points, color, width,antialias, alpha)
+
     def drawEllipse(self, center, dimensions, color = (0,0,0), width = 1, filled = False, antialias = True, alpha = 255):
         """
         **SUMMARY**
