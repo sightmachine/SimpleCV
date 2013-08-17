@@ -3338,7 +3338,7 @@ class Image:
         return None
 
 
-    def drawCircle(self, ctr, rad, color = (0, 0, 0), thickness = 1):
+    def drawCircle(self, ctr, rad, color = (0, 0, 0), width = 1, filled = False, antialias = True, alpha = 255):
         """
         **SUMMARY**
 
@@ -3377,13 +3377,84 @@ class Image:
         :py:class:`DrawingLayer`
 
         """
-        if( thickness < 0):
-            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness),filled=True)
-        else:
-            self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, int(thickness))
+        
+        self.getDrawingLayer().circle((int(ctr[0]), int(ctr[1])), int(rad), color, width, filled, antialias, alpha)
+
+    def drawBezier(self,points,color = (0,0,0), width = 1, antialias = True, alpha = 255):
+        """
+        **SUMMARY**
+
+        Draw a bezier curve based on the control points
+
+        **PARAMETERS**
+        
+        * *points* - Control points . You must specify more than 2 control points        
+
+        * *color* - Color object or Color Tuple.
+        
+        * *width* -  The width of the edges of the rectangle.
+
+        * *antialias* - Whether of not the edges are antialiased
+
+        * *alpha* - The alpha blending for the object. A value of 255 means opaque, 
+                while 0 means transparent.
+
+        """
+        self.getDrawingLayer().bezier(points, color, width,antialias, alpha)
+
+    def drawEllipse(self, center, dimensions, color = (0,0,0), width = 1, filled = False, antialias = True, alpha = 255):
+        """
+        **SUMMARY**
+
+        Draw an ellipse given a location and a dimensions.
+        
+        **PARAMETERS**
+        
+        * *center* - The coordinates of the center.
+        
+        * *dimensions* - The length of axes along horizontal and vertical
+
+        * *color* - Color object or Color Tuple.
+        
+        * *width* -  The width of the edges of the rectangle.
+
+        * *filled* - Whether or not the rectangle is filled
+
+        * *antialias* - Whether of not the edges are antialiased
+
+        * *alpha* - The alpha blending for the object. A value of 255 means opaque, 
+                while 0 means transparent.
+                
+        """
+
+        self.getDrawingLayer().ellipse(center, dimensions, color, width, filled, antialias, alpha)
 
 
-    def drawLine(self, pt1, pt2, color = (0, 0, 0), thickness = 1):
+    def drawPolygon(self,points,color = (0,0,0), width = 1, filled = False, antialias = True, alpha = 255):
+        """
+        **SUMMARY**
+
+        Draw a polygon from a list of (x,y)
+
+        **PARAMETERS**
+        
+        * *points* - The list of (x,y) coordinates of the vertices of the polygon
+        
+        * *color* - Color object or Color Tuple.
+        
+        * *width* -  The width of the edges of the rectangle.
+
+        * *filled* - Whether or not the rectangle is filled
+
+        * *antialias* - Whether of not the edges are antialiased
+
+        * *alpha* - The alpha blending for the object. A value of 255 means opaque, 
+                    while 0 means transparent.
+                
+        """
+        self.getDrawingLayer().polygon(points,color, width, filled, antialias, alpha)
+
+    def drawLine(self, start, stop, color=(0,0,0) ,width =1, antialias = True,alpha = 255):
         """
         **SUMMARY**
         Draw a line on the image.
@@ -3421,9 +3492,9 @@ class Image:
         :py:meth:`drawRectangle`
 
         """
-        pt1 = (int(pt1[0]), int(pt1[1]))
-        pt2 = (int(pt2[0]), int(pt2[1]))
-        self.getDrawingLayer().line(pt1, pt2, color, thickness)
+        start = (int(start[0]), int(start[1]))
+        stop = (int(stop[0]), int(stop[1]))
+        self.getDrawingLayer().line(start,stop,color,width,antialias,alpha)
 
     def size(self):
         """
@@ -5473,7 +5544,7 @@ class Image:
         self._numpy = np.zeros(self.size())
         self._clearBuffers()
 
-    def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16):
+    def drawText(self, text = "", x = None, y = None, color = Color.BLUE, fontsize = 16,font ="", bold=False, italic=False, underline=False, alpha=255):
         """
         **SUMMARY**
 
@@ -5502,24 +5573,15 @@ class Image:
         >>> img.drawText("xamox smells like cool ranch doritos.", 50,50,color=Color.BLACK,fontsize=48)
         >>> img.show()
 
-        **SEE ALSO**
-
-        :py:meth:`dl`
-        :py:meth:`drawCircle`
-        :py:meth:`drawRectangle`
-
         """
         if(x == None):
             x = (self.width / 2)
         if(y == None):
             y = (self.height / 2)
 
+        self.getDrawingLayer().text(text,(x,y),color,fontsize,font,bold,italic,underline,alpha)
 
-        self.getDrawingLayer().setFontSize(fontsize)
-        self.getDrawingLayer().text(text, (x, y), color)
-
-
-    def drawRectangle(self,x,y,w,h,color=Color.RED,width=1,alpha=255):
+    def drawRectangle(self, x, y, w, h, color=(0,0,0), width=1, filled = False, antialias = True, alpha=255):
         """
         **SUMMARY**
 
@@ -5555,10 +5617,8 @@ class Image:
         :py:class:`DrawingLayer`
 
         """
-        if( width < 1 ):
-            self.getDrawingLayer().rectangle((x,y),(w,h),color,filled=True,alpha=alpha)
-        else:
-            self.getDrawingLayer().rectangle((x,y),(w,h),color,width,alpha=alpha)
+        self.getDrawingLayer().rectangle((x,y),(w,h),color,width,filled,antialias,alpha)
+        
 
     def drawRotatedRectangle(self,boundingbox,color=Color.RED,width=1):
         """
