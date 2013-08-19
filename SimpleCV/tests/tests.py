@@ -342,18 +342,19 @@ def test_image_size():
 
 def test_image_drawing():
     img = Image(testimageclr)
-    img.drawCircle((img.width/2, img.height/2), 10,thickness=3)
-    img.drawCircle((img.width/2, img.height/2), 15,thickness=5,color=Color.RED)
-    img.drawCircle((img.width/2, img.height/2), 20)
-    img.drawLine((5, 5), (5, 8))
-    img.drawLine((5, 5), (10, 10),thickness=3)
-    img.drawLine((0, 0), (img.width, img.height),thickness=3,color=Color.BLUE)
-    img.drawRectangle(20,20,10,5)
-    img.drawRectangle(22,22,10,5,alpha=128)
-    img.drawRectangle(24,24,10,15,width=-1,alpha=128)
-    img.drawRectangle(28,28,10,15,width=3,alpha=128)
+    img.drawCircle((img.width/2, img.height/2), 10,width=3,antialias=False)
+    img.drawCircle((img.width/2, img.height/2), 15,width=5,color=Color.RED,antialias=False)
+    img.drawCircle((img.width/2, img.height/2), 20,antialias=False)
+    img.drawLine((5, 5), (5, 8),antialias=False)
+    img.drawLine((5, 5), (10, 10),width=3,antialias=False)
+    img.drawLine((0, 0), (img.width, img.height),width=3,color=Color.BLUE,antialias=False)
+    img.drawRectangle(20,20,10,5,antialias=False)
+    img.drawRectangle(22,22,10,5,alpha=128,antialias=False)
+    img.drawRectangle(24,24,10,15,filled=True,alpha=128,antialias=False)
+    img.drawRectangle(28,28,10,15,width=3,alpha=128,antialias=False)
     result = [img]
     name_stem = "test_image_drawing"
+    img.save('result.png')
     perform_diff(result,name_stem)
 
 

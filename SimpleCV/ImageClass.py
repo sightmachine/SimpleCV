@@ -5587,7 +5587,7 @@ class Image:
 
         self.getDrawingLayer().text(text,(x,y),color,fontsize,font,bold,italic,underline,alpha)
 
-    def drawRectangle(self, x, y, w, h, color=(0,0,0), width=1, filled = False, antialias = True, alpha=255):
+    def drawRectangle(self, x, y, w, h, color=Color.RED, width=1, filled = False, antialias = True, alpha=255):
         """
         **SUMMARY**
 
