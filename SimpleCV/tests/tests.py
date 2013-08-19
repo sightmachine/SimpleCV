@@ -354,7 +354,6 @@ def test_image_drawing():
     img.drawRectangle(28,28,10,15,width=3,alpha=128,antialias=False)
     result = [img]
     name_stem = "test_image_drawing"
-    img.save('result.png')
     perform_diff(result,name_stem)
 
 
