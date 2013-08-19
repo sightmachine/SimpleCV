@@ -10,6 +10,7 @@ import math
 import cairo
 from ...Color import Color
 
+
 def drawShape(cr,shape):
     """
     
@@ -1103,7 +1104,6 @@ class GtkWorker(Process):
             filter_ =  model[index][0]
             self.applyListStore.append((filter_,))
             
-        self.getImage().save('image2.png')
         self.applyListStore.foreach(self.applyFilter,None)
             
     def removeFilter(self,data=None):

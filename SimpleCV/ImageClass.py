@@ -18,6 +18,12 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
+#for image drawing
+import cairo
+#putting gtk import here causes xinit_threads errors
+#import gtk.gdk
+import pangocairo as pc
+
 class ColorSpace:
     """
     **SUMMARY**
@@ -6086,22 +6092,48 @@ class Image:
         """
         if not len(self._mLayers):
             return self
+        
+        from Display.Gtk.Worker import drawShape
+        import gtk.gdk
+        
         if(indicies==-1 and len(self._mLayers) > 0 ):
             final = self.mergedLayers()
-            imgSurf = self.getPGSurface().copy()
-            imgSurf.blit(final._mSurface, (0, 0))
-            retVal = Image(imgSurf, colorSpace=ColorSpace.RGB)
-            return retVal
+            imageSurface = cairo.ImageSurface(cairo.FORMAT_RGB24,self.width,self.height)
+            cr = cairo.Context(imageSurface)
+            cr = gtk.gdk.CairoContext(pc.CairoContext(cr))
+            
+            pixbuf = gtk.gdk.pixbuf_new_from_array(self.toRGB().getNumpy(),gtk.gdk.COLORSPACE_RGB, 8)
+            cr.set_source_pixbuf(pixbuf,0,0)
+            cr.paint()
+
+            for shape in final.shapes():
+                drawShape(cr,shape)
+            array = np.fromstring(imageSurface.get_data(),dtype='uint8')
+            array = array.reshape(self.height,self.width,4)
+            array = array[:,:,0:3]
+            img = Image(array)
+            return img
         else:
+            
             final = DrawingLayer((self.width, self.height))
             retVal = self
             indicies.reverse()
             for idx in indicies:
                 retVal = self._mLayers[idx].renderToOtherLayer(final)
-            imgSurf = self.getPGSurface().copy()
-            imgSurf.blit(final._mSurface, (0, 0))
-            indicies.reverse()
-            return Image(imgSurf, colorSpace=ColorSpace.RGB)
+            imageSurface = cairo.ImageSurface(cairo.FORMAT_RGB24,self.width,self.height)
+            cr = cairo.Context(imageSurface)
+            cr = gtk.gdk.CairoContext(pc.CairoContext(cr))
+            
+            pixbuf = gtk.gdk.pixbuf_new_from_array(self.toRGB().getNumpy(),gtk.gdk.COLORSPACE_RGB, 8)
+            cr.set_source_pixbuf(pixbuf,0,0)
+            cr.paint()
+            for shape in final.shapes():
+                drawShape(cr,shape)
+            array = np.fromstring(imageSurface.get_data(),dtype='uint8')
+            array = array.reshape(self.height,self.width,4)
+            array = array[:,:,0:3]
+            img = Image(array)
+            return img
 
     def adaptiveScale(self, resolution,fit=True):
         """

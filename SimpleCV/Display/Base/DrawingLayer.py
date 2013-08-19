@@ -404,7 +404,8 @@ class DrawingLayer:
         #TODO Maybe include all paramaters for text over here, if required
         self._shapes.append(Text(text,location, color, size, "", False, False, False, 255,bgColor))
     
-    
+    def renderToOtherLayer(self,other):
+        other._shapes += self._shapes
     
     
     #TODO rotatedrectangle
