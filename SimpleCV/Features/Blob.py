@@ -408,7 +408,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.findBlobs()mHoleC
         >>> print blobs[-1].minRectWidth()
 
         """
@@ -527,7 +527,7 @@ class Blob(Feature):
                      x[0][0]*np.sin(theta)+x[0][1]*np.cos(theta)),
                      h)
 
-    def drawAppx(self, color = Color.HOTPINK,width=-1,alpha=-1,layer=None):
+    def drawAppx(self, color = Color.HOTPINK,width=-1,alpha=255,layer=None):
         if( self.mContourAppx is None or len(self.mContourAppx)==0 ):
             return
 
@@ -539,7 +539,7 @@ class Blob(Feature):
         else:
             layer.polygon(self.mContourAppx,color,width,False,True,alpha)
 
-    def draw(self, color = Color.GREEN, width=-1, alpha=-1, layer=None):
+    def draw(self, color = Color.GREEN, width=-1, alpha=255, layer=None):
         """
         **SUMMARY**
 
@@ -572,18 +572,23 @@ class Blob(Feature):
             layer = self.image.dl()
 
         if width == -1:
-            npimg = self.mMask.getGrayNumpy()
+            #npimg = self.mMask.getGrayNumpy()
             #copy the mask into 3 channels and multiply by the appropriate color
-            b = npimg/255.0*color[2]
-            g = npimg/255.0*color[1]
-            r = npimg/255.0*color[0]
+            #b = npimg/255.0*color[2]
+            #g = npimg/255.0*color[1]
+            #r = npimg/255.0*color[0]
             
-            maskbit = np.dstack((b, g, r)).astype(np.uint8)
-            masksurface = Image(maskbit).getPGSurface()
-            masksurface.set_colorkey(Color.BLACK)
-            if alpha != -1:
-                masksurface.set_alpha(alpha)
-            layer._mSurface.blit(masksurface, self.topLeftCorner()) #KAT HERE
+            #maskbit = np.dstack((b, g, r)).astype(np.uint8)
+            #masksurface = Image(maskbit).getPGSurface()
+            #masksurface.set_colorkey(Color.BLACK)
+            #if alpha != -1:
+            #    masksurface.set_alpha(alpha)
+            #layer._mSurface.blit(masksurface, self.topLeftCorner()) #KAT HERE
+            shape = self.mContour.shape
+            #array = self.mContour.reshape(shape[0],shape[2])
+            pointList = [ [self.mContour[i,0][0],self.mContour[i,0][1]] for i in range(shape[0]) ]
+            #print pointList[0:5]
+            layer.polygon(pointList,filled=True,color=Color.GREEN,alpha=alpha)
         else:
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)
@@ -629,9 +634,9 @@ class Blob(Feature):
         else:
             lastp = self.mContour[0] #this may work better.... than the other
             for nextp in self.mContour[1::]:
-                layer.line(lastp[0],nextp[0],color,width=width,alpha=alpha,antialias = False)
+                layer.line(lastp[0],nextp[0],color,width=width,alpha=alpha)
                 lastp = nextp
-            layer.line(self.mContour[0][0],self.mContour[-1][0],color,width=width,alpha=alpha, antialias = False)
+            layer.line(self.mContour[0][0],self.mContour[-1][0],color,width=width,alpha=alpha)
 
     def drawHoles(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
@@ -670,11 +675,17 @@ class Blob(Feature):
                 layer.polygon(h,color,filled=True,alpha=alpha)
         else:
             for h in self.mHoleContour:
-                lastp = h[0] #this may work better.... than the other
-                for nextp in h[1::]:
-                    layer.line((int(lastp[0][0]),int(lastp[0][1])),(int(nextp[0][0]),int(nextp[0][1])),color,width=width,alpha=alpha,antialias = False)
-                    lastp = nextp
-                layer.line(h[0][0],h[-1][0],color,width=width,alpha=alpha, antialias = False)
+                l = len(h)
+                #print 'len',len(h)
+                lis = [[h[i][0][0],h[i][0][1]] for i in range(l)]
+                layer.polygon(lis,color,width=width,alpha = alpha)
+                #print h[5][0][0],h[5][0][1]
+                #print lis
+                #lastp = h[0] #this may work better.... than the other
+                #for nextp in h[1::]:
+                    #layer.line((int(lastp[0][0]),int(lastp[0][1])),(int(nextp[0][0]),int(nextp[0][1])),color,width=width,alpha=alpha,antialias = False)
+                    #lastp = nextp
+                #layer.line(h[0][0],h[-1][0],color,width=width,alpha=alpha, antialias = False)
 
     def drawHull(self, color=Color.GREEN, alpha=-1, width=-1, layer=None ):
         """
