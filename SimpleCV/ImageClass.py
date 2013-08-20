@@ -5681,55 +5681,6 @@ class Image:
             except DisplayNotFoundException:
                 screen.close()
                 self.show()
-            
-
-    def _surface2Image(self,surface):
-        imgarray = pg.surfarray.array3d(surface)
-        retVal = Image(imgarray)
-        retVal._colorSpace = ColorSpace.RGB
-        return retVal.toBGR().transpose()
-
-    def _image2Surface(self,img):
-        return pg.image.fromstring(img.getPIL().tostring(),img.size(), "RGB")
-        #return pg.surfarray.make_surface(img.toRGB().getNumpy())
-
-    def toPygameSurface(self):
-        """
-        **SUMMARY**
-
-        Converts this image to a pygame surface. This is useful if you want
-        to treat an image as a sprite to render onto an image. An example
-        would be rendering blobs on to an image.
-
-        .. Warning::
-          *THIS IS EXPERIMENTAL*. We are plannng to remove this functionality sometime in the near future.
-
-        **RETURNS**
-
-        The image as a pygame surface.
-
-        **SEE ALSO**
-
-
-        :py:class:`DrawingLayer`
-        :py:meth:`insertDrawingLayer`
-        :py:meth:`addDrawingLayer`
-        :py:meth:`dl`
-        :py:meth:`toPygameSurface`
-        :py:meth:`getDrawingLayer`
-        :py:meth:`removeDrawingLayer`
-        :py:meth:`clearLayers`
-        :py:meth:`layers`
-        :py:meth:`mergedLayers`
-        :py:meth:`applyLayers`
-        :py:meth:`drawText`
-        :py:meth:`drawRectangle`
-        :py:meth:`drawCircle`
-        :py:meth:`blit`
-
-        """
-        return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB")
-
 
     def addDrawingLayer(self, layer = None):
         """
