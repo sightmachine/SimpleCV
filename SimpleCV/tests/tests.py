@@ -896,6 +896,7 @@ def test_camera_undistort():
         assert False
 
 def test_image_crop():
+    #test for serialization
     img = Image(logo)
     x = 5
     y = 6

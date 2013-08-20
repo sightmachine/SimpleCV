@@ -10766,7 +10766,7 @@ class Image:
         return retVal
 
     def __getstate__(self):
-        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getNumpy().tostring() )
+        return dict( size = self.size(), colorspace = self._colorSpace, image = self.applyLayers().getNumpy() )
 
     def __setstate__(self, mydict):
         self._numpy = mydict['image']
