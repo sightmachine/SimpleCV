@@ -411,11 +411,11 @@ class DrawingLayer:
         Parameters:
             * *layer* - layer
         """
-        if not isinstance(layer, DrawingLayer):
+        if not isinstance(other, DrawingLayer):
             return "Please pass a DrawingLayer object"
-        shapes = self._shapes()
+        shapes = self._shapes
         for s in shapes:
-            layer._shapes.append(s)
+            other._shapes.append(s)
     
     
     #TODO rotatedrectangle
