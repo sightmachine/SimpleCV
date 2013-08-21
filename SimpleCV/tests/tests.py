@@ -1479,7 +1479,7 @@ def test_createBinaryMask():
 
 def test_applyBinaryMask():
     img = Image(logo)
-    mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255))
+    mask = img.createBinaryMask(color1=(0,129,129),color2=(255,255,255))
     results = []
     results.append(img.applyBinaryMask(mask))
     results.append(img.applyBinaryMask(mask,bg_color=Color.RED))
