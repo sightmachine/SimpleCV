@@ -4277,10 +4277,7 @@ class Image:
 
 
     def __getitem__(self, index):
-#        if(type(index) is types.IntType ):
-#            return self.getNumpy()[:,index,:]
-#        if(type(index) is types.SliceType)
-#        elif(type(index) is types.TupleType):
+
         if(type(index) is types.IntType):
             return self.getNumpy()[:,index,:]
         if(type(index) is types.SliceType):
