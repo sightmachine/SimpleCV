@@ -4276,12 +4276,24 @@ class Image:
 
 
 
-    def __getitem__(self, coord):
-        ret = self.getNumpy()[tuple(reversed(coord))]
-        if self.isBGR():
-            return tuple(reversed(ret.astype(np.int64)))
+    def __getitem__(self, index):
+#        if(type(index) is types.IntType ):
+#            return self.getNumpy()[:,index,:]
+#        if(type(index) is types.SliceType)
+#        elif(type(index) is types.TupleType):
+        if(type(index) is types.IntType):
+            return self.getNumpy()[:,index,:]
+        if(type(index) is types.SliceType):
+            return Image(self.getNumpy()[:,index,:])
+        ret = self.getNumpy()[tuple(reversed(index))]
+        if(len(ret.shape) == 1):
+            if self.isBGR():
+                return tuple(reversed(ret.astype(np.int64)))
+            else:
+                return tuple(ret)
         else:
-            return tuple(ret)
+            return Image(ret)
+
 
 
     def __setitem__(self, coord, value):
