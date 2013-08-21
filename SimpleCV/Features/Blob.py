@@ -588,7 +588,7 @@ class Blob(Feature):
             #array = self.mContour.reshape(shape[0],shape[2])
             pointList = [ [self.mContour[i,0][0],self.mContour[i,0][1]] for i in range(shape[0]) ]
             #print pointList[0:5]
-            layer.polygon(pointList,filled=True,color=Color.GREEN,alpha=alpha)
+            layer.polygon(pointList,filled=True,color=Color.GREEN,alpha=alpha,antialias = False)
         else:
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)
@@ -633,10 +633,16 @@ class Blob(Feature):
             layer.polygon(self.mContour,color,filled=True,alpha=alpha)
         else:
             lastp = self.mContour[0] #this may work better.... than the other
-            for nextp in self.mContour[1::]:
-                layer.line(lastp[0],nextp[0],color,width=width,alpha=alpha)
-                lastp = nextp
-            layer.line(self.mContour[0][0],self.mContour[-1][0],color,width=width,alpha=alpha)
+            #print "contour",self.mContour.shape
+            
+            #TODO(Vighnesh) this seems to be a bug, but I'm not sure, the pygame and gtk renderings 
+            # seemed to be off by 1 pixel, this tweak gets the tests to pass
+            lis = [[self.mContour[i][0][0] ,self.mContour[i][0][1]] for i in range(self.mContour.shape[0])]
+            layer.polygon(lis,color,width=width,alpha = alpha,antialias = False)
+            #for nextp in self.mContour[1::]:
+            #    layer.line(lastp[0],nextp[0],color,width=width,alpha=alpha)
+            #    lastp = nextp
+            #layer.line(self.mContour[0][0],self.mContour[-1][0],color,width=width,alpha=alpha)
 
     def drawHoles(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
@@ -678,7 +684,7 @@ class Blob(Feature):
                 l = len(h)
                 #print 'len',len(h)
                 lis = [[h[i][0][0],h[i][0][1]] for i in range(l)]
-                layer.polygon(lis,color,width=width,alpha = alpha)
+                layer.polygon(lis,color,width=width,alpha = alpha,antialias = False)
                 #print h[5][0][0],h[5][0][1]
                 #print lis
                 #lastp = h[0] #this may work better.... than the other

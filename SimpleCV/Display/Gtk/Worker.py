@@ -82,6 +82,9 @@ def drawShape(cr,shape):
         cr.stroke()
 
     elif(type(shape) == Polygon):
+        # a fix to render polygons 
+        cr.translate(1,1)
+        
         cr.set_line_width(shape.width)
         cr.move_to(*shape.points[-1])
         for point in shape.points:
@@ -91,6 +94,8 @@ def drawShape(cr,shape):
             cr.fill()
         else:
             cr.stroke()
+            
+        cr.translate(-1,-1)
     elif(type(shape) == Ellipse):
         cr.set_line_width(shape.width)
         cr.save()
