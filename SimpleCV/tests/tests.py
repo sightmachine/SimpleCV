@@ -1470,9 +1470,12 @@ def test_createBinaryMask():
     img2 = Image(logo)
     results = []
     results.append(img2.createBinaryMask(color1=(0,100,100),color2=(255,200,200)))
-    results.append(img2.createBinaryMask(color1=(0,0,0),color2=(128,128,128)))
-    results.append(img2.createBinaryMask(color1=(0,0,128),color2=(255,255,255)))
-
+    results.append(img2.createBinaryMask(color1=(1,1,1),color2=(128,128,128)))
+    results.append(img2.createBinaryMask(color1=(0,0,129),color2=(255,255,255)))
+    c = 0
+    for x in results:
+        x.save("img" + str(c) + '.png')
+        c += 1
     name_stem = "test_createBinaryMask"
     perform_diff(results,name_stem)
 
