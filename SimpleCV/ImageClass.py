@@ -6299,7 +6299,6 @@ class Image:
             if( alphaMask is not None and (alphaMask.width != img.width or alphaMask.height != img.height ) ):
                 logger.warning("Image.blit: your mask and image don't match sizes, if the mask doesn't fit, you can not blit! Try using the scale function.")
                 return None
-            #print "not working"
             retVal = self.copy()
             cImg = img.crop(topROI[0],topROI[1],topROI[2],topROI[3])
             cMask = alphaMask.crop(topROI[0],topROI[1],topROI[2],topROI[3])
@@ -6318,42 +6317,34 @@ class Image:
             rf = cv2.multiply(rf, af)
             gf = cv2.multiply(gf, af)
             bf = cv2.multiply(bf, af)
-            Image(np.dstack((bf, gf, rf)).astype(np.uint8)).show()
-            print rf
 
             retValCnp = retValC.getNumpy()
             dr = retValCnp[:, :, 2]
             dg = retValCnp[:, :, 1]
             db = retValCnp[:, :, 0]
 
-            drf = rf.astype(np.float32)
-            dgf = gf.astype(np.float32)
-            dbf = bf.astype(np.float32)
+            drf = dr.astype(np.float32)
+            dgf = dg.astype(np.float32)
+            dbf = db.astype(np.float32)
             daf = cMask.invert().getGrayNumpy().astype(np.float32)/255.0
-
-            #daf = retValC.getGrayNumpy().astype(np.float32)/255.0
 
             drf = cv2.multiply(drf, daf)
             dgf = cv2.multiply(dgf, daf)
             dbf = cv2.multiply(dbf, daf)
-            #Image(np.dstack((dbf, dgf, drf)).astype(np.uint8)).show()
-            print drf, "drf"
-            print rf, "rf"
+
             rf = cv2.add(rf, drf)
             gf = cv2.add(gf, dgf)
             bf = cv2.add(bf, dbf)
-            #Image(np.dstack((bf, gf, rf)).astype(np.uint8)).show()
-            print rf, "add rf"
+
             r = (rf).astype(np.uint8)
             g = (gf).astype(np.uint8)
             b = (bf).astype(np.uint8)
-            print r
+
             retValCnp[:, :, 2] = r
             retValCnp[:, :, 1] = g
             retValCnp[:, :, 0] = b
 
             xROI, yROI, wROI, hROI = bottomROI
-            #Image(retValCnp).show()
             retVal = retVal.getNumpy()
             retVal[yROI: yROI+hROI, xROI:xROI+wROI] = retValCnp
 
@@ -6790,10 +6781,12 @@ class Image:
         else:
             hlut[hue] = 255
         mask = cv2.LUT(h, hlut)
-
+        print h.shape
+        print mask.shape
         retVal = hsv.getEmpty(1)
-        Image._copyNpwithMask(s, retVal, mask)
-
+        #Image._copyNpwithMask(s, retVal, mask)
+        print mask.shape,s.shape,retVal.shape
+        retVal = np.where(mask,s,retVal[:,:,0])
         return Image(retVal, colorSpace=ColorSpace.GRAY)
 
     def applyPixelFunction(self, theFunc):

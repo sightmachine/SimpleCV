@@ -1623,17 +1623,15 @@ def test_blit_alpha_mask():
     bottom = Image(bottomImg)
     aMask = Image(alphaMaskImg)
     results = []
-    aMask.show()
+    
     results.append(bottom.blit(top,alphaMask=aMask))
     results.append(bottom.blit(top,alphaMask=aMask,pos=(-10,-10)))
     results.append(bottom.blit(top,alphaMask=aMask,pos=(-10,10)))
     results.append(bottom.blit(top,alphaMask=aMask,pos=(10,-10)))
     results.append(bottom.blit(top,alphaMask=aMask,pos=(10,10)))
-    results[2].show()
+    
     name_stem = "test_blit_alpha_mask"
-    perform_diff(results,name_stem, 10)
-    print "not working"
-    assert False
+    perform_diff(results,name_stem, 1)
     pass
 
 
