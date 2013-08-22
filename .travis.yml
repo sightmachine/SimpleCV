@@ -5,7 +5,26 @@ python:
 before_install:
   - sudo apt-get update
   - sudo apt-get install python-numpy python-nose python-imaging python-scipy python-pygame
-  - sudo bash scripts/install/ubuntu/opencv_2_4_5.sh
+  - sudo apt-get -y remove ffmpeg x264 libx264-dev
+  - sudo apt-get -y install libopencv-dev
+  - sudo apt-get -y install build-essential checkinstall cmake pkg-config yasm
+  - sudo apt-get -y install libtiff4-dev libjpeg-dev libjasper-dev
+  - sudo apt-get -y install libavcodec-dev libavformat-dev libswscale-dev libdc1394-22-dev libxine-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libv4l-dev
+  - sudo apt-get -y install python-dev python-numpy
+  - sudo apt-get -y install libtbb-dev
+  - sudo apt-get -y install libgtk2.0-dev python-gtk2
+  - sudo apt-get -y install libfaac-dev libmp3lame-dev libopencore-amrnb-dev libopencore-amrwb-dev libtheora-dev libvorbis-dev libxvidcore-dev
+  - sudo apt-get -y install x264 v4l-utils ffmpeg
+  - wget -O OpenCV-2.4.5.tar.gz http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.4.5/opencv-2.4.5.tar.gz/download
+  - tar -xvf OpenCV-2.4.5.tar.gz
+  - cd opencv-2.4.5
+  - mkdir build
+  - cd build
+  - cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON -D BUILD_EXAMPLES=ON -D WITH_QT=ON -D WITH_OPENGL=ON ..
+  - make
+  - sudo make install
+  - sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+  - sudo ldconfig
 
 install: "pip install -r requirements.txt --use-mirrors"
 
