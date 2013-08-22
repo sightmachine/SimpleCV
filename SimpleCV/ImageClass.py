@@ -7716,7 +7716,7 @@ class Image:
             if( result[i] ):
                 pt_a = (tkp[i].pt[1], tkp[i].pt[0]+hdif)
                 pt_b = (skp[idx[i]].pt[1]+template.width,skp[idx[i]].pt[0])
-                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(),thickness=width)
+                resultImg.drawLine(pt_a,pt_b,color=Color.getRandom(),width=width)
         return resultImg
 
 
@@ -8671,7 +8671,7 @@ class Image:
         retVal = np.zeros([self.width,self.height])
         retVal[skeleton] = 255
         retVal = retVal.astype(np.uint8)
-        Image(retVal).show()
+        #Image(retVal).show()
         return Image(retVal.astype(np.uint8))
 
     def smartThreshold(self, mask=None, rect=None):

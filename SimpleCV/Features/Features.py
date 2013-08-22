@@ -62,7 +62,7 @@ class FeatureSet(list):
 
         return len(self)
 
-    def draw(self, color = Color.GREEN,width=1, autocolor = False):
+    def draw(self, color = Color.GREEN,width=1, autocolor = False,alpha=255):
         """
         **SUMMARY**
 
@@ -90,7 +90,7 @@ class FeatureSet(list):
         for f in self:
             if(autocolor):
                 color = Color().getRandom()
-            f.draw(color=color,width=width)
+            f.draw(color=color,width=width,alpha = alpha)
 
     def show(self, color = Color.GREEN, autocolor = False,width=1):
         """
@@ -1244,7 +1244,7 @@ class Feature(object):
         return np.array([self.x, self.y])
 
 
-    def draw(self, color = Color.GREEN):
+    def draw(self, color = Color.GREEN,alpha = 255):
         """
         **SUMMARY**
 

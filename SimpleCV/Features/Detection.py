@@ -35,7 +35,7 @@ class Corner(Feature):
         super(Corner, self).__init__(i, at_x, at_y,points)
         #can we look at the eigenbuffer and find direction?
 
-    def draw(self, color = (255, 0, 0),width=1):
+    def draw(self, color = (255, 0, 0),width=1,alpha = 255):
         """
         **SUMMARY**
 
@@ -53,7 +53,7 @@ class Corner(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer.
 
         """
-        self.image.drawCircle((self.x, self.y), 4, color,width)
+        self.image.drawCircle((self.x, self.y), 4, color,width,alpha = alpha)
 
 ######################################################################
 class Line(Feature):
@@ -93,7 +93,7 @@ class Line(Feature):
         points = [(xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin)]
         super(Line, self).__init__(i, at_x, at_y,points)
 
-    def draw(self, color = (0, 0, 255),width=1):
+    def draw(self, color = (0, 0, 255),width=1,alpha = 255):
         """
         Draw the line, default color is blue
 
@@ -112,7 +112,7 @@ class Line(Feature):
 
 
         """
-        self.image.drawLine(self.end_points[0], self.end_points[1], color,width)
+        self.image.drawLine(self.end_points[0], self.end_points[1], color,width,alpha = alpha)
 
     def length(self):
         """
@@ -602,7 +602,7 @@ class Barcode(Feature):
     def __repr__(self):
         return "%s.%s at (%d,%d), read data: %s" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y, self.data)
 
-    def draw(self, color = (255, 0, 0),width=1):
+    def draw(self, color = (255, 0, 0),width=1,alpha = 255):
         """
 
         **SUMMARY**
@@ -625,10 +625,10 @@ class Barcode(Feature):
 
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color,width)
-        self.image.drawLine(self.points[1], self.points[2], color,width)
-        self.image.drawLine(self.points[2], self.points[3], color,width)
-        self.image.drawLine(self.points[3], self.points[0], color,width)
+        self.image.drawLine(self.points[0], self.points[1], color,width,alpha = alpha)
+        self.image.drawLine(self.points[1], self.points[2], color,width,alpha = alpha)
+        self.image.drawLine(self.points[2], self.points[3], color,width,alpha = alpha)
+        self.image.drawLine(self.points[3], self.points[0], color,width,alpha = alpha)
 
     def length(self):
         """
@@ -728,7 +728,7 @@ class HaarFeature(Feature):
         super(HaarFeature, self).__init__(i, at_x, at_y, points)
 
 
-    def draw(self, color = (0, 255, 0),width=1):
+    def draw(self, color = (0, 255, 0),width=1,alpha = 255):
         """
         **SUMMARY**
 
@@ -746,10 +746,10 @@ class HaarFeature(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer.
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color,width)
-        self.image.drawLine(self.points[1], self.points[2], color,width)
-        self.image.drawLine(self.points[2], self.points[3], color,width)
-        self.image.drawLine(self.points[3], self.points[0], color,width)
+        self.image.drawLine(self.points[0], self.points[1], color,width,alpha = alpha)
+        self.image.drawLine(self.points[1], self.points[2], color,width,alpha = alpha)
+        self.image.drawLine(self.points[2], self.points[3], color,width,alpha = alpha)
+        self.image.drawLine(self.points[3], self.points[0], color,width,alpha = alpha)
 
     def __getstate__(self):
         dict = self.__dict__.copy()
@@ -825,7 +825,7 @@ class Chessboard(Feature):
         super(Chessboard, self).__init__(i, at_x, at_y, points)
 
 
-    def draw(self, color=None, width=None):
+    def draw(self, color=None, width=None,alpha = None):
         # useless parametes, just make it compatible with Features.draw
         """
         **SUMMARY**
@@ -955,7 +955,7 @@ class TemplateMatch(Feature):
         (maxx,minx,maxy,miny) = self.extents()
         return self.image.crop(minx,miny,maxx-minx,maxy-miny)
 
-    def draw(self, color = Color.GREEN, width = 1):
+    def draw(self, color = Color.GREEN, width = 1,alpha = 255):
         """
         **SUMMARY**
 
@@ -971,7 +971,7 @@ class TemplateMatch(Feature):
 
         Nothing - this is an inplace operation that modifies the source images drawing layer.
         """
-        self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color, width=width)
+        self.image.dl().rectangle((self.x,self.y), (self.width(), self.height()), color = color, width=width,alpha = alpha)
 ######################################################################
 class Circle(Feature):
     """
@@ -1003,7 +1003,7 @@ class Circle(Feature):
 
 
 
-    def draw(self, color = Color.GREEN,width=1):
+    def draw(self, color = Color.GREEN,width=1,alpha = 255):
         """
         **SUMMARY**
 
@@ -1020,7 +1020,7 @@ class Circle(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer.
 
         """
-        self.image.dl().circle((self.x,self.y),self.r,color,width)
+        self.image.dl().circle((self.x,self.y),self.r,color,width,alpha = alpha)
 
     def show(self, color = Color.GREEN):
         """
@@ -1297,7 +1297,7 @@ class KeyPoint(Feature):
         return self.mAngle
 
 
-    def draw(self, color = Color.GREEN, width=1):
+    def draw(self, color = Color.GREEN, width=1,alpha = 255):
         """
         **SUMMARY**
 
@@ -1315,11 +1315,11 @@ class KeyPoint(Feature):
         Nothing - this is an inplace operation that modifies the source images drawing layer.
 
         """
-        self.image.dl().circle((self.x,self.y),self._r,color,width)
+        self.image.dl().circle((self.x,self.y),self._r,color,width,antialias=False,alpha =  alpha)
         pt1 = (int(self.x),int(self.y))
         pt2 = (int(self.x+(self.radius()*sin(radians(self.angle())))),
                int(self.y+(self.radius()*cos(radians(self.angle())))))
-        self.image.dl().line(pt1,pt2,color,width)
+        self.image.dl().line(pt1,pt2,color,width,alpha =  alpha,antialias=False)
 
     def show(self, color = Color.GREEN):
         """
@@ -1484,7 +1484,7 @@ class Motion(Feature):
         points  = [(at_x+sz,at_y+sz),(at_x-sz,at_y+sz),(at_x+sz,at_y+sz),(at_x+sz,at_y-sz)]
         super(Motion, self).__init__(i, at_x, at_y, points)
 
-    def draw(self, color = Color.GREEN, width=1,normalize=True):
+    def draw(self, color = Color.GREEN, width=1,normalize=True,alpha = 255):
         """
         **SUMMARY**
         Draw the optical flow vector going from the sample point along the length of the motion vector.
@@ -1514,7 +1514,7 @@ class Motion(Feature):
             new_x = self.x + self.dx
             new_y = self.y + self.dy
 
-        self.image.dl().line((self.x,self.y),(new_x,new_y),color,width)
+        self.image.dl().line((self.x,self.y),(new_x,new_y),color,width,alpha = alpha)
 
 
     def normalizeTo(self, max_mag):
@@ -1640,7 +1640,7 @@ class KeypointMatch(Feature):
         #points =
         super(KeypointMatch, self).__init__(image, at_x, at_y, points)
 
-    def draw(self, color = Color.GREEN,width=1):
+    def draw(self, color = Color.GREEN,width=1,alpha = 255):
         """
         The default drawing operation is to draw the min bounding
         rectangle in an image.
@@ -1662,10 +1662,10 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.dl().line(self._minRect[0],self._minRect[1],color,width)
-        self.image.dl().line(self._minRect[1],self._minRect[2],color,width)
-        self.image.dl().line(self._minRect[2],self._minRect[3],color,width)
-        self.image.dl().line(self._minRect[3],self._minRect[0],color,width)
+        self.image.dl().line(self._minRect[0],self._minRect[1],color,width,alpha = alpha)
+        self.image.dl().line(self._minRect[1],self._minRect[2],color,width,alpha = alpha)
+        self.image.dl().line(self._minRect[2],self._minRect[3],color,width,alpha = alpha)
+        self.image.dl().line(self._minRect[3],self._minRect[0],color,width,alpha = alpha)
 
     def drawRect(self, color = Color.GREEN,width=1):
         """
@@ -1753,7 +1753,7 @@ class ShapeContextDescriptor(Feature):
         points = [(x-1,y-1),(x+1,y-1),(x+1,y+1),(x-1,y+1)]
         super(ShapeContextDescriptor, self).__init__(image, x, y, points)
 
-    def draw(self, color = Color.GREEN,width=1):
+    def draw(self, color = Color.GREEN,width=1,alpha = 255):
         """
         The default drawing operation is to draw the min bounding
         rectangle in an image.
@@ -1775,7 +1775,7 @@ class ShapeContextDescriptor(Feature):
 
 
         """
-        self.image.dl().circle((self.x,self.y),3,color,width)
+        self.image.dl().circle((self.x,self.y),3,color,width,alpha = alpha)
 ######################################################################
 class ROI(Feature):
     """
@@ -2458,7 +2458,7 @@ class ROI(Feature):
         self._rebase(result)
 
 
-    def draw(self, color = Color.GREEN,width=3):
+    def draw(self, color = Color.GREEN,width=3,alpha = 255):
         """
         **SUMMARY**
 
@@ -2481,7 +2481,7 @@ class ROI(Feature):
 
         """
         x,y,w,h = self.toXYWH()
-        self.image.drawRectangle(x,y,w,h,width=width,color=color)
+        self.image.drawRectangle(x,y,w,h,width=width,color=color,alpha = alpha)
 
     def show(self, color = Color.GREEN, width=2):
         """
