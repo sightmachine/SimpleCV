@@ -5,7 +5,8 @@ python:
 before_install:
   - sudo apt-get update
   - sudo apt-get install python-numpy python-nose python-imaging python-scipy python-pygame
-  - sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv libcv-dev libcvaux-dev libhighgui-dev python-gtk2
+  - sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv libcv-dev libcvaux-dev libhighgui-dev
+  - sudo apt-get install libgtk2.0-0 python-gtk2
 
 install: "pip install -r requirements.txt --use-mirrors"
 
