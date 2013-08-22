@@ -9,6 +9,8 @@ from collections import deque
 import time
 import ctypes as ct
 import subprocess
+import cv2
+import numpy as np
 
 #Globals
 _cameras = []
@@ -3308,12 +3310,15 @@ class GigECamera(Camera):
     
     def getImage(self):
         
+        camera = self._cam
         camera.start_aquisition()
         buff = self._stream.pop_buffer()
+        self.capturetime = buff.timestamp_ns / 1000000.0
         img = np.fromstring(ct.string_at(buff.data_address(), buff.size), dtype = np.uint8).reshape(self._height, self._width)
         rgb = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR)
         self._stream.push_buffer(buff)
         camera.stop_aquisition()
+        #TODO, we should handle software triggering (separate capture and get image events)
         
         return Image(rgb)
         
