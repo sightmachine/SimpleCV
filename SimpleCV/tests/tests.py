@@ -3820,12 +3820,13 @@ def test_edgeSnap():
 
     for list_ in list1,list2,list3:
         edgeLines = img.edgeSnap(list_)
-        edgeLines.draw(color = Color.YELLOW,width = 4)
+        edgeLines.draw(color = Color.YELLOW,width = 4,)
 
     name_stem = "test_edgeSnap"
     #img.show()
     result = [img]
-    perform_diff(result,name_stem,0.7)
+    img.save('res.png')
+    perform_diff(result,name_stem,0.8)
 
 def test_motionBlur():
     image = Image('lenna')
