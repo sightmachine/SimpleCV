@@ -3321,7 +3321,8 @@ class GigECamera(Camera):
         #TODO, we should handle software triggering (separate capture and get image events)
         
         return Image(rgb)
-        
+    
+    #TODO, fill out management of individual props
     def getProperty(self):
         pass
     
