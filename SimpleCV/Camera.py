@@ -3259,3 +3259,70 @@ class AVTCamera(FrameSource):
           return None
           
         return frame
+
+
+class GigECamera(Camera):
+    """
+        GigE Camera driver via Aravis
+    """
+    def __init__(self, camera_id = None, properties = {}, threaded = False):
+        
+        try:
+            from gi.repository import Aravis
+        except:
+            print "GigE is supported by the Aravis library, download and build from https://github.com/sightmachine/aravis"
+            print "Note that you need to set GI_TYPELIB_PATH=$GI_TYPELIB_PATH:(PATH_TO_ARAVIS)/src for the GObject Introspection"
+            exit()
+        
+        self._cam = Aravis.Camera.new (None)
+        
+        self._pixel_mode = "RGB"
+        if properties.get("mode", False):
+            self._pixel_mode = properties.pop("mode")
+        
+        
+        if self._pixel_mode == "gray":
+            self._cam.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
+        else:
+            self._cam.set_pixel_format (Aravis.PIXEL_FORMAT_BAYER_BG_8) #we'll use bayer (basler cams)
+            #TODO, deal with other pixel formats
+        
+        if properties.get("roi", False):
+            roi = properties['roi']
+            self._cam.set_region(*roi)
+            #TODO, check sensor size
+        
+        if properties.get("width", False):
+            #TODO, set internal function to scale results of getimage
+            pass
+        
+        if properties.get("framerate", False):
+            self._cam.set_frame_rate(properties['framerate'])
+        
+        self._stream = camera.create_stream (None, None)
+        
+        payload = self._cam.get_payload()
+        self._stream.push_buffer(Aravis.Buffer.new_allocate (payload))
+        [x,y,width,height] = camera.get_region ()
+        self._height, self._width = height, width
+    
+    def getImage(self):
+        
+        camera.start_aquisition()
+        buff = self._stream.pop_buffer()
+        img = np.fromstring(ct.string_at(buff.data_address(), buff.size), dtype = np.uint8).reshape(self._height, self._width)
+        rgb = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR)
+        self._stream.push_buffer(buff)
+        camera.stop_aquisition()
+        
+        return Image(rgb)
+        
+    def getProperty(self):
+        pass
+    
+    def setProperty(self):
+        pass
+        
+    def getAllProperties(self):
+        pass
+    
