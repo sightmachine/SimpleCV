@@ -4440,6 +4440,30 @@ class Image:
     def __invert__(self):
         return self.invert()
 
+    def __eq__(self, other):
+        retVal = 255*np.array(self.getNumpy() == other.getNumpy(), dtype=np.uint8)
+        return Image(retVal, colorSpace=self._colorSpace)
+
+    def __ne__(self, other):
+        retVal = 255*np.array(self.getNumpy() != other.getNumpy(), dtype=np.uint8)
+        return Image(retVal, colorSpace=self._colorSpace)
+
+    def __lt__(self, other):
+        retVal = 255*np.array(self.getNumpy() < other.getNumpy(), dtype=np.uint8)
+        return Image(retVal, colorSpace=self._colorSpace)
+
+    def __gt__(self, other):
+        retVal = 255*np.array(self.getNumpy() > other.getNumpy(), dtype=np.uint8)
+        return Image(retVal, colorSpace=self._colorSpace)
+
+    def __le__(self, other):
+        retVal = 255*np.array(self.getNumpy() <= other.getNumpy(), dtype=np.uint8)
+        return Image(retVal, colorSpace=self._colorSpace)
+
+    def __ge__(self, other):
+        retVal = 255*np.array(self.getNumpy() >= other.getNumpy(), dtype=np.uint8)
+        return Image(retVal, colorSpace=self._colorSpace)
+
     def max(self, other):
         """
         **SUMMARY**
