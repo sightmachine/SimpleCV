@@ -225,6 +225,10 @@ Install pygame via PIP by running:
 
     sudo pip install hg+http://bitbucket.org/pygame/pygame
 
+Install svgwrite by running:
+
+    sudo pip install svgwrite
+
 **Note:** SimpleCV's developers made a change (for the better) here that I am including, however everything up to this point is 100% guaranteed to work, because it's exactly what I did. Keeping true to that, I'll present both options. *We both suggest using the develop branch.*  
 **Developer's Instructions** Install SimpleCV from the git repo and then run setup.
 
