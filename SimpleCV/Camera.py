@@ -3267,14 +3267,14 @@ class GigECamera(Camera):
     """
         GigE Camera driver via Aravis
     """
+       
     def __init__(self, camera_id = None, properties = {}, threaded = False):
-        
         try:
             from gi.repository import Aravis
         except:
             print "GigE is supported by the Aravis library, download and build from https://github.com/sightmachine/aravis"
             print "Note that you need to set GI_TYPELIB_PATH=$GI_TYPELIB_PATH:(PATH_TO_ARAVIS)/src for the GObject Introspection"
-            exit()
+            sys.exit()
         
         self._cam = Aravis.Camera.new (None)
         
@@ -3301,34 +3301,119 @@ class GigECamera(Camera):
         if properties.get("framerate", False):
             self._cam.set_frame_rate(properties['framerate'])
         
-        self._stream = camera.create_stream (None, None)
+        self._stream = self._cam.create_stream (None, None)
         
         payload = self._cam.get_payload()
         self._stream.push_buffer(Aravis.Buffer.new_allocate (payload))
-        [x,y,width,height] = camera.get_region ()
+        [x,y,width,height] = self._cam.get_region ()
         self._height, self._width = height, width
     
     def getImage(self):
         
         camera = self._cam
-        camera.start_aquisition()
+        camera.start_acquisition()
         buff = self._stream.pop_buffer()
         self.capturetime = buff.timestamp_ns / 1000000.0
         img = np.fromstring(ct.string_at(buff.data_address(), buff.size), dtype = np.uint8).reshape(self._height, self._width)
         rgb = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR)
         self._stream.push_buffer(buff)
-        camera.stop_aquisition()
+        camera.stop_acquisition()
         #TODO, we should handle software triggering (separate capture and get image events)
         
         return Image(rgb)
+
+    def getPropertyList(self):
+      l = [
+           'available_pixel_formats',
+           'available_pixel_formats_as_display_names',
+           'available_pixel_formats_as_strings',
+           'binning',
+           'device_id',
+           'exposure_time',
+           'exposure_time_bounds',
+           'frame_rate',
+           'frame_rate_bounds',
+           'gain',
+           'gain_bounds',
+           'height_bounds',
+           'model_name',
+           'payload',
+           'pixel_format',
+           'pixel_format_as_string',
+           'region',
+           'sensor_size',
+           'trigger_source',
+           'vendor_name',
+           'width_bounds'
+          ]
+      return l
+      
     
-    #TODO, fill out management of individual props
-    def getProperty(self):
-        pass
-    
-    def setProperty(self):
-        pass
+    def getProperty(self, name = None):
+      '''
+      This function get's the properties availble to the camera
+
+      Usage:
+        > camera.getProperty('region')
+        > (0, 0, 128, 128)
+      
+      Available Properties:
+        see function camera.getPropertyList()
+      '''
+      if name == None:
+        print "You need to provide a property, available properties are:"
+        print ""
+        for p in self.getPropertyList():
+          print p
+        return
+
+      stringval = "get_{}".format(name)
+      try:
+        return getattr(self._cam, stringval)()
+      except:
+        print 'Property {} does not appear to exist'.format(name)
+        return None
+      
+    def setProperty(self, name = None, *args):
+      '''
+      This function sets the property available to the camera
+
+      Usage:
+        > camera.setProperty('region',(256,256))
+
+      Available Properties:
+        see function camera.getPropertyList()
+
+      '''
+
+      if name == None:
+        print "You need to provide a property, available properties are:"
+        print ""
+        for p in self.getPropertyList():
+          print p
+        return
+
+      if len(args) <= 0:
+        print "You must provide a value to set"
+        return
         
+      stringval = "set_{}".format(name)
+      try:
+        return getattr(self._cam, stringval)(*args)
+      except:
+        print 'Property {} does not appear to exist or value is not in correct format'.format(name)
+        return None
+
+       
     def getAllProperties(self):
-        pass
+      '''
+      This function just prints out all the properties available to the camera
+      '''
+      
+      for p in self.getPropertyList():
+        print "{}: {}".format(p,self.getProperty(p))
+
+
+
+
     
