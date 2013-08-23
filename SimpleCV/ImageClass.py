@@ -42,6 +42,7 @@ class ColorSpace:
     HSV = 5
     XYZ  = 6
     YCrCb = 7
+    LAB = 8
 
 class ImageSet(list):
     """
@@ -1370,6 +1371,28 @@ class Image:
         """
         return(self._colorSpace==ColorSpace.YCrCb)
 
+    def isLAB(self):
+        """
+        **SUMMARY**
+
+        Returns true if this image uses the CIELAB colorspace.
+
+        **RETURNS**
+
+        True if the image uses the CIELAB colorspace, False otherwise.
+
+        **EXAMPLE**
+
+        >>> if( img.isLAB() ):
+        >>>    L, A, B = img.splitChannels()
+
+        **SEE ALSO**
+
+        :py:meth:`toLAB`
+
+        """
+        return(self._colorSpace==ColorSpace.LAB)
+
     def toRGB(self):
         """
         **SUMMARY**
@@ -1404,6 +1427,8 @@ class Image:
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2RGB)
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2RGB)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2RGB)
         elif( self._colorSpace == ColorSpace.RGB ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1444,6 +1469,8 @@ class Image:
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR)
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
         elif( self._colorSpace == ColorSpace.BGR ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1486,6 +1513,9 @@ class Image:
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HLS)
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HLS)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HLS)
         elif( self._colorSpace == ColorSpace.HLS ):
             retVal = np.copy(self.getNumpy())
@@ -1530,6 +1560,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HSV)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2HSV)
         elif( self._colorSpace == ColorSpace.HSV ):
             retVal = np.copy(self.getNumpy())
         else:
@@ -1572,6 +1605,9 @@ class Image:
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2XYZ)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2XYZ)
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = np.copy(self.getNumpy())
@@ -1620,6 +1656,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2RGB)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_RGB2GRAY)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
+            retval = cv2.cvtColor(retVal, cv2.COLOR_BGR2GRAY)
         elif( self._colorSpace == ColorSpace.GRAY ):
             retVal = self.getNumpy()
         else:
@@ -1663,6 +1702,9 @@ class Image:
         elif( self._colorSpace == ColorSpace.XYZ ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR2)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.YCrCb ):
             retVal = self.getNumpy()
         else:
@@ -1670,6 +1712,51 @@ class Image:
             return None
         return Image(retVal, colorSpace=ColorSpace.YCrCb )
 
+    def toLAB(self):
+        """
+        **SUMMARY**
+
+        This method attemps to convert the image to the LAB colorspace.
+        If the color space is unknown we assume it is in the BGR format
+
+        **RETURNS**
+
+        Returns the converted image if the conversion was successful,
+        otherwise None is returned.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> RGBImg = img.toLAB()
+
+        **SEE ALSO**
+
+        :py:meth:`isLAB`
+
+        """
+        if( self._colorSpace == ColorSpace.BGR or
+                self._colorSpace == ColorSpace.UNKNOWN ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_BGR2LAB)
+        elif( self._colorSpace == ColorSpace.RGB):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_RGB2LAB)
+        elif( self._colorSpace == ColorSpace.HLS ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2LAB)
+        elif( self._colorSpace == ColorSpace.HSV ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2LAB)
+        elif( self._colorSpace == ColorSpace.YCrCb ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_YCR_CB2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2LAB)
+        elif( self._colorSpace == ColorSpace.XYZ ):
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR)
+            retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2LAB)
+        elif( self._colorSpace == ColorSpace.LAB ):
+            retVal = np.copy(self.getNumpy())
+        else:
+            logger.warning("Image.toLAB: There is no supported conversion to YCrCb colorspace")
+            return None
+        return Image(retVal, colorSpace=ColorSpace.LAB )
 
     def getEmpty(self, channels=3):
         """
