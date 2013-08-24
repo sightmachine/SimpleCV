@@ -16,7 +16,7 @@ before_install:
   - sudo apt-get -y install libfaac-dev libmp3lame-dev libopencore-amrnb-dev libopencore-amrwb-dev libtheora-dev libvorbis-dev libxvidcore-dev
   - sudo apt-get -y install x264 v4l-utils ffmpeg
   - wget -O OpenCV-2.4.5.tar.gz http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.4.5/opencv-2.4.5.tar.gz/download
-  - tar -xvf OpenCV-2.4.5.tar.gz
+  - tar -xf OpenCV-2.4.5.tar.gz
   - cd opencv-2.4.5
   - mkdir build
   - cd build
