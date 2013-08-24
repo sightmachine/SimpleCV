@@ -4388,6 +4388,9 @@ class Image:
         if type(other) != type(self):
             newnpimg = self.getNumpy() - other
             return Image(newnpimg, colorSpace=self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         newnpimg = cv2.subtract(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
@@ -4395,13 +4398,19 @@ class Image:
         if type(other) != type(self):
             newnpimg = self.getNumpy() + other
             return Image(newnpimg, colorSpace=self._colorSpace)
-        newnpimg = self.getNumpy() + other.getNumpy()
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
+        newnpimg = cv2.add(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __and__(self, other):
         if type(other) != type(self):
             newnpimg = self.getNumpy() & other
             return Image(newnpimg, colorSpace=self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         newnpimg = self.getNumpy() & other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
@@ -4409,6 +4418,9 @@ class Image:
         if type(other) != type(self):
             newnpimg = self.getNumpy() | other
             return Image(newnpimg, colorSpace=self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         newnpimg = self.getNumpy() | other.getNumpy()
         return Image(newnpimg, colorSpace=self._colorSpace)
 
@@ -4416,6 +4428,9 @@ class Image:
         if type(other) != type(self):
             newnpimg = self.getNumpy()/other
             return Image(newnpimg, colorSpace=self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         newnpimg = cv2.divide(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
@@ -4423,6 +4438,9 @@ class Image:
         if type(other) != type(self):
             newnpimg = other*self.getNumpy()
             return Image(newnpimg, colorSpace=self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         newnpimg = cv2.multiply(self.getNumpy(), other.getNumpy())
         return Image(newnpimg, colorSpace=self._colorSpace)
 
@@ -4441,26 +4459,62 @@ class Image:
         return self.invert()
 
     def __eq__(self, other):
+        if type(other) != type(self):
+            retVal = 255*(self.getNumpy() == other).astype(np.uint8)
+            return Image(retVal, colorSpace = self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         retVal = 255*np.array(self.getNumpy() == other.getNumpy(), dtype=np.uint8)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __ne__(self, other):
+        if type(other) != type(self):
+            retVal = 255*(self.getNumpy() != other).astype(np.uint8)
+            return Image(retVal, colorSpace = self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         retVal = 255*np.array(self.getNumpy() != other.getNumpy(), dtype=np.uint8)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __lt__(self, other):
+        if type(other) != type(self):
+            retVal = 255*(self.getNumpy() < other).astype(np.uint8)
+            return Image(retVal, colorSpace = self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         retVal = 255*np.array(self.getNumpy() < other.getNumpy(), dtype=np.uint8)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __gt__(self, other):
+        if type(other) != type(self):
+            retVal = 255*(self.getNumpy() > other).astype(np.uint8)
+            return Image(retVal, colorSpace = self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         retVal = 255*np.array(self.getNumpy() > other.getNumpy(), dtype=np.uint8)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __le__(self, other):
+        if type(other) != type(self):
+            retVal = 255*(self.getNumpy() <= other).astype(np.uint8)
+            return Image(retVal, colorSpace = self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         retVal = 255*np.array(self.getNumpy() <= other.getNumpy(), dtype=np.uint8)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __ge__(self, other):
+        if type(other) != type(self):
+            retVal = 255*(self.getNumpy() >= other).astype(np.uint8)
+            return Image(retVal, colorSpace = self._colorSpace)
+        if self.size() != other.size():
+            warnings.warn("Both images should have same dimensions. Returning None.")
+            return None
         retVal = 255*np.array(self.getNumpy() >= other.getNumpy(), dtype=np.uint8)
         return Image(retVal, colorSpace=self._colorSpace)
 
