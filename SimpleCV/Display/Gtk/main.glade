@@ -277,6 +277,7 @@
               <object class="GtkToolButton" id="zoomOutButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Zoom Out</property>
                 <property name="label" translatable="yes">Zoom Out</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-zoom-out</property>
@@ -291,10 +292,26 @@
               <object class="GtkToolButton" id="zoomInButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Zoom In</property>
                 <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-zoom-in</property>
                 <signal name="clicked" handler="zoomIn" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="Filters">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Show/Hide the filters window</property>
+                <property name="label" translatable="yes">toggletoolbutton1</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-select-color</property>
+                <signal name="toggled" handler="_toggleFilterWin" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
