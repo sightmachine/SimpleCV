@@ -4601,8 +4601,22 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __pow__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to add power to image
+
+        **PARAMETERS**
+
+        * *other* - int - val
+
+        **EXAMPLE**
+
+        >>> newimg = img ** 1.5
+        >>> newimg.show()
+        """
         if type(other) != type(self):
-            newnpimg = self.getNumpy() ** other
+            newnpimg = (self.getNumpy() ** other).astype(self._numpy.dtype)
             return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = cv2.pow(self.getNumpy(), other)
         return Image(newnpimg, colorSpace=self._colorSpace)
