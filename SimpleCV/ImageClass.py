@@ -4385,6 +4385,32 @@ class Image:
         self._numpy[tuple(reversed(coord))] = value
 
     def __sub__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to subtract image from another image
+        of same size. It can also be used to subtract a color tuple
+        from the image or an integer.
+
+        **PARAMETERS**
+
+        * *other* - Image to be subtracted. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img - inv
+        >>> newimg.show()
+
+        >>> newimg = img - (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img - 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             newnpimg = self.getNumpy() - other
             return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4395,6 +4421,32 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __add__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to add image with another image
+        of same size. It can also be used to add a color tuple
+        in the image or an integer.
+
+        **PARAMETERS**
+
+        * *other* - Image to be added. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img + inv
+        >>> newimg.show()
+
+        >>> newimg = img + (20, 30, 10)
+        >>> newimg.show()
+
+        >>> newimg = img + 10
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             newnpimg = self.getNumpy() + other
             return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4405,6 +4457,32 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __and__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to bitwise AND image with another image
+        of same size. It can also be used to bitwise AND a color tuple
+        with the image or an integer.
+
+        **PARAMETERS**
+
+        * *other* - Image to be bitwise AND. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img & inv
+        >>> newimg.show()
+
+        >>> newimg = img & (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img & 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             newnpimg = self.getNumpy() & other
             return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4415,6 +4493,32 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __or__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to bitwise OR image with another image
+        of same size. It can also be used to bitwise OR a color tuple
+        with the image or an integer.
+
+        **PARAMETERS**
+
+        * *other* - Image to be bitwise OR. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img | inv
+        >>> newimg.show()
+
+        >>> newimg = img | (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img | 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             newnpimg = self.getNumpy() | other
             return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4425,6 +4529,32 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __div__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to divide image from another image
+        of same size. It can also be used to divide a color tuple
+        from the image or an integer.
+
+        **PARAMETERS**
+
+        * *other* - Image to be divided by. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img / inv
+        >>> newimg.show()
+
+        >>> newimg = img / (1, 2, 3)
+        >>> newimg.show()
+
+        >>> newimg = img / 2
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             newnpimg = self.getNumpy()/other
             return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4435,6 +4565,32 @@ class Image:
         return Image(newnpimg, colorSpace=self._colorSpace)
 
     def __mul__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to multiply image with another image
+        of same size. It can also be used to multiply a color tuple
+        with the image or an integer.
+
+        **PARAMETERS**
+
+        * *other* - Image to be subtracted. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img * inv
+        >>> newimg.show()
+
+        >>> newimg = img * (2, 1, 3)
+        >>> newimg.show()
+
+        >>> newimg = img * 1.5
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             newnpimg = other*self.getNumpy()
             return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4459,6 +4615,101 @@ class Image:
         return self.invert()
 
     def __eq__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to compare equality of two images
+        of same size. It can also be used to compare equality a color tuple
+        with the image or an integer.
+
+        NOTE:
+
+        Comparison of pixels will happen in the following manner.
+
+        Case 1: Comparig it with an image.
+        Each colorvalue of each pixel will be compared to the corresponding
+        colorvalue of corresponding pixel from the other image and if 
+        comparison is satisfied, that particular color value of that pixel 
+        will be changed to 255 else 0.
+
+        if img[i, j][0] == other[i, j][0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] == other[i, j][1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] == other[i, j][2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 2: Comparing it with a color tuple.
+        Each colorvalue of each pixel will be compared with corresponding
+        colorvalue from the tuple and if comparison is satisfied,
+        that particular color value of that pixel will be changed
+        to 255 else 0.
+
+        if img[i, j][0] == other[0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] == other[1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] == other[2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 3: Comparing it with an int
+        Each colorvalue of each pixel will be compared with value
+        and if comparison is satisfied, that particular color value of 
+        that pixel will be changed to 255 else 0.
+
+        if img[i, j][0] == other:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] == other:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] == other:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        **PARAMETERS**
+
+        * *other* - Image to be compared with. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img == inv
+        >>> newimg.show()
+
+        >>> newimg = img == (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img == 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() == other).astype(np.uint8)
             return Image(retVal, colorSpace = self._colorSpace)
@@ -4469,6 +4720,101 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __ne__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to compare equality of two images
+        of same size. It can also be used to compare equality a color tuple
+        with the image or an integer.
+
+        NOTE:
+
+        Comparison of pixels will happen in the following manner.
+
+        Case 1: Comparig it with an image.
+        Each colorvalue of each pixel will be compared to the corresponding
+        colorvalue of corresponding pixel from the other image and if 
+        comparison is satisfied, that particular color value of that pixel 
+        will be changed to 255 else 0.
+
+        if img[i, j][0] != other[i, j][0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] != other[i, j][1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] != other[i, j][2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 2: Comparing it with a color tuple.
+        Each colorvalue of each pixel will be compared with corresponding
+        colorvalue from the tuple and if comparison is satisfied,
+        that particular color value of that pixel will be changed
+        to 255 else 0.
+
+        if img[i, j][0] != other[0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] != other[1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] != other[2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 3: Comparing it with an int
+        Each colorvalue of each pixel will be compared with value
+        and if comparison is satisfied, that particular color value of 
+        that pixel will be changed to 255 else 0.
+
+        if img[i, j][0] != other:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] != other:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] != other:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        **PARAMETERS**
+
+        * *other* - Image to be compared with. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img != inv
+        >>> newimg.show()
+
+        >>> newimg = img != (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img != 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() != other).astype(np.uint8)
             return Image(retVal, colorSpace = self._colorSpace)
@@ -4479,6 +4825,101 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __lt__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to compare equality of two images
+        of same size. It can also be used to compare equality a color tuple
+        with the image or an integer.
+
+        NOTE:
+
+        Comparison of pixels will happen in the following manner.
+
+        Case 1: Comparig it with an image.
+        Each colorvalue of each pixel will be compared to the corresponding
+        colorvalue of corresponding pixel from the other image and if 
+        comparison is satisfied, that particular color value of that pixel 
+        will be changed to 255 else 0.
+
+        if img[i, j][0] < other[i, j][0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] < other[i, j][1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] < other[i, j][2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 2: Comparing it with a color tuple.
+        Each colorvalue of each pixel will be compared with corresponding
+        colorvalue from the tuple and if comparison is satisfied,
+        that particular color value of that pixel will be changed
+        to 255 else 0.
+
+        if img[i, j][0] < other[0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] < other[1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] < other[2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 3: Comparing it with an int
+        Each colorvalue of each pixel will be compared with value
+        and if comparison is satisfied, that particular color value of 
+        that pixel will be changed to 255 else 0.
+
+        if img[i, j][0] < other:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] < other:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] < other:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        **PARAMETERS**
+
+        * *other* - Image to be compared with. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img < inv
+        >>> newimg.show()
+
+        >>> newimg = img < (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img < 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() < other).astype(np.uint8)
             return Image(retVal, colorSpace = self._colorSpace)
@@ -4489,6 +4930,101 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __gt__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to compare equality of two images
+        of same size. It can also be used to compare equality a color tuple
+        with the image or an integer.
+
+        NOTE:
+
+        Comparison of pixels will happen in the following manner.
+
+        Case 1: Comparig it with an image.
+        Each colorvalue of each pixel will be compared to the corresponding
+        colorvalue of corresponding pixel from the other image and if 
+        comparison is satisfied, that particular color value of that pixel 
+        will be changed to 255 else 0.
+
+        if img[i, j][0] > other[i, j][0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] > other[i, j][1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] > other[i, j][2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 2: Comparing it with a color tuple.
+        Each colorvalue of each pixel will be compared with corresponding
+        colorvalue from the tuple and if comparison is satisfied,
+        that particular color value of that pixel will be changed
+        to 255 else 0.
+
+        if img[i, j][0] > other[0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] > other[1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] > other[2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 3: Comparing it with an int
+        Each colorvalue of each pixel will be compared with value
+        and if comparison is satisfied, that particular color value of 
+        that pixel will be changed to 255 else 0.
+
+        if img[i, j][0] > other:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] > other:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] > other:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        **PARAMETERS**
+
+        * *other* - Image to be compared with. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img > inv
+        >>> newimg.show()
+
+        >>> newimg = img > (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img > 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() > other).astype(np.uint8)
             return Image(retVal, colorSpace = self._colorSpace)
@@ -4499,6 +5035,101 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __le__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to compare equality of two images
+        of same size. It can also be used to compare equality a color tuple
+        with the image or an integer.
+
+        NOTE:
+
+        Comparison of pixels will happen in the following manner.
+
+        Case 1: Comparig it with an image.
+        Each colorvalue of each pixel will be compared to the corresponding
+        colorvalue of corresponding pixel from the other image and if 
+        comparison is satisfied, that particular color value of that pixel 
+        will be changed to 255 else 0.
+
+        if img[i, j][0] <= other[i, j][0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] <= other[i, j][1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] <= other[i, j][2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 2: Comparing it with a color tuple.
+        Each colorvalue of each pixel will be compared with corresponding
+        colorvalue from the tuple and if comparison is satisfied,
+        that particular color value of that pixel will be changed
+        to 255 else 0.
+
+        if img[i, j][0] <= other[0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] <= other[1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] <= other[2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 3: Comparing it with an int
+        Each colorvalue of each pixel will be compared with value
+        and if comparison is satisfied, that particular color value of 
+        that pixel will be changed to 255 else 0.
+
+        if img[i, j][0] <= other:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] <= other:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] <= other:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        **PARAMETERS**
+
+        * *other* - Image to be compared with. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img <= inv
+        >>> newimg.show()
+
+        >>> newimg = img <= (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img <= 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() <= other).astype(np.uint8)
             return Image(retVal, colorSpace = self._colorSpace)
@@ -4509,6 +5140,101 @@ class Image:
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __ge__(self, other):
+        """
+        **SUMMARY**
+
+        This is built in method to compare equality of two images
+        of same size. It can also be used to compare equality a color tuple
+        with the image or an integer.
+
+        NOTE:
+
+        Comparison of pixels will happen in the following manner.
+
+        Case 1: Comparig it with an image.
+        Each colorvalue of each pixel will be compared to the corresponding
+        colorvalue of corresponding pixel from the other image and if 
+        comparison is satisfied, that particular color value of that pixel 
+        will be changed to 255 else 0.
+
+        if img[i, j][0] >= other[i, j][0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] >= other[i, j][1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] >= other[i, j][2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 2: Comparing it with a color tuple.
+        Each colorvalue of each pixel will be compared with corresponding
+        colorvalue from the tuple and if comparison is satisfied,
+        that particular color value of that pixel will be changed
+        to 255 else 0.
+
+        if img[i, j][0] >= other[0]:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] >= other[1]:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] >= other[2]:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        Case 3: Comparing it with an int
+        Each colorvalue of each pixel will be compared with value
+        and if comparison is satisfied, that particular color value of 
+        that pixel will be changed to 255 else 0.
+
+        if img[i, j][0] >= other:
+            img[i, j][0] = 255
+        else:
+            img[i, j][0] = 0
+        if img[i, j][1] >= other:
+            img[i, j][1] = 255
+        else:
+            img[i, j][1] = 0
+        if img[i, j][2] >= other:
+            img[i, j][2] = 255
+        else:
+            img[i, j][2] = 0
+
+        So the output image will not be a binary image, but a colored image
+        with its r, g, b each being either 255 or 0.
+
+        **PARAMETERS**
+
+        * *other* - Image to be compared with. (Both should have same size)
+                    or a color tuple (b, g, r)
+                    or an int - val
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> inv = img.invert()
+        >>> newimg = img >= inv
+        >>> newimg.show()
+
+        >>> newimg = img >= (145, 120, 180)
+        >>> newimg.show()
+
+        >>> newimg = img >= 150
+        >>> newimg.show()
+        """
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() >= other).astype(np.uint8)
             return Image(retVal, colorSpace = self._colorSpace)
