@@ -4412,7 +4412,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = self.getNumpy() - other
+            newnpimg = (self.getNumpy() - other).astype(np.uint8)
             return Image(newnpimg, colorSpace=self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
@@ -4448,7 +4448,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = self.getNumpy() + other
+            newnpimg = (self.getNumpy() + other).astype(np.uint8)
             return Image(newnpimg, colorSpace=self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
