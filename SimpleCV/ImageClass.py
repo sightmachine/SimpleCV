@@ -9461,10 +9461,12 @@ class Image:
         if grayscale:
             dft = self._getDFTClone(grayscale)
             flt64f = flt.getGrayNumpy().astype(np.float64)
-            print flt64f
+            #print flt64f
             finalFilt = np.dstack((flt64f, flt64f))
-            for d in dft:
-                d = cv2.mulSpectrums(d, finalFilt, 0)
+            #for d in dft:
+                #d = cv2.mulSpectrums(d, finalFilt, 0)
+            for i in range(len(dft)):
+                dft[i] = cv2.mulSpectrums(dft[i], finalFilt, 0)
         else: #break down the filter and then do each channel
             dft = self._getDFTClone(grayscale)
             fltnp = flt.getNumpy()
