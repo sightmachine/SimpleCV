@@ -807,6 +807,7 @@ class Image:
     width = 0    #width and height in px
     height = 0
     depth = 0
+    dtype = 0
     filename = "" #source filename
     filehandle = "" #filehandle if used
     camera = ""
@@ -1078,6 +1079,7 @@ class Image:
         self.width = bm.shape[1]
         self.height = bm.shape[0]
         self.depth = bm.shape[2]
+        self.dtype = bm.dtype
 
     def __del__(self):
         """
@@ -4412,7 +4414,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = (self.getNumpy() - other).astype(np.uint8)
+            newnpimg = (self.getNumpy() - other).astype(self.dtype)
             return Image(newnpimg, colorSpace=self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
@@ -4448,7 +4450,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = (self.getNumpy() + other).astype(np.uint8)
+            newnpimg = (self.getNumpy() + other).astype(self.dtype)
             return Image(newnpimg, colorSpace=self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
@@ -4556,7 +4558,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = (self.getNumpy()/other).astype(np.uint8)
+            newnpimg = (self.getNumpy()/other).astype(self.dtype)
             return Image(newnpimg, colorSpace=self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
@@ -4592,7 +4594,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = (other*self.getNumpy()).astype(np.uint8)
+            newnpimg = (other*self.getNumpy()).astype(self.dtype)
             return Image(newnpimg, colorSpace=self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
@@ -4616,7 +4618,7 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            newnpimg = (self.getNumpy() ** other).astype(self._numpy.dtype)
+            newnpimg = (self.getNumpy() ** other).astype(self.dtype)
             return Image(newnpimg, colorSpace=self._colorSpace)
         newnpimg = cv2.pow(self.getNumpy(), other)
         return Image(newnpimg, colorSpace=self._colorSpace)
@@ -4725,12 +4727,12 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            retVal = 255*(self.getNumpy() == other).astype(np.uint8)
+            retVal = 255*(self.getNumpy() == other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
             return None
-        retVal = 255*(self.getNumpy() == other.getNumpy()).astype(np.uint8)
+        retVal = 255*(self.getNumpy() == other.getNumpy()).astype(self.dtype)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __ne__(self, other):
@@ -4830,12 +4832,12 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            retVal = 255*(self.getNumpy() != other).astype(np.uint8)
+            retVal = 255*(self.getNumpy() != other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
             return None
-        retVal = 255*(self.getNumpy() != other.getNumpy()).astype(np.uint8)
+        retVal = 255*(self.getNumpy() != other.getNumpy()).astype(self.dtype)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __lt__(self, other):
@@ -4935,12 +4937,12 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            retVal = 255*(self.getNumpy() < other).astype(np.uint8)
+            retVal = 255*(self.getNumpy() < other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
             return None
-        retVal = 255*(self.getNumpy() < other.getNumpy()).astype(np.uint8)
+        retVal = 255*(self.getNumpy() < other.getNumpy()).astype(self.dtype)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __gt__(self, other):
@@ -5040,12 +5042,12 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            retVal = 255*(self.getNumpy() > other).astype(np.uint8)
+            retVal = 255*(self.getNumpy() > other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
             return None
-        retVal = 255*(self.getNumpy() > other.getNumpy()).astype(np.uint8)
+        retVal = 255*(self.getNumpy() > other.getNumpy()).astype(self.dtype)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __le__(self, other):
@@ -5145,12 +5147,12 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            retVal = 255*(self.getNumpy() <= other).astype(np.uint8)
+            retVal = 255*(self.getNumpy() <= other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
             return None
-        retVal = 255*(self.getNumpy() <= other.getNumpy()).astype(np.uint8)
+        retVal = 255*(self.getNumpy() <= other.getNumpy()).astype(self.dtype)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def __ge__(self, other):
@@ -5250,12 +5252,12 @@ class Image:
         >>> newimg.show()
         """
         if type(other) != type(self):
-            retVal = 255*(self.getNumpy() >= other).astype(np.uint8)
+            retVal = 255*(self.getNumpy() >= other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
         if self.size() != other.size():
             warnings.warn("Both images should have same dimensions. Returning None.")
             return None
-        retVal = 255*(self.getNumpy() >= other.getNumpy()).astype(np.uint8)
+        retVal = 255*(self.getNumpy() >= other.getNumpy()).astype(self.dtype)
         return Image(retVal, colorSpace=self._colorSpace)
 
     def max(self, other):
