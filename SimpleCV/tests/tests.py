@@ -1128,6 +1128,9 @@ def test_color_conversion_func_BGR():
     results.append(bgr.toHSV())
     results.append(bgr.toXYZ())
 
+    results.append(img.toLAB())
+    results.append(bgr.toLAB())
+
     name_stem = "test_color_conversion_func_BGR"
     perform_diff(results,name_stem,tolerance=4.0)
 
@@ -1158,6 +1161,10 @@ def test_color_conversion_func_RGB():
     if( not foo.isXYZ() ):
         assert False
 
+    foo = rgb.toLAB()
+    if( not foo.isLAB() ):
+        assert False
+
 def test_color_conversion_func_HSV():
     img = Image(testimage)
     hsv = img.toHSV()
@@ -1167,6 +1174,7 @@ def test_color_conversion_func_HSV():
     results.append(hsv.toHLS())
     results.append(hsv.toHSV())
     results.append(hsv.toXYZ())
+    results.append(hsv.toLAB())
     name_stem = "test_color_conversion_func_HSV"
     perform_diff(results,name_stem,tolerance=4.0 )
 
@@ -1182,6 +1190,7 @@ def test_color_conversion_func_HLS():
     results.append(hls.toHLS())
     results.append(hls.toHSV())
     results.append(hls.toXYZ())
+    results.append(hls.toLAB())
 
     name_stem = "test_color_conversion_func_HLS"
     perform_diff(results,name_stem,tolerance=4.0)
@@ -1197,10 +1206,25 @@ def test_color_conversion_func_XYZ():
     results.append(xyz.toHLS())
     results.append(xyz.toHSV())
     results.append(xyz.toXYZ())
+    results.append(xyz.toLAB())
 
     name_stem = "test_color_conversion_func_XYZ"
     perform_diff(results,name_stem,tolerance=8.0)
 
+def test_color_conversion_func_LAB():
+    img = Image(testimage)
+
+    lab = img.toLAB()
+    results = [lab]
+    results.append(lab.toBGR())
+    results.append(lab.toRGB())
+    results.append(lab.toHLS())
+    results.append(lab.toHSV())
+    results.append(lab.toXYZ())
+    results.append(lab.toLAB())
+
+    name_stem = "test_color_conversion_func_LAB"
+    perform_diff(results,name_stem,tolerance=8.0)
 
 def test_blob_maker():
     img = Image("../sampleimages/blockhead.png")
