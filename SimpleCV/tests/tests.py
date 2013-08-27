@@ -2253,7 +2253,7 @@ def test_applyDFTFilter():
     f2 = img.applyDFTFilter(flt,grayscale=True)
     results = [f1,f2]
     name_stem = "test_applyDFTFilter"
-    perform_diff(results,name_stem, 5)
+    perform_diff(results,name_stem, 1.0)
     pass
 """
 def test_highPassFilter():
@@ -2295,7 +2295,7 @@ def test_DFT_gaussian():
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
     name_stem = "test_DFT_gaussian"
-    perform_diff(results, name_stem, 15)
+    perform_diff(results, name_stem, 1.0)
     pass
 
 def test_DFT_butterworth():
@@ -2308,7 +2308,7 @@ def test_DFT_butterworth():
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
     name_stem = "test_DFT_butterworth"
-    perform_diff(results, name_stem, 10)
+    perform_diff(results, name_stem, 1.0)
     pass
 
 def test_DFT_lowpass():
@@ -2318,7 +2318,7 @@ def test_DFT_lowpass():
     fltimggray = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray]
     name_stem = "test_DFT_lowpass"
-    perform_diff(results, name_stem, 20)
+    perform_diff(results, name_stem, 1.0)
     pass
 
 def test_DFT_highpass():
@@ -2328,7 +2328,7 @@ def test_DFT_highpass():
     fltimggray = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray]
     name_stem = "test_DFT_highpass"
-    perform_diff(results, name_stem, 20)
+    perform_diff(results, name_stem, 1.0)
     pass
 
 def test_DFT_notch():
@@ -2341,7 +2341,7 @@ def test_DFT_notch():
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
     name_stem = "test_DFT_notch"
-    perform_diff(results, name_stem, 20)
+    perform_diff(results, name_stem, 1.0)
 
 def test_findHaarFeatures():
     img = Image("../sampleimages/orson_welles.jpg")
@@ -3849,7 +3849,6 @@ def test_edgeSnap():
     name_stem = "test_edgeSnap"
     #img.show()
     result = [img]
-    img.save('res.png')
     perform_diff(result,name_stem,0.8)
 
 def test_motionBlur():
