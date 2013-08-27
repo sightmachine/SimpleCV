@@ -4726,6 +4726,8 @@ class Image:
         >>> newimg = img == 150
         >>> newimg.show()
         """
+        if type(other) == type(None):
+            return False
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() == other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
@@ -4831,6 +4833,8 @@ class Image:
         >>> newimg = img != 150
         >>> newimg.show()
         """
+        if type(other) == type(None):
+            return True
         if type(other) != type(self):
             retVal = 255*(self.getNumpy() != other).astype(self.dtype)
             return Image(retVal, colorSpace = self._colorSpace)
