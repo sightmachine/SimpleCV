@@ -332,7 +332,7 @@ class GtkWorker(Process):
         
         self.window.set_title(self.title)
         self.window.show_all()
-        self.builderWindow.show_all()
+        #self.builderWindow.show_all()
 
         #size of the window
         self._winWidth, self._winHeight = self.window.get_size()
@@ -1143,3 +1143,10 @@ class GtkWorker(Process):
         newImg = function()
         self.putImage(newImg.toRGB())
 
+    def _toggleFilterWin(self, data = None):
+        if self.builderWindow.get_property("visible"):
+            self.builderWindow.hide()
+            return True
+        else:
+            self.builderWindow.show()
+            
