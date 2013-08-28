@@ -3965,7 +3965,7 @@ class Image:
             distances * (255.0 / 90.0), #normalize 0 - 90 -> 0 - 255
             255.0) #use the maxvalue if it false outside of our value/saturation tolerances
 
-        return Image(distances.reshape(self.width, self.height))
+        return Image(distances.reshape(self.width, self.height).astype(np.uint8))
 
 
     def erode(self, iterations=1):
