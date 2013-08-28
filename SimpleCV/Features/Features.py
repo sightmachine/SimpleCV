@@ -2050,6 +2050,7 @@ class Feature(object):
                 p2 = (int(p[0]),int(p[1]))
                 retVal = self._pointInsidePolygon(p2,bounds)
                 if( not retVal ):
+                    print 'culprit',p2
                     break
         # a single point
         elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
@@ -2367,8 +2368,9 @@ class Feature(object):
             if( point[1] > np.min((p1[1],p2[1])) ):
                 if( point[1] <= np.max((p1[1],p2[1])) ):
                     if( point[0] <= np.max((p1[0],p2[0])) ):
-                        if( p1[1] != p2[1] ):
-                            test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
+                        if( p1[1] != p2[1]  ):
+                            if(p2[0] != p1[0]):
+                                test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
                             if( p1[0] == p2[0] or point[0] <= test ):
                                 counter = counter + 1
             p1 = p2

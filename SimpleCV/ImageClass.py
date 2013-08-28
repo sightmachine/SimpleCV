@@ -8870,14 +8870,14 @@ class Image:
 
         return fs
 
-    def findMotion(self, previous_frame, window=11, method='BM', aggregate=True):
+    def findMotion(self, previous_frame, window=11, aggregate=True):
         """
         **SUMMARY**
 
-        findMotion performs an optical flow calculation. This method attempts to find
-        motion between two subsequent frames of an image. You provide it
-        with the previous frame image and it returns a feature set of motion
-        fetures that are vectors in the direction of motion.
+        findMotion performs an optical flow calculation using *Farneback* Algorithm.
+        This method attempts to find motion between two subsequent frames of an
+        image. You provide it with the previous frame image and it returns a
+        feature set of motion fetures that are vectors in the direction of motion.
 
         **PARAMETERS**
 
@@ -8885,15 +8885,6 @@ class Image:
         * *window* - The block size for the algorithm. For the the HS and LK methods
           this is the regular sample grid at which we return motion samples.
           For the block matching method this is the matching window size.
-        * *method* - The algorithm to use as a string.
-          Your choices are:
-
-          * 'BM' - default block matching robust but slow - if you are unsure use this.
-
-          * 'LK' - `Lucas-Kanade method <http://en.wikipedia.org/wiki/Lucas%E2%80%93Kanade_method>`_
-
-          * 'HS' - `Horn-Schunck method <http://en.wikipedia.org/wiki/Horn%E2%80%93Schunck_method>`_
-
         * *aggregate* - If aggregate is true, each of our motion features is the average of
           motion around the sample grid defined by window. If aggregate is false
           we just return the the value as sampled at the window grid interval. For
@@ -8918,105 +8909,39 @@ class Image:
         :py:class:`FeatureSet`
 
         """
-        try:
-            import cv2
-            ver = cv2.__version__
-            #For OpenCV versions till 2.4.0,  cv2.__versions__ are of the form "$Rev: 4557 $"
-            if not ver.startswith('$Rev:') :
-                if int(ver.replace('.','0'))>=20400 :
-                    FLAG_VER = 1
-                    if (window > 9):
-                        window = 9
-            else :
-                FLAG_VER = 0
-        except :
-            FLAG_VER = 0
+        flow = cv2.calcOpticalFlowFarneback(previous_frame.getGrayNumpy(), 
+        self.getGrayNumpy(), 0.5, 1, window, 1, 7, 1.5, 0 )
 
-        if( self.width != previous_frame.width or self.height != previous_frame.height):
-            logger.warning("ImageClass.getMotion: To find motion the current and previous frames must match")
-            return None
         fs = FeatureSet()
-        max_mag = 0.00
+        max_mag = 0.0
+        w = math.floor((float(window))/2.0)
+        cx = ((self.width-window)/window)+1 #our sample rate
+        cy = ((self.height-window)/window)+1
+        vx = 0.00
+        vy = 0.00
+        xf = flow[:,:,0]
+        yf = flow[:,:,1]
+        for x in range(0,int(cx)): # go through our sample grid
+            for y in range(0,int(cy)):
+                xi = (x*window)+w # calculate the sample point
+                yi = (y*window)+w
+                if( aggregate ):
+                    lowx = int(xi-w)
+                    highx = int(xi+w)
+                    lowy = int(yi-w)
+                    highy = int(yi+w)
+                    xderp = xf[lowy:highy,lowx:highx] # get the average x/y components in the output
+                    yderp = yf[lowy:highy,lowx:highx]
+                    vx = np.average(xderp)
+                    vy = np.average(yderp)
+                else: # other wise just sample
+                    vx = xf[yi,xi]
+                    vy = yf[yi,xi]
 
-        if( method == "LK" or method == "HS" ):
-            # create the result images.
-            xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)
-            yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)
-            win = (window,window)
-            if( method == "LK" ):
-                cv.CalcOpticalFlowLK(self._getGrayscaleBitmap(),previous_frame._getGrayscaleBitmap(),win,xf,yf)
-            else:
-                cv.CalcOpticalFlowHS(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),0,xf,yf,1.0,(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 10, 0.01))
-
-            w = math.floor((float(window))/2.0)
-            cx = ((self.width-window)/window)+1 #our sample rate
-            cy = ((self.height-window)/window)+1
-            vx = 0.00
-            vy = 0.00
-            for x in range(0,int(cx)): # go through our sample grid
-                for y in range(0,int(cy)):
-                    xi = (x*window)+w # calculate the sample point
-                    yi = (y*window)+w
-                    if( aggregate ):
-                        lowx = int(xi-w)
-                        highx = int(xi+w)
-                        lowy = int(yi-w)
-                        highy = int(yi+w)
-                        xderp = xf[lowy:highy,lowx:highx] # get the average x/y components in the output
-                        yderp = yf[lowy:highy,lowx:highx]
-                        vx = np.average(xderp)
-                        vy = np.average(yderp)
-                    else: # other wise just sample
-                        vx = xf[yi,xi]
-                        vy = yf[yi,xi]
-
-                    mag = (vx*vx)+(vy*vy)
-                    if(mag > max_mag): # calculate the max magnitude for normalizing our vectors
-                        max_mag = mag
-                    fs.append(Motion(self,xi,yi,vx,vy,window)) # add the sample to the feature set
-
-        elif( method == "BM"):
-            # In the interest of keep the parameter list short
-            # I am pegging these to the window size.
-            # For versions with OpenCV 2.4.0 and below.
-            if ( FLAG_VER==0):
-                block = (window,window) # block size
-                shift = (int(window*1.2),int(window*1.2)) # how far to shift the block
-                spread = (window*2,window*2) # the search windows.
-                wv = (self.width - block[0]) / shift[0] # the result image size
-                hv = (self.height - block[1]) / shift[1]
-                xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-                yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-                cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
-
-            #For versions with OpenCV 2.4.0 and above.
-            elif ( FLAG_VER==1) :
-                block = (window,window) # block size
-                shift = (int(window*0.2),int(window*0.2)) # how far to shift the block
-                spread = (window,window) # the search windows.
-                wv = self.width-block[0]+shift[0]
-                hv = self.height-block[1]+shift[1]
-                xf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
-                yf = cv.CreateImage((wv,hv), cv.IPL_DEPTH_32F, 1)
-                cv.CalcOpticalFlowBM(previous_frame._getGrayscaleBitmap(),self._getGrayscaleBitmap(),block,shift,spread,0,xf,yf)
-
-            for x in range(0,int(wv)): # go through the sample grid
-                for y in range(0,int(hv)):
-                    xi = (shift[0]*(x))+block[0] #where on the input image the samples live
-                    yi = (shift[1]*(y))+block[1]
-                    vx = xf[y,x] # the result image values
-                    vy = yf[y,x]
-                    fs.append(Motion(self,xi,yi,vx,vy,window)) # add the feature
-                    mag = (vx*vx)+(vy*vy) # same the magnitude
-                    if(mag > max_mag):
-                        max_mag = mag
-        else:
-            logger.warning("ImageClass.findMotion: I don't know what algorithm you want to use. Valid method choices are Block Matching -> \"BM\" Horn-Schunck -> \"HS\" and Lucas-Kanade->\"LK\" ")
-            return None
-
-        max_mag = math.sqrt(max_mag) # do the normalization
-        for f in fs:
-            f.normalizeTo(max_mag)
+                mag = (vx*vx)+(vy*vy)
+                if(mag > max_mag): # calculate the max magnitude for normalizing our vectors
+                    max_mag = mag
+                fs.append(Motion(self,xi,yi,vx,vy,window)) 
 
         return fs
 
@@ -9951,7 +9876,61 @@ class Image:
         :py:meth:`findFloodFillBlobs`
 
         """
-        return self.floodFill(points, tolerance, color, lower, upper, fixed_range, mask)
+
+        if( isinstance(color,np.ndarray) ):
+            color = color.tolist()
+        elif( isinstance(color,dict) ):
+            color = (color['R'],color['G'],color['B'])
+        
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+
+        # first we guess what the user wants to do
+        # if we get and int/float convert it to a tuple
+        if( upper is None and lower is None and tolerance is None ):
+            upper = (0,0,0)
+            lower = (0,0,0)
+
+        if( tolerance is not None and
+            (isinstance(tolerance,float) or isinstance(tolerance,int))):
+            tolerance = (int(tolerance),int(tolerance),int(tolerance))
+
+        if( lower is not None and
+            (isinstance(lower,float) or isinstance(lower, int)) ):
+            lower = (int(lower),int(lower),int(lower))
+        elif( lower is None ):
+            lower = tolerance
+
+        if( upper is not None and
+            (isinstance(upper,float) or isinstance(upper, int)) ):
+            upper = (int(upper),int(upper),int(upper))
+        elif( upper is None ):
+            upper = tolerance
+
+        if( isinstance(points,tuple) ):
+            points = np.array(points)
+
+        flags = cv2.FLOODFILL_MASK_ONLY
+        if( fixed_range ):
+            flags = flags + cv2.FLOODFILL_FIXED_RANGE
+
+        localMask = None
+        #opencv wants a mask that is slightly larger
+        if( mask is None ):
+            localMask = np.zeros((self.height+2,self.width+2), dtype = 'uint8')
+        else:
+            localMask = mask.embiggen(size=(self.width+2,self.height+2)).getGrayNumpy()
+
+        temp = self.getGrayNumpy()
+        if( len(points.shape) != 1 ):
+            for p in points:
+                cv2.floodFill(temp,localMask,tuple(p),color,lower,upper,flags)
+        else:
+            cv2.floodFill(temp,localMask,tuple(points),color,lower,upper,flags)
+
+        retVal = Image(localMask)
+        retVal = retVal.crop(1,1,self.width,self.height)
+        return retVal
 
     def findBlobsFromMask(self, mask,threshold=128, minsize=10, maxsize=0,appx_level=3 ):
         """
