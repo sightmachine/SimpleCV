@@ -1699,10 +1699,10 @@ class Image:
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HSV2BGR)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.HLS ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR2)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_HLS2BGR)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.XYZ ):
-            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR2)
+            retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_XYZ2BGR)
             retVal = cv2.cvtColor(retVal, cv2.COLOR_BGR2YCR_CB)
         elif( self._colorSpace == ColorSpace.LAB ):
             retVal = cv2.cvtColor(self.getNumpy(), cv2.COLOR_LAB2BGR)
