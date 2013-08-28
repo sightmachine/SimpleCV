@@ -3416,7 +3416,7 @@ def testROIFeature():
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
     blobs = img.findBlobsFromMask(mask,minsize=1)
-    x,y = np.where(mask.getGrayNumpy()>0)
+    y,x = np.where(mask.getGrayNumpy()>0)
     xmin = np.min(x)
     xmax = np.max(x)
     ymin = np.min(y)
