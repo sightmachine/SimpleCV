@@ -1063,9 +1063,12 @@ class Image:
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
             #not anymore
             npimg = np.fromstring(self._pil.tostring(), dtype=np.uint8)
+            
+            
+            npimg = npimg.reshape(source.size[1],source.size[0],3)
+            
             self._colorSpace = ColorSpace.BGR
             self._numpy = cv2.cvtColor(npimg, cv2.COLOR_RGB2BGR)
-
 
         else:
             return None
