@@ -37,7 +37,7 @@ class FrameBufferThread(threading.Thread):
             lock.release()
                 #val, img = cam.capture.read()
             cam._threadcapturetime = time.time()
-            time.sleep(01)    #max 25 fps, if you're lucky
+            time.sleep(0.01)    #max 25 fps, if you're lucky
 
 
 
