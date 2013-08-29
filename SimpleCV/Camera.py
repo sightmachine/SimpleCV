@@ -10,12 +10,9 @@ import time
 import ctypes as ct
 import subprocess
 
-#Globals
-_cameras = []
-_camera_polling_thread = ""
 _index = []
+_cameras = []
 
-lock = threading.Lock()
 
 class FrameBufferThread(threading.Thread):
     """
@@ -27,18 +24,43 @@ class FrameBufferThread(threading.Thread):
     by your camera are fresh.
 
     """
+    
+    def __init__(self,camera):
+        threading.Thread.__init__(self)
+        self.camera = camera
+        self.lock = threading.Lock()
+        self.available = False
+        self.lastCaptureTime = 0.0
+        self.daemon = True
+        self.stayAlive = True
+    
     def run(self):
-        global _cameras
-        while (1):
-            pass
-            lock.acquire()
-            for cam in _cameras:
-                cam.capture.grab()
-            lock.release()
-                #val, img = cam.capture.read()
-            cam._threadcapturetime = time.time()
-            time.sleep(0.01)    #max 25 fps, if you're lucky
+        while (self.stayAlive):
+            self.lock.acquire()
+            self.camera.grab()
+            self.available = True
+            self.lastCaptureTime = time.time()
+            self.lock.release()
+            time.sleep(.02)    
+    
+    def getFrame(self):
+        self.lock.acquire()
 
+        if (self.available):
+            retVal,image = self.camera.retrieve()
+            self.available = False
+            self.lock.release()
+            return retVal,image,self.lastCaptureTime
+        else:
+            self.lastCaptureTime = time.time()
+            retVal,image =  self.camera.read()
+            self.available = False
+            self.lock.release()
+            return retVal,image,self.lastCaptureTime
+    
+    def kill(self):
+        self.stayAlive = False
+        self.join()
 
 
 class FrameSource:
@@ -396,9 +418,9 @@ class Camera(FrameSource):
     #human readable to CV constant property mapping
 
     def __init__(self, camera_index = -1, prop_set = {}, threaded = True, calibrationfile = ''):
-        global _cameras
-        global _camera_polling_thread
         global _index
+        global _cameras
+
         """
         **SUMMARY**
 
@@ -463,31 +485,7 @@ class Camera(FrameSource):
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
-        """if platform.system() == "Linux" and (prop_set.has_key("height") or not self.capture.isOpened()):
-            import pygame.camera
-            pygame.camera.init()
-            threaded = True  #pygame must be threaded
-            if camera_index == -1:
-                camera_index = 0
-                self.index = camera_index
-                _index.append(camera_index)
-                print _index
-            #if(prop_set.has_key("height") and prop_set.has_key("width")):
-            #    self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
-            #else:
-            #    self.capture = pygame.camera.Camera("/dev/video" + str(camera_index))
 
-            try:
-                self.capture.start()
-            except Exception as exc:
-                msg = "caught exception: %r" % exc
-                logger.warning(msg)
-                logger.warning("SimpleCV can't seem to find a camera on your system, or the drivers do not work with SimpleCV.")
-                return
-            time.sleep(0)
-            self.pygame_buffer = self.capture.get_image()
-            self.pygame_camera = True"""
-        #else:
         _index.append(camera_index)
         self.threaded = False
         if (platform.system() == "Windows"):
@@ -503,12 +501,8 @@ class Camera(FrameSource):
 
         if (threaded):
             self.threaded = True
-            _cameras.append(self)
-            if (not _camera_polling_thread):
-                _camera_polling_thread = FrameBufferThread()
-                _camera_polling_thread.daemon = True
-                _camera_polling_thread.start()
-                time.sleep(0) #yield to thread
+            self.thread = FrameBufferThread(self.capture)
+            self.thread.start()
 
         if calibrationfile:
             self.loadCalibration(calibrationfile)
@@ -582,23 +576,30 @@ class Camera(FrameSource):
         >>>    cam.getImage().show()
 
         """
-        lock.acquire()
-        if (not self.threaded):
+        if (self.threaded):
+            val, frame, t = self.thread.getFrame()
+            self.capturetime = t
+                    
+        else:
             val, frame = self.capture.read()
             self.capturetime = time.time()
-        else:
-            self.capturetime = self._threadcapturetime
-            val, frame = self.capture.read()
+
             
-        lock.release()
         if not val:
             warnings.warn("Unable to grab Image from camera")
             width = self.capture.get(cv.CV_CAP_PROP_FRAME_WIDTH)
             height = self.capture.get(cv.CV_CAP_PROP_FRAME_HEIGHT)
             frame = Image((height, width))
+            return frame
          #copy here probably
-        newimg = np.copy(frame)
-        return Image(frame, self)
+        #newimg = np.copy(frame)
+        return Image(frame)
+    
+    def __del__(self):
+        if(self.threaded):
+            self.thread.kill()
+        else:
+            self.capture.release()
 
 
 class VirtualCamera(FrameSource):
