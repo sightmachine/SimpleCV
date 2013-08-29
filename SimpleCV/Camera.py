@@ -2238,14 +2238,14 @@ class StereoCamera :
         
         saveCalibration is a method to save the StereoCalibration parameters such as CM1, CM2, D1, D2, R, T, E, F of stereo pair.
         This method returns True on success and saves the calibration in the following format.
-        StereoCM1.txt
-        StereoCM2.txt
-        StereoD1.txt
-        StereoD2.txt
-        StereoR.txt
-        StereoT.txt
-        StereoE.txt
-        StereoF.txt
+        StereoCM1.npy
+        StereoCM2.npy
+        StereoD1.npy
+        StereoD2.npy
+        StereoR.npy
+        StereoT.npy
+        StereoE.npy
+        StereoF.npy
         
         **PARAMETERS**
         
@@ -2270,17 +2270,19 @@ class StereoCamera :
         >>> calibration = StereoCam.StereoCalibration(1,2,nboards=40)
         >>> StereoCam.saveCalibration(calibration,fname="Stereo1")
         """
-        filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt", fname+"D2.txt", fname+"R.txt", fname+"T.txt", fname+"E.txt", fname+"F.txt")
+        filenames = (fname+"CM1", fname+"CM2", fname+"D1",
+                     fname+"D2", fname+"R", fname+"T",
+                     fname+"E", fname+"F")
         try :
             (CM1, CM2, D1, D2, R, T, E, F) = calibration
-            cv.Save("{0}/{1}".format(cdir, filenames[0]), CM1)
-            cv.Save("{0}/{1}".format(cdir, filenames[1]), CM2)
-            cv.Save("{0}/{1}".format(cdir, filenames[2]), D1)
-            cv.Save("{0}/{1}".format(cdir, filenames[3]), D2)
-            cv.Save("{0}/{1}".format(cdir, filenames[4]), R)
-            cv.Save("{0}/{1}".format(cdir, filenames[5]), T)
-            cv.Save("{0}/{1}".format(cdir, filenames[6]), E)
-            cv.Save("{0}/{1}".format(cdir, filenames[7]), F)
+            np.save("{0}/{1}".format(cdir, filenames[0]), CM1)
+            np.save("{0}/{1}".format(cdir, filenames[1]), CM2)
+            np.save("{0}/{1}".format(cdir, filenames[2]), D1)
+            np.save("{0}/{1}".format(cdir, filenames[3]), D2)
+            np.save("{0}/{1}".format(cdir, filenames[4]), R)
+            np.save("{0}/{1}".format(cdir, filenames[5]), T)
+            np.save("{0}/{1}".format(cdir, filenames[6]), E)
+            np.save("{0}/{1}".format(cdir, filenames[7]), F)
             print "Calibration parameters written to directory '{0}'.".format(cdir)
             return True
 
@@ -2319,16 +2321,18 @@ class StereoCamera :
         >>> loadedCalibration = StereoCam.loadCalibration(fname="Stereo1")
         
         """
-        filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt", fname+"D2.txt", fname+"R.txt", fname+"T.txt", fname+"E.txt", fname+"F.txt")
+        filenames = (fname+"CM1.npy", fname+"CM2.npy", fname+"D1.npy",
+                     fname+"D2.npy", fname+"R.npy", fname+"T.npy",
+                     fname+"E.npy", fname+"F.npy")
         try :
-            CM1 = cv.Load("{0}/{1}".format(dir, filenames[0]))
-            CM2 = cv.Load("{0}/{1}".format(dir, filenames[1]))
-            D1 = cv.Load("{0}/{1}".format(dir, filenames[2]))
-            D2 = cv.Load("{0}/{1}".format(dir, filenames[3]))
-            R = cv.Load("{0}/{1}".format(dir, filenames[4]))
-            T = cv.Load("{0}/{1}".format(dir, filenames[5]))
-            E = cv.Load("{0}/{1}".format(dir, filenames[6]))
-            F = cv.Load("{0}/{1}".format(dir, filenames[7]))
+            CM1 = np.load("{0}/{1}".format(dir, filenames[0]))
+            CM2 = np.load("{0}/{1}".format(dir, filenames[1]))
+            D1 = np.load("{0}/{1}".format(dir, filenames[2]))
+            D2 = np.load("{0}/{1}".format(dir, filenames[3]))
+            R = np.load("{0}/{1}".format(dir, filenames[4]))
+            T = np.load("{0}/{1}".format(dir, filenames[5]))
+            E = np.load("{0}/{1}".format(dir, filenames[6]))
+            F = np.load("{0}/{1}".format(dir, filenames[7]))
             print "Calibration files loaded from dir '{0}'.".format(dir)
             return (CM1, CM2, D1, D2, R, T, E, F)
 
