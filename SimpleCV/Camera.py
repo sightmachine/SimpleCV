@@ -1742,37 +1742,10 @@ class StereoImage:
                 nDisparity = 16
             nDisparity = (nDisparity/16)*16
         if method == 'BM':
-            #disparity = cv.CreateMat(c, r, cv.CV_32F)
             sbm = cv2.StereoBM(preset=31, ndisparities=nDisparity, SADWindowSize=7)
-            #state = cv.CreateStereoBMState()
-            """
-            sbm.SADWindowSize = 41
-            sbm.preFilterType = 1
-            sbm.preFilterSize = 41
-            sbm.preFilterCap = 31
-            sbm.minDisparity = -8
-            sbm.numberOfDisparities = nDisparity
-            sbm.textureThreshold = 10
-            #sbm.speckleRange = 32
-            #sbm.speckleWindowSize = 100
-            sbm.uniquenessRatio=15
-            """
             disp = sbm.compute(gray_left, gray_right)
             disparity_visual = cv2.normalize(disp,  alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
             return Image(disparity_visual,colorSpace=ColorSpace.GRAY)
-            """
-        elif method == 'GC':
-            disparity_left = cv.CreateMat(c, r, cv.CV_32F)
-            disparity_right = cv.CreateMat(c, r, cv.CV_32F)
-            state = cv.CreateStereoGCState(nDisparity, 8)
-            state.minDisparity = -8
-            cv.FindStereoCorrespondenceGC( gray_left, gray_right, disparity_left, disparity_right, state, 0)
-            disparity_left_visual = cv.CreateMat(c, r, cv.CV_8U)
-            cv.Normalize( disparity_left, disparity_left_visual, 0, 256, cv.CV_MINMAX )
-            #cv.Scale(disparity_left, disparity_left_visual, -scale)
-            disparity_left_visual = Image(disparity_left_visual)
-            return Image(disparity_left_visual.getBitmap(),colorSpace=ColorSpace.GRAY)
-            """
         elif method == 'SGBM':
             state = cv2.StereoSGBM()
             state.SADWindowSize = 7
@@ -1787,7 +1760,6 @@ class StereoImage:
             disparity=state.compute(self.ImageLeft.getGrayNumpy(),self.ImageRight.getGrayNumpy())
             disparity = cv2.normalize(disparity,  alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
             return Image(disparity, colorSpace=ColorSpace.GRAY)
-
         else :
             logger.warning("Unknown method. Choose one method amoung BM or SGBM or GC !")
             return None
@@ -1820,6 +1792,70 @@ class StereoImage:
 
         from SimpleCV.Features.Detection import Line
 
+        def epipoleSVD(F):
+            V = cv2.SVDecomp(F)[2]
+            print V, "v"
+            return V[-1] / V[-1, -1]
+
+        def lines2points(lines, epipole):
+            print lines.shape
+            print epipole.shape
+            xmax = np.ones(lines.shape[0])*epipole[0]
+            a,c = lines[0]/lines[1], lines[2]/lines[1]
+            x = np.array([-xmax,xmax])
+            y = np.array([np.r_[-a*Lx[0] - c], np.r_[-a*Lx[1] - c]])
+            return x, y
+
+        x1 = np.array((point[1]/(point[1]**2 + point[0]**2)**0.5, point[0]/(point[1]**2 + point[0]**2)**0.5, 1))
+        x1 = np.array((point[0]/(point[1]**2 + point[0]**2)**0.5, point[1]/(point[1]**2 + point[0]**2)**0.5, 1))
+
+        #Lx,Ly = lines2points( np.dot(F, x1.T), epipoleSVD(F.T) )
+
+        e1c2 = epipoleSVD(F)
+        e2c1 = epipoleSVD(F.T)
+
+        print e1c2
+        print e2c1
+
+        x1 = np.array((point[1]/(point[1]**2 + point[0]**2)**0.5, point[0]/(point[1]**2 + point[0]**2)**0.5, 1))
+        #x1 = np.array((point[0]/(point[1]**2 + point[0]**2)**0.5, point[1]/(point[1]**2 + point[0]**2)**0.5, 1))
+        print x1, "x1"
+        elines2 = np.dot(F, x1)
+        elines1 = np.dot(F.T, x1)
+
+        print elines1
+        print elines2
+        elines1 = elines1[[1.00, 0, 2]]
+        elines2 = elines2[[1.00, 0, 2]]
+        print elines1
+        print elines2
+
+
+        pts1 = (0, 0)
+        pts2 = self.size
+        pts1 = (pts1[0],(elines2[2]-elines2[0]*pts1[0])/elines2[1] )
+        pts2 = (pts2[0],(-elines2[2]-elines2[0]*pts2[0])/elines2[1] )
+
+        print pts1, pts2, "pts1", "pts2"
+
+        pts1 = (0, 0)
+        pts2 = self.size
+        pts1 = (pts1[0],(elines1[2]-elines1[0]*pts1[0])/elines1[1] )
+        pts2 = (pts2[0],(-elines1[2]-elines1[0]*pts2[0])/elines1[1] )
+
+        print pts1, pts2, "pts1", "pts2"
+
+        pts1 = (0, 0)
+        pts2 = self.size
+        pts1 = (pts1[0],(elines2[1]-elines2[0]*pts1[0])/elines2[2] )
+        pts2 = (pts2[0],(-elines2[1]-elines2[0]*pts2[0])/elines2[2] )
+
+        print pts1, pts2, "pts1", "pts2"
+        
+        #x1 = point
+        #elines1 = np.dot(F, np.array(point1))
+
+        
         pts1 = (0,0)
         pts2 = self.size
         pt_cvmat = cv.CreateMat(1, 1, cv.CV_32FC2)
@@ -1827,14 +1863,17 @@ class StereoImage:
         line = cv.CreateMat(1, 1, cv.CV_32FC3)
         cv.ComputeCorrespondEpilines(pt_cvmat, whichImage, npArray2cvMat(F), line)
         line_npArray = np.array(line).squeeze()
+        print line_npArray
         line_npArray = line_npArray[[1.00, 0, 2]]
+        print line_npArray
         pts1 = (pts1[0],(-line_npArray[2]-line_npArray[0]*pts1[0])/line_npArray[1] )
         pts2 = (pts2[0],(-line_npArray[2]-line_npArray[0]*pts2[0])/line_npArray[1] )
+        print pts1, pts2
         if whichImage == 1 :
             return Line(self.ImageLeft, [pts1,pts2])
         elif whichImage == 2 :
             return Line(self.ImageRight, [pts1,pts2])
-
+        
     def projectPoint( self, point, H ,whichImage):
         """
         **SUMMARY**
