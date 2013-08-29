@@ -1792,87 +1792,31 @@ class StereoImage:
 
         from SimpleCV.Features.Detection import Line
 
+        # According to http://ai.stanford.edu/~mitul/cs223b/draw_epipolar.m
+
         def epipoleSVD(F):
             V = cv2.SVDecomp(F)[2]
-            print V, "v"
             return V[-1] / V[-1, -1]
 
-        def lines2points(lines, epipole):
-            print lines.shape
-            print epipole.shape
-            xmax = np.ones(lines.shape[0])*epipole[0]
-            a,c = lines[0]/lines[1], lines[2]/lines[1]
-            x = np.array([-xmax,xmax])
-            y = np.array([np.r_[-a*Lx[0] - c], np.r_[-a*Lx[1] - c]])
-            return x, y
+        if whichImage == 1:
+            e1c2 = epipoleSVD(F)
+            m = float(point[1] - e1c2[0]) / float(point[0] - e1c2[1])
+            c = e1c2[0] - m * e1c2[1]
+            pts1 = (0, c)
+            pts2 = (self.ImageLeft.width, m * self.ImageLeft.width + c)
+            return Line(self.ImageLeft, [pts1, pts2])
 
-        x1 = np.array((point[1]/(point[1]**2 + point[0]**2)**0.5, point[0]/(point[1]**2 + point[0]**2)**0.5, 1))
-        x1 = np.array((point[0]/(point[1]**2 + point[0]**2)**0.5, point[1]/(point[1]**2 + point[0]**2)**0.5, 1))
+        elif whichImage == 2:
+            e2c1 = epipoleSVD(F.T)
+            m = float(point[1] - e2c1[0]) / float(point[0] - e2c1[1])
+            c = e2c1[0] - m * e2c1[1]
+            pts1 = (0, c)
+            pts2 = (self.ImageLeft.width, m * self.ImageLeft.width + c)
+            return Line(self.ImageRight, [pts1, pts2])
 
-        #Lx,Ly = lines2points( np.dot(F, x1.T), epipoleSVD(F.T) )
-
-        e1c2 = epipoleSVD(F)
-        e2c1 = epipoleSVD(F.T)
-
-        print e1c2
-        print e2c1
-
-        x1 = np.array((point[1]/(point[1]**2 + point[0]**2)**0.5, point[0]/(point[1]**2 + point[0]**2)**0.5, 1))
-        #x1 = np.array((point[0]/(point[1]**2 + point[0]**2)**0.5, point[1]/(point[1]**2 + point[0]**2)**0.5, 1))
-        print x1, "x1"
-        elines2 = np.dot(F, x1)
-        elines1 = np.dot(F.T, x1)
-
-        print elines1
-        print elines2
-        elines1 = elines1[[1.00, 0, 2]]
-        elines2 = elines2[[1.00, 0, 2]]
-        print elines1
-        print elines2
-
-
-        pts1 = (0, 0)
-        pts2 = self.size
-        pts1 = (pts1[0],(elines2[2]-elines2[0]*pts1[0])/elines2[1] )
-        pts2 = (pts2[0],(-elines2[2]-elines2[0]*pts2[0])/elines2[1] )
-
-        print pts1, pts2, "pts1", "pts2"
-
-        pts1 = (0, 0)
-        pts2 = self.size
-        pts1 = (pts1[0],(elines1[2]-elines1[0]*pts1[0])/elines1[1] )
-        pts2 = (pts2[0],(-elines1[2]-elines1[0]*pts2[0])/elines1[1] )
-
-        print pts1, pts2, "pts1", "pts2"
-
-        pts1 = (0, 0)
-        pts2 = self.size
-        pts1 = (pts1[0],(elines2[1]-elines2[0]*pts1[0])/elines2[2] )
-        pts2 = (pts2[0],(-elines2[1]-elines2[0]*pts2[0])/elines2[2] )
-
-        print pts1, pts2, "pts1", "pts2"
-        
-        #x1 = point
-        #elines1 = np.dot(F, np.array(point1))
-
-        
-        pts1 = (0,0)
-        pts2 = self.size
-        pt_cvmat = cv.CreateMat(1, 1, cv.CV_32FC2)
-        pt_cvmat[0, 0] = (point[1], point[0])  # OpenCV seems to use (y, x) coordinate.
-        line = cv.CreateMat(1, 1, cv.CV_32FC3)
-        cv.ComputeCorrespondEpilines(pt_cvmat, whichImage, npArray2cvMat(F), line)
-        line_npArray = np.array(line).squeeze()
-        print line_npArray
-        line_npArray = line_npArray[[1.00, 0, 2]]
-        print line_npArray
-        pts1 = (pts1[0],(-line_npArray[2]-line_npArray[0]*pts1[0])/line_npArray[1] )
-        pts2 = (pts2[0],(-line_npArray[2]-line_npArray[0]*pts2[0])/line_npArray[1] )
-        print pts1, pts2
-        if whichImage == 1 :
-            return Line(self.ImageLeft, [pts1,pts2])
-        elif whichImage == 2 :
-            return Line(self.ImageRight, [pts1,pts2])
+        else:
+            warnings.warn("Incorrect Image number passed. Returning None.")
+            return None
         
     def projectPoint( self, point, H ,whichImage):
         """
