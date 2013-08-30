@@ -301,8 +301,11 @@ class GtkWorker(Process):
         self.posLabel = builder.get_object('posLabel')
         self.colorArea = builder.get_object('colorArea')
         self.colorLabel = builder.get_object('colorLabel')
-        
+        self.statusbar = builder.get_object('statusbar')
+        self.utilBox = builder.get_object('utilBox')
 
+        self.statusbar.pack_start(self.utilBox) # adding the utilities to the statusbar
+        
         #when an image arrives, its data is stored here, a dict type when not None
         self.imageData = None
         
@@ -331,6 +334,8 @@ class GtkWorker(Process):
         #the unadulterated image
         self.noFilterImage = None
         
+        self.window.set_title(self.title)
+        self.window.show_all()
         #self.builderWindow.show_all()
 
         #size of the window
