@@ -350,6 +350,7 @@ class GtkWorker(Process):
         #these values are updated by the mouse* functions
         self._mouseX = None
         self._mouseY = None
+        
         self._leftMouseDownPos = None
         self._rightMouseDownPos = None
         self._leftMouseUpPos = None
@@ -457,6 +458,7 @@ class GtkWorker(Process):
         
         # tell gtk to draw again
         self.drawingArea.queue_draw()
+        self.mouse_motion()
         
         if(self.type_ == Display.DEFAULT):
             #enlarge display to show the image
@@ -551,7 +553,7 @@ class GtkWorker(Process):
             pos = None
         self.connection.send(pos)
         
-    def mouse_motion(self,widget,event):
+    def mouse_motion(self,widget = None,event = None):
         """
         
         **SUMMARY**
@@ -559,13 +561,24 @@ class GtkWorker(Process):
         Updates the mouse position whenever mouse pointer moves
         
         """
+        #if None is passed to event, updates are done considering last known 
+        #position, this is used when an image is updated to display new color
+        #values in the status bar
 
         #initially when there is no image
         if(not self.offset):
             return
-        self._position = (event.x,event.y)
-        x = int((event.x - self.offset[0])/self.scale[0])
-        y = int((event.y - self.offset[1])/self.scale[1])
+        if event:
+            self._position = (event.x,event.y)
+            x = int((event.x - self.offset[0])/self.scale[0])
+            y = int((event.y - self.offset[1])/self.scale[1])
+        else:
+            if self._position:
+                ex,ey = self._position
+                x = int((ex - self.offset[0])/self.scale[0])
+                y = int((ey - self.offset[1])/self.scale[1])
+            else:
+                return
         w,h = self.pixbuf.get_width(),self.pixbuf.get_height()
         x = min(max(x,0),w-1)
         y = min(max(y,0),h-1)
