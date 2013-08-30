@@ -6588,7 +6588,6 @@ class Image:
 
         """
         from Display.Base.Display import DisplayBase
-        from Display.Base.Display import DisplayNotFoundException
         from SimpleCV import Display
         screen = DisplayBase.screen
         
@@ -6596,11 +6595,8 @@ class Image:
             d = Display()
             d.showImage(self)
         else:
-            try:
-                screen.showImage(self)
-            except DisplayNotFoundException:
-                screen.close()
-                self.show()
+            screen.showImage(self)
+
 
     def addDrawingLayer(self, layer = None):
         """

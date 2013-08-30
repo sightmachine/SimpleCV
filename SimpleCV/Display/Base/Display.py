@@ -11,12 +11,6 @@ FIXED = 2
 RESIZE = 0
 SCROLL = 1
 
-class DisplayNotFoundException(Exception):
-    def __init__(self,display):
-        self.display = display
-    def __str__(self):
-        return "I'm Sorry to say this but uhhhh' !! The display at %d was closed, choose a different one" % id(self.display)
-
 
 class DisplayBase:
     
@@ -100,6 +94,7 @@ class DisplayBase:
         self.xScale = 1.0
         self.yScale = 1.0
         self.image = None
+        self.done = False # isDone = True indicates user wanted to close the display
         
     
     def __repr__(self):
@@ -244,6 +239,7 @@ class DisplayBase:
         """
         
         self.image = img
+        self.isDone = False
         
     @abstractmethod
     def close(self):
@@ -265,4 +261,48 @@ class DisplayBase:
         """
         if(DisplayBase.screen == self):
             DisplayBase.screen = None
+    
+    
+    def isDone(self):
+        """
+        **SUMMARY**
+
+        Returns True is user wants the display to be closed i.e. he presses the
+        close button
+
+        **RETURNS**
+
+        True on a quit event, False otherwise.
+
+        **EXAMPLE**
+
+        >>> disp = Display()
+        >>> cam = Camera()
+        >>> while not disp.isDone():
+        >>>     img = cam.getImage()
+        >>>     img.save(disp)
+
+        """
+        return self.done
+        
+    def isNotDone(self):
+        """
+        **SUMMARY**
+
+        Returns False as long as the quit event hasn't been issued.
+
+        **RETURNS**
+
+        False on a quit event, True otherwise.
+
+        **EXAMPLE**
+
+        >>> disp = Display()
+        >>> cam = Camera()
+        >>> while disp.isNotDone():
+        >>>     img = cam.getImage()
+        >>>     img.save(disp)
+
+        """
+        return not self.isDone()
 
