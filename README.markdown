@@ -23,14 +23,14 @@ Quick Links:
  * [Troubleshooting Installation](#troubleshooting-installation-problems)
     * [Required Libraries](#required-libraries)
     * [Optional Libraries](#optional-libraries)
- 
+
 
 <a id="about"></a>
 ## About
 ---------------------------
 Make computers see with SimpleCV, the Open Source Framework for Computer Vision
 
-SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.    
+SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.
 It provides a concise, readable interface for cameras, image manipulation, feature extraction, and format conversion.  Our mission is to give casual users a comprehensive interface for basic machine vision functions and an elegant programming interface for advanced users.
 
 We like SimpleCV because:
@@ -60,7 +60,7 @@ The easiest way to install SimpleCV is with the packages for your distribution (
 ### Ubuntu 12.04
 Install with pip
 
-	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip 
+	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
 	sudo pip install https://github.com/sightmachine/SimpleCV/zipball/develop
 
 Install using clone of SimpleCV repository
@@ -96,7 +96,7 @@ Run the following commands:
     cd ..
     ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
     ./bin/pip install https://github.com/sightmachine/SimpleCV/zipball/develop
-  
+
 
 
 
@@ -147,9 +147,9 @@ Note: We originally tried to bundle all Mac dependencies in a superpack.  This t
 
 *These instructions are geared towards people who are just getting started with python development on OSX. They will walk you through setting up all the tools you need to build SimpleCV from scratch. If you don't know which instructions you want, you probably want to use these.*
 
-Install Xcode via App Store  
-Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across from Command Line Tools  
-If Terminal is already running, shut it down and reopen it  
+Install Xcode via App Store
+Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across from Command Line Tools
+If Terminal is already running, shut it down and reopen it
 OS X's permissions on /usr/local are too restrictive and must be changed via:
 
     sudo chown -R `whoami` /usr/local
@@ -158,13 +158,13 @@ Install homebrew via Terminal using:
 
     ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
 
-Ignore the single warning that instructs you to install Xcode's CLI tools (you did that already)  
+Ignore the single warning that instructs you to install Xcode's CLI tools (you did that already)
 To verify that homebrew is installed correctly and working, run:
 
     brew doctor
 
-Address any errors before moving on. Remember, Google is your friend.  
-Note: If you run VM's on my via Parallels and run into multiple warnings related to "osxfuse" thi go to System Preferences >> FUSE for OS X >> Click Remove OSXFUSE. I can add it back later if needed.  
+Address any errors before moving on. Remember, Google is your friend.
+Note: If you run VM's on my via Parallels and run into multiple warnings related to "osxfuse" thi go to System Preferences >> FUSE for OS X >> Click Remove OSXFUSE. I can add it back later if needed.
 Once the doctor tells you that you are 'raring to brew', run:
 
     brew update
@@ -194,16 +194,21 @@ Install SDL dependencies (can anyone clarify this?) via homebrew by running:
 
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
 
-Install XQuartz from https://xquartz.macosforge.org  
+Install XQuartz from https://xquartz.macosforge.org
 Homebrew can't install smpeg at the time of this writing however there is a workaround:
 
     brew tap homebrew/headonly
     brew install --HEAD smpeg
 
-If you get a connection refused error, wait a minute and try again.  
-Install PIL via homebrew by running:
+If you get a connection refused error, wait a minute and try again.
+Download PIL:
 
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
+    curl -O -L http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz
+
+In the unpacked folder:
+
+    python setup.py build --force
+    sudo python setup.py install
 
 Manually create a few PIL symlinks:
 
@@ -216,7 +221,7 @@ Install PIP by running:
 
     sudo easy_install pip
 
-Install the Scipy Superpack from http://fonnesbeck.github.com/ScipySuperpack/  
+Install the Scipy Superpack from http://fonnesbeck.github.com/ScipySuperpack/
 Install Mercurial via homebrew by running:
 
      brew install mercurial
@@ -229,7 +234,7 @@ Install svgwrite by running:
 
     sudo pip install svgwrite
 
-**Note:** SimpleCV's developers made a change (for the better) here that I am including, however everything up to this point is 100% guaranteed to work, because it's exactly what I did. Keeping true to that, I'll present both options. *We both suggest using the develop branch.*  
+**Note:** SimpleCV's developers made a change (for the better) here that I am including, however everything up to this point is 100% guaranteed to work, because it's exactly what I did. Keeping true to that, I'll present both options. *We both suggest using the develop branch.*
 **Developer's Instructions** Install SimpleCV from the git repo and then run setup.
 
     git clone https://github.com/sightmachine/SimpleCV.git
@@ -251,13 +256,13 @@ If it starts (it should!) be sure to check out:
 --------------------------------
 **Lion Take Two**
 
-*This is the abridged set of the instructions. It assumes you have most of the common OSX developer tools installed like brew and pip. 
-If you don't know what Brew or Pip are you probably want to use the instructions above. For OSX Lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11, 
+*This is the abridged set of the instructions. It assumes you have most of the common OSX developer tools installed like brew and pip.
+If you don't know what Brew or Pip are you probably want to use the instructions above. For OSX Lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11,
 if you encounter this problem please submit an issue on github.*
 
-Before you begin installing SimpleCV make sure you have the folliwng tools installed. 
+Before you begin installing SimpleCV make sure you have the folliwng tools installed.
 
-* Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer. 
+* Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer.
 * Install homebrew https://github.com/mxcl/homebrew/wiki/installation
 
 
@@ -271,8 +276,8 @@ Commands (for Lion)::
     brew install git
     brew tap homebrew/headonly
     brew install --HEAD smpeg
-    brew install sdl sdl_image sdl_mixer sdl_ttf portmidi 
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
+    brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
+    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
     ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
@@ -281,7 +286,7 @@ Commands (for Lion)::
     brew install hg
     sudo pip install hg+http://bitbucket.org/pygame/pygame
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh && source install_superpack.sh
-    pip install https://github.com/sightmachine/SimpleCV/zipball/master 
+    pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
 Commands (for Snow Leopard)::
 
@@ -291,8 +296,8 @@ Commands (for Snow Leopard)::
     brew tap homebrew/science
 	brew install opencv
     brew install git
-    brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi 
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL 
+    brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi
+    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
     ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
@@ -301,7 +306,7 @@ Commands (for Snow Leopard)::
     brew install hg
     sudo pip install https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.zip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
-    pip install https://github.com/sightmachine/SimpleCV/zipball/master 
+    pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
 
 <a id="windows"></a>
@@ -344,41 +349,41 @@ Exit the command line and reopen so it loads the updated python paths, then run:
     easy_install pip
     pip install ipython
     pip install https://github.com/sightmachine/SimpleCV/zipball/1.3
-    
+
 ###Windows 8
  Step 1
  ------
 
-http://www.simplecv.org/download  => Go to this page and download SimpleCV latest stable version Superpack . It will start downloading a file named SimpleCV-(version).msi . 
+http://www.simplecv.org/download  => Go to this page and download SimpleCV latest stable version Superpack . It will start downloading a file named SimpleCV-(version).msi .
 This file will be around 192mb .
 
 Step 2
  ------
-    
-After Downloading run the file . It will start an installation window along with a command prompt window. Give yes permission and press next . First it will install python 2.7.3 . 
-Then it will install numpy,scipy,Pygame,openCV and now all the normal installation windows will be closed and still there will be command prompt running . Leave it as such it will 
-download some other file like cython and when it is finished commandpromt will display a success message "SimpleCV installed successfully" "press any button in 10sec or will close 
+
+After Downloading run the file . It will start an installation window along with a command prompt window. Give yes permission and press next . First it will install python 2.7.3 .
+Then it will install numpy,scipy,Pygame,openCV and now all the normal installation windows will be closed and still there will be command prompt running . Leave it as such it will
+download some other file like cython and when it is finished commandpromt will display a success message "SimpleCV installed successfully" "press any button in 10sec or will close
 automatically " . Now just press any button or wait for the count down .
 
  Step 3
  ------
- 
+
  This is the final step and here we are confirming our SimpleCV installation. To do this open Python IDLE . Type in any of these two commands :
-  
+
       >>from SimpleCV import *
              or
       >>import SimpleCV
 
-If this two commands works fine without any errors our installation was successfull. If some error occurs we should uninstall and restart or check 
+If this two commands works fine without any errors our installation was successfull. If some error occurs we should uninstall and restart or check
 some forums.
 
-NOTE:- If this error is shown: "AttributeError: 'module' object has no attribute 'csgraph_to_masked'  " . Before this they will be showing list of paths of scipy library . 
+NOTE:- If this error is shown: "AttributeError: 'module' object has no attribute 'csgraph_to_masked'  " . Before this they will be showing list of paths of scipy library .
 The solution for this is to install latest stable version of scipy for windows . www.scipy.org/Download  => we can download latest stable version of scipy for windows here.
- 
+
 
 
 <a id="rasppi"></a>
-#### RASPBERRY PI 
+#### RASPBERRY PI
 
 * [Installation instructions can be found here.](https://github.com/sightmachine/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
 
@@ -409,11 +414,11 @@ to install ipython notebooks run the following:
 
 	sudo pip install tornado
   sudo pip install pyzmq
-  
-  
-  
 
---------------------------- 
+
+
+
+---------------------------
 <a id="videos"></a>
 ## Videos - Tutorials and Demos
 
@@ -435,7 +440,7 @@ student had built, we have forked the project and instructions on how to set it 
 ## Getting Help
 
 You can always head over to the SimpleCV help forums to ask questions:
-(SimpleCV Help Forums) - <http://help.simplecv.org> 
+(SimpleCV Help Forums) - <http://help.simplecv.org>
 
 --------------------
 <a id="troubleshoot"></a>
@@ -461,7 +466,7 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 
 * PIP
 * BeaufitulSoup
-* webm 
+* webm
 * freenect (<http://openkinect.org>)
 * python nose
 * pyfirmata
@@ -478,5 +483,5 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 * scikit-learn
 
 
-    
+
 
