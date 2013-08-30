@@ -304,7 +304,10 @@ class GtkWorker(Process):
         self.statusbar = builder.get_object('statusbar')
         self.utilBox = builder.get_object('utilBox')
 
-        self.statusbar.pack_start(self.utilBox) # adding the utilities to the statusbar
+        for child in self.statusbar:
+            self.statusbar.remove(child)
+        self.statusbar.pack_start(self.utilBox,True,True) # adding the utilities to the statusbar
+        
         
         #when an image arrives, its data is stored here, a dict type when not None
         self.imageData = None

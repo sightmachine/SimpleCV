@@ -189,22 +189,17 @@
       </packing>
     </child>
     <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
       <object class="GtkLabel" id="posLabel">
-        <property name="width_request">65</property>
+        <property name="width_request">80</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="xalign">0.47999998927116394</property>
+        <property name="xpad">7</property>
         <property name="label" translatable="yes">None</property>
       </object>
       <packing>
         <property name="expand">False</property>
-        <property name="fill">True</property>
+        <property name="fill">False</property>
         <property name="padding">15</property>
         <property name="pack_type">end</property>
         <property name="position">4</property>
@@ -390,37 +385,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="box2">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkStatusbar" id="statusbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="orientation">vertical</property>
             <property name="spacing">2</property>
+            <property name="homogeneous">True</property>
           </object>
           <packing>
             <property name="expand">False</property>
