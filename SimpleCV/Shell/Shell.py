@@ -172,15 +172,15 @@ def setup_plain():
 
 def run_notebook(mainArgs):
     """Run the ipython notebook server"""
-    from IPython.frontend.html.notebook import notebookapp
-    from IPython.frontend.html.notebook import kernelmanager
+    from IPython.html.notebookapp import NotebookApp
+    #from IPython.html.notebook import kernelmanager
 
     code = ""
     code += "from SimpleCV import *;"
     code += "init_options_handler.enable_notebook();"
 
-    kernelmanager.MappingKernelManager.first_beat = 30.0
-    app = notebookapp.NotebookApp.instance()
+    #kernelmanager.MappingKernelManager.first_beat = 30.0
+    app = NotebookApp.instance()
     mainArgs += [
         '--port', '5050',
         '--c', code,
