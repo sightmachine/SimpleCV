@@ -356,10 +356,8 @@ class FrameSource:
 
         start_time = time.time()
 
-        from SimpleCV.Display import Display
-        i = self.getImage()
-        d = Display(i.size())
-        i.save(d)
+        from SimpleCV import Display
+        d = Display()
         col = Color.RED
 
         while d.isNotDone():
@@ -367,28 +365,25 @@ class FrameSource:
             elapsed_time = time.time() - start_time
 
 
-            if d.mouseLeft:
-                txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
-                i.dl().text(txt, (10,i.height / 2), color=col)
-                txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
-                i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            #if d.mouseLeft:
+            #    txt = "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + ")"
+            #    i.dl().text(txt, (10,i.height / 2), color=col)
+            #    txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            #    i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
+            #    print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+            #
 
+            if elapsed_time > 0 and elapsed_time < 10:
 
-            if elapsed_time > 0 and elapsed_time < 5:
-
-                i.dl().text("In live mode", (10,10), color=col)
-                i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
-                i.dl().text("Right click will kill the live image", (10,30), color=col)
-
+                #i.dl().text("In live mode", (10,10), color=col)
+                #i.dl().text("Left click will show mouse coordinates and color", (10,20), color=col)
+                #i.dl().text("Right click will kill the live image", (10,30), color=col)
+                i.dl().text( "%.1f" % elapsed_time, (i.width - 70 ,i.height  - 8), color=col)
 
             i.save(d)
-            if d.mouseRight:
-                print "Closing Window"
-                d.done = True
 
 
-        pg.quit()
+
 
 class Camera(FrameSource):
     """

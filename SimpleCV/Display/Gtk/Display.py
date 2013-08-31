@@ -1,7 +1,6 @@
 from ..Base import Display
 from ..Base.Display import DisplayBase
 from ..Base import Line
-from ..Base import DisplayNotFoundException
 from Worker import GtkWorker
 from multiprocessing import Pipe
 
@@ -64,6 +63,7 @@ class GtkDisplay(Display.DisplayBase):
                 # http://www.youtube.com/watch?v=DMGh82QHVcQ
                 self.close()
                 self.workerAlive = False
+                self.done = True
                 
     def getImageWidgetSize(self):
         """
@@ -126,7 +126,8 @@ class GtkDisplay(Display.DisplayBase):
             self.connection.send(dic)
             
         else:
-            raise DisplayNotFoundException(self)
+            pass
+            #TODO , maybe Diplsy a warning here
             
 
 
