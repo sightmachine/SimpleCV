@@ -861,6 +861,8 @@ class Image:
     _uncroppedX = 0
     _uncroppedY = 0
 
+    __uidCounter__ = 0 #uniquie id counter
+
     def __repr__(self):
         if len(self.filename) == 0:
             fn = "None"
@@ -921,6 +923,8 @@ class Image:
         self._mPalettePercentages = None
         #Temp files
         self._tempFiles = []
+        self.__uid__ = Image.__uidCounter__
+        Image.__uidCounter__ += 1
 
 
         #Check if need to load from URL
@@ -14226,6 +14230,10 @@ class Image:
         """
         filteredimage = flt.applyFilter(self, grayscale)
         return filteredimage
+        
+    #a unique id for every image, required by the NB display
+    def getUID(self):
+        return self.__uid__
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
