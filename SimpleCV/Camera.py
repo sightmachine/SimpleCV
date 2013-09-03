@@ -380,7 +380,7 @@ class FrameSource:
                 #i.dl().text("Right click will kill the live image", (10,30), color=col)
                 i.dl().text( "%.1f" % elapsed_time, (i.width - 70 ,i.height  - 8), color=col)
 
-            i.save(d)
+            d.showImage(i)
 
 
 
