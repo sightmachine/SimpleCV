@@ -1,0 +1,18 @@
+<!--DO NOT USE DOUBLE QUOTES IN THIS DOCUMENT -->
+<html>
+    <head>
+        <title>SimpleCV</title>
+        <script>
+            function showImage(id)
+            {
+                id10 = id%10;
+                var img = document.getElementById('id_img');
+                var url = 'http://' + document.domain + ':8888/display/' + id10 + '.png?ref=' + id;
+                img.src = url;
+            }
+        </script>
+    </head>
+    <body>
+        <img id='id_img' src='http://simplecv.org/sites/all/themes/kalypso/images/SM_logo_color.png'/>
+    </body>
+</html>
