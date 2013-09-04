@@ -6,10 +6,8 @@ from SimpleCV.Color import Color
 class SLIC:
     def __init__(self, img, step, nc):
         self.image = img
-        self.labimage = img.toLAB()
-        #self.img = img.getNumpy()
-        #self.labimg = cv2.cvtColor(self.img, cv2.COLOR_BGR2LAB).astype(np.float64)
-        self.labimg = self.labimage.getNumpy()
+        self.img = img.getNumpy()
+        self.labimg = cv2.cvtColor(self.img, cv2.COLOR_BGR2LAB).astype(np.float64)
         self.contourImage = img.copy()
         self.contourImg = self.contourImage._numpy
         self.width, self.height = img.size()
@@ -138,7 +136,7 @@ class SLIC:
         img = self.new_clusters
         limit = np.max(img)
         superpixels = Superpixels()
-        for label in range(limit):
+        for label in range(limit+1):
             clusterimg = Image(255*(img == label).astype(np.uint8))
             blob = clusterimg.findBlobs()[0]
             blob.image = self.image & clusterimg
@@ -152,18 +150,16 @@ class Superpixels(FeatureSet):
 
     def append(self, blob):
         list.append(self, blob)
-        print self.image.copy()
         if len(self) != 1:
             self.image += blob.image.copy()
 
-    def draw(self, color=Color.BLUE):
+    def draw(self, color=Color.BLUE, width=2, alpha=255):
         self.drawingImage = Image(self.image.getEmpty(3))
         for sp in self:
-            sp.draw(color=color, width = 2)
+            sp.draw(color=color, width=width, alpha=alpha)
         self.drawingImage = sp.image
 
-    def show(self):
+    def show(self, color=Color.BLUE, width=2, alpha=255):
         if type(self.drawingImage) == type(None):
-            self.image.show()
-        else:
-            self.drawingImage.show()
+            self.draw(color=color, width=width, alpha=alpha)
+        self.drawingImage.show()
