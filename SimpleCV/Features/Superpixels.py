@@ -1,13 +1,15 @@
 from SimpleCV.base import cv2, np
 from SimpleCV.ImageClass import Image
+from SimpleCV.Features import Blob, FeatureSet
+from SimpleCV.Color import Color
 
 class SLIC:
     def __init__(self, img, step, nc):
         self.image = img
-        #self.labimage = img.toLAB()
-        self.img = img.getNumpy()
-        self.labimg = cv2.cvtColor(self.img, cv2.COLOR_BGR2LAB).astype(np.float64)
-        #self.labimg = self.labimage.getNumpy()
+        self.labimage = img.toLAB()
+        #self.img = img.getNumpy()
+        #self.labimg = cv2.cvtColor(self.img, cv2.COLOR_BGR2LAB).astype(np.float64)
+        self.labimg = self.labimage.getNumpy()
         self.contourImage = img.copy()
         self.contourImg = self.contourImage._numpy
         self.width, self.height = img.size()
@@ -58,6 +60,10 @@ class SLIC:
                 self.centers[k][3:] = sumx, sumy
                 self.centers[k] /= np.sum(idx)
 
+        self._createConnectivity()
+        superpixels = self._segmentSuperpixels()
+        return superpixels
+
     def _initData(self):
         self.clusters = -1 * np.ones(self.img.shape[:2])
         self.distances = self.FLT_MAX * np.ones(self.img.shape[:2])
@@ -85,7 +91,7 @@ class SLIC:
                     loc_min = [i, j]
         return loc_min
     
-    def createConnectivity(self):
+    def _createConnectivity(self):
         label = 0
         adjlabel = 0
         lims = self.width * self.height / self.centers.shape[0]
@@ -128,31 +134,36 @@ class SLIC:
                 label+=1
         self.new_clusters = new_clusters
 
-    def drawContours(self, color=(255, 0, 0)):
-        dx8 = [-1, -1, 0, 1, 1, 1, 0, -1]
-        dy8 = [0, -1, -1, -1, 0, 1, 1, 1]
+    def _segmentSuperpixels(self):
+        img = self.new_clusters
+        limit = np.max(img)
+        superpixels = Superpixels()
+        for label in range(limit):
+            clusterimg = Image(255*(img == label).astype(np.uint8))
+            blob = clusterimg.findBlobs()[0]
+            blob.image = self.image & clusterimg
+            superpixels.append(blob)
+        return superpixels
 
-        isTaken = np.zeros(self.img.shape[:2], np.bool)
-        contours = []
+class Superpixels(FeatureSet):
+    def __init__(self):
+        self.image = None
+        self.drawingImage = None
 
-        for i in xrange(self.width):
-            for j in xrange(self.height):
-                nr_p = 0
-                for dx, dy in zip(dx8, dy8):
-                    x = i + dx
-                    y = j + dy
-                    if x>=0 and x < self.width and y>=0 and y < self.height:
-                        if isTaken[y, x] == False and self.clusters[j, i] != self.clusters[y, x]:
-                            nr_p += 1
-                if nr_p >= 2:
-                    isTaken[j, i] = True
-                    contours.append([j, i])
+    def append(self, blob):
+        list.append(self, blob)
+        print self.image.copy()
+        if len(self) != 1:
+            self.image += blob.image.copy()
 
-        for i in xrange(len(contours)):
-            self.contourImg[contours[i][0], contours[i][1]] = color
+    def draw(self, color=Color.BLUE):
+        self.drawingImage = Image(self.image.getEmpty(3))
+        for sp in self:
+            sp.draw(color=color, width = 2)
+        self.drawingImage = sp.image
 
-    def showContours(self):
-        self.createConnectivity()
-        self.drawContours()
-        self.contourImage.show()
-
+    def show(self):
+        if type(self.drawingImage) == type(None):
+            self.image.show()
+        else:
+            self.drawingImage.show()

@@ -14227,11 +14227,12 @@ class Image:
         filteredimage = flt.applyFilter(self, grayscale)
         return filteredimage
 
-    def showSuperpixels(self, nr_superpixels=400, nc=40):
+    def segmentSuperpixels(self, nr_superpixels=400, nc=40):
         step = int((self.width*self.height/nr_superpixels)**0.5)
         slic = SLIC(self, step, nc)
-        slic.generateSuperPixels()
-        slic.showContours()
+        superpixels = slic.generateSuperPixels()
+        return superpixels
+        
 
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer, SLIC
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
