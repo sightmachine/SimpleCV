@@ -2269,7 +2269,34 @@ class Image:
 
         """
         newimg = self.getNumpy()
-        return Image(newimg, colorSpace=self._colorSpace)
+        retVal = Image(newimg, colorSpace=self._colorSpace)
+
+        retVal.filename = self.filename
+        retVal.filehandle = self.filehandle
+        retVal.camera = self.camera
+        retVal._mLayers = copy(self._mLayers)
+        retVal._mDoHuePalette = self._mDoHuePalette
+        retVal._mPaletteBins = copy(self._mPaletteBins)
+        retVal._mPalette = copy(self._mPalette)
+        retVal._mPaletteMembers = copy(self._mPaletteMembers)
+        retVal._mPalettePercentages = copy(self._mPaletteMembers)
+
+        retVal._equalizedgrayNumpy = copy(self._equalizedgrayNumpy) #the above bitmap, normalized
+        retVal._blobLabel = copy(self._blobLabel)
+        retVal._edgeMap = copy(self._edgeMap)
+        retVal._cannyparam = self._cannyparam
+        retVal._pil = copy(self._pil)
+        retVal._gridLayer = copy(self._gridLayer)
+
+        retVal._DFT = copy(self._DFT)
+    
+        retVal._mKeyPoints = copy(self._mKeyPoints)
+        retVal._mKPDescriptors = copy(self._mKPDescriptors)
+        retVal._mKPFlavor = self._mKPFlavor
+
+        retVal._tempFiles = copy(self._tempFiles)
+
+        return retVal
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """

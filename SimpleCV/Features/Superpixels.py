@@ -1,4 +1,4 @@
-from SimpleCV.base import cv2, np
+from SimpleCV.base import cv2, np, LazyProperty, copy
 from SimpleCV.ImageClass import Image
 from SimpleCV.Features import Blob, FeatureSet
 from SimpleCV.Color import Color
@@ -138,26 +138,44 @@ class SLIC:
         superpixels = Superpixels()
         for label in range(limit+1):
             clusterimg = Image(255*(img == label).astype(np.uint8))
-            blob = clusterimg.findBlobs()[0]
+            blobs = clusterimg.findBlobs()
+            if blobs is None:
+                continue
+            blob = blobs[-1]
             blob.image = self.image & clusterimg
             superpixels.append(blob)
         return superpixels
 
 class Superpixels(FeatureSet):
     def __init__(self):
-        self.image = None
         self.drawingImage = None
+        pass
 
     def append(self, blob):
         list.append(self, blob)
-        if len(self) != 1:
-            self.image += blob.image.copy()
+        #if len(self) != 1:
+            #self.image += blob.image.copy()
+
+    @LazyProperty
+    def image(self):
+        img = None
+        for sp in self:
+            if img is None:
+                img = sp.image
+            else:
+                img += sp.image
+        return img
 
     def draw(self, color=Color.BLUE, width=2, alpha=255):
+        img = self.image.copy()
         self.drawingImage = Image(self.image.getEmpty(3))
+        _mLayers = []
         for sp in self:
             sp.draw(color=color, width=width, alpha=alpha)
-        self.drawingImage = sp.image
+            self.drawingImage += sp.image.copy()
+            for layer in sp.image._mLayers:
+                _mLayers.append(layer)
+            self.drawingImage._mLayers = copy(_mLayers)
 
     def show(self, color=Color.BLUE, width=2, alpha=255):
         if type(self.drawingImage) == type(None):
