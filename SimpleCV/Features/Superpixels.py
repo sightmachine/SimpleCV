@@ -148,7 +148,7 @@ class SLIC:
 
 class Superpixels(FeatureSet):
     def __init__(self):
-        self.drawingImage = None
+        self._drawingImage = None
         pass
 
     def append(self, blob):
@@ -168,16 +168,16 @@ class Superpixels(FeatureSet):
 
     def draw(self, color=Color.BLUE, width=2, alpha=255):
         img = self.image.copy()
-        self.drawingImage = Image(self.image.getEmpty(3))
+        self._drawingImage = Image(self.image.getEmpty(3))
         _mLayers = []
         for sp in self:
             sp.draw(color=color, width=width, alpha=alpha)
-            self.drawingImage += sp.image.copy()
+            self._drawingImage += sp.image.copy()
             for layer in sp.image._mLayers:
                 _mLayers.append(layer)
-            self.drawingImage._mLayers = copy(_mLayers)
+            self._drawingImage._mLayers = copy(_mLayers)
 
     def show(self, color=Color.BLUE, width=2, alpha=255):
-        if type(self.drawingImage) == type(None):
+        if type(self._drawingImage) == type(None):
             self.draw(color=color, width=width, alpha=alpha)
-        self.drawingImage.show()
+        self._drawingImage.show()
