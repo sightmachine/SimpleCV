@@ -18,6 +18,10 @@ class SLIC:
         self.ITERATIONS = 10
 
     def generateSuperPixels(self):
+        """
+        Compute the over-segmentation based on the step-size and relative 
+        weighting of the pixel and colour values.
+        """
         self._initData()
         indnp = np.mgrid[0:self.height,0:self.width].swapaxes(0,2).swapaxes(0,1)
         for i in range(self.ITERATIONS):
@@ -63,6 +67,10 @@ class SLIC:
         return superpixels
 
     def _initData(self):
+        """
+        Initialize the cluster centers and initial values of the pixel-wise
+        cluster assignment and distance values.
+        """
         self.clusters = -1 * np.ones(self.img.shape[:2])
         self.distances = self.FLT_MAX * np.ones(self.img.shape[:2])
 
@@ -77,6 +85,10 @@ class SLIC:
         self.centers = np.array(centers)
 
     def _findLocalMinimum(self, center):
+        """
+        Find a local gradient minimum of a pixel in a 3x3 neighbourhood.
+        This method is called upon initialization of the cluster centers.
+        """
         min_grad = self.FLT_MAX
         loc_min = center
         for i in xrange(center[0] - 1, center[0] + 2):
@@ -90,6 +102,9 @@ class SLIC:
         return loc_min
     
     def _createConnectivity(self):
+        """
+        Enforce connectivity of the superpixels. Needs to be optimized.
+        """
         label = 0
         adjlabel = 0
         lims = self.width * self.height / self.centers.shape[0]
@@ -147,8 +162,23 @@ class SLIC:
         return superpixels
 
 class Superpixels(FeatureSet):
+    """
+    ** SUMMARY **
+    Superpixels is a class extended from FeatureSet which is a class
+    extended from Python's list. So, it has all the properties of a list
+    as well as all the properties of FeatureSet.
+
+    Each object of this list is a Blob corresponding to the superpixel.
+
+    ** EXAMPLE **
+    >>> image = Image("lenna")
+    >>> sp = image.segmentSuperpixels(300, 20)
+    >>> sp.show()
+    >>> sp.centers()
+    """
     def __init__(self):
         self._drawingImage = None
+        self.clusterMeanImage = None
         pass
 
     def append(self, blob):
@@ -167,6 +197,30 @@ class Superpixels(FeatureSet):
         return img
 
     def draw(self, color=Color.BLUE, width=2, alpha=255):
+        """
+        **SUMMARY**
+
+        Draw all the superpixels, in the given color, to the appropriate layer
+
+        By default, this draws the superpixels boundary. If you
+        provide a width, an outline of the exterior and interior contours is drawn.
+
+        **PARAMETERS**
+
+        * *color* -The color to render the blob as a color tuple.
+        * *width* - The width of the drawn blob in pixels, if -1 then filled then the polygon is filled.
+        * *alpha* - The alpha value of the rendered blob 0=transparent 255=opaque.
+        
+        **RETURNS**
+
+        Image with superpixels drawn on it.
+
+        **EXAMPLE**
+
+        >>> image = Image("lenna")
+        >>> sp = image.segmentSuperpixels(300, 20)
+        >>> sp.draw(color=(255, 0, 255), width=5, alpha=128).show()
+        """
         img = self.image.copy()
         self._drawingImage = Image(self.image.getEmpty(3))
         _mLayers = []
@@ -175,9 +229,53 @@ class Superpixels(FeatureSet):
             self._drawingImage += sp.image.copy()
             for layer in sp.image._mLayers:
                 _mLayers.append(layer)
-            self._drawingImage._mLayers = copy(_mLayers)
+        self._drawingImage._mLayers = copy(_mLayers)
+        return self._drawingImage.copy()
 
     def show(self, color=Color.BLUE, width=2, alpha=255):
+        """
+        **SUMMARY**
+
+        This function automatically draws the superpixels on the drawing image
+        and shows it.
+
+        ** RETURNS **
+
+        None
+
+        ** EXAMPLE **
+        >>> image = Image("lenna")
+        >>> sp = image.segmentSuperpixels(300, 20)
+        >>> sp.show(color=(255, 0, 255), width=5, alpha=128)
+        """
         if type(self._drawingImage) == type(None):
             self.draw(color=color, width=width, alpha=alpha)
         self._drawingImage.show()
+
+    def colorWithClusterMeans(self):
+        """
+        **SUMMARY**
+
+        This function colors each superpixel with its mean color and
+        return an image.
+
+        **RETURNS**
+        Image with superpixles drawn in its mean color.
+
+        **EXAMPLE**
+        >>> image = Image("lenna")
+        >>> sp = image.segmentSuperpixels(300, 20)
+        >>> sp.colorWithClusterMeans().show()
+        """
+        if type(self.clusterMeanImage) == type(None):
+            return self.clusterMeanImage
+        self.clusterMeanImage = Image(self.image.getEmpty(3))
+        _mLayers = []
+        for sp in self:
+            color = tuple(reversed(sp.meanColor()))
+            sp.draw(color=color, width=-1)
+            self.clusterMeanImage += sp.image.copy()
+            for layer in sp.image._mLayers:
+                _mLayers.append(layer)
+        self.clusterMeanImage._mLayers = copy(_mLayers)
+        return self.clusterMeanImage

@@ -14255,6 +14255,29 @@ class Image:
         return filteredimage
 
     def segmentSuperpixels(self, nr_superpixels=400, nc=40):
+        """
+        **SUMMARY**
+
+        This function enables you to segment image in superpixels.
+
+        **PARAMETERS**
+
+        * *nr_superpixels* - number of superpixels that the image is to
+                             be segmented into
+        * *nc*             - weight factor
+
+        **RETURNS**
+
+        Superpixels - A list of each segmented superpixels as blobs
+
+        **EXAMPLE**
+
+        >>>  myImage = Image("MyImage.png")
+        >>>  sp = myImage.segmentSuperpixels(300, 20)
+        >>>  print sp
+        >>>  sp.show()
+        >>>  print sp.centers()
+        """
         step = int((self.width*self.height/nr_superpixels)**0.5)
         slic = SLIC(self, step, nc)
         superpixels = slic.generateSuperPixels()
