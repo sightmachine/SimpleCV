@@ -3958,3 +3958,12 @@ def test_findBlobsFromHueHistogram():
     B = img.findBlobsFromHueHistogram((10,10,50,50),smooth=False)
     C = img.findBlobsFromHueHistogram(img2,threshold=1)
     pass
+
+def test_superpixelSLIC():
+    img = Image("superpixelstestimage.png", sample=True)
+    sp = img.segmentSuperpixels(400, 40)
+    sp.draw(width=1)
+    img = sp.colorWithClusterMeans()
+    result = [img]
+    name_stem = "test_superpixelSLIC"
+    perform_diff(result, name_stem, 15)

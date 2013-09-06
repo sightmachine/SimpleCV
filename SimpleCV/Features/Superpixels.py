@@ -214,7 +214,7 @@ class Superpixels(FeatureSet):
                 img += sp.image
         return img
 
-    def draw(self, color=Color.BLUE, width=2, alpha=255):
+    def draw(self, color=Color.RED, width=2, alpha=255):
         """
         **SUMMARY**
 
@@ -250,7 +250,7 @@ class Superpixels(FeatureSet):
         self._drawingImage._mLayers = copy(_mLayers)
         return self._drawingImage.copy()
 
-    def show(self, color=Color.BLUE, width=2, alpha=255):
+    def show(self, color=Color.RED, width=2, alpha=255):
         """
         **SUMMARY**
 
