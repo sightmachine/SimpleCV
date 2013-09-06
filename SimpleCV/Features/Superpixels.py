@@ -4,6 +4,24 @@ from SimpleCV.Features import Blob, FeatureSet
 from SimpleCV.Color import Color
 
 class SLIC:
+    """
+    **SUMMARY**
+
+    This class contains an implementation of the SLIC Superpixel
+    algorithm by Achanta et al. (PAMI'12, vol. 34, num. 11, pp. 2274-2282).
+    The C++ implementation from which this Python implementation is derived
+    can be found here https://github.com/PSMM/SLIC-Superpixels
+
+    **EXAMPLE**
+
+     >>> img = Image("lenna")
+     >>> nr_superpixels = 400
+     >>> step = int((img.width*img.height/nr_superpixels)**0.5)
+     >>> nc = 40
+     >>> slic = SLIC(img, step, nc)
+     >>> superpixels = slic.generateSuperPixels()
+     >>> superpixels.show()
+    """
     def __init__(self, img, step, nc):
         self.image = img
         self.img = img.getNumpy()
@@ -267,7 +285,7 @@ class Superpixels(FeatureSet):
         >>> sp = image.segmentSuperpixels(300, 20)
         >>> sp.colorWithClusterMeans().show()
         """
-        if type(self.clusterMeanImage) == type(None):
+        if type(self.clusterMeanImage) != type(None):
             return self.clusterMeanImage
         self.clusterMeanImage = Image(self.image.getEmpty(3))
         _mLayers = []
