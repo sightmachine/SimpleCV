@@ -2269,7 +2269,34 @@ class Image:
 
         """
         newimg = self.getNumpy()
-        return Image(newimg, colorSpace=self._colorSpace)
+        retVal = Image(newimg, colorSpace=self._colorSpace)
+
+        retVal.filename = self.filename
+        retVal.filehandle = self.filehandle
+        retVal.camera = self.camera
+        retVal._mLayers = copy(self._mLayers)
+        retVal._mDoHuePalette = self._mDoHuePalette
+        retVal._mPaletteBins = copy(self._mPaletteBins)
+        retVal._mPalette = copy(self._mPalette)
+        retVal._mPaletteMembers = copy(self._mPaletteMembers)
+        retVal._mPalettePercentages = copy(self._mPaletteMembers)
+
+        retVal._equalizedgrayNumpy = copy(self._equalizedgrayNumpy) #the above bitmap, normalized
+        retVal._blobLabel = copy(self._blobLabel)
+        retVal._edgeMap = copy(self._edgeMap)
+        retVal._cannyparam = self._cannyparam
+        retVal._pil = copy(self._pil)
+        retVal._gridLayer = copy(self._gridLayer)
+
+        retVal._DFT = copy(self._DFT)
+    
+        retVal._mKeyPoints = copy(self._mKeyPoints)
+        retVal._mKPDescriptors = copy(self._mKPDescriptors)
+        retVal._mKPFlavor = self._mKPFlavor
+
+        retVal._tempFiles = copy(self._tempFiles)
+
+        return retVal
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
@@ -14227,7 +14254,37 @@ class Image:
         filteredimage = flt.applyFilter(self, grayscale)
         return filteredimage
 
-from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer
+    def segmentSuperpixels(self, nr_superpixels=400, nc=40):
+        """
+        **SUMMARY**
+
+        This function enables you to segment image in superpixels.
+
+        **PARAMETERS**
+
+        * *nr_superpixels* - number of superpixels that the image is to
+                             be segmented into
+        * *nc*             - weight factor
+
+        **RETURNS**
+
+        Superpixels - A list of each segmented superpixels as blobs
+
+        **EXAMPLE**
+
+        >>>  myImage = Image("MyImage.png")
+        >>>  sp = myImage.segmentSuperpixels(300, 20)
+        >>>  print sp
+        >>>  sp.show()
+        >>>  print sp.centers()
+        """
+        step = int((self.width*self.height/nr_superpixels)**0.5)
+        slic = SLIC(self, step, nc)
+        superpixels = slic.generateSuperPixels()
+        return superpixels
+        
+
+from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer, SLIC
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
 from SimpleCV.Stream import JpegStreamer
 from SimpleCV.Font import *

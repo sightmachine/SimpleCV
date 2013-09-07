@@ -199,7 +199,7 @@ class Blob(Feature):
         """
         #print self.mBoundingBox
         x, y, w, h = self.mBoundingBox
-        npimg = self.image.getNumpy()[x:w+x, y:y+h]
+        npimg = self.image.getNumpy()[y:y+h, x:x+w]
         b = np.average(npimg[:, :, 0])  
         g = np.average(npimg[:, :, 1])
         r = np.average(npimg[:, :, 2])
@@ -588,7 +588,7 @@ class Blob(Feature):
             #array = self.mContour.reshape(shape[0],shape[2])
             pointList = [ [self.mContour[i,0][0],self.mContour[i,0][1]] for i in range(shape[0]) ]
             #print pointList[0:5]
-            layer.polygon(pointList,filled=True,color=Color.GREEN,alpha=alpha,antialias = False)
+            layer.polygon(pointList,filled=True,color=color,alpha=alpha,antialias = False)
         else:
             self.drawOutline(color, alpha, width, layer)
             self.drawHoles(color, alpha, width, layer)
