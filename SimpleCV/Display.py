@@ -94,11 +94,12 @@ class Display:
     rightButtonUp = None
     displaytype = None
     pressed=[]
+    autoscalesize = 1
 
     def __repr__(self):
         return "<SimpleCV.Display Object resolution:(%s), Image Resolution: (%d, %d) at memory location: (%s)>" % (self.resolution, self.imgw, self.imgh, hex(id(self)))
 
-    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False):
+    def __init__(self, resolution = (640, 480), flags = 0, title = "SimpleCV", displaytype='standard', headless = False, autoscalesize=1.0):
         """
         **SUMMARY**
 
@@ -119,6 +120,7 @@ class Display:
           * 'notebook' - Ipython Web Notebook output
 
         * *headless* - If False we ignore healess mode. If true all rendering is suspended.
+        * *autoscalesize* - This will automatically scale the output image size, it is mainly meant for ipython notebooks or images that are too large and take up the screen
 
         **EXAMPLE**
 
@@ -131,7 +133,7 @@ class Display:
 
         """
         global PYGAME_INITIALIZED
-
+        self.autoscalesize = autoscalesize
         if headless:
             os.environ["SDL_VIDEODRIVER"] = "dummy"
 

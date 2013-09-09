@@ -2305,7 +2305,7 @@ class Image:
                     tf = tempfile.NamedTemporaryFile(suffix=".png")
                     loc = tf.name
                     tf.close()
-                    self.save(loc)
+                    self.scale(fh.autoscalesize).save(loc)
                     Idisplay.display(IPImage(filename=loc))
                     return
                 else:
