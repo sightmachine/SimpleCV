@@ -370,8 +370,6 @@ class ImageSet(list):
 
             converted.append((pil_img.convert('P',dither=dither), img._get_header_anim()))
 
-        print "here"
-
         try:
             for img, header_anim in converted:
                 if not previous:
