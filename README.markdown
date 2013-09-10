@@ -481,6 +481,7 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 * python-tesseract (<http://code.google.com/p/python-tesseract/>)
 * Orange (<http://orange.biolab.si>)
 * scikit-learn
+* exifread
 
 
 
