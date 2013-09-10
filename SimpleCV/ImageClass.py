@@ -370,6 +370,8 @@ class ImageSet(list):
 
             converted.append((pil_img.convert('P',dither=dither), img._get_header_anim()))
 
+        print "here"
+
         try:
             for img, header_anim in converted:
                 if not previous:
@@ -1153,7 +1155,7 @@ class Image:
         import os, string
 
         try:
-            from exifread import *
+            from exifread import process_file
         except ImportError:
             "You need exifread for this. Install it with 'pip install exifread'"
 
