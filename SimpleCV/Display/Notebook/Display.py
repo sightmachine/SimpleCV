@@ -36,7 +36,7 @@ class NBDisplay(Display.DisplayBase):
             NBDisplay.staticDir = tempfile.mkdtemp()
             NBDisplay.app = Application(static_path = NBDisplay.staticDir,
             static_url_prefix = "/display/")
-            NBDisplay.app.listen(8888)
+            NBDisplay.app.listen(18109)
             threading.Thread(target=tornado.ioloop.IOLoop.instance().start).start()
             
         w,h = size
@@ -62,7 +62,10 @@ class NBDisplay(Display.DisplayBase):
     
         uid = img.getUID()
         img.save(NBDisplay.staticDir + os.sep + str(uid%10) + '.png' )
-        command = "window.disp.showImage(%d)" % uid
+        print uid%10
+        w = img.width
+        h = img.height
+        command = "window.disp.show(%d,%d,%d)" % (uid,w,h)
         display(JS(command))
 
     def mousePosition(self):

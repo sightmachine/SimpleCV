@@ -3,16 +3,25 @@
     <head>
         <title>SimpleCV</title>
         <script>
-            function showImage(id)
+            function show(id,w,h)
             {
                 id10 = id%10;
-                var img = document.getElementById('id_img');
-                var url = 'http://' + document.domain + ':8888/display/' + id10 + '.png?ref=' + id;
+                var c=document.getElementById('id_canvas');
+                c.width = w;
+                c.height = h;
+                con = c.getContext('2d');
+                var url = 'http://' + document.domain + ':18109/display/' + id10 + '.png?ref=' + id;
+                var img = new Image();
+                img.onload = function() {
+                    con.drawImage(img, 10, 10);
+                    con.stroke();
+                };
                 img.src = url;
             }
         </script>
     </head>
     <body>
-        <img id='id_img' src='http://simplecv.org/sites/all/themes/kalypso/images/SM_logo_color.png'/>
+        <canvas id='id_canvas' class='canvas'></canvas>
     </body>
 </html>
+
