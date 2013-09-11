@@ -1,5 +1,5 @@
 numpy
 scipy
-PIL
+pillow
 ipython
 svgwrite
