@@ -1,11 +1,15 @@
 #!/usr/bin/python
 '''
 This program is a standard barcode reader.
-To use it you need to have the following library installed:
+To use it you need to have the following libraries installed:
 http://zbar.sourceforge.net
 
 To install on Ubuntu Linux 12.04 or higher:
 sudo apt-get install python-zbar
+
+https://pypi.python.org/pypi/svgwrite/
+To install on Ubuntu Linux 12.04 or higher:
+sudo pip install svgwrite
 
 
 Then line up the item in the red box and left click the mouse to tell
@@ -17,7 +21,7 @@ print __doc__
 
 import time
 import csv
-from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
+from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv, Barcode
 from SimpleCV.Display import Display
 
 cam = Camera()
@@ -35,7 +39,7 @@ while display.isNotDone():
         img.save(display)
         barcode = img.findBarcode()
         if barcode: # if we have a barcode
-            data = str(barcode.data)
+            data = str(barcode.__getitem__(0).data)
             print data
             if mydict.has_key(data):
                 mydict[data] = mydict[data] + 1
