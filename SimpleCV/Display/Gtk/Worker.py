@@ -1066,22 +1066,25 @@ class GtkWorker(Process):
     def findLines(self,data=None):
         img = self.getImage()
         fs = img.findLines()
-        fs.draw(width = 2)
-        self.putImage(img)
+        if fs is not None:
+            fs.draw(width = 2)
+            self.putImage(img)
         pass
 
     def findCircles(self, data = None):
         img = self.getImage()
         fs = img.findCircle()
-        fs.draw(width = 2)
-        self.putImage(img)
+        if fs is not None:
+            fs.draw(width = 2)
+            self.putImage(img)
         pass
 
     def findCorners(self,data=None):
         img = self.getImage()
         fs = img.findCorners()
-        fs.draw(width = 2)
-        self.putImage(img)
+        if fs is not None:
+            fs.draw(width = 2)
+            self.putImage(img)
         pass
 
     def putImage(self,img):
