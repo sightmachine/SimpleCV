@@ -33,6 +33,7 @@ Alternatively, you can install SimpleCV from source.
 	cd ~/Code
 	git clone git://github.com/sightmachine/SimpleCV.git
 	cd SimpleCV
+	sudo pip install -r requirements.txt
 	sudo python setup.py develop
 	
 5) After allowing those commands to run for a while (it is going to take a while, go
