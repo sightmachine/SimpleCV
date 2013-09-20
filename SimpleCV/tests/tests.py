@@ -2223,16 +2223,6 @@ def test_detection_spatial_relationships():
 
     pass
 
-def test_getEXIFData():
-    img = Image("../sampleimages/cat.jpg")
-    img2 = Image(testimage)
-    d1 = img.getEXIFData()
-    d2 = img2.getEXIFData()
-    if( len(d1) > 0 and len(d2) == 0 ):
-        pass
-    else:
-        assert False
-
 def test_get_raw_dft():
     img = Image("../sampleimages/RedDog2.jpg")
     raw3 = img.rawDFTImage()

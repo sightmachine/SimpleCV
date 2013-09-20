@@ -146,3 +146,19 @@ def test_screenshot():
         assert True
     else:
         assert False
+
+def test_getEXIFData():
+    try:
+        import exifread
+    except:
+        if (SHOW_WARNING_TESTS):
+            logger.warning("Couldn't run the getEXIFData test, exifread lib required.")
+        pass
+    img = Image("../sampleimages/cat.jpg")
+    img2 = Image(testimage)
+    d1 = img.getEXIFData()
+    d2 = img2.getEXIFData()
+    if( len(d1) > 0 and len(d2) == 0 ):
+        pass
+    else:
+        assert False
