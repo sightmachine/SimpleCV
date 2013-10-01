@@ -414,7 +414,7 @@ To run SimpleCV within an ipython notebook (ipython-notebooks are required to be
 to install ipython notebooks run the following:
 
 	sudo pip install tornado
-  sudo pip install pyzmq
+	sudo pip install pyzmq
 
 
 
