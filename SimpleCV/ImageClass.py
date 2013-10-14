@@ -11919,8 +11919,8 @@ class Image:
 
         """
         retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Flip(self.getBitmap(), retVal, 0) # vertical
-        cv.Transpose(retVal, retVal)
+        cv.Transpose(self.getBitmap(), retVal)
+        cv.Flip(retVal, retVal, 1) 
         return(Image(retVal, colorSpace=self._colorSpace))
 
     def rotate90(self):
@@ -11964,10 +11964,7 @@ class Image:
 
         """
 
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.getBitmap(), retVal)
-        cv.Flip(retVal, retVal, 0) # vertical
-        return(Image(retVal, colorSpace=self._colorSpace))
+        return self.rotate90()
 
     def rotateRight(self): # same as 270
         """
@@ -11986,10 +11983,8 @@ class Image:
         >>>> img.rotateRight().show()
 
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Flip(self.getBitmap(), retVal, 0) # vertical
-        cv.Transpose(retVal, retVal)
-        return(Image(retVal, colorSpace=self._colorSpace))
+        
+        return self.rotate(270)
 
 
     def rotate180(self):
@@ -12008,7 +12003,7 @@ class Image:
         >>>> img = Image('lenna')
         >>>> img.rotate180().show()
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
+        retVal = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U, 3)
         cv.Flip(self.getBitmap(), retVal, 0) #vertical
         cv.Flip(retVal, retVal, 1)#horizontal
         return(Image(retVal, colorSpace=self._colorSpace))
