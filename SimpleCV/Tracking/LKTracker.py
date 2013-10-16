@@ -103,7 +103,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
                                 minDistance = minDistance, blockSize = blockSize)
     if type(pt) == type(None):
         print "no points"
-        track = LK(img, bb, pt)
+        track = LKTrack(img, bb, pt)
         return track
 
     for i in xrange(len(pt)):
@@ -139,7 +139,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
         dy.append(p2[1]-p1[1])
 
     if not dx or not dy:
-        track = LK(img, bb, new_pts)
+        track = LKTrack(img, bb, new_pts)
         return track
 
     cen_dx = round(sum(dx)/len(dx))/3
