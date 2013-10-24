@@ -7501,7 +7501,7 @@ class Image:
             cv.Filter2D(self.getBitmap(),retVal,myKernel,center)
         return Image(retVal)
 
-    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM", grayscale=True):
+    def findTemplate(self, template_image = None, threshold = 5, method = "SQR_DIFF_NORM", grayscale=True, rawmatches = False):
         """
         **SUMMARY**
 
@@ -7606,6 +7606,8 @@ class Image:
         for location in mapped:
             fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
 
+        if (rawmatches):
+            return fs
         #cluster overlapping template matches
         finalfs = FeatureSet()
         if( len(fs) > 0 ):
