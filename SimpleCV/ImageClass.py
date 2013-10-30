@@ -4036,9 +4036,9 @@ class Image:
 
         **PARAMETERS**
 
-        * *rCurve* - the red ColorCurve object.
-        * *gCurve* - the green ColorCurve object.
-        * *bCurve* - the blue ColorCurve object.
+        * *rCurve* - the red ColorCurve object, or appropriately formatted list
+        * *gCurve* - the green ColorCurve object, or appropriately formatted list
+        * *bCurve* - the blue ColorCurve object, or appropriately formatted list
 
         **RETURNS**
 
@@ -4058,6 +4058,13 @@ class Image:
         :py:meth:`applyHLSCurve`
 
         """
+        if isinstance(bCurve, list):
+            bCurve = ColorCurve(bCurve)
+        if isinstance(gCurve, list):
+            gCurve = ColorCurve(gCurve)
+        if isinstance(rCurve, list):
+            rCurve = ColorCurve(rCurve)
+
         tempMat = np.array(self.getMatrix()).copy()
         tempMat[:, :, 0] = np.take(bCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(gCurve.mCurve, tempMat[:, :, 1])
@@ -4076,7 +4083,7 @@ class Image:
 
         **PARAMETERS**
 
-        * *curve* - a ColorCurve object.
+        * *curve* - a ColorCurve object, or 2d list that can be conditioned into one
 
         **RETURNS**
 
