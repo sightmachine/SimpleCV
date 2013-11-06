@@ -11312,6 +11312,192 @@ class Image:
 
         return retVal
 
+    def fitEdge(self,guess,window=10,threshold=128, measurements=5):
+      """
+        **SUMMARY**
+        
+        Fit edge in a binary/gray image using an initial guess and the least squares method.
+        The functions returns a single line  
+
+        **PARAMETERS**
+
+        * *guess* - A tuples of the form ((x0,y0),(x1,y1)) which is an approximate guess
+        * *window* - A window around the guess to search.
+        * *threshold* - the threshold above which we count a pixel as a line
+        * *measurements* -the number of line projections to use for fitting the line 
+        TODO: Constrict a line to black to white or white to black
+        Right vs. Left orientation.
+
+        **RETURNS**
+
+        A a line object 
+        **EXAMPLE**
+      """
+      searchLines = FeatureSet()
+      fitPoints = FeatureSet()
+      x1 = guess[0][0]
+      x2 = guess[1][0]
+      y1 = guess[0][1]
+      y2 = guess[1][1]
+      dx = float((x2-x1))/(measurements+1)
+      dy = float((y2-y1))/(measurements+1)
+      #obtain equation for initial guess line
+      if(  x1==x2): # we have to resize
+        m=0
+        mo = 0
+        b = x1
+        print 'verticalline'
+        #TODO: Deal with a vertical line, breaks right now as slope is undefinied (should be easy fix)
+      else:
+        m = float((y2-y1))/(x2-x1)
+        b = y1 - m*x1
+        mo = -1/m #slope of orthogonal line segments
+       
+      #obtain points for measurement along the initial guess line
+      s = np.zeros((measurements,2))
+      lpstartx = np.zeros(measurements)
+      lpstarty = np.zeros(measurements)
+      lpendx = np.zeros(measurements)
+      lpendy = np.zeros(measurements)
+      linefitpts = np.zeros((measurements,2))
+      for i in xrange(0, measurements):
+        s[i][0] = x1 + (i+1) * dx
+        s[i][1] = y1 + (i+1) * dy
+        fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
+        fy = fx * mo 
+        lpstartx[i] = s[i][0] + fx
+        lpstarty[i] = s[i][1] + fy
+        lpendx[i] = s[i][0] - fx
+        lpendy[i] = s[i][1] - fy
+        Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+        searchLines.append(Cur_line)
+        tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
+        fitPoints.append(Circle(self,tmp[0],tmp[1],3))
+        linefitpts[i] = tmp
+
+      x = linefitpts[:,0]
+      y = linefitpts[:,1]
+      ymin = np.min(y)
+      ymax = np.max(y)
+      xmax = np.max(x)
+      xmin = np.min(x)
+
+
+      if( (xmax-xmin) > (ymax-ymin) ):
+          # do the least squares
+          A = np.vstack([x,np.ones(len(x))]).T
+          m,c = nla.lstsq(A,y)[0]
+          y0 = int(m*xmin+c)
+          y1 = int(m*xmax+c)
+          finalLine = Line(self,((xmin,y0),(xmax,y1)))
+      else:
+          # do the least squares
+          A = np.vstack([y,np.ones(len(y))]).T
+          m,c = nla.lstsq(A,x)[0]
+          x0 = int(ymin*m+c)
+          x1 = int(ymax*m+c)
+          finalLine = Line(self,((x0,ymin),(x1,ymax)))
+
+      return finalLine, searchLines, fitPoints
+
+    def getThresholdCrossing(self, pt1, pt2, threshold=128, darktolight=True, lighttodark=True):
+        """
+        **SUMMARY**
+
+        This function takes in an image and two points, calculates the intensity 
+        profile between the points, and returns the single point at which the profile
+        crosses an intensity
+
+        **PARAMETERS**
+
+        * *pt1, pt2* - the starting and ending points in tuple form e.g. (1,2)
+
+        **RETURNS**
+
+        A a lumpy numpy array of the pixel values. Ususally this is in BGR format.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> myColor = [0,0,0]
+        >>> sl = img.getHorzScanline(422)
+        >>> sll = sl.tolist()
+        >>> for p in sll:
+        >>>    if( p == myColor ):
+        >>>        # do something
+
+        **SEE ALSO**
+
+        :py:meth:`getHorzScanlineGray`
+        :py:meth:`getVertScanlineGray`
+        :py:meth:`getVertScanline`
+
+        """
+        
+        linearr = self.getDiagonalScanlineGrey(pt1,pt2)
+        ind = 0
+        crossing = -1
+        while ind < linearr.size-1:
+            if darktolight:
+                if linearr[ind] <=threshold and linearr[ind+1] > threshold:
+                    crossing = ind
+                    break
+            if darktolight:
+                if linearr[ind] >= threshold and linearr[ind+1] < threshold:
+                    crossing = ind
+                    break
+            ind = ind +1
+        if crossing != -1:
+            xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
+            yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
+            retVal = (xind,yind)
+        else:
+            retVal = (-1,-1)
+            print 'Edgepoint not found.'
+        
+        return retVal
+
+    def getDiagonalScanlineGrey(self, pt1, pt2):
+        """
+        **SUMMARY**
+
+        This function returns a single line of greyscale values from the image.
+        TODO: speed inprovements and RGB tolerance
+
+        **PARAMETERS**
+
+        * *pt1, pt2* - the starting and ending points in tuple form e.g. (1,2)
+
+        **RETURNS**
+
+        An array of the pixel values.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> sl = img.getDiagonalScanlineGrey((100,200),(300,400))
+        
+
+        **SEE ALSO**
+
+        :py:meth:`getHorzScanlineGray`
+        :py:meth:`getVertScanlineGray`
+        :py:meth:`getVertScanline`
+
+        """
+        if not self.isGray():
+            self = self.toGray()
+        #self = self._getGrayscaleBitmap()
+        width = round(math.sqrt(math.pow(pt2[0]-pt1[0],2) + math.pow(pt2[1]-pt1[1],2)))
+        retVal = np.zeros(width)
+        
+        for x in range(0, retVal.size):
+            xind = pt1[0] + int(round((pt2[0]-pt1[0])*x/retVal.size))
+            yind = pt1[1] + int(round((pt2[1]-pt1[1])*x/retVal.size))
+            current_pixel = self.getPixel(xind,yind)
+            retVal[x] = current_pixel[0]
+        return retVal
+
     def fitLines(self,guesses,window=10,threshold=128):
         """
         **SUMMARY**
