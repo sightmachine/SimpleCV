@@ -11341,39 +11341,51 @@ class Image:
       y2 = guess[1][1]
       dx = float((x2-x1))/(measurements+1)
       dy = float((y2-y1))/(measurements+1)
-      #obtain equation for initial guess line
-      if(  x1==x2): # we have to resize
-        m=0
-        mo = 0
-        b = x1
-        print 'verticalline'
-        #TODO: Deal with a vertical line, breaks right now as slope is undefinied (should be easy fix)
-      else:
-        m = float((y2-y1))/(x2-x1)
-        b = y1 - m*x1
-        mo = -1/m #slope of orthogonal line segments
-       
-      #obtain points for measurement along the initial guess line
       s = np.zeros((measurements,2))
       lpstartx = np.zeros(measurements)
       lpstarty = np.zeros(measurements)
       lpendx = np.zeros(measurements)
       lpendy = np.zeros(measurements)
       linefitpts = np.zeros((measurements,2))
-      for i in xrange(0, measurements):
-        s[i][0] = x1 + (i+1) * dx
-        s[i][1] = y1 + (i+1) * dy
-        fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
-        fy = fx * mo 
-        lpstartx[i] = s[i][0] + fx
-        lpstarty[i] = s[i][1] + fy
-        lpendx[i] = s[i][0] - fx
-        lpendy[i] = s[i][1] - fy
-        Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
-        searchLines.append(Cur_line)
-        tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
-        fitPoints.append(Circle(self,tmp[0],tmp[1],3))
-        linefitpts[i] = tmp
+
+      #obtain equation for initial guess line
+      if( x1==x2): #vertical line must be handled as special case since slope isn't defined
+        m=0
+        mo = 0
+        b = x1
+        for i in xrange(0, measurements):
+            s[i][0] = x1 
+            s[i][1] = y1 + (i+1) * dy
+            lpstartx[i] = s[i][0] + window
+            lpstarty[i] = s[i][1] 
+            lpendx[i] = s[i][0] - window
+            lpendy[i] = s[i][1] 
+            Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+            searchLines.append(Cur_line)
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
+            fitPoints.append(Circle(self,tmp[0],tmp[1],3))
+            linefitpts[i] = tmp
+
+      else:
+        m = float((y2-y1))/(x2-x1)
+        b = y1 - m*x1
+        mo = -1/m #slope of orthogonal line segments
+       
+        #obtain points for measurement along the initial guess line
+        for i in xrange(0, measurements):
+            s[i][0] = x1 + (i+1) * dx
+            s[i][1] = y1 + (i+1) * dy
+            fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
+            fy = fx * mo 
+            lpstartx[i] = s[i][0] + fx
+            lpstarty[i] = s[i][1] + fy
+            lpendx[i] = s[i][0] - fx
+            lpendy[i] = s[i][1] - fy
+            Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+            searchLines.append(Cur_line)
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
+            fitPoints.append(Circle(self,tmp[0],tmp[1],3))
+            linefitpts[i] = tmp
 
       x = linefitpts[:,0]
       y = linefitpts[:,1]
