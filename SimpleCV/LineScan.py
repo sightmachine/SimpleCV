@@ -997,6 +997,33 @@ class LineScan(list):
             retVal = vals[-1]
         return retVal
 
+    def findFirstIdxGreaterThan(self,value=255):
+        """
+        **SUMMARY**
+
+        Find the index of the first element of the linescan that has
+        a value equal to value. If nothing is found None is returned.
+
+        **PARAMETERS**
+
+        * *value* - the value to look for.
+
+        **RETURNS**
+
+        The first index where the value occurs or None if none is found.
+
+
+        **EXAMPLE**
+
+        >>>> ls = img.getLineScan(x=10)
+        >>>> idx = ls.findFIRSTIDXEqualTo()
+
+        """
+        vals = np.where(np.array(self)>=value)[0]
+        retVal = None
+        if( len(vals) > 0 ):
+            retVal = vals[0]
+        return retVal
     def applyLUT(self,lut):
         """
         **SUMMARY**
