@@ -172,8 +172,8 @@ def setup_plain():
 
 def run_notebook(mainArgs):
     """Run the ipython notebook server"""
-    from IPython.frontend.html.notebook import notebookapp
-    from IPython.frontend.html.notebook import kernelmanager
+    from IPython.html import notebookapp
+    from IPython.html.services.kernels import kernelmanager
 
     code = ""
     code += "from SimpleCV import *;"
