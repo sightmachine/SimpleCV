@@ -12191,7 +12191,7 @@ class Image:
 
         """
         
-        return self.rotate(270)
+        return self.rotate270()
 
 
     def rotate180(self):
