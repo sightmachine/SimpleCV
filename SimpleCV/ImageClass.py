@@ -4209,7 +4209,7 @@ class Image:
         return Image(distances.reshape(self.width, self.height))
 
 
-    def erode(self, iterations=1):
+    def erode(self, iterations=1, kernelsize=3):
         """
         **SUMMARY**
 
@@ -4254,7 +4254,7 @@ class Image:
 
         """
         retVal = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
+        kern = cv.CreateStructuringElementEx(kernelsize,kernelsize, 1, 1, cv.CV_SHAPE_RECT)
         cv.Erode(self.getBitmap(), retVal, kern, iterations)
         return Image(retVal, colorSpace=self._colorSpace)
 
@@ -11412,7 +11412,7 @@ class Image:
 
       return finalLine, searchLines, fitPoints
 
-    def getThresholdCrossing(self, pt1, pt2, threshold=128, darktolight=True, lighttodark=True):
+    def getThresholdCrossing(self, p1, p2, threshold=128, darktolight=True, lighttodark=True):
         """
         **SUMMARY**
 
@@ -11422,7 +11422,7 @@ class Image:
 
         **PARAMETERS**
 
-        * *pt1, pt2* - the starting and ending points in tuple form e.g. (1,2)
+        * *p1, p2* - the starting and ending points in tuple form e.g. (1,2)
 
         **RETURNS**
 
@@ -11445,29 +11445,30 @@ class Image:
         :py:meth:`getVertScanline`
 
         """
-        
-        linearr = self.getDiagonalScanlineGrey(pt1,pt2)
+                
+        linearr = self.toGray().getLineScan(pt1 = p1, pt2 = p2)
+        linearr = np.array(linearr)
+        print linearr
+       # linearr = self.getDiagonalScanlineGrey(pt1,pt2)
         ind = 0
-        crossing = -1
-        while ind < linearr.size-1:
-            if darktolight:
-                if linearr[ind] <=threshold and linearr[ind+1] > threshold:
-                    crossing = ind
-                    break
-            if darktolight:
-                if linearr[ind] >= threshold and linearr[ind+1] < threshold:
-                    crossing = ind
-                    break
-            ind = ind +1
-        if crossing != -1:
-            xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
-            yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
-            retVal = (xind,yind)
-        else:
-            retVal = (-1,-1)
-            print 'Edgepoint not found.'
+        #todo make sure that this doesn't trip on first pixel as we are using roll function for speed
+        if lighttodark:
+            crossingdarktolight = np.where((linearr<=threshold) & (np.roll(linearr,1) >threshold))[0][0]
+        if darktolight:
+            crossinglighttodark = np.where((linearr>=threshold) & (np.roll(linearr,1) <threshold))[0][0]
+        if (not any(crossingdarktolight)) & (not any(crossinglighttodark)):
+            return (-1,-1)
+        if not any(crossinglighttodark):
+            crossinglighttodark = float('inf')
+        if not any(crossingdarktolight):
+            crossingdarktolight = float('inf')
+    
+
+        crossing = min(crossingdarktolight,crossinglighttodark)
+        xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
+        yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
+        return (xind,yind)
         
-        return retVal
 
     def getDiagonalScanlineGrey(self, pt1, pt2):
         """
