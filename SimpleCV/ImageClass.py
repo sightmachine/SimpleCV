@@ -11362,7 +11362,7 @@ class Image:
             lpendy[i] = s[i][1] 
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
             linefitpts[i] = tmp
 
@@ -11383,7 +11383,7 @@ class Image:
             lpendy[i] = s[i][1] - fy
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
             linefitpts[i] = tmp
 
