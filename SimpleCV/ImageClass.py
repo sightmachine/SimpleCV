@@ -11412,7 +11412,7 @@ class Image:
 
       return finalLine, searchLines, fitPoints
 
-    def getThresholdCrossing(self, pt1, pt2, threshold=128, darktolight=True, lighttodark=True):
+    def getThresholdCrossing(self, pt1, pt2, threshold=128, darktolight=True, lighttodark=True, departurethreshold=1):
         """
         **SUMMARY**
 
@@ -11423,6 +11423,8 @@ class Image:
         **PARAMETERS**
 
         * *p1, p2* - the starting and ending points in tuple form e.g. (1,2)
+        * *threshold* pixel value of desired threshold crossing
+        * *departurethreshold* - noise reduction technique.  requires this many points to be above the threshold to trigger crossing
 
         **RETURNS**
 
@@ -11445,27 +11447,45 @@ class Image:
         :py:meth:`getVertScanline`
 
         """
-        
         linearr = self.getDiagonalScanlineGrey(pt1,pt2)
         ind = 0
         crossing = -1
-        while ind < linearr.size-1:
-            if darktolight:
-                if linearr[ind] <=threshold and linearr[ind+1] > threshold:
-                    crossing = ind
-                    break
-            if darktolight:
-                if linearr[ind] >= threshold and linearr[ind+1] < threshold:
-                    crossing = ind
-                    break
-            ind = ind +1
-        if crossing != -1:
-            xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
-            yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
-            retVal = (xind,yind)
+        if departurethreshold==1:
+            while ind < linearr.size-1:
+                if darktolight:
+                    if linearr[ind] <=threshold and linearr[ind+1] > threshold:
+                        crossing = ind
+                        break
+                if lighttodark:
+                    if linearr[ind] >= threshold and linearr[ind+1] < threshold:
+                        crossing = ind
+                        break
+                ind = ind +1
+            if crossing != -1:
+                xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
+                yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
+                retVal = (xind,yind)
+            else:
+                retVal = (-1,-1)
+                print 'Edgepoint not found.'
         else:
-            retVal = (-1,-1)
-            print 'Edgepoint not found.'
+            while ind < linearr.size-departurethreshold+1:
+                if darktolight:
+                    if linearr[ind] <=threshold and (linearr[ind+1:ind+1+departurethreshold] > threshold).all():
+                        crossing = ind
+                        break
+                if lighttodark:
+                    if linearr[ind] >= threshold and (linearr[ind+1:ind+1+departurethreshold] < threshold).all():
+                        crossing = ind
+                        break
+                ind = ind +1
+            if crossing != -1:
+                xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
+                yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
+                retVal = (xind,yind)
+            else:
+                retVal = (-1,-1)
+                print 'Edgepoint not found.'
         
         return retVal
 
