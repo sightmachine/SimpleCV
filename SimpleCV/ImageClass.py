@@ -11469,7 +11469,7 @@ class Image:
                 retVal = (-1,-1)
                 print 'Edgepoint not found.'
         else:
-            while ind < linearr.size-departurethreshold+1:
+            while ind < linearr.size-(departurethreshold+1):
                 if darktolight:
                     if linearr[ind] <=threshold and (linearr[ind+1:ind+1+departurethreshold] > threshold).all():
                         crossing = ind
