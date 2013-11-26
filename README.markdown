@@ -86,10 +86,7 @@ Run the following commands:
     mkdir src
     ln -s /usr/local/lib/python2.7/dist-packages/cv2.so lib/python2.7/site-packages/cv2.so
     ln -s /usr/local/lib/python2.7/dist-packages/cv.py lib/python2.7/site-packages/cv.py
-    ./bin/pip install https://github.com/numpy/numpy/zipball/master
-    ./bin/pip install https://github.com/scipy/scipy/zipball/master
-    ./bin/pip install PIL
-    ./bin/pip install ipython
+    ./bin/pip install -r requirements.txt
     mkdir src
     wget -O src/pygame.tar.gz https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.tar.gz
     cd src
