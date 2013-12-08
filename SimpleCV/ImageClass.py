@@ -3564,7 +3564,7 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> mask = img.findSkintoneMask()
+        >>> mask = img.getSkintoneMask()
         >>> mask.show()
 
         """
