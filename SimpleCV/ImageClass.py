@@ -1040,7 +1040,7 @@ class Image:
                 raise IOError("No filename provided to Image constructor")
 
         
-            elif webp or source.split('.')[-1] == 'webp':
+            elif webp or (source.__class__.__name__!='StringIO' and source.split('.')[-1] == 'webp'):
                 try:
                     if source.__class__.__name__ == 'StringIO':
                       source.seek(0) # set the stringIO to the begining
