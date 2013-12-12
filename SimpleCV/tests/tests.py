@@ -12,6 +12,7 @@
 import os, sys, pickle, operator
 from SimpleCV import *
 from nose.tools import with_setup, nottest
+import StringIO
 
 VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated.
@@ -75,6 +76,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
                 return True
     return False
 
+
 #Save a list of images to a standard path.
 def imgSaves(test_imgs, name_stem, path=standard_path):
     count = len(test_imgs)
@@ -101,7 +103,6 @@ def test_image_stretch():
     result = [stretched]
     name_stem = "test_stretch"
     perform_diff(result,name_stem)
-
 
 #These function names are required by nose test, please leave them as is
 def setup_context():
@@ -134,6 +135,16 @@ def test_image_numpy_constructor():
         pass
     else:
         assert False
+
+def test_image_stringio_constructor():
+    img = Image('lenna')
+    buff = StringIO.StringIO()
+    img.save(buff)
+    buff.seek(0)
+    try:
+      new_img = Image(buff)
+    except:
+      assert False
 
 def test_image_bitmap():
     img1 = Image("lenna")
