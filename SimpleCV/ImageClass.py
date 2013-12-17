@@ -4487,7 +4487,8 @@ class Image:
         (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
         return hist.tolist()
 
-    def hueHistogram(self, bins = 179):
+    def hueHistogram(self, bins = 179, dynamicRange=True):
+
         """
         **SUMMARY**
 
@@ -4507,7 +4508,10 @@ class Image:
         :py:meth:`histogram`
 
         """
-        return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
+        if dynamicRange:
+            return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
+        else:
+            return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins, range=(0.0,360.0))[0]
 
     def huePeaks(self, bins = 179):
         """
@@ -5252,6 +5256,8 @@ class Image:
         elif(maxY > newHeight-1 ):
             tY = -1.0*(maxY-newHeight)
 
+        import pdb; pdb.set_trace()
+        print tX, tY
 
         #now we construct an affine map that will the rotation and scaling we want with the
         #the corners all lined up nicely with the output image.
@@ -11312,7 +11318,7 @@ class Image:
 
         return retVal
 
-    def fitEdge(self,guess,window=10,threshold=128, measurements=5):
+    def fitEdge(self,guess,window=10,threshold=128, measurements=5, darktolight=True, lighttodark=True):
       """
         **SUMMARY**
         
@@ -11362,7 +11368,7 @@ class Image:
             lpendy[i] = s[i][1] 
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold)
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
             linefitpts[i] = tmp
 
@@ -11383,7 +11389,7 @@ class Image:
             lpendy[i] = s[i][1] - fy
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold)
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
             linefitpts[i] = tmp
 
