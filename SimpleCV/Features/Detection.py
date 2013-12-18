@@ -515,7 +515,7 @@ class Line(Feature):
             m = self.slope
             #y = mx + b | b = y-mx
             self.yIntercept = pt1[1] - m * pt1[0]
-            return self.yIntercept
+        return self.yIntercept
 
     def extendToImageEdges(self):
         """

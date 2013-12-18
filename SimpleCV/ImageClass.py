@@ -11390,7 +11390,7 @@ class Image:
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
             tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight)
-            fitPoints.append(Circle(self,tmp[0],tmp[1],3))
+            fitPoints.append((tmp[0],tmp[1]))
             linefitpts[i] = tmp
 
       x = linefitpts[:,0]
