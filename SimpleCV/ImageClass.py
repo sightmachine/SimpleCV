@@ -11345,8 +11345,8 @@ class Image:
       x2 = guess[1][0]
       y1 = guess[0][1]
       y2 = guess[1][1]
-      dx = float((x2-x1))/(measurements+1)
-      dy = float((y2-y1))/(measurements+1)
+      dx = float((x2-x1))/(measurements-1)
+      dy = float((y2-y1))/(measurements-1)
       s = np.zeros((measurements,2))
       lpstartx = np.zeros(measurements)
       lpstarty = np.zeros(measurements)
@@ -11361,7 +11361,7 @@ class Image:
         b = x1
         for i in xrange(0, measurements):
             s[i][0] = x1 
-            s[i][1] = y1 + (i+1) * dy
+            s[i][1] = y1 + (i) * dy
             lpstartx[i] = s[i][0] + window
             lpstarty[i] = s[i][1] 
             lpendx[i] = s[i][0] - window
@@ -11379,8 +11379,8 @@ class Image:
        
         #obtain points for measurement along the initial guess line
         for i in xrange(0, measurements):
-            s[i][0] = x1 + (i+1) * dx
-            s[i][1] = y1 + (i+1) * dy
+            s[i][0] = x1 + i * dx
+            s[i][1] = y1 + i * dy
             fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
             fy = fx * mo 
             lpstartx[i] = s[i][0] + fx
