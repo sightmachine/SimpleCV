@@ -11361,7 +11361,7 @@ class Image:
         b = x1
         for i in xrange(0, measurements):
             s[i][0] = x1 
-            s[i][1] = y1 + (i) * dy
+            s[i][1] = y1 + i * dy
             lpstartx[i] = s[i][0] + window
             lpstarty[i] = s[i][1] 
             lpendx[i] = s[i][0] - window
