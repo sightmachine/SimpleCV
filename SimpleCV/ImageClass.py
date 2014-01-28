@@ -935,7 +935,7 @@ class Image:
                             angle = angle+ 2*pi
                         nth_bin = floor(float(angle/BIN_RANGE))
                         HOG[((m*no_divs+n)*no_bins + int(nth_bin))] += norm_grad
-        return HOG
+        return HOG.transpose()
 
 
  
