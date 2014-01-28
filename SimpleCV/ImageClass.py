@@ -1,4 +1,4 @@
-#Load required libraries
+# Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from SimpleCV.LineScan import *
@@ -99,8 +99,6 @@ class ImageSet(list):
             self.load(directory)
         else:
             self.load(directory)
-    
- 
 
     def download(self, tag=None, number=10, size='thumb'):
         """
