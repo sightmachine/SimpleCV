@@ -1,4 +1,4 @@
-# Load required libraries
+#Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
 from SimpleCV.LineScan import *
@@ -99,6 +99,8 @@ class ImageSet(list):
             self.load(directory)
         else:
             self.load(directory)
+    
+ 
 
     def download(self, tag=None, number=10, size='thumb'):
         """
@@ -876,7 +878,67 @@ class Image:
             fn = self.filename
         return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
 
+    def findHOGFeatures(self, no_divs=3, no_bins=6):
+        """
+        **SUMMARY**
+        Get HOG(Histogram of Oriented Gradients) features from the image.
+    
 
+        **PARAMETERS**
+        * *no_divs* - the number of divisions(cells).
+        * *no_divs* - the number of orientation bins.
+
+        **RETURNS**
+        Returns the HOG vector in a numpy array
+       
+        """
+        
+ 
+        #Size of HOG vector
+        n_HOG = no_divs*no_divs*no_bins;
+        
+        #Initialize output HOG vector
+        #HOG = [0.0]*n_HOG    
+        HOG = np.zeros((n_HOG,1))
+        #Apply sobel on image to find x and y orientations of the image
+        Icv = self.getNumpyCv2()
+        Ix = cv2.Sobel(Icv, ddepth = cv.CV_32F, dx=1, dy=0, ksize=3)
+        Iy = cv2.Sobel(Icv, ddepth = cv.CV_32F, dx=0, dy=1, ksize=3)
+     
+        Ix = Ix.transpose(1,0,2)
+        Iy = Iy.transpose(1,0,2)
+        cellx = self.width/no_divs     #width of each cell(division)
+        celly = self.height/no_divs    #height of each cell(division)    
+        
+        #Area of image
+        img_area = self.height * self.width
+
+        #Range of each bin
+        BIN_RANGE = (2*pi)/(no_bins)
+
+        m=0
+        angles = np.arctan2(Iy,Ix)
+        magnit = ((Ix**2)+(Iy**2))**0.5
+
+        for m in range(0, no_divs):
+            for n in range(0, no_divs):
+                for i in range(0,cellx):
+                    for j in range(0, celly):
+                        #grad value
+                        grad = magnit[m*cellx + i, n*celly+j][0]
+                        #normalized grad value
+                        norm_grad = grad/img_area
+                        #Orientation Angle
+                        angle = angles[m*cellx + i, n*celly+j][0]  
+                        #(-pi,pi) to (0, 2*pi)
+                        if(angle < 0):
+                            angle = angle+ 2*pi
+                        nth_bin = floor(float(angle/BIN_RANGE))
+                        HOG[((m*no_divs+n)*no_bins + int(nth_bin))] += norm_grad
+        return HOG
+
+
+ 
     #initialize the frame
     #parameters: source designation (filename)
     #todo: handle camera/capture from file cases (detect on file extension)
