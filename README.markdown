@@ -65,7 +65,7 @@ Install with pip
 
 Install using clone of SimpleCV repository
 
-    sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools git python-pip
+    sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools git
     git clone https://github.com/sightmachine/SimpleCV.git
     cd SimpleCV/
     sudo pip install -r requirements.txt
