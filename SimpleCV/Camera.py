@@ -169,8 +169,8 @@ class FrameSource:
 
         cv.Set2D(intrinsic_matrix, 0, 0, 1.0)
         cv.Set2D(intrinsic_matrix, 1, 1, 1.0)
-        rcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
-        tcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
+        rcv = cv.CreateMat(successes, 3, cv.CV_64FC1)
+        tcv = cv.CreateMat(successes, 3, cv.CV_64FC1)
         # camera calibration
         cv.CalibrateCamera2(object_points2, image_points2, point_counts2,
                             (img.width, img.height), intrinsic_matrix,distortion_coefficient,
