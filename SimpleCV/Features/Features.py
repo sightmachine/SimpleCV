@@ -62,7 +62,7 @@ class FeatureSet(list):
 
         return len(self)
 
-    def draw(self, color = Color.GREEN,width=1, autocolor = False):
+    def draw(self, color = Color.GREEN,width=1, autocolor = False, alpha=-1):
         """
         **SUMMARY**
 
@@ -90,7 +90,10 @@ class FeatureSet(list):
         for f in self:
             if(autocolor):
                 color = Color().getRandom()
-            f.draw(color=color,width=width)
+            if alpha != -1:
+                f.draw(color=color,width=width,alpha=alpha)
+            else:
+                f.draw(color=color,width=width)
 
     def show(self, color = Color.GREEN, autocolor = False,width=1):
         """

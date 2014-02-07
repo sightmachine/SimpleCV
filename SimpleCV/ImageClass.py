@@ -4144,7 +4144,7 @@ class Image:
         distances *= (255.0/distances.max()) #normalize to 0 - 255
         return Image(distances.reshape(self.width, self.height)) #return an Image
 
-    def hueDistance(self, color = Color.BLACK, minsaturation = 20, minvalue = 20):
+    def hueDistance(self, color = Color.BLACK, minsaturation = 20, minvalue = 20, maxvalue=255):
         """
         **SUMMARY**
 
@@ -11157,6 +11157,39 @@ class Image:
 
         return img
 
+
+    def fillHoles(self):
+        """
+        **SUMMARY**
+
+        Fill holes on a binary image by closing the contours
+
+        **PARAMETERS**
+
+        * *img* - a binary image
+        **RETURNS**
+
+        The image with the holes filled
+        **EXAMPLE**
+
+        >>> img = Image("SimpleCV")
+        #todo Add noise and showcase the image 
+
+        """
+        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+        # res = cv2.morphologyEx(self.getGrayNumpy(),cv2.MORPH_OPEN,kernel)
+        # return res
+        des = cv2.bitwise_not(self.getGrayNumpy())
+        return cv2.inPaint(des)
+        contour,hier = cv2.findContours(des,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)
+
+        for cnt in contour:
+            cv2.drawContours(des,[cnt],0,255,-1)
+            print 'yep'
+
+        gray = cv2.bitwise_not(des)
+        return gray
+
     def edgeIntersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
         """
         **SUMMARY**
@@ -11318,7 +11351,7 @@ class Image:
 
         return retVal
 
-    def fitEdge(self,guess,window=10,threshold=128, measurements=5, darktolight=True, lighttodark=True):
+    def fitEdge(self,guess,window=10,threshold=128, measurements=5, darktolight=True, lighttodark=True,departurethreshold=1):
       """
         **SUMMARY**
         
@@ -11368,7 +11401,7 @@ class Image:
             lpendy[i] = s[i][1] 
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight)
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight, departurethreshold=departurethreshold)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
             linefitpts[i] = tmp
 
@@ -11389,7 +11422,7 @@ class Image:
             lpendy[i] = s[i][1] - fy
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight)
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight,departurethreshold=departurethreshold)
             fitPoints.append((tmp[0],tmp[1]))
             linefitpts[i] = tmp
 
