@@ -122,9 +122,10 @@ class FrameSource:
         successes = 0
         imgIdx = 0
         #       capturing required number of views
-        while(successes < n_boards):
+        while(imgIdx < n_boards):
             found = 0
             img = imageList[imgIdx]
+            imgIdx = imgIdx+1
             (found, corners) = cv.FindChessboardCorners(img.getGrayscaleMatrix(), board_sz,
                                                      cv.CV_CALIB_CB_ADAPTIVE_THRESH |
                                                      cv.CV_CALIB_CB_FILTER_QUADS)
