@@ -143,8 +143,8 @@ class FrameSource:
                 for j in range(board_n):
                     cv.Set2D(image_points, k, 0, corners[j][0])
                     cv.Set2D(image_points, k, 1, corners[j][1])
-                    cv.Set2D(object_points, k, 0, grid_sz*(float(j)/float(board_w)))
-                    cv.Set2D(object_points, k, 1, grid_sz*(float(j)%float(board_w)))
+                    cv.Set2D(object_points, k, 0, grid_sz*(float(j/board_w)))
+                    cv.Set2D(object_points, k, 1, grid_sz*(float(j%board_w)))
                     cv.Set2D(object_points, k, 2, 0.0)
                     k = k + 1
                 cv.Set2D(point_counts, successes, 0, board_n)
