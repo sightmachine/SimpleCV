@@ -3253,12 +3253,12 @@ class AVTCamera(FrameSource):
           try:
             pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
           except Exception, e:
-            print "Excepted:", e
-            return None
+            print "Exception waiting for frame:", e
+            raise(e)
             
         except Exception, e:
-          print "Exception:", e
-          return None
+            print "Exception aquiring frame:", e
+            raise(e)  
           
         return frame
 

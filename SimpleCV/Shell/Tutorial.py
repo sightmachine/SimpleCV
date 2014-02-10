@@ -83,7 +83,7 @@ def tutorial_image():
     print "SimpleCV Image tutorial"
     print "-----------------------"
     print lb
-    print "Using images are simple, in SimpleCV."
+    print "Using images is simple, in SimpleCV."
     print lb
     print "First thing we are going to do is load an image. Try it yourself:"
     print lb

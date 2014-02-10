@@ -948,7 +948,7 @@ class Image:
             
         #Check if loaded from base64 URI
         if isinstance(source, basestring) and (source.lower().startswith("data:image/png;base64,")):
-            img = message[22:].decode("base64")
+            img = source[22:].decode("base64")
             im = StringIO(img)
             source = pil.open(im).convert("RGB")
 
@@ -5256,8 +5256,6 @@ class Image:
         elif(maxY > newHeight-1 ):
             tY = -1.0*(maxY-newHeight)
 
-        import pdb; pdb.set_trace()
-        print tX, tY
 
         #now we construct an affine map that will the rotation and scaling we want with the
         #the corners all lined up nicely with the output image.
@@ -11525,8 +11523,8 @@ class Image:
             else:
                 retVal = (-1,-1)
                 print 'Edgepoint not found.'
-        
         return retVal
+        
 
     def getDiagonalScanlineGrey(self, pt1, pt2):
         """
