@@ -77,6 +77,7 @@ class Line(Feature):
     def __init__(self, i, line):
         self.image = i
         self.vector = None
+        self.yIntercept = None
         self.end_points = copy(line)
         #print self.end_points[1][1], self.end_points[0][1], self.end_points[1][0], self.end_points[0][0]
         if self.end_points[1][0] - self.end_points[0][0] == 0:
@@ -492,6 +493,29 @@ class Line(Feature):
 
     def cross(self,other):
         return np.cross(self.getVector(),other.getVector())
+
+    def getYIntercept(self):
+        """
+        **SUMMARY**
+        
+        Returns the y intercept based on the lines equation.  Note that this point is potentially not contained in the image itself
+
+        **RETURNS**
+
+        Returns a floating point intersection value
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> l = Line(img, ((50, 150), (2, 225))
+        >>> b = l.getYIntercept()
+        """
+        if self.yIntercept is None:
+            pt1, pt2 = self.end_points
+            m = self.slope
+            #y = mx + b | b = y-mx
+            self.yIntercept = pt1[1] - m * pt1[0]
+        return self.yIntercept
 
     def extendToImageEdges(self):
         """

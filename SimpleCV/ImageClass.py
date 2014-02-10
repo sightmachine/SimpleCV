@@ -4144,7 +4144,7 @@ class Image:
         distances *= (255.0/distances.max()) #normalize to 0 - 255
         return Image(distances.reshape(self.width, self.height)) #return an Image
 
-    def hueDistance(self, color = Color.BLACK, minsaturation = 20, minvalue = 20):
+    def hueDistance(self, color = Color.BLACK, minsaturation = 20, minvalue = 20, maxvalue=255):
         """
         **SUMMARY**
 
@@ -4487,7 +4487,8 @@ class Image:
         (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
         return hist.tolist()
 
-    def hueHistogram(self, bins = 179):
+    def hueHistogram(self, bins = 179, dynamicRange=True):
+
         """
         **SUMMARY**
 
@@ -4507,7 +4508,10 @@ class Image:
         :py:meth:`histogram`
 
         """
-        return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
+        if dynamicRange:
+            return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins)[0]
+        else:
+            return np.histogram(self.toHSV().getNumpy()[:,:,2], bins = bins, range=(0.0,360.0))[0]
 
     def huePeaks(self, bins = 179):
         """
@@ -11151,6 +11155,39 @@ class Image:
 
         return img
 
+
+    def fillHoles(self):
+        """
+        **SUMMARY**
+
+        Fill holes on a binary image by closing the contours
+
+        **PARAMETERS**
+
+        * *img* - a binary image
+        **RETURNS**
+
+        The image with the holes filled
+        **EXAMPLE**
+
+        >>> img = Image("SimpleCV")
+        #todo Add noise and showcase the image 
+
+        """
+        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+        # res = cv2.morphologyEx(self.getGrayNumpy(),cv2.MORPH_OPEN,kernel)
+        # return res
+        des = cv2.bitwise_not(self.getGrayNumpy())
+        return cv2.inPaint(des)
+        contour,hier = cv2.findContours(des,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)
+
+        for cnt in contour:
+            cv2.drawContours(des,[cnt],0,255,-1)
+            print 'yep'
+
+        gray = cv2.bitwise_not(des)
+        return gray
+
     def edgeIntersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
         """
         **SUMMARY**
@@ -11312,7 +11349,7 @@ class Image:
 
         return retVal
 
-    def fitEdge(self,guess,window=10,threshold=128, measurements=5):
+    def fitEdge(self,guess,window=10,threshold=128, measurements=5, darktolight=True, lighttodark=True,departurethreshold=1):
       """
         **SUMMARY**
         
@@ -11339,8 +11376,8 @@ class Image:
       x2 = guess[1][0]
       y1 = guess[0][1]
       y2 = guess[1][1]
-      dx = float((x2-x1))/(measurements+1)
-      dy = float((y2-y1))/(measurements+1)
+      dx = float((x2-x1))/(measurements-1)
+      dy = float((y2-y1))/(measurements-1)
       s = np.zeros((measurements,2))
       lpstartx = np.zeros(measurements)
       lpstarty = np.zeros(measurements)
@@ -11355,14 +11392,14 @@ class Image:
         b = x1
         for i in xrange(0, measurements):
             s[i][0] = x1 
-            s[i][1] = y1 + (i+1) * dy
+            s[i][1] = y1 + i * dy
             lpstartx[i] = s[i][0] + window
             lpstarty[i] = s[i][1] 
             lpendx[i] = s[i][0] - window
             lpendy[i] = s[i][1] 
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight, departurethreshold=departurethreshold)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
             linefitpts[i] = tmp
 
@@ -11373,8 +11410,8 @@ class Image:
        
         #obtain points for measurement along the initial guess line
         for i in xrange(0, measurements):
-            s[i][0] = x1 + (i+1) * dx
-            s[i][1] = y1 + (i+1) * dy
+            s[i][0] = x1 + i * dx
+            s[i][1] = y1 + i * dy
             fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
             fy = fx * mo 
             lpstartx[i] = s[i][0] + fx
@@ -11383,8 +11420,8 @@ class Image:
             lpendy[i] = s[i][1] - fy
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
             searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])))
-            fitPoints.append(Circle(self,tmp[0],tmp[1],3))
+            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight,departurethreshold=departurethreshold)
+            fitPoints.append((tmp[0],tmp[1]))
             linefitpts[i] = tmp
 
       x = linefitpts[:,0]
@@ -11412,7 +11449,7 @@ class Image:
 
       return finalLine, searchLines, fitPoints
 
-    def getThresholdCrossing(self, p1, p2, threshold=128, darktolight=True, lighttodark=True):
+    def getThresholdCrossing(self, pt1, pt2, threshold=128, darktolight=True, lighttodark=True, departurethreshold=1):
         """
         **SUMMARY**
 
@@ -11423,6 +11460,8 @@ class Image:
         **PARAMETERS**
 
         * *p1, p2* - the starting and ending points in tuple form e.g. (1,2)
+        * *threshold* pixel value of desired threshold crossing
+        * *departurethreshold* - noise reduction technique.  requires this many points to be above the threshold to trigger crossing
 
         **RETURNS**
 
@@ -11445,29 +11484,46 @@ class Image:
         :py:meth:`getVertScanline`
 
         """
-                
-        linearr = self.toGray().getLineScan(pt1 = p1, pt2 = p2)
-        linearr = np.array(linearr)
-        print linearr
-       # linearr = self.getDiagonalScanlineGrey(pt1,pt2)
+        linearr = self.getDiagonalScanlineGrey(pt1,pt2)
         ind = 0
-        #todo make sure that this doesn't trip on first pixel as we are using roll function for speed
-        if lighttodark:
-            crossingdarktolight = np.where((linearr<=threshold) & (np.roll(linearr,1) >threshold))[0][0]
-        if darktolight:
-            crossinglighttodark = np.where((linearr>=threshold) & (np.roll(linearr,1) <threshold))[0][0]
-        if (not any(crossingdarktolight)) & (not any(crossinglighttodark)):
-            return (-1,-1)
-        if not any(crossinglighttodark):
-            crossinglighttodark = float('inf')
-        if not any(crossingdarktolight):
-            crossingdarktolight = float('inf')
-    
-
-        crossing = min(crossingdarktolight,crossinglighttodark)
-        xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
-        yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
-        return (xind,yind)
+        crossing = -1
+        if departurethreshold==1:
+            while ind < linearr.size-1:
+                if darktolight:
+                    if linearr[ind] <=threshold and linearr[ind+1] > threshold:
+                        crossing = ind
+                        break
+                if lighttodark:
+                    if linearr[ind] >= threshold and linearr[ind+1] < threshold:
+                        crossing = ind
+                        break
+                ind = ind +1
+            if crossing != -1:
+                xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
+                yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
+                retVal = (xind,yind)
+            else:
+                retVal = (-1,-1)
+                print 'Edgepoint not found.'
+        else:
+            while ind < linearr.size-(departurethreshold+1):
+                if darktolight:
+                    if linearr[ind] <=threshold and (linearr[ind+1:ind+1+departurethreshold] > threshold).all():
+                        crossing = ind
+                        break
+                if lighttodark:
+                    if linearr[ind] >= threshold and (linearr[ind+1:ind+1+departurethreshold] < threshold).all():
+                        crossing = ind
+                        break
+                ind = ind +1
+            if crossing != -1:
+                xind = pt1[0] + int(round((pt2[0]-pt1[0])*crossing/linearr.size))
+                yind = pt1[1] + int(round((pt2[1]-pt1[1])*crossing/linearr.size))
+                retVal = (xind,yind)
+            else:
+                retVal = (-1,-1)
+                print 'Edgepoint not found.'
+        return retVal
         
 
     def getDiagonalScanlineGrey(self, pt1, pt2):
