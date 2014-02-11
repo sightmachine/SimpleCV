@@ -4,7 +4,7 @@ This example shows how to display a SimpleCV image in a QT window
 the code was taken from the forum post here:
 http://help.simplecv.org/question/1866/any-simple-pyqt-sample-regarding-ui-or-display/
 
-Author: Rodrigo gomes 
+Author: Rodrigo gomes
 '''
 
 import os
@@ -43,10 +43,16 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Dialog", None))
 
 
+class SImage(QtGui.QImage):
+    def __init__(self, image, data):
+        QtGui.QImage.__init__(self, data, image.width, image.height,\
+                              QtGui.QImage.Format_RGB888)
+
+
 class Webcam(QtGui.QMainWindow):
     def __init__(self, parent=None):
 
-        QtGui.QWidget.__init__(self,parent)        
+        QtGui.QWidget.__init__(self,parent)
         self.MainWindow = Ui_Dialog()
         self.MainWindow.setupUi(self)
         self.webcam = Camera(0,{ "width": 640, "height": 480 })
@@ -61,7 +67,7 @@ class Webcam(QtGui.QMainWindow):
         ipl_image = self.webcam.getImage()
         ipl_image.dl().circle((150, 75), 50, Color.RED, filled = True)
         data = ipl_image.getBitmap().tostring()
-        image = QtGui.QImage(data, ipl_image.width, ipl_image.height, 3 * ipl_image.width, QtGui.QImage.Format_RGB888)
+        image = SImage(ipl_image, data)
         pixmap = QtGui.QPixmap()
         pixmap.convertFromImage(image.rgbSwapped())
         self.MainWindow.label.setPixmap(pixmap)
@@ -71,5 +77,3 @@ if __name__ == "__main__":
     webcam = Webcam()
     webcam.show()
     app.exec_()
-
-    
