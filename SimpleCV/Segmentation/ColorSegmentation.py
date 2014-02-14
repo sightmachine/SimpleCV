@@ -51,7 +51,7 @@ class ColorSegmentation(SegmentationBase):
         """
         Clear the previous error.
         """
-        self.mError = false
+        self.mError = False
         return
 
     def reset(self):
