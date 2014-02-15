@@ -917,22 +917,19 @@ class Image:
         m=0
         angles = np.arctan2(Iy,Ix)
         magnit = ((Ix**2)+(Iy**2))**0.5
+        for m,n,i,j in itertools.product(xrange(n_divs), xrange(n_divs), xrange(cellx), xrange(celly)):
+            #grad value
+            grad = magnit[m*cellx + i, n*celly+j][0]
+            #normalized grad value
+            norm_grad = grad/img_area
+            #Orientation Angle
+            angle = angles[m*cellx + i, n*celly+j][0]  
+            #(-pi,pi) to (0, 2*pi)
+            if(angle < 0):
+                angle = angle+ 2*pi
+            nth_bin = floor(float(angle/BIN_RANGE))
+            HOG[((m*n_divs+n)*n_bins + int(nth_bin))] += norm_grad
 
-        for m in range(0, n_divs):
-            for n in range(0, n_divs):
-                for i in range(0,cellx):
-                    for j in range(0, celly):
-                        #grad value
-                        grad = magnit[m*cellx + i, n*celly+j][0]
-                        #normalized grad value
-                        norm_grad = grad/img_area
-                        #Orientation Angle
-                        angle = angles[m*cellx + i, n*celly+j][0]  
-                        #(-pi,pi) to (0, 2*pi)
-                        if(angle < 0):
-                            angle = angle+ 2*pi
-                        nth_bin = floor(float(angle/BIN_RANGE))
-                        HOG[((m*n_divs+n)*n_bins + int(nth_bin))] += norm_grad
         return HOG.transpose()
 
 
