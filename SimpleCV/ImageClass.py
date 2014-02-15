@@ -876,15 +876,15 @@ class Image:
             fn = self.filename
         return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), at memory location: (%s)>" % (self.width, self.height, fn, hex(id(self)))
 
-    def findHOGFeatures(self, no_divs=3, no_bins=6):
+    def findHOGFeatures(self, n_divs=3, n_bins=6):
         """
         **SUMMARY**
         Get HOG(Histogram of Oriented Gradients) features from the image.
     
 
         **PARAMETERS**
-        * *no_divs* - the number of divisions(cells).
-        * *no_divs* - the number of orientation bins.
+        * *n_divs* - the number of divisions(cells).
+        * *n_divs* - the number of orientation bins.
 
         **RETURNS**
         Returns the HOG vector in a numpy array
@@ -893,7 +893,7 @@ class Image:
         
  
         #Size of HOG vector
-        n_HOG = no_divs*no_divs*no_bins;
+        n_HOG = n_divs*n_divs*n_bins;
         
         #Initialize output HOG vector
         #HOG = [0.0]*n_HOG    
@@ -905,21 +905,21 @@ class Image:
      
         Ix = Ix.transpose(1,0,2)
         Iy = Iy.transpose(1,0,2)
-        cellx = self.width/no_divs     #width of each cell(division)
-        celly = self.height/no_divs    #height of each cell(division)    
+        cellx = self.width/n_divs     #width of each cell(division)
+        celly = self.height/n_divs    #height of each cell(division)    
         
         #Area of image
         img_area = self.height * self.width
 
         #Range of each bin
-        BIN_RANGE = (2*pi)/(no_bins)
+        BIN_RANGE = (2*pi)/(n_bins)
 
         m=0
         angles = np.arctan2(Iy,Ix)
         magnit = ((Ix**2)+(Iy**2))**0.5
 
-        for m in range(0, no_divs):
-            for n in range(0, no_divs):
+        for m in range(0, n_divs):
+            for n in range(0, n_divs):
                 for i in range(0,cellx):
                     for j in range(0, celly):
                         #grad value
@@ -932,7 +932,7 @@ class Image:
                         if(angle < 0):
                             angle = angle+ 2*pi
                         nth_bin = floor(float(angle/BIN_RANGE))
-                        HOG[((m*no_divs+n)*no_bins + int(nth_bin))] += norm_grad
+                        HOG[((m*n_divs+n)*n_bins + int(nth_bin))] += norm_grad
         return HOG.transpose()
 
 
