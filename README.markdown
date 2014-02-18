@@ -199,6 +199,7 @@ Homebrew can't install smpeg at the time of this writing however there is a work
     brew install --HEAD smpeg
 
 If you get a connection refused error, wait a minute and try again.
+
 Download PIL:
 
     curl -O -L http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz
@@ -206,6 +207,12 @@ Download PIL:
 In the unpacked folder:
 
     python setup.py build --force
+
+If you got error like `fatal error: 'freetype/fterrors.h' file not found`, resolve the issue by:
+
+    ln -s /usr/local/include/freetype2 /usr/local/include/freetype
+
+Then install PIL: 
     sudo python setup.py install
 
 Manually create a few PIL symlinks:
