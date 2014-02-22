@@ -769,6 +769,8 @@ class ImageSet(list):
         return self.__getitem__(slice(i,j))
 
 
+webbrowser_opened = False
+
 class Image:
     """
     **SUMMARY**
@@ -6188,12 +6190,14 @@ class Image:
         :py:class:`Display`
 
         """
-
+        global webbrowser_opened
         if(type == 'browser'):
             import webbrowser
             js = JpegStreamer(8080)
             self.save(js)
-            webbrowser.open("http://localhost:8080", 2)
+            if not webbrowser_opened:
+                webbrowser.open("http://localhost:8080", 2)
+                webbrowser_opened = True
             return js
         elif (type == 'window'):
             from SimpleCV.Display import Display
