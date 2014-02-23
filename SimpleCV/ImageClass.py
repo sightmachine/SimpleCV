@@ -770,7 +770,7 @@ class ImageSet(list):
 
 
 webbrowser_opened = False
-
+_port = 8080
 class Image:
     """
     **SUMMARY**
@@ -6191,12 +6191,26 @@ class Image:
 
         """
         global webbrowser_opened
+        global _port
         if(type == 'browser'):
             import webbrowser
-            js = JpegStreamer(8080)
+            try:
+                js = JpegStreamer(_port)
+            except:
+                port_busy = True
+                retries = 10 #Set no of retries to 10, that is ports till 8080 will be tried
+                while port_busy and ( retries > 0 ):
+                    try:
+                        js = JpegStreamer(_port)
+                        port_busy = False
+                    except:
+                        _port +=1 #Switch to adjacent port if current port is busy ( and hence throws an error )
+                        retries -= 1
+                if retries == 0:
+                    js = JpegSteamer(_port) #If all retries have exhausted, run this so that the respective exception will be raised
             self.save(js)
             if not webbrowser_opened:
-                webbrowser.open("http://localhost:8080", 2)
+                webbrowser.open("http://localhost:"+str(_port), 2)
                 webbrowser_opened = True
             return js
         elif (type == 'window'):
