@@ -199,6 +199,7 @@ Homebrew can't install smpeg at the time of this writing however there is a work
     brew install --HEAD smpeg
 
 If you get a connection refused error, wait a minute and try again.
+
 Download PIL:
 
     curl -O -L http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz
@@ -206,6 +207,12 @@ Download PIL:
 In the unpacked folder:
 
     python setup.py build --force
+
+If you got error like `fatal error: 'freetype/fterrors.h' file not found`, resolve the issue by:
+
+    ln -s /usr/local/include/freetype2 /usr/local/include/freetype
+
+Then install PIL: 
     sudo python setup.py install
 
 Manually create a few PIL symlinks:
@@ -275,14 +282,20 @@ Commands (for Lion)::
     brew tap homebrew/headonly
     brew install --HEAD smpeg
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
-    ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
+    curl -O -L http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz
+    tar zxvf Imaging-1.1.7.tar.gz
+    cd Imaging-1.1.7
+    ln -s /usr/local/include/freetype2 /usr/local/include/freetype
+    python setup.py build --force
+    sudo python setup.py install
+    sudo ln -s /usr/local/lib/python2.7/site-packages/cv.so /Library/Python/2.7/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv.py /Library/Python/2.7/site-packages/cv.py
     sudo easy_install pip
     brew install hg
     sudo pip install hg+http://bitbucket.org/pygame/pygame
+    sudo pip install svgwrite
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh && source install_superpack.sh
     pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
@@ -295,8 +308,13 @@ Commands (for Snow Leopard)::
 	brew install opencv
     brew install git
     brew install sdl sdl_image sdl_mixer sdl_ttf smpeg portmidi
-    ARCHFLAGS="-arch i386 -arch x86_64" brew install PIL
-    ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
+    curl -O -L http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz
+    tar zxvf Imaging-1.1.7.tar.gz
+    cd Imaging-1.1.7
+    ln -s /usr/local/include/freetype2 /usr/local/include/freetype
+    python setup.py build --force
+    sudo python setup.py install
+    sudo ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
@@ -304,7 +322,7 @@ Commands (for Snow Leopard)::
     brew install hg
     sudo pip install https://bitbucket.org/pygame/pygame/get/6625feb3fc7f.zip
     curl -sO https://raw.github.com/fonnesbeck/ScipySuperpack/master/install_superpack.sh | source install_superpack.sh
-    pip install https://github.com/sightmachine/SimpleCV/zipball/master
+    sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
 
 <a id="windows"></a>
