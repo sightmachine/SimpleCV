@@ -6207,7 +6207,7 @@ class Image:
                         _port +=1 #Switch to adjacent port if current port is busy ( and hence throws an error )
                         retries -= 1
                 if retries == 0:
-                    js = JpegSteamer(_port) #If all retries have exhausted, run this so that the respective exception will be raised
+                    js = JpegStreamer(_port) #If all retries have exhausted, run this so that the respective exception will be raised
             self.save(js)
             if not webbrowser_opened:
                 webbrowser.open("http://localhost:"+str(_port), 2)

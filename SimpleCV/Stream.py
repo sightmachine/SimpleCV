@@ -64,6 +64,8 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
                         return
                     except IOError, e:
                         return
+                    except AttributeError:
+                        pass
                     count = count + 1
 
 
@@ -131,6 +133,10 @@ class JpegStreamer():
             old_streamer = _jpegstreamers[self.port]
             self.server = old_streamer.server
             self.server_thread = old_streamer.server_thread
+            try:
+                self.jpgdata = old_streamer.jpgdata
+            except AttributeError:
+                pass
             self.framebuffer = old_streamer
             _jpegstreamers[self.port] = self
         except KeyError:
