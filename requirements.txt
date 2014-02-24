@@ -3,3 +3,4 @@ scipy
 PIL
 ipython
 svgwrite
+pygame==1.9.1release
