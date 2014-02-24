@@ -6198,7 +6198,8 @@ class Image:
                 js = JpegStreamer(_port)
             except:
                 port_busy = True
-                retries = 10 #Set no of retries to 10, that is ports till 8080 will be tried
+                retries = 10 #Set no of retries to 10, that is ports till 8090 will be tried
+                _port += 1
                 while port_busy and ( retries > 0 ):
                     try:
                         js = JpegStreamer(_port)
