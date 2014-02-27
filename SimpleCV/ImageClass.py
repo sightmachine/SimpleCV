@@ -11349,25 +11349,6 @@ class Image:
 
         return retVal
 
-    def FixBoundaryPoint(self,inpoint):
-        """
-        **SUMMARY**
-        
-        Determines if a given point is within the image space.  If it is not, it returns the closest edge.
-
-
-        **PARAMETERS**
-
-        * *inpoint* - A tuple of the form (x,y)
-
-        **RETURNS**
-
-        A tuple point equal to the inpoint if it is within the image, or with the boundary points selected otherwise
-        **EXAMPLE**
-      """
-        if (inpoint[0] < 0):
-            inpoint[0]
-
     def fitEdge(self,guess,window=10,threshold=128, measurements=5, darktolight=True, lighttodark=True,departurethreshold=1):
       """
         **SUMMARY**
