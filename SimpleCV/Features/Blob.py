@@ -1104,7 +1104,7 @@ class Blob(Feature):
         
     def getMaskedImage(self):
         """
-        Get the blob sizde image with the masked blob 
+        Get the blob size image with the masked blob 
         """
         retVal = cv.CreateImage((self.width(),self .height()),cv.IPL_DEPTH_8U,3)
         cv.Zero(retVal)
@@ -1115,7 +1115,7 @@ class Blob(Feature):
         cv.Copy(bmp,retVal,mask)
         cv.ResetImageROI(bmp)
         return Image(retVal)
-        
+
 
     def getFullMaskedImage(self):
         """
