@@ -1101,6 +1101,21 @@ class Blob(Feature):
         otherM = otherSigns * otherLogs
 
         return np.sum(abs((1/ myM - 1/ otherM)))
+        
+    def getMaskedImage(self):
+        """
+        Get the blob size image with the masked blob 
+        """
+        retVal = cv.CreateImage((self.width(),self .height()),cv.IPL_DEPTH_8U,3)
+        cv.Zero(retVal)
+        bmp = self.image.getBitmap()
+        mask = self.mMask.getBitmap()
+        tl = self.topLeftCorner()
+        cv.SetImageROI(bmp,(tl[0],tl[1], self.width(),self.height()))
+        cv.Copy(bmp,retVal,mask)
+        cv.ResetImageROI(bmp)
+        return Image(retVal)
+
 
     def getFullMaskedImage(self):
         """
