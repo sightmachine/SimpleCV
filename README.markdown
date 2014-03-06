@@ -208,6 +208,10 @@ In the unpacked folder:
     python setup.py build --force
     sudo python setup.py install
 
+If the build fails due to a header inclusion error, it could be because starting with FreeType 2.1.6, the old header file inclusion scheme is no longer supported. In this case, you can run the following symbolic link command for the build to succeed:
+
+    ln -s /usr/local/include/freetype2 /usr/local/include/freetype
+	
 Manually create a few PIL symlinks:
 
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
