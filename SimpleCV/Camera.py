@@ -6,6 +6,7 @@ from SimpleCV.ImageClass import Image, ImageSet, ColorSpace
 from SimpleCV.Display import Display
 from SimpleCV.Color import Color
 from collections import deque
+from random import random
 import time
 import ctypes as ct
 import subprocess
@@ -963,6 +964,74 @@ class VirtualCamera(FrameSource):
             time.sleep(0)
 
         return max_full_path
+
+class MultiSourceVCamera(FrameSource):
+    """
+    **SUMMARY**
+
+    This camera object loops through multiple image sets with associated biases when getImage() is called
+
+    """
+    source = ""
+
+    def __init__(self, s):
+        """
+        **SUMMARY**
+
+        The constructor takes as input multiple imageset sources with attributes (id, path, probability).
+
+        **PARAMETERS**
+
+        * *s* - the source of the imagesets
+
+        **EXAMPLE**
+
+        >>> sourceset = [{set:1, path:"./path_to_images1/", probability:90}, {set:2, path:"./path_to_images2/", probability:10}]
+        >>> vc = MultiSourceVCamera(sourceset)
+
+        """
+
+        totalprob = 0
+        imgsets = {}
+        for st in s:
+            cursor=0
+            imgset = ImageSet(st["path"])
+            id = st["set"]
+            pb = st["probability"]
+            imgsets[(totalprob, totalprob+pb)] = [imgset, cursor,id ]
+            totalprob = totalprob + pb
+
+        print imgsets.keys()
+        self.source = imgsets
+
+    def getImage(self):
+        """
+        **SUMMARY**
+
+        Retrieve an Image-object from the virtual camera based on probability/bias distribution among different image sets.
+        **RETURNS**
+
+        A SimpleCV Image from the camera.
+
+        **EXAMPLES**
+
+        >>> cam = MultiSourceVCamera()
+        >>> while True:
+        >>>    cam.getImage().show()
+
+        """
+        dieroll = random() * 100
+        iset = []
+        #only one imagetset should be a match given the associated probabilities
+        for k,v in self.source.iteritems():
+            if k[0] < dieroll and dieroll <= k[1]:
+                iset =  v
+                break
+
+        #iset = [v for k, v in self.source.iteritems() if k[0]<dieroll and dieroll<=k[1]]
+        img = iset[0][iset[1]]  #iset - [imageset, cursor, id]
+        iset[1] = (iset[1] + 1) % len(iset[0])
+        return img
 
 class Kinect(FrameSource):
     """
