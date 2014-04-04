@@ -1,4 +1,3 @@
-from pyvimba.vimba import *
 import numpy as np
 import cv2
 import time
@@ -57,8 +56,8 @@ def test_getImage():
     printPrettyHeader("Test getImage")
 
     img = c.getImage()
-    cv2.imwrite('test_getImage.png', img)
-    print "test_getImage.png saved"
+    img.save("test_getImage_scv.png")
+    print "test_getImage_scv.png saved"
 
 def test_runCommand():
     import cv2
@@ -101,6 +100,6 @@ def test_listAllCameras():
 #test_runCommand(c)
 #test_listAllCameras(c)
 
-def test_async_getImage():
-    c_async = VimbaCamera(0, threaded=True)
-    test_getImage(c_async)
+#def test_async_getImage():
+#    c_async = VimbaCamera(0, threaded=True)
+#    test_getImage(c_async)

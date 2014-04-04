@@ -117,7 +117,7 @@ except ImportError:
 
 VIMBA_ENABLED = True
 try:
-    import pyvimba.vimba
+    import pymba
 except ImportError:
     VIMBA_ENABLED = False
 

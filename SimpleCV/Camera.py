@@ -3501,7 +3501,7 @@ class VimbaCamera(FrameSource):
 
     @classmethod
     def _setupVimba(cls):
-        from pyvimba.vimba import Vimba
+        from pymba import Vimba
 
         cls._vimba = Vimba()
         cls._vimba.startup()
@@ -3522,13 +3522,16 @@ class VimbaCamera(FrameSource):
 
     def __del__(self):
         #This function should disconnect from the Vimba Camera
-        if (self._camera):
+        if self._camera is not None:
+            self._camera.revokeAllFrames()
             self._camera.closeCamera()
+            self._camera = None
         VimbaCamera._vimba.shutdown()
+        VimbaCamera._vimba = None
 
     def __init__(self, camera_id = -1, properties = {}, threaded = False):
         if not VIMBA_ENABLED:
-            raise Exception("You don't seem to have the pyvimba library installed.  This will make it hard to use a AVT Vimba Camera.")
+            raise Exception("You don't seem to have the pymba library installed.  This will make it hard to use a AVT Vimba Camera.")
 
         if (not VimbaCamera._vimba):
             VimbaCamera._setupVimba()
@@ -3563,10 +3566,11 @@ class VimbaCamera(FrameSource):
         self.setProperty("TriggerSource","Freerun")
 
         # TODO: FIX
-        #if properties.get("mode", "RGB") == 'gray':
-        #    self.setProperty("PixelFormat", "Mono8")
-        #else:
-        #    self.setProperty("PixelFormat", "Rgb24")
+        if properties.get("mode", "RGB") == 'gray':
+            self.setProperty("PixelFormat", "Mono8")
+        else:
+            fmt = "RGB8Packed" # alternatively use BayerRG8
+            self.setProperty("PixelFormat", "BayerRG8")
 
         #give some compatablity with other cameras
         if properties.get("mode", ""):
@@ -3609,7 +3613,7 @@ class VimbaCamera(FrameSource):
 
         **RETURNS**
         List of VimbaCamera objects, otherwise empty list
-        VimbaCamera objects are defined in the pyvimba module
+        VimbaCamera objects are defined in the pymba module
         """
         return VimbaCamera._listAllCameras()
 
@@ -3668,7 +3672,7 @@ class VimbaCamera(FrameSource):
         >>>print props['ExposureMode']
 
         """
-        from pyvimba.vimba import VimbaException
+        from pymba import VimbaException
 
         # TODO
         ar = {}
@@ -3770,16 +3774,15 @@ class VimbaCamera(FrameSource):
             moreUsefulImgData = np.ndarray(buffer = f.getBufferByteData(),
              dtype = np.uint8,
              shape = (f.height, f.width, 1))
+
             rgb = cv2.cvtColor(moreUsefulImgData, cv2.COLOR_BAYER_RG2RGB)
             c.endCapture()
-            return rgb
+
+            # Have to rotate it by 90 degrees and flip when returning it as an "Image"
+            rgb = np.flipud(np.rot90(rgb))
+            return Image(rgb)
 
         except Exception, e:
             print "Exception acquiring frame:", e
             raise(e)
 
-
-
-
-
-    
