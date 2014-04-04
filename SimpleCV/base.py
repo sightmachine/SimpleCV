@@ -115,6 +115,12 @@ try:
 except ImportError:
     ORANGE_ENABLED = False
 
+VIMBA_ENABLED = True
+try:
+    import pyvimba.vimba
+except ImportError:
+    VIMBA_ENABLED = False
+
 class InitOptionsHandler(object):
     """
     **summary**
