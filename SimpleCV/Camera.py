@@ -3763,7 +3763,13 @@ class VimbaCamera(FrameSource):
         try:
             c = self._camera
             f = self._getFrame()
-            
+
+            rgbcv2type = cv2.COLOR_BAYER_RG2RGB
+            colorSpace = ColorSpace.RGB
+            if self.pixelformat == 'Mono8':
+                rgbcv2type = cv2.COLOR_BAYER_RG2RGB
+                colorSpace = ColorSpace.GRAY
+
             c.startCapture()
             f.queueFrameCapture()
             c.runFeatureCommand('AcquisitionStart')
@@ -3778,12 +3784,12 @@ class VimbaCamera(FrameSource):
              dtype = np.uint8,
              shape = (f.height, f.width, 1))
 
-            rgb = cv2.cvtColor(moreUsefulImgData, cv2.COLOR_BAYER_RG2RGB)
+            rgb = cv2.cvtColor(moreUsefulImgData, rgbcv2type)
             c.endCapture()
 
             # Have to rotate it by 90 degrees and flip when returning it as an "Image"
             rgb = np.flipud(np.rot90(rgb))
-            return Image(rgb, colorSpace = ColorSpace.RGB)
+            return Image(rgb, colorSpace=colorSpace)
 
         except Exception, e:
             print "Exception acquiring frame: %s: %s" % (e, traceback.format_exc())
