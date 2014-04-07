@@ -3,25 +3,26 @@ import cv2
 import time
 from SimpleCV.Camera import VimbaCamera
 
-c = VimbaCamera()
+
+#c = VimbaCamera(0, threaded=True) # async
 
 def printPrettyHeader(msg):
     print "*"*80 + "\n* %s *\n" % msg + "*"*80
 
-def test_getProperty():
+def _getProperty(c):
     printPrettyHeader("Test getProperty")
 
     prop = "ExposureMode"
     print "%s=%s" % (prop, c.getProperty(prop))
 
-def test_getAllProperties():
+def _getAllProperties(c):
     printPrettyHeader("Test getAllProperties")
 
     allprops = c.getAllProperties()
-    for k in allprops:
+    for k in sorted(allprops.iterkeys()) :
         print "%s=%s" % (k,allprops[k])
 
-def test_setProperty():
+def _setProperty(c):
     printPrettyHeader("Test setProperty (toggle AcquisitionMode)")
 
     prop = "AcquisitionMode"
@@ -34,7 +35,7 @@ def test_setProperty():
     val = c.getProperty(prop)
     print "AFTER: %s=%s" % (prop, val)
 
-def test_setupASyncMode():
+def _setupASyncMode(c):
     printPrettyHeader("Test setupASyncMode (toggle TriggerSource)")
 
     prop1 = 'AcquisitionMode'
@@ -43,7 +44,7 @@ def test_setupASyncMode():
     c.setupASyncMode()
     print 'AFTER: %s=%s, %s=%s' % (prop1, c.getProperty(prop1), prop2, c.getProperty(prop2))
 
-def test_setupSyncMode():
+def _setupSyncMode(c):
     printPrettyHeader("Test setupSyncMode (toggle TriggerSource)")
 
     prop1 = 'AcquisitionMode'
@@ -52,14 +53,15 @@ def test_setupSyncMode():
     c.setupSyncMode()
     print 'AFTER: %s=%s, %s=%s' % (prop1, c.getProperty(prop1), prop2, c.getProperty(prop2))
 
-def test_getImage():
+
+def _getImage(c):
     printPrettyHeader("Test getImage")
 
     img = c.getImage()
     img.save("test_getImage_scv.png")
     print "test_getImage_scv.png saved"
 
-def test_runCommand():
+def _runCommand(c):
     import cv2
 
     printPrettyHeader("Test runCommand")
@@ -80,26 +82,35 @@ def test_runCommand():
     cv2.imwrite('test_runCommand.png', rgb)
     print "test_runCommand.png saved"
 
-def test_listAllCameras():
+def _listAllCameras(c):
     printPrettyHeader("Test listAllCameras")
 
     l = c.listAllCameras()
     for i in l:
         print 'Camera Id=%s' % i.cameraIdString
 
+def test_all():
+    c = VimbaCamera()
+    _getProperty(c)
+    _getAllProperties(c)
+    _setProperty(c)
+    _setupASyncMode(c)
+    _setupSyncMode(c)
 
-# Main
+    _getImage(c)
+    _runCommand(c)
+    _listAllCameras(c)
 
-#c = VimbaCamera()
-#test_getProperty(c)
-#test_getAllProperties(c)
-#test_setProperty(c)
-#test_setupASyncMode(c)
-#test_setupSyncMode(c)
-#test_getImage(c)
-#test_runCommand(c)
-#test_listAllCameras(c)
+"""
+def test_all_async():
+    c = VimbaCamera(0, threaded=True)
+    _getProperty(c)
+    _getAllProperties(c)
+    _setProperty(c)
+    _setupASyncMode(c)
+    _setupSyncMode(c)
 
-#def test_async_getImage():
-#    c_async = VimbaCamera(0, threaded=True)
-#    test_getImage(c_async)
+    _getImage(c)
+    #_runCommand(c)
+    _listAllCameras(c)
+"""

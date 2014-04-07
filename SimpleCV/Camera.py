@@ -11,6 +11,8 @@ import ctypes as ct
 import subprocess
 import cv2
 import numpy as np
+import traceback
+import sys
 
 #Globals
 _cameras = []
@@ -3484,60 +3486,51 @@ class VimbaCamera(FrameSource):
     >>> img = cam.getImage()
     >>> img.show()
     """
-    _vimba = None
-    _buffer = None # Buffer to store images
-    _buffersize = 10 # Number of images to keep in the rolling image buffer for threads
-    _lastimage = None # Last image loaded into memory
-    _thread = None
-    _framerate = 0
-    threaded = False
-    _properties = {}
-    _camera = None
 
-    #@classmethod
-    #def shutdown(cls):
-    #    if cls._vimba:
-    #        cls._vimba.shutdown()
-
-    @classmethod
-    def _setupVimba(cls):
+    def _setupVimba(self):
         from pymba import Vimba
 
-        cls._vimba = Vimba()
-        cls._vimba.startup()
-        system = cls._vimba.getSystem()
+        self._vimba = Vimba()
+        self._vimba.startup()
+        system = self._vimba.getSystem()
         if system.GeVTLIsPresent:
             system.runFeatureCommand("GeVDiscoveryAllOnce")
             time.sleep(0.2)
 
-    @classmethod
-    def _listAllCameras(cls):
-        cameraIds = cls._vimba.getCameraIds()
-        ar = []
-        for cameraId in cameraIds:            
-            ar.append(cls._vimba.getCamera(cameraId))
-        return ar
-
-        #return [cam for cam in camlist if cam.UniqueId != 0]
-
     def __del__(self):
         #This function should disconnect from the Vimba Camera
         if self._camera is not None:
-            self._camera.revokeAllFrames()
+            if self.threaded:
+                self._thread.stop()
+                time.sleep(0.2)
+
+            if self._frame is not None:
+                self._frame.revokeFrame()
+                self._frame = None
+
             self._camera.closeCamera()
-            self._camera = None
-        VimbaCamera._vimba.shutdown()
-        VimbaCamera._vimba = None
+
+        self._vimba.shutdown()
 
     def __init__(self, camera_id = -1, properties = {}, threaded = False):
         if not VIMBA_ENABLED:
             raise Exception("You don't seem to have the pymba library installed.  This will make it hard to use a AVT Vimba Camera.")
 
-        if (not VimbaCamera._vimba):
-            VimbaCamera._setupVimba()
+        self._vimba = None
+        self._setupVimba()
         
         camlist = self.listAllCameras()
         self._camTable = {}
+        self._frame = None
+        self._buffer = None # Buffer to store images
+        self._buffersize = 10 # Number of images to keep in the rolling image buffer for threads
+        self._lastimage = None # Last image loaded into memory
+        self._thread = None
+        self._framerate = 0
+        self.threaded = False
+        self._properties = {}
+        self._camera = None
+
         i = 0
         for cam in camlist:
             self._camTable[i] = {'id': cam.cameraIdString}
@@ -3615,7 +3608,11 @@ class VimbaCamera(FrameSource):
         List of VimbaCamera objects, otherwise empty list
         VimbaCamera objects are defined in the pymba module
         """
-        return VimbaCamera._listAllCameras()
+        cameraIds = self._vimba.getCameraIds()
+        ar = []
+        for cameraId in cameraIds:
+            ar.append(self._vimba.getCamera(cameraId))
+        return ar
 
     def runCommand(self,command):
         """
@@ -3755,12 +3752,18 @@ class VimbaCamera(FrameSource):
         if self.pixelformat == 'Mono8':
             self.imgformat = 'L'
 
+    def _getFrame(self):
+        if not self._frame:
+            self._frame = self._camera.getFrame()    # creates a frame
+            self._frame.announceFrame()
+
+        return self._frame
+
     def _captureFrame(self, timeout = 2000):
         try:
             c = self._camera
-            f = c.getFrame()    # creates a frame
-            f.announceFrame()
-        
+            f = self._getFrame()
+            
             c.startCapture()
             f.queueFrameCapture()
             c.runFeatureCommand('AcquisitionStart')
@@ -3768,7 +3771,7 @@ class VimbaCamera(FrameSource):
             try:
                 f.waitFrameCapture(timeout)
             except Exception, e:
-                print "Exception waiting for frame:", e
+                print "Exception waiting for frame: %s: %s" % (e, traceback.format_exc())
                 raise(e)
     
             moreUsefulImgData = np.ndarray(buffer = f.getBufferByteData(),
@@ -3783,6 +3786,6 @@ class VimbaCamera(FrameSource):
             return Image(rgb)
 
         except Exception, e:
-            print "Exception acquiring frame:", e
+            print "Exception acquiring frame: %s: %s" % (e, traceback.format_exc())
             raise(e)
 
