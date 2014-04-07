@@ -3764,10 +3764,8 @@ class VimbaCamera(FrameSource):
             c = self._camera
             f = self._getFrame()
 
-            rgbcv2type = cv2.COLOR_BAYER_RG2RGB
             colorSpace = ColorSpace.BGR
             if self.pixelformat == 'Mono8':
-                rgbcv2type = cv2.COLOR_BAYER_RG2RGB
                 colorSpace = ColorSpace.GRAY
 
             c.startCapture()
@@ -3785,7 +3783,7 @@ class VimbaCamera(FrameSource):
                                            dtype = np.uint8,
                                            shape = (f.height, f.width, 1))
 
-            rgb = cv2.cvtColor(moreUsefulImgData, rgbcv2type)
+            rgb = cv2.cvtColor(moreUsefulImgData, cv2.COLOR_BAYER_RG2RGB)
             c.endCapture()
 
             return Image(rgb, colorSpace=colorSpace, cv2image=imgData)
