@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import time
-from SimpleCV.Camera import VimbaCamera
+from SimpleCV.Camera import VimbaCamera, AVTCamera
 from SimpleCV import Display
 
 #c = VimbaCamera(0, threaded=True) # async
@@ -22,19 +22,30 @@ def test_getImageDisplay():
     print "test_getImage_scv_display2.png saved"
 """
 
+def _takeShots(cam, numPics, filename):
+    start = time.time()
+    print "Taking %d photos..." % numPics
+    for i in range(numPics):
+        img = cam.getImage()
+        img.save("%s_%d.png" % (filename, i))
+    end = time.time()
+    elapsed = end - start
+    print "Took %f seconds" % elapsed
+
+"""
 def test_takeManyShots():
     c = VimbaCamera()
     printPrettyHeader("Test takeManyShots")
 
-    numPics = 50
-    start = time.time()
-    print "Taking %d photos..." % numPics
-    for i in range(numPics):
-        img = c.getImage()
-        img.save("takeManyShots_%d.png" % i)
-    end = time.time()
-    elapsed = end - start
-    print "Took %f seconds" % elapsed
+    _takeShots(c, 50, "vimba")
+"""
+
+def test_oneGrayShot():
+    c = VimbaCamera(properties={"mode":"gray"})
+    printPrettyHeader("Test oneGrayShot")
+
+    img = c.getImage()
+    img.save("test_oneGrayShot.png")
 
 def test_oneShot():
     c = VimbaCamera()
@@ -42,3 +53,11 @@ def test_oneShot():
 
     img = c.getImage()
     img.save("test_oneShot.png")
+
+"""
+def test_AVT_takeManyShots():
+    c = AVTCamera()
+    printPrettyHeader("Test AVT_takeManyShots")
+
+    _takeShots(c, 50, "avtnative")
+"""

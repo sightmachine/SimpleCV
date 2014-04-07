@@ -89,6 +89,12 @@ def _listAllCameras(c):
     for i in l:
         print 'Camera Id=%s' % i.cameraIdString
 
+"""
+def test_runCommand_only():
+    c = VimbaCamera()
+    _runCommand(c)
+"""
+
 def test_all():
     c = VimbaCamera()
     _getProperty(c)
