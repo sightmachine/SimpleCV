@@ -3783,7 +3783,7 @@ class VimbaCamera(FrameSource):
 
             # Have to rotate it by 90 degrees and flip when returning it as an "Image"
             rgb = np.flipud(np.rot90(rgb))
-            return Image(rgb)
+            return Image(rgb, colorSpace = ColorSpace.RGB)
 
         except Exception, e:
             print "Exception acquiring frame: %s: %s" % (e, traceback.format_exc())
