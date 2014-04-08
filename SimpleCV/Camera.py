@@ -3246,16 +3246,18 @@ class AVTCamera(FrameSource):
         if self.pixelformat == 'Mono8':
             self.imgformat = 'L'
 
-    def _getFrame(self, timeout = 2000):
+    def _getFrame(self, timeout = 5000):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
         try:
           frame = self.AVTFrame(self.buffersize)
           pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(frame), None) )
+          st = time.time()
           try:
             pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
           except Exception, e:
             print "Exception waiting for frame:", e
+            print "Time taken:",time.time() - st
             raise(e)
             
         except Exception, e:
@@ -3759,7 +3761,7 @@ class VimbaCamera(FrameSource):
 
         return self._frame
 
-    def _captureFrame(self, timeout = 2000):
+    def _captureFrame(self, timeout = 5000):
         try:
             c = self._camera
             f = self._getFrame()
