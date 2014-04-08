@@ -10,6 +10,33 @@ from SimpleCV import Display
 def printPrettyHeader(msg):
     print "*"*80 + "\n* %s *\n" % msg + "*"*80
 
+def _takeShots(cam, numPics, filename):
+    start = time.time()
+    #print "Taking %d photos..." % numPics
+    for i in range(numPics):
+        img = cam.getImage()
+        img.save("%s_%d.png" % (filename, i))
+    end = time.time()
+    elapsed = end - start
+    print "Took %f seconds" % elapsed
+
+def _takeManyVimbaShots(idx):
+    c = VimbaCamera()
+    print "_takeManyVimbaShots %d" % idx
+
+    _takeShots(c, 10, "cam_vimba%d" % idx)
+
+def _takeAVTManyShots(idx):
+    c = AVTCamera()
+    print "_takeAVTManyShots %d" % idx
+
+    _takeShots(c, 10, "cam_avtnative%d" % idx)
+
+#_takeAVTManyShots(1)
+#_takeAVTManyShots(2)
+#_takeManyVimbaShots(1)
+#_takeManyVimbaShots(2)
+
 """
 def test_getImageDisplay():
     c = VimbaCamera()
@@ -22,19 +49,13 @@ def test_getImageDisplay():
     print "test_getImage_scv_display2.png saved"
 """
 
-def _takeShots(cam, numPics, filename):
-    start = time.time()
-    print "Taking %d photos..." % numPics
-    for i in range(numPics):
-        img = cam.getImage()
-        if (i % 100 == 0):
-            print "At %d" % i
-        #img.save("%s_%d.png" % (filename, i))
-    end = time.time()
-    elapsed = end - start
-    print "Took %f seconds" % elapsed
 
-"""
+def test_createManyCameras():
+    printPrettyHeader("Test createManyCameras")
+    numIter = 10 #1000
+    for i in range(numIter):
+        _takeManyVimbaShots(i)
+
 def test_oneGrayShot():
     c = VimbaCamera(properties={"mode":"gray"})
     printPrettyHeader("Test oneGrayShot")
@@ -48,14 +69,19 @@ def test_oneShot():
 
     img = c.getImage()
     img.save("test_oneShot.png")
-"""
 
-"""
 def test_takeManyShots():
     c = VimbaCamera()
     printPrettyHeader("Test takeManyShots")
 
-    _takeShots(c, 100, "vimba")
+    _takeShots(c, 5, "vimba")
+
+def test_AVT_takeManyShots():
+    c = AVTCamera()
+    printPrettyHeader("Test AVT_takeManyShots")
+
+    _takeShots(c, 5, "avtnative")
+
 """
 
 def test_makeLotsOfCamera():
@@ -70,10 +96,4 @@ def test_makeLotsOfCamera():
     elapsed = end - start
     print "Took %f seconds" % elapsed
 
-"""
-def test_AVT_takeManyShots():
-    c = AVTCamera()
-    printPrettyHeader("Test AVT_takeManyShots")
-
-    _takeShots(c, 10, "avtnative")
 """
