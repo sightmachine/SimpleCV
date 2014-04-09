@@ -4,8 +4,6 @@ import time
 from SimpleCV.Camera import VimbaCamera
 
 
-#c = VimbaCamera(0, threaded=True) # async
-
 def printPrettyHeader(msg):
     print "*"*80 + "\n* %s *\n" % msg + "*"*80
 
@@ -53,7 +51,6 @@ def _setupSyncMode(c):
     c.setupSyncMode()
     print 'AFTER: %s=%s, %s=%s' % (prop1, c.getProperty(prop1), prop2, c.getProperty(prop2))
 
-
 def _getImage(c):
     printPrettyHeader("Test getImage")
 
@@ -62,8 +59,6 @@ def _getImage(c):
     print "test_getImage_scv.png saved"
 
 def _runCommand(c):
-    import cv2
-
     printPrettyHeader("Test runCommand")
     vimbacam = c._camera
     f = vimbacam.getFrame()    # creates a frame
@@ -89,12 +84,6 @@ def _listAllCameras(c):
     for i in l:
         print 'Camera Id=%s' % i.cameraIdString
 
-"""
-def test_runCommand_only():
-    c = VimbaCamera()
-    _runCommand(c)
-"""
-
 def test_all():
     c = VimbaCamera()
     _getProperty(c)
@@ -107,16 +96,3 @@ def test_all():
     _runCommand(c)
     _listAllCameras(c)
 
-"""
-def test_all_async():
-    c = VimbaCamera(0, threaded=True)
-    _getProperty(c)
-    _getAllProperties(c)
-    _setProperty(c)
-    _setupASyncMode(c)
-    _setupSyncMode(c)
-
-    _getImage(c)
-    #_runCommand(c)
-    _listAllCameras(c)
-"""

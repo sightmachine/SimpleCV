@@ -3441,11 +3441,8 @@ class VimbaCameraThread(threading.Thread):
         while self.run:
             self.lock.acquire()
 
-            try:
-                img = self.camera._captureFrame(1000)
-                self.camera._buffer.appendleft(img)
-            except Exception, e:
-                raise e
+            img = self.camera._captureFrame(1000)
+            self.camera._buffer.appendleft(img)
 
             self.lock.release()
             counter += 1
@@ -3513,6 +3510,16 @@ class VimbaCamera(FrameSource):
             self._camera.closeCamera()
 
         self._vimba.shutdown()
+
+    def shutdown(self):
+        """You must call this function if you are using threaded=true when you are finished
+            to prevent segmentation fault"""
+        # REQUIRED TO PREVENT SEGMENTATION FAULT FOR THREADED=True
+        if (self._camera):
+            self._camera.closeCamera()
+
+        self._vimba.shutdown()
+
 
     def __init__(self, camera_id = -1, properties = {}, threaded = False):
         if not VIMBA_ENABLED:

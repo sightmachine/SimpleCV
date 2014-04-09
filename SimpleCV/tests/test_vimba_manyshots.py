@@ -83,7 +83,6 @@ def test_AVT_takeManyShots():
     _takeShots(c, 5, "avtnative")
 
 """
-
 def test_makeLotsOfCamera():
     numIter = 1000
     print "Creating %d cameras..." % numIter
