@@ -115,6 +115,16 @@ try:
 except ImportError:
     ORANGE_ENABLED = False
 
+VIMBA_ENABLED = True
+try:
+    import pymba
+except ImportError:
+    #TODO Log an error the pymba is not installed
+    VIMBA_ENABLED = False
+except Exception:
+    #TODO Log an error that AVT Vimba DLL is not installed properly
+    VIMBA_ENABLED = False
+
 class InitOptionsHandler(object):
     """
     **summary**
