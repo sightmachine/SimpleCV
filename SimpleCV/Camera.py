@@ -3017,7 +3017,7 @@ class AVTCamera(FrameSource):
           self._buffer = deque(maxlen=self._buffersize)
           self._thread.start()
           self.threaded = True
-          
+        self.frame = None
         self._refreshFrameStats()
 
     def restart(self):
@@ -3189,7 +3189,7 @@ class AVTCamera(FrameSource):
 
         return err
 
-    def getImage(self):
+    def getImage(self, timeout = 5000):
         """
         **SUMMARY**
         Extract an Image from the Camera, returning the value.  No matter
@@ -3202,7 +3202,18 @@ class AVTCamera(FrameSource):
         >>>c.getImage().show()
         """
 
-        if self.threaded:
+        if self.frame != None:
+            st = time.time()
+            try:
+                pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(self.frame), timeout) )
+            except Exception, e:
+                print "Exception waiting for frame:", e
+                print "Time taken:",time.time() - st
+                raise(e)
+            img = self.unbuffer()
+            self.frame = None
+            return img
+        elif self.threaded:
           self._thread.lock.acquire()
           try:
               img = self._buffer.pop()
@@ -3213,7 +3224,7 @@ class AVTCamera(FrameSource):
 
         else:
           self.runCommand("AcquisitionStart")
-          frame = self._getFrame()
+          frame = self._getFrame(timeout)
           img = Image(pil.fromstring(self.imgformat, 
               (self.width, self.height), 
               frame.ImageBuffer[:int(frame.ImageBufferSize)]))
@@ -3265,6 +3276,16 @@ class AVTCamera(FrameSource):
             raise(e)  
           
         return frame
+
+    def aquire(self):
+        self.frame = self.AVTFrame(self.buffersize)
+        try:
+            self.runCommand("AcquisitionStart")
+            pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(self.frame), None) )
+            self.runCommand("AcquisitionStop")
+        except Exception, e:
+            print "Exception aquiring frame:", e
+            raise(e)  
 
 
 class GigECamera(Camera):
