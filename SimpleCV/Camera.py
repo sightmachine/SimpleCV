@@ -2618,6 +2618,7 @@ class AVTCameraThread(threading.Thread):
     lock = None
     logger = None
     framerate = 0
+    triggered = False
 
 
     def __init__(self, camera):
@@ -2633,25 +2634,27 @@ class AVTCameraThread(threading.Thread):
         timestamp = time.time()
         
         while self.run:
-          self.lock.acquire()
-          self.camera.runCommand("AcquisitionStart")
-          frame = self.camera._getFrame(1000)
-          
-          if frame:            
-            img = Image(pil.fromstring(self.camera.imgformat, 
-              (self.camera.width, self.camera.height), 
-              frame.ImageBuffer[:int(frame.ImageBufferSize)]))
-            self.camera._buffer.appendleft(img)
-            
-          self.camera.runCommand("AcquisitionStop")
-          self.lock.release()
-          counter += 1
-          time.sleep(0.01)
+            if self.triggered:
+              # print "Triggered"
+              self.lock.acquire()
+              self.camera.runCommand("AcquisitionStart")
+              frame = self.camera._getFrame(2000)
+              
+              if frame:            
+                img = Image(pil.fromstring(self.camera.imgformat, 
+                  (self.camera.width, self.camera.height), 
+                  frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+                self.camera._buffer.appendleft(img)
+              self.camera.runCommand("AcquisitionStop")
+              self.lock.release()
+              counter += 1
+              self.triggered = False
+            time.sleep(0.01)
 
-          if time.time() - timestamp >= 1:
-            self.camera.framerate = counter
-            counter = 0
-            timestamp = time.time()
+            if time.time() - timestamp >= 1:
+                self.camera.framerate = counter
+                counter = 0
+                timestamp = time.time()
             
 
 
@@ -3187,7 +3190,10 @@ class AVTCamera(FrameSource):
 
         return err
 
-    def getImage(self):
+    def trigger(self):
+        self._thread.triggered = True
+
+    def getImage(self, timeout = 2):
         """
         **SUMMARY**
         Extract an Image from the Camera, returning the value.  No matter
@@ -3199,14 +3205,21 @@ class AVTCamera(FrameSource):
         >>>c = AVTCamera()
         >>>c.getImage().show()
         """
-
+        from datetime import datetime
+        img = None
         if self.threaded:
           self._thread.lock.acquire()
-          try:
+          st = time.time()
+          while time.time() - st < timeout:
+            # print "{}".format(date//time.now())
+            try:
               img = self._buffer.pop()
               self._lastimage = img
-          except IndexError:
-              img = self._lastimage
+              # print "popped"
+              break
+            except IndexError:
+              time.sleep(0.05)
+              # img = self._lastimage
           self._thread.lock.release()
 
         else:
