@@ -3209,6 +3209,7 @@ class AVTCamera(FrameSource):
             except Exception, e:
                 print "Exception waiting for frame:", e
                 print "Time taken:",time.time() - st
+                self.frame = None
                 raise(e)
             img = self.unbuffer()
             self.frame = None
