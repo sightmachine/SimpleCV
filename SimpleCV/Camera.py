@@ -3278,7 +3278,7 @@ class AVTCamera(FrameSource):
           
         return frame
 
-    def aquire(self):
+    def acquire(self):
         self.frame = self.AVTFrame(self.buffersize)
         try:
             self.runCommand("AcquisitionStart")
