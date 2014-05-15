@@ -3971,12 +3971,3 @@ def test_findBlobsFromHueHistogram():
     B = img.findBlobsFromHueHistogram((10,10,50,50),smooth=False)
     C = img.findBlobsFromHueHistogram(img2,threshold=1)
     pass
-
-def test_drawingLayerToSVG():
-    img = Image('lenna')
-    dl = img.dl()
-    svg = dl.getSVG()
-    if svg == '<svg baseProfile="full" height="512" version="1.1" width="512" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs /></svg>':
-        pass
-    else:
-        assert False
