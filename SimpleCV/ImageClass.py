@@ -7579,7 +7579,7 @@ class Image:
             return
 
         if(template_image.width > self.width):
-            logger.info( "Image too wide")
+            #logger.info( "Image too wide")
             return
 
         if(template_image.height > self.height):
