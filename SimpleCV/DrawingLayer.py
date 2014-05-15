@@ -156,7 +156,7 @@ class DrawingLayer:
 
         startInt = tuple(int(x) for x in start)
         stopInt = tuple(int(x) for x in stop)
-        self._mSVG.add(self._mSVG.line(start=startInt, end=stopInt))
+        self._mSVG.add(self._mSVG.line(start=startInt, end=stopInt, style="stroke:rgb{}".format(color)))
 
         return None
 
@@ -197,7 +197,7 @@ class DrawingLayer:
         for point in points[1:]:
             lInt = tuple(int(x) for x in lastPoint)
             pInt = tuple(int(x) for x in point)
-            self._mSVG.add(self._mSVG.line(start=lastPoint, end=point))
+            self._mSVG.add(self._mSVG.line(start=lastPoint, end=point, style="stroke:rgb{}".format(color)))
             lastPoint = point
 
         return None
@@ -226,7 +226,7 @@ class DrawingLayer:
 
         tlInt = tuple(int(x) for x in topLeft)
         dimInt = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.rect(insert=tlInt, size=dimInt))
+        self._mSVG.add(self._mSVG.rect(insert=tlInt, size=dimInt, style="stroke:rgb{}".format(color)))
 
         return None
 
@@ -303,7 +303,7 @@ class DrawingLayer:
         pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
 
         dimInt = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dimInt))
+        self._mSVG.add(self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dimInt, style="stroke:rgb{}".format(color)))
 
         return None
 
@@ -369,7 +369,7 @@ class DrawingLayer:
             pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]), int(radius), self._csvRGB2pgColor(color, alpha))
 
         cenInt = tuple(int(x) for x in center)
-        self._mSVG.add(self._mSVG.circle(center=cenInt, r=radius))
+        self._mSVG.add(self._mSVG.circle(center=cenInt, r=radius, style="stroke:rgb{}".format(color)))
 
         return None
 
@@ -403,7 +403,7 @@ class DrawingLayer:
 
         cenInt = tuple(int(x) for x in center)
         dimInt = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.ellipse(center=centInt, r=dimInt))
+        self._mSVG.add(self._mSVG.ellipse(center=centInt, r=dimInt, style="stroke:rgb{}".format(color)))
 
         return None
 
@@ -523,6 +523,7 @@ class DrawingLayer:
         self._mSurface.blit(tsurface, location)
 
         fontStyle = "font-size: {}px;".format(self._mFontSize - 7) # Adjust for web
+        fontStyle += "fill: rgb{};stroke:none;".format(color)
         if self._mFontBold:
             fontStyle += "font-weight: bold;"
         if self._mFontItalic:
