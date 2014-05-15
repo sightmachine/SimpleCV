@@ -6395,6 +6395,15 @@ class Image:
             print 'Not a valid index or No layers to remove!'
 
 
+    def showSVG(self):
+        from IPython.display import HTML
+        import StringIO
+        output = StringIO.StringIO()
+        self.save(output, "PNG")
+        contents = output.getvalue().encode("base64")
+        output.close()        
+        return HTML('<style type="text/css">img, svg { position: absolute; top:0;left:0; }svg { shape-rendering:crispEdges;stroke: #000; fill: transparent; }</style><div class="group" style="position:relative;width:'+str(self.width)+'px;height:'+str(self.height)+'px"><img src="data:image/png;base64, '+str(contents)+'" width="'+str(self.width)+'" height="'+str(self.height)+'"> '+str(self.getDrawingLayer().getSVG())+'</div>')
+
     def getDrawingLayer(self, index = -1):
         """
         **SUMMARY**
