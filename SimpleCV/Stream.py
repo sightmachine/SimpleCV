@@ -1,4 +1,5 @@
 from SimpleCV.base import *
+import cv2
 
 
 _jpegstreamers = {}
@@ -154,34 +155,31 @@ class VideoStream():
     """
     The VideoStream lets you save video files in a number of different formats.
 
-
     You can initialize it by specifying the file you want to output::
 
-
         vs = VideoStream("hello.avi")
-
 
     You can also specify a framerate, and if you want to "fill" in missed frames.
     So if you want to record a realtime video you may want to do this::
 
-
-        vs = VideoStream("myvideo.avi", 25, True) #note these are default values
-
+        vs = VideoStream("myvideo.avi", 25, True)  # Note these are default values
 
     Where if you want to do a stop-motion animation, you would want to turn fill off::
 
-
         vs_animation = VideoStream("cartoon.avi", 15, False)
-
 
     If you select a fill, the VideoStream will do its best to stay close to "real time" by duplicating frames or dropping frames when the clock doesn't sync up
     with the file writes.
 
-
     You can save a frame to the video by using the Image.save() function::
 
-
         my_camera.getImage().save(vs)
+
+    You can also set your video codec::
+
+        vs_animation = VideoStream("cartoon.avi", 15, codec="mp4v")
+
+    Depending on your operating system and codecs installed, some will not work for you. Default codec is xvid, which has a good compression rate. You can find a list of codecs http://opencv.willowgarage.com/wiki/QuickTimeCodecs
     """
 
 
@@ -194,26 +192,17 @@ class VideoStream():
     starttime = 0.0
     framecount = 0
 
-
-    def __init__(self, filename, fps = 25, framefill = True):
-        (revextension, revname) = filename[::-1].split(".")
-        extension = revextension[::-1]
+    def __init__(self, filename, fps=25, framefill=True, codec="xvid"):
         self.filename = filename
         self.fps = fps
+        self.frametime = 1.0 / float(self.fps)
         self.framefill = framefill
-        #if extension == "mpg":
-        self.fourcc = cv.CV_FOURCC('I', 'Y', 'U', 'V')
-            #self.fourcc = 0
-        #else:
-        #  logger.warning(extension + " is not supported for video writing on this platform, sorry");
-        #  return False
-
+        self.fourcc = cv.CV_FOURCC(codec[0], codec[1], codec[2], codec[3])
 
     def initializeWriter(self, size):
-        self.writer = cv.CreateVideoWriter(self.filename, self.fourcc, self.fps, size, 1)
+        self.writer = cv2.VideoWriter(self.filename, self.fourcc, self.fps, size, 1)
         self.videotime = 0.0
         self.starttime = time.time()
-
 
     def writeFrame(self, img):
         """
@@ -227,42 +216,38 @@ class VideoStream():
             self.initializeWriter(img.size())
             self.lastframe = img
 
-
-        frametime = 1.0 / float(self.fps)
-        targettime = self.starttime + frametime * self.framecount
-        realtime = time.time()
         if self.framefill:
-            #see if we need to do anything to adjust to real time
-            if (targettime > realtime + frametime):
-                #if we're more than one frame ahead
-                #save the lastframe, but don't write to videoout
+            # See if we need to do anything to adjust to real time
+            targettime = self.starttime + self.frametime * self.framecount
+            realtime = time.time()
+
+            # If we're more than one frame ahead
+            if (targettime > realtime + self.frametime):
+                # Save the lastframe, but don't write to videoout
                 self.lastframe = img
                 return
 
-
-            elif (targettime < realtime - frametime):
-                #we're at least one frame behind
+            elif (targettime < realtime - self.frametime):
+                # We're at least one frame behind
                 framesbehind = int((realtime - targettime) * self.fps) + 1
-                #figure out how many frames behind we are
 
-
+                # Figure out how many frames behind we are
                 lastframes = framesbehind / 2
                 for i in range(0, lastframes):
                     self.framecount += 1
-                    cv.WriteFrame(self.writer, self.lastframe.getBitmap())
-
+                    self.writer.write(self.lastframe.getNumpyCv2())
 
                 theseframes = framesbehind - lastframes
                 for i in range(0, theseframes):
                     self.framecount += 1
-                    cv.WriteFrame(self.writer, img.getBitmap())
-                #split missing frames evenly between the prior and current frame
-            else: #we are on track
-                self.framecount += 1
-                cv.WriteFrame(self.writer, img.getBitmap())
-        else:
-            cv.WriteFrame(self.writer, img.getBitmap())
-            self.framecount += 1
 
+                    self.writer.write(img.getNumpyCv2())
+                    # Split missing frames evenly between the prior and current frame
+            else:
+                self.framecount += 1
+                self.writer.write(img.getNumpyCv2())
+        else:
+            self.writer.write(img.getNumpyCv2())
+            self.framecount += 1
 
         self.lastframe = img
