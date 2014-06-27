@@ -61,6 +61,7 @@ The easiest way to install SimpleCV is with the packages for your distribution (
 Install with pip
 
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
+	sudo pip install svgwrite
 	sudo pip install https://github.com/sightmachine/SimpleCV/zipball/develop
 
 Install using clone of SimpleCV repository
