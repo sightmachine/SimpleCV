@@ -53,11 +53,12 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
             while (1):
                 if (_jpegstreamers[port].refreshtime > lasttimeserved or time.time() - timeout > lasttimeserved):
                     try:
+                        jpgdata = _jpegstreamers[port].jpgdata.getvalue()
                         self.wfile.write("--BOUNDARYSTRING\r\n")
                         self.send_header("Content-type", "image/jpeg")
-                        self.send_header("Content-Length", str(len(_jpegstreamers[port].jpgdata.getvalue())))
+                        self.send_header("Content-Length", str(len(jpgdata)))
                         self.end_headers()
-                        self.wfile.write(_jpegstreamers[port].jpgdata.getvalue() + "\r\n")
+                        self.wfile.write(jpgdata + "\r\n")
                         lasttimeserved = time.time()
                     except socket.error, e:
                         return
@@ -126,12 +127,19 @@ class JpegStreamer():
 
 
         self.sleeptime = st
-        self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
-        self.server_thread = threading.Thread(target = self.server.serve_forever)
-        _jpegstreamers[self.port] = self
-        self.server_thread.daemon = True
-        self.server_thread.start()
-        self.framebuffer = self #self referential, ugh.  but gives some bkcompat
+        try:
+            old_streamer = _jpegstreamers[self.port]
+            self.server = old_streamer.server
+            self.server_thread = old_streamer.server_thread
+            self.framebuffer = old_streamer
+            _jpegstreamers[self.port] = self
+        except KeyError:
+            self.server = JpegTCPServer((self.host, self.port), JpegStreamHandler)
+            self.server_thread = threading.Thread(target = self.server.serve_forever)
+            _jpegstreamers[self.port] = self
+            self.server_thread.daemon = True
+            self.server_thread.start()
+            self.framebuffer = self #self referential, ugh.  but gives some bkcompat
 
 
     def url(self):
