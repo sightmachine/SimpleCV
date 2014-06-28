@@ -11407,6 +11407,8 @@ class Image:
             lpendx[i] = s[i][0] - window
             lpendy[i] = s[i][1] 
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+            ((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])) = Cur_line.cropToImageEdges().end_points
+
             searchLines.append(Cur_line)
             tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight, departurethreshold=departurethreshold)
             fitPoints.append(Circle(self,tmp[0],tmp[1],3))
@@ -11428,10 +11430,18 @@ class Image:
             lpendx[i] = s[i][0] - fx
             lpendy[i] = s[i][1] - fy
             Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+            ((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])) = Cur_line.cropToImageEdges().end_points
             searchLines.append(Cur_line)
             tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight,departurethreshold=departurethreshold)
             fitPoints.append((tmp[0],tmp[1]))
             linefitpts[i] = tmp
+
+      badpts = []    
+      for j in range(len(linefitpts)):
+        if (linefitpts[j,0] == -1) or (linefitpts[j,1] == -1):
+            badpts.append(j)
+      for pt in badpts:
+        linefitpts = np.delete(linefitpts,pt,axis=0)
 
       x = linefitpts[:,0]
       y = linefitpts[:,1]
@@ -11439,7 +11449,6 @@ class Image:
       ymax = np.max(y)
       xmax = np.max(x)
       xmin = np.min(x)
-
 
       if( (xmax-xmin) > (ymax-ymin) ):
           # do the least squares
@@ -11513,7 +11522,7 @@ class Image:
                 retVal = (xind,yind)
             else:
                 retVal = (-1,-1)
-                print 'Edgepoint not found.'
+                #print 'Edgepoint not found.'
         else:
             while ind < linearr.size-(departurethreshold+1):
                 if darktolight:
@@ -11531,7 +11540,7 @@ class Image:
                 retVal = (xind,yind)
             else:
                 retVal = (-1,-1)
-                print 'Edgepoint not found.'
+                #print 'Edgepoint not found.'
         return retVal
         
 
