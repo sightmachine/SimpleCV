@@ -35,7 +35,7 @@ while display.isNotDone():
         img.save(display)
         barcode = img.findBarcode()
         if barcode: # if we have a barcode
-            data = str(barcode.data)
+            data = str(barcode.__getitem__(0).data)
             print data
             if mydict.has_key(data):
                 mydict[data] = mydict[data] + 1
