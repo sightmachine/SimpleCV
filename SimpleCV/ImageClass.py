@@ -6,8 +6,6 @@ from numpy import int32
 from numpy import uint8
 import cv2
 
-from EXIF import *
-
 if not init_options_handler.headless:
     import pygame as pg
 
@@ -1151,21 +1149,22 @@ class Image:
         * Compliments of: http://exif-py.sourceforge.net/
 
         * See also: http://en.wikipedia.org/wiki/Exchangeable_image_file_format
-
-        **See Also**
-
-        :py:class:`EXIF`
         """
         import os, string
-        if( len(self.filename) < 5 or self.filename is None ):
+
+        try:
+            from exifread import process_file
+        except ImportError:
+            "You need exifread for this. Install it with 'pip install exifread'"
+
+        if len(self.filename) < 5 or self.filename is None:
             #I am not going to warn, better of img sets
             #logger.warning("ImageClass.getEXIFData: This image did not come from a file, can't get EXIF data.")
             return {}
 
         fileName, fileExtension = os.path.splitext(self.filename)
         fileExtension = string.lower(fileExtension)
-        if( fileExtension != '.jpeg' and fileExtension != '.jpg' and
-            fileExtension != 'tiff' and fileExtension != '.tif'):
+        if fileExtension not in ['.jpeg', '.jpg', 'tiff', '.tif']:
             #logger.warning("ImageClass.getEXIFData: This image format does not support EXIF")
             return {}
 
