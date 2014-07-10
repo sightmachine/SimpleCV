@@ -18,3 +18,7 @@ SimpleCV/tests/*.pkl
 *.komodoproject
 SimpleCV/sampleimages/04000_face.jpg
 SimpleCV/sampleimages/orson_welles_face.jpg
+.spyderworkspace
+SimpleCV/.spyderproject
+SimpleCV/.spyderworkspace
+SimpleCV/cool/
