@@ -2609,6 +2609,12 @@ class Image:
         >>> img.scale(200, 100) #scales the image to 200px x 100px
         >>> img.scale(2.0) #enlarges the image to 2x its current size
 
+        Note: Scaling an image will remove all drawing layers. To maintain
+        drawing layers on an image, use the following (however, you will not be
+        able to modify the drawing layer later):
+        >>> img_with_drawing = img.applyLayers() # apply drawing layer
+        >>> img_with_drawing.scale(2.0)          # scale image w/ drawing
+
 
         .. Warning::
           The two value scale command is deprecated. To set width and height
