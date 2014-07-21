@@ -103,15 +103,15 @@ Run the following commands:
 ### Arch Linux
 Install using pip
 
-    pacman -S python2-numpy opencv2.4.4_1 python-pygame python2-setuptools ipython2 python2-pip
-    pip install https://github.com/sightmachine/SimpleCV/zipball/develop
+    pacman -S python2-numpy opencv python-pygame python2-setuptools ipython2 python2-pip
+    pip2 install https://github.com/sightmachine/SimpleCV/zipball/develop
 
 Install using clone of SimpleCV repository
 
-    pacman -S python2-numpy opencv2.4.4_1 python-pygame python2-setuptools ipython2
+    pacman -S python2-numpy opencv python-pygame python2-setuptools ipython2
     git clone https://github.com/sightmachine/SimpleCV.git
     cd SimpleCV/
-    sudo python setup.py install
+    sudo python2 setup.py install
 
 Install development version using aur
 
