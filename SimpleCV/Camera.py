@@ -2720,8 +2720,8 @@ class AVTCamera(FrameSource):
     >>> img = cam.getImage()
     >>> img.show()
     """
-
     
+    timeoutErr = False
     _buffer = None # Buffer to store images
     _buffersize = 10 # Number of images to keep in the rolling image buffer for threads
     _lastimage = None # Last image loaded into memory
@@ -2965,7 +2965,7 @@ class AVTCamera(FrameSource):
         #call, since it blocks on cameras initializing
 
         camlist = self.listAllCameras()
-
+        #~ import ipdb;ipdb.set_trace()
         if not len(camlist):
             raise Exception("Couldn't find any cameras with the PvAVT driver.  Use SampleViewer to confirm you have one connected.")
 
@@ -2976,6 +2976,8 @@ class AVTCamera(FrameSource):
             camera_id = camlist[camera_id].UniqueId
 
         camera_id = long(camera_id)
+        #~ import ipdb; ipdb.set_trace()
+        
         self.handle = ct.c_uint()
         init_count = 0
         while self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle)) != 0: #wait until camera is availble
@@ -3064,7 +3066,7 @@ class AVTCamera(FrameSource):
         * TimeStampReset
         * TimeStampValueLatch
 
-        **RETURNS**
+        **RETURNS**PvCaptureStart
 
         0 on success
 
@@ -3189,7 +3191,7 @@ class AVTCamera(FrameSource):
 
         return err
 
-    def getImage(self, timeout = 5000):
+    def getImage(self, timeout = 5000, hwtrigger = False):
         """
         **SUMMARY**
         Extract an Image from the Camera, returning the value.  No matter
@@ -3201,7 +3203,7 @@ class AVTCamera(FrameSource):
         >>>c = AVTCamera()
         >>>c.getImage().show()
         """
-
+        
         if self.frame != None:
             st = time.time()
             try:
@@ -3224,12 +3226,20 @@ class AVTCamera(FrameSource):
           self._thread.lock.release()
 
         else:
+        #~ if self.timeoutErr == True:
+            #~ self.__del__()  
+            #~ self.__init__()
+            #~ self.timeoutErr = False
+            
           self.runCommand("AcquisitionStart")
-          frame = self._getFrame(timeout)
+          frame = self._getFrame(timeout,hwtrigger)
+          
           img = Image(pil.fromstring(self.imgformat, 
               (self.width, self.height), 
               frame.ImageBuffer[:int(frame.ImageBufferSize)]))
           self.runCommand("AcquisitionStop")
+
+          
         return img
 
 
@@ -3258,24 +3268,45 @@ class AVTCamera(FrameSource):
         if self.pixelformat == 'Mono8':
             self.imgformat = 'L'
 
-    def _getFrame(self, timeout = 5000):
+    def _getFrame(self, timeout = 5000, hwtrigger = False):
         #return the AVTFrame object from the camera, timeout in ms
         #need to multiply by bitdepth
-        try:
-          frame = self.AVTFrame(self.buffersize)
-          pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(frame), None) )
-          st = time.time()
-          try:
-            pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
-          except Exception, e:
-            print "Exception waiting for frame:", e
-            print "Time taken:",time.time() - st
-            raise(e)
-            
-        except Exception, e:
-            print "Exception aquiring frame:", e
-            raise(e)  
-          
+        
+        if hwtrigger == False:
+			try:
+			  frame = self.AVTFrame(self.buffersize)
+			  pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(frame), None) )
+			  st = time.time()
+			  try:
+				pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
+			  except Exception, e:
+				print "Exception waiting for frame:", e
+				print "Time taken:",time.time() - st
+				raise(e)
+				
+			except Exception, e:
+				print "Exception aquiring frame:", e
+				raise(e)
+        else:
+            try:
+                frame = self.AVTFrame(self.buffersize)
+                pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(frame), None) )
+                st = time.time()
+                try:
+                   while self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) == 17:   #timeout error
+                       print ("waiting trigger")
+                    
+                except Exception, e:
+                    print "Exception waiting for frame:", e
+                    print "Time taken:",time.time() - st
+                    raise(e)
+				
+            except Exception, e:
+				print "Exception aquiring frame:", e
+				raise(e)
+            #~ while self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) == 17:
+                #~ errcode = self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout)
+                
         return frame
 
     def acquire(self):
