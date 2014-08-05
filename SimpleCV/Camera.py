@@ -2721,7 +2721,6 @@ class AVTCamera(FrameSource):
     >>> img.show()
     """
     
-    timeoutErr = False
     _buffer = None # Buffer to store images
     _buffersize = 10 # Number of images to keep in the rolling image buffer for threads
     _lastimage = None # Last image loaded into memory
@@ -2965,7 +2964,6 @@ class AVTCamera(FrameSource):
         #call, since it blocks on cameras initializing
 
         camlist = self.listAllCameras()
-        #~ import ipdb;ipdb.set_trace()
         if not len(camlist):
             raise Exception("Couldn't find any cameras with the PvAVT driver.  Use SampleViewer to confirm you have one connected.")
 
@@ -2976,7 +2974,6 @@ class AVTCamera(FrameSource):
             camera_id = camlist[camera_id].UniqueId
 
         camera_id = long(camera_id)
-        #~ import ipdb; ipdb.set_trace()
         
         self.handle = ct.c_uint()
         init_count = 0
@@ -3226,10 +3223,6 @@ class AVTCamera(FrameSource):
           self._thread.lock.release()
 
         else:
-        #~ if self.timeoutErr == True:
-            #~ self.__del__()  
-            #~ self.__init__()
-            #~ self.timeoutErr = False
             
           self.runCommand("AcquisitionStart")
           frame = self._getFrame(timeout,hwtrigger)
@@ -3304,8 +3297,6 @@ class AVTCamera(FrameSource):
             except Exception, e:
 				print "Exception aquiring frame:", e
 				raise(e)
-            #~ while self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) == 17:
-                #~ errcode = self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout)
                 
         return frame
 
