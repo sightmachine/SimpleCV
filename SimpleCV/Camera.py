@@ -3063,7 +3063,7 @@ class AVTCamera(FrameSource):
         * TimeStampReset
         * TimeStampValueLatch
 
-        **RETURNS**PvCaptureStart
+        **RETURNS**
 
         0 on success
 
