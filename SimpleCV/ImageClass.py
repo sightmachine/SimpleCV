@@ -14761,6 +14761,64 @@ class Image:
         filteredimage = flt.applyFilter(self, grayscale)
         return filteredimage
 
+    def compareHistogram(self, image, methodname = "Chi-Squared"):
+        '''
+        This function compares the histogram of two images that have same size. 
+        There are seven methods, the score may vary slightly depending on the 
+        image to compare, the following scores indicate how well the two histograms
+        are matched with each other.
+        1. Correlation:
+            returns score of 0.0 (doesn't match) to 1.0 (match)
+        2. Chi-Squared:
+            returns score of 0.0 (match) to 2.4 (doesn't match)
+        3. Intersection:
+            returns score 0.0 (doesn't match) to 1.0 (match)
+        4. Hellinger (Bhattacharyya):
+            returnes score 0.0 (match) to 1.0 (doesn't match)
+        5. Euclidean
+            returnes score 0.0 (match) to 1.4142 (doesn't match)
+        6. Manhattan
+            returns score 0.0 (match) to 2.0 (doesn't match)
+        7. Chebysev
+            returns score 0.0 (match) to 1.0 (doesn't match)
+
+        '''
+        from scipy.spatial import distance as dist
+
+        imageRef = self.getNumpyCv2()
+        imageComp = image.getNumpyCv2()
+        methodname = methodname.lower()
+        if self.size() != image.size():
+            raise Exception("The input image has difference format or size to compare with, please check!")
+
+        CVmethodlist = {
+            "correlation": cv2.cv.CV_COMP_CORREL,
+            "chi-squared": cv2.cv.CV_COMP_CHISQR,
+            "intersection": cv2.cv.CV_COMP_INTERSECT, 
+            "hellinger": cv2.cv.CV_COMP_BHATTACHARYYA
+        }
+        
+        Scipymethodlist = {
+            "euclidean": dist.euclidean,
+            "manhattan": dist.cityblock,
+            "chebysev": dist.chebyshev
+        }
+
+        Refhist = cv2.calcHist(imageRef, [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+        Refhist = cv2.normalize(Refhist).flatten()
+        hist = cv2.calcHist(imageComp, [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+        hist = cv2.normalize(hist).flatten()
+        if methodname in CVmethodlist:
+            d = cv2.compareHist(Refhist, hist, CVmethodlist[methodname])
+        elif methodname in Scipymethodlist:
+            method = Scipymethodlist[methodname]
+            d = method(Refhist, hist)
+        else:
+            raise Exception("The method is not specificed correctly")
+
+        return d
+
+
 from SimpleCV.Features import FeatureSet, Feature, Barcode, Corner, HaarFeature, Line, Chessboard, TemplateMatch, BlobMaker, Circle, KeyPoint, Motion, KeypointMatch, FaceRecognizer
 from SimpleCV.Tracking import camshiftTracker, lkTracker, surfTracker, mfTracker, TrackSet
 from SimpleCV.Stream import JpegStreamer
