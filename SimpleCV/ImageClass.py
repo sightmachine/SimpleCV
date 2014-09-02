@@ -14763,6 +14763,8 @@ class Image:
 
     def compareHistogram(self, image, methodname = "Chi-Squared"):
         '''
+        **SUMMARY**
+
         This function compares the histogram of two images that have same size. 
         There are seven methods, the score may vary slightly depending on the 
         image to compare, the following scores indicate how well the two histograms
@@ -14781,6 +14783,22 @@ class Image:
             returns score 0.0 (match) to 2.0 (doesn't match)
         7. Chebysev
             returns score 0.0 (match) to 1.0 (doesn't match)
+
+        **PARAMETERS**
+
+        * *image* - the input image to compare with
+        
+        * *methodname* - the name of the methods from OpenCV and SciPy as listed above
+
+        **RETURNS**
+
+        A score that indicates the similarity of histogram of two images.
+
+        **EXAMPLE**
+
+        >>>  img1 = Image('simplecv')
+        >>>  img2 = img1.invert()
+        >>>  img1.compareHistogram(img2,"correlation")
 
         '''
         from scipy.spatial import distance as dist
