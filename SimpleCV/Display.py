@@ -608,7 +608,7 @@ class Display:
             if event.type == pg.QUIT:
                 pg.quit()
                 self.done = True
-                return
+                return key
             if event.type == pg.MOUSEMOTION:
                 self.mouseRawX = event.pos[0]
                 self.mouseRawY = event.pos[1]
