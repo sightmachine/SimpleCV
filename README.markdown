@@ -315,7 +315,7 @@ recommend using the Windows Superpack, available at <http://www.simplecv.org/dow
 If you already have Python, OpenCV or SciPy installed and want to keep things the way you like them, follow the directions below
 
 
-#### Install Prerequisties if they aren't already installed on your system:
+#### Install Prerequisites if they aren't already installed on your system:
 
 * Install Python 2.7: http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi
 * Install Python Setup Tools for Windows: http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe
