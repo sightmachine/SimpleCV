@@ -12,7 +12,7 @@ Quick Links:
     * [Ubuntu](#ubuntu-1204)
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
-    * [Fedora](#fedora-18)
+    * [Fedora](#fedora)
     * [MacOS](#mac-os-x-106-and-above)
     * [Windows](#windows-7vista)
     * [Raspberry Pi](#raspberry-pi)
@@ -118,7 +118,12 @@ Install development version using aur
     yaourt -S simplecv-git
 
 <a id="fedora"></a>
-### Fedora 18
+### Fedora
+#### Fedora 20 and above
+
+    sudo yum -y install python-SimpleCV
+
+#### Fedora 18
 Install with pip
 
     sudo yum -y install python-ipython opencv-python scipy numpy pygame python-setuptools python-pip
