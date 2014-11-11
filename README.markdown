@@ -9,6 +9,7 @@ Quick Links:
 
  * [About](#about)
  * [Installation](#installation)
+    * [Docker] (#docker)
     * [Ubuntu](#ubuntu-1204)
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
@@ -55,6 +56,36 @@ For more code snippets, we recommend the [SimpleCV examples website](http://exam
 ## Installation
 
 The easiest way to install SimpleCV is with the packages for your distribution (Windows, Mac, Linux) included on the website (http://www.simplecv.org).  Although it is tested on many platforms there maybe scenarios where it just won't work with the package installer. Below is instructions on how to install, if you have problems please see the troubleshooting section at the end of this README file.
+
+<a id="docker"></a>
+### Docker
+This is the recommended way of installing SimpleCV as you can be sure the environment will be setup the same exact way as it's suppose to be on your machine.
+
+*WARNING*: Using docker does not allow the webcam to work, it also doesn't work with Image.show(), so essentially requires you to use simplecv within an IPython notebook.
+
+The first step is to install docker on your machine if you have not, this should work for Windows, Mac, and Linux, please follow instructions at:
+<a href="https://docs.docker.com/installation/">https://docs.docker.com/installation/</a>
+
+Once docker is installed you can run simplecv as easy as (may have to run as sudo, depending on OS):
+
+    docker pull sightmachine/simplecv
+
+It will probably take a little while to download, but once done just run (may need to run as sudo, depending on OS):
+
+    docker run -p 54717:8888 -t -i simplecv
+
+Then just open your web browser and go to:
+
+    http://localhost:54717
+
+You will get a Ipython notebook inteface, start a new notebook and enter the following:
+
+    from SimpleCV import *
+    disp = Display(displaytype='notebook')
+    img = Image('simplecv')
+    img.save(disp)
+
+You should now see the simplecv logo and now have a full simplecv environment setup to start playing around.
 
 <a id="ubuntu-1204"></a>
 ### Ubuntu 12.04
