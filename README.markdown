@@ -72,7 +72,7 @@ Once docker is installed you can run simplecv as easy as (may have to run as sud
 
 It will probably take a little while to download, but once done just run (may need to run as sudo, depending on OS):
 
-    docker run -p 54717:8888 -t -i simplecv
+    docker run -p 54717:8888 -t -i sightmachine/simplecv
 
 Then just open your web browser and go to:
 
