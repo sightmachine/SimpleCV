@@ -77,6 +77,10 @@ It will probably take a little while to download, but once done just run (may ne
 Then just open your web browser and go to:
 
     http://localhost:54717
+    
+**NOTE**: If you are using a Mac or Windows it will be a little different since you will be boot2docker to run.  When you run boot2docker up it should show the ip address of the docker service.  It could be something like 192.168.59.103, but this will change as it's random.  Once you know that ip you will just go to that IP address with the correct port instead:
+
+    http://192.168.59.103:54717
 
 You will get a Ipython notebook inteface, start a new notebook and enter the following:
 
