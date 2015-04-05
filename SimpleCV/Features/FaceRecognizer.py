@@ -4,7 +4,7 @@ from SimpleCV.ImageClass import Image
 
 class FaceRecognizer():
 
-    def __init__(self):
+    def __init__(self, algo="fisher"):
         """
         Create a Face Recognizer Class using Fisher Face Recognizer. Uses
         OpenCV's FaceRecognizer class. Currently supports Fisher Faces.
@@ -19,6 +19,7 @@ class FaceRecognizer():
         self.labels_set = []
         self.int_labels = []
         self.labels_dict_rev = {}
+        self.algo = algo
         # Not yet supported
         # self.eigenValues = None
         # self.eigenVectors = None
@@ -26,7 +27,13 @@ class FaceRecognizer():
 
         try:
             import cv2
-            self.model = cv2.createFisherFaceRecognizer()
+            if self.algo == "fisher":
+                self.model = cv2.createFisherFaceRecognizer()
+            elif self.algo == "lbph":
+                self.model = cv2.createLBPHFaceRecognizer()
+            else:
+                raise ImportError
+
         except ImportError, AttributeError:
             self.supported = False
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
