@@ -48,7 +48,8 @@ class DrawingLayer:
 
         self.width = width
         self.height = height
-        self._mSurface = pg.Surface((width, height), flags = pg.SRCALPHA)
+        self._mSurface = pg.Surface((width, height))
+        self._mSurface.set_colorkey((0, 0, 0))
         self._mDefaultAlpha = 255
         self._mClearColor = pg.Color(0, 0, 0, 0)
 
