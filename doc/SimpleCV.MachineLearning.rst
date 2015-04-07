@@ -1,43 +1,23 @@
-MachineLearning Package
-=======================
+SimpleCV.MachineLearning package
+================================
 
-:mod:`MachineLearning` Package
-------------------------------
+Submodules
+----------
+
+.. toctree::
+
+   SimpleCV.MachineLearning.ConfusionMatrix
+   SimpleCV.MachineLearning.KNNClassifier
+   SimpleCV.MachineLearning.NaiveBayesClassifier
+   SimpleCV.MachineLearning.SVMClassifier
+   SimpleCV.MachineLearning.ShapeContextClassifier
+   SimpleCV.MachineLearning.TemporalColorTracker
+   SimpleCV.MachineLearning.TreeClassifier
+   SimpleCV.MachineLearning.TurkingModule
+
+Module contents
+---------------
 
 .. automodule:: SimpleCV.MachineLearning
     :members:
-    :undoc-members:
     :show-inheritance:
-
-:mod:`KNNClassifier` Module
----------------------------
-
-.. automodule:: SimpleCV.MachineLearning.KNNClassifier
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`NaiveBayesClassifier` Module
-----------------------------------
-
-.. automodule:: SimpleCV.MachineLearning.NaiveBayesClassifier
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`SVMClassifier` Module
----------------------------
-
-.. automodule:: SimpleCV.MachineLearning.SVMClassifier
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`TreeClassifier` Module
-----------------------------
-
-.. automodule:: SimpleCV.MachineLearning.TreeClassifier
-    :members:
-    :undoc-members:
-    :show-inheritance:
-

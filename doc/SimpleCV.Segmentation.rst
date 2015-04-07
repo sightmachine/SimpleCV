@@ -1,43 +1,20 @@
-Segmentation Package
-====================
+SimpleCV.Segmentation package
+=============================
 
-:mod:`Segmentation` Package
----------------------------
+Submodules
+----------
+
+.. toctree::
+
+   SimpleCV.Segmentation.ColorSegmentation
+   SimpleCV.Segmentation.DiffSegmentation
+   SimpleCV.Segmentation.MOGSegmentation
+   SimpleCV.Segmentation.RunningSegmentation
+   SimpleCV.Segmentation.SegmentationBase
+
+Module contents
+---------------
 
 .. automodule:: SimpleCV.Segmentation
     :members:
-    :undoc-members:
     :show-inheritance:
-
-:mod:`ColorSegmentation` Module
--------------------------------
-
-.. automodule:: SimpleCV.Segmentation.ColorSegmentation
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`DiffSegmentation` Module
-------------------------------
-
-.. automodule:: SimpleCV.Segmentation.DiffSegmentation
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`RunningSegmentation` Module
----------------------------------
-
-.. automodule:: SimpleCV.Segmentation.RunningSegmentation
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`SegmentationBase` Module
-------------------------------
-
-.. automodule:: SimpleCV.Segmentation.SegmentationBase
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
