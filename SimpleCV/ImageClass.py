@@ -376,7 +376,7 @@ class ImageSet(list):
             for img, header_anim in converted:
                 if not previous:
                     # gather data
-                    palette = getheader(img)[1]
+                    palette = getheader(img)[0][-1]
                     data = getdata(img)
                     imdes, data = data[0], data[1:]
                     header = header_anim
@@ -8581,7 +8581,7 @@ class Image:
         else:
             kp,d = self._getRawKeypoints(thresh=min_quality,forceReset=True,flavor=flavor,highQuality=0)
 
-        if( flavor in ["ORB", "SIFT", "SURF", "BRISK", "FREAK"]  and kp!=None and d !=None ):
+        if( flavor in ["ORB", "SIFT", "SURF", "BRISK", "FREAK"]  and kp!=None and d is not None ):
             for i in range(0,len(kp)):
                 fs.append(KeyPoint(self,kp[i],d[i],flavor))
         elif(flavor in ["FAST", "STAR", "MSER", "Dense"] and kp!=None ):

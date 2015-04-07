@@ -4,11 +4,11 @@ from SimpleCV import *
 
 FACECASCADE = 'face.xml'
 
-testimage = "sampleimages/orson_welles.jpg"
-testoutput = "sampleimages/orson_welles_face.jpg"
+testimage = "../sampleimages/orson_welles.jpg"
+testoutput = "../sampleimages/orson_welles_face.jpg"
 
-testneighbor_in = "sampleimages/04000.jpg"
-testneighbor_out = "sampleimages/04000_face.jpg"
+testneighbor_in = "../sampleimages/04000.jpg"
+testneighbor_out = "../sampleimages/04000_face.jpg"
 
 def test_haarcascade():
     img = Image(testimage)

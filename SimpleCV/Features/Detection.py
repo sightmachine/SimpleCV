@@ -1742,7 +1742,7 @@ class KeypointMatch(Feature):
         """
         if( self._avgColor is None ):
             TL = self.topLeftCorner()
-            raw = self.image.crop(TL[0],TL[0],self.width(),self.height()) # crop the minbouding rect
+            raw = self.image.crop(TL[0],TL[1],self.width(),self.height()) # crop the minbouding rect
             mask = Image((self.width(),self.height()))
             mask.dl().polygon(self._minRect,color=Color.WHITE,filled=TRUE)
             mask = mask.applyLayers()
