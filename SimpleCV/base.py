@@ -194,9 +194,34 @@ def test():
     """
     This function is meant to run builtin unittests
     """
+    passed_all_tests = True
+    if is_number(1) != True:
+        passed_all_tests = False
+        print "is_number function is not functioning"
+    if is_number("simplecv") == True:
+        passed_all_tests = False
+        print "is_number function is not functioning"
+    if is_tuple([1,2]) == True:
+        passed_all_tests = False
+        print "is_tuple function is not functioning"
+    if is_tuple("asd") == True:
+        passed_all_tests = False
+        print "is_tuple function is not functioning"
+    if is_tuple((1,2)) == False:
+        passed_all_tests = False
+        print "is_tuple function is not functioning"
+    if reverse_tuple((1,2)) != (2,1):
+        passed_all_tests = False
+        print "reverse_tuple function is not functioning"
+    if reverse_tuple("sim") != ('m', 'i', 's'):
+        passed_all_tests = False
+        print "reverse_tuple function is not functioning"
+    if find("simple", ("simple", "cv")) == False:
+        passed_all_tests = False
+        print "find function is not working properly"
 
-    print 'unit test'
-
+    if passed_all_tests:
+        print "All tests about base.py were successful."
 
 def download_and_extract(URL):
     """
