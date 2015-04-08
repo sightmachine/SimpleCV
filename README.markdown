@@ -194,7 +194,7 @@ OS X's permissions on /usr/local are too restrictive and must be changed via:
 
 Install homebrew via Terminal using:
 
-    ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+    ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
 
 Ignore the single warning that instructs you to install Xcode's CLI tools (you did that already)
 To verify that homebrew is installed correctly and working, run:
