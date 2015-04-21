@@ -96,6 +96,7 @@ You should now see the simplecv logo and now have a full simplecv environment se
 Install with pip
 
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-pygame python-setuptools python-pip
+	sudo pip install svgwrite
 	sudo pip install https://github.com/sightmachine/SimpleCV/zipball/develop
 
 Install using clone of SimpleCV repository
