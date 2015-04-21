@@ -18,4 +18,7 @@ to run basic functionality test working.  You should get all OK checks
 if everything is fine and dandy. But you will get errors if something
 is broken.
 
+To run all tests on a local environment, you can use:
+  nosetests
+The Travis CI default test only covers the basics (tests.py). Please run all the tests in order to ensure that nothing is breaking.
 ------------------------------------------------------------------------
