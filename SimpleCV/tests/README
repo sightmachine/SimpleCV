@@ -12,7 +12,7 @@ To install nosetools you can either use:
 
 
 once these are installed, just run the command
-  nosetest tests.py
+  nosetests tests.py
 
 to run basic functionality test working.  You should get all OK checks
 if everything is fine and dandy. But you will get errors if something
