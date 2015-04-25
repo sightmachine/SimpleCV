@@ -709,6 +709,15 @@ def test_color_colormap_build():
     name_stem = "test_color_colormap_build"
     perform_diff(results,name_stem)
 
+    cm = ColorModel(isBackground=False)
+    if cm.mIsBackground == True:
+        print "ColorModel's constructor cannot set isBackground properly"
+        assert False
+    cm.setIsForeground()
+    if cm.mIsBackground == True:
+        print "setIsForeground method is not working"
+        assert False
+
     #c=img.meanColor()
     #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     #  assert False
