@@ -14,7 +14,7 @@ Quick Links:
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
     * [Fedora](#fedora)
-    * [MacOS](#mac-os-x-106-and-above)
+    * [OS X](#mac-os-x-106-and-above)
     * [Windows](#windows-7vista)
     * [Raspberry Pi](#raspberry-pi)
  * [SimpleCV Shell](#simplecv-interactive-shell-or-how-to-run-simplecv)
@@ -110,7 +110,7 @@ then just run 'simplecv' from the shell.
 
 ### Virtualenv
 
-This is how to install SimpleCV under a python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
+This is how to install SimpleCV under a Python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
 
 Run the following commands:
 
@@ -172,18 +172,18 @@ Install using clone of SimpleCV repository
     sudo python setup.py install
 
 <a id="macos">
-### Mac OS X (10.6 and above)
+### OS X (Mac, 10.6 and above)
 </a>
 
-**General OSX Overview**
+**General OS X Overview**
 
-Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
+Note: We originally tried to bundle all OS X dependencies in a superpack.  This turned out to be extremely difficult with the many differences between the versions of OS X.  Now, for OS X, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
 
 
 ---------------------------
 **Explicit (as in every step) instructions compliments of JHawkins**
 
-*These instructions are geared towards people who are just getting started with python development on OSX. They will walk you through setting up all the tools you need to build SimpleCV from scratch. If you don't know which instructions you want, you probably want to use these.*
+*These instructions are geared towards people who are just getting started with Python development on OS X. They will walk you through setting up all the tools you need to build SimpleCV from scratch. If you don't know which instructions you want, you probably want to use these.*
 
 Install Xcode via App Store
 Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across from Command Line Tools
@@ -202,7 +202,7 @@ To verify that homebrew is installed correctly and working, run:
     brew doctor
 
 Address any errors before moving on. Remember, Google is your friend.
-Note: If you run VM's on my via Parallels and run into multiple warnings related to "osxfuse" thi go to System Preferences >> FUSE for OS X >> Click Remove OSXFUSE. I can add it back later if needed.
+Note: If you run VM's via Parallels and run into multiple warnings related to "osxfuse", just go to System Preferences >> FUSE for OS X >> Click Remove OSXFUSE. You can add it back later if needed.
 Once the doctor tells you that you are 'raring to brew', run:
 
     brew update
@@ -211,7 +211,7 @@ followed by
 
     brew upgrade
 
-Install OpenCV via homebrew by running:
+Install OpenCV via Homebrew by running:
 
     brew tap homebrew/science
     brew install opencv
@@ -224,11 +224,11 @@ Source your ~/.bash_profile file so that the changes take effect:
 
     source ~/.bash_profile
 
-Install Git via homebrew by running:
+Install Git via Homebrew by running:
 
     brew install git
 
-Install SDL dependencies (can anyone clarify this?) via homebrew by running:
+Install SDL dependencies (can anyone clarify this?) via Homebrew by running:
 
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
 
@@ -255,7 +255,7 @@ Manually create a few PIL symlinks:
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
 
-Install PIP by running:
+Install pip by running:
 
     sudo easy_install pip
 
@@ -264,7 +264,7 @@ Install Mercurial via homebrew by running:
 
      brew install mercurial
 
-Install pygame via PIP by running:
+Install pygame via pip by running:
 
     sudo pip install hg+http://bitbucket.org/pygame/pygame
 
@@ -279,7 +279,7 @@ Install svgwrite by running:
     cd SimpleCV/
     sudo python setup.py install
 
-**JHawkins' Instructions** Install SimpleCV via PIP by running:
+**JHawkins' Instructions** Install SimpleCV via pip by running:
 
     sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
@@ -294,14 +294,14 @@ If it starts (it should!) be sure to check out:
 --------------------------------
 **Lion Take Two**
 
-*This is the abridged set of the instructions. It assumes you have most of the common OSX developer tools installed like brew and pip.
-If you don't know what Brew or Pip are you probably want to use the instructions above. For OSX Lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11,
+*This is the abridged set of the instructions. It assumes you have most of the common OS X developer tools installed like brew and pip.
+If you don't know what brew or pip are you probably want to use the instructions above. For OS X Lion make sure you install Mercurial (aka hg - brew install hg). There may be errors in pygame associated with not installing X11,
 if you encounter this problem please submit an issue on github.*
 
 Before you begin installing SimpleCV make sure you have the folliwng tools installed.
 
 * Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer.
-* Install homebrew https://github.com/mxcl/homebrew/wiki/installation
+* Install Homebrew https://github.com/mxcl/homebrew/wiki/installation
 
 
 Commands (for Lion)::
@@ -310,7 +310,7 @@ Commands (for Lion)::
     cd ~/Code
     /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
     brew tap homebrew/science
-	brew install opencv
+    brew install opencv
     brew install git
     brew tap homebrew/headonly
     brew install --HEAD smpeg
@@ -398,8 +398,8 @@ This file will be around 192mb .
 Step 2
  ------
 
-After Downloading run the file . It will start an installation window along with a command prompt window. Give yes permission and press next . First it will install python 2.7.3 .
-Then it will install numpy,scipy,Pygame,openCV and now all the normal installation windows will be closed and still there will be command prompt running . Leave it as such it will
+After Downloading run the file. It will start an installation window along with a command prompt window. Give yes permission and press next. First it will install Python 2.7.3 .
+Then it will install numpy, scipy, Pygame, openCV and now all the normal installation windows will be closed and still there will be command prompt running . Leave it as such it will
 download some other file like cython and when it is finished commandpromt will display a success message "SimpleCV installed successfully" "press any button in 10sec or will close
 automatically " . Now just press any button or wait for the count down .
 
