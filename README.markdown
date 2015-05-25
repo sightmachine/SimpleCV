@@ -130,10 +130,6 @@ Run the following commands:
     ./bin/python src/pygame-pygame-6625feb3fc7f/setup.py -setuptools install
     ./bin/pip install https://github.com/sightmachine/SimpleCV/zipball/develop
 
-
-
-
-
 <a id="archlinux"></a>
 ### Arch Linux
 Install using pip
@@ -210,7 +206,7 @@ Once the doctor tells you that you are 'raring to brew', run:
 
 followed by
 
-    brew upgrade
+    brew upgrade --all
 
 Install OpenCV via Homebrew by running:
 
