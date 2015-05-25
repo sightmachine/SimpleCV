@@ -14,7 +14,7 @@ Quick Links:
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
     * [Fedora](#fedora)
-    * [OS X](#mac-os-x-106-and-above)
+    * [OS X](#os-x-106-and-above)
     * [Windows](#windows-7vista)
     * [Raspberry Pi](#raspberry-pi)
  * [SimpleCV Shell](#simplecv-interactive-shell-or-how-to-run-simplecv)
@@ -78,18 +78,18 @@ Then just open your web browser and go to:
 
     http://localhost:54717
     
-**NOTE**: If you are using a Mac or Windows it will be a little different since you will be boot2docker to run.  When you run boot2docker up it should show the ip address of the docker service.  It could be something like 192.168.59.103, but this will change as it's random.  Once you know that ip you will just go to that IP address with the correct port instead:
+**NOTE**: If you are using a Mac or Windows it will be a little different since you will be using boot2docker to run.  When you run boot2docker up it should show the IP address of the docker service.  It could be something like 192.168.59.103, but this will change as it's random.  Once you know that ip you will just go to that IP address with the correct port instead:
 
     http://192.168.59.103:54717
 
-You will get a Ipython notebook inteface, start a new notebook and enter the following:
+You will get a IPython notebook interface, start a new notebook and enter the following:
 
     from SimpleCV import *
     disp = Display(displaytype='notebook')
     img = Image('simplecv')
     img.save(disp)
 
-You should now see the simplecv logo and now have a full simplecv environment setup to start playing around.
+You should now see the SimpleCV logo and now have a full SimpleCV environment setup to start playing around.
 
 <a id="ubuntu-1204"></a>
 ### Ubuntu 12.04
@@ -110,7 +110,7 @@ then just run 'simplecv' from the shell.
 
 ### Virtualenv
 
-This is how to install SimpleCV under a Python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
+This is how to install SimpleCV under a Python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it may be possible to port to other operating systems.
 
 Run the following commands:
 
@@ -171,7 +171,7 @@ Install using clone of SimpleCV repository
     cd SimpleCV/
     sudo python setup.py install
 
-<a id="macos">
+<a id="os-x-106-and-above">
 ### OS X (Mac, 10.6 and above)
 </a>
 
@@ -185,24 +185,25 @@ Note: We originally tried to bundle all OS X dependencies in a superpack.  This 
 
 *These instructions are geared towards people who are just getting started with Python development on OS X. They will walk you through setting up all the tools you need to build SimpleCV from scratch. If you don't know which instructions you want, you probably want to use these.*
 
-Install Xcode via App Store
-Start Xcode and go to Xcode >> Preferences >> Downloads >> click Install across from Command Line Tools
-If Terminal is already running, shut it down and reopen it
+* Install Xcode via the App Store
+* Start Xcode and go to Xcode >> Preferences >> Downloads. Click "Install" next to Command Line Tools. (Or type "xcode-select --install" in the Terminal and select the "Install" button from the dialogue that appears.)
+* If Terminal is already running, shut it down and reopen it
+
 OS X's permissions on /usr/local are too restrictive and must be changed via:
 
     sudo chown -R `whoami` /usr/local
 
-Install homebrew via Terminal using:
+Install Homebrew via Terminal using:
 
     ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
 
 Ignore the single warning that instructs you to install Xcode's CLI tools (you did that already)
-To verify that homebrew is installed correctly and working, run:
+To verify that Homebrew is installed correctly and working, run:
 
     brew doctor
 
 Address any errors before moving on. Remember, Google is your friend.
-Note: If you run VM's via Parallels and run into multiple warnings related to "osxfuse", just go to System Preferences >> FUSE for OS X >> Click Remove OSXFUSE. You can add it back later if needed.
+Note: If you run VM's via Parallels and run into multiple warnings related to "osxfuse", just go to System Preferences >> FUSE for OS X. And click Remove OSXFUSE. You can add it back later if needed.
 Once the doctor tells you that you are 'raring to brew', run:
 
     brew update
@@ -283,7 +284,7 @@ Install svgwrite by running:
 
     sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
 
-Test by running simplecv in the command line:
+Test by running simplecv from the command line:
 
     simplecv
 
