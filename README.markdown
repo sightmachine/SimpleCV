@@ -287,8 +287,11 @@ Install svgwrite by running:
 
     sudo pip install svgwrite
 
-**Note:** SimpleCV's developers made a change (for the better) here that I am including, however everything up to this point is 100% guaranteed to work, because it's exactly what I did. Keeping true to that, I'll present both options. *We both suggest using the develop branch.*
+**Note:** SimpleCV's developers made a change (for the better) here that I am including, however everything up to this point is 100% guaranteed to work, because it's exactly what I did. Keeping true to that, I'll present both options.
+*We both suggest using the develop branch.*
+
 **Developer's Instructions**
+
 Install SimpleCV from the Git repo and then run setup:
 
     git clone https://github.com/sightmachine/SimpleCV.git
@@ -296,6 +299,7 @@ Install SimpleCV from the Git repo and then run setup:
     sudo python setup.py install
 
 **JHawkins' Instructions**
+
 Install SimpleCV via pip by running:
 
     sudo pip install https://github.com/sightmachine/SimpleCV/zipball/master
