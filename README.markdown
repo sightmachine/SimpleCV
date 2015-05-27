@@ -254,14 +254,14 @@ Unpack and install:
     sudo python setup.py install
 
 Manually create a few PIL symlinks.
-For OS X 10.9 (Mavericks) and below:
+For OS X 10.6 (Snow Leopard):
 
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.so /Library/Python/2.6/site-packages/cv.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/PIL /Library/Python/2.6/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv2.so /Library/Python/2.6/site-packages/cv2.so
     sudo ln -s /usr/local/lib/python2.6/site-packages/cv.py /Library/Python/2.6/site-packages/cv.py
 
-For OS X 10.10 (Yosemite):
+For OS X 10.7 (Lion) up to 10.10 (Yosemite):
 
     sudo ln -s /usr/local/lib/python2.7/site-packages/PIL /Library/Python/2.7/site-packages/PIL
     sudo ln -s /usr/local/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
