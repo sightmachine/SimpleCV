@@ -3,7 +3,8 @@
 This example shows how to perform various rotations and warps on images
 and put back into a display.
 '''
-print __doc__
+from __future__ import print_function
+print(__doc__)
 
 from SimpleCV import *
 

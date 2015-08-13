@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import cv2
 import time
@@ -8,7 +9,7 @@ from SimpleCV import Display
 #time.sleep(0.2)
 
 def printPrettyHeader(msg):
-    print "*"*80 + "\n* %s *\n" % msg + "*"*80
+    print("*"*80 + "\n* %s *\n" % msg + "*"*80)
 
 def _takeShots(cam, numPics, filename):
     start = time.time()
@@ -18,17 +19,17 @@ def _takeShots(cam, numPics, filename):
         img.save("%s_%d.png" % (filename, i))
     end = time.time()
     elapsed = end - start
-    print "Took %f seconds" % elapsed
+    print("Took %f seconds" % elapsed)
 
 def _takeManyVimbaShots(idx):
     c = VimbaCamera()
-    print "_takeManyVimbaShots %d" % idx
+    print("_takeManyVimbaShots %d" % idx)
 
     _takeShots(c, 10, "cam_vimba%d" % idx)
 
 def _takeAVTManyShots(idx):
     c = AVTCamera()
-    print "_takeAVTManyShots %d" % idx
+    print("_takeAVTManyShots %d" % idx)
 
     _takeShots(c, 10, "cam_avtnative%d" % idx)
 

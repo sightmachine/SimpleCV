@@ -1,7 +1,9 @@
+from __future__ import print_function
+from __future__ import absolute_import
 from SimpleCV import *
 #from FeatureUtils import *
-from CardUtil import *
-from PlayingCardFactory import *
+from .CardUtil import *
+from .PlayingCardFactory import *
 #import FeatureUtils
 import numpy as np
 
@@ -31,7 +33,7 @@ def GetParallelSets(line_fs,parallel_thresh=25):
 
 pcf = PlayingCardFactory()
 data,labels = GetFullDataSet()
-print len(data)
+print(len(data))
 datapoints = zip(data,labels)
 datapoints = datapoints[0:200]
 result = []

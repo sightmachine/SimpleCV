@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Sweeps throught the depth image showing 100 range at a time"""
+from __future__ import print_function
 import freenect
 import cv
 import numpy as np

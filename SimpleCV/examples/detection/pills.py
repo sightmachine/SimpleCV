@@ -3,6 +3,7 @@ This demo is used to find missing pills in a blister type of package
 it would be used in quality control in manufacturing type of application
 were you are verifying that the correct number of pills are present
 '''
+from __future__ import print_function
 
 
 from SimpleCV import *
@@ -29,7 +30,7 @@ for idx in range(len(packblobs)):
 
     pillcount = len(pills)
     if pillcount != expected_pillcount:
-        print "pack at %d, %d had %d pills" % (packblobs[idx].x, packblobs[idx].y, pillcount)
+        print("pack at %d, %d had %d pills" % (packblobs[idx].x, packblobs[idx].y, pillcount))
         i.drawText("Pills Found: " + str(pillcount), 10, 10, fontsize = 20)
         i.drawText("Pills Expected: " + str(expected_pillcount), 10, 30, fontsize = 20)
     for p in pills:

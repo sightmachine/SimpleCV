@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV.base import np, itertools
 try:
     import cv2
@@ -102,7 +103,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
     pt = cv2.goodFeaturesToTrack(g, maxCorners = maxCorners, qualityLevel = qualityLevel,
                                 minDistance = minDistance, blockSize = blockSize)
     if type(pt) == type(None):
-        print "no points"
+        print("no points")
         track = LK(img, bb, pt)
         return track
 

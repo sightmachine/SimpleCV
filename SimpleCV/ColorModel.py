@@ -198,7 +198,7 @@ class ColorModel:
 
        """
         #reverse the color, cast to uint8, right shift, convert to string, check dict
-        return self.mData.has_key(np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring())
+        return np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring() in self.mData
 
     def setIsForeground(self):
         """

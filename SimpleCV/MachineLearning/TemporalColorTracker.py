@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV import Image, ImageSet, Camera, VirtualCamera, ROI, Color, LineScan
 import numpy as np
 import scipy.signal as sps
@@ -109,17 +110,17 @@ class TemporalColorTracker:
         self._buildSignalProfile()
         if verbose:
             for key in self.data.keys():
-                print 30*'-'
-                print "Channel: {0}".format(key)
-                print "Data Points: {0}".format(len(self.data[key]))
-                print "Steady State: {0}+/-{1}".format(self._steadyState[key][0],self._steadyState[key][1])
-                print "Peaks: {0}".format(self.peaks[key])
-                print "Valleys: {0}".format(self.valleys[key])
-                print "Use Peaks: {0}".format(self.doPeaks[key])
-            print 30*'-'
-            print "BEST SIGNAL: {0}".format(self._bestKey)
-            print "BEST WINDOW: {0}".format(self._window)
-            print "BEST CUTOFF: {0}".format(self._cutoff)
+                print(30*'-')
+                print("Channel: {0}".format(key))
+                print("Data Points: {0}".format(len(self.data[key])))
+                print("Steady State: {0}+/-{1}".format(self._steadyState[key][0],self._steadyState[key][1]))
+                print("Peaks: {0}".format(self.peaks[key]))
+                print("Valleys: {0}".format(self.valleys[key]))
+                print("Use Peaks: {0}".format(self.doPeaks[key]))
+            print(30*'-')
+            print("BEST SIGNAL: {0}".format(self._bestKey))
+            print("BEST WINDOW: {0}".format(self._window))
+            print("BEST CUTOFF: {0}".format(self._cutoff))
                 
     def _getDataFromImg(self,img):
         """
@@ -150,7 +151,7 @@ class TemporalColorTracker:
                 img = src.getImage()
                 count = count + 1
                 if( verbose ):
-                    print "Got Frame {0}".format(count)
+                    print("Got Frame {0}".format(count))
                 if( isinstance(src,Camera) ):
                     time.sleep(0.05) # let the camera sleep
                 if( img is None ):
@@ -233,7 +234,7 @@ class TemporalColorTracker:
         # Now we know which signal has the most spread
         # and what direction we are looking for.
         if( forceChannel is not None ):
-            if(self.data.has_key(forceChannel)):
+            if(forceChannel in self.data):
                 self._bestKey = forceChannel
             else:
                 raise Exception('That is not a valid data channel')
@@ -299,7 +300,7 @@ class TemporalColorTracker:
         self._template = sig / len(self.corrTemplates)
         self._template /= np.max(self._template)
         corrVals = [np.correlate(peak/np.max(peak),self._template) for peak in self.corrTemplates] 
-        print corrVals
+        print(corrVals)
         self.corrThresh = (np.mean(corrVals),np.std(corrVals))
         
     def _getBestValue(self,img):

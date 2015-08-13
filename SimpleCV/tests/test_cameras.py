@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import os, sys
 from SimpleCV import *
 from nose.tools import with_setup
@@ -14,7 +15,7 @@ def test_virtual_camera_constructor():
     props = mycam.getAllProperties()
 
     for i in props.keys():
-        print str(i) + ": " + str(props[i]) + "\n"
+        print(str(i) + ": " + str(props[i]) + "\n")
 
 
     pass

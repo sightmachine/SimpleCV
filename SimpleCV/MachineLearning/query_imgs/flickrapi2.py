@@ -44,6 +44,7 @@
 # beej@beej.us
 #
 
+from __future__ import print_function
 import sys
 import md5
 import string
@@ -222,7 +223,7 @@ class FlickrAPI:
 
         """
 
-        if not self.__handlerCache.has_key(method):
+        if method not in self.__handlerCache:
             def handler(_self = self, _method = method, **arg):
                 _method = "flickr." + _method.replace("_", ".")
                 url = "http://" + FlickrAPI.flickrHost + \
@@ -319,7 +320,7 @@ class FlickrAPI:
         for a in ('title', 'description', 'tags', 'is_public', \
                 'is_friend', 'is_family'):
 
-            if arg.has_key(a):
+            if a in arg:
                 body += "--%s\r\n" % (boundary)
                 body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
                 body += "%s\r\n" % (arg[a])
@@ -515,7 +516,7 @@ def main(argv):
 
     # and print them
     for a in rsp.photos[0].photo:
-        print "%10s: %s" % (a['id'], a['title'].encode("ascii", "replace"))
+        print("%10s: %s" % (a['id'], a['title'].encode("ascii", "replace")))
 
     # upload the file foo.jpg
     #rsp = fapi.upload(filename="foo.jpg", \

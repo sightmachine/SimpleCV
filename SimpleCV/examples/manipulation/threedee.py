@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import os
 from SimpleCV import *
@@ -17,8 +18,8 @@ def threedee_me(left, right, offset):
     output = output.crop(offset[0],y=offset[1],w=left.width-offset[0],h=left.height-offset[1])
     return output
 
-print "Taking pictures. Please move your camera slightly to its right"
-print "after every picture."
+print("Taking pictures. Please move your camera slightly to its right")
+print("after every picture.")
 
 c = Camera()
 time.sleep(1)
@@ -26,7 +27,7 @@ images = []
 
 for i in range(5):
     images.append(c.getImage())
-    print "Picture %d taken" % (i + 1)
+    print("Picture %d taken" % (i + 1))
     time.sleep(1)
 
 offset = (0,0)
@@ -35,6 +36,6 @@ for i in range(4):
     left = images[i]
     right = images[i+1]
     output = threedee_me(left, right, offset)
-    print output.save(temp = True)
+    print(output.save(temp = True))
     output.show()
     time.sleep(2)

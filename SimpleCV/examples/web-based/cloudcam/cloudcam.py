@@ -5,6 +5,7 @@
 #
 # Using jpegcam as flash webcam library:
 # http://code.google.com/p/jpegcam/
+from __future__ import print_function
 import os, tempfile, webbrowser, urllib, cherrypy, socket
 from SimpleCV import *
 
@@ -27,8 +28,8 @@ class CloudCam(object):
         outfile.close() # close the temporary file
         self.process(filepath) #Use SimpleCV to process the image
 
-        print "url:" + cherrypy.url()
-        print "socket:" + socket.gethostbyname(socket.gethostname())
+        print("url:" + cherrypy.url())
+        print("socket:" + socket.gethostbyname(socket.gethostname()))
         #~ return "http://localhost:8000/" + tmpname #return the image path via ajax request
         return tmpname
 

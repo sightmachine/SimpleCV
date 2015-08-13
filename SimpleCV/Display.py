@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from SimpleCV.base import *
 import SimpleCV.ImageClass
 import Queue
-from base import *
+from .base import *
 
 
 PYGAME_INITIALIZED = False

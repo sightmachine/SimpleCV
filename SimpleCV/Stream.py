@@ -59,9 +59,9 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(_jpegstreamers[port].jpgdata.getvalue() + "\r\n")
                         lasttimeserved = time.time()
-                    except socket.error, e:
+                    except socket.error as e:
                         return
-                    except IOError, e:
+                    except IOError as e:
                         return
                     count = count + 1
 

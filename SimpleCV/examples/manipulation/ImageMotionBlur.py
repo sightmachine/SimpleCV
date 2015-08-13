@@ -3,7 +3,8 @@ This examples demonstrates the motionBlur method.
 Use Up/Down Arrow keys to change power
 Use Left/Right Arrow keys to change angle
 """
-print __doc__
+from __future__ import print_function
+print(__doc__)
 
 from SimpleCV import *
 import pygame

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.DrawingLayer import *
@@ -178,7 +179,7 @@ class SVMClassifier:
         for i in range(nfiles):
             infile = files[i]
             if verbose:
-                print "Opening file: " + infile
+                print("Opening file: " + infile)
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -207,7 +208,7 @@ class SVMClassifier:
             imageset = imageset[0:subset]   
         for img in imageset:
             if verbose:
-                print "Opening file: " + img.filename
+                print("Opening file: " + img.filename)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
@@ -279,7 +280,7 @@ class SVMClassifier:
             c = self.mClassifier(self.mDataSetOrange[i])
             test = self.mDataSetOrange[i].getclass()
             if verbose:
-                print "original", test, "classified as", c
+                print("original", test, "classified as", c)
             if(test==c):
                 correct = correct + 1
             else:
@@ -297,7 +298,7 @@ class SVMClassifier:
             print("Correct: "+str(good))
             print("Incorrect: "+str(bad))
             classes = self.mDataSetOrange.domain.classVar.values
-            print confusion
+            print(confusion)
             #print "\t"+"\t".join(classes)
             #for className, classConfusions in zip(classes, confusion):
             #    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
@@ -364,9 +365,9 @@ class SVMClassifier:
             print("Correct: "+str(good))
             print("Incorrect: "+str(bad))
             classes = self.mDataSetOrange.domain.classVar.values
-            print "\t"+"\t".join(classes)
+            print("\t"+"\t".join(classes))
             for className, classConfusions in zip(classes, confusion):
-                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
+                print(("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions)))
 
         return [good, bad, confusion]
 
@@ -384,7 +385,7 @@ class SVMClassifier:
         for i in range(nfiles):
             infile = files[i]
             if verbose:
-                print "Opening file: " + infile
+                print("Opening file: " + infile)
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -422,7 +423,7 @@ class SVMClassifier:
             imageset = imageset[0:subset]
         for img in imageset:
             if verbose:
-                print "Opening file: " + img.filename
+                print("Opening file: " + img.filename)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)

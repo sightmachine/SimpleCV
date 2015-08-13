@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import cv2
 import time
@@ -6,7 +7,7 @@ from SimpleCV import Display
 from pymba import Vimba
 
 def printPrettyHeader(msg):
-    print "*"*80 + "\n* %s *\n" % msg + "*"*80
+    print("*"*80 + "\n* %s *\n" % msg + "*"*80)
 
 def _takeShots(cam, numPics, filename):
     start = time.time()
@@ -16,7 +17,7 @@ def _takeShots(cam, numPics, filename):
         img.save("%s_%d.png" % (filename, i))
     end = time.time()
     elapsed = end - start
-    print "Took %f seconds" % elapsed
+    print("Took %f seconds" % elapsed)
 
 '''
 def test_AVT_threaded_getImage():

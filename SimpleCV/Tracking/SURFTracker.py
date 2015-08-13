@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV.base import np, itertools
 try:
     import cv2
@@ -105,7 +106,7 @@ def surfTracker(img, bb, ts, **kwargs):
     skp, sd = descriptor.compute(newimg, skp)
 
     if td is None:
-        print "Descriptors are Empty"
+        print("Descriptors are Empty")
         return None
 
     if sd is None:

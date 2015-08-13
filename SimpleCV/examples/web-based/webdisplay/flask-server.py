@@ -12,8 +12,9 @@ Then to run the application:
 visit http://localhost:5000
 
 '''
+from __future__ import print_function
 
-print __doc__
+print(__doc__)
 
 
 from flask import Flask, jsonify, render_template, request
@@ -46,8 +47,8 @@ def snapshot():
     loc = 'static/' + tf.name.split('/')[-1]
     tf.close()
     img.save(loc)
-    print "location",loc
-    print "json", json.dumps(loc)
+    print("location",loc)
+    print("json", json.dumps(loc))
     return json.dumps(loc)
 
 if __name__ == '__main__':

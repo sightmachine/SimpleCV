@@ -5,7 +5,8 @@ Left-click to define points for snapping ( Blue )
 Right-click to start the process, Detected Edge points will be shown in Red
 
 '''
-print __doc__
+from __future__ import print_function
+print(__doc__)
 
 from SimpleCV import *
 

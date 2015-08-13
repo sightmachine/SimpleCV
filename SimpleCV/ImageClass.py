@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
@@ -6,7 +8,7 @@ from numpy import int32
 from numpy import uint8
 import cv2
 
-from EXIF import *
+from .EXIF import *
 
 if not init_options_handler.headless:
     import pygame as pg
@@ -143,9 +145,9 @@ class ImageSet(list):
             from BeautifulSoup import BeautifulSoup
 
         except:
-            print "You need to install Beatutiul Soup to use this function"
-            print "to install you can use:"
-            print "easy_install beautifulsoup"
+            print("You need to install Beatutiul Soup to use this function")
+            print("to install you can use:")
+            print("easy_install beautifulsoup")
 
             return
 
@@ -165,7 +167,7 @@ class ImageSet(list):
             elif size == 'large':
                 size_param = '&tbs=isz:l'
             else:
-                print INVALID_SIZE_MSG
+                print(INVALID_SIZE_MSG)
                 return None
 
         elif type(size) == tuple:
@@ -173,7 +175,7 @@ class ImageSet(list):
             size_param = '&tbs=isz:ex,iszw:' + str(width) + ',iszh:' + str(height)
 
         else:
-            print INVALID_SIZE_MSG
+            print(INVALID_SIZE_MSG)
             return None
 
         # Used to extract imgurl parameter value from a URL
@@ -213,7 +215,7 @@ class ImageSet(list):
                     add_img = Image(dl_url, verbose=False)
 
                     # Don't know a better way to check if the image was actually returned
-                    if add_img.height <> 0 and add_img.width <> 0:
+                    if add_img.height != 0 and add_img.width != 0:
                         add_set.append(add_img)
 
                 except:
@@ -458,7 +460,7 @@ class ImageSet(list):
             try:
                 from IPython.core.display import Image as IPImage
             except ImportError:
-                print "You need IPython Notebooks to use this display mode"
+                print("You need IPython Notebooks to use this display mode")
                 return
             from IPython.core import display as Idisplay
             for i in self:
@@ -507,7 +509,7 @@ class ImageSet(list):
         """
 
         for i in self:
-            print i.filename
+            print(i.filename)
 
     def _read_gif(self, filename):
         """ read_gif(filename)
@@ -757,7 +759,7 @@ class ImageSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return ImageSet(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -1211,7 +1213,7 @@ class Image:
                 i.dl().text(txt, (10,i.height / 2), color=col)
                 txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
                 i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+                print("coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY)))
 
 
             if elapsed_time > 0 and elapsed_time < 5:
@@ -1223,7 +1225,7 @@ class Image:
 
             i.save(d)
             if d.mouseRight:
-                print "Closing Window"
+                print("Closing Window")
                 d.done = True
 
 
@@ -2249,7 +2251,7 @@ class Image:
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
             else :
-                print "Path does not exist!"
+                print("Path does not exist!")
 
         else :
             if (filename) :
@@ -2298,7 +2300,7 @@ class Image:
                     try:
                         from IPython.core.display import Image as IPImage
                     except ImportError:
-                        print "You need IPython Notebooks to use this display mode"
+                        print("You need IPython Notebooks to use this display mode")
                         return
 
                     from IPython.core import display as Idisplay
@@ -2323,13 +2325,13 @@ class Image:
                   self.filehandle = fh #set the filename for future save operations
                   self.filename = ""
                   return 1
-                except Exception, e:
+                except Exception as e:
                   if mode.lower() != 'webp':
                     raise e
                 
 
             if verbose:
-                print self.filename
+                print(self.filename)
 
             if not mode.lower() == 'webp':
                 return 1
@@ -2388,7 +2390,7 @@ class Image:
             return 0
 
         if verbose:
-            print self.filename
+            print(self.filename)
 
         if temp:
             return filename
@@ -2483,7 +2485,7 @@ class Image:
             try:
                 import pycurl
             except ImportError:
-                print "PycURL Library not installed."
+                print("PycURL Library not installed.")
                 return
 
             response = StringIO()
@@ -2499,13 +2501,13 @@ class Image:
             match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
             if match:
                 if(verbose):
-                    print "Imgur page: http://imgur.com/" + match.group(1)
-                    print "Original image: " + match.group(3)
-                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                    print("Imgur page: http://imgur.com/" + match.group(1))
+                    print("Original image: " + match.group(3))
+                    print("Delete page: http://imgur.com/delete/" + match.group(2))
                 return [match.group(1),match.group(3),match.group(2)]
             else :
                 if(verbose):
-                    print "The API Key given is not valid"
+                    print("The API Key given is not valid")
                 return None
 
         elif (dest=='flickr'):
@@ -2514,7 +2516,7 @@ class Image:
             try :
                 import flickrapi
             except ImportError:
-                print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
+                print("Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi")
                 return False
             try :
                 if (not(api_key==None and api_secret==None)):
@@ -2527,16 +2529,16 @@ class Image:
                         self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
                         self.flickr.authenticate_console('write')
                     except NameError :
-                        print "API key and Secret key are not set."
+                        print("API key and Secret key are not set.")
                         return
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     self.flickr.upload(self.filename,self.filehandle)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -2550,7 +2552,7 @@ class Image:
                 from dropbox import client, rest, session
                 import webbrowser
             except ImportError:
-                print "Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python "
+                print("Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python ")
                 return False
             try :
                 if ( 'dropbox_token' not in globals() and api_key!=None and api_secret!=None ):
@@ -2558,7 +2560,7 @@ class Image:
                     request_token = sess.obtain_request_token()
                     url = sess.build_authorize_url(request_token)
                     webbrowser.open(url)
-                    print "Please visit this website and press the 'Allow' button, then hit 'Enter' here."
+                    print("Please visit this website and press the 'Allow' button, then hit 'Enter' here.")
                     raw_input()
                     access_token = sess.obtain_access_token(request_token)
                     dropbox_token = client.DropboxClient(sess)
@@ -2568,14 +2570,14 @@ class Image:
                     else :
                         return None
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     f = open(self.filename)
                     dropbox_token.put_file('/SimpleCVImages/'+os.path.split(self.filename)[-1], f)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -4572,11 +4574,11 @@ class Image:
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -5919,7 +5921,7 @@ class Image:
 
 
         if(y == None or w == None or h == None):
-            print "Please provide an x, y, width, height to function"
+            print("Please provide an x, y, width, height to function")
 
         if( w <= 0 or h <= 0 ):
             logger.warning("Can't do a negative crop!")
@@ -6204,7 +6206,7 @@ class Image:
             self.save(d)
             return d
         else:
-            print "Unknown type to show"
+            print("Unknown type to show")
 
     def _surface2Image(self,surface):
         imgarray = pg.surfarray.array3d(surface)
@@ -6392,7 +6394,7 @@ class Image:
         try:
             return self._mLayers.pop(index)
         except IndexError:
-            print 'Not a valid index or No layers to remove!'
+            print('Not a valid index or No layers to remove!')
 
 
     def getDrawingLayer(self, index = -1):
@@ -6444,7 +6446,7 @@ class Image:
         try:
             return self._mLayers[index]
         except IndexError:
-            print 'Not a valid index'
+            print('Not a valid index')
 
 
     def dl(self, index = -1):
@@ -7138,7 +7140,9 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        def inBounds((w,h), (x,y)):
+        def inBounds(xxx_todo_changeme, xxx_todo_changeme1):
+            (w,h) = xxx_todo_changeme
+            (x,y) = xxx_todo_changeme1
             retVal = True
             if( x < 0 or  y < 0 or x > w or y > h):
                 retVal = False
@@ -10906,7 +10910,7 @@ class Image:
 
         """
         if boost < 0:
-            print "boost >= 1"
+            print("boost >= 1")
             return None
 
         lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
@@ -10933,7 +10937,7 @@ class Image:
 
         features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
         features = os.listdir(features_directory)
-        print features
+        print(features)
 
     def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
         '''
@@ -11183,7 +11187,7 @@ class Image:
 
         for cnt in contour:
             cv2.drawContours(des,[cnt],0,255,-1)
-            print 'yep'
+            print('yep')
 
         gray = cv2.bitwise_not(des)
         return gray
@@ -12079,11 +12083,11 @@ class Image:
         points.
         """
         if not ts and not img:
-            print "Invalid Input. Must provide FeatureSet or Image"
+            print("Invalid Input. Must provide FeatureSet or Image")
             return None
 
         if not ts and not bb:
-            print "Invalid Input. Must provide Bounding Box with Image"
+            print("Invalid Input. Must provide Bounding Box with Image")
             return None
 
         if not ts:
@@ -12094,7 +12098,7 @@ class Image:
         try:
             import cv2
         except ImportError:
-            print "Tracking is available for OpenCV >= 2.3"
+            print("Tracking is available for OpenCV >= 2.3")
             return None
 
         if type(img) == list:
@@ -12436,7 +12440,7 @@ class Image:
             try:
                 img = self.getNumpy()[:,:,channel]
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         retVal = None
@@ -12529,7 +12533,7 @@ class Image:
             try:
                 img = np.copy(self.getNumpy()[:,:,channel])
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         if( x is None and y is None and pt1 is None and pt2 is None):
@@ -12643,7 +12647,7 @@ class Image:
                 try:
                     img = np.copy(self.getNumpy()[:,:,linescan.channel])
                 except IndexError:
-                    print 'Channel missing!'
+                    print('Channel missing!')
                     return None
 
             if linescan.row is not None:
@@ -12717,7 +12721,7 @@ class Image:
 
         return retVal
 
-    def bresenham_line(self, (x,y), (x2,y2)):
+    def bresenham_line(self, xxx_todo_changeme2, xxx_todo_changeme3):
         """
         Brensenham line algorithm
 
@@ -12725,6 +12729,8 @@ class Image:
 
         This is just a helper method
         """
+        (x,y) = xxx_todo_changeme2
+        (x2,y2) = xxx_todo_changeme3
         if (not 0 <= x <= self.width-1 or not 0 <= y <= self.height-1 or
             not 0 <= x2 <= self.width-1 or not 0 <= y2 <= self.height-1):
             l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
@@ -12894,7 +12900,7 @@ class Image:
 
         gridIndex = self.getDrawingLayer(self._gridLayer[0])
         if self._gridLayer[0]==-1:
-            print "Cannot find grid on the image, Try adding a grid first"
+            print("Cannot find grid on the image, Try adding a grid first")
 
         lineFS = FeatureSet()
         try:
@@ -12939,12 +12945,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -12975,12 +12981,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13012,12 +13018,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13048,12 +13054,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13742,11 +13748,11 @@ class Image:
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -13835,7 +13841,7 @@ class Image:
         img = self.copy()
         
         if resize <= 0:
-            print 'Enter a valid resize value'
+            print('Enter a valid resize value')
             return None
 
         if resize != 1:
@@ -14140,7 +14146,7 @@ class Image:
         
         #checking that all values are 0 and 255
         if( c1 + c2 != imgArray.size):
-            raise ValueError,"Image must be binary"
+            raise ValueError("Image must be binary")
 
         if(len(pointList) < 2 ):
             return None

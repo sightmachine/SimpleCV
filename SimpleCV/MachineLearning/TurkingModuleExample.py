@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV import Image, Features, Color, ImageSet, Display
 from SimpleCV.MachineLearning import TurkingModule
 # This example shows how to use the turking module.
@@ -30,11 +31,11 @@ turker = TurkingModule(input,outdir,classes,key_bind,preprocess,postprocess)
 turker.turk(font_size=16, color = Color.BLUE, spacing=18)
 
 # show what we got
-print "="*30
-print "TURKING DONE!"
+print("="*30)
+print("TURKING DONE!")
 for c in classes:
-    print "="*30
-    print "Showing " + c
+    print("="*30)
+    print("Showing " + c)
     iset = turker.getClass(c)
     iset.show(0.1)
 

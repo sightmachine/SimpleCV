@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from SimpleCV.base import *
 import scipy.signal as sps
@@ -76,7 +77,7 @@ class LineScan(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return LineScan(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -92,7 +93,7 @@ class LineScan(list):
         if len(self) == len(other):
             retVal = LineScan(map(operator.sub,self,other))
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
         retVal._update(self)
         return retVal
@@ -102,7 +103,7 @@ class LineScan(list):
         if len(self) == len(other):
             retVal = LineScan(map(operator.add,self,other))
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
         retVal._update(self)
         return retVal
@@ -112,7 +113,7 @@ class LineScan(list):
         if len(self) == len(other):
             retVal = LineScan(map(operator.mul,self,other))
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
 
         retVal._update(self)
@@ -124,10 +125,10 @@ class LineScan(list):
             try:
                 retVal = LineScan(map(operator.div,self,other))
             except ZeroDivisionError:
-                print 'Second LineScan contains zeros'
+                print('Second LineScan contains zeros')
                 return None
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
 
         retVal._update(self)
@@ -1083,7 +1084,7 @@ class LineScan(list):
             return None
         if kernel_size % 2 == 0:
             kernel_size-=1
-            print "Kernel Size should be odd. New kernel size =" , (kernel_size)
+            print("Kernel Size should be odd. New kernel size =" , (kernel_size))
         
         medfilt_array = medfilt(np.asarray(self[:]), kernel_size)
         retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)

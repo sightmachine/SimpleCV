@@ -1,3 +1,4 @@
+from __future__ import print_function
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -71,7 +72,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
             diff = (lhs-rhs)
             val = np.average(diff.getNumpy())
             if( val > tolerance ):
-                print val
+                print(val)
                 return True
     return False
 
@@ -986,7 +987,7 @@ def test_image_crop():
     failed = False
     for img in tests:
         if( img is None or img.width != 40 and img.height != 40 ):
-            print "FAILED CROP TEST " + str(i) + " " + str(img)
+            print("FAILED CROP TEST " + str(i) + " " + str(img))
             failed = True
         i = i + 1
 
@@ -1388,7 +1389,7 @@ def test_detection_ocr():
     img = Image(ocrimage)
 
     foundtext = img.readText()
-    print foundtext
+    print(foundtext)
     if(len(foundtext) <= 1):
         assert False
     else:
@@ -1532,7 +1533,8 @@ def test_applyBinaryMask():
 
 def test_applyPixelFunc():
     img = Image(logo)
-    def myFunc((r,g,b)):
+    def myFunc(xxx_todo_changeme):
+        (r,g,b) = xxx_todo_changeme
         return( (b,g,r) )
 
     img = img.applyPixelFunction(myFunc)
@@ -1811,12 +1813,12 @@ def test_findKeypoints():
         flavors = ['SURF','STAR','FAST','MSER','ORB','BRISK','FREAK','SIFT','Dense']
     for flavor in flavors:
         try:
-            print "trying to find " + flavor + " keypoints."
+            print("trying to find " + flavor + " keypoints.")
             kp = img.findKeypoints(flavor=flavor)
         except:
             continue
         if( kp is not None ):
-            print "Found: " + str(len(kp))
+            print("Found: " + str(len(kp)))
             for k in kp:
                 k.getObject()
                 k.descriptor()
@@ -1836,7 +1838,7 @@ def test_findKeypoints():
                 k.crop()
             kp.draw()
         else:
-            print "Found None."
+            print("Found None.")
     results = [img]
     name_stem = "test_findKeypoints"
     #~ perform_diff(results,name_stem)
@@ -1949,7 +1951,7 @@ def test_keypoint_match():
     fs0 = match0.findKeypointMatch(template)#test zero
     fs1 = match1.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
     fs3 = match3.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
-    print "This should fail"
+    print("This should fail")
     fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.2,minMatch=0.1)
     if( fs0 is not None and fs1 is not None and fs2 is None and  fs3 is not None):
         fs0.draw()
@@ -2188,15 +2190,15 @@ def test_detection_spatial_relationships():
     feats  = [blobFS,lineFS,cornFS,tempFS,moveFS]
 
     for f in feats:
-        print str(len(f))
+        print(str(len(f)))
 
     for f in feats:
         for g in feats:
 
             sample = f[0]
             sample2 = f[1]
-            print type(f[0])
-            print type(g[0])
+            print(type(f[0]))
+            print(type(g[0]))
 
             g.above(sample)
             g.below(sample)
@@ -2243,8 +2245,8 @@ def test_get_raw_dft():
         raw1[0].height != img.height or
         raw3[0].height != img.height or
         raw3[0].width != img.width or
-        raw1[0].depth != 64L or
-        raw3[0].depth != 64L or
+        raw1[0].depth != 64 or
+        raw3[0].depth != 64 or
         raw3[0].channels != 2 or
         raw3[0].channels != 2 ):
         assert False
@@ -2725,7 +2727,7 @@ def test_minrect_blobs():
     results = []
     for i in range(-10,10):
         ang = float(i*18.00)
-        print ang
+        print(ang)
         t = img.rotate(ang)
         b = t.findBlobs(threshval=128)
         b[-1].drawMinRect(color=Color.RED,width=5)
@@ -2978,7 +2980,7 @@ def test_findKeypoints_all():
     img = Image(testimage2)
     methods = ["ORB", "SIFT", "SURF","FAST", "STAR", "MSER", "Dense"]
     for i in methods :
-        print i
+        print(i)
         try:
             kp = img.findKeypoints(flavor = i)
         except:
@@ -3446,7 +3448,7 @@ def testROIFeature():
         i = 0
         for d in data:
             e = effect(d)
-            print (i,e)
+            print((i,e))
             i = i + 1
             if( first != e ):
                 broke = True
@@ -3926,7 +3928,7 @@ def test_smartRotate():
     st2 = img.rotate(27,fixed = False).resize(500,500)
     diff = np.average((st1-st2).getNumpy())
     if (diff > 1.7):
-        print diff
+        print(diff)
         assert False
     else:
         assert True

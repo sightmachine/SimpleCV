@@ -1,3 +1,4 @@
+from __future__ import print_function
 # SimpleCV Color Library
 #
 # This library is used to modify different color properties of images
@@ -213,7 +214,7 @@ class Color:
 
         """
         a = color_tuple
-        print a
+        print(a)
         h_float = colorsys.rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
         return h_float*180
 
