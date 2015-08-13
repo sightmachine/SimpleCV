@@ -9,9 +9,15 @@ import warnings
 import time
 import socket
 import re
-import urllib2
+try:
+    from urllib.request import urlopen
+except:
+    from urllib2 import urlopen
 import types
-import SocketServer
+try:
+    import socketserver
+except:
+    import SocketServer as socketserver
 import threading
 import tempfile
 import zipfile
@@ -43,9 +49,20 @@ from warnings import warn
 from copy import copy
 from math import *
 from pkg_resources import load_entry_point
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-from types import IntType, LongType, FloatType, InstanceType
-from cStringIO import StringIO
+try:
+    from http.server import SimpleHTTPRequestHandler
+except ImportError:
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
+try:
+    from types import IntType, LongType, FloatType, InstanceType
+    REAL_TYPE = (IntType, LongType, FloatType)
+except ImportError:
+    REAL_TYPE = (int, float)
+    InstanceType = object
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 from numpy import int32
 from numpy import uint8
 from .EXIF import *
@@ -163,7 +180,7 @@ def is_number(n):
 
     Returns: Type
     """
-    return type(n) in (IntType, LongType, FloatType)
+    return type(n) in REAL_TYPE
 
 def is_tuple(n):
     """
@@ -212,7 +229,7 @@ def download_and_extract(URL):
     tmpdir = tempfile.mkdtemp()
     filename = os.path.basename(URL)
     path = tmpdir + "/" + filename
-    zdata = urllib2.urlopen(URL)
+    zdata = urlopen(URL)
 
     print("Saving file to disk please wait....")
     with open(path, "wb") as local_file:
@@ -371,25 +388,25 @@ def set_logging(log_level,myfilename = None):
 
 def system():
     """
-    
+
     **SUMMARY**
-    
+
     Output of this function includes various informations related to system and library.
-    
+
     Main purpose:
     - While submiting a bug, report the output of this function
     - Checking the current version and later upgrading the library based on the output
-    
+
     **RETURNS**
-    
+
     None
 
     **EXAMPLE**
-      
+
       >>> import SimpleCV
       >>> SimpleCV.system()
-      
-      
+
+
     """
     try :
         import platform

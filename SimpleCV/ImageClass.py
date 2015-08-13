@@ -21,6 +21,11 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
+try:
+    basestring
+except NameError: # python3
+    basestring = (str, bytes)
+
 class ColorSpace:
     """
     **SUMMARY**

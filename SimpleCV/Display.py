@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 from SimpleCV.base import *
 import SimpleCV.ImageClass
-import Queue
+try:
+    import queue # Note: This is unused.
+except ImportError:
+    import Queue as queue
 from .base import *
 
 
@@ -151,14 +154,14 @@ class Display:
         self.rightButtonDown = None
         self.rightButtonUp = None
         self.pressed = None
-        self.displaytype = displaytype 
+        self.displaytype = displaytype
         # NOTE: NO PYGAME CALLS SHOULD BE MADE IN INIT AS THEY KILLL
-        # THE DISPLAY IN IPYTHON NOTEBOOKS       
+        # THE DISPLAY IN IPYTHON NOTEBOOKS
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image.
         self.resolution = resolution
         if not displaytype == 'notebook':
-            self.screen = pg.display.set_mode(resolution, flags)        
+            self.screen = pg.display.set_mode(resolution, flags)
         if os.path.isfile(os.path.join(LAUNCH_PATH, 'sampleimages','simplecv.png')): #checks if simplecv.png exists
             scvLogo = SimpleCV.Image("simplecv").scale(32,32)
             pg.display.set_icon(scvLogo.getPGSurface())

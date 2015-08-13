@@ -71,7 +71,7 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
 
 
 
-class JpegTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class JpegTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
     daemon_threads = True
 
