@@ -3514,9 +3514,9 @@ def test_findKeypointClusters():
     img = Image('simplecv')
     kpc = img.findKeypointClusters()
     if len(kpc) <= 0:
-      assert False
+        assert False
     else:
-      pass
+        pass
 
 def test_replaceLineScan():
     img = Image("lenna")

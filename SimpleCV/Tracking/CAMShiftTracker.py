@@ -7,7 +7,7 @@ except ImportError:
 def camshiftTracker(img, bb, ts, **kwargs):
     """
     **DESCRIPTION**
-    
+
     (Dev Zone)
 
     Tracking the object surrounded by the bounding box in the given
@@ -26,7 +26,7 @@ def camshiftTracker(img, bb, ts, **kwargs):
 
     lower      - Lower HSV value for inRange thresholding
                  tuple of (H, S, V)
-                
+
     upper      - Upper HSV value for inRange thresholding
                  tuple of (H, S, V)
 

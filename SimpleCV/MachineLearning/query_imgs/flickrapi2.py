@@ -145,7 +145,7 @@ class XMLNode:
 
                 elif a.nodeType == xml.dom.Node.TEXT_NODE:
                     thisNode.elementText += a.nodeValue
-    
+
             return thisNode
 
         dom = xml.dom.minidom.parseString(xmlStr)
@@ -204,7 +204,7 @@ class FlickrAPI:
     #-------------------------------------------------------------------
     def __getattr__(self, method, **arg):
         """Handle all the flickr API calls.
-        
+
         This is Michele Campeotto's cleverness, wherein he writes a
         general handler for methods not defined, and assumes they are
         flickr methods.  He then converts them to a form to be passed as
@@ -252,7 +252,7 @@ class FlickrAPI:
 
         This is the URL the app will launch a browser toward if it
         needs a new token.
-                
+
         perms -- "read", "write", or "delete"
         frob -- picked up from an earlier call to FlickrAPI.auth_getFrob()
 
@@ -410,7 +410,7 @@ class FlickrAPI:
 
         try:
             f = file(self.__getCachedTokenFilename(), "r")
-            
+
             data = f.read()
             f.close()
 
@@ -446,7 +446,7 @@ class FlickrAPI:
 
         This first attempts to find a token in the user's token cache on
         disk.
-        
+
         If that fails (or if the token is no longer valid based on
         flickr.auth.checkToken) a new frob is acquired.  The frob is
         validated by having the user log into flickr (with lynx), and
@@ -458,7 +458,7 @@ class FlickrAPI:
         browser--whatever browser should be used in the system() call
 
         """
-        
+
         # see if we have a saved token
         token = self.__getCachedToken()
 
@@ -532,4 +532,3 @@ def main(argv):
 
 # run the main if we're not being imported:
 if __name__ == "__main__": sys.exit(main(sys.argv))
-

@@ -29,7 +29,7 @@ def doFullVCamCoverageTest(vcam):
         if( img is None or count > maxf ):
             run = False
     return True
-    
+
 
 def test_camera_constructor():
     mycam = VirtualCamera(testimage, "image")
@@ -37,7 +37,7 @@ def test_camera_constructor():
 
     for i in props.keys():
         print(str(i) + ": " + str(props[i]) + "\n")
-        
+
     pass
 
 def test_camera_image():

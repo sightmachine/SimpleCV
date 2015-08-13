@@ -64,7 +64,7 @@ def _runCommand(c):
     vimbacam = c._camera
     f = vimbacam.getFrame()    # creates a frame
     f.announceFrame()
-        
+
     vimbacam.startCapture()
     f.queueFrameCapture()
     c.runCommand("AcquisitionStart")
@@ -96,4 +96,3 @@ def test_all():
     _getImage(c)
     _runCommand(c)
     _listAllCameras(c)
-

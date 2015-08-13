@@ -155,11 +155,11 @@ class NaiveBayesClassifier:
                     featureVector.extend(feats)
                 else:
                     badFeat = True
-                    
+
             if(badFeat):
                 badFeat = False
                 continue
-            
+
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             text = 'Training: ' + className
@@ -387,7 +387,7 @@ class NaiveBayesClassifier:
                 self._WriteText(disp,img,text, Color.RED)
             count = count + 1
             del img
-            
+
         return([dataset,count,correct])
 
     def _WriteText(self, disp, img, txt,color):

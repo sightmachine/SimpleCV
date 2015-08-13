@@ -57,7 +57,7 @@ class TreeClassifier:
     mforestFlavorDict = {
         "NTrees":100, #number of trees in our forest
         "NAttributes":None # number of attributes per split sqrt(features) is default
-     }
+        }
     mBoostedFlavorDict = {
         "NClassifiers":10, #number of learners
     }
@@ -225,11 +225,11 @@ class TreeClassifier:
                     featureVector.extend(feats)
                 else:
                     badFeat = True
-                    
+
             if(badFeat):
                 badFeat = False
                 continue
-            
+
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             text = 'Training: ' + className
@@ -479,7 +479,7 @@ class TreeClassifier:
                 self._WriteText(disp,img,text, Color.RED)
             count = count + 1
             del img
-            
+
         return([dataset,count,correct])
 
     def _WriteText(self, disp, img, txt,color):

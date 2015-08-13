@@ -567,7 +567,7 @@ def test_image_perspective():
         assert False
 
 def test_camera_undistort():
-    
+
     fakeCamera = FrameSource()
     fakeCamera.loadCalibration("TestCalibration")
     img = Image("../sampleimages/CalibImage0.png")

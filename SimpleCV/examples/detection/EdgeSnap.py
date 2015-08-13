@@ -36,17 +36,11 @@ while not display.isDone():
         points += [left]
 
     if(right != None ):
-        
+
         featureSet = edgeMap.edgeSnap(points)
         featureSet.image = image
         if(featureSet):
             featureSet.draw(width = 4,color = Color.RED)
             image.save(display)
-        
+
         points = []
-
-
-
-
-
-

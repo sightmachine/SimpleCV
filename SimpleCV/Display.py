@@ -578,7 +578,7 @@ class Display:
 
     def checkEvents(self,returnStrings=False):
         """
-        
+
         **SUMMARY**
 
         CheckEvents checks the pygame event queue and sets the internal display
@@ -591,7 +591,7 @@ class Display:
         **PARAMETERS**
 
         returnStrings - pygame returns an enumerated int by default, when this is set to true we return a list of strings.
-        
+
         **RETURNS**
 
         A list of key down events. Parse them with pg.K_<lowercase_letter>

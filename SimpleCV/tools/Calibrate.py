@@ -249,24 +249,24 @@ def findPlane(cb, i, calibration_set, dims):
     result = False
 
     grid = (
-      #outline the top left corner
-      ((min_x, min_y), (right_x, bottom_y)),
-      #top middle
-      ((mid_min_x, min_y), (mid_max_x, bottom_y)),
-      #top right
-      ((left_x, min_y), (max_x, bottom_y)),
-      #right side middle
-      ((left_x, mid_min_y), (max_x, mid_max_y)),
-      # center
-      ((mid_min_x, mid_min_y), (mid_max_x, mid_max_y)),
-      #left middle
-      ((min_x, mid_min_y), (right_x, mid_max_y)),
-      #left bottom corner
-      ((min_x, top_y), (right_x, max_y)),
-      #bottom middle,
-      ((mid_min_x, top_y), (mid_max_x, max_y)),
-      #right bottom
-      ((left_x, top_y), (max_x, max_y)) )
+        #outline the top left corner
+        ((min_x, min_y), (right_x, bottom_y)),
+        #top middle
+        ((mid_min_x, min_y), (mid_max_x, bottom_y)),
+        #top right
+        ((left_x, min_y), (max_x, bottom_y)),
+        #right side middle
+        ((left_x, mid_min_y), (max_x, mid_max_y)),
+        # center
+        ((mid_min_x, mid_min_y), (mid_max_x, mid_max_y)),
+        #left middle
+        ((min_x, mid_min_y), (right_x, mid_max_y)),
+        #left bottom corner
+        ((min_x, top_y), (right_x, max_y)),
+        #bottom middle,
+        ((mid_min_x, top_y), (mid_max_x, max_y)),
+        #right bottom
+        ((left_x, top_y), (max_x, max_y)) )
 
     testrect(i, cb, calibration_set, dims, grid[lcs % len(grid)])
 

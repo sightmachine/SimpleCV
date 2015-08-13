@@ -64,7 +64,7 @@ class LineScan(list):
             if key == "channel":
                 if kwargs[key] is not None:
                     self.channel = kwargs[key]
-                    
+
         if(self.pointLoc is None):
             self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
 
@@ -89,7 +89,7 @@ class LineScan(list):
         return self.__getitem__(slice(i,j))
 
     def __sub__(self,other):
-        
+
         if len(self) == len(other):
             retVal = LineScan(map(operator.sub,self,other))
         else:
@@ -99,7 +99,7 @@ class LineScan(list):
         return retVal
 
     def __add__(self,other):
-        
+
         if len(self) == len(other):
             retVal = LineScan(map(operator.add,self,other))
         else:
@@ -248,7 +248,7 @@ class LineScan(list):
         >>>> plt.plot(sl)
         >>>> plt.plot(sl.scale(value_range(0,255)))
         >>>> plt.show()
-    
+
         **SEE ALSO**
 
         """
@@ -1085,7 +1085,7 @@ class LineScan(list):
         if kernel_size % 2 == 0:
             kernel_size-=1
             print("Kernel Size should be odd. New kernel size =" , (kernel_size))
-        
+
         medfilt_array = medfilt(np.asarray(self[:]), kernel_size)
         retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
         retVal._update(self)
@@ -1146,7 +1146,7 @@ class LineScan(list):
         >>> plt.plot(ra)
         >>> plt.plot(rag)
         >>> plt.show()
-        
+
         """
 
         if diameter%2 == 0:
@@ -1190,7 +1190,7 @@ class LineScan(list):
         >>> print peaks
         >>> peaks10 = ls.findPeaks(window=10)
         >>> print peaks10
-        
+
         """
 
         maximum = -np.Inf
@@ -1235,7 +1235,7 @@ class LineScan(list):
         >>> print valleys
         >>> valleys10 = ls.findValleys(window=10)
         >>> print valleys10
-        
+
         """
         minimum = np.Inf
         width = int(window/2.0)
@@ -1251,7 +1251,7 @@ class LineScan(list):
                 peaks.append((minpos, minimum))
                 minimum = np.Inf
         return peaks
-        
+
 
     def fitSpline(self,degree=2):
         """
@@ -1278,7 +1278,7 @@ class LineScan(list):
         >>> plt.show()
         >>> plt.plot(spline)
         >>> plt.show()
-        
+
         **NOTES**
 
         Implementation taken from http://www.scipy.org/Cookbook/Interpolation  
@@ -1297,4 +1297,3 @@ class LineScan(list):
         cj = sps.cspline1d(y)
         retVal = sps.cspline1d_eval(cj,newx,dx=dx,x0=x[0])
         return retVal
-

@@ -8,7 +8,7 @@ except ImportError:
 def lkTracker(img, bb, ts, oldimg, **kwargs):
     """
     **DESCRIPTION**
-    
+
     (Dev Zone)
 
     Tracking the object surrounded by the bounding box in the given
@@ -30,7 +30,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
     maxCorners    - Maximum number of corners to return in goodFeaturesToTrack. 
                     If there are more corners than are found, the strongest of 
                     them is returned.
-                
+
     qualityLevel  - Parameter characterizing the minimal accepted quality of image corners. 
                     The parameter value is multiplied by the best corner quality measure, 
                     which is the minimal eigenvalue or the Harris function response. 
@@ -38,7 +38,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
                     For example, if the best corner has the quality measure = 1500, 
                     and the qualityLevel=0.01 , then all the corners with the quality measure 
                     less than 15 are rejected. 
-                  
+
     minDistance   - Minimum possible Euclidean distance between the returned corners.
 
     blockSize     - Size of an average block for computing a derivative covariation matrix over each pixel neighborhood.
