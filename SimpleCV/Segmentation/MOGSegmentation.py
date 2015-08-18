@@ -7,7 +7,7 @@ class MOGSegmentation(SegmentationBase):
     Background subtraction using mixture of gausians.
     For each pixel store a set of gaussian distributions and try to fit new pixels
     into those distributions. One of the distributions will represent the background.
-    
+
     history - length of the pixel history to be stored
     nMixtures - number of gaussian distributions to be stored per pixel
     backgroundRatio - chance of a pixel being included into the background model
@@ -19,7 +19,7 @@ class MOGSegmentation(SegmentationBase):
     mDiffImg = None
     mColorImg = None
     mReady = False
-    
+
     # OpenCV default parameters
     history = 200
     nMixtures = 5
@@ -29,7 +29,7 @@ class MOGSegmentation(SegmentationBase):
     bsMOG = None
 
     def __init__(self, history = 200, nMixtures = 5, backgroundRatio = 0.7, noiseSigma = 15, learningRate = 0.7):
-        
+
         try:
             import cv2            
         except ImportError:
@@ -38,23 +38,23 @@ class MOGSegmentation(SegmentationBase):
         if not hasattr(cv2, 'BackgroundSubtractorMOG'):
             raise ImportError("A newer version of OpenCV is needed")
             return            
-        
+
         self.mError = False
         self.mReady = False        
         self.mDiffImg = None
         self.mColorImg = None
         self.mBlobMaker = BlobMaker()
-        
+
         self.history = history
         self.nMixtures = nMixtures
         self.backgroundRatio = backgroundRatio
         self.noiseSigma = noiseSigma
         self.learningRate = learningRate
-        
+
         self.mBSMOG = cv2.BackgroundSubtractorMOG(history, nMixtures, backgroundRatio, noiseSigma)
-        
-        
-        
+
+
+
 
     def addImage(self, img):
         """
@@ -133,4 +133,3 @@ class MOGSegmentation(SegmentationBase):
     def __setstate__(self, mydict):
         self.__dict__ = mydict
         self.mBlobMaker = BlobMaker()
-        

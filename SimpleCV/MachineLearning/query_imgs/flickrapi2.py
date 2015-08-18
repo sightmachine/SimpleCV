@@ -44,6 +44,7 @@
 # beej@beej.us
 #
 
+from __future__ import print_function
 import sys
 import md5
 import string
@@ -144,7 +145,7 @@ class XMLNode:
 
                 elif a.nodeType == xml.dom.Node.TEXT_NODE:
                     thisNode.elementText += a.nodeValue
-    
+
             return thisNode
 
         dom = xml.dom.minidom.parseString(xmlStr)
@@ -203,7 +204,7 @@ class FlickrAPI:
     #-------------------------------------------------------------------
     def __getattr__(self, method, **arg):
         """Handle all the flickr API calls.
-        
+
         This is Michele Campeotto's cleverness, wherein he writes a
         general handler for methods not defined, and assumes they are
         flickr methods.  He then converts them to a form to be passed as
@@ -222,7 +223,7 @@ class FlickrAPI:
 
         """
 
-        if not self.__handlerCache.has_key(method):
+        if method not in self.__handlerCache:
             def handler(_self = self, _method = method, **arg):
                 _method = "flickr." + _method.replace("_", ".")
                 url = "http://" + FlickrAPI.flickrHost + \
@@ -251,7 +252,7 @@ class FlickrAPI:
 
         This is the URL the app will launch a browser toward if it
         needs a new token.
-                
+
         perms -- "read", "write", or "delete"
         frob -- picked up from an earlier call to FlickrAPI.auth_getFrob()
 
@@ -319,7 +320,7 @@ class FlickrAPI:
         for a in ('title', 'description', 'tags', 'is_public', \
                 'is_friend', 'is_family'):
 
-            if arg.has_key(a):
+            if a in arg:
                 body += "--%s\r\n" % (boundary)
                 body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
                 body += "%s\r\n" % (arg[a])
@@ -409,7 +410,7 @@ class FlickrAPI:
 
         try:
             f = file(self.__getCachedTokenFilename(), "r")
-            
+
             data = f.read()
             f.close()
 
@@ -445,7 +446,7 @@ class FlickrAPI:
 
         This first attempts to find a token in the user's token cache on
         disk.
-        
+
         If that fails (or if the token is no longer valid based on
         flickr.auth.checkToken) a new frob is acquired.  The frob is
         validated by having the user log into flickr (with lynx), and
@@ -457,7 +458,7 @@ class FlickrAPI:
         browser--whatever browser should be used in the system() call
 
         """
-        
+
         # see if we have a saved token
         token = self.__getCachedToken()
 
@@ -515,7 +516,7 @@ def main(argv):
 
     # and print them
     for a in rsp.photos[0].photo:
-        print "%10s: %s" % (a['id'], a['title'].encode("ascii", "replace"))
+        print("%10s: %s" % (a['id'], a['title'].encode("ascii", "replace")))
 
     # upload the file foo.jpg
     #rsp = fapi.upload(filename="foo.jpg", \
@@ -531,4 +532,3 @@ def main(argv):
 
 # run the main if we're not being imported:
 if __name__ == "__main__": sys.exit(main(sys.argv))
-

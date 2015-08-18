@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import os, sys
 from SimpleCV import *
 from nose.tools import with_setup
@@ -28,15 +29,15 @@ def doFullVCamCoverageTest(vcam):
         if( img is None or count > maxf ):
             run = False
     return True
-    
+
 
 def test_camera_constructor():
     mycam = VirtualCamera(testimage, "image")
     props = mycam.getAllProperties()
 
     for i in props.keys():
-        print str(i) + ": " + str(props[i]) + "\n"
-        
+        print(str(i) + ": " + str(props[i]) + "\n")
+
     pass
 
 def test_camera_image():

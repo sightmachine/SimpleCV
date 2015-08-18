@@ -1,3 +1,4 @@
+from __future__ import print_function
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -88,7 +89,7 @@ def test_detection_ocr():
     img = Image(ocrimage)
 
     foundtext = img.readText()
-    print foundtext
+    print(foundtext)
     if(len(foundtext) <= 1):
         assert False
     else:

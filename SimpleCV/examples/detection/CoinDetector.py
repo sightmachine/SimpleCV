@@ -12,8 +12,9 @@ dime - 17.9 mm
 quarter - 24.26 mm
 
 '''
+from __future__ import print_function
 
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 # A quarter is 24.26mm or 0.955in

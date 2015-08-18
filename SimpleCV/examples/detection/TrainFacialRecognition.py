@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV import *
 import time
 
@@ -44,7 +45,7 @@ for name in names:
 
 # Create, train, and save the recognizer. 
 f = FaceRecognizer()
-print f.train(imgs, labels)
+print(f.train(imgs, labels))
 f.save(outfile)
 # Now show us the results
 disp = Display((640,480))

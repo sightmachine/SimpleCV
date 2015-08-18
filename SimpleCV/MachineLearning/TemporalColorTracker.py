@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV import Image, ImageSet, Camera, VirtualCamera, ROI, Color, LineScan
 import numpy as np
 import scipy.signal as sps
@@ -12,7 +13,7 @@ class TemporalColorTracker:
     trained it will return a count object every time the signal is detected.
     This class is usefull for counting periodically occuring events, for example,
     waves on a beach or the second hand on a clock.
-    
+
     """
     def __init__(self):
         self._rtData = LineScan([]) # the deployed data
@@ -71,7 +72,7 @@ class TemporalColorTracker:
           By default this module will look at the signal with the highest peak/valley swings.
           You can manually overide this behavior.
         * *verbose* - Print debug info after training. 
-        
+
         **RETURNS**
 
         Nothing, will raise an exception if no signal is found.
@@ -109,18 +110,18 @@ class TemporalColorTracker:
         self._buildSignalProfile()
         if verbose:
             for key in self.data.keys():
-                print 30*'-'
-                print "Channel: {0}".format(key)
-                print "Data Points: {0}".format(len(self.data[key]))
-                print "Steady State: {0}+/-{1}".format(self._steadyState[key][0],self._steadyState[key][1])
-                print "Peaks: {0}".format(self.peaks[key])
-                print "Valleys: {0}".format(self.valleys[key])
-                print "Use Peaks: {0}".format(self.doPeaks[key])
-            print 30*'-'
-            print "BEST SIGNAL: {0}".format(self._bestKey)
-            print "BEST WINDOW: {0}".format(self._window)
-            print "BEST CUTOFF: {0}".format(self._cutoff)
-                
+                print(30*'-')
+                print("Channel: {0}".format(key))
+                print("Data Points: {0}".format(len(self.data[key])))
+                print("Steady State: {0}+/-{1}".format(self._steadyState[key][0],self._steadyState[key][1]))
+                print("Peaks: {0}".format(self.peaks[key]))
+                print("Valleys: {0}".format(self.valleys[key]))
+                print("Use Peaks: {0}".format(self.doPeaks[key]))
+            print(30*'-')
+            print("BEST SIGNAL: {0}".format(self._bestKey))
+            print("BEST WINDOW: {0}".format(self._window))
+            print("BEST CUTOFF: {0}".format(self._cutoff))
+
     def _getDataFromImg(self,img):
         """
         Get the data from the image 
@@ -150,18 +151,18 @@ class TemporalColorTracker:
                 img = src.getImage()
                 count = count + 1
                 if( verbose ):
-                    print "Got Frame {0}".format(count)
+                    print("Got Frame {0}".format(count))
                 if( isinstance(src,Camera) ):
                     time.sleep(0.05) # let the camera sleep
                 if( img is None ):
                     break
                 else:
                     self._getDataFromImg(img)
-                
+
         else:
             raise Exception('Not a valid training source')
             return None
-    
+
     def _findSteadyState(self,windowSzPrct=0.05):
         # slide a window across each of the signals
         # find where the std dev of the window is minimal
@@ -220,7 +221,7 @@ class TemporalColorTracker:
                 self.vD[key] =  np.abs(self._steadyState[key][0]-valleyMean)
             else:
                 self.vD[key] = 0.00
-                
+
             self.doPeaks[key]=False
             best = self.vD[key]
             if( self.pD[key] > self.vD[key] ):
@@ -233,14 +234,14 @@ class TemporalColorTracker:
         # Now we know which signal has the most spread
         # and what direction we are looking for.
         if( forceChannel is not None ):
-            if(self.data.has_key(forceChannel)):
+            if(forceChannel in self.data):
                 self._bestKey = forceChannel
             else:
                 raise Exception('That is not a valid data channel')
         else:
             self._bestKey = bestKey
 
-        
+
     def _buildSignalProfile(self):
         key = self._bestKey
         self._window = None
@@ -292,16 +293,16 @@ class TemporalColorTracker:
                 self.corrTemplates.append(np.array(self.data[key][lb:ub]))
         if( len(self.corrTemplates) < 1 ):
             raise Exception('Could not find a coherrent signal for correlation.')
-        
+
         sig = np.copy(self.corrTemplates[0]) # little np gotcha
         for peak in self.corrTemplates[1:]:
             sig += peak
         self._template = sig / len(self.corrTemplates)
         self._template /= np.max(self._template)
         corrVals = [np.correlate(peak/np.max(peak),self._template) for peak in self.corrTemplates] 
-        print corrVals
+        print(corrVals)
         self.corrThresh = (np.mean(corrVals),np.std(corrVals))
-        
+
     def _getBestValue(self,img):
         """
         Extract the data from the live signal
@@ -321,7 +322,7 @@ class TemporalColorTracker:
             return Color.getLightness(mc)
         elif( self._bestKey == 'h' ):
             return Color.getHueFromRGB(mc)
-        
+
     def _updateBuffer(self,v):
         """
         Keep a buffer of the running data and process it to determine if there is
@@ -355,7 +356,7 @@ class TemporalColorTracker:
                         else:
                             self.count += 1
         return self.count
-        
+
     def recognize(self,img):
         """
 

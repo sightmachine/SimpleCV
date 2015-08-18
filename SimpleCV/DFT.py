@@ -29,13 +29,13 @@ class DFT:
     * *_yCutoffLow*  - Lower vertical cut off frequency for lowpassfilter
     * *_xCutoffHigh* - Upper horizontal cut off frequency for highpassfilter
     * *_yCutoffHigh* - Upper vertical cut off frequency for highassfilter
-    
+
 
 
     **EXAMPLE**
 
     >>> gauss = DFT.createGaussianFilter(dia=40, size=(512,512))
-    
+
     >>> dft = DFT()
     >>> butterworth = dft.createButterworthFilter(dia=300, order=2, size=(300, 300))
 
@@ -298,7 +298,7 @@ class DFT:
         >>> flt = DFT.createLowpassFilter(xCutoff=[75, 113, 124],
                                           yCutoff=[35, 45, 90],
                                           size=(320, 280))
-        
+
         >>> img = Image('lenna')
         >>> flt.applyFilter(img).show()
         """
@@ -384,7 +384,7 @@ class DFT:
         >>> flt = DFT.createHighpassFilter(xCutoff=[75, 113, 124],
                                            yCutoff=[35, 45, 90],
                                            size=(320, 280))
-        
+
         >>> img = Image('lenna')
         >>> flt.applyFilter(img).show()
         """
@@ -472,7 +472,7 @@ class DFT:
                                            yCutoffLow=[70, 110, 112], 
                                            yCutoffHigh=[180, 220, 220], 
                                            size=(320, 280))
-        
+
         >>> img = Image('lenna')
         >>> flt.applyFilter(img).show()
         """

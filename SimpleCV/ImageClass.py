@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # Load required libraries
 from SimpleCV.base import *
 from SimpleCV.Color import *
@@ -6,7 +8,7 @@ from numpy import int32
 from numpy import uint8
 import cv2
 
-from EXIF import *
+from .EXIF import *
 
 if not init_options_handler.headless:
     import pygame as pg
@@ -18,6 +20,11 @@ import scipy.linalg as nla  # for linear algebra / least squares
 import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
+
+try:
+    basestring
+except NameError: # python3
+    basestring = (str, bytes)
 
 class ColorSpace:
     """
@@ -143,9 +150,9 @@ class ImageSet(list):
             from BeautifulSoup import BeautifulSoup
 
         except:
-            print "You need to install Beatutiul Soup to use this function"
-            print "to install you can use:"
-            print "easy_install beautifulsoup"
+            print("You need to install Beatutiul Soup to use this function")
+            print("to install you can use:")
+            print("easy_install beautifulsoup")
 
             return
 
@@ -165,7 +172,7 @@ class ImageSet(list):
             elif size == 'large':
                 size_param = '&tbs=isz:l'
             else:
-                print INVALID_SIZE_MSG
+                print(INVALID_SIZE_MSG)
                 return None
 
         elif type(size) == tuple:
@@ -173,7 +180,7 @@ class ImageSet(list):
             size_param = '&tbs=isz:ex,iszw:' + str(width) + ',iszh:' + str(height)
 
         else:
-            print INVALID_SIZE_MSG
+            print(INVALID_SIZE_MSG)
             return None
 
         # Used to extract imgurl parameter value from a URL
@@ -213,7 +220,7 @@ class ImageSet(list):
                     add_img = Image(dl_url, verbose=False)
 
                     # Don't know a better way to check if the image was actually returned
-                    if add_img.height <> 0 and add_img.width <> 0:
+                    if add_img.height != 0 and add_img.width != 0:
                         add_set.append(add_img)
 
                 except:
@@ -228,67 +235,67 @@ class ImageSet(list):
 
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
-        
+
         **SUMMARY**
-        
+
         Uploads all the images to imgur or flickr or dropbox. In verbose mode URL values are printed.
-        
-        
+
+
         **PARAMETERS**
-        
+
         * *api_key* - a string of the API key.
         * *api_secret* - (required only for flickr and dropbox ) a string of the API secret.
         * *verbose* - If verbose is true all values are printed to the screen
-        
-        
+
+
         **RETURNS**
-        
+
         if uploading is successful
-        
+
         - Imgur return the original image URL on success and None if it fails.
         - Flick returns True on success, else returns False.
         - dropbox returns True on success.
-        
+
 
         **EXAMPLE**
-        
+
         TO upload image to imgur::
-        
+
           >>> imgset = ImageSet("/home/user/Desktop")
           >>> result = imgset.upload( 'imgur',"MY_API_KEY1234567890" )
           >>> print "Uploaded To: " + result[0]
-          
+
 
         To upload image to flickr::
-        
+
           >>> imgset.upload('flickr','api_key','api_secret')
           >>> imgset.upload('flickr') #Once the api keys and secret keys are cached.
 
         To upload image to dropbox::
-        
+
           >>> imgset.upload('dropbox','api_key','api_secret')
           >>> imgset.upload('dropbox') #Once the api keys and secret keys are cached.
 
         **NOTES**
-        
+
         .. Warning::
           This method requires two packages to be installed
           -PyCurl
           -flickr api.
           -dropbox
-        
-        
+
+
         .. Warning::
           You must supply your own API key.
 
 
         Find more about API keys:
-        
+
         - http://imgur.com/register/api_anon
         - http://www.flickr.com/services/api/misc.api_keys.html
         - https://www.dropbox.com/developers/start/setup#python
-        
-        
+
+
         """
         try :
             for i in self:
@@ -417,7 +424,7 @@ class ImageSet(list):
 
     def save(self, destination=None, dt=0.2, verbose = False, displaytype=None):
         """
-        
+
         **SUMMARY**
 
         This is a quick way to save all the images in a data set.
@@ -434,8 +441,8 @@ class ImageSet(list):
         * *dt* - time between frames, for creating gif files.
         * *verbose* - print the path of the saved files to the console.
         * *displaytype* - the method use for saving or displaying images.
-        
-        
+
+
         valid values are:
 
         * 'notebook' - display to the ipython notebook.
@@ -458,7 +465,7 @@ class ImageSet(list):
             try:
                 from IPython.core.display import Image as IPImage
             except ImportError:
-                print "You need IPython Notebooks to use this display mode"
+                print("You need IPython Notebooks to use this display mode")
                 return
             from IPython.core import display as Idisplay
             for i in self:
@@ -507,7 +514,7 @@ class ImageSet(list):
         """
 
         for i in self:
-            print i.filename
+            print(i.filename)
 
     def _read_gif(self, filename):
         """ read_gif(filename)
@@ -757,7 +764,7 @@ class ImageSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return ImageSet(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -945,7 +952,7 @@ class Image:
 
             im = StringIO(img_file.read())
             source = pil.open(im).convert("RGB")
-            
+
         #Check if loaded from base64 URI
         if isinstance(source, basestring) and (source.lower().startswith("data:image/png;base64,")):
             img = source[22:].decode("base64")
@@ -972,7 +979,7 @@ class Image:
                 choice = random.choice(['LyleJune1973.png','lenna.png'])
                 imgpth = os.path.join(LAUNCH_PATH, 'sampleimages',choice)
                 source = imgpth
-                
+
             elif sample:
                 imgpth = os.path.join(LAUNCH_PATH, 'sampleimages', source)
                 source = imgpth
@@ -1039,11 +1046,11 @@ class Image:
             if source == '':
                 raise IOError("No filename provided to Image constructor")
 
-        
+
             elif webp or source.split('.')[-1] == 'webp':
                 try:
                     if source.__class__.__name__ == 'StringIO':
-                      source.seek(0) # set the stringIO to the begining
+                        source.seek(0) # set the stringIO to the begining
                     self._pil = pil.open(source)
                     self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
                 except:
@@ -1211,7 +1218,7 @@ class Image:
                 i.dl().text(txt, (10,i.height / 2), color=col)
                 txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
                 i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+                print("coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY)))
 
 
             if elapsed_time > 0 and elapsed_time < 5:
@@ -1223,7 +1230,7 @@ class Image:
 
             i.save(d)
             if d.mouseRight:
-                print "Closing Window"
+                print("Closing Window")
                 d.done = True
 
 
@@ -2225,7 +2232,7 @@ class Image:
 
         .. attention::
           We need examples for all save methods as they are unintuitve.
-        
+
         """
         #TODO, we use the term mode here when we mean format
         #TODO, if any params are passed, use PIL
@@ -2249,7 +2256,7 @@ class Image:
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
             else :
-                print "Path does not exist!"
+                print("Path does not exist!")
 
         else :
             if (filename) :
@@ -2268,9 +2275,9 @@ class Image:
 
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
-        
+
         if not isinstance(filehandle_or_filename, basestring):
-            
+
             fh = filehandle_or_filename
 
             if (not PIL_ENABLED):
@@ -2298,7 +2305,7 @@ class Image:
                     try:
                         from IPython.core.display import Image as IPImage
                     except ImportError:
-                        print "You need IPython Notebooks to use this display mode"
+                        print("You need IPython Notebooks to use this display mode")
                         return
 
                     from IPython.core import display as Idisplay
@@ -2319,17 +2326,17 @@ class Image:
                     mode = "jpeg"
 
                 try:
-                  saveimg.getPIL().save(fh, mode, **params) # The latest version of PIL / PILLOW supports webp, try this first, if not gracefully fallback
-                  self.filehandle = fh #set the filename for future save operations
-                  self.filename = ""
-                  return 1
-                except Exception, e:
-                  if mode.lower() != 'webp':
-                    raise e
-                
+                    saveimg.getPIL().save(fh, mode, **params) # The latest version of PIL / PILLOW supports webp, try this first, if not gracefully fallback
+                    self.filehandle = fh #set the filename for future save operations
+                    self.filename = ""
+                    return 1
+                except Exception as e:
+                    if mode.lower() != 'webp':
+                        raise e
+
 
             if verbose:
-                print self.filename
+                print(self.filename)
 
             if not mode.lower() == 'webp':
                 return 1
@@ -2339,7 +2346,7 @@ class Image:
             filename = tempfile.mkstemp(suffix=".png")[-1]
         else:
             filename = filehandle_or_filename
-        
+
         #allow saving in webp format
         if mode == 'webp' or re.search('\.webp$', filename):
             try:
@@ -2365,11 +2372,11 @@ class Image:
                     IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH * 3
                 )
                 result = webmEncode.EncodeRGB(image)
-                
+
                 if filehandle_or_filename.__class__.__name__ == 'StringIO':
-                  filehandle_or_filename.write(result.data)
+                    filehandle_or_filename.write(result.data)
                 else:
-                  file(filename.format("RGB"), "wb").write(result.data)
+                    file(filename.format("RGB"), "wb").write(result.data)
                 return 1
         #if the user is passing kwargs use the PIL save method.
         if( params ): #usually this is just the compression rate for the image
@@ -2388,7 +2395,7 @@ class Image:
             return 0
 
         if verbose:
-            print self.filename
+            print(self.filename)
 
         if temp:
             return filename
@@ -2421,69 +2428,69 @@ class Image:
     def upload(self,dest,api_key=None,api_secret=None, verbose = True):
         """
         **SUMMARY**
-        
+
         Uploads image to imgur or flickr or dropbox. In verbose mode URL values are printed.
 
         **PARAMETERS**
-        
+
         * *api_key* - a string of the API key.
         * *api_secret* (required only for flickr and dropbox ) - a string of the API secret.
         * *verbose* - If verbose is true all values are printed to the screen
-        
+
 
         **RETURNS**
-        
+
         if uploading is successful
-        
+
         - Imgur return the original image URL on success and None if it fails.
         - Flick returns True on success, else returns False.
         - dropbox returns True on success.
-        
+
 
         **EXAMPLE**
-        
+
         TO upload image to imgur::
-          
+
           >>> img = Image("lenna")
           >>> result = img.upload( 'imgur',"MY_API_KEY1234567890" )
           >>> print "Uploaded To: " + result[0]
-          
+
 
         To upload image to flickr::
-          
+
           >>> img.upload('flickr','api_key','api_secret')
           >>> img.invert().upload('flickr') #Once the api keys and secret keys are cached.
-          
+
 
         To upload image to dropbox::
-          
+
           >>> img.upload('dropbox','api_key','api_secret')
           >>> img.invert().upload('dropbox') #Once the api keys and secret keys are cached.
-          
+
 
         **NOTES**
-        
+
         .. Warning::
           This method requires two packages to be installed
-          
+
           - PyCurl
           - flickr api.
           - dropbox
-          
+
 
         .. Warning::
           You must supply your own API key. See here:
-          
+
           - http://imgur.com/register/api_anon
           - http://www.flickr.com/services/api/misc.api_keys.html
           - https://www.dropbox.com/developers/start/setup#python
-          
+
         """
         if ( dest=='imgur' ) :
             try:
                 import pycurl
             except ImportError:
-                print "PycURL Library not installed."
+                print("PycURL Library not installed.")
                 return
 
             response = StringIO()
@@ -2499,13 +2506,13 @@ class Image:
             match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
             if match:
                 if(verbose):
-                    print "Imgur page: http://imgur.com/" + match.group(1)
-                    print "Original image: " + match.group(3)
-                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                    print("Imgur page: http://imgur.com/" + match.group(1))
+                    print("Original image: " + match.group(3))
+                    print("Delete page: http://imgur.com/delete/" + match.group(2))
                 return [match.group(1),match.group(3),match.group(2)]
             else :
                 if(verbose):
-                    print "The API Key given is not valid"
+                    print("The API Key given is not valid")
                 return None
 
         elif (dest=='flickr'):
@@ -2514,7 +2521,7 @@ class Image:
             try :
                 import flickrapi
             except ImportError:
-                print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
+                print("Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi")
                 return False
             try :
                 if (not(api_key==None and api_secret==None)):
@@ -2527,16 +2534,16 @@ class Image:
                         self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
                         self.flickr.authenticate_console('write')
                     except NameError :
-                        print "API key and Secret key are not set."
+                        print("API key and Secret key are not set.")
                         return
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     self.flickr.upload(self.filename,self.filehandle)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -2550,7 +2557,7 @@ class Image:
                 from dropbox import client, rest, session
                 import webbrowser
             except ImportError:
-                print "Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python "
+                print("Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python ")
                 return False
             try :
                 if ( 'dropbox_token' not in globals() and api_key!=None and api_secret!=None ):
@@ -2558,7 +2565,7 @@ class Image:
                     request_token = sess.obtain_request_token()
                     url = sess.build_authorize_url(request_token)
                     webbrowser.open(url)
-                    print "Please visit this website and press the 'Allow' button, then hit 'Enter' here."
+                    print("Please visit this website and press the 'Allow' button, then hit 'Enter' here.")
                     raw_input()
                     access_token = sess.obtain_access_token(request_token)
                     dropbox_token = client.DropboxClient(sess)
@@ -2568,14 +2575,14 @@ class Image:
                     else :
                         return None
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     f = open(self.filename)
                     dropbox_token.put_file('/SimpleCVImages/'+os.path.split(self.filename)[-1], f)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -2789,11 +2796,11 @@ class Image:
         see : http://en.wikipedia.org/wiki/Median_filter
 
         **Parameters**
-        
+
         * *window* - should be in the form a tuple (win_x,win_y). Where win_x should be equal to win_y. By default it is set to 3x3, i.e window = (3x3).
-        
+
         **Note**
-        
+
         win_x and win_y should be greater than zero, a odd number and equal.
 
         For OpenCV versions <= 2.3.0
@@ -2801,7 +2808,7 @@ class Image:
 
         For OpenCV versions >= 2.3.0
         cv2.medianBlur function is called.
-        
+
         """
         try:
             import cv2
@@ -3179,13 +3186,13 @@ class Image:
             return None
 
     def gammaCorrect(self, gamma = 1):
-        
+
         """
         **DESCRIPTION**
 
         Transforms an image according to Gamma Correction also known as 
         Power Law Transform.
-        
+
         **PARAMETERS**
 
         * *gamma* - A non-negative real number.
@@ -3200,7 +3207,7 @@ class Image:
         >>> img.show()
         >>> img.gammaCorrect(1.5).show()
         >>> img.gammaCorrect(0.7).show()
- 
+
         """
         if gamma < 0:
             return "Gamma should be a non-negative real number"
@@ -3323,19 +3330,19 @@ class Image:
         >>> colors = img.meanColor('Gray')  # returns float of mean intensity.
         >>> colors = img.meanColor('YCrCb') # returns tuple in (Y,Cr,Cb) format.
         >>> colors = img.meanColor('HLS')   # returns tuple in (H,L,S) format.
-        
-         
+
+
         """
-        
+
         if colorSpace == None:
-			return tuple(cv.Avg(self.getBitmap())[0:3]) 
-			
+            return tuple(cv.Avg(self.getBitmap())[0:3]) 
+
         elif colorSpace == 'BGR':
             return tuple(cv.Avg(self.toBGR().getBitmap())[0:3])
-        
+
         elif colorSpace == 'RGB':
             return tuple(cv.Avg(self.toRGB().getBitmap())[0:3])
-        
+
         elif colorSpace == 'HSV':
             return tuple(cv.Avg(self.toHSV().getBitmap())[0:3])
 
@@ -3354,8 +3361,8 @@ class Image:
         else:
             logger.warning("Image.meanColor: There is no supported conversion to the specified colorspace. Use one of these as argument: 'BGR' , 'RGB' , 'HSV' , 'Gray' , 'XYZ' , 'YCrCb' , 'HLS' .")
             return None
-			
-        
+
+
 
     def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
         """
@@ -3421,7 +3428,7 @@ class Image:
 
     def findBlobs(self, threshval = -1, minsize=10, maxsize=0, threshblocksize=0, threshconstant=5,appx_level=3):
         """
-        
+
         **SUMMARY**
 
         Find blobs  will look for continuous
@@ -3555,8 +3562,8 @@ class Image:
         **PARAMETERS**
 
         * *dilate_iter* - the number of times to run the dilation operation.
-        
-        
+
+
         **RETURNS**
 
         Returns a binary mask.
@@ -4572,11 +4579,11 @@ class Image:
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -4969,7 +4976,7 @@ class Image:
 
         """
         em = self._getEdgeMap(cannyth1, cannyth2)
-        
+
         linesFS = FeatureSet()
         if useStandard:
             lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
@@ -4980,7 +4987,7 @@ class Image:
             x,y = np.where(em.getGrayNumpy() > 128)
             # Put points in dictionary for fast checkout if point is white
             pts = dict((p, 1) for p in zip(x, y))   
-            
+
             w, h = self.width-1, self.height-1
             for rho, theta in lines[:nLines]:
                 ep = []
@@ -5014,7 +5021,7 @@ class Image:
                 ep = list(set(ep))        # remove duplicates if line crosses the image at corners
                 ep.sort()
                 brl = self.bresenham_line(ep[0], ep[1])
-                
+
                 # Follow the points on Bresenham's line. Look for white points. 
                 # If the distance between two adjacent white points (dist) is less than or 
                 # equal maxpixelgap then consider them the same line. If dist is bigger 
@@ -5046,7 +5053,7 @@ class Image:
                         last_p = p        # last white point
                     else:
                         dist += 1
-    
+
                 for l in ls:
                     linesFS.append(Line(self, l))
             linesFS = linesFS[:nLines]
@@ -5057,7 +5064,7 @@ class Image:
 
             for l in lines[:nLines]:
                 linesFS.append(Line(self, l))
-        
+
         return linesFS
 
 
@@ -5482,7 +5489,7 @@ class Image:
                 rotMatrix = npArray2cvMat(rotMatrix)
             cv.WarpPerspective(self.getBitmap(), retVal, rotMatrix)
             return Image(retVal, colorSpace=self._colorSpace)
-            
+
     def getPixel(self, x, y):
         """
         **SUMMARY**
@@ -5739,9 +5746,9 @@ class Image:
 
     def crop(self, x , y = None, w = None, h = None, centered=False, smart=False):
         """
-        
+
         **SUMMARY**
-        
+
         Consider you want to crop a image with the following dimension::
 
             (x,y)
@@ -5751,7 +5758,7 @@ class Image:
             |              |
             +--------------+
                   w      (x1,y1)
-        
+
 
         Crop attempts to use the x and y position variables and the w and h width
         and height variables to crop the image. When centered is false, x and y
@@ -5779,7 +5786,7 @@ class Image:
         * *centered*  - Boolean - if True we treat the crop region as being the center
           coordinate and a width and height. If false we treat it as the top left corner of the crop region.
         * *smart* - Will make sure you don't try and crop outside the image size, so if your image is 100x100 and you tried a crop like img.crop(50,50,100,100), it will autoscale the crop to the max width.
-        
+
 
         **RETURNS**
 
@@ -5803,19 +5810,19 @@ class Image:
         """
 
         if smart:
-          if x > self.width:
-            x = self.width
-          elif x < 0:
-            x = 0
-          elif y > self.height:
-            y = self.height
-          elif y < 0:
-            y = 0
-          elif (x + w) > self.width:
-            w = self.width - x
-          elif (y + h) > self.height:
-            h = self.height - y
-          
+            if x > self.width:
+                x = self.width
+            elif x < 0:
+                x = 0
+            elif y > self.height:
+                y = self.height
+            elif y < 0:
+                y = 0
+            elif (x + w) > self.width:
+                w = self.width - x
+            elif (y + h) > self.height:
+                h = self.height - y
+
         if(isinstance(x,np.ndarray)):
             x = x.tolist()
         if(isinstance(y,np.ndarray)):
@@ -5831,7 +5838,7 @@ class Image:
 
         elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, long, float))
              and y == None and w == None and h == None):
-                x,y,w,h = x
+            x,y,w,h = x
         # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
         # x of the form [[x,y],[x1,y1],[x2,y2],[x3,y3]]
         # x of the form ([x,y],[x1,y1],[x2,y2],[x3,y3])
@@ -5853,7 +5860,7 @@ class Image:
             else:
                 logger.warning("x should be in the form  ((x,y),(x1,y1),(x2,y2),(x3,y3))")
                 return None
- 
+
         # x,y of the form [x1,x2,x3,x4,x5....] and y similar
         elif(isinstance(x, (tuple,list)) and
              isinstance(y, (tuple,list)) and
@@ -5911,7 +5918,7 @@ class Image:
                 h = np.abs(y[1]-x[1])
                 x = xt
                 y = yt
-                
+
             else:
                 logger.warning("if x and y are tuple it should be in the form (x1,y1) and (x2,y2)")
                 return None
@@ -5919,7 +5926,7 @@ class Image:
 
 
         if(y == None or w == None or h == None):
-            print "Please provide an x, y, width, height to function"
+            print("Please provide an x, y, width, height to function")
 
         if( w <= 0 or h <= 0 ):
             logger.warning("Can't do a negative crop!")
@@ -5944,7 +5951,7 @@ class Image:
         retVal = np.zeros((bottomROI[3],bottomROI[2],3),dtype='uint8')
 
         retVal= self.getNumpyCv2()[bottomROI[1]:bottomROI[1] + bottomROI[3],bottomROI[0]:bottomROI[0] + bottomROI[2],:] 
-        
+
         img = Image(retVal, colorSpace=self._colorSpace,cv2image = True)
 
         #Buffering the top left point (x, y) in a image.
@@ -6204,7 +6211,7 @@ class Image:
             self.save(d)
             return d
         else:
-            print "Unknown type to show"
+            print("Unknown type to show")
 
     def _surface2Image(self,surface):
         imgarray = pg.surfarray.array3d(surface)
@@ -6392,7 +6399,7 @@ class Image:
         try:
             return self._mLayers.pop(index)
         except IndexError:
-            print 'Not a valid index or No layers to remove!'
+            print('Not a valid index or No layers to remove!')
 
 
     def getDrawingLayer(self, index = -1):
@@ -6444,7 +6451,7 @@ class Image:
         try:
             return self._mLayers[index]
         except IndexError:
-            print 'Not a valid index'
+            print('Not a valid index')
 
 
     def dl(self, index = -1):
@@ -6729,7 +6736,7 @@ class Image:
                     targetx = (resolution[0]-targetw)/2
                     targety = 0
                 img = img.scale(targetw,targeth)
-        
+
         else: # we're going to crop instead
             if(self.width <= resolution[0] and self.height <= resolution[1] ): # center a too small image
                 #we're too small just center the thing
@@ -6768,7 +6775,7 @@ class Image:
                 x = (self.width-resolution[0])/2
                 y = 0
                 img = img.crop(x,y,targetw,targeth)
-        
+
         retVal[targety:targety + targeth,targetx:targetx + targetw,:] = img.getNumpyCv2()
         retVal = Image(retVal,cv2image = True)
         return(retVal)
@@ -7094,8 +7101,8 @@ class Image:
         """
 
         if not isinstance(size, tuple) and size > 1:
-          size = (self.width * size, self.height * size)
-        
+            size = (self.width * size, self.height * size)
+
 
         if( size == None or size[0] < self.width or size[1] < self.height ):
             logger.warning("image.embiggenCanvas: the size provided is invalid")
@@ -7138,7 +7145,9 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        def inBounds((w,h), (x,y)):
+        def inBounds(xxx_todo_changeme, xxx_todo_changeme1):
+            (w,h) = xxx_todo_changeme
+            (x,y) = xxx_todo_changeme1
             retVal = True
             if( x < 0 or  y < 0 or x > w or y > h):
                 retVal = False
@@ -7551,7 +7560,7 @@ class Image:
           * CCORR         - Cross correlation
           * CCORR_NORM    - Normalize cross correlation
         * *grayscale* - Boolean - If false, template Match is found using BGR image.
-        
+
         **EXAMPLE**
 
         >>> image = Image("/path/to/img.png")
@@ -7653,7 +7662,7 @@ class Image:
         This method returns the single best match if and only if that
         match less than the threshold (greater than in the case of
         some methods).
-        
+
         **PARAMETERS**
 
         * *template_image* - The template image.
@@ -7667,7 +7676,7 @@ class Image:
           * CCORR         - Cross correlation
           * CCORR_NORM    - Normalize cross correlation
         * *grayscale* - Boolean - If false, template Match is found using BGR image.
-        
+
         **EXAMPLE**
 
         >>> image = Image("/path/to/img.png")
@@ -8417,9 +8426,9 @@ class Image:
         except:
             warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
             return
-            
+
         if template == None:
-          return None
+            return None
         fs = FeatureSet()
         skp,sd = self._getRawKeypoints(quality)
         tkp,td = template._getRawKeypoints(quality)
@@ -8445,7 +8454,7 @@ class Image:
                 if( result[i] ):
                     lhs.append((tkp[i].pt[1], tkp[i].pt[0]))
                     rhs.append((skp[idx[i]].pt[0], skp[idx[i]].pt[1]))
-            
+
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
             if( len(rhs_pt) < 16 or len(lhs_pt) < 16 ):
@@ -8454,16 +8463,16 @@ class Image:
             (homography,mask) = cv2.findHomography(lhs_pt,rhs_pt,cv2.RANSAC, ransacReprojThreshold=1.0 )
             w = template.width
             h = template.height
-            
+
             pts = np.array([[0,0],[0,h],[w,h],[w,0]], dtype="float32")
-            
+
             pPts = cv2.perspectiveTransform(np.array([pts]), homography)
-            
+
             pt0i = (pPts[0][0][1], pPts[0][0][0])
             pt1i = (pPts[0][1][1], pPts[0][1][0])
             pt2i = (pPts[0][2][1], pPts[0][2][0])
             pt3i = (pPts[0][3][1], pPts[0][3][0])
-            
+
             #construct the feature set and return it.
             fs = FeatureSet() 
             fs.append(KeypointMatch(self,template,(pt0i,pt1i,pt2i,pt3i),homography))
@@ -9686,7 +9695,7 @@ class Image:
             color = color.tolist()
         elif( isinstance(color,dict) ):
             color = (color['R'],color['G'],color['B'])
-        
+
         if( isinstance(points,tuple) ):
             points = np.array(points)
 
@@ -10906,7 +10915,7 @@ class Image:
 
         """
         if boost < 0:
-            print "boost >= 1"
+            print("boost >= 1")
             return None
 
         lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
@@ -10933,7 +10942,7 @@ class Image:
 
         features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
         features = os.listdir(features_directory)
-        print features
+        print(features)
 
     def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
         '''
@@ -11183,7 +11192,7 @@ class Image:
 
         for cnt in contour:
             cv2.drawContours(des,[cnt],0,255,-1)
-            print 'yep'
+            print('yep')
 
         gray = cv2.bitwise_not(des)
         return gray
@@ -11267,7 +11276,7 @@ class Image:
 
     def fitContour(self, initial_curve, window=(11,11), params=(0.1,0.1,0.1),doAppx=True,appx_level=1):
         """
-        
+
         **SUMMARY**
 
         This method tries to fit a list of points to lines in the image. The list of points
@@ -11296,7 +11305,7 @@ class Image:
         * Continuity
         * Curvature
         * Image (Gradient)
-        
+
         Each Weighted by Specified Parameter:
 
         Total Energy = Alpha*Continuity + Beta*Curvature + Gamma*Image
@@ -11350,113 +11359,113 @@ class Image:
         return retVal
 
     def fitEdge(self,guess,window=10,threshold=128, measurements=5, darktolight=True, lighttodark=True,departurethreshold=1):
-      """
-        **SUMMARY**
-        
-        Fit edge in a binary/gray image using an initial guess and the least squares method.
-        The functions returns a single line  
+        """
+          **SUMMARY**
 
-        **PARAMETERS**
+          Fit edge in a binary/gray image using an initial guess and the least squares method.
+          The functions returns a single line  
 
-        * *guess* - A tuples of the form ((x0,y0),(x1,y1)) which is an approximate guess
-        * *window* - A window around the guess to search.
-        * *threshold* - the threshold above which we count a pixel as a line
-        * *measurements* -the number of line projections to use for fitting the line 
-        TODO: Constrict a line to black to white or white to black
-        Right vs. Left orientation.
+          **PARAMETERS**
 
-        **RETURNS**
+          * *guess* - A tuples of the form ((x0,y0),(x1,y1)) which is an approximate guess
+          * *window* - A window around the guess to search.
+          * *threshold* - the threshold above which we count a pixel as a line
+          * *measurements* -the number of line projections to use for fitting the line 
+          TODO: Constrict a line to black to white or white to black
+          Right vs. Left orientation.
 
-        A a line object 
-        **EXAMPLE**
-      """
-      searchLines = FeatureSet()
-      fitPoints = FeatureSet()
-      x1 = guess[0][0]
-      x2 = guess[1][0]
-      y1 = guess[0][1]
-      y2 = guess[1][1]
-      dx = float((x2-x1))/(measurements-1)
-      dy = float((y2-y1))/(measurements-1)
-      s = np.zeros((measurements,2))
-      lpstartx = np.zeros(measurements)
-      lpstarty = np.zeros(measurements)
-      lpendx = np.zeros(measurements)
-      lpendy = np.zeros(measurements)
-      linefitpts = np.zeros((measurements,2))
+          **RETURNS**
 
-      #obtain equation for initial guess line
-      if( x1==x2): #vertical line must be handled as special case since slope isn't defined
-        m=0
-        mo = 0
-        b = x1
-        for i in xrange(0, measurements):
-            s[i][0] = x1 
-            s[i][1] = y1 + i * dy
-            lpstartx[i] = s[i][0] + window
-            lpstarty[i] = s[i][1] 
-            lpendx[i] = s[i][0] - window
-            lpendy[i] = s[i][1] 
-            Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
-            ((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])) = Cur_line.cropToImageEdges().end_points
+          A a line object 
+          **EXAMPLE**
+        """
+        searchLines = FeatureSet()
+        fitPoints = FeatureSet()
+        x1 = guess[0][0]
+        x2 = guess[1][0]
+        y1 = guess[0][1]
+        y2 = guess[1][1]
+        dx = float((x2-x1))/(measurements-1)
+        dy = float((y2-y1))/(measurements-1)
+        s = np.zeros((measurements,2))
+        lpstartx = np.zeros(measurements)
+        lpstarty = np.zeros(measurements)
+        lpendx = np.zeros(measurements)
+        lpendy = np.zeros(measurements)
+        linefitpts = np.zeros((measurements,2))
 
-            searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight, departurethreshold=departurethreshold)
-            fitPoints.append(Circle(self,tmp[0],tmp[1],3))
-            linefitpts[i] = tmp
+        #obtain equation for initial guess line
+        if( x1==x2): #vertical line must be handled as special case since slope isn't defined
+            m=0
+            mo = 0
+            b = x1
+            for i in xrange(0, measurements):
+                s[i][0] = x1 
+                s[i][1] = y1 + i * dy
+                lpstartx[i] = s[i][0] + window
+                lpstarty[i] = s[i][1] 
+                lpendx[i] = s[i][0] - window
+                lpendy[i] = s[i][1] 
+                Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+                ((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])) = Cur_line.cropToImageEdges().end_points
 
-      else:
-        m = float((y2-y1))/(x2-x1)
-        b = y1 - m*x1
-        mo = -1/m #slope of orthogonal line segments
-       
-        #obtain points for measurement along the initial guess line
-        for i in xrange(0, measurements):
-            s[i][0] = x1 + i * dx
-            s[i][1] = y1 + i * dy
-            fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
-            fy = fx * mo 
-            lpstartx[i] = s[i][0] + fx
-            lpstarty[i] = s[i][1] + fy
-            lpendx[i] = s[i][0] - fx
-            lpendy[i] = s[i][1] - fy
-            Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
-            ((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])) = Cur_line.cropToImageEdges().end_points
-            searchLines.append(Cur_line)
-            tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight,departurethreshold=departurethreshold)
-            fitPoints.append((tmp[0],tmp[1]))
-            linefitpts[i] = tmp
+                searchLines.append(Cur_line)
+                tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight, departurethreshold=departurethreshold)
+                fitPoints.append(Circle(self,tmp[0],tmp[1],3))
+                linefitpts[i] = tmp
 
-      badpts = []    
-      for j in range(len(linefitpts)):
-        if (linefitpts[j,0] == -1) or (linefitpts[j,1] == -1):
-            badpts.append(j)
-      for pt in badpts:
-        linefitpts = np.delete(linefitpts,pt,axis=0)
+        else:
+            m = float((y2-y1))/(x2-x1)
+            b = y1 - m*x1
+            mo = -1/m #slope of orthogonal line segments
 
-      x = linefitpts[:,0]
-      y = linefitpts[:,1]
-      ymin = np.min(y)
-      ymax = np.max(y)
-      xmax = np.max(x)
-      xmin = np.min(x)
+            #obtain points for measurement along the initial guess line
+            for i in xrange(0, measurements):
+                s[i][0] = x1 + i * dx
+                s[i][1] = y1 + i * dy
+                fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
+                fy = fx * mo 
+                lpstartx[i] = s[i][0] + fx
+                lpstarty[i] = s[i][1] + fy
+                lpendx[i] = s[i][0] - fx
+                lpendy[i] = s[i][1] - fy
+                Cur_line = Line(self,((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])))
+                ((lpstartx[i],lpstarty[i]),(lpendx[i],lpendy[i])) = Cur_line.cropToImageEdges().end_points
+                searchLines.append(Cur_line)
+                tmp = self.getThresholdCrossing((int(lpstartx[i]),int(lpstarty[i])),(int(lpendx[i]),int(lpendy[i])),threshold=threshold,lighttodark=lighttodark, darktolight=darktolight,departurethreshold=departurethreshold)
+                fitPoints.append((tmp[0],tmp[1]))
+                linefitpts[i] = tmp
 
-      if( (xmax-xmin) > (ymax-ymin) ):
-          # do the least squares
-          A = np.vstack([x,np.ones(len(x))]).T
-          m,c = nla.lstsq(A,y)[0]
-          y0 = int(m*xmin+c)
-          y1 = int(m*xmax+c)
-          finalLine = Line(self,((xmin,y0),(xmax,y1)))
-      else:
-          # do the least squares
-          A = np.vstack([y,np.ones(len(y))]).T
-          m,c = nla.lstsq(A,x)[0]
-          x0 = int(ymin*m+c)
-          x1 = int(ymax*m+c)
-          finalLine = Line(self,((x0,ymin),(x1,ymax)))
+        badpts = []    
+        for j in range(len(linefitpts)):
+            if (linefitpts[j,0] == -1) or (linefitpts[j,1] == -1):
+                badpts.append(j)
+        for pt in badpts:
+            linefitpts = np.delete(linefitpts,pt,axis=0)
 
-      return finalLine, searchLines, fitPoints
+        x = linefitpts[:,0]
+        y = linefitpts[:,1]
+        ymin = np.min(y)
+        ymax = np.max(y)
+        xmax = np.max(x)
+        xmin = np.min(x)
+
+        if( (xmax-xmin) > (ymax-ymin) ):
+            # do the least squares
+            A = np.vstack([x,np.ones(len(x))]).T
+            m,c = nla.lstsq(A,y)[0]
+            y0 = int(m*xmin+c)
+            y1 = int(m*xmax+c)
+            finalLine = Line(self,((xmin,y0),(xmax,y1)))
+        else:
+            # do the least squares
+            A = np.vstack([y,np.ones(len(y))]).T
+            m,c = nla.lstsq(A,x)[0]
+            x0 = int(ymin*m+c)
+            x1 = int(ymax*m+c)
+            finalLine = Line(self,((x0,ymin),(x1,ymax)))
+
+        return finalLine, searchLines, fitPoints
 
     def getThresholdCrossing(self, pt1, pt2, threshold=128, darktolight=True, lighttodark=True, departurethreshold=1):
         """
@@ -11533,7 +11542,7 @@ class Image:
                 retVal = (-1,-1)
                 #print 'Edgepoint not found.'
         return retVal
-        
+
 
     def getDiagonalScanlineGrey(self, pt1, pt2):
         """
@@ -11554,7 +11563,7 @@ class Image:
 
         >>> img = Image("lenna")
         >>> sl = img.getDiagonalScanlineGrey((100,200),(300,400))
-        
+
 
         **SEE ALSO**
 
@@ -11568,7 +11577,7 @@ class Image:
         #self = self._getGrayscaleBitmap()
         width = round(math.sqrt(math.pow(pt2[0]-pt1[0],2) + math.pow(pt2[1]-pt1[1],2)))
         retVal = np.zeros(width)
-        
+
         for x in range(0, retVal.size):
             xind = pt1[0] + int(round((pt2[0]-pt1[0])*x/retVal.size))
             yind = pt1[1] + int(round((pt2[1]-pt1[1])*x/retVal.size))
@@ -11836,7 +11845,7 @@ class Image:
 
     def track(self, method="CAMShift", ts=None, img=None, bb=None, **kwargs):
         """
-        
+
         **DESCRIPTION**
 
         Tracking the object surrounded by the bounding box in the given
@@ -11848,7 +11857,7 @@ class Image:
         * *ts* - TrackSet - SimpleCV.Features.TrackSet.
         * *img* - Image - Image to be tracked or list - List of Images to be tracked.
         * *bb* - tuple - Bounding Box tuple (x, y, w, h)
-        
+
 
         **Optional Parameters**
 
@@ -11949,11 +11958,11 @@ class Image:
         numM        - Number of points to be tracked in the bounding box
                       in height direction. 
                       default: 10
-                
+
         numN        - Number of points to be tracked in the bounding box
                       in width direction.
                       default: 10 
-                  
+
         margin      - Margin around the bounding box.
                       default: 5
 
@@ -11970,7 +11979,7 @@ class Image:
          - LK
          - SURF
          - MFTrack
-         
+
 
         **RETURNS**
 
@@ -11981,7 +11990,7 @@ class Image:
         **HOW TO**
 
         >>> ts = img.track("camshift", img=img1, bb=bb)
-        
+
 
         Here TrackSet is returned. All the necessary attributes will be included in the trackset.
         After getting the trackset you need not provide the bounding box or image. You provide TrackSet as parameter to track().
@@ -12005,7 +12014,7 @@ class Image:
               img = cam.getImage()
               ts = img.track("camshift",ts,img0,bb)
 
-        
+
         now here in first loop iteration since ts is empty, img0 and bb will be considered.
         New tracking object will be created and added in ts (TrackSet)
         After first iteration, ts is not empty and hence the previous
@@ -12023,21 +12032,21 @@ class Image:
         Using Optional Parameters:
 
         for CAMShift
-        
+
         >>> ts = []
         >>> ts = img.track("camshift", ts, img1, bb, lower=(40, 100, 100), upper=(100, 250, 250))
 
         You can provide some/all/None of the optional parameters listed for CAMShift.
 
         for LK
-        
+
         >>> ts = []
         >>> ts = img.track("lk", ts, img1, bb, maxCorners=4000, qualityLevel=0.5, minDistance=3)
 
         You can provide some/all/None of the optional parameters listed for LK.
 
         for SURF
-        
+
         >>> ts = []
         >>> ts = img.track("surf", ts, img1, bb, eps_val=0.7, min_samples=8, distance=200)
 
@@ -12071,7 +12080,7 @@ class Image:
         k-means.
 
         Median Flow Tracker:
-    
+
         Media Flow Tracker is the base tracker that is used in OpenTLD. It is based on
         Optical Flow. It calculates optical flow of the points in the bounding box from
         frame 1 to frame 2 and from frame 2 to frame 1 and using back track error, removes
@@ -12079,11 +12088,11 @@ class Image:
         points.
         """
         if not ts and not img:
-            print "Invalid Input. Must provide FeatureSet or Image"
+            print("Invalid Input. Must provide FeatureSet or Image")
             return None
 
         if not ts and not bb:
-            print "Invalid Input. Must provide Bounding Box with Image"
+            print("Invalid Input. Must provide Bounding Box with Image")
             return None
 
         if not ts:
@@ -12094,7 +12103,7 @@ class Image:
         try:
             import cv2
         except ImportError:
-            print "Tracking is available for OpenCV >= 2.3"
+            print("Tracking is available for OpenCV >= 2.3")
             return None
 
         if type(img) == list:
@@ -12256,7 +12265,7 @@ class Image:
         >>>> img.rotateRight().show()
 
         """
-        
+
         return self.rotate270()
 
 
@@ -12283,7 +12292,7 @@ class Image:
 
     def verticalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
         """
-        
+
         **DESCRIPTION**
 
         This method generates histogram of the number of grayscale pixels
@@ -12293,12 +12302,12 @@ class Image:
         is helpful for doing basic morphological analysis.
 
         **PARAMETERS**
-        
+
         * *bins* - The number of bins to use.
         * *threshold* - The grayscale threshold. We count pixels greater than this value.
         * *normalize* - If normalize is true we normalize the bin countsto sum to one. Otherwise we return the number of pixels.
         * *forPlot* - If this is true we return the bin indicies, the bin counts, and the bin widths as a tuple. We can use these values in pyplot.bar to quickly plot the histogram.
-        
+
 
         **RETURNS**
 
@@ -12307,16 +12316,16 @@ class Image:
         contains a list of bin labels, the bin counts, and the bin widths.
         This tuple can be used to plot the histogram using
         matplotlib.pyplot.bar function.
-        
-        
+
+
         **EXAMPLE**
-        
+
           >>> import matplotlib.pyplot as plt
           >>> img = Image('lenna')
           >>> plt.bar(*img.verticalHistogram(threshold=128,bins=10,normalize=False,forPlot=True),color='y')
           >>> plt.show()
-        
-        
+
+
         **NOTES**
 
         See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html
@@ -12341,7 +12350,7 @@ class Image:
 
     def horizontalHistogram(self, bins=10, threshold=128,normalize=False,forPlot=False):
         """
-        
+
         **DESCRIPTION**
 
         This method generates histogram of the number of grayscale pixels
@@ -12351,13 +12360,13 @@ class Image:
         is helpful for doing basic morphological analysis.
 
         **PARAMETERS**
-        
+
         * *bins* - The number of bins to use.
         * *threshold* - The grayscale threshold. We count pixels greater than this value.
         * *normalize* - If normalize is true we normalize the bin counts to sum to one. Otherwise we return the number of pixels.
         * *forPlot* - If this is true we return the bin indicies, the bin counts, and the bin widths as a tuple. We can use these values in pyplot.bar to quickly plot the histogram.
-        
-        
+
+
         **RETURNS**
 
         The default settings return the raw bin counts moving from top to
@@ -12404,14 +12413,14 @@ class Image:
         than can be manipulated further.
 
         **PARAMETERS**
-        
+
         * *x* - Take a vertical line scan at the column x.
         * *y* - Take a horizontal line scan at the row y.
         * *pt1* - Take a line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
         * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
-        
-        
+
+
         **RETURNS**
 
         A SimpleCV.LineScan object or None if the method fails.
@@ -12436,7 +12445,7 @@ class Image:
             try:
                 img = self.getNumpy()[:,:,channel]
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         retVal = None
@@ -12498,15 +12507,15 @@ class Image:
         This function helps you put back the linescan in the image.
 
         **PARAMETERS**
-        
+
         * *linescan* - LineScan object
         * *x* - put  line scan at the column x.
         * *y* - put line scan at the row y.
         * *pt1* - put line scan between two points on the line the line scan values always go in the +x direction
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
         * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
-        
-        
+
+
         **RETURNS**
 
         A SimpleCV.Image 
@@ -12520,7 +12529,7 @@ class Image:
         >>> newimg = img.putLineScan(a, x=50)
         >>> newimg.show()
         # This will show you a black line in column 50.
-        
+
         """
         #retVal = self.toGray()
         if channel == -1:
@@ -12529,7 +12538,7 @@ class Image:
             try:
                 img = np.copy(self.getNumpy()[:,:,channel])
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         if( x is None and y is None and pt1 is None and pt2 is None):
@@ -12598,7 +12607,7 @@ class Image:
 
     def replaceLineScan(self, linescan, x=None, y=None, pt1=None, pt2=None, channel = None):
         """
-        
+
         **SUMMARY**
 
         This function easily lets you replace the linescan in the image.
@@ -12609,7 +12618,7 @@ class Image:
         LineScan from.
 
         **PARAMETERS**
-        
+
         * *linescan* - LineScan object
         * *x* - put  line scan at the column x.
         * *y* - put line scan at the row y.
@@ -12617,7 +12626,7 @@ class Image:
         * *pt2* - Second parameter for a non-vertical or horizontal line scan.
         * *channel* - To select a channel. eg: selecting a channel RED,GREEN or BLUE. If set to -1 it operates with gray scale values
 
-        
+
         **RETURNS**
 
         A SimpleCV.Image 
@@ -12631,19 +12640,19 @@ class Image:
         >>> newimg = img.replaceLineScan(a)
         >>> newimg.show()
         # This will show you a black line in column 10.
-        
+
         """
-        
+
 
         if x is None and y is None and pt1 is None and pt2 is None and channel is None:
-            
+
             if linescan.channel == -1:
                 img = np.copy(self.getGrayNumpy())
             else:
                 try:
                     img = np.copy(self.getNumpy()[:,:,linescan.channel])
                 except IndexError:
-                    print 'Channel missing!'
+                    print('Channel missing!')
                     return None
 
             if linescan.row is not None:
@@ -12670,7 +12679,7 @@ class Image:
                 for pt in pts:
                     img[pt[0],pt[1]]=ls[idx]
                     idx = idx+1
-            
+
             if linescan.channel == -1:
                 retVal = Image(img)
             else:
@@ -12717,7 +12726,7 @@ class Image:
 
         return retVal
 
-    def bresenham_line(self, (x,y), (x2,y2)):
+    def bresenham_line(self, xxx_todo_changeme2, xxx_todo_changeme3):
         """
         Brensenham line algorithm
 
@@ -12725,6 +12734,8 @@ class Image:
 
         This is just a helper method
         """
+        (x,y) = xxx_todo_changeme2
+        (x2,y2) = xxx_todo_changeme3
         if (not 0 <= x <= self.width-1 or not 0 <= y <= self.height-1 or
             not 0 <= x2 <= self.width-1 or not 0 <= y2 <= self.height-1):
             l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
@@ -12894,7 +12905,7 @@ class Image:
 
         gridIndex = self.getDrawingLayer(self._gridLayer[0])
         if self._gridLayer[0]==-1:
-            print "Cannot find grid on the image, Try adding a grid first"
+            print("Cannot find grid on the image, Try adding a grid first")
 
         lineFS = FeatureSet()
         try:
@@ -12939,12 +12950,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -12975,12 +12986,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13012,12 +13023,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13048,12 +13059,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13467,7 +13478,7 @@ class Image:
         Color.WATERSHED_FG - The watershed foreground color
         Color.WATERSHED_BG - The watershed background color
         Color.WATERSHED_UNSURE - The watershed not sure if fg or bg color.
-        
+
         """        
         newmask = self.watershed(mask,erode,dilate,useMyMask)
         if( invert ):
@@ -13485,12 +13496,12 @@ class Image:
 
         * *locations* - If true return the location of pixels
            that have this value.
-        
+
         **RETURNS**
 
         The maximum value and optionally the list of points as
         a list of (x,y) tuples.
-        
+
         **EXAMPLE**
 
         >>> img = Image("lenna")
@@ -13507,7 +13518,7 @@ class Image:
         else:
             val = np.max(self.getGrayNumpy())
             return int(val)
-                
+
     def minValue(self,locations=False):
         """
         **SUMMARY**
@@ -13519,12 +13530,12 @@ class Image:
 
         * *locations* - If true return the location of pixels
            that have this value.
-        
+
         **RETURNS**
 
         The minimum value and optionally the list of points as
         a list of (x,y) tuples.
-        
+
         **EXAMPLE**
 
         >>> img = Image("lenna")
@@ -13542,7 +13553,7 @@ class Image:
             val = np.min(self.getGrayNumpy())
             return int(val)
 
-    
+
     def findKeypointClusters(self, num_of_clusters = 5, order='dsc', flavor='surf'):
         '''
         This function is meant to try and find interesting areas of an
@@ -13560,30 +13571,30 @@ class Image:
 
 
         **EXAMPLE**
-        
+
         >>> img = Image('simplecv')
         >>> clusters = img.findKeypointClusters()
         >>> clusters.draw()
         >>> img.show()
 
         **RETURNS**
-        
+
         FeatureSet
         '''
         if flavor.lower() == 'corner':
-          keypoints = self.findCorners() #fallback to corners
+            keypoints = self.findCorners() #fallback to corners
         else:
-          keypoints = self.findKeypoints(flavor=flavor.upper()) #find the keypoints
+            keypoints = self.findKeypoints(flavor=flavor.upper()) #find the keypoints
         if keypoints == None or keypoints <= 0:
-          return None
-          
+            return None
+
         xypoints = np.array([(f.x,f.y) for f in keypoints])
         xycentroids, xylabels = scv.kmeans2(xypoints, num_of_clusters) # find the clusters of keypoints
         xycounts = np.array([])
-        
+
         for i in range(num_of_clusters ): #count the frequency of occurences for sorting
             xycounts = np.append(xycounts, len(np.where(xylabels == i)[-1]))
-            
+
         merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids))) #sort based on occurence
         clusters = [c[1:] for c in merged] # strip out just the values ascending
         if order.lower() == 'dsc':
@@ -13593,7 +13604,7 @@ class Image:
         for x,y in clusters: #map the values to a feature set
             f = Corner(self, x, y)
             fs.append(f)
-  
+
         return fs
 
     def getFREAKDescriptor(self, flavor="SURF"):
@@ -13643,7 +13654,7 @@ class Image:
         if int(cv2.__version__.replace('.','0'))<20402:
             warnings.warn("OpenCV version >= 2.4.2 requierd")
             return None
-            
+
         flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
         if flavor not in flavors:
             warnings.warn("Unkown Keypoints detector. Returning None.")
@@ -13664,9 +13675,9 @@ class Image:
         This function returns a list of tuples of greyscale pixel counts
         by frequency.  This would be useful in determining the dominate
         pixels (peaks) of the greyscale image.
-  
+
         **PARAMETERS**
-  
+
         * *bins* - The number of bins for the hisogram, defaults to 255 (greyscale)
         * *limit* - The number of counts to return, default is all
 
@@ -13742,11 +13753,11 @@ class Image:
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -13782,7 +13793,7 @@ class Image:
                     #set algorithm to only find maxima now
                     mn = -np.Inf
                     mx = -np.Inf
-                
+
         retVal = []
         for intensity, pixelcount in maxtab:
             retVal.append((intensity, pixelcount / float(self.width * self.height)))
@@ -13816,14 +13827,14 @@ class Image:
             mostly to speed up the filter.
 
         **NOTE**
-        
+
         This function requires Scikit-image library to be installed!
         To install scikit-image library run::
-         
+
             sudo pip install -U scikit-image
 
         Read More: http://scikit-image.org/
-        
+
         """
 
         try:
@@ -13831,11 +13842,11 @@ class Image:
         except ImportError:
             logger.warn('Scikit-image Library not installed!')
             return None
-        
+
         img = self.copy()
-        
+
         if resize <= 0:
-            print 'Enter a valid resize value'
+            print('Enter a valid resize value')
             return None
 
         if resize != 1:
@@ -13859,7 +13870,7 @@ class Image:
             return retVal.resize(int(retVal.width/resize),int(retVal.width/resize))
         else:
             return retVal
-      
+
     def motionBlur(self,intensity=15, direction='NW'):
         """
         **SUMMARY**
@@ -13888,11 +13899,11 @@ class Image:
         >>> i = Image ('lenna')
         >>> mb = i.motionBlur()
         >>> mb.show()
-        
+
         """
         mid = int(intensity/2)
         tmp = np.identity(intensity)
-        
+
         if intensity == 0:
             warnings.warn("0 intensity means no blurring")
             return self
@@ -13925,10 +13936,10 @@ class Image:
         else:
             warnings.warn("Please enter a proper direction")
             return None
-        
+
         retval=self.convolve(kernel=kernel/div)
         return retval
-        
+
     def recognizeFace(self, recognizer=None):
         """
         **SUMMARY**
@@ -14093,7 +14104,7 @@ class Image:
         **NOTES**
 
         Read more at: http://en.wikipedia.org/wiki/Prewitt_operator
-        
+
         """
         img = self.copy()
         grayimg = img.grayscale()
@@ -14126,7 +14137,7 @@ class Image:
         **RETURNS**
 
         * FeatureSet * - A FeatureSet of Lines
-        
+
         **EXAMPLE**
 
         >>> image = Image("logo").edges()
@@ -14137,10 +14148,10 @@ class Image:
         imgArray = self.getGrayNumpy()
         c1 = np.count_nonzero(imgArray )
         c2 = np.count_nonzero(imgArray - 255)
-        
+
         #checking that all values are 0 and 255
         if( c1 + c2 != imgArray.size):
-            raise ValueError,"Image must be binary"
+            raise ValueError("Image must be binary")
 
         if(len(pointList) < 2 ):
             return None
@@ -14151,7 +14162,7 @@ class Image:
         for point in pointList[1:None]:
             finalList += self._edgeSnap2(last,point,step)
             last = point
-            
+
         last = finalList[0]
         for point in finalList:
             featureSet.append(Line(self,(last,point)))
@@ -14179,7 +14190,7 @@ class Image:
         **RETURNS**
 
         * List * - A list of tuples , each tuple contains (x,y) values
-        
+
         """
 
 
@@ -14198,14 +14209,14 @@ class Image:
         #List of Edge Points.
         finalList = []
         i = 0
-        
+
         #Closest any point has ever come to the end point
         overallMinDist = None
 
         while  i < len(line) :
-            
+
             x,y = line[i]
-            
+
             #Get the matrix of points fromx around current point.
             region = edgeMap[x-box:x+box,y-box:y+box]
 
@@ -14217,7 +14228,7 @@ class Image:
             #Index of all Edge points
             indexList = np.argwhere(region>0)
             if (indexList.size > 0):
-                
+
                 #Center the coordinates around the point
                 indexList -= box
                 minDist = None
@@ -14250,9 +14261,9 @@ class Image:
                     #Add the point to list and redefine the line
                     line =[(x+dx,y+dy)] + self.bresenham_line((x+dx, y+dy), end)
                     finalList += [(x+dx,y+dy)]
-                
+
                     i = 0
-            
+
             i += step 
         finalList += [end]
         return finalList
@@ -14273,7 +14284,7 @@ class Image:
         * *angle* - Angle in degrees at which motion blur will occur. Positive
             is Clockwise and negative is Anti-Clockwise. 0 blurs from left to 
             right
-            
+
 
         **RETURNS**
 
@@ -14283,28 +14294,28 @@ class Image:
         >>> img = Image ('lenna')
         >>> blur = img.motionBlur(40,45)
         >>> blur.show()
-        
+
         """
-        
+
         intensity = int(intensity)
 
         if(intensity <= 1):
             logger.warning('power less than 1 will result in no change')
             return self
-        
+
         kernel = np.zeros((intensity,intensity))
-        
+
         rad = math.radians(angle)
         x1,y1 = intensity/2,intensity/2
-        
+
         x2 = int(x1-(intensity-1)/2*math.sin(rad))
         y2 = int(y1 -(intensity-1)/2*math.cos(rad))
-        
+
         line = self.bresenham_line((x1,y1),(x2,y2))
-        
+
         x = [p[0] for p in line]
         y = [p[1] for p in line]
-        
+
         kernel[x,y] = 1
         kernel = kernel/len(line)
         return self.convolve(kernel = kernel)
@@ -14317,7 +14328,7 @@ class Image:
         Lightness method.
 
         **Parameters**
-        
+
         None
 
         **RETURNS**
@@ -14328,7 +14339,7 @@ class Image:
         >>> img = Image ('lenna')
         >>> out = img.getLightness()
         >>> out.show()
-        
+
         **NOTES**
 
         Algorithm used: value = (MAX(R,G,B) + MIN(R,G,B))/2
@@ -14352,7 +14363,7 @@ class Image:
         Luminosity method.
 
         **Parameters**
-        
+
         None
 
         **RETURNS**
@@ -14363,7 +14374,7 @@ class Image:
         >>> img = Image ('lenna')
         >>> out = img.getLuminosity()
         >>> out.show()
-        
+
         **NOTES**
 
         Algorithm used: value =  0.21 R + 0.71 G + 0.07 B
@@ -14387,7 +14398,7 @@ class Image:
         the R,G,B values.
 
         **Parameters**
-        
+
         None
 
         **RETURNS**
@@ -14398,7 +14409,7 @@ class Image:
         >>> img = Image ('lenna')
         >>> out = img.getAverage()
         >>> out.show()
-        
+
         **NOTES**
 
         Algorithm used: value =  (R+G+B)/3
@@ -14413,7 +14424,7 @@ class Image:
             return None
 
         return Image(retVal,cv2image=True)
-    
+
     def smartRotate(self,bins=18,point = [-1,-1],auto = True,threshold=80,minLength=30,maxGap=10,t1=150,t2=200,fixed = True):
         """
         **SUMMARY**
@@ -14422,31 +14433,31 @@ class Image:
         approximately parellel to horizontal or vertical edges.
 
         **Parameters**
-        
-        
+
+
         * *bins* - The number of bins the lines will be grouped into.
-        
+
         * *point* - the point about which to rotate, refer :py:meth:`rotate`
-        
+
         * *auto* - If true point will be computed to the mean of centers of all
             the lines in the selected bin. If auto is True, value of point is
             ignored
-            
+
         * *threshold* - which determines the minimum "strength" of the line
             refer :py:meth:`findLines` for details.
-            
+
         * *minLength* - how many pixels long the line must be to be returned,
             refer :py:meth:`findLines` for details.
-            
+
         * *maxGap* - how much gap is allowed between line segments to consider 
             them the same line .refer to :py:meth:`findLines` for details.
-            
+
         * *t1* - thresholds used in the edge detection step, 
             refer to :py:meth:`_getEdgeMap` for details.
-            
+
         * *t2* - thresholds used in the edge detection step, 
             refer to :py:meth:`_getEdgeMap` for details.
-            
+
         * *fixed* - if fixed is true,keep the original image dimensions, 
             otherwise scale the image to fit the rotation , refer to 
             :py:meth:`rotate`
@@ -14461,14 +14472,14 @@ class Image:
 
         """
         lines = self.findLines(threshold, minLength, maxGap, t1,t2)
-        
+
         if(len(lines) == 0):
             logger.warning("No lines found in the image")
             return self
 
         # Initialize empty bins
         binn = [[] for i in range(bins)]
-        
+
         #Convert angle to bin number
         conv = lambda x:int(x+90)/bins
 
@@ -14478,10 +14489,10 @@ class Image:
         #computing histogram, value of each column is total length of all lines
         #in the bin
         hist = [ sum([line.length() for line in lines]) for lines in binn]
-        
+
         #The maximum histogram
         index = np.argmax(np.array(hist))
-        
+
         #Good ol weighted mean, for the selected bin
         avg = sum([line.angle()*line.length() for line in binn[index]])/sum([line.length() for line in binn[index] ])
 
@@ -14592,7 +14603,7 @@ class Image:
 
         ImageClass.backProjectHueHistogram()
         ImageClass.findBlobsFromHueHistogram()
-        
+
         """
         try:
             import cv2
@@ -14649,14 +14660,14 @@ class Image:
         **SEE ALSO**
         ImageClass.getNormalizedHueHistogram()
         ImageClass.findBlobsFromHueHistogram()
-        
+
         """
         try:
             import cv2
         except ImportError:
             warnings.warn("OpenCV >= 2.3 required to use this.")
             return None
-        
+
         if( model is None ):
             warnings.warn('Backproject requires a model')
             return None
@@ -14683,7 +14694,7 @@ class Image:
             warnings.warn('Backproject model does not appear to be valid')
             return None
 
-        
+
     def findBlobsFromHueHistogram(self,model,threshold=1,smooth=True,minsize=10,maxsize=None):
         """
         **SUMMARY**
@@ -14720,10 +14731,10 @@ class Image:
         >>>> blobs.show()
 
         **SEE ALSO**
-        
+
         ImageClass.getNormalizedHueHistogram()
         ImageClass.backProjectHueHistogram()
-        
+
         """
         newMask = self.backProjectHueHistogram(model,smooth,fullColor=False,threshold=threshold)
         return self.findBlobsFromMask(newMask,minsize=minsize,maxsize=maxsize)        

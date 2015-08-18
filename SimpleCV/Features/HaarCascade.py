@@ -31,10 +31,10 @@ class HaarCascade():
                     logger.warning("Could not find Haar Cascade file " + fname)
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")
                     return None
-            
+
             self._mCascade = cv.Load(self._fhandle)
 
-            if HaarCascade._cache.has_key(self._fhandle):
+            if self._fhandle in HaarCascade._cache:
                 self._mCascade = HaarCascade._cache[self._fhandle]
                 return
             HaarCascade._cache[self._fhandle] = self._mCascade
@@ -54,10 +54,10 @@ class HaarCascade():
                     logger.warning("Could not find Haar Cascade file " + fname)
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")
                     return None
-            
+
             self._mCascade = cv.Load(self._fhandle)
 
-            if HaarCascade._cache.has_key(self._fhandle):
+            if self._fhandle in HaarCascade._cache:
                 self._mCascade = HaarCascade._cache[fname]
                 return
             HaarCascade._cache[self._fhandle] = self._mCascade

@@ -1101,7 +1101,7 @@ class Blob(Feature):
         otherM = otherSigns * otherLogs
 
         return np.sum(abs((1/ myM - 1/ otherM)))
-        
+
     def getMaskedImage(self):
         """
         Get the blob size image with the masked blob 

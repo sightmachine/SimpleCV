@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import webbrowser, sys, time, random
 from SimpleCV import Camera, Image, JpegStreamer, Color
 from SimpleCV.Display import Display
@@ -86,7 +87,7 @@ def verticalTilt(cb):  #radio between the 0, 1 and 2,3 point pairs
     return distance_ratio
 
 def introMessage():
-    print """
+    print("""
   This tool will help you calibrate your camera to help remove the effects of
   lens distortion and give you more accurate measurement.  You will need:
 
@@ -97,7 +98,7 @@ def introMessage():
   To begin, please put your chessboard close to the camera so the long side is
   horizontal and it fill most of the screen.  Keep it parallel to the camera so it
   appears within the rectangle.
-    """
+    """)
 
 def findLargeFlat(cb, i, calibration_set, dims):
     drawline(i,  (10, 10), (i.width - 10, 10))
@@ -248,24 +249,24 @@ def findPlane(cb, i, calibration_set, dims):
     result = False
 
     grid = (
-      #outline the top left corner
-      ((min_x, min_y), (right_x, bottom_y)),
-      #top middle
-      ((mid_min_x, min_y), (mid_max_x, bottom_y)),
-      #top right
-      ((left_x, min_y), (max_x, bottom_y)),
-      #right side middle
-      ((left_x, mid_min_y), (max_x, mid_max_y)),
-      # center
-      ((mid_min_x, mid_min_y), (mid_max_x, mid_max_y)),
-      #left middle
-      ((min_x, mid_min_y), (right_x, mid_max_y)),
-      #left bottom corner
-      ((min_x, top_y), (right_x, max_y)),
-      #bottom middle,
-      ((mid_min_x, top_y), (mid_max_x, max_y)),
-      #right bottom
-      ((left_x, top_y), (max_x, max_y)) )
+        #outline the top left corner
+        ((min_x, min_y), (right_x, bottom_y)),
+        #top middle
+        ((mid_min_x, min_y), (mid_max_x, bottom_y)),
+        #top right
+        ((left_x, min_y), (max_x, bottom_y)),
+        #right side middle
+        ((left_x, mid_min_y), (max_x, mid_max_y)),
+        # center
+        ((mid_min_x, mid_min_y), (mid_max_x, mid_max_y)),
+        #left middle
+        ((min_x, mid_min_y), (right_x, mid_max_y)),
+        #left bottom corner
+        ((min_x, top_y), (right_x, max_y)),
+        #bottom middle,
+        ((mid_min_x, top_y), (mid_max_x, max_y)),
+        #right bottom
+        ((left_x, top_y), (max_x, max_y)) )
 
     testrect(i, cb, calibration_set, dims, grid[lcs % len(grid)])
 

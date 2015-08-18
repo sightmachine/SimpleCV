@@ -11,8 +11,9 @@ sudo apt-get install python-zbar
 Then line up the item in the red box and left click the mouse to tell
 the program to try and read the barcode
 '''
+from __future__ import print_function
 
-print __doc__
+print(__doc__)
 
 
 import time
@@ -36,8 +37,8 @@ while display.isNotDone():
         barcode = img.findBarcode()
         if barcode: # if we have a barcode
             data = str(barcode.data)
-            print data
-            if mydict.has_key(data):
+            print(data)
+            if data in mydict:
                 mydict[data] = mydict[data] + 1
             else:
                 mydict[data] = 1

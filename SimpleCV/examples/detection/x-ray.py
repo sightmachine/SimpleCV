@@ -6,7 +6,8 @@ This program basically overlays an edge detector window that gives the
 illusion of X-ray vision.  It is mearly meant to show how to perform a
 basic image operation and overlay back onto the original image.
 """
-print __doc__
+from __future__ import print_function
+print(__doc__)
 
 from SimpleCV import Camera, Display
 
