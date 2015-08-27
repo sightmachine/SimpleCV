@@ -237,8 +237,9 @@ class NaiveBayesClassifier:
             print("Incorrect: "+str(bad))
             classes = self.mDataSetOrange.domain.classVar.values
             print "\t"+"\t".join(classes)
-            for className, classConfusions in zip(classes, confusion):
-                print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
+            if confusion > 0:
+                for className, classConfusions in zip(classes, confusion):
+                    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(classConfusions))
 
         return [good, bad, confusion]
 
