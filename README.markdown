@@ -461,7 +461,7 @@ to install ipython notebooks run the following:
 ## Videos - Tutorials and Demos
 
 Video tutorials and demos can be found at:
-<http://www.simplecv.org/learn/>
+<http://tutorial.simplecv.org/en/latest/>
 
 ---------------------------
 <a id="mobile"></a>
