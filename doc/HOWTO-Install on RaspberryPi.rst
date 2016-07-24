@@ -17,7 +17,7 @@ Installing SimpleCV on the Raspberry Pi
 ::
 
 	sudo apt-get install ipython python-opencv python-scipy python-numpy python-setuptools python-pip
-
+	
 4) SimpleCV should now be ready to install. Download SimpleCV from github 
    and install from the source.
 
@@ -59,3 +59,10 @@ Alternatively, you can install SimpleCV from source.
 	SimpleCV:3> exit()
 
 6) Congratulations, your RaspberryPi is now running SimpleCV!
+
+**Note:** You may face a *"ImportError: No Module named svgwrite"* error, if svgwrite module is not installed. You can install it through:
+
+::
+
+
+	sudo pip install svgwrite
