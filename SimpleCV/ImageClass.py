@@ -1062,7 +1062,7 @@ class Image:
                     self._pil = webpImage.convert("RGB")
                     self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
                     self.filename = source
-                cv.SetData(self._bitmap, self._pil.tostring())
+                cv.SetData(self._bitmap, self._pil.tobytes())
                 cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
 
             else:
@@ -1072,7 +1072,7 @@ class Image:
                 except:
                     self._pil = pil.open(self.filename).convert("RGB")
                     self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-                    cv.SetData(self._bitmap, self._pil.tostring())
+                    cv.SetData(self._bitmap, self._pil.tobytes())
                     cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
 
                 #TODO, on IOError fail back to PIL
@@ -1099,7 +1099,7 @@ class Image:
             #from the opencv cookbook
             #http://opencv.willowgarage.com/documentation/python/cookbook.html
             self._bitmap = cv.CreateImageHeader(self._pil.size, cv.IPL_DEPTH_8U, 3)
-            cv.SetData(self._bitmap, self._pil.tostring())
+            cv.SetData(self._bitmap, self._pil.tobytes())
             self._colorSpace = ColorSpace.BGR
             cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
             #self._bitmap = cv.iplimage(self._bitmap)
@@ -1904,7 +1904,7 @@ class Image:
         if (not self._pil):
             rgbbitmap = self.getEmpty()
             cv.CvtColor(self.getBitmap(), rgbbitmap, cv.CV_BGR2RGB)
-            self._pil = pil.fromstring("RGB", self.size(), rgbbitmap.tostring())
+            self._pil = pil.frombytes("RGB", self.size(), rgbbitmap.tostring())
         return self._pil
 
 
@@ -4889,7 +4889,7 @@ class Image:
             #configure zbar
             scanner = zbar.ImageScanner()
             scanner.parse_config('enable')
-            raw = self.getPIL().convert('L').tostring()
+            raw = self.getPIL().convert('L').tobytes()
             width = self.width
             height = self.height
 
@@ -6213,7 +6213,7 @@ class Image:
         return retVal.toBGR().transpose()
 
     def _image2Surface(self,img):
-        return pg.image.fromstring(img.getPIL().tostring(),img.size(), "RGB")
+        return pg.image.fromstring(img.getPIL().tobytes(),img.size(), "RGB")
         #return pg.surfarray.make_surface(img.toRGB().getNumpy())
 
     def toPygameSurface(self):
@@ -6251,7 +6251,7 @@ class Image:
         :py:meth:`blit`
 
         """
-        return pg.image.fromstring(self.getPIL().tostring(),self.size(), "RGB")
+        return pg.image.fromstring(self.getPIL().tobytes(),self.size(), "RGB")
 
 
     def addDrawingLayer(self, layer = None):
