@@ -25,7 +25,7 @@ setup(name="SimpleCV",
   license='BSD',
   packages = find_packages(exclude=['ez_setup']),
   zip_safe = False,
-  requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pil', 'svgwrite'],
+  requires=['cv2','cv', 'numpy', 'scipy', 'pygame', 'pillow', 'svgwrite'],
   package_data  = { #DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
             'SimpleCV': ['sampleimages/*',
                         'Features/HaarCascades/*',
