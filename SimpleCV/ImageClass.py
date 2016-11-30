@@ -19,6 +19,31 @@ import math # math... who does that
 import copy # for deep copy
 #import scipy.stats.mode as spsmode
 
+from multiprocessing import Pool, cpu_count
+import functools
+import copy_reg
+import types
+
+#Enables pickling of methods (bound methods are not pickable). More info at:
+#http://bytes.com/topic/python/answers/552476-why-cant-you-pickle-instancemethods
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+    for cls in cls.mro():
+        try:
+            func = cls.__dict__[func_name]
+        except KeyError:
+            pass
+        else:
+            break
+    return func.__get__(obj, cls)
+
+copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+
 class ColorSpace:
     """
     **SUMMARY**
@@ -768,8 +793,34 @@ class ImageSet(list):
         """
         return self.__getitem__(slice(i,j))
 
+    def multimap(self, function, processes=cpu_count(), **kwargs):
+        """
+        **SUMMARY**
 
-class Image:
+        Applies img.function(**kwargs) for every image in the set, using a pool
+        from the multiprocessing module.
+
+        **EXAMPLE**
+
+        >>> i = ImageSet("/path/to/directory/with/images")
+        >>> palettized = iset.multimap(Image.palettize)
+
+        or
+
+        >>> i = ImageSet("/path/to/directory/with/images")
+        >>> skintoneMasks = iset.multimap(Image.getSkintoneMask, **{"dilate_iter":2})
+
+        """
+
+        p = Pool(processes)
+        res = ImageSet(p.map(functools.partial(function, **kwargs), self))
+        p.terminate()
+        p.close()
+        p.join()
+        return res
+
+
+class Image(object):
     """
     **SUMMARY**
 
