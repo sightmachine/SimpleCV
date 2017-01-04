@@ -35,6 +35,11 @@ Alternatively, you can install SimpleCV from source.
 	cd SimpleCV
 	sudo pip install -r requirements.txt
 	sudo python setup.py develop
+::
+
+On Raspberry Pi you may also need to install pygame and svgwrite. Execute these two commands
+	sudo apt-get install python-pygame
+	sudo pip install svgwrite
 	
 5) After allowing those commands to run for a while (it is going to take a while, go
    grab a drink), SimpleCV should be all set up. Connect a compatible camera to the
@@ -57,5 +62,5 @@ Alternatively, you can install SimpleCV from source.
 	SimpleCV:2: <SimpleCV.Image Object size:(640, 480), filename: (None), at memory location: (0x1335850)>
 
 	SimpleCV:3> exit()
-
+	
 6) Congratulations, your RaspberryPi is now running SimpleCV!
