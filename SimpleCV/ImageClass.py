@@ -12685,6 +12685,87 @@ class Image:
                 retVal = self.setLineScan(linescan , x, y, pt1, pt2, channel)
         return retVal
 
+     def whiteToLineScan(self,x=None,y=None,pt1=None,pt2=None):
+        """
+        **SUMMARY**
+
+        This function converts the image to a binary image and then pulls
+        out a series of pixel values as a linescan object that can
+        be manipulated furter.
+
+        **PARAMETERS**
+        * *x* - Take a vertical line scan at the column x.
+        * *y* - Take a horizontal line scan at the row y.
+        * *pt1* - Take a line scan between two points on the line
+                  the line scan values always go in the +x direction
+        * *pt2* - Second parameter for a non-vertical or horizontal line scan.
+        **RETURNS**
+
+        A SimpleCV.LineScan object or None if the method fails.
+
+        **EXAMPLE**
+
+        >>>> import matplotlib.pyplot as plt
+        >>>> img = Image('lenna')
+        >>>> a = img.whiteToLineScan(x=10)
+        >>>> b = img.whiteToLineScan(y=10)
+        >>>> c = img.whiteToLineScan(pt1 = (10,10), pt2 = (500,500) )
+        >>>> plt.plot(a)
+        >>>> plt.plot(b)
+        >>>> plt.plot(c)
+        >>>> plt.show()
+
+        """
+        binary = self.binarize().getNumpy()
+        retVal = None
+        if( x is not None and y is None and pt1 is None and pt2 is None):
+            if( x >= 0 and x < self.width):
+                retVal = LineScan(binary[x,:])
+                retVal.image = self
+                retVal.pt1 = (x,0)
+                retVal.pt2 = (x,self.height)
+                x = np.ones((1,self.height))[0]*x
+                y = range(0,self.height,1)
+                pts = zip(x,y)
+                retVal.pointLoc = pts
+            else:
+                warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+                # warn and return None
+
+        elif( x is None and y is not None and pt1 is None and pt2 is None):
+            if( y >= 0 and y < self.height):
+                retVal = LineScan(binary[:,y])
+                retVal.image = self
+                retVal.pt1 = (0,y)
+                retVal.pt2 = (self.width,y)
+                y = np.ones((1,self.width))[0]*y
+                x = range(0,self.width,1)
+                pts = zip(x,y)
+                retVal.pointLoc = pts
+
+            else:
+                warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+                # warn and return None
+
+            pass
+        elif( (isinstance(pt1,tuple) or isinstance(pt1,list)) and
+              (isinstance(pt2,tuple) or isinstance(pt2,list)) and
+              len(pt1) == 2 and len(pt2) == 2 and
+              x is None and y is None):
+
+            pts = self.bresenham_line(pt1,pt2)
+            retVal = LineScan([binary[p[0],p[1]] for p in pts])
+            retVal.pointLoc = pts
+            retVal.image = self
+            retVal.pt1 = pt1
+            retVal.pt2 = pt2
+
+        else:
+            # an invalid combination - warn
+            warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
+            return None
+        return retVal
+
 
     def getPixelsOnLine(self,pt1,pt2):
         """
