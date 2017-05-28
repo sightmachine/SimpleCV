@@ -233,12 +233,9 @@ Install SDL dependencies (can anyone clarify this?) via homebrew by running:
     brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
 
 Install XQuartz from https://xquartz.macosforge.org
-Homebrew can't install smpeg at the time of this writing however there is a workaround:
 
-    brew tap homebrew/headonly
-    brew install --HEAD smpeg
+    brew install smpeg
 
-If you get a connection refused error, wait a minute and try again.
 Download PIL:
 
     curl -O -L http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz
