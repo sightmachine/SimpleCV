@@ -533,6 +533,13 @@ class Camera(FrameSource):
         if calibrationfile:
             self.loadCalibration(calibrationfile)
 
+    def releaseCamera(self):
+        """
+        **SUMMARY**
+
+        destroy Camera object by releasing the camera resource
+        """
+        del self.capture
 
     #todo -- make these dynamic attributes of the Camera class
     def getProperty(self, prop):
