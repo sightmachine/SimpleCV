@@ -9,7 +9,7 @@ Quick Links:
 
  * [About](#about)
  * [Installation](#installation)
-    * [Docker] (#docker)
+    * [Docker](#docker)
     * [Ubuntu](#ubuntu-1204)
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
@@ -171,9 +171,8 @@ Install using clone of SimpleCV repository
     cd SimpleCV/
     sudo python setup.py install
 
-<a id="macos">
+<a id="mac-os-x-106-and-above"></a>
 ### Mac OS X (10.6 and above)
-</a>
 
 **General OSX Overview**
 
