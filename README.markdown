@@ -9,7 +9,7 @@ Quick Links:
 
  * [About](#about)
  * [Installation](#installation)
-    * [Docker] (#docker)
+    * [Docker](#docker)
     * [Ubuntu](#ubuntu-1204)
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
