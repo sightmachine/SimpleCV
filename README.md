@@ -9,7 +9,7 @@ Quick Links:
 
  * [About](#about)
  * [Installation](#installation)
-    * [Docker] (#docker)
+    * [Docker](#docker)
     * [Ubuntu](#ubuntu-1204)
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
@@ -110,7 +110,7 @@ then just run 'simplecv' from the shell.
 
 ### Virtualenv
 
-This is how to install SimpleCV under a python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
+This is how to install SimpleCV under a python virtual environment [virtualenv](http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
 
 Run the following commands:
 
