@@ -40,7 +40,7 @@ while True:
     #Draw the message on the screen
     if(draw_message):
         newImg.drawText(message_text, 5,5)
-        print message_text
+        print(message_text)
 
 
     lastImg = newImg # update the image

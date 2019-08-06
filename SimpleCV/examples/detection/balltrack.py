@@ -7,7 +7,7 @@ of your object.
 The demo video can be found at:
 
 '''
-print __doc__
+print(__doc__)
 
 import SimpleCV
 
@@ -19,7 +19,7 @@ while display.isNotDone(): # loop until we tell the program to stop
 
     if display.mouseRight: # if right mouse clicked, change mode
         normaldisplay = not(normaldisplay)
-        print "Display Mode:", "Normal" if normaldisplay else "Segmented"
+        print("Display Mode:", "Normal" if normaldisplay else "Segmented")
 
     img = cam.getImage().flipHorizontal() # grab image from camera
     dist = img.colorDistance(SimpleCV.Color.BLACK).dilate(2) # try to separate colors in image

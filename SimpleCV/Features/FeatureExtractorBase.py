@@ -3,7 +3,7 @@ from SimpleCV.Features.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 
-class FeatureExtractorBase(object):
+class FeatureExtractorBase(object, metaclass=abc.ABCMeta):
     """
     The featureExtractorBase class is a way of abstracting the process of collecting
     descriptive features within an image. A feature is some description of the image
@@ -11,8 +11,6 @@ class FeatureExtractorBase(object):
     lengths. This feature vectors can then be composed together and used within
     a machine learning algorithm to descriminate between different classes of objects.
     """
-
-    __metaclass__ = abc.ABCMeta
     def load(cls, fname):
         """
         load segmentation settings to file.

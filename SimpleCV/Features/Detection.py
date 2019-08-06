@@ -1016,7 +1016,7 @@ class Circle(Feature):
         points = [(at_x-r,at_y-r),(at_x+r,at_y-r),(at_x+r,at_y+r),(at_x-r,at_y+r)]
         super(Circle, self).__init__(i, at_x, at_y, points)
         segments = 18
-        rng = range(1,segments+1)
+        rng = list(range(1,segments+1))
         self.mContour = []
         for theta in rng:
             rp = 2.0*math.pi*float(theta)/float(segments)
@@ -1256,7 +1256,7 @@ class KeyPoint(Feature):
         super(KeyPoint, self).__init__(i, x, y, points)
 
         segments = 18
-        rng = range(1,segments+1)
+        rng = list(range(1,segments+1))
         self.points = []
         for theta in rng:
             rp = 2.0*math.pi*float(theta)/float(segments)
@@ -2278,7 +2278,7 @@ class ROI(Feature):
             
         x = self._transform(x,self.image.width,self.w,self.xtl,intype,output)
         y = self._transform(y,self.image.height,self.h,self.ytl,intype,output)
-        return zip(x,y) 
+        return list(zip(x,y)) 
        
 
     def _transform(self,x,imgsz,roisz,offset,intype,output):
@@ -2362,7 +2362,7 @@ class ROI(Feature):
                 
         x.insert(0,self.xtl)
         x.append(self.xtl+self.w)
-        for i in xrange(0,len(x)-1):
+        for i in range(0,len(x)-1):
             xstart = x[i]
             xstop = x[i+1]
             w = xstop-xstart
@@ -2416,7 +2416,7 @@ class ROI(Feature):
                 
         y.insert(0,self.ytl)
         y.append(self.ytl+self.h)
-        for i in xrange(0,len(y)-1):
+        for i in range(0,len(y)-1):
             ystart = y[i]
             ystop = y[i+1]
             h = ystop-ystart
@@ -2616,7 +2616,7 @@ class ROI(Feature):
             h = theFeature.height()
 
         # [x,y,w,h] (x,y,w,h)
-        elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, long, float))
+        elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, float))
              and y == None and w == None and h == None):
             x,y,w,h = x
         # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
@@ -2644,7 +2644,7 @@ class ROI(Feature):
         elif(isinstance(x, (tuple,list)) and
              isinstance(y, (tuple,list)) and
              len(x) > 4 and len(y) > 4 ):
-            if(isinstance(x[0],(int, long, float)) and isinstance(y[0],(int, long, float))):
+            if(isinstance(x[0],(int, float)) and isinstance(y[0],(int, float))):
                 xmax = np.max(x)
                 ymax = np.max(y)
                 xmin = np.min(x)
@@ -2660,7 +2660,7 @@ class ROI(Feature):
         # x of the form [(x,y),(x,y),(x,y),(x,y),(x,y),(x,y)]
         elif(isinstance(x, (list,tuple)) and
              len(x) > 4 and len(x[0]) == 2 and y == None and w == None and h == None):
-            if(isinstance(x[0][0],(int, long, float))):
+            if(isinstance(x[0][0],(int, float))):
                 xs = [pt[0] for pt in x]
                 ys = [pt[1] for pt in x]
                 xmax = np.max(xs)

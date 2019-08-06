@@ -5,7 +5,7 @@ http://en.wikipedia.org/wiki/Least_squares
 The program basically takes in a shape and tries to find the size of it.
 
 '''
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 from scipy import optimize
@@ -31,8 +31,8 @@ Ri_2 = calc_R(*center_2)
 R_2 = Ri_2.mean()
 residu_2 = sum((Ri_2 - R_2)**2)
 
-print xc_2,yc_2
-print R_2
+print(xc_2,yc_2)
+print(R_2)
 img.drawCircle((xc_2,yc_2),R_2,color=Color.RED,thickness=3)
 img.show()
 time.sleep(10)

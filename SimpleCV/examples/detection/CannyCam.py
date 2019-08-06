@@ -5,7 +5,7 @@ the threshold is used for the edge detection, if you adjust the
 max_threshold and threshhold_step values and run the program you will
 see it change over time
 '''
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 

@@ -2,7 +2,7 @@
 '''
 This program uses a Color model to try and do segmentation based on color
 '''
-print __doc__
+print(__doc__)
 
 import time
 from SimpleCV import *
@@ -20,6 +20,6 @@ while not d.isDone():
     time.sleep(0.01)
     ticks = ticks + 1
     if (int(time.time()) > t):
-        print str(ticks) + " fps"
+        print(str(ticks) + " fps")
         ticks = 0
         t = int(time.time())

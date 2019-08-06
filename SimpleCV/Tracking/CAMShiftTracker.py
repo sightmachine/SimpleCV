@@ -84,7 +84,7 @@ def camshiftTracker(img, bb, ts, **kwargs):
         elif key == 'num_frames':
             num_frames = kwargs[key]
 
-    hsv = cv2.cvtColor(img.getNumpyCv2(), cv2.cv.CV_BGR2HSV)
+    hsv = cv2.cvtColor(img.getNumpyCv2(), cv2.CV_BGR2HSV)
     if mask is None:
         mask = cv2.inRange(hsv, lower, upper)
 

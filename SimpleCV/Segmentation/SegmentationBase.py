@@ -3,7 +3,7 @@ from SimpleCV.Features import Feature, FeatureSet
 from SimpleCV.Color import Color
 from SimpleCV.ImageClass import Image
 
-class SegmentationBase(object):
+class SegmentationBase(object, metaclass=abc.ABCMeta):
     """
     Right now I am going to keep this class as brain dead and single threaded as
     possible just so I can get the hang of abc in python. The idea behind a segmentation
@@ -12,8 +12,6 @@ class SegmentationBase(object):
     these processes to by asynchronous and multithreaded so that they can raise
     specific image processing events.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def load(cls, fname):
         """

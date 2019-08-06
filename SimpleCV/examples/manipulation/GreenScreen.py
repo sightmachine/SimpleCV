@@ -5,7 +5,7 @@ anything standing in front of a "green screen" in front of another image
 this should even work with a camera is the user is standing in front
 of a green background
 '''
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 

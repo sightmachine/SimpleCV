@@ -64,8 +64,8 @@ class Font:
         path of the truetype font file.
         Example: Font.setFont("/home/simplecv/my_font.ttf")
         """
-        if isinstance(new_font, basestring):
-            print "Please pass a string"
+        if isinstance(new_font, str):
+            print("Please pass a string")
             return None
 
         if find(new_font, self._fonts):
@@ -81,11 +81,11 @@ class Font:
         """
         Set the font point size. i.e. 16pt
         """
-        print type(size)
+        print(type(size))
         if type(size) == int:
             self._fontsize = size
         else:
-            print "please provide an integer"
+            print("please provide an integer")
 
     def getSize(self):
         """
@@ -109,4 +109,4 @@ class Font:
         """
 
         for f in self._fonts:
-            print f
+            print(f)

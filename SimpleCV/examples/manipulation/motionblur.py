@@ -3,9 +3,10 @@
 This program does basic motion blurring.  It averages the number of
 maxframes that are set using some basic image math
 '''
-print __doc__
+print(__doc__)
 from operator import add
 from SimpleCV import *
+from functools import reduce
 
 js = JpegStreamer(8080)
 #create JPEG streamers

@@ -25,7 +25,7 @@ class ShapeContextClassifier():
         try:
             from sklearn import neighbors
         except:
-            print "Need scikits learn installed"
+            print("Need scikits learn installed")
 
         self.imgMap = {}
         self.ptMap = {}
@@ -37,7 +37,7 @@ class ShapeContextClassifier():
         import warnings
         warnings.simplefilter("ignore")
         for i in range(0,len(images)):
-            print "precomputing " + images[i].filename
+            print("precomputing " + images[i].filename)
             self.imgMap[labels[i]] = images[i]
 
             pts,desc,count  = self._image2FeatureVector(images[i])
@@ -45,7 +45,7 @@ class ShapeContextClassifier():
             self.ptMap[labels[i]] = pts
             self.descMap[labels[i]] = desc
             knn = neighbors.KNeighborsClassifier()
-            knn.fit(desc,range(0,len(pts)))
+            knn.fit(desc,list(range(0,len(pts))))
             self.knnMap[labels[i]] = knn
 
     def _image2FeatureVector(self,img):
@@ -87,7 +87,7 @@ class ShapeContextClassifier():
             temp = np.sqrt(np.sum(((sample-scd)**2)))
             #temp = 0.5*np.sum((sample-scd)**2)/np.sum((sample+scd))
             if( math.isnan(temp) ):
-                temp = sys.maxint
+                temp = sys.maxsize
             distance.append(temp)
         return [otherIdx,distance]
 
@@ -112,7 +112,7 @@ class ShapeContextClassifier():
         points,descriptors,count = self._image2FeatureVector(image)
         matchDict = {}
         matchStd = {}
-        for key,value in self.descMap.items():
+        for key,value in list(self.descMap.items()):
             if( countBlobs and self.blobCount[key] == count ): # only do matching for similar number of blobs
                 #need to hold on to correspondences
                 correspondence, distances = self._doMatching(key,descriptors)
@@ -137,9 +137,9 @@ class ShapeContextClassifier():
           and match quality.
         """
         points,descriptors,count,matchDict,matchStd = self._buildMatchDict(image, blobFilter)
-        best = sys.maxint
+        best = sys.maxsize
         best_name = "No Match"
-        for k,v in matchDict.items():
+        for k,v in list(matchDict.items()):
             if ( v < best ):
                 best = v
                 best_name = k

@@ -5,7 +5,7 @@
 #
 # Using jpegcam as flash webcam library:
 # http://code.google.com/p/jpegcam/
-import os, tempfile, webbrowser, urllib, cherrypy, socket
+import os, tempfile, webbrowser, urllib.request, urllib.parse, urllib.error, cherrypy, socket
 from SimpleCV import *
 from images2gif import writeGif
 import pdb
@@ -18,7 +18,7 @@ class CloudAnimator(object):
 
 
     def index(self):
-        f = urllib.urlopen("index.html") # load the default website
+        f = urllib.request.urlopen("index.html") # load the default website
         s = f.read() # read the file
         f.close()
         return s
@@ -26,7 +26,7 @@ class CloudAnimator(object):
 
     def update(self):
         #update the animation
-        print "update animation"
+        print("update animation")
 
     update.exposed = True
 
@@ -62,7 +62,7 @@ class CloudAnimator(object):
             self.giffile = filepath
             self.gifname = tmpname
             self.imageset = []
-            print "reset animation"
+            print("reset animation")
 
     reset.exposed = True
 

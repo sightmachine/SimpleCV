@@ -68,7 +68,7 @@ class PlayingCardFactory():
         except:
             # this means we had an error somewhere
             # else maybe numpy
-            print "Generic Error."
+            print("Generic Error.")
             return None
         return FeatureSet([card])
 

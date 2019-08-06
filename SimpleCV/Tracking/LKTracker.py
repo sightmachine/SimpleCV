@@ -102,11 +102,11 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
     pt = cv2.goodFeaturesToTrack(g, maxCorners = maxCorners, qualityLevel = qualityLevel,
                                 minDistance = minDistance, blockSize = blockSize)
     if type(pt) == type(None):
-        print "no points"
+        print("no points")
         track = LK(img, bb, pt)
         return track
 
-    for i in xrange(len(pt)):
+    for i in range(len(pt)):
         pt[i][0][0] = pt[i][0][0]+bb[0]
         pt[i][0][1] = pt[i][0][1]+bb[1]
 
@@ -123,7 +123,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
     d = abs(p0-p0r).reshape(-1, 2).max(-1)
     good = d < 1
     new_pts=[]
-    for pts, val in itertools.izip(p1, good):
+    for pts, val in zip(p1, good):
         if val:
             new_pts.append([pts[0][0], pts[0][1]])
     if ts[-1:]:
@@ -134,7 +134,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
         old_pts = new_pts
     dx=[]
     dy=[]
-    for p1, p2 in itertools.izip(old_pts, new_pts):
+    for p1, p2 in zip(old_pts, new_pts):
         dx.append(p2[0]-p1[0])
         dy.append(p2[1]-p1[1])
 

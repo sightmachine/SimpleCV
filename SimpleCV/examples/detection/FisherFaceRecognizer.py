@@ -20,7 +20,7 @@ def identifyGender():
     w, h = f.imageSize
     crop_image = crop_image.resize(w, h)
     label, confidence = f.predict(crop_image)
-    print label
+    print(label)
     if label == 0:
         img.drawText("Female", fontsize=48)
 

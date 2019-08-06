@@ -34,8 +34,8 @@ def test_camera_constructor():
     mycam = VirtualCamera(testimage, "image")
     props = mycam.getAllProperties()
 
-    for i in props.keys():
-        print str(i) + ": " + str(props[i]) + "\n"
+    for i in list(props.keys()):
+        print(str(i) + ": " + str(props[i]) + "\n")
         
     pass
 

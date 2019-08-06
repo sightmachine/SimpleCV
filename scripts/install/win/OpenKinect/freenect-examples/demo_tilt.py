@@ -19,7 +19,7 @@ def body(dev, ctx):
     tilt = random.randint(0, 30)
     freenect.set_led(dev, led)
     freenect.set_tilt_degs(dev, tilt)
-    print('led[%d] tilt[%d] accel[%s]' % (led, tilt, freenect.get_accel(dev)))
+    print(('led[%d] tilt[%d] accel[%s]' % (led, tilt, freenect.get_accel(dev))))
 
 
 def handler(signum, frame):

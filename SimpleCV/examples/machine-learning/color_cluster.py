@@ -2,7 +2,7 @@
 This program trys to extract the color pallette from an image
 it could be used in machine learning as a color classifier
 '''
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 disp = Display((640,528))

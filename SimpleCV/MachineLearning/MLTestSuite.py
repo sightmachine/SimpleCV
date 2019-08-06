@@ -1,18 +1,18 @@
 from SimpleCV import *
 
-print ""
-print "This program runs a list of test for machine learning on"
-print "the SimpleCV library. Not all scores will be high, this"
-print "is just to ensure that the libraries are functioning correctly"
-print "on your system"
-print ""
-print "***** WARNING *****"
-print "This program is about to download a large data set to run it's test"
+print("")
+print("This program runs a list of test for machine learning on")
+print("the SimpleCV library. Not all scores will be high, this")
+print("is just to ensure that the libraries are functioning correctly")
+print("on your system")
+print("")
+print("***** WARNING *****")
+print("This program is about to download a large data set to run it's test")
 
 
-inp = raw_input("Do you want to continue [Y/n]")
+inp = input("Do you want to continue [Y/n]")
 if not (inp == "" or inp.lower() == "y"):
-    print "Exiting the program"
+    print("Exiting the program")
     sys.exit()
 
 
@@ -81,7 +81,7 @@ for ext in IMAGE_FORMATS:
 for i in range(10):
     img = Image(files[i])
     cname = classifierSVMP.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 classifierSVMP.save('PolySVM.pkl')
 print('Reloading from file')
 testSVM = SVMClassifier.load('PolySVM.pkl')
@@ -90,7 +90,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testSVM.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 print('###############################################################################')
 print('SVMRBF   ')
@@ -120,7 +120,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierSVMRBF.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 classifierSVMRBF.save('RBFSVM.pkl')
 print('Reloading from file')
 testSVMRBF = SVMClassifier.load('RBFSVM.pkl')
@@ -129,7 +129,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testSVMRBF.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 
 print('###############################################################################')
@@ -146,7 +146,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierBayes.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 classifierBayes.save('Bayes.pkl')
 print('Reloading from file')
 testBayes = NaiveBayesClassifier.load('Bayes.pkl')
@@ -155,7 +155,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testBayes.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 print('###############################################################################')
 
@@ -174,7 +174,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierForest.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 classifierForest.save('forest.pkl')
 print('Reloading from file')
@@ -184,7 +184,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testForest.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 print('###############################################################################')
 print('Bagged Tree')
@@ -200,7 +200,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierBagTree.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 classifierBagTree.save('bagtree.pkl')
 print('Reloading from file')
@@ -210,7 +210,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testBagTree.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 
 
@@ -228,7 +228,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierTree.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 print('Reloading from file')
 classifierTree.save('tree.pkl')
 testTree = TreeClassifier.load('tree.pkl')
@@ -236,7 +236,7 @@ testTree.setFeatureExtractors(extractors)
 for i in range(10):
     img = Image(files[i])
     cname = testTree.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 print('###############################################################################')
 print('Boosted Tree')
@@ -252,7 +252,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierBTree.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 classifierBTree.save('btree.pkl')
 print('Reloading from file')
@@ -263,7 +263,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testBoostTree.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 
 
@@ -282,7 +282,7 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = classifierKNN.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 classifierKNN.save('knn.pkl')
 print('Reloading from file')
@@ -292,8 +292,8 @@ files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
     cname = testKNN.classify(img)
-    print(files[i]+' -> '+cname)
+    print((files[i]+' -> '+cname))
 
 
-print ""
-print "All the machine learning test have ran correctly"
+print("")
+print("All the machine learning test have ran correctly")

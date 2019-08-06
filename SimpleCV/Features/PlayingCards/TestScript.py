@@ -1,7 +1,7 @@
 from SimpleCV import *
 #from FeatureUtils import *
-from CardUtil import *
-from PlayingCardFactory import *
+from .CardUtil import *
+from .PlayingCardFactory import *
 #import FeatureUtils
 import numpy as np
 
@@ -21,7 +21,7 @@ def GetParallelSets(line_fs,parallel_thresh=25):
     result = result.reshape(sz,sz)
     # find the lines that are less than our thresh
     l1,l2=np.where(result<parallel_thresh)
-    idxs = zip(l1,l2)
+    idxs = list(zip(l1,l2))
     retVal = []
     # now construct the line pairs
     for idx in idxs:
@@ -31,8 +31,8 @@ def GetParallelSets(line_fs,parallel_thresh=25):
 
 pcf = PlayingCardFactory()
 data,labels = GetFullDataSet()
-print len(data)
-datapoints = zip(data,labels)
+print(len(data))
+datapoints = list(zip(data,labels))
 datapoints = datapoints[0:200]
 result = []
 passing = 0

@@ -9,7 +9,7 @@ tct.train(cam,roi=roi,maxFrames=250,pkWndw=20)
 
 # Matplot Lib example plotting
 plotc = {'r':'r','g':'g','b':'b','i':'m','h':'y'}
-for key in tct.data.keys():
+for key in list(tct.data.keys()):
     plt.plot(tct.data[key],plotc[key])
     for pt in tct.peaks[key]:
         plt.plot(pt[0],pt[1],'r*')

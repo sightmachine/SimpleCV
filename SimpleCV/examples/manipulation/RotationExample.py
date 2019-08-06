@@ -3,7 +3,7 @@
 This example shows how to perform various rotations and warps on images
 and put back into a display.
 '''
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 

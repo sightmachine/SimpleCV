@@ -6,7 +6,7 @@ from numpy import int32
 from numpy import uint8
 import cv2
 
-from EXIF import *
+from .EXIF import *
 
 if not init_options_handler.headless:
     import pygame as pg
@@ -89,8 +89,8 @@ class ImageSet(list):
         if isinstance(directory,list):
             if isinstance(directory[0], Image):
                 super(ImageSet,self).__init__(directory)
-            elif isinstance(directory[0], str) or isinstance(directory[0], unicode):
-                super(ImageSet,self).__init__(map(Image, directory))
+            elif isinstance(directory[0], str) or isinstance(directory[0], str):
+                super(ImageSet,self).__init__(list(map(Image, directory)))
 
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
             pth = LAUNCH_PATH
@@ -143,9 +143,9 @@ class ImageSet(list):
             from BeautifulSoup import BeautifulSoup
 
         except:
-            print "You need to install Beatutiul Soup to use this function"
-            print "to install you can use:"
-            print "easy_install beautifulsoup"
+            print("You need to install Beatutiul Soup to use this function")
+            print("to install you can use:")
+            print("easy_install beautifulsoup")
 
             return
 
@@ -154,7 +154,7 @@ class ImageSet(list):
   Valid options: 'thumb', 'small', 'medium', 'large'
    or a tuple of exact dimensions i.e. (640,480)."""
 
-        if isinstance(size, basestring):
+        if isinstance(size, str):
             size = size.lower()
             if size == 'thumb':
                 size_param = ''
@@ -165,7 +165,7 @@ class ImageSet(list):
             elif size == 'large':
                 size_param = '&tbs=isz:l'
             else:
-                print INVALID_SIZE_MSG
+                print(INVALID_SIZE_MSG)
                 return None
 
         elif type(size) == tuple:
@@ -173,7 +173,7 @@ class ImageSet(list):
             size_param = '&tbs=isz:ex,iszw:' + str(width) + ',iszh:' + str(height)
 
         else:
-            print INVALID_SIZE_MSG
+            print(INVALID_SIZE_MSG)
             return None
 
         # Used to extract imgurl parameter value from a URL
@@ -184,9 +184,9 @@ class ImageSet(list):
 
 
         while len(add_set) < number:
-            opener = urllib2.build_opener()
+            opener = urllib.request.build_opener()
             opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-            url = ("http://www.google.com/search?tbm=isch&q=" + urllib2.quote(tag) +
+            url = ("http://www.google.com/search?tbm=isch&q=" + urllib.parse.quote(tag) +
                    size_param + "&start=" + str(candidate_count))
             page = opener.open(url)
             soup = BeautifulSoup(page)
@@ -213,7 +213,7 @@ class ImageSet(list):
                     add_img = Image(dl_url, verbose=False)
 
                     # Don't know a better way to check if the image was actually returned
-                    if add_img.height <> 0 and add_img.width <> 0:
+                    if add_img.height != 0 and add_img.width != 0:
                         add_set.append(add_img)
 
                 except:
@@ -458,7 +458,7 @@ class ImageSet(list):
             try:
                 from IPython.core.display import Image as IPImage
             except ImportError:
-                print "You need IPython Notebooks to use this display mode"
+                print("You need IPython Notebooks to use this display mode")
                 return
             from IPython.core import display as Idisplay
             for i in self:
@@ -507,7 +507,7 @@ class ImageSet(list):
         """
 
         for i in self:
-            print i.filename
+            print(i.filename)
 
     def _read_gif(self, filename):
         """ read_gif(filename)
@@ -757,7 +757,7 @@ class ImageSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return ImageSet(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -933,11 +933,11 @@ class Image:
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
-        if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
+        if isinstance(source, str) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             #try:
             # added spoofed user agent for images that are blocking bots (like wikipedia)
-            req = urllib2.Request(source, headers={'User-Agent' : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5"})
-            img_file = urllib2.urlopen(req)
+            req = urllib.request.Request(source, headers={'User-Agent' : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5"})
+            img_file = urllib.request.urlopen(req)
             #except:
             #if verbose:
                 #print "Couldn't open Image from URL:" + source
@@ -947,13 +947,13 @@ class Image:
             source = pil.open(im).convert("RGB")
             
         #Check if loaded from base64 URI
-        if isinstance(source, basestring) and (source.lower().startswith("data:image/png;base64,")):
+        if isinstance(source, str) and (source.lower().startswith("data:image/png;base64,")):
             img = source[22:].decode("base64")
             im = StringIO(img)
             source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
@@ -1211,7 +1211,7 @@ class Image:
                 i.dl().text(txt, (10,i.height / 2), color=col)
                 txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
                 i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+                print("coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY)))
 
 
             if elapsed_time > 0 and elapsed_time < 5:
@@ -1223,7 +1223,7 @@ class Image:
 
             i.save(d)
             if d.mouseRight:
-                print "Closing Window"
+                print("Closing Window")
                 d.done = True
 
 
@@ -2249,7 +2249,7 @@ class Image:
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
             else :
-                print "Path does not exist!"
+                print("Path does not exist!")
 
         else :
             if (filename) :
@@ -2269,7 +2269,7 @@ class Image:
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
         
-        if not isinstance(filehandle_or_filename, basestring):
+        if not isinstance(filehandle_or_filename, str):
             
             fh = filehandle_or_filename
 
@@ -2298,7 +2298,7 @@ class Image:
                     try:
                         from IPython.core.display import Image as IPImage
                     except ImportError:
-                        print "You need IPython Notebooks to use this display mode"
+                        print("You need IPython Notebooks to use this display mode")
                         return
 
                     from IPython.core import display as Idisplay
@@ -2323,13 +2323,13 @@ class Image:
                   self.filehandle = fh #set the filename for future save operations
                   self.filename = ""
                   return 1
-                except Exception, e:
+                except Exception as e:
                   if mode.lower() != 'webp':
                     raise e
                 
 
             if verbose:
-                print self.filename
+                print(self.filename)
 
             if not mode.lower() == 'webp':
                 return 1
@@ -2388,7 +2388,7 @@ class Image:
             return 0
 
         if verbose:
-            print self.filename
+            print(self.filename)
 
         if temp:
             return filename
@@ -2483,7 +2483,7 @@ class Image:
             try:
                 import pycurl
             except ImportError:
-                print "PycURL Library not installed."
+                print("PycURL Library not installed.")
                 return
 
             response = StringIO()
@@ -2499,13 +2499,13 @@ class Image:
             match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
             if match:
                 if(verbose):
-                    print "Imgur page: http://imgur.com/" + match.group(1)
-                    print "Original image: " + match.group(3)
-                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                    print("Imgur page: http://imgur.com/" + match.group(1))
+                    print("Original image: " + match.group(3))
+                    print("Delete page: http://imgur.com/delete/" + match.group(2))
                 return [match.group(1),match.group(3),match.group(2)]
             else :
                 if(verbose):
-                    print "The API Key given is not valid"
+                    print("The API Key given is not valid")
                 return None
 
         elif (dest=='flickr'):
@@ -2514,7 +2514,7 @@ class Image:
             try :
                 import flickrapi
             except ImportError:
-                print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
+                print("Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi")
                 return False
             try :
                 if (not(api_key==None and api_secret==None)):
@@ -2527,16 +2527,16 @@ class Image:
                         self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
                         self.flickr.authenticate_console('write')
                     except NameError :
-                        print "API key and Secret key are not set."
+                        print("API key and Secret key are not set.")
                         return
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     self.flickr.upload(self.filename,self.filehandle)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -2550,7 +2550,7 @@ class Image:
                 from dropbox import client, rest, session
                 import webbrowser
             except ImportError:
-                print "Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python "
+                print("Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python ")
                 return False
             try :
                 if ( 'dropbox_token' not in globals() and api_key!=None and api_secret!=None ):
@@ -2558,8 +2558,8 @@ class Image:
                     request_token = sess.obtain_request_token()
                     url = sess.build_authorize_url(request_token)
                     webbrowser.open(url)
-                    print "Please visit this website and press the 'Allow' button, then hit 'Enter' here."
-                    raw_input()
+                    print("Please visit this website and press the 'Allow' button, then hit 'Enter' here.")
+                    input()
                     access_token = sess.obtain_access_token(request_token)
                     dropbox_token = client.DropboxClient(sess)
                 else :
@@ -2568,14 +2568,14 @@ class Image:
                     else :
                         return None
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     f = open(self.filename)
                     dropbox_token.put_file('/SimpleCVImages/'+os.path.split(self.filename)[-1], f)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -3094,7 +3094,7 @@ class Image:
 
         """
         newimg = self.getEmpty()
-        cv.Flip(self.getBitmap(), newimg, 1)
+        cv2.Flip(self.getBitmap(), newimg, 1)
         return Image(newimg, colorSpace=self._colorSpace)
 
     def flipVertical(self):
@@ -3125,7 +3125,7 @@ class Image:
         """
 
         newimg = self.getEmpty()
-        cv.Flip(self.getBitmap(), newimg, 0)
+        cv2.Flip(self.getBitmap(), newimg, 0)
         return Image(newimg, colorSpace=self._colorSpace)
 
 
@@ -3170,10 +3170,10 @@ class Image:
         """
         try:
             newimg = self.getEmpty(1)
-            cv.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, 255, cv.CV_THRESH_TOZERO)
-            cv.Not(newimg, newimg)
-            cv.Threshold(newimg, newimg, 255 - thresh_high, 255, cv.CV_THRESH_TOZERO)
-            cv.Not(newimg, newimg)
+            cv2.Threshold(self._getGrayscaleBitmap(), newimg, thresh_low, 255, cv.CV_THRESH_TOZERO)
+            cv2.Not(newimg, newimg)
+            cv2.Threshold(newimg, newimg, 255 - thresh_high, 255, cv.CV_THRESH_TOZERO)
+            cv2.Not(newimg, newimg)
             return Image(newimg)
         except:
             return None
@@ -3269,16 +3269,16 @@ class Image:
             r = self.getEmpty(1)
             g = self.getEmpty(1)
             b = self.getEmpty(1)
-            cv.Split(self.getBitmap(), b, g, r, None)
+            cv2.Split(self.getBitmap(), b, g, r, None)
 
 
-            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
-            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
-            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
+            cv2.Threshold(r, r, thresh[0], maxv, cv2.CV_THRESH_BINARY_INV)
+            cv2.Threshold(g, g, thresh[1], maxv, cv2.CV_THRESH_BINARY_INV)
+            cv2.Threshold(b, b, thresh[2], maxv, cv2.CV_THRESH_BINARY_INV)
 
 
-            cv.Add(r, g, r)
-            cv.Add(r, b, r)
+            cv2.Add(r, g, r)
+            cv2.Add(r, b, r)
 
 
             return Image(r, colorSpace=self._colorSpace)
@@ -3287,15 +3287,15 @@ class Image:
         elif thresh == -1:
             newbitmap = self.getEmpty(1)
             if blocksize:
-                cv.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
-                    cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv.CV_THRESH_BINARY_INV, blocksize, p)
+                cv2.AdaptiveThreshold(self._getGrayscaleBitmap(), newbitmap, maxv,
+                    cv2.CV_ADAPTIVE_THRESH_GAUSSIAN_C, cv2.CV_THRESH_BINARY_INV, blocksize, p)
             else:
-                cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
+                cv2.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv2.CV_THRESH_BINARY_INV + cv2.CV_THRESH_OTSU)
             return Image(newbitmap, colorSpace=self._colorSpace)
         else:
             newbitmap = self.getEmpty(1)
             #desaturate the image, and apply the new threshold
-            cv.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv.CV_THRESH_BINARY_INV)
+            cv2.Threshold(self._getGrayscaleBitmap(), newbitmap, thresh, float(maxv), cv2.CV_THRESH_BINARY_INV)
             return Image(newbitmap, colorSpace=self._colorSpace)
 
 
@@ -3328,34 +3328,34 @@ class Image:
         """
         
         if colorSpace == None:
-			return tuple(cv.Avg(self.getBitmap())[0:3]) 
-			
+            return tuple(cv2.Avg(self.getBitmap())[0:3]) 
+        
         elif colorSpace == 'BGR':
-            return tuple(cv.Avg(self.toBGR().getBitmap())[0:3])
+            return tuple(cv2.Avg(self.toBGR().getBitmap())[0:3])
         
         elif colorSpace == 'RGB':
-            return tuple(cv.Avg(self.toRGB().getBitmap())[0:3])
+            return tuple(cv2.Avg(self.toRGB().getBitmap())[0:3])
         
         elif colorSpace == 'HSV':
-            return tuple(cv.Avg(self.toHSV().getBitmap())[0:3])
+            return tuple(cv2.Avg(self.toHSV().getBitmap())[0:3])
 
         elif colorSpace == 'XYZ':
-            return tuple(cv.Avg(self.toXYZ().getBitmap())[0:3])
+            return tuple(cv2.Avg(self.toXYZ().getBitmap())[0:3])
 
         elif colorSpace == 'Gray':
-            return (cv.Avg(self._getGrayscaleBitmap())[0])
+            return (cv2.Avg(self._getGrayscaleBitmap())[0])
 
         elif colorSpace == 'YCrCb':
-            return tuple(cv.Avg(self.toYCrCb().getBitmap())[0:3])
+            return tuple(cv2.Avg(self.toYCrCb().getBitmap())[0:3])
 
         elif colorSpace == 'HLS':
-            return tuple(cv.Avg(self.toHLS().getBitmap())[0:3])
+            return tuple(cv2.Avg(self.toHLS().getBitmap())[0:3])
 
         else:
             logger.warning("Image.meanColor: There is no supported conversion to the specified colorspace. Use one of these as argument: 'BGR' , 'RGB' , 'HSV' , 'Gray' , 'XYZ' , 'YCrCb' , 'HLS' .")
             return None
-			
         
+    
 
     def findCorners(self, maxnum = 50, minquality = 0.04, mindistance = 1.0):
         """
@@ -3404,11 +3404,11 @@ class Image:
 
         """
         #initialize buffer frames
-        eig_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
-        temp_image = cv.CreateImage(cv.GetSize(self.getBitmap()), cv.IPL_DEPTH_32F, 1)
+        eig_image = cv2.CreateImage(cv2.GetSize(self.getBitmap()), cv2.IPL_DEPTH_32F, 1)
+        temp_image = cv2.CreateImage(cv2.GetSize(self.getBitmap()), cv2.IPL_DEPTH_32F, 1)
 
 
-        corner_coordinates = cv.GoodFeaturesToTrack(self._getGrayscaleBitmap(), eig_image, temp_image, maxnum, minquality, mindistance, None)
+        corner_coordinates = cv2.GoodFeaturesToTrack(self._getGrayscaleBitmap(), eig_image, temp_image, maxnum, minquality, mindistance, None)
 
 
         corner_features = []
@@ -3582,12 +3582,12 @@ class Image:
         Y_img = YCrCb.getEmpty(1)
         Cr_img = YCrCb.getEmpty(1)
         Cb_img = YCrCb.getEmpty(1)
-        cv.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
-        cv.LUT(Y_img,Y_img,cv.fromarray(Y))
-        cv.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
-        cv.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
+        cv2.Split(YCrCb.getBitmap(),Y_img,Cr_img,Cb_img,None)
+        cv2.LUT(Y_img,Y_img,cv.fromarray(Y))
+        cv2.LUT(Cr_img,Cr_img,cv.fromarray(Cr))
+        cv2.LUT(Cb_img,Cb_img,cv.fromarray(Cb))
         temp = self.getEmpty()
-        cv.Merge(Y_img,Cr_img,Cb_img,None,temp)
+        cv2.Merge(Y_img,Cr_img,Cb_img,None,temp)
         mask=Image(temp,colorSpace = ColorSpace.YCrCb)
         mask = mask.binarize((128,128,128))
         mask = mask.toRGB().binarize()
@@ -3665,12 +3665,12 @@ class Image:
         - http://dismagazine.com/dystopia/evolved-lifestyles/8115/anti-surveillance-how-to-hide-from-machines/
 
         """
-        storage = cv.CreateMemStorage(0)
+        storage = cv2.CreateMemStorage(0)
 
 
         #lovely.  This segfaults if not present
         from SimpleCV.Features.HaarCascade import HaarCascade
-        if isinstance(cascade, basestring):
+        if isinstance(cascade, str):
             cascade = HaarCascade(cascade)
             if not cascade.getCascade(): 
                 return None
@@ -3687,7 +3687,7 @@ class Image:
             cv2flag = True
 
         except ImportError:
-            objects = cv.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
+            objects = cv2.HaarDetectObjects(self._getEqualizedGrayscaleBitmap(),
                 cascade.getCascade(), storage, scale_factor, min_neighbors,
                 use_canny, min_size)
             cv2flag = False
@@ -3798,7 +3798,7 @@ class Image:
 
         """
         if self.width and self.height:
-            return cv.GetSize(self.getBitmap())
+            return cv2.GetSize(self.getBitmap())
         else:
             return (0, 0)
 
@@ -3892,7 +3892,7 @@ class Image:
         r = self.getEmpty(1)
         g = self.getEmpty(1)
         b = self.getEmpty(1)
-        cv.Split(self.getBitmap(), b, g, r, None)
+        cv2.Split(self.getBitmap(), b, g, r, None)
 
 
         red = self.getEmpty()
@@ -3901,13 +3901,13 @@ class Image:
 
 
         if (grayscale):
-            cv.Merge(r, r, r, None, red)
-            cv.Merge(g, g, g, None, green)
-            cv.Merge(b, b, b, None, blue)
+            cv2.Merge(r, r, r, None, red)
+            cv2.Merge(g, g, g, None, green)
+            cv2.Merge(b, b, b, None, blue)
         else:
-            cv.Merge(None, None, r, None, red)
-            cv.Merge(None, g, None, None, green)
-            cv.Merge(b, None, None, None, blue)
+            cv2.Merge(None, None, r, None, red)
+            cv2.Merge(None, g, None, None, green)
+            cv2.Merge(b, None, None, None, blue)
 
 
         return (Image(red), Image(green), Image(blue))
@@ -3951,28 +3951,28 @@ class Image:
             return None
         if( r is None ):
             r = self.getEmpty(1)
-            cv.Zero(r);
+            cv2.Zero(r);
         else:
             rt = r.getEmpty(1)
-            cv.Split(r.getBitmap(),rt,rt,rt,None)
+            cv2.Split(r.getBitmap(),rt,rt,rt,None)
             r = rt
         if( g is None ):
             g = self.getEmpty(1)
-            cv.Zero(g);
+            cv2.Zero(g);
         else:
             gt = g.getEmpty(1)
-            cv.Split(g.getBitmap(),gt,gt,gt,None)
+            cv2.Split(g.getBitmap(),gt,gt,gt,None)
             g = gt
         if( b is None ):
             b = self.getEmpty(1)
-            cv.Zero(b);
+            cv2.Zero(b);
         else:
             bt = b.getEmpty(1)
-            cv.Split(b.getBitmap(),bt,bt,bt,None)
+            cv2.Split(b.getBitmap(),bt,bt,bt,None)
             b = bt
 
         retVal = self.getEmpty()
-        cv.Merge(b,g,r,None,retVal)
+        cv2.Merge(b,g,r,None,retVal)
         return Image(retVal)
 
     def applyHLSCurve(self, hCurve, lCurve, sCurve):
@@ -4011,19 +4011,19 @@ class Image:
         #TODO CHECK CURVE SIZE
         #TODO CHECK COLORSPACE
         #TODO CHECK CURVE SIZE
-        temp  = cv.CreateImage(self.size(), 8, 3)
+        temp  = cv2.CreateImage(self.size(), 8, 3)
         #Move to HLS space
-        cv.CvtColor(self._bitmap, temp, cv.CV_RGB2HLS)
-        tempMat = cv.GetMat(temp) #convert the bitmap to a matrix
+        cv2.CvtColor(self._bitmap, temp, cv.CV_RGB2HLS)
+        tempMat = cv2.GetMat(temp) #convert the bitmap to a matrix
         #now apply the color curve correction
         tempMat = np.array(self.getMatrix()).copy()
         tempMat[:, :, 0] = np.take(hCurve.mCurve, tempMat[:, :, 0])
         tempMat[:, :, 1] = np.take(sCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(lCurve.mCurve, tempMat[:, :, 2])
         #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
-        cv.CvtColor(image, image, cv.CV_HLS2RGB)
+        image = cv2.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv2.IPL_DEPTH_8U, 3)
+        cv2.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
+        cv2.CvtColor(image, image, cv.CV_HLS2RGB)
         return Image(image, colorSpace=self._colorSpace)
 
 
@@ -4070,8 +4070,8 @@ class Image:
         tempMat[:, :, 1] = np.take(gCurve.mCurve, tempMat[:, :, 1])
         tempMat[:, :, 2] = np.take(rCurve.mCurve, tempMat[:, :, 2])
         #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
+        image = cv2.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv2.IPL_DEPTH_8U, 3)
+        cv2.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
         return Image(image, colorSpace=self._colorSpace)
 
 
@@ -4183,7 +4183,7 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-        if isinstance(color,  (float,int,long,complex)):
+        if isinstance(color,  (float,int,complex)):
             color_hue = color
         else:
             color_hue = Color.hsv(color)[0]
@@ -4254,8 +4254,8 @@ class Image:
 
         """
         retVal = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(kernelsize,kernelsize, 1, 1, cv.CV_SHAPE_RECT)
-        cv.Erode(self.getBitmap(), retVal, kern, iterations)
+        kern = cv2.CreateStructuringElementEx(kernelsize,kernelsize, 1, 1, cv2.CV_SHAPE_RECT)
+        cv2.Erode(self.getBitmap(), retVal, kern, iterations)
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -4302,8 +4302,8 @@ class Image:
 
         """
         retVal = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.Dilate(self.getBitmap(), retVal, kern, iterations)
+        kern = cv2.CreateStructuringElementEx(3, 3, 1, 1, cv2.CV_SHAPE_RECT)
+        cv2.Dilate(self.getBitmap(), retVal, kern, iterations)
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -4346,11 +4346,11 @@ class Image:
         """
         retVal = self.getEmpty()
         temp = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
+        kern = cv2.CreateStructuringElementEx(3, 3, 1, 1, cv2.CV_SHAPE_RECT)
         try:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_OPEN, 1)
+            cv2.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv2.MORPH_OPEN, 1)
         except:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_OPEN, 1)
+            cv2.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv2.CV_MOP_OPEN, 1)
             #OPENCV 2.2 vs 2.3 compatability
 
         return( Image(retVal) )
@@ -4396,11 +4396,11 @@ class Image:
 
         retVal = self.getEmpty()
         temp = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
+        kern = cv2.CreateStructuringElementEx(3, 3, 1, 1, cv2.CV_SHAPE_RECT)
         try:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_CLOSE, 1)
+            cv2.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv2.MORPH_CLOSE, 1)
         except:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_CLOSE, 1)
+            cv2.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv2.CV_MOP_CLOSE, 1)
             #OPENCV 2.2 vs 2.3 compatability
 
         return Image(retVal, colorSpace=self._colorSpace)
@@ -4447,11 +4447,11 @@ class Image:
 
         retVal = self.getEmpty()
         temp = self.getEmpty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
+        kern = cv2.CreateStructuringElementEx(3, 3, 1, 1, cv2.CV_SHAPE_RECT)
         try:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.MORPH_GRADIENT, 1)
+            cv2.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv2.MORPH_GRADIENT, 1)
         except:
-            cv.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv.CV_MOP_GRADIENT, 1)
+            cv2.MorphologyEx(self.getBitmap(), retVal, temp, kern, cv2.CV_MOP_GRADIENT, 1)
         return Image(retVal, colorSpace=self._colorSpace )
 
 
@@ -4484,7 +4484,7 @@ class Image:
         gray = self._getGrayscaleBitmap()
 
 
-        (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)), bins=numbins)
+        (hist, bin_edges) = np.histogram(np.asarray(cv2.GetMat(gray)), bins=numbins)
         return hist.tolist()
 
     def hueHistogram(self, bins = 179, dynamicRange=True):
@@ -4568,15 +4568,15 @@ class Image:
 
         length = len(y_axis)
         if x_axis is None:
-            x_axis = range(length)
+            x_axis = list(range(length))
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -4639,10 +4639,10 @@ class Image:
 
     def __getitem__(self, coord):
         ret = self.getMatrix()[tuple(reversed(coord))]
-        if (type(ret) == cv.cvmat):
-            (width, height) = cv.GetSize(ret)
-            newmat = cv.CreateMat(height, width, ret.type)
-            cv.Copy(ret, newmat) #this seems to be a bug in opencv
+        if (type(ret) == cv2.cvmat):
+            (width, height) = cv2.GetSize(ret)
+            newmat = cv2.CreateMat(height, width, ret.type)
+            cv2.Copy(ret, newmat) #this seems to be a bug in opencv
             #if you don't copy the matrix slice, when you convert to bmp you get
             #a slice-sized hunk starting at 0, 0
             return Image(newmat)
@@ -4657,7 +4657,7 @@ class Image:
         value = tuple(reversed(value))  #RGB -> BGR
 
         if(isinstance(coord[0],slice)):
-            cv.Set(self.getMatrix()[tuple(reversed(coord))], value)
+            cv2.Set(self.getMatrix()[tuple(reversed(coord))], value)
             self._clearBuffers("_matrix")
         else:
             self.getMatrix()[tuple(reversed(coord))] = value
@@ -4668,64 +4668,64 @@ class Image:
     def __sub__(self, other):
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.SubS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
+            cv2.SubS(self.getBitmap(), cv2.Scalar(other,other,other), newbitmap)
         else:
-            cv.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Sub(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
     def __add__(self, other):
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.AddS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
+            cv2.AddS(self.getBitmap(), cv2.Scalar(other,other,other), newbitmap)
         else:
-            cv.Add(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Add(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
     def __and__(self, other):
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.AndS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
+            cv2.AndS(self.getBitmap(), cv2.Scalar(other,other,other), newbitmap)
         else:
-            cv.And(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.And(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
     def __or__(self, other):
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.OrS(self.getBitmap(), cv.Scalar(other,other,other), newbitmap)
+            cv2.OrS(self.getBitmap(), cv2.Scalar(other,other,other), newbitmap)
         else:
-            cv.Or(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Or(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
     def __div__(self, other):
         newbitmap = self.getEmpty()
         if (not is_number(other)):
-            cv.Div(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Div(self.getBitmap(), other.getBitmap(), newbitmap)
         else:
-            cv.ConvertScale(self.getBitmap(), newbitmap, 1.0/float(other))
+            cv2.ConvertScale(self.getBitmap(), newbitmap, 1.0/float(other))
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
     def __mul__(self, other):
         newbitmap = self.getEmpty()
         if (not is_number(other)):
-            cv.Mul(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Mul(self.getBitmap(), other.getBitmap(), newbitmap)
         else:
-            cv.ConvertScale(self.getBitmap(), newbitmap, float(other))
+            cv2.ConvertScale(self.getBitmap(), newbitmap, float(other))
         return Image(newbitmap, colorSpace=self._colorSpace)
 
     def __pow__(self, other):
         newbitmap = self.getEmpty()
-        cv.Pow(self.getBitmap(), newbitmap, other)
+        cv2.Pow(self.getBitmap(), newbitmap, other)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
     def __neg__(self):
         newbitmap = self.getEmpty()
-        cv.Not(self.getBitmap(), newbitmap)
+        cv2.Not(self.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
     def __invert__(self):
@@ -4750,12 +4750,12 @@ class Image:
 
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.MaxS(self.getBitmap(), other, newbitmap)
+            cv2.MaxS(self.getBitmap(), other, newbitmap)
         else:
             if self.size() != other.size():
                 warnings.warn("Both images should have same sizes. Returning None.")
                 return None
-            cv.Max(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Max(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
@@ -4777,17 +4777,17 @@ class Image:
 
         newbitmap = self.getEmpty()
         if is_number(other):
-            cv.MinS(self.getBitmap(), other, newbitmap)
+            cv2.MinS(self.getBitmap(), other, newbitmap)
         else:
             if self.size() != other.size():
                 warnings.warn("Both images should have same sizes. Returning None.")
                 return None
-            cv.Min(self.getBitmap(), other.getBitmap(), newbitmap)
+            cv2.Min(self.getBitmap(), other.getBitmap(), newbitmap)
         return Image(newbitmap, colorSpace=self._colorSpace)
 
 
     def _clearBuffers(self, clearexcept = "_bitmap"):
-        for k, v in self._initialized_buffers.items():
+        for k, v in list(self._initialized_buffers.items()):
             if k == clearexcept:
                 continue
             self.__dict__[k] = v
@@ -4972,7 +4972,7 @@ class Image:
         
         linesFS = FeatureSet()
         if useStandard:
-            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            lines = cv2.HoughLines2(em, cv2.CreateMemStorage(), cv2.CV_HOUGH_STANDARD, 1.0, cv2.CV_PI/180.0, threshold, minlinelength, maxlinegap)
             if nLines == -1:
                 nLines = len(lines)
             # All white points (edges) in Canny edge image
@@ -5051,7 +5051,7 @@ class Image:
                     linesFS.append(Line(self, l))
             linesFS = linesFS[:nLines]
         else:
-            lines = cv.HoughLines2(em, cv.CreateMemStorage(), cv.CV_HOUGH_PROBABILISTIC, 1.0, cv.CV_PI/180.0, threshold, minlinelength, maxlinegap)
+            lines = cv2.HoughLines2(em, cv2.CreateMemStorage(), cv2.CV_HOUGH_PROBABILISTIC, 1.0, cv2.CV_PI/180.0, threshold, minlinelength, maxlinegap)
             if nLines == -1:
                 nLines = len(lines)
 
@@ -5092,10 +5092,10 @@ class Image:
         :py:class:`Chessboard`
 
         """
-        corners = cv.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE )
+        corners = cv2.FindChessboardCorners(self._getEqualizedGrayscaleBitmap(), dimensions, cv2.CV_CALIB_CB_ADAPTIVE_THRESH + cv2.CV_CALIB_CB_NORMALIZE_IMAGE )
         if(len(corners[1]) == dimensions[0]*dimensions[1]):
             if (subpixel):
-                spCorners = cv.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                spCorners = cv2.FindCornerSubPix(self.getGrayscaleMatrix(), corners[1], (11, 11), (-1, -1), (cv2.CV_TERMCRIT_ITER | cv2.CV_TERMCRIT_EPS, 10, 0.01))
             else:
                 spCorners = corners[1]
             return FeatureSet([ Chessboard(self, dimensions, spCorners) ])
@@ -5158,7 +5158,7 @@ class Image:
 
 
         self._edgeMap = self.getEmpty(1)
-        cv.Canny(self._getGrayscaleBitmap(), self._edgeMap, t1, t2)
+        cv2.Canny(self._getGrayscaleBitmap(), self._edgeMap, t1, t2)
         self._cannyparam = (t1, t2)
 
 
@@ -5209,19 +5209,19 @@ class Image:
 
         if (fixed):
             retVal = self.getEmpty()
-            cv.Zero(retVal)
-            rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
-            cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
-            cv.WarpAffine(self.getBitmap(), retVal, rotMat)
+            cv2.Zero(retVal)
+            rotMat = cv2.CreateMat(2, 3, cv2.CV_32FC1)
+            cv2.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
+            cv2.WarpAffine(self.getBitmap(), retVal, rotMat)
             return Image(retVal, colorSpace=self._colorSpace)
 
 
 
 
         #otherwise, we're expanding the matrix to fit the image at original size
-        rotMat = cv.CreateMat(2, 3, cv.CV_32FC1)
+        rotMat = cv2.CreateMat(2, 3, cv.CV_32FC1)
         # first we create what we thing the rotation matrix should be
-        cv.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
+        cv2.GetRotationMatrix2D((float(point[0]), float(point[1])), float(angle), float(scale), rotMat)
         A = np.array([0, 0, 1])
         B = np.array([self.width, 0, 1])
         C = np.array([self.width, self.height, 1])
@@ -5263,15 +5263,15 @@ class Image:
         dst = ((a[0]+tX, a[1]+tY), (b[0]+tX, b[1]+tY), (c[0]+tX, c[1]+tY))
 
 
-        cv.GetAffineTransform(src, dst, rotMat)
+        cv2.GetAffineTransform(src, dst, rotMat)
 
 
         #calculate the translation of the corners to center the image
         #use these new corner positions as the input to cvGetAffineTransform
-        retVal = cv.CreateImage((int(newWidth), int(newHeight)), 8, int(3))
-        cv.Zero(retVal)
+        retVal = cv2.CreateImage((int(newWidth), int(newHeight)), 8, int(3))
+        cv2.Zero(retVal)
 
-        cv.WarpAffine(self.getBitmap(), retVal, rotMat)
+        cv2.WarpAffine(self.getBitmap(), retVal, rotMat)
         #cv.AddS(retVal,(0,255,0),retVal)
         return Image(retVal, colorSpace=self._colorSpace)
 
@@ -5303,8 +5303,8 @@ class Image:
 
 
         """
-        retVal = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.getBitmap(), retVal)
+        retVal = cv2.CreateImage((self.height, self.width), cv2.IPL_DEPTH_8U, 3)
+        cv2.Transpose(self.getBitmap(), retVal)
         return(Image(retVal, colorSpace=self._colorSpace))
 
 
@@ -5341,9 +5341,9 @@ class Image:
         """
         src =  ((0, 0), (self.width-1, 0), (self.width-1, self.height-1))
         #set the original points
-        aWarp = cv.CreateMat(2, 3, cv.CV_32FC1)
+        aWarp = cv2.CreateMat(2, 3, cv.CV_32FC1)
         #create the empty warp matrix
-        cv.GetAffineTransform(src, cornerpoints, aWarp)
+        cv2.GetAffineTransform(src, cornerpoints, aWarp)
 
 
         return self.transformAffine(aWarp)
@@ -5388,7 +5388,7 @@ class Image:
         retVal = self.getEmpty()
         if(type(rotMatrix) == np.ndarray ):
             rotMatrix = npArray2cvMat(rotMatrix)
-        cv.WarpAffine(self.getBitmap(), retVal, rotMatrix)
+        cv2.WarpAffine(self.getBitmap(), retVal, rotMatrix)
         return Image(retVal, colorSpace=self._colorSpace)
 
 
@@ -5428,8 +5428,8 @@ class Image:
         """
         #original coordinates
         src = ((0, 0), (self.width-1, 0), (self.width-1, self.height-1), (0, self.height-1))
-        pWarp = cv.CreateMat(3, 3, cv.CV_32FC1) #create an empty 3x3 matrix
-        cv.GetPerspectiveTransform(src, cornerpoints, pWarp) #figure out the warp matrix
+        pWarp = cv2.CreateMat(3, 3, cv2.CV_32FC1) #create an empty 3x3 matrix
+        cv2.GetPerspectiveTransform(src, cornerpoints, pWarp) #figure out the warp matrix
 
 
         return self.transformPerspective(pWarp)
@@ -5480,7 +5480,7 @@ class Image:
             retVal = self.getEmpty()
             if(type(rotMatrix) == np.ndarray ):
                 rotMatrix = npArray2cvMat(rotMatrix)
-            cv.WarpPerspective(self.getBitmap(), retVal, rotMatrix)
+            cv2.WarpPerspective(self.getBitmap(), retVal, rotMatrix)
             return Image(retVal, colorSpace=self._colorSpace)
             
     def getPixel(self, x, y):
@@ -5518,7 +5518,7 @@ class Image:
         elif( y < 0 or y >= self.height ):
             logger.warning("getRGBPixel: Y value is not valid.")
         else:
-            c = cv.Get2D(self.getBitmap(), y, x)
+            c = cv2.Get2D(self.getBitmap(), y, x)
             if( self._colorSpace == ColorSpace.BGR ):
                 retVal = (c[2],c[1],c[0])
             else:
@@ -5562,7 +5562,7 @@ class Image:
         elif( y < 0 or y >= self.height ):
             logger.warning("getGrayPixel: Y value is not valid.")
         else:
-            retVal = cv.Get2D(self._getGrayscaleBitmap(), y, x)
+            retVal = cv2.Get2D(self._getGrayscaleBitmap(), y, x)
             retVal = retVal[0]
         return retVal
 
@@ -5604,7 +5604,7 @@ class Image:
         if( column < 0 or column >= self.width ):
             logger.warning("getVertRGBScanline: column value is not valid.")
         else:
-            retVal = cv.GetCol(self.getBitmap(), column)
+            retVal = cv2.GetCol(self.getBitmap(), column)
             retVal = np.array(retVal)
             retVal = retVal[:, 0, :]
         return retVal
@@ -5646,7 +5646,7 @@ class Image:
         if( row < 0 or row >= self.height ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = cv.GetRow(self.getBitmap(), row)
+            retVal = cv2.GetRow(self.getBitmap(), row)
             retVal = np.array(retVal)
             retVal = retVal[0, :, :]
         return retVal
@@ -5688,7 +5688,7 @@ class Image:
         if( column < 0 or column >= self.width ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = cv.GetCol(self._getGrayscaleBitmap(), column )
+            retVal = cv2.GetCol(self._getGrayscaleBitmap(), column )
             retVal = np.array(retVal)
             #retVal = retVal.transpose()
         return retVal
@@ -5731,7 +5731,7 @@ class Image:
         if( row < 0 or row >= self.height ):
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            retVal = cv.GetRow(self._getGrayscaleBitmap(), row )
+            retVal = cv2.GetRow(self._getGrayscaleBitmap(), row )
             retVal = np.array(retVal)
             retVal = retVal.transpose()
         return retVal
@@ -5829,7 +5829,7 @@ class Image:
             w = theFeature.width()
             h = theFeature.height()
 
-        elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, long, float))
+        elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, float))
              and y == None and w == None and h == None):
                 x,y,w,h = x
         # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
@@ -5858,7 +5858,7 @@ class Image:
         elif(isinstance(x, (tuple,list)) and
              isinstance(y, (tuple,list)) and
              len(x) > 4 and len(y) > 4 ):
-            if(isinstance(x[0],(int, long, float)) and isinstance(y[0],(int, long, float))):
+            if(isinstance(x[0],(int, float)) and isinstance(y[0],(int, float))):
                 xmax = np.max(x)
                 ymax = np.max(y)
                 xmin = np.min(x)
@@ -5874,7 +5874,7 @@ class Image:
         # x of the form [(x,y),(x,y),(x,y),(x,y),(x,y),(x,y)]
         elif(isinstance(x, (list,tuple)) and
              len(x) > 4 and len(x[0]) == 2 and y == None and w == None and h == None):
-            if(isinstance(x[0][0],(int, long, float))):
+            if(isinstance(x[0][0],(int, float))):
                 xs = [pt[0] for pt in x]
                 ys = [pt[1] for pt in x]
                 xmax = np.max(xs)
@@ -5919,13 +5919,13 @@ class Image:
 
 
         if(y == None or w == None or h == None):
-            print "Please provide an x, y, width, height to function"
+            print("Please provide an x, y, width, height to function")
 
         if( w <= 0 or h <= 0 ):
             logger.warning("Can't do a negative crop!")
             return None
 
-        retVal = cv.CreateImage((int(w),int(h)), cv.IPL_DEPTH_8U, 3)
+        retVal = cv2.CreateImage((int(w),int(h)), cv2.IPL_DEPTH_8U, 3)
         if( x < 0 or y < 0 ):
             logger.warning("Crop will try to help you, but you have a negative crop position, your width and height may not be what you want them to be.")
 
@@ -6015,7 +6015,7 @@ class Image:
           Do not use this method unless you have a particularly compelling reason.
 
         """
-        cv.SetZero(self._bitmap)
+        cv2.SetZero(self._bitmap)
         self._clearBuffers()
 
     def draw(self, features, color=Color.GREEN, width=1, autocolor=False):
@@ -6204,7 +6204,7 @@ class Image:
             self.save(d)
             return d
         else:
-            print "Unknown type to show"
+            print("Unknown type to show")
 
     def _surface2Image(self,surface):
         imgarray = pg.surfarray.array3d(surface)
@@ -6392,7 +6392,7 @@ class Image:
         try:
             return self._mLayers.pop(index)
         except IndexError:
-            print 'Not a valid index or No layers to remove!'
+            print('Not a valid index or No layers to remove!')
 
 
     def getDrawingLayer(self, index = -1):
@@ -6444,7 +6444,7 @@ class Image:
         try:
             return self._mLayers[index]
         except IndexError:
-            print 'Not a valid index'
+            print('Not a valid index')
 
 
     def dl(self, index = -1):
@@ -7138,7 +7138,9 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        def inBounds((w,h), (x,y)):
+        def inBounds(xxx_todo_changeme, xxx_todo_changeme1):
+            (w,h) = xxx_todo_changeme
+            (x,y) = xxx_todo_changeme1
             retVal = True
             if( x < 0 or  y < 0 or x > w or y > h):
                 retVal = False
@@ -7422,7 +7424,7 @@ class Image:
         #but I can get vectorize to work with the three channels together... have to split them
         #TODO: benchmark this against vectorize
         pixels = np.array(self.getNumpy()).reshape(-1,3).tolist()
-        result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3)
+        result = np.array(list(map(theFunc,pixels)),dtype=uint8).reshape(self.width,self.height,3)
         return Image(result)
 
 
@@ -7612,7 +7614,7 @@ class Image:
         else:
             compute = np.where((matches > mean+threshold*sd) )
 
-        mapped = map(tuple, np.column_stack(compute))
+        mapped = list(map(tuple, np.column_stack(compute)))
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
@@ -7733,7 +7735,7 @@ class Image:
                 compute = np.where( matches == np.max(matches) )
             else:
                 return []
-        mapped = map(tuple, np.column_stack(compute))
+        mapped = list(map(tuple, np.column_stack(compute)))
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
@@ -10906,7 +10908,7 @@ class Image:
 
         """
         if boost < 0:
-            print "boost >= 1"
+            print("boost >= 1")
             return None
 
         lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
@@ -10933,7 +10935,7 @@ class Image:
 
         features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
         features = os.listdir(features_directory)
-        print features
+        print(features)
 
     def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
         '''
@@ -11183,7 +11185,7 @@ class Image:
 
         for cnt in contour:
             cv2.drawContours(des,[cnt],0,255,-1)
-            print 'yep'
+            print('yep')
 
         gray = cv2.bitwise_not(des)
         return gray
@@ -11254,7 +11256,7 @@ class Image:
         cv.Mul(line,edges,line)
         intersections = uint8(np.array(cv.GetMat(line)).transpose())
         (xs,ys) = np.where(intersections==255)
-        points = zip(xs,ys)
+        points = list(zip(xs,ys))
         if(len(points)==0):
             return [None,None]
         A = np.argmin(spsd.cdist(p0p,points,'cityblock'))
@@ -11390,7 +11392,7 @@ class Image:
         m=0
         mo = 0
         b = x1
-        for i in xrange(0, measurements):
+        for i in range(0, measurements):
             s[i][0] = x1 
             s[i][1] = y1 + i * dy
             lpstartx[i] = s[i][0] + window
@@ -11411,7 +11413,7 @@ class Image:
         mo = -1/m #slope of orthogonal line segments
        
         #obtain points for measurement along the initial guess line
-        for i in xrange(0, measurements):
+        for i in range(0, measurements):
             s[i][0] = x1 + i * dx
             s[i][1] = y1 + i * dy
             fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
@@ -11625,7 +11627,7 @@ class Image:
 
             # pick the lines above our threshold
             x,y = np.where(temp>threshold)
-            pts = zip(x,y)
+            pts = list(zip(x,y))
             gpv = np.array([float(g[0][0]-xminW),float(g[0][1]-yminW)])
             gpw = np.array([float(g[1][0]-xminW),float(g[1][1]-yminW)])
             def lineSegmentToPoint(p):
@@ -11644,7 +11646,7 @@ class Image:
                     return np.sqrt(np.sum((p-project)**2))
             # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 
-            distances = np.array(map(lineSegmentToPoint,pts))
+            distances = np.array(list(map(lineSegmentToPoint,pts)))
             closepoints = np.where(distances<window)[0]
 
             pts = np.array(pts)
@@ -11805,7 +11807,7 @@ class Image:
             return None
 
         if( doGray ):
-            dst = cv2.Sobel(self.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
+            dst = cv2.Sobel(self.getGrayNumpy(),cv2.CV_32F,xorder,yorder,ksize=aperture)
             minv = np.min(dst)
             maxv = np.max(dst)
             cscale = 255/(maxv-minv)
@@ -11819,7 +11821,7 @@ class Image:
             layers = self.splitChannels(grayscale=False)
             sobel_layers = []
             for layer in layers:
-                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.cv.CV_32F,xorder,yorder,ksize=aperture)
+                dst = cv2.Sobel(layer.getGrayNumpy(),cv2.CV_32F,xorder,yorder,ksize=aperture)
 
                 minv = np.min(dst)
                 maxv = np.max(dst)
@@ -12079,11 +12081,11 @@ class Image:
         points.
         """
         if not ts and not img:
-            print "Invalid Input. Must provide FeatureSet or Image"
+            print("Invalid Input. Must provide FeatureSet or Image")
             return None
 
         if not ts and not bb:
-            print "Invalid Input. Must provide Bounding Box with Image"
+            print("Invalid Input. Must provide Bounding Box with Image")
             return None
 
         if not ts:
@@ -12094,7 +12096,7 @@ class Image:
         try:
             import cv2
         except ImportError:
-            print "Tracking is available for OpenCV >= 2.3"
+            print("Tracking is available for OpenCV >= 2.3")
             return None
 
         if type(img) == list:
@@ -12436,7 +12438,7 @@ class Image:
             try:
                 img = self.getNumpy()[:,:,channel]
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         retVal = None
@@ -12448,8 +12450,8 @@ class Image:
                 retVal.pt2 = (x,self.height)
                 retVal.col = x
                 x = np.ones((1,self.height))[0]*x
-                y = range(0,self.height,1)
-                pts = zip(x,y)
+                y = list(range(0,self.height,1))
+                pts = list(zip(x,y))
                 retVal.pointLoc = pts
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
@@ -12463,8 +12465,8 @@ class Image:
                 retVal.pt2 = (self.width,y)
                 retVal.row = y
                 y = np.ones((1,self.width))[0]*y
-                x = range(0,self.width,1)
-                pts = zip(x,y)
+                x = list(range(0,self.width,1))
+                pts = list(zip(x,y))
                 retVal.pointLoc = pts
 
             else:
@@ -12529,7 +12531,7 @@ class Image:
             try:
                 img = np.copy(self.getNumpy()[:,:,channel])
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         if( x is None and y is None and pt1 is None and pt2 is None):
@@ -12643,7 +12645,7 @@ class Image:
                 try:
                     img = np.copy(self.getNumpy()[:,:,linescan.channel])
                 except IndexError:
-                    print 'Channel missing!'
+                    print('Channel missing!')
                     return None
 
             if linescan.row is not None:
@@ -12717,7 +12719,7 @@ class Image:
 
         return retVal
 
-    def bresenham_line(self, (x,y), (x2,y2)):
+    def bresenham_line(self, xxx_todo_changeme2, xxx_todo_changeme3):
         """
         Brensenham line algorithm
 
@@ -12725,6 +12727,8 @@ class Image:
 
         This is just a helper method
         """
+        (x,y) = xxx_todo_changeme2
+        (x2,y2) = xxx_todo_changeme3
         if (not 0 <= x <= self.width-1 or not 0 <= y <= self.height-1 or
             not 0 <= x2 <= self.width-1 or not 0 <= y2 <= self.height-1):
             l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
@@ -12894,7 +12898,7 @@ class Image:
 
         gridIndex = self.getDrawingLayer(self._gridLayer[0])
         if self._gridLayer[0]==-1:
-            print "Cannot find grid on the image, Try adding a grid first"
+            print("Cannot find grid on the image, Try adding a grid first")
 
         lineFS = FeatureSet()
         try:
@@ -12939,12 +12943,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -12975,12 +12979,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13012,12 +13016,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13048,12 +13052,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13122,12 +13126,12 @@ class Image:
         dist = dist[:,0]/2500.0
         dist = dist.reshape(-1,).tolist()
         idx = idx.reshape(-1).tolist()
-        indices = range(len(dist))
+        indices = list(range(len(dist)))
         indices.sort(key=lambda i: dist[i])
         dist = [dist[i] for i in indices]
         idx = [idx[i] for i in indices]
         sfs = []
-        for i, dis in itertools.izip(idx, dist):
+        for i, dis in zip(idx, dist):
             if dis < quality:
                 sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
             else:
@@ -13137,12 +13141,12 @@ class Image:
         dist = dist[:,0]/2500.0
         dist = dist.reshape(-1,).tolist()
         idx = idx.reshape(-1).tolist()
-        indices = range(len(dist))
+        indices = list(range(len(dist)))
         indices.sort(key=lambda i: dist[i])
         dist = [dist[i] for i in indices]
         idx = [idx[i] for i in indices]
         tfs = []
-        for i, dis in itertools.izip(idx, dist):
+        for i, dis in zip(idx, dist):
             if dis < quality:
                 tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
             else:
@@ -13427,7 +13431,7 @@ class Image:
         m = np.int32(newmask.getGrayNumpyCv2())
         cv2.watershed(self.getNumpyCv2(),m)
         m = cv2.convertScaleAbs(m)
-        ret,thresh = cv2.threshold(m,0,255,cv2.cv.CV_THRESH_OTSU)
+        ret,thresh = cv2.threshold(m,0,255,cv2.CV_THRESH_OTSU)
         retVal = Image(thresh,cv2image=True)
         return retVal
 
@@ -13502,7 +13506,7 @@ class Image:
         if(locations):
             val = np.max(self.getGrayNumpy())
             x,y = np.where(self.getGrayNumpy()==val)
-            locs = zip(x.tolist(),y.tolist())
+            locs = list(zip(x.tolist(),y.tolist()))
             return int(val),locs
         else:
             val = np.max(self.getGrayNumpy())
@@ -13536,7 +13540,7 @@ class Image:
         if(locations):
             val = np.min(self.getGrayNumpy())
             x,y = np.where(self.getGrayNumpy()==val)
-            locs = zip(x.tolist(),y.tolist())
+            locs = list(zip(x.tolist(),y.tolist()))
             return int(val),locs
         else:
             val = np.min(self.getGrayNumpy())
@@ -13732,21 +13736,21 @@ class Image:
         # As range() function is exclusive, 
         # hence bins+2 is passed as parameter.
 
-        y_axis, x_axis = np.histogram(self.getGrayNumpy(), bins = range(bins+2))
+        y_axis, x_axis = np.histogram(self.getGrayNumpy(), bins = list(range(bins+2)))
         x_axis = x_axis[0:bins+1]
         maxtab = []
         mintab = []
         length = len(y_axis)
         if x_axis is None:
-            x_axis = range(length)
+            x_axis = list(range(length))
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -13835,7 +13839,7 @@ class Image:
         img = self.copy()
         
         if resize <= 0:
-            print 'Enter a valid resize value'
+            print('Enter a valid resize value')
             return None
 
         if resize != 1:
@@ -14055,7 +14059,7 @@ class Image:
                 warnings.warn('Value of weights can be from -200 to 200%')
                 return None
 
-        weight = map(float,weight)
+        weight = list(map(float,weight))
         channel = channel.lower()
         if channel == 'r':
             r = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
@@ -14140,7 +14144,7 @@ class Image:
         
         #checking that all values are 0 and 255
         if( c1 + c2 != imgArray.size):
-            raise ValueError,"Image must be binary"
+            raise ValueError("Image must be binary")
 
         if(len(pointList) < 2 ):
             return None
@@ -14545,7 +14549,7 @@ class Image:
         #avoiding the effect of odd pixels
         try:
             hist = self.getGrayHistogramCounts()
-            freq, val = zip(*hist)
+            freq, val = list(zip(*hist))
             maxfreq = (freq[0]-freq[-1])* maxCut/100.0
             minfreq = (freq[0]-freq[-1])* minCut/100.0
             closestMatch = lambda a,l:min(l, key=lambda x:abs(x-a))

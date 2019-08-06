@@ -16,7 +16,7 @@ def get_cython_version():
     match = re.search('^([0-9]+)\.([0-9]+)',
                       Cython.Compiler.Main.Version.version)
     try:
-        return map(int, match.groups())
+        return list(map(int, match.groups()))
     except AttributeError:
         raise ImportError
 

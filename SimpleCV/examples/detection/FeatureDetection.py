@@ -12,7 +12,7 @@ want to retrain then just right click to reset.
 
 '''
 
-print __doc__
+print(__doc__)
 
 import time
 from SimpleCV import Color, Image, np, Camera

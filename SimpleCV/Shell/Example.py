@@ -26,37 +26,37 @@ def magic_examples(self, arg):
 
     if isinstance(arg, str) and arg == "":
         counter = 0
-        print "Available Examples:"
-        print "--------------------------------------------"
+        print("Available Examples:")
+        print("--------------------------------------------")
         for file in file_names:
-            print "[",counter,"]:",file
+            print("[",counter,"]:",file)
             counter += 1
 
-        print "Just type example #, to run the example on the list"
-        print "for instance: example 1"
-        print ""
-        print "Close the window or press ctrl+c to stop the example"
+        print("Just type example #, to run the example on the list")
+        print("for instance: example 1")
+        print("")
+        print("Close the window or press ctrl+c to stop the example")
 
     elif isinstance(iarg, int):
-        print "running example:", files[iarg]
+        print("running example:", files[iarg])
         try:
             call([sys.executable, files[iarg]])
         except:
-            print "Couldn't run example:", files[iarg]
+            print("Couldn't run example:", files[iarg])
 
 
     elif isinstance(arg, str) and arg.lower() == "joshua":
-        print "GREETINGS PROFESSOR FALKEN"
-        print ""
-        print "HELLO"
-        print ""
-        print "A STRANGE GAME."
-        print "THE ONLY WINNING MOVE IS"
-        print "NOT TO PLAY."
-        print ""
-        print "HOW ABOUT A NICE GAME OF CHESS?"
-        print ""
+        print("GREETINGS PROFESSOR FALKEN")
+        print("")
+        print("HELLO")
+        print("")
+        print("A STRANGE GAME.")
+        print("THE ONLY WINNING MOVE IS")
+        print("NOT TO PLAY.")
+        print("")
+        print("HOW ABOUT A NICE GAME OF CHESS?")
+        print("")
 
 
     else:
-        print "Example: " + arg + " does not exist, or an error occurred"
+        print("Example: " + arg + " does not exist, or an error occurred")

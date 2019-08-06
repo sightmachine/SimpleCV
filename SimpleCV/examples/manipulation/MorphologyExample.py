@@ -5,7 +5,7 @@ This example rotates through a few of the image morphology examples
 for more information see:
 http://en.wikipedia.org/wiki/Mathematical_morphology
 '''
-print __doc__
+print(__doc__)
 from SimpleCV import *
 
 display = Display(resolution = (800, 600)) #create a new display to draw images on

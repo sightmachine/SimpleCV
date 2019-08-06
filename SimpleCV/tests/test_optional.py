@@ -88,7 +88,7 @@ def test_detection_ocr():
     img = Image(ocrimage)
 
     foundtext = img.readText()
-    print foundtext
+    print(foundtext)
     if(len(foundtext) <= 1):
         assert False
     else:

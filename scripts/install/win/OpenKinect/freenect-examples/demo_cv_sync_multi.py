@@ -12,7 +12,7 @@ import frame_convert
 cv.NamedWindow('Depth')
 cv.NamedWindow('Video')
 ind = 0
-print('%s\nPress ESC to stop' % __doc__)
+print(('%s\nPress ESC to stop' % __doc__))
 
 
 def get_depth(ind):

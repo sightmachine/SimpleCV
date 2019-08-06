@@ -47,10 +47,10 @@
 import sys
 import md5
 import string
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import mimetools
-import httplib
+import http.client
 import os.path
 import xml.dom.minidom
 
@@ -192,7 +192,7 @@ class FlickrAPI:
 
         """
         dataName = self.secret
-        keys = data.keys()
+        keys = list(data.keys())
         keys.sort()
         for a in keys: dataName += (a + data[a])
         #print dataName
@@ -222,19 +222,19 @@ class FlickrAPI:
 
         """
 
-        if not self.__handlerCache.has_key(method):
+        if method not in self.__handlerCache:
             def handler(_self = self, _method = method, **arg):
                 _method = "flickr." + _method.replace("_", ".")
                 url = "http://" + FlickrAPI.flickrHost + \
                         FlickrAPI.flickrRESTForm
                 arg["method"] = _method
-                postData = urllib.urlencode(arg) + "&api_sig=" + \
+                postData = urllib.parse.urlencode(arg) + "&api_sig=" + \
                         _self.__sign(arg)
                 #print "--url---------------------------------------------"
                 #print url
                 #print "--postData----------------------------------------"
                 #print postData
-                f = urllib.urlopen(url, postData)
+                f = urllib.request.urlopen(url, postData)
                 data = f.read()
                 #print "--response----------------------------------------"
                 #print data
@@ -260,7 +260,7 @@ class FlickrAPI:
         data = {"api_key": self.apiKey, "frob": frob, "perms": perms}
         data["api_sig"] = self.__sign(data)
         return "http://%s%s?%s" % (FlickrAPI.flickrHost, \
-                FlickrAPI.flickrAuthForm, urllib.urlencode(data))
+                FlickrAPI.flickrAuthForm, urllib.parse.urlencode(data))
 
     #-------------------------------------------------------------------
     def upload(self, filename=None, jpegData=None, **arg):
@@ -294,7 +294,7 @@ class FlickrAPI:
             raise UploadException("filename OR jpegData must be specified")
 
         # verify key names
-        for a in arg.keys():
+        for a in list(arg.keys()):
             if a != "api_key" and a != "auth_token" and a != "title" and \
                     a != "description" and a != "tags" and a != "is_public" and \
                     a != "is_friend" and a != "is_family":
@@ -319,7 +319,7 @@ class FlickrAPI:
         for a in ('title', 'description', 'tags', 'is_public', \
                 'is_friend', 'is_family'):
 
-            if arg.has_key(a):
+            if a in arg:
                 body += "--%s\r\n" % (boundary)
                 body += "Content-Disposition: form-data; name=\""+a+"\"\r\n\r\n"
                 body += "%s\r\n" % (arg[a])
@@ -341,11 +341,11 @@ class FlickrAPI:
         postData = body.encode("utf_8") + data + \
                 ("--%s--" % (boundary)).encode("utf_8")
 
-        request = urllib2.Request(url)
+        request = urllib.request.Request(url)
         request.add_data(postData)
         request.add_header("Content-Type", \
                 "multipart/form-data; boundary=%s" % boundary)
-        response = urllib2.urlopen(request)
+        response = urllib.request.urlopen(request)
         rspXML = response.read()
 
         return XMLNode.parseXML(rspXML)
@@ -515,7 +515,7 @@ def main(argv):
 
     # and print them
     for a in rsp.photos[0].photo:
-        print "%10s: %s" % (a['id'], a['title'].encode("ascii", "replace"))
+        print("%10s: %s" % (a['id'], a['title'].encode("ascii", "replace")))
 
     # upload the file foo.jpg
     #rsp = fapi.upload(filename="foo.jpg", \

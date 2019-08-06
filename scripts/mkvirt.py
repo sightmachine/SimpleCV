@@ -4,7 +4,7 @@ import virtualenv, textwrap
 here = os.path.dirname(os.path.abspath(__file__))
 base_dir = os.path.dirname(here)
 
-print "Creating SimpleCV Bootstrap Install Script: simplecv-bootstrap.py"
+print("Creating SimpleCV Bootstrap Install Script: simplecv-bootstrap.py")
 
 output = virtualenv.create_bootstrap_script(textwrap.dedent("""
 import os, subprocess
