@@ -52,7 +52,8 @@ from pickle import *
 
 # SimpleCV library includes
 try:
-    import cv2.cv as cv
+    #import cv2.cv as cv
+    import cv2
 except ImportError:
     try:
         import cv
