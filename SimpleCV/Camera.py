@@ -1996,7 +1996,8 @@ class StereoImage:
             import cv2
         except ImportError:
             cv2flag = False
-        import cv2.cv as cv
+        #import cv2.cv as cv
+        import cv2
         (r, c) = self.size
         if method == "BM":
             sbm = cv.CreateStereoBMState()
@@ -2107,12 +2108,12 @@ class StereoImage:
                 Q = np.array(Q)
             if not isinstance(disparity, np.ndarray):
                 disparity = np.array(disparity)
-            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
-            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.CV_32F)
+            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.CV_MINMAX, dtype=cv2.CV_8UC3)
             retVal = Image(Image3D_normalize, cv2image=True)
         else:
-            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_32FC3)
-            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_8UC3)
+            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.CV_32FC3)
+            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.CV_8UC3)
             cv.ReprojectImageTo3D(disparity, Image3D, Q)
             cv.Normalize(Image3D, Image3D_normalize, 0, 255, cv.CV_MINMAX, CV_8UC3)
             retVal = Image(Image3D_normalize)
@@ -2148,19 +2149,20 @@ class StereoImage:
             import cv2
         except ImportError:
             cv2flag = False
-            import cv2.cv as cv
+            #import cv2.cv as cv
+            import cv2
 
         if cv2flag:
             if not isinstance(Q, np.ndarray):
                 Q = np.array(Q)
             disparity = disparity.getNumpyCv2()    
-            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.cv.CV_32F)
-            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX, dtype=cv2.cv.CV_8UC3)
+            Image3D = cv2.reprojectImageTo3D(disparity, Q, ddepth=cv2.CV_32F)
+            Image3D_normalize = cv2.normalize(Image3D, alpha=0, beta=255, norm_type=cv2.CV_MINMAX, dtype=cv2.CV_8UC3)
             retVal = Image(Image3D_normalize, cv2image=True)
         else:
             disparity = disparity.getMatrix()
-            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_32FC3)
-            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.cv.CV_8UC3)
+            Image3D = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.CV_32FC3)
+            Image3D_normalize = cv.CreateMat(self.LeftImage.size()[1], self.LeftImage.size()[0], cv2.CV_8UC3)
             cv.ReprojectImageTo3D(disparity, Image3D, Q)
             cv.Normalize(Image3D, Image3D_normalize, 0, 255, cv.CV_MINMAX, CV_8UC3)
             retVal = Image(Image3D_normalize)
@@ -2572,7 +2574,8 @@ class StereoCamera :
             import cv2
         except ImportError:
             cv2flag = False
-            import cv2.cv as cv
+            #import cv2.cv as cv
+            import cv2
         if cv2flag:
             camLeft = cv2.VideoCapture(leftIndex)
             camRight = cv2.VideoCapture(rightIndex)
