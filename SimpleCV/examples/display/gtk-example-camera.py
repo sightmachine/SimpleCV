@@ -10,7 +10,7 @@ The only amount of SimpleCV code is found in the process_image() function
 
 '''
 
-print __doc__
+print(__doc__)
 
 import gtk
 import SimpleCV

@@ -1,7 +1,7 @@
 from SimpleCV.base import *
 import SimpleCV.ImageClass
-import Queue
-from base import *
+import queue
+from .base import *
 
 
 PYGAME_INITIALIZED = False

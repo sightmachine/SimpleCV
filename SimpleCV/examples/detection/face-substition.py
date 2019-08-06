@@ -5,7 +5,7 @@
 All this example does is find a face and replace it with another image. The
 image should auto scale to match the size of the face.
 """
-print __doc__
+print(__doc__)
 
 from SimpleCV import Camera, Display, HaarCascade, Image
 

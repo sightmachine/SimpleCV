@@ -70,19 +70,19 @@ class BOFFeatureExtractor(object):
             for i in range(nimgs):
                 infile = files[i]
                 if verbose:
-                    print(path+" "+str(i)+" of "+str(imgs_per_dir))
-                    print "Opening file: " + infile
+                    print((path+" "+str(i)+" of "+str(imgs_per_dir)))
+                    print("Opening file: " + infile)
                 img = Image(infile)
                 newFeat = self._getPatches(img,sz)
                 if verbose:
-                    print "     Got " + str(len(newFeat)) + " features."
+                    print("     Got " + str(len(newFeat)) + " features.")
                 rawFeatures = np.vstack((rawFeatures,newFeat))
                 del img
         rawFeatures = rawFeatures[1:,:] # pop the fake value we put on the top
         if verbose:
-            print "=================================="
-            print "Got " + str(len(rawFeatures)) + " features "
-            print "Doing K-Means .... this will take a long time"
+            print("==================================")
+            print("Got " + str(len(rawFeatures)) + " features ")
+            print("Doing K-Means .... this will take a long time")
         self.mCodebook = self._makeCodebook(rawFeatures,self.mNumCodes)
         self.mCodebookImg = self._codebook2Img(self.mCodebook,self.mPatchSize,self.mNumCodes,self.mLayout,self.mPadding)
         self.mCodebookImg.save('codebook.png')

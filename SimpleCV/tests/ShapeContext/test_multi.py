@@ -17,7 +17,7 @@ names = []
 for i in iset:
     names.append(i.filename)
 
-print names
+print(names)
 names = names[0:subset]
 
 scc = None
@@ -29,20 +29,20 @@ else:
     scc = ShapeContextClassifier(iset,names) #this needs to be pickled.
     pickle.dump(scc, open( fname, "wb" ) )
 
-print "--------------------------"
-print "--------------------------"
-print "Performing Analysis!"
-print "--------------------------"
-print "--------------------------"
+print("--------------------------")
+print("--------------------------")
+print("Performing Analysis!")
+print("--------------------------")
+print("--------------------------")
 classifications = []
 
 i = 0
 for test in testset:
-    print "--------------------------"
+    print("--------------------------")
     best, value, result = scc.classify(test)
-    print "Total points in result " + str(len(scc.ptMap[best]))
-    print "Testing: " + test.filename
-    print "Best Result: " + best
+    print("Total points in result " + str(len(scc.ptMap[best])))
+    print("Testing: " + test.filename)
+    print("Best Result: " + best)
     words = string.split(best,'/')
     words2 = string.split(test.filename,'/')
     test = test.resize(h=400)
@@ -61,5 +61,5 @@ for test in testset:
     i = i + 1
     matchImg.save(fname)
     classifications.append((test.filename,result))
-    print result
+    print(result)
 pickle.dump(classifications, open( "classifications.pkl", "wb" ) )

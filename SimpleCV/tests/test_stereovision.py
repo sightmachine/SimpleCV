@@ -51,7 +51,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
             diff = (lhs-rhs)
             val = np.average(diff.getNumpy())
             if( val > tolerance ):
-                print val
+                print(val)
                 return True
     return False
 

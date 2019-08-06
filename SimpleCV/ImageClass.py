@@ -6,7 +6,7 @@ from numpy import int32
 from numpy import uint8
 import cv2
 
-from EXIF import *
+from .EXIF import *
 
 if not init_options_handler.headless:
     import pygame as pg
@@ -89,8 +89,8 @@ class ImageSet(list):
         if isinstance(directory,list):
             if isinstance(directory[0], Image):
                 super(ImageSet,self).__init__(directory)
-            elif isinstance(directory[0], str) or isinstance(directory[0], unicode):
-                super(ImageSet,self).__init__(map(Image, directory))
+            elif isinstance(directory[0], str) or isinstance(directory[0], str):
+                super(ImageSet,self).__init__(list(map(Image, directory)))
 
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
             pth = LAUNCH_PATH
@@ -143,9 +143,9 @@ class ImageSet(list):
             from BeautifulSoup import BeautifulSoup
 
         except:
-            print "You need to install Beatutiul Soup to use this function"
-            print "to install you can use:"
-            print "easy_install beautifulsoup"
+            print("You need to install Beatutiul Soup to use this function")
+            print("to install you can use:")
+            print("easy_install beautifulsoup")
 
             return
 
@@ -154,7 +154,7 @@ class ImageSet(list):
   Valid options: 'thumb', 'small', 'medium', 'large'
    or a tuple of exact dimensions i.e. (640,480)."""
 
-        if isinstance(size, basestring):
+        if isinstance(size, str):
             size = size.lower()
             if size == 'thumb':
                 size_param = ''
@@ -165,7 +165,7 @@ class ImageSet(list):
             elif size == 'large':
                 size_param = '&tbs=isz:l'
             else:
-                print INVALID_SIZE_MSG
+                print(INVALID_SIZE_MSG)
                 return None
 
         elif type(size) == tuple:
@@ -173,7 +173,7 @@ class ImageSet(list):
             size_param = '&tbs=isz:ex,iszw:' + str(width) + ',iszh:' + str(height)
 
         else:
-            print INVALID_SIZE_MSG
+            print(INVALID_SIZE_MSG)
             return None
 
         # Used to extract imgurl parameter value from a URL
@@ -184,9 +184,9 @@ class ImageSet(list):
 
 
         while len(add_set) < number:
-            opener = urllib2.build_opener()
+            opener = urllib.request.build_opener()
             opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-            url = ("http://www.google.com/search?tbm=isch&q=" + urllib2.quote(tag) +
+            url = ("http://www.google.com/search?tbm=isch&q=" + urllib.parse.quote(tag) +
                    size_param + "&start=" + str(candidate_count))
             page = opener.open(url)
             soup = BeautifulSoup(page)
@@ -213,7 +213,7 @@ class ImageSet(list):
                     add_img = Image(dl_url, verbose=False)
 
                     # Don't know a better way to check if the image was actually returned
-                    if add_img.height <> 0 and add_img.width <> 0:
+                    if add_img.height != 0 and add_img.width != 0:
                         add_set.append(add_img)
 
                 except:
@@ -458,7 +458,7 @@ class ImageSet(list):
             try:
                 from IPython.core.display import Image as IPImage
             except ImportError:
-                print "You need IPython Notebooks to use this display mode"
+                print("You need IPython Notebooks to use this display mode")
                 return
             from IPython.core import display as Idisplay
             for i in self:
@@ -507,7 +507,7 @@ class ImageSet(list):
         """
 
         for i in self:
-            print i.filename
+            print(i.filename)
 
     def _read_gif(self, filename):
         """ read_gif(filename)
@@ -757,7 +757,7 @@ class ImageSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return ImageSet(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -933,11 +933,11 @@ class Image:
 
         #Check if need to load from URL
         #(this can be made shorter)if type(source) == str and (source[:7].lower() == "http://" or source[:8].lower() == "https://"):
-        if isinstance(source, basestring) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
+        if isinstance(source, str) and (source.lower().startswith("http://") or source.lower().startswith("https://")):
             #try:
             # added spoofed user agent for images that are blocking bots (like wikipedia)
-            req = urllib2.Request(source, headers={'User-Agent' : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5"})
-            img_file = urllib2.urlopen(req)
+            req = urllib.request.Request(source, headers={'User-Agent' : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.54 Safari/536.5"})
+            img_file = urllib.request.urlopen(req)
             #except:
             #if verbose:
                 #print "Couldn't open Image from URL:" + source
@@ -947,13 +947,13 @@ class Image:
             source = pil.open(im).convert("RGB")
             
         #Check if loaded from base64 URI
-        if isinstance(source, basestring) and (source.lower().startswith("data:image/png;base64,")):
+        if isinstance(source, str) and (source.lower().startswith("data:image/png;base64,")):
             img = source[22:].decode("base64")
             im = StringIO(img)
             source = pil.open(im).convert("RGB")
 
         #This section loads custom built-in images
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
@@ -1211,7 +1211,7 @@ class Image:
                 i.dl().text(txt, (10,i.height / 2), color=col)
                 txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
                 i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+                print("coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY)))
 
 
             if elapsed_time > 0 and elapsed_time < 5:
@@ -1223,7 +1223,7 @@ class Image:
 
             i.save(d)
             if d.mouseRight:
-                print "Closing Window"
+                print("Closing Window")
                 d.done = True
 
 
@@ -2249,7 +2249,7 @@ class Image:
                 self.save(self._tempFiles[-1][0])
                 return self._tempFiles[-1][0]
             else :
-                print "Path does not exist!"
+                print("Path does not exist!")
 
         else :
             if (filename) :
@@ -2269,7 +2269,7 @@ class Image:
         if self._colorSpace != ColorSpace.BGR and self._colorSpace != ColorSpace.GRAY:
             saveimg = saveimg.toBGR()
         
-        if not isinstance(filehandle_or_filename, basestring):
+        if not isinstance(filehandle_or_filename, str):
             
             fh = filehandle_or_filename
 
@@ -2298,7 +2298,7 @@ class Image:
                     try:
                         from IPython.core.display import Image as IPImage
                     except ImportError:
-                        print "You need IPython Notebooks to use this display mode"
+                        print("You need IPython Notebooks to use this display mode")
                         return
 
                     from IPython.core import display as Idisplay
@@ -2323,13 +2323,13 @@ class Image:
                   self.filehandle = fh #set the filename for future save operations
                   self.filename = ""
                   return 1
-                except Exception, e:
+                except Exception as e:
                   if mode.lower() != 'webp':
                     raise e
                 
 
             if verbose:
-                print self.filename
+                print(self.filename)
 
             if not mode.lower() == 'webp':
                 return 1
@@ -2388,7 +2388,7 @@ class Image:
             return 0
 
         if verbose:
-            print self.filename
+            print(self.filename)
 
         if temp:
             return filename
@@ -2483,7 +2483,7 @@ class Image:
             try:
                 import pycurl
             except ImportError:
-                print "PycURL Library not installed."
+                print("PycURL Library not installed.")
                 return
 
             response = StringIO()
@@ -2499,13 +2499,13 @@ class Image:
             match = re.search(r'<hash>(\w+).*?<deletehash>(\w+).*?<original>(http://[\w.]+/[\w.]+)', response.getvalue() , re.DOTALL)
             if match:
                 if(verbose):
-                    print "Imgur page: http://imgur.com/" + match.group(1)
-                    print "Original image: " + match.group(3)
-                    print "Delete page: http://imgur.com/delete/" + match.group(2)
+                    print("Imgur page: http://imgur.com/" + match.group(1))
+                    print("Original image: " + match.group(3))
+                    print("Delete page: http://imgur.com/delete/" + match.group(2))
                 return [match.group(1),match.group(3),match.group(2)]
             else :
                 if(verbose):
-                    print "The API Key given is not valid"
+                    print("The API Key given is not valid")
                 return None
 
         elif (dest=='flickr'):
@@ -2514,7 +2514,7 @@ class Image:
             try :
                 import flickrapi
             except ImportError:
-                print "Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi"
+                print("Flickr API is not installed. Please install it from http://pypi.python.org/pypi/flickrapi")
                 return False
             try :
                 if (not(api_key==None and api_secret==None)):
@@ -2527,16 +2527,16 @@ class Image:
                         self.flickr = flickrapi.FlickrAPI(temp_token[0],temp_token[1],cache=True)
                         self.flickr.authenticate_console('write')
                     except NameError :
-                        print "API key and Secret key are not set."
+                        print("API key and Secret key are not set.")
                         return
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     self.flickr.upload(self.filename,self.filehandle)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -2550,7 +2550,7 @@ class Image:
                 from dropbox import client, rest, session
                 import webbrowser
             except ImportError:
-                print "Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python "
+                print("Dropbox API is not installed. For more info refer : https://www.dropbox.com/developers/start/setup#python ")
                 return False
             try :
                 if ( 'dropbox_token' not in globals() and api_key!=None and api_secret!=None ):
@@ -2558,8 +2558,8 @@ class Image:
                     request_token = sess.obtain_request_token()
                     url = sess.build_authorize_url(request_token)
                     webbrowser.open(url)
-                    print "Please visit this website and press the 'Allow' button, then hit 'Enter' here."
-                    raw_input()
+                    print("Please visit this website and press the 'Allow' button, then hit 'Enter' here.")
+                    input()
                     access_token = sess.obtain_access_token(request_token)
                     dropbox_token = client.DropboxClient(sess)
                 else :
@@ -2568,14 +2568,14 @@ class Image:
                     else :
                         return None
             except :
-                print "The API Key and Secret Key are not valid"
+                print("The API Key and Secret Key are not valid")
                 return False
             if (self.filename) :
                 try :
                     f = open(self.filename)
                     dropbox_token.put_file('/SimpleCVImages/'+os.path.split(self.filename)[-1], f)
                 except :
-                    print "Uploading Failed !"
+                    print("Uploading Failed !")
                     return False
             else :
                 tf = self.save(temp=True)
@@ -3670,7 +3670,7 @@ class Image:
 
         #lovely.  This segfaults if not present
         from SimpleCV.Features.HaarCascade import HaarCascade
-        if isinstance(cascade, basestring):
+        if isinstance(cascade, str):
             cascade = HaarCascade(cascade)
             if not cascade.getCascade(): 
                 return None
@@ -4183,7 +4183,7 @@ class Image:
         :py:meth:`findBlobsFromMask`
 
         """
-        if isinstance(color,  (float,int,long,complex)):
+        if isinstance(color,  (float,int,complex)):
             color_hue = color
         else:
             color_hue = Color.hsv(color)[0]
@@ -4568,15 +4568,15 @@ class Image:
 
         length = len(y_axis)
         if x_axis is None:
-            x_axis = range(length)
+            x_axis = list(range(length))
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -4787,7 +4787,7 @@ class Image:
 
 
     def _clearBuffers(self, clearexcept = "_bitmap"):
-        for k, v in self._initialized_buffers.items():
+        for k, v in list(self._initialized_buffers.items()):
             if k == clearexcept:
                 continue
             self.__dict__[k] = v
@@ -5829,7 +5829,7 @@ class Image:
             w = theFeature.width()
             h = theFeature.height()
 
-        elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, long, float))
+        elif(isinstance(x, (tuple,list)) and len(x) == 4 and isinstance(x[0],(int, float))
              and y == None and w == None and h == None):
                 x,y,w,h = x
         # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
@@ -5858,7 +5858,7 @@ class Image:
         elif(isinstance(x, (tuple,list)) and
              isinstance(y, (tuple,list)) and
              len(x) > 4 and len(y) > 4 ):
-            if(isinstance(x[0],(int, long, float)) and isinstance(y[0],(int, long, float))):
+            if(isinstance(x[0],(int, float)) and isinstance(y[0],(int, float))):
                 xmax = np.max(x)
                 ymax = np.max(y)
                 xmin = np.min(x)
@@ -5874,7 +5874,7 @@ class Image:
         # x of the form [(x,y),(x,y),(x,y),(x,y),(x,y),(x,y)]
         elif(isinstance(x, (list,tuple)) and
              len(x) > 4 and len(x[0]) == 2 and y == None and w == None and h == None):
-            if(isinstance(x[0][0],(int, long, float))):
+            if(isinstance(x[0][0],(int, float))):
                 xs = [pt[0] for pt in x]
                 ys = [pt[1] for pt in x]
                 xmax = np.max(xs)
@@ -5919,7 +5919,7 @@ class Image:
 
 
         if(y == None or w == None or h == None):
-            print "Please provide an x, y, width, height to function"
+            print("Please provide an x, y, width, height to function")
 
         if( w <= 0 or h <= 0 ):
             logger.warning("Can't do a negative crop!")
@@ -6204,7 +6204,7 @@ class Image:
             self.save(d)
             return d
         else:
-            print "Unknown type to show"
+            print("Unknown type to show")
 
     def _surface2Image(self,surface):
         imgarray = pg.surfarray.array3d(surface)
@@ -6392,7 +6392,7 @@ class Image:
         try:
             return self._mLayers.pop(index)
         except IndexError:
-            print 'Not a valid index or No layers to remove!'
+            print('Not a valid index or No layers to remove!')
 
 
     def getDrawingLayer(self, index = -1):
@@ -6444,7 +6444,7 @@ class Image:
         try:
             return self._mLayers[index]
         except IndexError:
-            print 'Not a valid index'
+            print('Not a valid index')
 
 
     def dl(self, index = -1):
@@ -7138,7 +7138,9 @@ class Image:
         br = (pos[0]+top[0],pos[1]+top[1])
         bl = (pos[0],pos[1]+top[1])
         # do an overlap test to weed out corner cases and errors
-        def inBounds((w,h), (x,y)):
+        def inBounds(xxx_todo_changeme, xxx_todo_changeme1):
+            (w,h) = xxx_todo_changeme
+            (x,y) = xxx_todo_changeme1
             retVal = True
             if( x < 0 or  y < 0 or x > w or y > h):
                 retVal = False
@@ -7422,7 +7424,7 @@ class Image:
         #but I can get vectorize to work with the three channels together... have to split them
         #TODO: benchmark this against vectorize
         pixels = np.array(self.getNumpy()).reshape(-1,3).tolist()
-        result = np.array(map(theFunc,pixels),dtype=uint8).reshape(self.width,self.height,3)
+        result = np.array(list(map(theFunc,pixels)),dtype=uint8).reshape(self.width,self.height,3)
         return Image(result)
 
 
@@ -7612,7 +7614,7 @@ class Image:
         else:
             compute = np.where((matches > mean+threshold*sd) )
 
-        mapped = map(tuple, np.column_stack(compute))
+        mapped = list(map(tuple, np.column_stack(compute)))
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
@@ -7733,7 +7735,7 @@ class Image:
                 compute = np.where( matches == np.max(matches) )
             else:
                 return []
-        mapped = map(tuple, np.column_stack(compute))
+        mapped = list(map(tuple, np.column_stack(compute)))
         fs = FeatureSet()
         for location in mapped:
             fs.append(TemplateMatch(self, template_image, (location[1],location[0]), matches[location[0], location[1]]))
@@ -10906,7 +10908,7 @@ class Image:
 
         """
         if boost < 0:
-            print "boost >= 1"
+            print("boost >= 1")
             return None
 
         lpIm = self.applyGaussianFilter(dia=dia,grayscale=grayscale,highpass=False)
@@ -10933,7 +10935,7 @@ class Image:
 
         features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
         features = os.listdir(features_directory)
-        print features
+        print(features)
 
     def _CopyAvg(self, src, dst,roi, levels, levels_f, mode):
         '''
@@ -11183,7 +11185,7 @@ class Image:
 
         for cnt in contour:
             cv2.drawContours(des,[cnt],0,255,-1)
-            print 'yep'
+            print('yep')
 
         gray = cv2.bitwise_not(des)
         return gray
@@ -11254,7 +11256,7 @@ class Image:
         cv.Mul(line,edges,line)
         intersections = uint8(np.array(cv.GetMat(line)).transpose())
         (xs,ys) = np.where(intersections==255)
-        points = zip(xs,ys)
+        points = list(zip(xs,ys))
         if(len(points)==0):
             return [None,None]
         A = np.argmin(spsd.cdist(p0p,points,'cityblock'))
@@ -11390,7 +11392,7 @@ class Image:
         m=0
         mo = 0
         b = x1
-        for i in xrange(0, measurements):
+        for i in range(0, measurements):
             s[i][0] = x1 
             s[i][1] = y1 + i * dy
             lpstartx[i] = s[i][0] + window
@@ -11411,7 +11413,7 @@ class Image:
         mo = -1/m #slope of orthogonal line segments
        
         #obtain points for measurement along the initial guess line
-        for i in xrange(0, measurements):
+        for i in range(0, measurements):
             s[i][0] = x1 + i * dx
             s[i][1] = y1 + i * dy
             fx = (math.sqrt(math.pow(window,2))/(1+mo))/2
@@ -11625,7 +11627,7 @@ class Image:
 
             # pick the lines above our threshold
             x,y = np.where(temp>threshold)
-            pts = zip(x,y)
+            pts = list(zip(x,y))
             gpv = np.array([float(g[0][0]-xminW),float(g[0][1]-yminW)])
             gpw = np.array([float(g[1][0]-xminW),float(g[1][1]-yminW)])
             def lineSegmentToPoint(p):
@@ -11644,7 +11646,7 @@ class Image:
                     return np.sqrt(np.sum((p-project)**2))
             # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 
-            distances = np.array(map(lineSegmentToPoint,pts))
+            distances = np.array(list(map(lineSegmentToPoint,pts)))
             closepoints = np.where(distances<window)[0]
 
             pts = np.array(pts)
@@ -12079,11 +12081,11 @@ class Image:
         points.
         """
         if not ts and not img:
-            print "Invalid Input. Must provide FeatureSet or Image"
+            print("Invalid Input. Must provide FeatureSet or Image")
             return None
 
         if not ts and not bb:
-            print "Invalid Input. Must provide Bounding Box with Image"
+            print("Invalid Input. Must provide Bounding Box with Image")
             return None
 
         if not ts:
@@ -12094,7 +12096,7 @@ class Image:
         try:
             import cv2
         except ImportError:
-            print "Tracking is available for OpenCV >= 2.3"
+            print("Tracking is available for OpenCV >= 2.3")
             return None
 
         if type(img) == list:
@@ -12436,7 +12438,7 @@ class Image:
             try:
                 img = self.getNumpy()[:,:,channel]
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         retVal = None
@@ -12448,8 +12450,8 @@ class Image:
                 retVal.pt2 = (x,self.height)
                 retVal.col = x
                 x = np.ones((1,self.height))[0]*x
-                y = range(0,self.height,1)
-                pts = zip(x,y)
+                y = list(range(0,self.height,1))
+                pts = list(zip(x,y))
                 retVal.pointLoc = pts
             else:
                 warnings.warn("ImageClass.getLineScan - that is not valid scanline.")
@@ -12463,8 +12465,8 @@ class Image:
                 retVal.pt2 = (self.width,y)
                 retVal.row = y
                 y = np.ones((1,self.width))[0]*y
-                x = range(0,self.width,1)
-                pts = zip(x,y)
+                x = list(range(0,self.width,1))
+                pts = list(zip(x,y))
                 retVal.pointLoc = pts
 
             else:
@@ -12529,7 +12531,7 @@ class Image:
             try:
                 img = np.copy(self.getNumpy()[:,:,channel])
             except IndexError:
-                print 'Channel missing!'
+                print('Channel missing!')
                 return None
 
         if( x is None and y is None and pt1 is None and pt2 is None):
@@ -12643,7 +12645,7 @@ class Image:
                 try:
                     img = np.copy(self.getNumpy()[:,:,linescan.channel])
                 except IndexError:
-                    print 'Channel missing!'
+                    print('Channel missing!')
                     return None
 
             if linescan.row is not None:
@@ -12717,7 +12719,7 @@ class Image:
 
         return retVal
 
-    def bresenham_line(self, (x,y), (x2,y2)):
+    def bresenham_line(self, xxx_todo_changeme2, xxx_todo_changeme3):
         """
         Brensenham line algorithm
 
@@ -12725,6 +12727,8 @@ class Image:
 
         This is just a helper method
         """
+        (x,y) = xxx_todo_changeme2
+        (x2,y2) = xxx_todo_changeme3
         if (not 0 <= x <= self.width-1 or not 0 <= y <= self.height-1 or
             not 0 <= x2 <= self.width-1 or not 0 <= y2 <= self.height-1):
             l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
@@ -12894,7 +12898,7 @@ class Image:
 
         gridIndex = self.getDrawingLayer(self._gridLayer[0])
         if self._gridLayer[0]==-1:
-            print "Cannot find grid on the image, Try adding a grid first"
+            print("Cannot find grid on the image, Try adding a grid first")
 
         lineFS = FeatureSet()
         try:
@@ -12939,12 +12943,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -12975,12 +12979,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_and(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13012,12 +13016,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_or(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13048,12 +13052,12 @@ class Image:
 
         """
         if not self.size() == img.size():
-            print "Both images must have same sizes"
+            print("Both images must have same sizes")
             return None
         try:
             import cv2
         except ImportError:
-            print "This function is available for OpenCV >= 2.3"
+            print("This function is available for OpenCV >= 2.3")
         if grayscale:
             retval = cv2.bitwise_xor(self.getGrayNumpyCv2(), img.getGrayNumpyCv2())
         else:
@@ -13122,12 +13126,12 @@ class Image:
         dist = dist[:,0]/2500.0
         dist = dist.reshape(-1,).tolist()
         idx = idx.reshape(-1).tolist()
-        indices = range(len(dist))
+        indices = list(range(len(dist)))
         indices.sort(key=lambda i: dist[i])
         dist = [dist[i] for i in indices]
         idx = [idx[i] for i in indices]
         sfs = []
-        for i, dis in itertools.izip(idx, dist):
+        for i, dis in zip(idx, dist):
             if dis < quality:
                 sfs.append(KeyPoint(template, skp[i], sd, "SIFT"))
             else:
@@ -13137,12 +13141,12 @@ class Image:
         dist = dist[:,0]/2500.0
         dist = dist.reshape(-1,).tolist()
         idx = idx.reshape(-1).tolist()
-        indices = range(len(dist))
+        indices = list(range(len(dist)))
         indices.sort(key=lambda i: dist[i])
         dist = [dist[i] for i in indices]
         idx = [idx[i] for i in indices]
         tfs = []
-        for i, dis in itertools.izip(idx, dist):
+        for i, dis in zip(idx, dist):
             if dis < quality:
                 tfs.append(KeyPoint(template, tkp[i], td, "SIFT"))
             else:
@@ -13502,7 +13506,7 @@ class Image:
         if(locations):
             val = np.max(self.getGrayNumpy())
             x,y = np.where(self.getGrayNumpy()==val)
-            locs = zip(x.tolist(),y.tolist())
+            locs = list(zip(x.tolist(),y.tolist()))
             return int(val),locs
         else:
             val = np.max(self.getGrayNumpy())
@@ -13536,7 +13540,7 @@ class Image:
         if(locations):
             val = np.min(self.getGrayNumpy())
             x,y = np.where(self.getGrayNumpy()==val)
-            locs = zip(x.tolist(),y.tolist())
+            locs = list(zip(x.tolist(),y.tolist()))
             return int(val),locs
         else:
             val = np.min(self.getGrayNumpy())
@@ -13732,21 +13736,21 @@ class Image:
         # As range() function is exclusive, 
         # hence bins+2 is passed as parameter.
 
-        y_axis, x_axis = np.histogram(self.getGrayNumpy(), bins = range(bins+2))
+        y_axis, x_axis = np.histogram(self.getGrayNumpy(), bins = list(range(bins+2)))
         x_axis = x_axis[0:bins+1]
         maxtab = []
         mintab = []
         length = len(y_axis)
         if x_axis is None:
-            x_axis = range(length)
+            x_axis = list(range(length))
 
         #perform some checks
         if length != len(x_axis):
-            raise ValueError, "Input vectors y_axis and x_axis must have same length"
+            raise ValueError("Input vectors y_axis and x_axis must have same length")
         if lookahead < 1:
-            raise ValueError, "Lookahead must be above '1' in value"
+            raise ValueError("Lookahead must be above '1' in value")
         if not (np.isscalar(delta) and delta >= 0):
-            raise ValueError, "delta must be a positive number"
+            raise ValueError("delta must be a positive number")
 
         #needs to be a numpy array
         y_axis = np.asarray(y_axis)
@@ -13835,7 +13839,7 @@ class Image:
         img = self.copy()
         
         if resize <= 0:
-            print 'Enter a valid resize value'
+            print('Enter a valid resize value')
             return None
 
         if resize != 1:
@@ -14055,7 +14059,7 @@ class Image:
                 warnings.warn('Value of weights can be from -200 to 200%')
                 return None
 
-        weight = map(float,weight)
+        weight = list(map(float,weight))
         channel = channel.lower()
         if channel == 'r':
             r = r*(weight[0]/100.0) + g*(weight[1]/100.0) + b*(weight[2]/100.0)
@@ -14140,7 +14144,7 @@ class Image:
         
         #checking that all values are 0 and 255
         if( c1 + c2 != imgArray.size):
-            raise ValueError,"Image must be binary"
+            raise ValueError("Image must be binary")
 
         if(len(pointList) < 2 ):
             return None
@@ -14545,7 +14549,7 @@ class Image:
         #avoiding the effect of odd pixels
         try:
             hist = self.getGrayHistogramCounts()
-            freq, val = zip(*hist)
+            freq, val = list(zip(*hist))
             maxfreq = (freq[0]-freq[-1])* maxCut/100.0
             minfreq = (freq[0]-freq[-1])* minCut/100.0
             closestMatch = lambda a,l:min(l, key=lambda x:abs(x-a))

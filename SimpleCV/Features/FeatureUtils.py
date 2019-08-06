@@ -24,7 +24,7 @@ def GetParallelSets(line_fs,parallel_thresh=2):
     result = result.reshape(sz,sz)
     # find the lines that are less than our thresh
     l1,l2=np.where(result<parallel_thresh)
-    idxs = zip(l1,l2)
+    idxs = list(zip(l1,l2))
     retVal = []
     # now construct the line pairs
     for idx in idxs:

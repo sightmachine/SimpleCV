@@ -7,9 +7,9 @@ import warnings
 import time
 import socket
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import types
-import SocketServer
+import socketserver
 import threading
 import tempfile
 import zipfile
@@ -41,12 +41,12 @@ from warnings import warn
 from copy import copy
 from math import *
 from pkg_resources import load_entry_point
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler
 from types import IntType, LongType, FloatType, InstanceType
-from cStringIO import StringIO
+from io import StringIO
 from numpy import int32
 from numpy import uint8
-from EXIF import *
+from .EXIF import *
 from pygame import gfxdraw
 from pickle import *
 
@@ -195,7 +195,7 @@ def test():
     This function is meant to run builtin unittests
     """
 
-    print 'unit test'
+    print('unit test')
 
 
 def download_and_extract(URL):
@@ -210,14 +210,14 @@ def download_and_extract(URL):
     tmpdir = tempfile.mkdtemp()
     filename = os.path.basename(URL)
     path = tmpdir + "/" + filename
-    zdata = urllib2.urlopen(URL)
+    zdata = urllib.request.urlopen(URL)
 
-    print "Saving file to disk please wait...."
+    print("Saving file to disk please wait....")
     with open(path, "wb") as local_file:
         local_file.write(zdata.read())
 
     zfile = zipfile.ZipFile(path)
-    print "Extracting zipfile"
+    print("Extracting zipfile")
     try:
         zfile.extractall(tmpdir)
     except:
@@ -309,7 +309,7 @@ def read_logging_level(log_level):
     if log_level in levels_dict:
         return levels_dict[log_level]
     else:
-        print "The logging level given is not valid"
+        print("The logging level given is not valid")
         return None
 
 def get_logging_level():
@@ -324,7 +324,7 @@ def get_logging_level():
         50: "CRITICAL"
     }
 
-    print "The current logging level is:", levels_dict[logger.getEffectiveLevel()]
+    print("The current logging level is:", levels_dict[logger.getEffectiveLevel()])
 
 def set_logging(log_level,myfilename = None):
     """
@@ -361,9 +361,9 @@ def set_logging(log_level,myfilename = None):
         fileHandler.setFormatter(formatter)
         logger.addHandler(fileHandler)
         logger.removeHandler(consoleHandler) #Console logging is disabled.
-        print "Now logging to",myfilename,"with level",log_level
+        print("Now logging to",myfilename,"with level",log_level)
     elif level:
-        print "Now logging with level",log_level
+        print("Now logging with level",log_level)
 
     logger.setLevel(level)
 
@@ -391,37 +391,37 @@ def system():
     """
     try :
         import platform
-        print "System : ", platform.system()
-        print "OS version : ", platform.version()
-        print "Python version :", platform.python_version()
+        print("System : ", platform.system())
+        print("OS version : ", platform.version())
+        print("Python version :", platform.python_version())
         try :
             from cv2 import __version__
-            print "Open CV version : " + __version__
+            print("Open CV version : " + __version__)
         except ImportError :
-            print "Open CV2 version : " + "2.1"
+            print("Open CV2 version : " + "2.1")
         if (PIL_ENABLED) :
-            print "PIL version : ", pil.VERSION
+            print("PIL version : ", pil.VERSION)
         else :
-            print "PIL module not installed"
+            print("PIL module not installed")
         if (ORANGE_ENABLED) :
-            print "Orange Version : " + orange.version
+            print("Orange Version : " + orange.version)
         else :
-            print "Orange module not installed"
+            print("Orange module not installed")
         try :
             import pygame as pg
-            print "PyGame Version : " + pg.__version__
+            print("PyGame Version : " + pg.__version__)
         except ImportError:
-            print "PyGame module not installed"
+            print("PyGame module not installed")
         try :
             import pickle
-            print "Pickle Version : " + pickle.__version__
+            print("Pickle Version : " + pickle.__version__)
         except :
-            print "Pickle module not installed"
+            print("Pickle module not installed")
 
     except ImportError :
-        print "You need to install Platform to use this function"
-        print "to install you can use:"
-        print "easy_install platform"
+        print("You need to install Platform to use this function")
+        print("to install you can use:")
+        print("easy_install platform")
     return
 
 class LazyProperty(object):

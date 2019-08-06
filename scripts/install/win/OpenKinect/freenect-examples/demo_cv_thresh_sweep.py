@@ -25,7 +25,7 @@ lower = 0
 upper = 100
 max_upper = 2048
 while upper < max_upper:
-    print('%d < depth < %d' % (lower, upper))
+    print(('%d < depth < %d' % (lower, upper)))
     disp_thresh(lower, upper)
     time.sleep(.1)
     lower += 20

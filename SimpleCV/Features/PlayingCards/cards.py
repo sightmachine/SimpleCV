@@ -12,9 +12,9 @@ RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A')
 
 DECK = tuple(''.join(card) for card in itertools.product(RANKS, SUITS))
 
-ORDER_LOOKUP = dict(zip(DECK, range(52)))
-RANK_LOOKUP = dict(zip(RANKS, range(13)))
-SUIT_LOOKUP = dict(zip(SUITS, range(4)))
+ORDER_LOOKUP = dict(list(zip(DECK, list(range(52)))))
+RANK_LOOKUP = dict(list(zip(RANKS, list(range(13)))))
+SUIT_LOOKUP = dict(list(zip(SUITS, list(range(4)))))
 
 # utility functions
 def cmp_cards(a, b):
@@ -92,7 +92,7 @@ def rank_count(cards):
     
 def is_three(cards, counts=None):
     counts = counts or rank_count(cards)
-    for rank, count in counts.iteritems():
+    for rank, count in counts.items():
         if count == 3:
             return True
     return False
@@ -100,20 +100,20 @@ def is_three(cards, counts=None):
 def is_two_pair(cards, counts=None):
     pairs = 0
     counts = counts or rank_count(cards)
-    for rank, count in counts.iteritems():
+    for rank, count in counts.items():
         if count == 2:
             pairs += 1
     return pairs == 2
     
 def is_pair(cards, counts=None):
     counts = counts or rank_count(cards)
-    for rank, count in counts.iteritems():
+    for rank, count in counts.items():
         if count == 2:
             return True
     return False
     
 def get_ranks(counts):
-    values = [(count, rank) for rank, count in counts.iteritems()]
+    values = [(count, rank) for rank, count in counts.items()]
     values.sort(reverse=True)
     values = [n[1] for n in values]
     return values

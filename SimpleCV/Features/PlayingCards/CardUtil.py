@@ -7,7 +7,7 @@ MISC = ( 'none','bad','joker')
 
 def GetSpecificCardData(suit,rank,path="./data/",label=True):
     fullpath = path+"/"+suit+"/"+rank+"/"
-    print fullpath
+    print(fullpath)
     iset = ImageSet(fullpath)
     if( label ):
         label_vals = []

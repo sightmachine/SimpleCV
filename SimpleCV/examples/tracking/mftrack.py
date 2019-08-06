@@ -14,7 +14,7 @@ def mftest():
         try:
             img1 = cam.getImage()
             fs1 = img1.track("mftrack",fs1,img,bb1, numM=10, numN=10, winsize=10)
-            print fs1[-1].shift, "shift"
+            print(fs1[-1].shift, "shift")
             fs1.drawBB(color=(255,0,0))
             fs1.drawPath()
             img1.show()
@@ -41,7 +41,7 @@ def getBBFromUser(cam, d):
             time.sleep(0.05)
         except KeyboardInterrupt:
             break
-    print p1,p2
+    print(p1,p2)
     if not p1 or not p2:
         return None
 
@@ -49,7 +49,7 @@ def getBBFromUser(cam, d):
     xmin = np.min((p1[0],p2[0]))
     ymax = np.max((p1[1],p2[1]))
     ymin = np.min((p1[1],p2[1]))
-    print xmin,ymin,xmax,ymax
+    print(xmin,ymin,xmax,ymax)
     return (xmin,ymin,xmax-xmin,ymax-ymin)
 
 mftest()

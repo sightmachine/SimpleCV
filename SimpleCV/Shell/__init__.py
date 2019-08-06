@@ -1,1 +1,1 @@
-from Shell import *
+from .Shell import *

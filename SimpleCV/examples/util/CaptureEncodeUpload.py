@@ -52,6 +52,6 @@ params = " -i {0} {1}".format(fname,outname)
 call('ffmpeg'+params,shell=True)
 # construct the command line arguments for google command line
 params = "{0} --title \"{1}\" --tags \"{2}\" --category \"Education\" --summary \"{3}\" --access \"{4}\" ".format(outname,title,tags,summary,access)
-print params
+print(params)
 # call the command line
 call('google youtube post '+params,shell=True)

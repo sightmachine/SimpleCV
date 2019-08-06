@@ -77,7 +77,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
             diff = (lhs-rhs)
             val = np.average(diff.getNumpy())
             if( val > tolerance ):
-                print val
+                print(val)
                 return True
     return False
 
@@ -783,7 +783,7 @@ def test_blob_maker():
     img = Image("../sampleimages/blockhead.png")
     blobber = BlobMaker()
     results = blobber.extract(img)
-    print(len(results))
+    print((len(results)))
     if( len(results) != 7 ):
         assert False
 
@@ -920,7 +920,8 @@ def test_applyBinaryMask():
 
 def test_applyPixelFunc():
     img = Image(logo)
-    def myFunc((r,g,b)):
+    def myFunc(xxx_todo_changeme):
+        (r,g,b) = xxx_todo_changeme
         return( (b,g,r) )
 
     img = img.applyPixelFunction(myFunc)
@@ -1284,7 +1285,7 @@ def test_keypoint_match():
     fs0 = match0.findKeypointMatch(template)#test zero
     fs1 = match1.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
     fs3 = match3.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
-    print "This should fail"
+    print("This should fail")
     fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.2,minMatch=0.1)
     if( fs0 is not None and fs1 is not None and fs2 is None and  fs3 is not None):
         fs0.draw()
@@ -1619,7 +1620,7 @@ def test_minrect_blobs():
     results = []
     for i in range(-10,10):
         ang = float(i*18.00)
-        print ang
+        print(ang)
         t = img.rotate(ang)
         b = t.findBlobs(threshval=128)
         b[-1].drawMinRect(color=Color.RED,width=5)

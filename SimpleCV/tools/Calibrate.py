@@ -86,7 +86,7 @@ def verticalTilt(cb):  #radio between the 0, 1 and 2,3 point pairs
     return distance_ratio
 
 def introMessage():
-    print """
+    print("""
   This tool will help you calibrate your camera to help remove the effects of
   lens distortion and give you more accurate measurement.  You will need:
 
@@ -97,7 +97,7 @@ def introMessage():
   To begin, please put your chessboard close to the camera so the long side is
   horizontal and it fill most of the screen.  Keep it parallel to the camera so it
   appears within the rectangle.
-    """
+    """)
 
 def findLargeFlat(cb, i, calibration_set, dims):
     drawline(i,  (10, 10), (i.width - 10, 10))

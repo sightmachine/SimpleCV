@@ -44,7 +44,7 @@ class FeatureSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return FeatureSet(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)

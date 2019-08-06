@@ -65,7 +65,7 @@ class LineScan(list):
                     self.channel = kwargs[key]
                     
         if(self.pointLoc is None):
-            self.pointLoc = zip(range(0,len(self)),range(0,len(self)))
+            self.pointLoc = list(zip(list(range(0,len(self))),list(range(0,len(self)))))
 
     def __getitem__(self,key):
         """
@@ -76,7 +76,7 @@ class LineScan(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return LineScan(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -90,9 +90,9 @@ class LineScan(list):
     def __sub__(self,other):
         
         if len(self) == len(other):
-            retVal = LineScan(map(operator.sub,self,other))
+            retVal = LineScan(list(map(operator.sub,self,other)))
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
         retVal._update(self)
         return retVal
@@ -100,9 +100,9 @@ class LineScan(list):
     def __add__(self,other):
         
         if len(self) == len(other):
-            retVal = LineScan(map(operator.add,self,other))
+            retVal = LineScan(list(map(operator.add,self,other)))
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
         retVal._update(self)
         return retVal
@@ -110,9 +110,9 @@ class LineScan(list):
     def __mul__(self,other):
 
         if len(self) == len(other):
-            retVal = LineScan(map(operator.mul,self,other))
+            retVal = LineScan(list(map(operator.mul,self,other)))
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
 
         retVal._update(self)
@@ -122,12 +122,12 @@ class LineScan(list):
 
         if len(self) == len(other):
             try:
-                retVal = LineScan(map(operator.div,self,other))
+                retVal = LineScan(list(map(operator.div,self,other)))
             except ZeroDivisionError:
-                print 'Second LineScan contains zeros'
+                print('Second LineScan contains zeros')
                 return None
         else:
-            print 'Size mismatch'
+            print('Size mismatch')
             return None
 
         retVal._update(self)
@@ -294,7 +294,7 @@ class LineScan(list):
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
         pts = [(p[0],p[1]) for p in pts] # un numpy this
-        return zip(idxs,minvalue,pts)
+        return list(zip(idxs,minvalue,pts))
 
     def maxima(self):
         """
@@ -330,7 +330,7 @@ class LineScan(list):
         pts = np.array(self.pointLoc)
         pts = pts[idxs]
         pts = [(p[0],p[1]) for p in pts] # un numpy
-        return zip(idxs,maxvalue,pts)
+        return list(zip(idxs,maxvalue,pts))
 
     def derivative(self):
         """
@@ -394,7 +394,7 @@ class LineScan(list):
         pts = np.array(self.pointLoc)
         pts = pts[idx]
         pts = [(p[0],p[1]) for p in pts] # un numpy
-        return zip(idx,values,pts)
+        return list(zip(idx,values,pts))
 
 
     def localMinima(self):
@@ -429,7 +429,7 @@ class LineScan(list):
         pts = np.array(self.pointLoc)
         pts = pts[idx]
         pts = [(p[0],p[1]) for p in pts] # un numpy
-        return zip(idx,values,pts)
+        return list(zip(idx,values,pts))
 
     def resample(self,n=100):
         """
@@ -464,7 +464,7 @@ class LineScan(list):
         # so we can totally do this better manually
         x = linspace(pts[0,0],pts[-1,0],n)
         y = linspace(pts[0,1],pts[-1,1],n)
-        pts = zip(x,y)
+        pts = list(zip(x,y))
         retVal = LineScan(list(signal),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
         retVal._update(self)
         return retVal
@@ -511,7 +511,7 @@ class LineScan(list):
 
         """
         yvals = np.array(self,dtype='float32')
-        xvals = range(0,len(yvals),1)
+        xvals = list(range(0,len(yvals),1))
         popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
         yvals = f(xvals,*popt)
         retVal = LineScan(list(yvals),image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2)
@@ -550,7 +550,7 @@ class LineScan(list):
 
         """
         yvals = np.array(self,dtype='float32')
-        xvals = range(0,len(yvals),1)
+        xvals = list(range(0,len(yvals),1))
         popt,pcov = spo.curve_fit(f,xvals,yvals,p0=p0)
         return popt
 
@@ -1083,7 +1083,7 @@ class LineScan(list):
             return None
         if kernel_size % 2 == 0:
             kernel_size-=1
-            print "Kernel Size should be odd. New kernel size =" , (kernel_size)
+            print("Kernel Size should be odd. New kernel size =" , (kernel_size))
         
         medfilt_array = medfilt(np.asarray(self[:]), kernel_size)
         retVal = LineScan(medfilt_array.astype("uint8").tolist(), image=self.image,pointLoc=self.pointLoc,pt1=self.pt1,pt2=self.pt2, x=self.col, y=self.row)
@@ -1158,7 +1158,7 @@ class LineScan(list):
             r=float(diameter)/2
             for i in range(-int(r),int(r)+1):
                 kernel.append(np.exp(-i**2/(2*(r/3)**2))/(np.sqrt(2*np.pi)*(r/3)))
-        retVal = LineScan(map(int,self.convolve(kernel)))
+        retVal = LineScan(list(map(int,self.convolve(kernel))))
         retVal._update(self)
         return retVal
 

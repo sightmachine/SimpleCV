@@ -10,7 +10,7 @@ from types import NoneType
 easy_installed_pkgs = dict()
 easy_installed_path = "/Library/Python/2.6/site-packages";
 
-for k in sys.modules.keys():
+for k in list(sys.modules.keys()):
     if type(sys.modules[k]) == NoneType:
         continue
 
@@ -26,5 +26,5 @@ for k in sys.modules.keys():
         easy_installed_pkgs[dirs[1]] = 1
 
 
-for egg in easy_installed_pkgs.keys():
-    print easy_installed_path + "/" + egg
+for egg in list(easy_installed_pkgs.keys()):
+    print(easy_installed_path + "/" + egg)

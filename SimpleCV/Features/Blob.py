@@ -97,7 +97,7 @@ class Blob(Feature):
     def __getstate__(self):
         skip = self.pickle_skip_properties
         newdict = {}
-        for k,v in self.__dict__.items():
+        for k,v in list(self.__dict__.items()):
             if k in skip:
                 continue
             else:
@@ -510,21 +510,15 @@ class Blob(Feature):
         self.mMask = self.mMask.rotate(angle,mode,point)
         self.mHullMask = self.mHullMask.rotate(angle,mode,point)
 
-        self.mContour = map(lambda x:
-                            (x[0]*np.cos(theta)-x[1]*np.sin(theta),
-                             x[0]*np.sin(theta)+x[1]*np.cos(theta)),
-                             self.mContour)
-        self.mConvexHull = map(lambda x:
-                               (x[0]*np.cos(theta)-x[1]*np.sin(theta),
-                                x[0]*np.sin(theta)+x[1]*np.cos(theta)),
-                               self.mConvexHull)
+        self.mContour = [(x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                             x[0]*np.sin(theta)+x[1]*np.cos(theta)) for x in self.mContour]
+        self.mConvexHull = [(x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                                x[0]*np.sin(theta)+x[1]*np.cos(theta)) for x in self.mConvexHull]
 
         if( self.mHoleContour is not None):
             for h in self.mHoleContour:
-                h = map(lambda x:
-                    (x[0]*np.cos(theta)-x[1]*np.sin(theta),
-                     x[0]*np.sin(theta)+x[1]*np.cos(theta)),
-                     h)
+                h = [(x[0]*np.cos(theta)-x[1]*np.sin(theta),
+                     x[0]*np.sin(theta)+x[1]*np.cos(theta)) for x in h]
 
 
     def drawAppx(self, color = Color.HOTPINK,width=-1,alpha=-1,layer=None):

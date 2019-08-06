@@ -13,7 +13,7 @@ quarter - 24.26 mm
 
 '''
 
-print __doc__
+print(__doc__)
 
 from SimpleCV import *
 # A quarter is 24.26mm or 0.955in

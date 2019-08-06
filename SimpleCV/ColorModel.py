@@ -69,7 +69,7 @@ class ColorModel:
         #create a unique set of colors.  I had to look this one up
 
         #create a dict of encoded strings
-        return dict.fromkeys(map(np.ndarray.tostring, uniques), 1)
+        return dict.fromkeys(list(map(np.ndarray.tostring, uniques)), 1)
 
     def reset(self):
         """
@@ -169,7 +169,7 @@ class ColorModel:
             b = 0
 
         rs = np.right_shift(img.getNumpy(), self.mBits).reshape(-1, 3) #bitshift down and reshape to Nx3
-        mapped = np.array(map(self.mData.has_key, map(np.ndarray.tostring, rs))) #map to True/False based on the model
+        mapped = np.array(list(map(self.mData.has_key, list(map(np.ndarray.tostring, rs))))) #map to True/False based on the model
         thresh = np.where(mapped, a, b) #replace True and False with fg and bg
         return Image(thresh.reshape(img.width, img.height))
 
@@ -198,7 +198,7 @@ class ColorModel:
 
        """
         #reverse the color, cast to uint8, right shift, convert to string, check dict
-        return self.mData.has_key(np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring())
+        return np.right_shift(np.cast['uint8'](c[::-1]), self.mBits).tostring() in self.mData
 
     def setIsForeground(self):
         """

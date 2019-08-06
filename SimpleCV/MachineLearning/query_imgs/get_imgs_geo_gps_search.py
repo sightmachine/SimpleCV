@@ -55,8 +55,8 @@ def DoSearch(fapi,query_string,desired_photos):
 
 
 
-    print datetime.fromtimestamp(mintime)
-    print datetime.fromtimestamp(endtime)
+    print(datetime.fromtimestamp(mintime))
+    print(datetime.fromtimestamp(endtime))
 
     while (maxtime < endtime):
 
@@ -69,9 +69,9 @@ def DoSearch(fapi,query_string,desired_photos):
         upper_bound = mintime + timeskip * 20 #upper bound of the upper time limit
         maxtime     = .95 * lower_bound + .05 * upper_bound
 
-        print '\nBinary search on time range upper bound'
-        print 'Lower bound is ' + str(datetime.fromtimestamp(lower_bound))
-        print 'Upper bound is ' + str(datetime.fromtimestamp(upper_bound))
+        print('\nBinary search on time range upper bound')
+        print('Lower bound is ' + str(datetime.fromtimestamp(lower_bound)))
+        print('Upper bound is ' + str(datetime.fromtimestamp(upper_bound)))
 
         keep_going = 6 #search stops after a fixed number of iterations
         while( keep_going > 0 and maxtime < endtime):
@@ -94,21 +94,21 @@ def DoSearch(fapi,query_string,desired_photos):
                 null_test = int(total_images); #want to make sure this won't crash later on for some reason
                 null_test = float(total_images);
 
-                print '\nnumimgs: ' + total_images
-                print 'mintime: ' + str(mintime) + ' maxtime: ' + str(maxtime) + ' timeskip:  ' + str(maxtime - mintime)
+                print('\nnumimgs: ' + total_images)
+                print('mintime: ' + str(mintime) + ' maxtime: ' + str(maxtime) + ' timeskip:  ' + str(maxtime - mintime))
 
                 if( int(total_images) > desired_photos ):
-                    print 'too many photos in block, reducing maxtime'
+                    print('too many photos in block, reducing maxtime')
                     upper_bound = maxtime
                     maxtime = (lower_bound + maxtime) / 2 #midpoint between current value and lower bound.
 
                 if( int(total_images) < desired_photos):
-                    print 'too few photos in block, increasing maxtime'
+                    print('too few photos in block, increasing maxtime')
                     lower_bound = maxtime
                     maxtime = (upper_bound + maxtime) / 2
 
-                print 'Lower bound is ' + str(datetime.fromtimestamp(lower_bound))
-                print 'Upper bound is ' + str(datetime.fromtimestamp(upper_bound))
+                print('Lower bound is ' + str(datetime.fromtimestamp(lower_bound)))
+                print('Upper bound is ' + str(datetime.fromtimestamp(upper_bound)))
 
                 if( int(total_images) > 0): #only if we're not in a degenerate case
                     keep_going = keep_going - 1
@@ -119,14 +119,14 @@ def DoSearch(fapi,query_string,desired_photos):
                 print('Keyboard exception while querying for images, exiting\n')
                 raise
             except:
-                print sys.exc_info()[0]
+                print(sys.exc_info()[0])
                 #print type(inst)     # the exception instance
                 #print inst.args      # arguments stored in .args
                 #print inst           # __str__ allows args to printed directly
                 print ('Exception encountered while querying for images\n')
 
         #end of while binary search
-        print 'finished binary search'
+        print('finished binary search')
         return([mintime,maxtime,total_images,rsp])
 
 
@@ -154,7 +154,7 @@ num_queries = 0
 
 for line in query_file:
     if line[0] != '#' and len(line) > 1:  #line end character is 2 long?
-        print line[0:len(line)-1]
+        print(line[0:len(line)-1])
         if line[0] != '-':
             pos_queries = pos_queries + [line[0:len(line)-1]]
             num_queries = num_queries + 1
@@ -162,10 +162,10 @@ for line in query_file:
             neg_queries = neg_queries + ' ' + line[0:len(line)-1]
 
 query_file.close()
-print 'positive queries:  '
-print pos_queries
-print 'negative queries:  ' + neg_queries
-print 'num_queries = ' + str(num_queries)
+print('positive queries:  ')
+print(pos_queries)
+print('negative queries:  ' + neg_queries)
+print('num_queries = ' + str(num_queries))
 #this is the desired number of photos in each block
 
 
@@ -193,27 +193,27 @@ for current_tag in range(0, num_queries):
 
     #form the query string.
     query_string = pos_queries[current_tag] + ' ' + neg_queries
-    print '\n\nquery_string is ' + query_string
+    print('\n\nquery_string is ' + query_string)
 
     total_images_queried = 0;
     [mintime,maxtime,total_images,rsp] = DoSearch(fapi,query_string,desired_photos)
 
-    print('GETTING TOTATL IMAGES:'+str(total_images))
+    print(('GETTING TOTATL IMAGES:'+str(total_images)))
     s = '\nmintime: ' + str(mintime) + ' maxtime: ' + str(maxtime)
-    print s
+    print(s)
     out_file.write(s + '\n')
     i = getattr(rsp,'photos',None)
     if i:
 
         s = 'numimgs: ' + total_images
-        print s
+        print(s)
         out_file.write(s + '\n')
 
         current_image_num = 1;
 
         num = 4 # CHANGE THIS BACK int(rsp.photos[0]['pages'])
         s =  'total pages: ' + str(num)
-        print s
+        print(s)
         out_file.write(s + '\n')
 
         #only visit 16 pages max, to try and avoid the dreaded duplicate bug
@@ -222,7 +222,7 @@ for current_tag in range(0, num_queries):
         num_visit_pages = min(16,num)
 
         s = 'visiting only ' + str(num_visit_pages) + ' pages ( up to ' + str(num_visit_pages * 250) + ' images)'
-        print s
+        print(s)
         out_file.write(s + '\n')
 
         total_images_queried = total_images_queried + min((num_visit_pages * 250), int(total_images))
@@ -235,7 +235,7 @@ for current_tag in range(0, num_queries):
         while( pagenum <= num_visit_pages ):
         #for pagenum in range(1, num_visit_pages + 1):  #page one is searched twice
 
-            print '  page number ' + str(pagenum)
+            print('  page number ' + str(pagenum))
 
             try:
                 print("PAGE")
@@ -273,7 +273,7 @@ for current_tag in range(0, num_queries):
                 print('Keyboard exception while querying for images, exiting\n')
                 raise
             except:
-                print sys.exc_info()[0]
+                print(sys.exc_info()[0])
                 #print type(inst)     # the exception instance
                 #print inst.args      # arguments stored in .args
                 #print inst           # __str__ allows args to printed directly

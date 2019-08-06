@@ -4,7 +4,7 @@
 """
 This program basically does face detection an blurs the face out.
 """
-print __doc__
+print(__doc__)
 
 from SimpleCV import Camera, Display, HaarCascade
 

@@ -15,7 +15,7 @@ def lktest():
             img1 = cam.getImage()
             fs1 = img1.track("lk",fs1,img,bb1, maxCorners = 5000, qualityLevel = 0.08, winSize = (15, 15))
             fs1.drawBB(color=Color.RED)
-            print fs1[-1].getBB()
+            print(fs1[-1].getBB())
             img1.show()
         except KeyboardInterrupt:
             break

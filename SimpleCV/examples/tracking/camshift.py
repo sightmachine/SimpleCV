@@ -21,9 +21,9 @@ def camshift():
             fs1.showPixelVelocityRT()
             img1.show()
         except KeyboardInterrupt:
-            print "Total number of frames tracked",
-            print fs1.trackLength()
-            print fs1.processTrack(foo)
+            print("Total number of frames tracked", end=' ')
+            print(fs1.trackLength())
+            print(fs1.processTrack(foo))
             break
 
 def getBBFromUser(cam, d):
@@ -46,7 +46,7 @@ def getBBFromUser(cam, d):
             time.sleep(0.05)
         except KeyboardInterrupt:
             break
-    print p1,p2
+    print(p1,p2)
     if not p1 or not p2:
         return None
 
@@ -54,7 +54,7 @@ def getBBFromUser(cam, d):
     xmin = np.min((p1[0],p2[0]))
     ymax = np.max((p1[1],p2[1]))
     ymin = np.min((p1[1],p2[1]))
-    print xmin,ymin,xmax,ymax
+    print(xmin,ymin,xmax,ymax)
     return (xmin,ymin,xmax-xmin,ymax-ymin)
 
 camshift()

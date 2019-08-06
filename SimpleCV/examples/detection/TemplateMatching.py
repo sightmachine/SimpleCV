@@ -6,7 +6,7 @@ for the scale to change, nor for rotation.  This is the most basic pattern
 matching SimpleCV offers.  If you are looking for something more complex
 you will probably want to look into img.findKeypoints()
 '''
-print __doc__
+print(__doc__)
 
 
 from SimpleCV import *
@@ -18,7 +18,7 @@ t = 5
 
 methods = ["SQR_DIFF","SQR_DIFF_NORM","CCOEFF","CCOEFF_NORM","CCORR","CCORR_NORM"] # the various types of template matching available
 for m in methods:
-    print "current method:", m # print the method being used
+    print("current method:", m) # print the method being used
     result = Image("templatetest.png", sample=True)
     dl = DrawingLayer((source.width,source.height))
     fs = source.findTemplate(template,threshold=t,method=m)

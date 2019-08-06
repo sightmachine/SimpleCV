@@ -16,7 +16,7 @@ On linux it is typically: /dev/ttyUSBO or /dev/ttyACM0
 but the Arduino IDE should tell you where you should mount the Arduino from.
 """
 
-print __doc__
+print(__doc__)
 
 import time
 from SimpleCV import Camera
@@ -49,7 +49,7 @@ while True:
     else:
         t2 *= multiplier
 
-    print "t1 " + str(t1) + ", t2 " + str(t2) + ", b13 " + str(b13)
+    print("t1 " + str(t1) + ", t2 " + str(t2) + ", b13 " + str(b13))
     img = cam.getImage().flipHorizontal()
     edged_img = img.edges(int(t1), int(t2)).invert().smooth()
     edged_img.show()

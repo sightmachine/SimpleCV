@@ -105,7 +105,7 @@ def surfTracker(img, bb, ts, **kwargs):
     skp, sd = descriptor.compute(newimg, skp)
 
     if td is None:
-        print "Descriptors are Empty"
+        print("Descriptors are Empty")
         return None
 
     if sd is None:
@@ -121,7 +121,7 @@ def surfTracker(img, bb, ts, **kwargs):
     # filter points using distnace criteria
     dist = (dist[:,0]/2500.0).reshape(-1,).tolist()
     idx = idx.reshape(-1).tolist()
-    indices = sorted(range(len(dist)), key=lambda i: dist[i])
+    indices = sorted(list(range(len(dist))), key=lambda i: dist[i])
 
     dist = [dist[i] for i in indices]
     idx = [idx[i] for i in indices]
@@ -129,7 +129,7 @@ def surfTracker(img, bb, ts, **kwargs):
     skp_final_labelled=[]
     data_cluster=[]
     
-    for i, dis in itertools.izip(idx, dist):
+    for i, dis in zip(idx, dist):
         if dis < distance:
             skp_final.append(skp[i])
             data_cluster.append((skp[i].pt[0], skp[i].pt[1]))
@@ -142,7 +142,7 @@ def surfTracker(img, bb, ts, **kwargs):
     db = DBSCAN(eps=eps_val, min_samples=min_samples).fit(S)
     core_samples = db.core_sample_indices_
     labels = db.labels_
-    for label, i in zip(labels, range(len(labels))):
+    for label, i in zip(labels, list(range(len(labels)))):
         if label==0:
             skp_final_labelled.append(skp_final[i])
 

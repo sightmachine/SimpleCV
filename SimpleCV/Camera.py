@@ -369,7 +369,7 @@ class FrameSource:
                 i.dl().text(txt, (10,i.height / 2), color=col)
                 txt = "color: " + str(i.getPixel(d.mouseX,d.mouseY))
                 i.dl().text(txt, (10,(i.height / 2) + 10), color=col)
-                print "coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY))
+                print("coord: (" + str(d.mouseX) + "," + str(d.mouseY) + "), color: " + str(i.getPixel(d.mouseX,d.mouseY)))
 
 
             if elapsed_time > 0 and elapsed_time < 5:
@@ -381,7 +381,7 @@ class FrameSource:
 
             i.save(d)
             if d.mouseRight:
-                print "Closing Window"
+                print("Closing Window")
                 d.done = True
 
 
@@ -483,7 +483,7 @@ class Camera(FrameSource):
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
-        if platform.system() == "Linux" and (prop_set.has_key("height") or cv.GrabFrame(self.capture) == False):
+        if platform.system() == "Linux" and ("height" in prop_set or cv.GrabFrame(self.capture) == False):
             import pygame.camera
             pygame.camera.init()
             threaded = True  #pygame must be threaded
@@ -491,8 +491,8 @@ class Camera(FrameSource):
                 camera_index = 0
                 self.index = camera_index
                 _index.append(camera_index)
-                print _index
-            if(prop_set.has_key("height") and prop_set.has_key("width")):
+                print(_index)
+            if("height" in prop_set and "width" in prop_set):
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index), (prop_set['width'], prop_set['height']))
             else:
                 self.capture = pygame.camera.Camera("/dev/video" + str(camera_index))
@@ -517,7 +517,7 @@ class Camera(FrameSource):
                 return None
 
             #set any properties in the constructor
-            for p in prop_set.keys():
+            for p in list(prop_set.keys()):
                 if p in self.prop_map:
                     cv.SetCaptureProperty(self.capture, self.prop_map[p], prop_set[p])
 
@@ -682,16 +682,16 @@ class VirtualCamera(FrameSource):
         self.start = start
 
         if self.sourcetype not in ["video", "image", "imageset", "directory"]:
-            print 'Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype
-            print '\tVirtualCamera("filename","video")'
-            print '\tVirtualCamera("filename","image")'
-            print '\tVirtualCamera("./path_to_images","imageset")'
-            print '\tVirtualCamera("./path_to_images","directory")'
+            print('Error: In VirtualCamera(), Incorrect Source option. "%s" \nUsage:' % self.sourcetype)
+            print('\tVirtualCamera("filename","video")')
+            print('\tVirtualCamera("filename","image")')
+            print('\tVirtualCamera("./path_to_images","imageset")')
+            print('\tVirtualCamera("./path_to_images","directory")')
             return None
 
         else:
             if isinstance(self.source,str) and not os.path.exists(self.source):
-                print 'Error: In VirtualCamera()\n\t"%s" was not found.' % self.source
+                print('Error: In VirtualCamera()\n\t"%s" was not found.' % self.source)
                 return None
 
         if (self.sourcetype == "imageset"):
@@ -737,7 +737,7 @@ class VirtualCamera(FrameSource):
             return Image(self.source, self)
 
         elif (self.sourcetype == 'imageset'):
-            print len(self.source)
+            print(len(self.source))
             img = self.source[self.counter % len(self.source)]
             self.counter = self.counter + 1
             return img
@@ -1073,21 +1073,21 @@ class JpegStreamReader(threading.Thread):
 
             #thank you missing urllib2 manual
             #http://www.voidspace.org.uk/python/articles/urllib2.shtml#id5
-            password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+            password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
             password_mgr.add_password(None, self.url, user, password)
 
-            handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-            opener = urllib2.build_opener(handler)
+            handler = urllib.request.HTTPBasicAuthHandler(password_mgr)
+            opener = urllib.request.build_opener(handler)
 
             f = opener.open(self.url)
         else:
-            f = urllib2.urlopen(self.url)
+            f = urllib.request.urlopen(self.url)
 
         headers = f.info()
-        if (headers.has_key("content-type")):
+        if ("content-type" in headers):
             headers['Content-type'] = headers['content-type'] #force ucase first char
 
-        if not headers.has_key("Content-type"):
+        if "Content-type" not in headers:
             logger.warning("Tried to load a JpegStream from " + self.url + ", but didn't find a content-type header!")
             return
 
@@ -1257,7 +1257,7 @@ class Scanner(FrameSource):
         self.max_x = self.device.br_x
         self.max_y = self.device.br_y #save our extents for later
 
-        for k, v in properties.items():
+        for k, v in list(properties.items()):
             setattr(self.device, k, v)
 
     def getImage(self):
@@ -1335,7 +1335,7 @@ class Scanner(FrameSource):
         """
         for prop in self.device.optlist:
             try:
-                print self.device[prop]
+                print(self.device[prop])
             except:
                 pass
 
@@ -1589,7 +1589,7 @@ class ScreenCamera():
             if self._roi :
                 img = img.crop(self._roi,centered=True)
         except :
-            print "Error croping the image. ROI specified is not correct."
+            print("Error croping the image. ROI specified is not correct.")
             return None
         return img
 
@@ -2241,7 +2241,7 @@ class StereoCamera :
             frameRight = cv.QueryFrame(captureRight)
             cv.FindChessboardCorners(frameRight, (chessboard))
         except :
-            print "Error Initialising the Left and Right camera"
+            print("Error Initialising the Left and Right camera")
             return None
 
         imagePoints1 = cv.CreateMat(1, nboards * chessboard[0] * chessboard[1], cv.CV_64FC2)
@@ -2284,7 +2284,7 @@ class StereoCamera :
                 cv.ShowImage(n2, frameRight)
 
             if cor1[0] and cor2[0] and k==0x20:
-                print count
+                print(count)
                 for i in range(0, len(cor1[1])):
                     cv.Set1D(imagePoints1, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor1[1][i][0], cor1[1][i][1]))
                     cv.Set1D(imagePoints2, count * chessboard[0] * chessboard[1] + i, cv.Scalar(cor2[1][i][0], cor2[1][i][1]))
@@ -2307,19 +2307,19 @@ class StereoCamera :
                     cv.Zero(D1)
                     cv.Zero(D2)
 
-                    print "Running stereo calibration..."
+                    print("Running stereo calibration...")
                     del(camLeft)
                     del(camRight)
                     cv.StereoCalibrate(objectPoints, imagePoints1, imagePoints2, nPoints, CM1, D1, CM2, D2, WinSize, R, T, E, F,
                                       flags=cv.CV_CALIB_SAME_FOCAL_LENGTH | cv.CV_CALIB_ZERO_TANGENT_DIST)
 
-                    print "Done."
+                    print("Done.")
                     return (CM1, CM2, D1, D2, R, T, E, F)
 
             cv.ShowImage(n1, frameLeft)
             cv.ShowImage(n2, frameRight)
             if k == 0x1b:
-                print "ESC pressed. Exiting. WARNING: NOT ENOUGH CHESSBOARDS FOUND YET"
+                print("ESC pressed. Exiting. WARNING: NOT ENOUGH CHESSBOARDS FOUND YET")
                 cv.DestroyAllWindows()
                 break
 
@@ -2373,7 +2373,7 @@ class StereoCamera :
             cv.Save("{0}/{1}".format(cdir, filenames[5]), T)
             cv.Save("{0}/{1}".format(cdir, filenames[6]), E)
             cv.Save("{0}/{1}".format(cdir, filenames[7]), F)
-            print "Calibration parameters written to directory '{0}'.".format(cdir)
+            print("Calibration parameters written to directory '{0}'.".format(cdir))
             return True
 
         except :
@@ -2421,7 +2421,7 @@ class StereoCamera :
             T = cv.Load("{0}/{1}".format(dir, filenames[5]))
             E = cv.Load("{0}/{1}".format(dir, filenames[6]))
             F = cv.Load("{0}/{1}".format(dir, filenames[7]))
-            print "Calibration files loaded from dir '{0}'.".format(dir)
+            print("Calibration files loaded from dir '{0}'.".format(dir))
             return (CM1, CM2, D1, D2, R, T, E, F)
 
         except :
@@ -2469,7 +2469,7 @@ class StereoCamera :
         P2 = cv.CreateMat(3, 4, cv.CV_64F)
         Q = cv.CreateMat(4, 4, cv.CV_64F)
         
-        print "Running stereo rectification..."
+        print("Running stereo rectification...")
         
         (leftroi, rightroi) = cv.StereoRectify(CM1, CM2, D1, D2, WinSize, R, T, R1, R2, P1, P2, Q)
         roi = []
@@ -2477,7 +2477,7 @@ class StereoCamera :
         roi.append(max(leftroi[1], rightroi[1]))
         roi.append(min(leftroi[2], rightroi[2]))
         roi.append(min(leftroi[3], rightroi[3]))
-        print "Done."
+        print("Done.")
         return (R1, R2, P1, P2, Q, roi)
 
     def getImagesUndistort(self,imgLeft, imgRight, calibration, rectification, WinSize=(352,288)):
@@ -2975,7 +2975,7 @@ class AVTCamera(FrameSource):
 
             camera_id = camlist[camera_id].UniqueId
 
-        camera_id = long(camera_id)
+        camera_id = int(camera_id)
         self.handle = ct.c_uint()
         init_count = 0
         while self.dll.PvCameraOpen(camera_id,0,ct.byref(self.handle)) != 0: #wait until camera is availble
@@ -3143,7 +3143,7 @@ class AVTCamera(FrameSource):
 
         """
         props = {}
-        for p in self._properties.keys():
+        for p in list(self._properties.keys()):
             props[p] = self.getProperty(p)
 
         return props
@@ -3206,9 +3206,9 @@ class AVTCamera(FrameSource):
             st = time.time()
             try:
                 pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(self.frame), timeout) )
-            except Exception, e:
-                print "Exception waiting for frame:", e
-                print "Time taken:",time.time() - st
+            except Exception as e:
+                print("Exception waiting for frame:", e)
+                print("Time taken:",time.time() - st)
                 self.frame = None
                 raise(e)
             img = self.unbuffer()
@@ -3267,13 +3267,13 @@ class AVTCamera(FrameSource):
           st = time.time()
           try:
             pverr( self.dll.PvCaptureWaitForFrameDone(self.handle, ct.byref(frame), timeout) )
-          except Exception, e:
-            print "Exception waiting for frame:", e
-            print "Time taken:",time.time() - st
+          except Exception as e:
+            print("Exception waiting for frame:", e)
+            print("Time taken:",time.time() - st)
             raise(e)
             
-        except Exception, e:
-            print "Exception aquiring frame:", e
+        except Exception as e:
+            print("Exception aquiring frame:", e)
             raise(e)  
           
         return frame
@@ -3284,8 +3284,8 @@ class AVTCamera(FrameSource):
             self.runCommand("AcquisitionStart")
             pverr( self.dll.PvCaptureQueueFrame(self.handle, ct.byref(self.frame), None) )
             self.runCommand("AcquisitionStop")
-        except Exception, e:
-            print "Exception aquiring frame:", e
+        except Exception as e:
+            print("Exception aquiring frame:", e)
             raise(e)  
 
 
@@ -3298,8 +3298,8 @@ class GigECamera(Camera):
         try:
             from gi.repository import Aravis
         except:
-            print "GigE is supported by the Aravis library, download and build from https://github.com/sightmachine/aravis"
-            print "Note that you need to set GI_TYPELIB_PATH=$GI_TYPELIB_PATH:(PATH_TO_ARAVIS)/src for the GObject Introspection"
+            print("GigE is supported by the Aravis library, download and build from https://github.com/sightmachine/aravis")
+            print("Note that you need to set GI_TYPELIB_PATH=$GI_TYPELIB_PATH:(PATH_TO_ARAVIS)/src for the GObject Introspection")
             sys.exit()
         
         self._cam = Aravis.Camera.new (None)
@@ -3387,17 +3387,17 @@ class GigECamera(Camera):
         see function camera.getPropertyList()
       '''
       if name == None:
-        print "You need to provide a property, available properties are:"
-        print ""
+        print("You need to provide a property, available properties are:")
+        print("")
         for p in self.getPropertyList():
-          print p
+          print(p)
         return
 
       stringval = "get_{}".format(name)
       try:
         return getattr(self._cam, stringval)()
       except:
-        print 'Property {} does not appear to exist'.format(name)
+        print('Property {} does not appear to exist'.format(name))
         return None
       
     def setProperty(self, name = None, *args):
@@ -3413,21 +3413,21 @@ class GigECamera(Camera):
       '''
 
       if name == None:
-        print "You need to provide a property, available properties are:"
-        print ""
+        print("You need to provide a property, available properties are:")
+        print("")
         for p in self.getPropertyList():
-          print p
+          print(p)
         return
 
       if len(args) <= 0:
-        print "You must provide a value to set"
+        print("You must provide a value to set")
         return
         
       stringval = "set_{}".format(name)
       try:
         return getattr(self._cam, stringval)(*args)
       except:
-        print 'Property {} does not appear to exist or value is not in correct format'.format(name)
+        print('Property {} does not appear to exist or value is not in correct format'.format(name))
         return None
 
        
@@ -3437,7 +3437,7 @@ class GigECamera(Camera):
       '''
       
       for p in self.getPropertyList():
-        print "{}: {}".format(p,self.getProperty(p))
+        print("{}: {}".format(p,self.getProperty(p)))
 
 class VimbaCameraThread(threading.Thread):
     camera = None
@@ -3805,8 +3805,8 @@ class VimbaCamera(FrameSource):
             c.runFeatureCommand('AcquisitionStop')
             try:
                 f.waitFrameCapture(timeout)
-            except Exception, e:
-                print "Exception waiting for frame: %s: %s" % (e, traceback.format_exc())
+            except Exception as e:
+                print("Exception waiting for frame: %s: %s" % (e, traceback.format_exc()))
                 raise(e)
 
             imgData = f.getBufferByteData()
@@ -3819,7 +3819,7 @@ class VimbaCamera(FrameSource):
 
             return Image(rgb, colorSpace=colorSpace, cv2image=imgData)
 
-        except Exception, e:
-            print "Exception acquiring frame: %s: %s" % (e, traceback.format_exc())
+        except Exception as e:
+            print("Exception acquiring frame: %s: %s" % (e, traceback.format_exc()))
             raise(e)
 

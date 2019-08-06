@@ -59,9 +59,9 @@ class JpegStreamHandler(SimpleHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(_jpegstreamers[port].jpgdata.getvalue() + "\r\n")
                         lasttimeserved = time.time()
-                    except socket.error, e:
+                    except socket.error as e:
                         return
-                    except IOError, e:
+                    except IOError as e:
                         return
                     count = count + 1
 
@@ -118,7 +118,7 @@ class JpegStreamer():
         if (type(hostandport) == int):
             self.port = hostandport
             self.host = "localhost"
-        elif (isinstance(hostandport, basestring) and re.search(":", hostandport)):
+        elif (isinstance(hostandport, str) and re.search(":", hostandport)):
             (self.host, self.port) = hostandport.split(":")
             self.port = int(self.port)
         elif (type(hostandport) == tuple):
