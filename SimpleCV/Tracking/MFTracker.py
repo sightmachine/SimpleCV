@@ -156,7 +156,7 @@ def fbtrack(imgI, imgJ, bb, numM=10, numN=10,margin=5,winsize_ncc=10, winsize_lk
     #print newBB, "fbtrack passing newBB"
     return (newBB, scaleshift)
 
-def lktrack(img1, img2, ptsI, nPtsI, winsize_ncc=10, win_size_lk=4, method=cv2.cv.CV_TM_CCOEFF_NORMED):
+def lktrack(img1, img2, ptsI, nPtsI, winsize_ncc=10, win_size_lk=4, method=cv2.CV_TM_CCOEFF_NORMED):
     """
     **SUMMARY**
     (Dev Zone)
@@ -454,7 +454,7 @@ def euclideanDistance(point1,point2):
     match = ((point1[:,0]-point2[:,0])**2+(point1[:,1]-point2[:,1])**2)**0.5
     return match
 
-def normCrossCorrelation(img1, img2, pt0, pt1, status, winsize, method=cv2.cv.CV_TM_CCOEFF_NORMED):
+def normCrossCorrelation(img1, img2, pt0, pt1, status, winsize, method=cv2.CV_TM_CCOEFF_NORMED):
     """
     **SUMMARY**
     (Dev Zone)
