@@ -14,7 +14,7 @@ Quick Links:
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
     * [Fedora](#fedora)
-    * [MacOS](#mac-os-x-106-and-above)
+    * [MacOS](#macos)
     * [Windows](#windows-7vista)
     * [Raspberry Pi](#raspberry-pi)
  * [SimpleCV Shell](#simplecv-interactive-shell-or-how-to-run-simplecv)
@@ -171,9 +171,9 @@ Install using clone of SimpleCV repository
     cd SimpleCV/
     sudo python setup.py install
 
-<a id="macos">
+<a id="macos"></a>
 ### Mac OS X (10.6 and above)
-</a>
+
 
 **General OSX Overview**
 
