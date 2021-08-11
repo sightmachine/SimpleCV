@@ -9,7 +9,7 @@ Quick Links:
 
  * [About](#about)
  * [Installation](#installation)
-    * [Docker] (#docker)
+    * [Docker](#docker)
     * [Ubuntu](#ubuntu-1204)
     * [Virtual Environment](#virtualenv)
     * [Arch Linux](#arch-linux)
@@ -63,8 +63,8 @@ This is the recommended way of installing SimpleCV as you can be sure the enviro
 
 *WARNING*: Using docker does not allow the webcam to work, it also doesn't work with Image.show(), so essentially requires you to use simplecv within an IPython notebook.
 
-The first step is to install docker on your machine if you have not, this should work for Windows, Mac, and Linux, please follow instructions at:
-<a href="https://docs.docker.com/installation/">https://docs.docker.com/installation/</a>
+The first step is to [Install Docker](https://docs.docker.com/installation) on your machine if you have not, this should work for Windows, Mac, and Linux.
+<a href="https://docs.docker.com/installation/"></a>
 
 Once docker is installed you can run simplecv as easy as (may have to run as sudo, depending on OS):
 
@@ -110,7 +110,7 @@ then just run 'simplecv' from the shell.
 
 ### Virtualenv
 
-This is how to install SimpleCV under a python virtual environment [virtualenv] (http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
+This is how to install SimpleCV under a python virtual environment [virtualenv](http://www.virtualenv.org).  This maybe useful in cases where you want to keep your system libraries clean and not install extra libraries.  This method has only been tested on Ubuntu 12.04, it maybe possible to port to other operating systems.
 
 Run the following commands:
 
@@ -154,6 +154,7 @@ Install development version using aur
 
 <a id="fedora"></a>
 ### Fedora
+
 #### Fedora 20 and above
 
     sudo yum -y install python-SimpleCV
@@ -300,8 +301,8 @@ if you encounter this problem please submit an issue on github.*
 
 Before you begin installing SimpleCV make sure you have the folliwng tools installed.
 
-* Install Xcode https://developer.apple.com/xcode/ and then run the Xcode installer.
-* Install homebrew https://github.com/mxcl/homebrew/wiki/installation
+* [Install Xcode](https://developer.apple.com/xcode/) and then run the Xcode installer.
+* [Install homebrew](https://github.com/mxcl/homebrew/wiki/installation)
 
 
 Commands (for Lion)::
@@ -372,7 +373,7 @@ If you already have Python, OpenCV or SciPy installed and want to keep things th
     C:\OpenCV2.3\
 
 
-* (OPTIONAL) Install MinGW for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.  (http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/)
+* (OPTIONAL) [Install MinGW](http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/) for optional files and building openCV from source.  Make sure to include C/C++ Compiler and msys package.
 
 Once these are installed you need to add Python to your Path, open a command line (start->run->cmd)::
 
@@ -421,7 +422,7 @@ The solution for this is to install latest stable version of scipy for windows .
 
 
 <a id="rasppi"></a>
-#### RASPBERRY PI
+#### Raspberry Pi
 
 * [Installation instructions can be found here.](https://github.com/sightmachine/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
 
@@ -451,7 +452,7 @@ To run SimpleCV within an ipython notebook (ipython-notebooks are required to be
 to install ipython notebooks run the following:
 
 	sudo pip install tornado
-  sudo pip install pyzmq
+	sudo pip install pyzmq
 
 
 
@@ -478,7 +479,7 @@ student had built, we have forked the project and instructions on how to set it 
 ## Getting Help
 
 You can always head over to the SimpleCV help forums to ask questions:
-(SimpleCV Help Forums) - <http://help.simplecv.org>
+http://help.simplecv.org
 
 --------------------
 <a id="troubleshoot"></a>
@@ -490,35 +491,35 @@ If for some reason the standard installation methods do not work you may have to
 ### Required Libraries
 The installation instructions below should explain more on how to install.  They can also be installed manually.
 
-* Python 2.6+ (<http://www.python.org>)
-* SciPy (<http://www.scipy.org>)
-* NumPy (<http://numpy.scipy.org>)
-* Pygame (<http://www.pygame.org>)
-* OpenCV 2.3+ (<http://opencv.org>)
-* IPython 10+ (<http://ipython.org>)
-* PIL 1.1.7+ (<http://www.pythonware.com/products/pil/>)
+* [Python 2.6+](<http://www.python.org>)
+* [SciPy](<http://www.scipy.org>)
+* [NumPy](<http://numpy.scipy.org>)
+* [Pygame](<http://www.pygame.org>)
+* [OpenCV 2.3+](<http://opencv.org>)
+* [IPython 10+](<http://ipython.org>)
+* [PIL 1.1.7+](<http://www.pythonware.com/products/pil/>)
 
 <a id="optional"></a>
 ### Optional Libraries
 These libraries are NOT required to run or use SimpleCV but are needed for some of the examples if they are ran.  Some of these may be included in your systems software manager or app store.
 
-* PIP
-* BeaufitulSoup
-* webm
-* freenect (<http://openkinect.org>)
-* python nose
-* pyfirmata
-* cherrypy
-* flask
-* simplejson
-* werkzeug
-* webkit
-* gtk
-* zbar (<http://zbar.sourceforge.net/>)
-* Tesseract (<http://code.google.com/p/tesseract-ocr/>)
-* python-tesseract (<http://code.google.com/p/python-tesseract/>)
-* Orange (<http://orange.biolab.si>)
-* scikit-learn
+* [PIP](https://pypi.org/project/pip)
+* [BeautifulSoup](https://pypi.org/project/beautifulsoup4)
+* [webm](https://pypi.org/project/webm)
+* [freenect](http://openkinect.org)
+* [nose](https://pypi.org/project/nose)
+* [pyFirmata](https://pypi.org/project/pyFirmata)
+* [CherryPy](https://pypi.org/project/CherryPy)
+* [Flask](https://pypi.org/project/Flask)
+* [simplejson](https://pypi.org/project/simplejson)
+* [Werkzeug](https://pypi.org/project/Werkzeug)
+* [WebKit](https://webkit.org)
+* [GTK](https://www.gtk.org)
+* [ZBar](http://zbar.sourceforge.net)
+* [Tesseract](https://github.com/tesseract-ocr/tesseract)
+* [Python-tesseract](https://pypi.org/project/pytesseract)
+* [Orange](https://pypi.org/project/Orange/)
+* [scikit-learn](https://pypi.org/project/scikit-learn)
 
 
 
