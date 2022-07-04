@@ -1075,7 +1075,7 @@ class FeatureSet(list):
         **PARAMETERS**
         
         * *properties* - It should be a list with any combination of "color", "shape", "position". properties = ["color","position"]. properties = ["position","shape"]. properties = ["shape"]
-        * *method* - if method is "kmeans", it will cluster using K-Means algorithm, if the method is "hierarchical", no need to spicify the number of clusters
+        * *method* - if method is "kmeans", it will cluster using K-Means algorithm, if the method is "hierarchical", no need to specify the number of clusters
         * *k* - The number of clusters(kmeans).
         
 

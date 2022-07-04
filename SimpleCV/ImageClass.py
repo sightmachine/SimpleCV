@@ -889,7 +889,7 @@ class Image:
 
         **PARAMETERS**
 
-        * *source* - The source of the image. This can be just about anything, a numpy arrray, a file name, a width and height
+        * *source* - The source of the image. This can be just about anything, a numpy array, a file name, a width and height
           tuple, a url. Certain strings such as "lenna" or "logo" are loaded automatically for quick testing.
 
         * *camera* - A camera to pull a live image.
@@ -13584,7 +13584,7 @@ class Image:
         for i in range(num_of_clusters ): #count the frequency of occurences for sorting
             xycounts = np.append(xycounts, len(np.where(xylabels == i)[-1]))
             
-        merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids))) #sort based on occurence
+        merged = np.msort(np.hstack((np.vstack(xycounts), xycentroids))) #sort based on occurrence
         clusters = [c[1:] for c in merged] # strip out just the values ascending
         if order.lower() == 'dsc':
             clusters = clusters[::-1] #reverse if descending
@@ -14504,7 +14504,7 @@ class Image:
         """
         **SUMMARY**
 
-        Performs image normalization and yeilds a linearly normalized gray image.
+        Performs image normalization and yields a linearly normalized gray image.
         Also known as contrast strestching.
 
         see : http://en.wikipedia.org/wiki/Normalization_(image_processing)

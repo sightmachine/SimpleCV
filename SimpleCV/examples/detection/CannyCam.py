@@ -2,7 +2,7 @@
 '''
 This example just takes an image, finds the edges, and draws them
 the threshold is used for the edge detection, if you adjust the
-max_threshold and threshhold_step values and run the program you will
+max_threshold and threshold_step values and run the program you will
 see it change over time
 '''
 print __doc__
