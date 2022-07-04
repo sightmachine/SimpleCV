@@ -375,7 +375,7 @@ def system():
     Output of this function includes various informations related to system and library.
     
     Main purpose:
-    - While submiting a bug, report the output of this function
+    - While submitting a bug, report the output of this function
     - Checking the current version and later upgrading the library based on the output
     
     **RETURNS**

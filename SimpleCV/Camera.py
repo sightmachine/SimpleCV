@@ -1954,11 +1954,11 @@ class StereoImage:
         **PARAMETERS**
 
         * *Q* - reprojection Matrix (disparity to depth matrix)
-        * *method* - Stereo Correspondonce method to be used.
+        * *method* - Stereo Correspondence method to be used.
                    - "BM" - Stereo BM
                    - "SGBM" - Stereo SGBM
         * *state* - dictionary corresponding to parameters of
-                    stereo correspondonce.
+                    stereo correspondence.
                     SADWindowSize - odd int
                     nDisparity - int
                     minDisparity  - int
@@ -2531,11 +2531,11 @@ class StereoCamera :
         * *leftIndex* - Index of left camera
         * *rightIndex* - Index of right camera
         * *Q* - reprojection Matrix (disparity to depth matrix)
-        * *method* - Stereo Correspondonce method to be used.
+        * *method* - Stereo Correspondence method to be used.
                    - "BM" - Stereo BM
                    - "SGBM" - Stereo SGBM
         * *state* - dictionary corresponding to parameters of
-                    stereo correspondonce.
+                    stereo correspondence.
                     SADWindowSize - odd int
                     nDisparity - int
                     minDisparity  - int
