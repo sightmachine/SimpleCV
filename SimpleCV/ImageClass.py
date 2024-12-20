@@ -4005,26 +4005,25 @@ class Image:
         :py:class:`ColorCurve`
         :py:meth:`applyRGBCurve`
         """
+        if( hCurve is None or lCurve is None or sCurve is None ):
+            logger.warning("ImageClass.applyHLSCurve - we need all three curves")
+            return None
 
+        if( not isinstance(hCurve, ColorCurve) or not isinstance(lCurve, ColorCurve) or not isinstance(sCurve, ColorCurve) ):
+            logger.warning("ImageClass.applyHLSCurve - we need all three curves to be ColorCurve objects")
+            return None
 
-        #TODO CHECK ROI
-        #TODO CHECK CURVE SIZE
-        #TODO CHECK COLORSPACE
-        #TODO CHECK CURVE SIZE
-        temp  = cv.CreateImage(self.size(), 8, 3)
-        #Move to HLS space
-        cv.CvtColor(self._bitmap, temp, cv.CV_RGB2HLS)
-        tempMat = cv.GetMat(temp) #convert the bitmap to a matrix
-        #now apply the color curve correction
-        tempMat = np.array(self.getMatrix()).copy()
-        tempMat[:, :, 0] = np.take(hCurve.mCurve, tempMat[:, :, 0])
-        tempMat[:, :, 1] = np.take(sCurve.mCurve, tempMat[:, :, 1])
-        tempMat[:, :, 2] = np.take(lCurve.mCurve, tempMat[:, :, 2])
-        #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((tempMat.shape[1], tempMat.shape[0]), cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, tempMat.tostring(), tempMat.dtype.itemsize * 3 * tempMat.shape[1])
-        cv.CvtColor(image, image, cv.CV_HLS2RGB)
-        return Image(image, colorSpace=self._colorSpace)
+        if( len(hCurve) != 256 or len(lCurve) != 256 or len(sCurve) != 256 ):
+            logger.warning("ImageClass.applyHLSCurve - we need all three curves to be 256 points long")
+            return None
+
+        retVal = self.getEmpty()
+        cv.CvtColor(self.getBitmap(), retVal, cv.CV_BGR2HLS)
+        cv.LUT(retVal, hCurve.getCurve(), retVal)
+        cv.LUT(retVal, lCurve.getCurve(), retVal)
+        cv.LUT(retVal, sCurve.getCurve(), retVal)
+        cv.CvtColor(retVal, retVal, cv.CV_HLS2BGR)
+        return Image(retVal)
 
 
     def applyRGBCurve(self, rCurve, gCurve, bCurve):
