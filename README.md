@@ -1,6 +1,13 @@
---------------------------
 # SimpleCV
---------------------------
+
+> [!WARNING]  
+> This project is no longer actively maintained. For new computer vision projects, consider using alternatives like:
+> - [OpenCV](https://opencv.org/) - A powerful library for computer vision tasks with wide-ranging support and active community development.
+> - [PyTorch](https://pytorch.org/) + [TorchVision](https://pytorch.org/vision/stable/index.html) - A framework for deep learning and computer vision tasks.
+> - [TensorFlow](https://www.tensorflow.org/) - A robust ecosystem for machine learning and computer vision.
+> - [scikit-image](https://scikit-image.org/) - A lightweight image processing library for Python.
+>
+> While there are no current plans for updates, this project may be revisited in the future. For legacy projects requiring SimpleCV, the codebase is provided as-is.
 
 [![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV)
 
