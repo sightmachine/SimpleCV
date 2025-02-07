@@ -330,7 +330,7 @@ class Display:
         """
         **SUMMARY**
 
-        Given two screen cooridnates return the bounding box in x,y,w,h format.
+        Given two screen coordinates return the bounding box in x,y,w,h format.
         This is helpful for drawing regions on the display.
 
         **RETURNS**
