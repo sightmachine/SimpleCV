@@ -2,7 +2,8 @@
 '''
 This program basically simulates some kind of 80's music video.
 '''
-print __doc__
+from __future__ import print_function
+print(__doc__)
 import sys, time, socket
 from SimpleCV import *
 

@@ -11,8 +11,9 @@ of the face, then click in the lower right corner of the face.  If you
 want to retrain then just right click to reset.
 
 '''
+from __future__ import print_function
 
-print __doc__
+print(__doc__)
 
 import time
 from SimpleCV import Color, Image, np, Camera

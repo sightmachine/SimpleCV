@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV.base import *
 from SimpleCV.ImageClass import Image, ImageSet
 from SimpleCV.DrawingLayer import *
@@ -56,7 +57,7 @@ class TreeClassifier:
     mforestFlavorDict = {
         "NTrees":100, #number of trees in our forest
         "NAttributes":None # number of attributes per split sqrt(features) is default
-     }
+        }
     mBoostedFlavorDict = {
         "NClassifiers":10, #number of learners
     }
@@ -187,7 +188,7 @@ class TreeClassifier:
         for i in range(nfiles):
             infile = files[i]
             if verbose:
-                print "Opening file: " + infile
+                print("Opening file: " + infile)
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -216,7 +217,7 @@ class TreeClassifier:
             imageset = imageset[0:subset]   
         for img in imageset:
             if verbose:
-                print "Opening file: " + img.filename
+                print("Opening file: " + img.filename)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
@@ -224,11 +225,11 @@ class TreeClassifier:
                     featureVector.extend(feats)
                 else:
                     badFeat = True
-                    
+
             if(badFeat):
                 badFeat = False
                 continue
-            
+
             featureVector.extend([className])
             self.mDataSetRaw.append(featureVector)
             text = 'Training: ' + className
@@ -305,7 +306,7 @@ class TreeClassifier:
             c = self.mClassifier(self.mDataSetOrange[i])
             test = self.mDataSetOrange[i].getclass()
             if verbose:
-                print "original", test, "classified as", c
+                print("original", test, "classified as", c)
             if(test==c):
                 correct = correct + 1
             else:
@@ -324,9 +325,9 @@ class TreeClassifier:
             print("Incorrect: "+str(bad))
             if( confusion != 0 ):
                 classes = self.mDataSetOrange.domain.classVar.values
-                print "\t"+"\t".join(classes)
+                print("\t"+"\t".join(classes))
                 for className, classConfusions in zip(classes, confusion):
-                    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(    classConfusions))
+                    print(("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(    classConfusions)))
 
         if(self.mFlavor == 0):
             self._PrintTree(self.mClassifier)
@@ -395,9 +396,9 @@ class TreeClassifier:
             print("Incorrect: "+str(bad))
             if( confusion != 0 ):
                 classes = self.mDataSetOrange.domain.classVar.values
-                print "\t"+"\t".join(classes)
+                print("\t"+"\t".join(classes))
                 for className, classConfusions in zip(classes, confusion):
-                    print ("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(    classConfusions))
+                    print(("%s" + ("\t%i" * len(classes))) % ((className, ) + tuple(    classConfusions)))
         return [good, bad, confusion]
 
     def _testPath(self,path,className,dataset,subset,disp,verbose):
@@ -414,7 +415,7 @@ class TreeClassifier:
         for i in range(nfiles):
             infile = files[i]
             if verbose:
-                print "Opening file: " + infile
+                print("Opening file: " + infile)
             img = Image(infile)
             featureVector = []
             for extractor in self.mFeatureExtractors:
@@ -452,7 +453,7 @@ class TreeClassifier:
             imageset = imageset[0:subset]
         for img in imageset:
             if verbose:
-                print "Opening file: " + img.filename
+                print("Opening file: " + img.filename)
             featureVector = []
             for extractor in self.mFeatureExtractors:
                 feats = extractor.extract(img)
@@ -478,7 +479,7 @@ class TreeClassifier:
                 self._WriteText(disp,img,text, Color.RED)
             count = count + 1
             del img
-            
+
         return([dataset,count,correct])
 
     def _WriteText(self, disp, img, txt,color):
@@ -499,22 +500,22 @@ class TreeClassifier:
         elif type(x) == orange.TreeNode:
             self._PrintTree0(x, 0)
         else:
-            raise TypeError, "invalid parameter"
+            raise TypeError("invalid parameter")
 
     def _PrintTree0(self,node,level):
         #adapted from the orange documentation
         if not node:
-            print " "*level + "<null node>"
+            print(" "*level + "<null node>")
             return
 
         if node.branchSelector:
             nodeDesc = node.branchSelector.classVar.name
             nodeCont = node.distribution
-            print "\n" + "   "*level + "%s (%s)" % (nodeDesc, nodeCont),
+            print("\n" + "   "*level + "%s (%s)" % (nodeDesc, nodeCont), end=' ')
             for i in range(len(node.branches)):
-                print "\n" + "   "*level + ": %s" % node.branchDescriptions[i],
+                print("\n" + "   "*level + ": %s" % node.branchDescriptions[i], end=' ')
                 self._PrintTree0(node.branches[i], level+1)
         else:
             nodeCont = node.distribution
             majorClass = node.nodeClassifier.defaultValue
-            print "--> %s (%s) " % (majorClass, nodeCont)
+            print("--> %s (%s) " % (majorClass, nodeCont))

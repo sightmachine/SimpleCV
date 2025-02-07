@@ -5,6 +5,7 @@ if your system can't handle it (will get very low FPS but it should work).
 This will keep trying indeces until it finds one that doesn't work, then it
 starts from 0.
 """
+from __future__ import print_function
 import freenect
 import cv
 import frame_convert

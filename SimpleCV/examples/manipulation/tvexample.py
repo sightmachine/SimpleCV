@@ -1,7 +1,8 @@
 '''
 This program super imposes the camera onto the television in the picture
 '''
-print __doc__
+from __future__ import print_function
+print(__doc__)
 
 from SimpleCV import Camera, Image, Display
 

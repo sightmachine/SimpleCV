@@ -1,7 +1,11 @@
+from __future__ import absolute_import
 from SimpleCV.base import *
 import SimpleCV.ImageClass
-import Queue
-from base import *
+try:
+    import queue # Note: This is unused.
+except ImportError:
+    import Queue as queue
+from .base import *
 
 
 PYGAME_INITIALIZED = False
@@ -150,14 +154,14 @@ class Display:
         self.rightButtonDown = None
         self.rightButtonUp = None
         self.pressed = None
-        self.displaytype = displaytype 
+        self.displaytype = displaytype
         # NOTE: NO PYGAME CALLS SHOULD BE MADE IN INIT AS THEY KILLL
-        # THE DISPLAY IN IPYTHON NOTEBOOKS       
+        # THE DISPLAY IN IPYTHON NOTEBOOKS
         self.mouseRawX = 0 # Raw x and y are the actual position on the screen
         self.mouseRawY = 0 # versus the position on the image.
         self.resolution = resolution
         if not displaytype == 'notebook':
-            self.screen = pg.display.set_mode(resolution, flags)        
+            self.screen = pg.display.set_mode(resolution, flags)
         if os.path.isfile(os.path.join(LAUNCH_PATH, 'sampleimages','simplecv.png')): #checks if simplecv.png exists
             scvLogo = SimpleCV.Image("simplecv").scale(32,32)
             pg.display.set_icon(scvLogo.getPGSurface())
@@ -577,7 +581,7 @@ class Display:
 
     def checkEvents(self,returnStrings=False):
         """
-        
+
         **SUMMARY**
 
         CheckEvents checks the pygame event queue and sets the internal display
@@ -590,7 +594,7 @@ class Display:
         **PARAMETERS**
 
         returnStrings - pygame returns an enumerated int by default, when this is set to true we return a list of strings.
-        
+
         **RETURNS**
 
         A list of key down events. Parse them with pg.K_<lowercase_letter>

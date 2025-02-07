@@ -18,6 +18,7 @@
 
 
 #load system libraries
+from __future__ import print_function
 from subprocess import call
 import platform
 import webbrowser
@@ -58,8 +59,8 @@ def plot(arg):
         logger.warning("Matplotlib is not installed and required")
         return
 
-    print "args", arg
-    print "type", type(arg)
+    print("args", arg)
+    print("type", type(arg))
     plt.plot(arg)
     plt.show()
 
@@ -230,7 +231,7 @@ def main(*args):
             sys.exit()
 
         elif flag == 'update':
-            print "Updating SimpleCV....."
+            print("Updating SimpleCV.....")
             self_update()
 
         if flag in ['--headless', 'headless']:

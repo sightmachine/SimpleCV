@@ -1,18 +1,19 @@
+from __future__ import print_function
 from SimpleCV import *
 
-print ""
-print "This program runs a list of test for machine learning on"
-print "the SimpleCV library. Not all scores will be high, this"
-print "is just to ensure that the libraries are functioning correctly"
-print "on your system"
-print ""
-print "***** WARNING *****"
-print "This program is about to download a large data set to run it's test"
+print("")
+print("This program runs a list of test for machine learning on")
+print("the SimpleCV library. Not all scores will be high, this")
+print("is just to ensure that the libraries are functioning correctly")
+print("on your system")
+print("")
+print("***** WARNING *****")
+print("This program is about to download a large data set to run it's test")
 
 
 inp = raw_input("Do you want to continue [Y/n]")
 if not (inp == "" or inp.lower() == "y"):
-    print "Exiting the program"
+    print("Exiting the program")
     sys.exit()
 
 
@@ -295,5 +296,5 @@ for i in range(10):
     print(files[i]+' -> '+cname)
 
 
-print ""
-print "All the machine learning test have ran correctly"
+print("")
+print("All the machine learning test have ran correctly")

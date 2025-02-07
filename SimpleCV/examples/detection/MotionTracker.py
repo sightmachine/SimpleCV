@@ -6,6 +6,7 @@ the difference, what is left over is what has changed between those two images
 this are typically blobs on the images, so we do a blob search to count
 the number of blobs and if they exist then motion has occured
 '''
+from __future__ import print_function
 import sys, time, socket
 from SimpleCV import *
 
@@ -40,7 +41,7 @@ while True:
     #Draw the message on the screen
     if(draw_message):
         newImg.drawText(message_text, 5,5)
-        print message_text
+        print(message_text)
 
 
     lastImg = newImg # update the image

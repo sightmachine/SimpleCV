@@ -71,5 +71,3 @@ if __name__ == "__main__":
     webcam = Webcam()
     webcam.show()
     app.exec_()
-
-    

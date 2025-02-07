@@ -27,7 +27,7 @@ class FaceRecognizer():
         try:
             import cv2
             self.model = cv2.createFisherFaceRecognizer()
-        except ImportError, AttributeError:
+        except ImportError as AttributeError:
             self.supported = False
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
 

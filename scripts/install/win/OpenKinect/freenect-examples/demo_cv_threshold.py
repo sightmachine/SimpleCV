@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import freenect
 import cv
 import frame_convert

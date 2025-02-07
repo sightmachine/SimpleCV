@@ -1,3 +1,4 @@
+from __future__ import print_function
 # SimpleCV Color Library
 #
 # This library is used to modify different color properties of images
@@ -213,7 +214,7 @@ class Color:
 
         """
         a = color_tuple
-        print a
+        print(a)
         h_float = colorsys.rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
         return h_float*180
 
@@ -305,7 +306,7 @@ class Color:
         >>> c = Color.getLightness((22,35,230))
 
         **NOTES**
-        
+
         Lightness Method: value = (max(R,G,B)+min(R,G,B))/2
 
         """
@@ -331,7 +332,7 @@ class Color:
         >>> c = Color.getLuminosity((22,35,230))
 
         **NOTES**
-        
+
         Luminosity Method: value = 0.21*R + 0.71*G + 0.07*B
 
         """
@@ -346,7 +347,7 @@ class ColorCurve:
     least 4 point pairs.  Either of these must map in a 255x255 space.  The curve
     can then be used in the applyRGBCurve, applyHSVCurve, and
     applyInstensityCurve functions.
-    
+
     Note:
     The points should be in strictly increasing order of their first elements
     (X-coordinates)

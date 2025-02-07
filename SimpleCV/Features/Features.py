@@ -44,7 +44,7 @@ class FeatureSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if type(key) is slice: #Or can use 'try:' for speed
             return FeatureSet(list.__getitem__(self, key))
         else:
             return list.__getitem__(self,key)
@@ -69,11 +69,11 @@ class FeatureSet(list):
         Call the draw() method on each feature in the FeatureSet.
 
         **PARAMETERS**
-        
+
         * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
         * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature.
-        
+
 
         **RETURNS**
 
@@ -1066,18 +1066,18 @@ class FeatureSet(list):
 
     def cluster(self,method="kmeans",properties=None,k=3):
         """
-        
+
         **SUMMARY**
 
         This function clusters the blobs in the featureSet based on the properties. Properties can be "color", "shape" or "position" of blobs.
         Clustering is done using K-Means or Hierarchical clustering(Ward) algorithm.
 
         **PARAMETERS**
-        
+
         * *properties* - It should be a list with any combination of "color", "shape", "position". properties = ["color","position"]. properties = ["position","shape"]. properties = ["shape"]
         * *method* - if method is "kmeans", it will cluster using K-Means algorithm, if the method is "hierarchical", no need to spicify the number of clusters
         * *k* - The number of clusters(kmeans).
-        
+
 
         **RETURNS**
 
@@ -1091,7 +1091,7 @@ class FeatureSet(list):
           >>> for i in clusters:
           >>>     i.draw(color=Color.getRandom(),width=5)
           >>> img.show()
-        
+
         """
         try :
             from sklearn.cluster import KMeans, Ward
@@ -1119,10 +1119,10 @@ class FeatureSet(list):
             X.append(featureVector)
 
         if method == "kmeans":
-            
+
             # Ignore minor version numbers.
             sklearn_version = re.search(r'\d+\.\d+', __version__).group()
-            
+
             if (float(sklearn_version) > 0.11):
                 k_means = KMeans(init='random', n_clusters=k, n_init=10).fit(X)
             else:

@@ -3,7 +3,8 @@ This examples demonstrates the motionBlur method.
 Use Up/Down Arrow keys to change power
 Use Left/Right Arrow keys to change angle
 """
-print __doc__
+from __future__ import print_function
+print(__doc__)
 
 from SimpleCV import *
 import pygame
@@ -39,7 +40,7 @@ power = 1
 angle = 0
 while not display.isDone():
     time.sleep(0.01)
-    
+
     #detect up,down,left,right keypresses and modify power,angle
     if( pygame.key.get_pressed()[pygame.K_UP] != 0 ):
         power +=10 
@@ -58,5 +59,3 @@ while not display.isDone():
         blur = img.motionBlur(power,angle)
         blur.save(display)
     pass
-
-

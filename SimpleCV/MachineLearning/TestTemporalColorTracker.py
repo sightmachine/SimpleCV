@@ -27,7 +27,7 @@ while disp.isNotDone():
     plt.savefig('temp.png')
     plt.clf()
     plotImg = Image('temp.png')    
-    
+
     roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
     roi.draw(width=3)
     img.drawText(str(result),20,20,color=Color.RED,fontsize=32)

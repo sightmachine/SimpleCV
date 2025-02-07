@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV.base import np, itertools
 try:
     import cv2
@@ -7,7 +8,7 @@ except ImportError:
 def surfTracker(img, bb, ts, **kwargs):
     """
     **DESCRIPTION**
-    
+
     (Dev Zone)
 
     Tracking the object surrounded by the bounding box in the given
@@ -27,11 +28,11 @@ def surfTracker(img, bb, ts, **kwargs):
     eps_val     - eps for DBSCAN
                   The maximum distance between two samples for them 
                   to be considered as in the same neighborhood. 
-                
+
     min_samples - min number of samples in DBSCAN
                   The number of samples in a neighborhood for a point 
                   to be considered as a core point. 
-                  
+
     distance    - thresholding KNN distance of each feature
                   if KNN distance > distance, point is discarded.
 
@@ -105,7 +106,7 @@ def surfTracker(img, bb, ts, **kwargs):
     skp, sd = descriptor.compute(newimg, skp)
 
     if td is None:
-        print "Descriptors are Empty"
+        print("Descriptors are Empty")
         return None
 
     if sd is None:
@@ -128,7 +129,7 @@ def surfTracker(img, bb, ts, **kwargs):
     skp_final = []
     skp_final_labelled=[]
     data_cluster=[]
-    
+
     for i, dis in itertools.izip(idx, dist):
         if dis < distance:
             skp_final.append(skp[i])
@@ -138,7 +139,7 @@ def surfTracker(img, bb, ts, **kwargs):
     n_data = np.asarray(data_cluster)
     D = Dis.squareform(Dis.pdist(n_data))
     S = 1 - (D/np.max(D))
-    
+
     db = DBSCAN(eps=eps_val, min_samples=min_samples).fit(S)
     core_samples = db.core_sample_indices_
     labels = db.labels_

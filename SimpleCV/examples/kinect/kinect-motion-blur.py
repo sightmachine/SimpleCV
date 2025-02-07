@@ -3,6 +3,7 @@
 from operator import add
 from SimpleCV import *
 from SimpleCV.Display import Display
+from functools import reduce
 
 d = Display(flags = pg.FULLSCREEN)
 #create video streams

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV import *
 
 color = Color()
@@ -29,15 +30,15 @@ for b in blobs:
         fname = "SanityCheckExample"+str(i)+".png"
         i = i+ 1
         result.save(fname)
-        print "------------------------------"
-        print metric
+        print("------------------------------")
+        print(metric)
         confuse.append(metric)
 
-print confuse
+print(confuse)
 
 confuse = np.array(confuse)
 
 
-print confuse.reshape(4,4)
+print(confuse.reshape(4,4))
 
 time.sleep(10)

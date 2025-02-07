@@ -2,6 +2,6 @@
 from SimpleCV import Shell
 import sys
 if len(sys.argv) > 1:
-	Shell.main(sys.argv)
+    Shell.main(sys.argv)
 else:
-	Shell.main()
+    Shell.main()

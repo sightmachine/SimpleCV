@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 from SimpleCV import *
 import re
 from types import NoneType
@@ -27,4 +28,4 @@ for k in sys.modules.keys():
 
 
 for egg in easy_installed_pkgs.keys():
-    print easy_installed_path + "/" + egg
+    print(easy_installed_path + "/" + egg)

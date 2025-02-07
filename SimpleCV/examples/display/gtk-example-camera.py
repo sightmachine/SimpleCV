@@ -9,8 +9,9 @@ The image is being updated as the slider is moved.
 The only amount of SimpleCV code is found in the process_image() function
 
 '''
+from __future__ import print_function
 
-print __doc__
+print(__doc__)
 
 import gtk
 import SimpleCV

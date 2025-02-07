@@ -1,3 +1,4 @@
+from __future__ import print_function
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -51,7 +52,7 @@ def imgDiffs(test_imgs,name_stem,tolerance,path):
             diff = (lhs-rhs)
             val = np.average(diff.getNumpy())
             if( val > tolerance ):
-                print val
+                print(val)
                 return True
     return False
 

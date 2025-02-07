@@ -1,3 +1,4 @@
+from __future__ import print_function
 from SimpleCV import Display, Image, Color, ImageSet
 import os
 import os.path as osp
@@ -67,7 +68,7 @@ class TurkingModule:
         self.out_path = out_path
         self.keyMap = {}
         if( len(classList)!=len(key_bindings)):
-            print "Must have a key for each class."
+            print("Must have a key for each class.")
             raise Exception("Must have a key for each class.")
         for key,cls in zip(key_bindings,classList):
             self.keyMap[key] = cls
@@ -92,9 +93,9 @@ class TurkingModule:
             self.srcImgs = source_path
         else:
             for sp in source_paths:
-                print "Loading " + sp
+                print("Loading " + sp)
                 imgSet = ImageSet(sp)
-                print "Loaded " + str(len(imgSet))
+                print("Loaded " + str(len(imgSet)))
                 self.srcImgs += imgSet
 
         if( not osp.exists(out_path) ):
@@ -114,7 +115,7 @@ class TurkingModule:
     def _saveIt(self,img,classType):
         img.clearLayers()
         path = self.out_path + classType + "/" + classType+str(self.countMap[classType])+".png"
-        print "Saving: " + path
+        print("Saving: " + path)
         img = self.postProcess(img)
         self.classMap[classType].append(img)
         img.save(path)
@@ -200,7 +201,7 @@ class TurkingModule:
         disp = Display(disp_size)
         bail = False
         for img in self.srcImgs:
-            print img.filename
+            print(img.filename)
             samples = self.preProcess(img)
             for sample in samples:
                 if( showKeys ):
