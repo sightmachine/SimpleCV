@@ -3981,3 +3981,23 @@ def test_drawingLayerToSVG():
         pass
     else:
         assert False
+
+
+def test_compareHistogram():
+    img = Image((250, 250)) # create 250 x 250 pixel black image
+    img2 = img.invert() # make it white
+
+    if img.compareHistogram(img, "correlation") != 1.0: #verify it matches itself
+        assert False
+    if img.compareHistogram(img, "chi-squared") != 0.0:
+        assert False
+    if img.compareHistogram(img, "intersection") != 1.0:
+        assert False
+    if img.compareHistogram(img, "hellinger") != 0.0:
+        assert False
+    if img.compareHistogram(img, "euclidean") != 0.0:
+        assert False
+    if img.compareHistogram(img, "manhattan") != 0.0:
+        assert False
+    if img.compareHistogram(img, "chebysev") != 0.0:
+        assert False
