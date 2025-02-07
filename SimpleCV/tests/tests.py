@@ -3776,7 +3776,7 @@ def test_motionBlur():
     else:
         assert False
 
-def test_faceRecognize():
+def test_fisherfaceRecognize():
     try:
         import cv2
         if hasattr(cv2, "createFisherFaceRecognizer"):
@@ -3824,6 +3824,62 @@ def test_faceRecognize():
                 label.append(name)
 
             if label == ["male", "male", "female", "female"]:
+                pass
+            else:
+                assert False
+        else:
+            pass
+    except ImportError:
+        pass
+
+def test_lbphfaceRecognize():
+    try:
+        import cv2
+        if hasattr(cv2, "createLBPHFaceRecognizer"):
+            f = FaceRecognizer(algo="lbph")
+            images1 = ["../sampleimages/ff1.jpg",
+                       "../sampleimages/ff2.jpg",
+                       "../sampleimages/ff3.jpg",
+                       "../sampleimages/ff4.jpg",
+                        "../sampleimages/ff5.jpg"]
+
+            images2 = ["../sampleimages/fm1.jpg",
+                       "../sampleimages/fm2.jpg",
+                       "../sampleimages/fm3.jpg",
+                       "../sampleimages/fm4.jpg",
+                       "../sampleimages/fm5.jpg"]
+
+            images3 = ["../sampleimages/fi1.jpg",
+                       "../sampleimages/fi2.jpg",
+                       "../sampleimages/fi3.jpg",
+                       "../sampleimages/fi4.jpg"]
+
+            imgset1 = []
+            imgset2 = []
+            imgset3 = []
+
+            for img in images1:
+                imgset1.append(Image(img))
+            label1 = ["female"]*len(imgset1)
+
+            for img in images2:
+                imgset2.append(Image(img))
+            label2 = ["male"]*len(imgset2)
+
+            imgset = imgset1 + imgset2
+            labels = label1 + label2
+            imgset[4] = imgset[4].resize(400,400)
+            f.train(imgset, labels)
+
+            for img in images3:
+                imgset3.append(Image(img))
+            imgset[2].resize(300, 300)
+            label = []
+            for img in imgset3:
+                name, confidence = f.predict(img)
+                label.append(name)
+
+            if label == ["female", "male", "female", "male"]:
                 pass
             else:
                 assert False
